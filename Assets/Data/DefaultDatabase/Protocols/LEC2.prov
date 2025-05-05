@@ -2,7 +2,7 @@
   "Name": "LEC2",
   "Blocs": [
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\LEC2_ATT.jpg",
       "Name": "ATTEND",
       "Order": 0,
       "Sort": "Main_ATTEND_CODE",
@@ -37,7 +37,7 @@
       "ID": "96a90d36-4e29-4bc8-9bcf-2b467d797812"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\LEC2_IGN.jpg",
       "Name": "IGNORE",
       "Order": 1,
       "Sort": "Main_IGNORE_CODE",

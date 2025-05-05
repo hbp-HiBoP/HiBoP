@@ -264,8 +264,7 @@ namespace HBP.Core.Tools
         public static bool LoadSpriteFromFile(out Sprite sprite, string path)
         {
             sprite = Sprite.Create(new Texture2D(1, 1), new Rect(), new Vector2());
-            Texture2D texture;
-            if (LoadTexture2DFromFile(out texture, path))
+            if (LoadTexture2DFromFile(out Texture2D texture, path))
             {
                 texture.Apply(true, false);
                 sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));

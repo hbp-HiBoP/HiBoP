@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Tools;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
@@ -40,6 +41,25 @@ namespace HBP.UI.Informations.TrialMatrix
             }
         }
         public StringEvent OnChangeTitle;
+
+        private Sprite m_Sprite = null;
+        public Sprite Sprite
+        {
+            get
+            {
+                return m_Sprite;
+            }
+            set
+            {
+                if (value != null && value != m_Sprite)
+                {
+                    if (m_Sprite != null) Destroy(m_Sprite);
+                    m_Sprite = value;
+                    OnChangeSprite.Invoke(value);
+                }
+            }
+        }
+        public SpriteEvent OnChangeSprite;
 
         Vector2 m_Limits;
         public Vector2 Limits
@@ -117,6 +137,13 @@ namespace HBP.UI.Informations.TrialMatrix
         {
             m_Data = data;
             Title = data.Title;
+            if (!string.IsNullOrEmpty(data.IllustrationPath))
+            {
+                if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, data.IllustrationPath))
+                {
+                    Sprite = sprite;
+                }
+            }
             Clear();
             foreach (var channelBloc in data.ChannelBlocs)
             {

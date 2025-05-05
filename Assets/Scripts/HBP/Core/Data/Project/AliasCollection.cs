@@ -53,6 +53,10 @@ namespace HBP.Core.Data
                     aliasCollection = new AliasCollection();
                 }
             }
+            else
+            {
+                aliasCollection.AddAlias(new Alias("[DATABASE_FOLDER]", Path.Combine(Application.persistentDataPath, "Database")));
+            }
             aliasCollection.Save();
             return aliasCollection;
         }

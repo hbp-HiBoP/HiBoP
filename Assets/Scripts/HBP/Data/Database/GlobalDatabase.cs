@@ -276,11 +276,50 @@ namespace HBP.Data.Database
         }
         private async UniTask SaveProtocolsAsync()
         {
+            CopyProtocolsImages();
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ProtocolsTemp"));
             await UniTask.WhenAll(m_Protocols.Select(p => ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(protocolTempDirectory.FullName, p.Name + Protocol.EXTENSION), true)));
             protocolDirectory.Delete(true);
             protocolTempDirectory.MoveTo(protocolDirectory.FullName);
+        }
+        private void CopyProtocolsImages()
+        {
+            DirectoryInfo imagesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Images"));
+            DirectoryInfo imagesTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ImagesTemp"));
+            foreach (var protocol in m_Protocols)
+            {
+                foreach (var bloc in protocol.Blocs)
+                {
+                    if (!string.IsNullOrEmpty(bloc.IllustrationPath))
+                    {
+                        var blocImage = new FileInfo(bloc.IllustrationPath);
+                        if (blocImage.Exists)
+                        {
+                            blocImage.CopyTo(Path.Join(imagesTempDirectory.FullName, blocImage.Name));
+                            bloc.IllustrationPath = Path.Join(imagesDirectory.FullName, blocImage.Name);
+                        }
+                    }
+
+                    foreach (var subBloc in bloc.SubBlocs)
+                    {
+                        foreach (var icon in subBloc.Icons)
+                        {
+                            if (!string.IsNullOrEmpty(icon.ImagePath))
+                            {
+                                var iconImage = new FileInfo(icon.ImagePath);
+                                if (iconImage.Exists)
+                                {
+                                    iconImage.CopyTo(Path.Join(imagesTempDirectory.FullName, iconImage.Name));
+                                    icon.ImagePath = Path.Join(imagesDirectory.FullName, iconImage.Name);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            imagesDirectory.Delete(true);
+            imagesTempDirectory.MoveTo(imagesDirectory.FullName);
         }
 
         private async UniTask LoadDatabaseReferencesAsync()

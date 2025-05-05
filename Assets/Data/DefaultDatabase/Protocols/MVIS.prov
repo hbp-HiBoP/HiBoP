@@ -2,7 +2,7 @@
   "Name": "MVIS",
   "Blocs": [
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVIS_LOAD2.jpg",
       "Name": "LOAD2",
       "Order": 1,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD2_CODE",
@@ -46,7 +46,7 @@
       "ID": "849f9fd2-73ee-40fc-a6da-2d6d1c379e14"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVIS_LOAD4.jpg",
       "Name": "LOAD4",
       "Order": 2,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD4_CODE",
@@ -90,7 +90,7 @@
       "ID": "b8c06aac-35d4-4259-823c-56376f0e5bb2"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVIS_LOAD6.jpg",
       "Name": "LOAD6",
       "Order": 3,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD6_CODE",
@@ -134,7 +134,7 @@
       "ID": "ca053cf7-69b4-4fbb-bcdc-5fe7b6e7ee95"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVIS_CONT.jpg",
       "Name": "CONTROL",
       "Order": 0,
       "Sort": "Main_RESPONSE_LATENCY;Main_CONTROL_CODE",
@@ -145,7 +145,7 @@
           "Type": 0,
           "Window": {
             "Start": -500,
-            "End": 7000
+            "End": 3000
           },
           "Baseline": {
             "Start": -200,
@@ -155,9 +155,7 @@
             {
               "Name": "CONTROL",
               "Codes": [
-                21,
-                41,
-                61
+                10
               ],
               "Type": 0,
               "ID": "869e03ac-68b7-4ed4-a73b-f3b12be7357c"

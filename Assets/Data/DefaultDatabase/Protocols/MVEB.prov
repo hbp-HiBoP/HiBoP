@@ -2,7 +2,7 @@
   "Name": "MVEB",
   "Blocs": [
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_LOAD2.jpg",
       "Name": "LOAD2",
       "Order": 1,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD2_CODE",
@@ -46,7 +46,7 @@
       "ID": "b879923f-4349-4348-91c3-cef9fb32dbff"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_LOAD4.jpg",
       "Name": "LOAD4",
       "Order": 2,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD4_CODE",
@@ -90,7 +90,7 @@
       "ID": "0100c56c-af52-492f-9226-e277217edf24"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_LOAD6.jpg",
       "Name": "LOAD6",
       "Order": 3,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD6_CODE",
@@ -134,7 +134,7 @@
       "ID": "6596392d-621e-4f86-b7f5-e927f67970bc"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_CONT.jpg",
       "Name": "CONTROL",
       "Order": 0,
       "Sort": "Main_RESPONSE_LATENCY;Main_CONTROL_CODE",
@@ -145,7 +145,7 @@
           "Type": 0,
           "Window": {
             "Start": -500,
-            "End": 7000
+            "End": 3000
           },
           "Baseline": {
             "Start": -200,
@@ -155,9 +155,7 @@
             {
               "Name": "CONTROL",
               "Codes": [
-                21,
-                41,
-                61
+                10
               ],
               "Type": 0,
               "ID": "ea071b95-f74b-4460-bc0d-be3d1aa9527b"

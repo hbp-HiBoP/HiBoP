@@ -6,6 +6,7 @@ namespace HBP.Data.Informations.TrialMatrix
     {
         #region Properties
         public string Title { get; set; }
+        public string IllustrationPath { get; set; }
         public ChannelBloc[] ChannelBlocs { get; set; }
         public Core.Data.Bloc Data { get; set; }
         #endregion
@@ -14,6 +15,7 @@ namespace HBP.Data.Informations.TrialMatrix
         public Bloc(Core.Data.Bloc bloc, TrialMatrixGrid.TrialMatrixData dataStruct, ChannelStruct[] channels)
         {
             Title = bloc.Name;
+            IllustrationPath = bloc.IllustrationPath;
             Data = bloc;
             ChannelBlocs = channels.Select(c => new ChannelBloc(bloc, dataStruct, c)).ToArray();
         }

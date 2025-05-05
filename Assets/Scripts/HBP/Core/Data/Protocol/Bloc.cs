@@ -77,7 +77,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                if (m_NeedToReload || m_Image != null)
+                if (m_NeedToReload || m_Image == null)
                 {
                     if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, IllustrationPath)) m_Image = sprite;
                 }

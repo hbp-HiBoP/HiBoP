@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using HBP.Core.Interfaces;
 using Newtonsoft.Json;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -9,7 +10,12 @@ namespace HBP.Core.Data
     {
         #region Properties
         [JsonProperty] public string Key { get; set; }
-        [JsonProperty] public string Value { get; set; }
+        [JsonProperty("Value")] private string m_Value;
+        public string Value
+        {
+            get => m_Value.StandardizeToEnvironement();
+            set => m_Value = value.StandardizeToEnvironement();
+        }
         string INameable.Name { get => Key; set => Key = value; }
         #endregion
 

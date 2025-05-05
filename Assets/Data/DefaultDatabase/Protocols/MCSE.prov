@@ -2,7 +2,7 @@
   "Name": "MCSE",
   "Blocs": [
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MCSE_EASY.jpg",
       "Name": "POP-OUT",
       "Order": 0,
       "Sort": "Main_RESPONSE_LATENCY;Main_POP-OUT_CODE",
@@ -13,7 +13,7 @@
           "Type": 0,
           "Window": {
             "Start": -500,
-            "End": 3500
+            "End": 3000
           },
           "Baseline": {
             "Start": -200,
@@ -46,7 +46,7 @@
       "ID": "b6965246-ab90-4bee-b11c-5435c5420b40"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MCSE_HARD.jpg",
       "Name": "RESEARCH",
       "Order": 1,
       "Sort": "Main_RESPONSE_LATENCY;Main_RESEARCH_CODE",
@@ -57,7 +57,7 @@
           "Type": 0,
           "Window": {
             "Start": -500,
-            "End": 3500
+            "End": 3000
           },
           "Baseline": {
             "Start": -200,

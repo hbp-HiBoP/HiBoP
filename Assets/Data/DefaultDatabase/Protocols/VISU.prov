@@ -2,7 +2,7 @@
   "Name": "VISU",
   "Blocs": [
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_FRUIT.jpg",
       "Name": "FRUIT",
       "Order": 0,
       "Sort": "Main_RESPONSE_LATENCY;Main_FRUIT_CODE",
@@ -45,7 +45,7 @@
       "ID": "e65e9f04-f626-44e4-9516-97def8fc7c0a"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_FACE.jpg",
       "Name": "FACE",
       "Order": 7,
       "Sort": "Main_FACE_CODE",
@@ -80,7 +80,7 @@
       "ID": "b7bd58e5-8b42-44ec-9f75-360b967d227d"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_ANIMAL.jpg",
       "Name": "ANIMAL",
       "Order": 6,
       "Sort": "Main_ANIMAL_CODE",
@@ -115,7 +115,7 @@
       "ID": "fa56e7bc-83ef-485b-a38f-31e78e0cb7a0"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_LANDSCAPE.jpg",
       "Name": "LANDSCAPE",
       "Order": 5,
       "Sort": "Main_LANDSCAPE_CODE",
@@ -150,7 +150,7 @@
       "ID": "2630224e-08bc-44c4-9857-93e90002508b"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_OBJECT.jpg",
       "Name": "OBJECT",
       "Order": 4,
       "Sort": "Main_OBJECT_CODE",
@@ -185,7 +185,7 @@
       "ID": "87564be1-5fe3-4c84-b9e3-eb890683240d"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_PWORD.jpg",
       "Name": "PSEUDOWORD",
       "Order": 3,
       "Sort": "Main_PSEUDOWORD_CODE",
@@ -220,7 +220,7 @@
       "ID": "5a144fa1-6662-4f97-a3e3-be8197983a49"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_CONSON.jpg",
       "Name": "CONSONANT",
       "Order": 2,
       "Sort": "Main_CONSONANT_CODE",
@@ -255,7 +255,7 @@
       "ID": "ab59a3d2-1c8f-4c38-9ab6-90a656928aba"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_SCRAMB.jpg",
       "Name": "SCRAMBLED",
       "Order": 1,
       "Sort": "Main_SCRAMBLED_CODE",
@@ -290,7 +290,7 @@
       "ID": "85d1e3aa-ac94-4144-8d27-297695f00f74"
     },
     {
-      "IllustrationPath": "",
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_HOUSE.jpg",
       "Name": "HOUSE",
       "Order": 8,
       "Sort": "Main_HOUSE_CODE",
