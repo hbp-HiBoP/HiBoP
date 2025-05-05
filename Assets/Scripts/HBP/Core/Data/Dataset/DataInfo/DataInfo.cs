@@ -296,13 +296,16 @@ namespace HBP.Core.Data
                             Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == splits[3]);
                             if (protocol != null)
                             {
-                                FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
-                                FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
-                                if (rawEEG.Exists && rawPos.Exists)
+                                if (parameters.IncludeRaw)
                                 {
-                                    var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
-                                    dataInfo.CheckErrorsAndWarnings(true);
-                                    dataInfoList.Add(dataInfo);
+                                    FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
+                                    FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
+                                    if (rawEEG.Exists && rawPos.Exists)
+                                    {
+                                        var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
+                                        dataInfo.CheckErrorsAndWarnings(true);
+                                        dataInfoList.Add(dataInfo);
+                                    }
                                 }
 
                                 string ds = GetDownsamplingString(subdir);

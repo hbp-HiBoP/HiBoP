@@ -10,6 +10,7 @@ namespace HBP.UI.Database
     public class LocalizerDatabaseParametersSubModifier : SubModifier<LocalizerDatabaseParameters>
     {
         #region Properties
+        [SerializeField] Toggle m_IncludeRawToggle;
         [SerializeField] InputField m_FrequenciesInputField;
         [SerializeField] InputField m_TemporalSmoothingsInputField;
         #endregion
@@ -18,6 +19,8 @@ namespace HBP.UI.Database
         public override void Initialize()
         {
             base.Initialize();
+
+            m_IncludeRawToggle.onValueChanged.AddListener(OnChangeIncludeRaw);
             m_FrequenciesInputField.onValueChanged.AddListener(OnChangeFrequencies);
             m_TemporalSmoothingsInputField.onValueChanged.AddListener(OnChangeTemporalSmoothings);
         }
@@ -27,12 +30,18 @@ namespace HBP.UI.Database
         protected override void SetFields(LocalizerDatabaseParameters objectToDisplay)
         {
             base.SetFields(objectToDisplay);
+
+            m_IncludeRawToggle.isOn = objectToDisplay.IncludeRaw;
             m_FrequenciesInputField.text = string.Join(",", objectToDisplay.Frequencies);
             m_TemporalSmoothingsInputField.text = string.Join(",", objectToDisplay.TemporalSmoothings);
         }
         #endregion
 
         #region Private Methods
+        private void OnChangeIncludeRaw(bool value)
+        {
+            Object.IncludeRaw = value;
+        }
         private void OnChangeFrequencies(string value)
         {
             Object.Frequencies = value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);

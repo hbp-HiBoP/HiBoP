@@ -80,18 +80,20 @@ namespace HBP.Data.Database
     [JsonObject(MemberSerialization.OptIn)]
     public class LocalizerDatabaseParameters : DatabaseReferenceParameters
     {
+        [JsonProperty] public bool IncludeRaw { get; set; } = false;
         [JsonProperty] public string[] Frequencies { get; set; } = new string[] { "f8f24", "f50f150" };
         [JsonProperty] public string[] TemporalSmoothings { get; set; } = new string[] { "sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
 
         public override object Clone()
         {
-            return new LocalizerDatabaseParameters() { Frequencies = Frequencies, TemporalSmoothings = TemporalSmoothings };
+            return new LocalizerDatabaseParameters() { IncludeRaw = IncludeRaw, Frequencies = Frequencies, TemporalSmoothings = TemporalSmoothings };
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             if (copy is LocalizerDatabaseParameters localizerDatabaseParameters)
             {
+                IncludeRaw = localizerDatabaseParameters.IncludeRaw;
                 Frequencies = localizerDatabaseParameters.Frequencies;
                 TemporalSmoothings = localizerDatabaseParameters.TemporalSmoothings;
             }
