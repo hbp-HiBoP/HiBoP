@@ -173,7 +173,7 @@ namespace HBP.Core.Data
                 Dataset = ccepColumn.Dataset;
                 DataName = ccepColumn.DataName;
                 Bloc = ccepColumn.Bloc;
-                DynamicConfiguration = ccepColumn.DynamicConfiguration;
+                DynamicConfiguration.Copy(ccepColumn.DynamicConfiguration);
             }
         }
         #endregion

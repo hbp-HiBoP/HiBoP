@@ -106,7 +106,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void AddColumn()
         {
-            Column column = new IEEGColumn("Column n°" + (ObjectTemp.Columns.Count + 1), new BaseConfiguration(), ObjectTemp.Patients);
+            Column column = GenerateNewColumn();
             ObjectTemp.Columns.Add(column);
             m_TabGestion.AddTab(column.Name, -1, true);
             m_ColumnModifier.Object = column;
@@ -119,6 +119,8 @@ namespace HBP.UI.Main
             int index = m_TabGestion.ActiveTabIndex;
             ObjectTemp.Columns.RemoveAt(index);
             m_TabGestion.RemoveTab(index);
+            if (ObjectTemp.Columns.Count == 0)
+                m_ColumnModifier.Object = null;
         }
         #endregion
 
@@ -211,7 +213,7 @@ namespace HBP.UI.Main
         /// <param name="column">Column selected</param>
         protected void SelectColumn(Column column)
         {
-            if (ObjectTemp != null)
+            if (ObjectTemp != null && column != null)
             {
                 ObjectTemp.Columns[m_TabGestion.ActiveTabIndex] = column;
             }
@@ -233,6 +235,45 @@ namespace HBP.UI.Main
         {
             m_ObjectTemp.Patients.AddIfAbsent(patient);
             m_NeedToUpdate = true;
+        }
+        private Column GenerateNewColumn()
+        {
+            string columnName = "Column n°" + (ObjectTemp.Columns.Count + 1);
+
+            if (m_ColumnModifier.Object == null)
+            {
+                if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<PatientDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new IEEGColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<FMRIDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new FMRIColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<MEGcDataInfo>().Any(d => d.Patient == p) || ds.Data.OfType<MEGvDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new MEGColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<CCEPDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new CCEPColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<StaticDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new StaticColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else
+                {
+                    return new AnatomicColumn(columnName, new BaseConfiguration());
+                }
+            }
+            else
+            {
+                Column column = m_ColumnModifier.Object.Clone() as Column;
+                column.Name = columnName;
+                column.GenerateID();
+                return column;
+            }
         }
         private void Update()
         {

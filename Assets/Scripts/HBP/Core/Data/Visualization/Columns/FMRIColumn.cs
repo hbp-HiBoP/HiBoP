@@ -52,6 +52,18 @@ namespace HBP.Core.Data
             FMRIConfiguration = fmriConfiguration;
             Dataset = dataset;
         }
+        public FMRIColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
+        {
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                FMRIDataInfo[] fmriDataInfos = dataset.GetFMRIDataInfos();
+                if (patients.All((patient) => fmriDataInfos.Any((data) => data.Patient == patient)))
+                {
+                    Dataset = dataset;
+                    return;
+                }
+            }
+        }
         public FMRIColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, new FMRIConfiguration())
         {
         }
@@ -81,7 +93,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is FMRIColumn fmriColumn)
             {
-                FMRIConfiguration = fmriColumn.FMRIConfiguration;
+                FMRIConfiguration.Copy(fmriColumn.FMRIConfiguration);
                 Dataset = fmriColumn.Dataset;
             }
         }

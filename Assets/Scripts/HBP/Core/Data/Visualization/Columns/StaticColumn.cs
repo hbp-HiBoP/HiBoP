@@ -59,6 +59,22 @@ namespace HBP.Core.Data
             Dataset = dataset;
             DataName = dataName;
         }
+        public StaticColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
+        {
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                StaticDataInfo[] staticDataInfos = dataset.GetStaticDataInfos();
+                foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())
+                {
+                    if (patients.All((patient) => staticDataInfos.Any((data) => (data.Patient == patient && data.Name == dataName))))
+                    {
+                        Dataset = dataset;
+                        DataName = dataName;
+                        return;
+                    }
+                }
+            }
+        }
         public StaticColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, new StaticConfiguration())
         {
         }
@@ -88,7 +104,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is StaticColumn staticColumn)
             {
-                StaticConfiguration = staticColumn.StaticConfiguration;
+                StaticConfiguration.Copy(staticColumn.StaticConfiguration);
                 Dataset = staticColumn.Dataset;
                 DataName = staticColumn.DataName;
             }

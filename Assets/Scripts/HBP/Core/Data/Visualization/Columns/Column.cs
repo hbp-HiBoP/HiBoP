@@ -74,7 +74,7 @@ namespace HBP.Core.Data
             if(copy is Column column)
             {
                 Name = column.Name;
-                BaseConfiguration = column.BaseConfiguration;
+                BaseConfiguration.Copy(column.BaseConfiguration);
             }
         }
         public abstract bool IsCompatible(IEnumerable<Patient> patients);

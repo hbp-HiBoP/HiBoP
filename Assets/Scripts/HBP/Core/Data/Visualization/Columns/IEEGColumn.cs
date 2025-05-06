@@ -173,7 +173,7 @@ namespace HBP.Core.Data
                 Dataset = ieegColumn.Dataset;
                 DataName = ieegColumn.DataName;
                 Bloc = ieegColumn.Bloc;
-                DynamicConfiguration = ieegColumn.DynamicConfiguration;
+                DynamicConfiguration.Copy(ieegColumn.DynamicConfiguration);
             }
         }
         #endregion

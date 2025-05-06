@@ -52,6 +52,18 @@ namespace HBP.Core.Data
             MEGConfiguration = fmriConfiguration;
             Dataset = dataset;
         }
+        public MEGColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
+        {
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                PatientDataInfo[] megDataInfos = dataset.GetMEGDataInfos();
+                if (patients.All((patient) => megDataInfos.Any((data) => data.Patient == patient)))
+                {
+                    Dataset = dataset;
+                    return;
+                }
+            }
+        }
         public MEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, new MEGConfiguration())
         {
         }
@@ -81,7 +93,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is MEGColumn megColumn)
             {
-                MEGConfiguration = megColumn.MEGConfiguration;
+                MEGConfiguration.Copy(megColumn.MEGConfiguration);
                 Dataset = megColumn.Dataset;
             }
         }

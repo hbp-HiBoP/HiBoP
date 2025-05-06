@@ -49,7 +49,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is AnatomicColumn anatomicColumn)
             {
-                AnatomicConfiguration = anatomicColumn.AnatomicConfiguration;
+                AnatomicConfiguration.Copy(anatomicColumn.AnatomicConfiguration);
             }
         }
         public override bool IsCompatible(IEnumerable<Patient> patients)
