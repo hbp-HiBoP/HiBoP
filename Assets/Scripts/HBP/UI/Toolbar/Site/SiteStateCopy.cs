@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HBP.UI.Tools;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Toolbar
@@ -18,11 +19,13 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void Initialize()
         {
-            m_Button.onClick.AddListener(() =>
+            m_Button.onClick.AddListener(async () =>
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ApplySelectedColumnSiteStatesToOtherColumns();
+                var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Override Sites Attributes", "The attributes of all sites will be overridden by the attributes of the selected column. Do you want to continue?\n\nReminder: a site's attributes consist of its blacklisted status, highlighted status, color and labels.", "Override", "Cancel");
+                if (result == 0)
+                    SelectedScene.ApplySelectedColumnSiteStatesToOtherColumns();
             });
         }
         /// <summary>

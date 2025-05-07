@@ -322,6 +322,7 @@ namespace HBP.Data.Module3D
         /// <returns></returns>
         private static async UniTask LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
+            await UniTask.SwitchToMainThread();
             Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
             scene.Initialize(visualization);
             token.ThrowIfCancellationRequested();

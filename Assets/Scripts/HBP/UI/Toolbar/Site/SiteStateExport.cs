@@ -1,8 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using HBP.Core.Tools;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using System.Collections.Generic;
 using System.IO;
-using HBP.Core.Tools;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Toolbar
 {
@@ -105,21 +107,31 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Load the sites of the selected column
         /// </summary>
-        private void LoadSiteStatesToSelectedColumn()
+        private async void LoadSiteStatesToSelectedColumn()
         {
 #if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingFileNameAsync((loadPath) =>
+            FileBrowser.GetExistingFileNameAsync(async (loadPath) =>
             {
                 if (!string.IsNullOrEmpty(loadPath))
                 {
-                    LoadSiteStates(loadPath);
+                    var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Override Site Attributes", "Would you like to override the site attributes for all columns or just the selected one?\n\n" +
+                        "Reminder: a site's attributes consist of its:\n" +
+                        "- blacklist status\n" +
+                        "- highlight status\n" +
+                        "- color\n" +
+                        "- labels",
+                        "All columns", "Selected only", "Cancel");
+                    if (result == 2) return;
+                    LoadSiteStates(loadPath, result == 0);
                 }
             }, new string[] { "csv" }, "Load site states");
 #else
             string loadPath = FileBrowser.GetExistingFileName(new string[] { "csv" }, "Load site states");
             if (!string.IsNullOrEmpty(loadPath))
             {
-                LoadSiteStates(loadPath);
+                var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Override Site Attributes", "Would you like to override the site attributes for all columns or just the selected one?\n\nReminder: a site's attributes consist of its blacklisted status, highlighted status, color and labels.", "All columns", "Selected only", "Cancel");
+                if (result == 2) return;
+                LoadSiteStates(loadPath, result == 0);
             }
 #endif
         }
@@ -127,68 +139,70 @@ namespace HBP.UI.Toolbar
         /// Load the states of the sites to this column from a file
         /// </summary>
         /// <param name="path">Path of the file to load data from</param>
-        public void LoadSiteStates(string path)
+        public void LoadSiteStates(string path, bool allColumns)
         {
             try
             {
-                using (StreamReader sr = new StreamReader(path))
+                List<Column3D> columns = allColumns ? SelectedScene.Columns : new List<Column3D> { SelectedColumn };
+                using StreamReader sr = new(path);
+                // Find which column of the csv corresponds to which argument
+                string firstLine = sr.ReadLine();
+                string[] firstLineSplits = firstLine.Split(',');
+                int[] indices = new int[5];
+                for (int i = 0; i < indices.Length; ++i)
                 {
-                    // Find which column of the csv corresponds to which argument
-                    string firstLine = sr.ReadLine();
-                    string[] firstLineSplits = firstLine.Split(',');
-                    int[] indices = new int[5];
-                    for (int i = 0; i < indices.Length; ++i)
+                    string split = firstLineSplits[i];
+                    indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : split == "Labels" ? 4 : i;
+                }
+                // Fill states
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    string[] args = line.Split(',');
+                    Core.Object3D.SiteState state = new();
+
+                    if (bool.TryParse(args[indices[1]], out bool stateValue))
                     {
-                        string split = firstLineSplits[i];
-                        indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : split == "Labels" ? 4 : i;
+                        state.IsBlackListed = stateValue;
                     }
-                    // Fill states
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
+                    else
                     {
-                        string[] args = line.Split(',');
-                        Core.Object3D.SiteState state = new Core.Object3D.SiteState();
+                        state.IsBlackListed = false;
+                    }
 
-                        if (bool.TryParse(args[indices[1]], out bool stateValue))
-                        {
-                            state.IsBlackListed = stateValue;
-                        }
-                        else
-                        {
-                            state.IsBlackListed = false;
-                        }
+                    if (bool.TryParse(args[indices[2]], out stateValue))
+                    {
+                        state.IsHighlighted = stateValue;
+                    }
+                    else
+                    {
+                        state.IsHighlighted = false;
+                    }
 
-                        if (bool.TryParse(args[indices[2]], out stateValue))
-                        {
-                            state.IsHighlighted = stateValue;
-                        }
-                        else
-                        {
-                            state.IsHighlighted = false;
-                        }
+                    if (ColorUtility.TryParseHtmlString(args[indices[3]], out Color color))
+                    {
+                        state.Color = color;
+                    }
+                    else
+                    {
+                        state.Color = Core.Object3D.SiteState.DefaultColor;
+                    }
 
-                        if (ColorUtility.TryParseHtmlString(args[indices[3]], out Color color))
-                        {
-                            state.Color = color;
-                        }
-                        else
-                        {
-                            state.Color = Core.Object3D.SiteState.DefaultColor;
-                        }
+                    string[] labels = args[indices[4]].Split(new char[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var label in labels)
+                    {
+                        state.AddLabel(label);
+                    }
 
-                        string[] labels = args[indices[4]].Split(new char[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
-                        foreach (var label in labels)
-                        {
-                            state.AddLabel(label);
-                        }
-
-                        if (SelectedColumn.SiteStateBySiteID.TryGetValue(args[indices[0]], out Core.Object3D.SiteState existingState))
+                    foreach (var column in columns)
+                    {
+                        if (column.SiteStateBySiteID.TryGetValue(args[indices[0]], out Core.Object3D.SiteState existingState))
                         {
                             existingState.ApplyState(state);
                         }
                         else
                         {
-                            SelectedColumn.SiteStateBySiteID.Add(args[indices[0]], state);
+                            column.SiteStateBySiteID.Add(args[indices[0]], state);
                         }
                     }
                 }
