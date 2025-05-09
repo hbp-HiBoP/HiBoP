@@ -135,6 +135,7 @@ namespace HBP.UI.Informations
                 bool selected = c == m_SelectedColumn;
                 AddGraph(column.Item1, column.Item2.ToVector2(), defaultOrdinateDisplayRange, abscissaDisplayRange[c], ordinateDisplayRange, selected);
             }
+            m_ToggleContainer.gameObject.SetActive(m_Graphs.Count > 1);
         }
         void AddGraph(Graph.Curve[] curves, Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool selected)
         {
