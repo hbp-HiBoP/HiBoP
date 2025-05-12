@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using Cysharp.Threading.Tasks;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions.ColorPicker;
@@ -10,25 +11,28 @@ namespace HBP.UI.Tools
         #region Properties
         [SerializeField] private ColorPickerControl m_ColorPickerControl;
         [SerializeField] private UnityEngine.UI.Button m_Blocker;
-        private ColorEvent m_OnColorPicked = new ColorEvent();
+        private bool m_ColorPicked;
         #endregion
 
         #region Public Methods
-        public void Open(Color color, UnityAction<Color> action)
+        public async UniTask<Color> OpenAsync(Color color)
         {
-            m_OnColorPicked.RemoveAllListeners();
-            m_OnColorPicked.AddListener(action);
+            m_ColorPicked = false;
 
             GetComponent<MousePositionAndClamp>().Clamp();
             SetBlockerPosition();
             gameObject.SetActive(true);
 
             m_ColorPickerControl.CurrentColor = color;
+
+            await UniTask.WaitUntil(() => m_ColorPicked);
+
+            return m_ColorPickerControl.CurrentColor;
         }
         public void Close()
         {
             gameObject.SetActive(false);
-            m_OnColorPicked.Invoke(m_ColorPickerControl.CurrentColor);
+            m_ColorPicked = true;
         }
         public Color GetDefaultColor(int index)
         {

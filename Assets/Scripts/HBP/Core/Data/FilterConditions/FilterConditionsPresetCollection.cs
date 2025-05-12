@@ -17,7 +17,7 @@ namespace HBP.Core.Data
         [JsonProperty] private List<FilterConditionsPreset> m_Presets = new List<FilterConditionsPreset>();
         public ReadOnlyCollection<FilterConditionsPreset> Presets => new ReadOnlyCollection<FilterConditionsPreset>(m_Presets);
 
-        public FilterConditionsPreset CurrentPreset { get; set; } = new();
+        [JsonProperty] public FilterConditionsPreset CurrentPreset { get; set; } = new();
         #endregion
 
         #region Constructors

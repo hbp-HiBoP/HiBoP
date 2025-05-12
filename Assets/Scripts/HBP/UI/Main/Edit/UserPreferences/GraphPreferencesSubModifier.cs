@@ -37,13 +37,11 @@ namespace HBP.UI.Main
             for (int i = 0; i < m_ColorButtons.Length; i++)
             {
                 int index = i;
-                m_ColorButtons[index].onClick.AddListener(() =>
+                m_ColorButtons[index].onClick.AddListener(async () =>
                 {
-                    ColorPickerManager.OpenColorPicker(Object.GetColor(index), (c) =>
-                    {
-                        Object.SetColor(index, c);
-                        m_ColorImages[index].color = c;
-                    });
+                    Color color = await ColorPickerManager.OpenColorPickerAsync(Object.GetColor(index));
+                    Object.SetColor(index, color);
+                    m_ColorImages[index].color = color;
                 });
             }
             m_Default.onClick.AddListener(async () =>

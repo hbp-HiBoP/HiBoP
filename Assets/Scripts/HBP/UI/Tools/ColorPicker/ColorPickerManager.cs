@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,9 +12,9 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        public static void OpenColorPicker(Color color, UnityAction<Color> action)
+        public static async UniTask<Color> OpenColorPickerAsync(Color color)
         {
-            m_Instance.m_ColorPicker.Open(color, action);
+            return await m_Instance.m_ColorPicker.OpenAsync(color);
         }
         public static Color GetDefaultColor(int index)
         {

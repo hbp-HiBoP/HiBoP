@@ -52,25 +52,10 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            m_Site.onClick.AddListener(() =>
-            {
-                Object.IsSelected = true;
-            });
-
-            m_Blacklisted.onValueChanged.AddListener((isOn) =>
-            {
-                Object.State.IsBlackListed = isOn;
-            });
-
-            m_Highlighted.onValueChanged.AddListener((isOn) =>
-            {
-                Object.State.IsHighlighted = isOn;
-            });
-
-            m_Color.onClick.AddListener(() =>
-            {
-                ColorPickerManager.OpenColorPicker(Object.State.Color, (c) => Object.State.Color = c);
-            });
+            m_Site.onClick.AddListener(() => Object.IsSelected = true);
+            m_Blacklisted.onValueChanged.AddListener((isOn) => Object.State.IsBlackListed = isOn);
+            m_Highlighted.onValueChanged.AddListener((isOn) => Object.State.IsHighlighted = isOn);
+            m_Color.onClick.AddListener(async () => Object.State.Color = await ColorPickerManager.OpenColorPickerAsync(Object.State.Color));
         }
         private void Update()
         {

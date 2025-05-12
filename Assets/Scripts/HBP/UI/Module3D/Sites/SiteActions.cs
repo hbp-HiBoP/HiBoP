@@ -172,10 +172,7 @@ namespace HBP.UI.Module3D
             m_DisplayGraphsButton.onClick.AddListener(DisplayGraphs);
             m_ExportSitesButton.onClick.AddListener(ExportSites);
 
-            m_ColorPickerButton.onClick.AddListener(() =>
-            {
-                ColorPickerManager.OpenColorPicker(m_ColorPickedImage.color, (c) => m_ColorPickedImage.color = c);
-            });
+            m_ColorPickerButton.onClick.AddListener(async () => m_ColorPickedImage.color = await ColorPickerManager.OpenColorPickerAsync(m_ColorPickedImage.color));
             m_AddLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_RemoveLabelToggle.onValueChanged.AddListener(isOn => m_LabelInputField.interactable = m_AddLabelToggle.isOn || m_RemoveLabelToggle.isOn);
             m_ColorToggle.onValueChanged.AddListener(isOn => m_ColorPickerButton.interactable = isOn);
