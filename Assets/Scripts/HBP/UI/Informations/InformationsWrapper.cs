@@ -220,7 +220,7 @@ namespace HBP.UI.Informations
                     if (column is Column3DIEEG ieegColumn)
                     {
                         IEEGData data = new IEEGData(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
-                        Column columnData = new Column(column.Name, data, groups);
+                        Column columnData = new Column((column.ColumnData as Core.Data.IEEGColumn).Bloc.Name, data, groups);
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }

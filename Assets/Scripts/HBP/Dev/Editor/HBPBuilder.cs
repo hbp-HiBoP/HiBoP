@@ -28,10 +28,10 @@ namespace HBP.Dev
                 case BuildTarget.StandaloneLinux64:
                     os = "linux64";
                     break;
-                case BuildTarget.StandaloneOSX:
-                    UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.OSXStandalone.MacOSArchitecture.ARM64;
-                    os = "macos64";
-                    break;
+                //case BuildTarget.StandaloneOSX:
+                //    UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.OSXStandalone.MacOSArchitecture.ARM64;
+                //    os = "macos64";
+                //    break;
             }
             string buildName = string.Format("{0}.{1}.{2}", Application.productName, Application.version, os);
             string buildDirectory = buildsDirectory + buildName + "/";
@@ -75,14 +75,14 @@ namespace HBP.Dev
                 file.Delete();
             }
 
-            if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.OSXStandalone.MacOSArchitecture.ARM64)
-            {
-                string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
-                DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
-                DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64"));
-                arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
-                arm64PluginsDirectory.Delete(true);
-            }
+            //if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.OSXStandalone.MacOSArchitecture.ARM64)
+            //{
+            //    string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
+            //    DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
+            //    DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64"));
+            //    arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
+            //    arm64PluginsDirectory.Delete(true);
+            //}
             if (target == BuildTarget.StandaloneLinux64)
             {
                 DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");

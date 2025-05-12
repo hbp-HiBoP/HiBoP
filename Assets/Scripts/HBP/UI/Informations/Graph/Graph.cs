@@ -615,7 +615,7 @@ namespace HBP.UI.Informations.Graphs
                         csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, 0));
                     }
                 }
-                csv.Add(curve.ID, csvBuilder.ToString());
+                csv.Add(curve.ExportName, csvBuilder.ToString());
             }
             return csv;
         }
@@ -899,6 +899,8 @@ namespace HBP.UI.Informations.Graphs
                     return m_OnChangeIsActive;
                 }
             }
+
+            public string ExportName { get; set; }
             #endregion
 
             #region Constructor
