@@ -406,6 +406,8 @@ namespace HBP.UI.Informations
             }
 
             Graph.Curve result = new Graph.Curve(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            List<string> names = ChannelsByPatient.Select(kvp => $"{kvp.Key.Name}_{kvp.Key.Date}_{string.Join("_", kvp.Value)}").ToList();
+            result.ExportName = $"{string.Join("-", names)}_{column.Data.Dataset.Protocol.Name}_{column.Data.Bloc.Name}";
             return result;
         }
         Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, Core.Data.SubBloc subBloc, string ID)

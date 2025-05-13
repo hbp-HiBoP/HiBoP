@@ -107,7 +107,7 @@ namespace HBP.UI.Informations
         bool m_RequestGraphsUpdate;
 
         [SerializeField] SceneData m_SceneData;
-        [SerializeField] ChannelStruct[] m_FilteredChannelStructs;
+        [SerializeField] List<ChannelStruct[]> m_FilteredChannelStructs = new();
         [SerializeField] ChannelStruct[] m_ChannelStructs;
         public ChannelStruct[] ChannelStructs
         {
@@ -191,6 +191,18 @@ namespace HBP.UI.Informations
                 DisplayGraphs();
                 m_RequestGraphsUpdate = false;
             }
+
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                var window = WindowsManager.Open("Filtered Graphs window").GetComponent<FilteredGraphsWindow>();
+                window.FilteredChannelStructs = m_FilteredChannelStructs;
+                window.OnRemoveChannelStructs.AddListener((fcs) =>
+                {
+                    m_FilteredChannelStructs.Remove(fcs);
+                    m_RequestSceneDataUpdate = true;
+                    m_RequestGraphsUpdate = true;
+                });
+            }
         }
         void OnValidate()
         {
@@ -213,9 +225,22 @@ namespace HBP.UI.Informations
                         IEnumerable<ChannelStruct> channels = column.Sites.Where(site => !site.State.IsOutOfROI && !site.State.IsMasked && !site.State.IsBlackListed).Select(site => new ChannelStruct(site));
                         groups.Add(new ChannelStructsGroup(m_Scene.ROIManager.SelectedROI.Name, channels.ToList()));
                     }
-                    if (m_FilteredChannelStructs.Length > 0)
+                    foreach (var fcs in m_FilteredChannelStructs)
                     {
-                        groups.Add(new ChannelStructsGroup("Filtered", m_FilteredChannelStructs));
+                        if (fcs.Length > 0)
+                        {
+                            Dictionary<Core.Data.Patient, List<string>> channelByPatient = new();
+                            foreach (var channelStruct in fcs)
+                            {
+                                if (!channelByPatient.ContainsKey(channelStruct.Patient))
+                                {
+                                    channelByPatient[channelStruct.Patient] = new List<string>();
+                                }
+                                channelByPatient[channelStruct.Patient].Add(channelStruct.Channel);
+                            }
+                            List<string> names = channelByPatient.Select(kvp => $"{kvp.Key.Name}_{kvp.Key.Date}_{string.Join("_", kvp.Value)}").ToList();
+                            groups.Add(new ChannelStructsGroup($"{string.Join("-", names)}", fcs));
+                        }
                     }
                     if (column is Column3DIEEG ieegColumn)
                     {
@@ -249,7 +274,7 @@ namespace HBP.UI.Informations
         }
         void GenerateFilteredChannelStructs(IEnumerable<Core.Object3D.Site> sites)
         {
-            m_FilteredChannelStructs = sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            m_FilteredChannelStructs.Add(sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray());
         }
         void Display()
         {
