@@ -12,12 +12,20 @@ namespace HBP.UI.Tools
 {
     public class CommandLineReader : MonoBehaviour
     {
+        #region Properties
+        [SerializeField] private string m_ProjectName;
+        [SerializeField] private string m_VisualizationName;
+        #endregion
+
         #region Private Methods
         private void Awake()
         {
             string[] args = System.Environment.GetCommandLineArgs();
             #if UNITY_EDITOR
-            //args = new string[] { "HiBoP", "-p", "VISU", "-v", "VISU"};
+            if (!string.IsNullOrEmpty(m_ProjectName) && !string.IsNullOrEmpty(m_VisualizationName))
+            {
+                args = new string[] { "HiBoP", "-p", m_ProjectName, "-v", m_VisualizationName };
+            }
             #endif
             InterpreteCommandLineArguments(args).Forget();
         }
@@ -54,6 +62,10 @@ namespace HBP.UI.Tools
                 for (int i = 0; i < actions.Count; ++i)
                 {
                     await ApplyActionAsync(actions[i], arguments[i]);
+                    await UniTask.WaitForEndOfFrame();
+#if UNITY_EDITOR
+                    await UniTask.WaitForSeconds(0.5f);
+#endif
                 }
             }
             Destroy(gameObject);

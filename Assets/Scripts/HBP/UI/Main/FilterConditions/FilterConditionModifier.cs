@@ -41,6 +41,8 @@ namespace HBP.UI.Main
                 m_NameFilterConditionSubModifier.FilteringObjects = value;
                 m_DateFilterConditionSubModifier.FilteringObjects = value;
                 m_PlaceFilterConditionSubModifier.FilteringObjects = value;
+                m_ProtocolFilterConditionSubModifier.FilteringObjects = value;
+                m_TagFilterConditionSubModifier.FilteringObjects = value;
             }
         }
 

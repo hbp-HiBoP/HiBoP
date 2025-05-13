@@ -282,9 +282,9 @@ namespace HBP.UI.Module3D
         {
             m_Scene.OnRequestFilteredSitesGraph.Invoke(m_Scene.SelectedColumn.Sites.Where(s => s.State.IsFiltered));
         }
-#endregion
+        #endregion
 
-#region Coroutines
+        #region Coroutines
         /// <summary>
         /// Coroutine used to export the filtered sites to a csv file in asynchronous mode
         /// </summary>
@@ -449,6 +449,6 @@ namespace HBP.UI.Module3D
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
             OnRequestListUpdate.Invoke();
         }
-#endregion
+        #endregion
     }
 }
