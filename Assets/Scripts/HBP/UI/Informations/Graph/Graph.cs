@@ -572,7 +572,7 @@ namespace HBP.UI.Informations.Graphs
             // Write Legend
             svgBuilder.AppendLine("<g>");
             int id = 0;
-            float x = curveViewport.x + curveViewport.width + 30.0f;
+            float x = curveViewport.x + curveViewport.width + 30.0f - 800.0f;
             foreach (var curve in curves)
             {
                 if (curve.Data == null) continue;
@@ -580,7 +580,7 @@ namespace HBP.UI.Informations.Graphs
                 float y = curveViewport.y + (id * 40.0f);
                 svgBuilder.AppendLine("<g>");
                 svgBuilder.AppendLine("<path d=\"M " + x + "," + y + " " + (x + 30.0f).ToString() + "," + y + "\" style=\"stroke:" + curve.Color.ToHexString() + ";stroke-width:10;fill:none\"/>");
-                svgBuilder.AppendLine("<text x=\"" + (x + 40.0f).ToString() + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + curve.ID + "</text>");
+                svgBuilder.AppendLine("<text x=\"" + (x + 40.0f).ToString() + "\" y=\"" + y + "\" text-anchor=\"left\" dy=\".3em\" style=\"font-size:30\">" + curve.ExportName + "</text>");
                 svgBuilder.AppendLine("</g>");
                 id++;
             }

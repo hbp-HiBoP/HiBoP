@@ -138,7 +138,7 @@ namespace HBP.Data.Preferences
     public class GraphPreferences : ICloneable
     {
         #region Properties
-        [IgnoreDataMember] const int NUMBER_OF_COLORS = 24;
+        [IgnoreDataMember] const int NUMBER_OF_COLORS = 40;
         [DataMember] public bool ShowCurvesOfMinimizedColumns { get; set; }
         [DataMember] private SerializableColor[] m_Colors;
         public Color[] Colors
@@ -197,19 +197,35 @@ namespace HBP.Data.Preferences
                     new Color(129f / 255f, 93f / 255f, 22f / 255f),
                     new Color(87f / 255f, 120f / 255f, 21f / 255f),
                     new Color(23f / 255f, 42f / 255f, 86f / 255f),
-                    new Color(103f / 255f, 18f / 255f, 66f / 255f)
+                    new Color(98f / 255f, 23f / 255f, 70f / 255f),
+                    new Color(129f / 255f, 22f / 255f, 22f / 255f),
+                    new Color(129f / 255f, 111f / 255f, 22f / 255f),
+                    new Color(18f / 255f, 103f / 255f, 18f / 255f),
+                    new Color(39f / 255f, 24f / 255f, 89f / 255f),
+                    new Color(129f / 255f, 71f / 255f, 22f / 255f),
+                    new Color(129f / 255f, 129f / 255f, 22f / 255f),
+                    new Color(13f / 255f, 77f / 255f, 77f / 255f),
+                    new Color(62f / 255f, 19f / 255f, 86f / 255f),
+                    new Color(129f / 255f, 93f / 255f, 22f / 255f),
+                    new Color(87f / 255f, 120f / 255f, 21f / 255f),
+                    new Color(23f / 255f, 42f / 255f, 86f / 255f),
+                    new Color(98f / 255f, 23f / 255f, 70f / 255f),
+                    new Color(129f / 255f, 22f / 255f, 22f / 255f),
+                    new Color(129f / 255f, 111f / 255f, 22f / 255f),
+                    new Color(18f / 255f, 103f / 255f, 18f / 255f),
+                    new Color(39f / 255f, 24f / 255f, 89f / 255f)
                 };
         }
         public void SetColor(int position, Color color)
         {
-            if (position >= 0 && position < 24)
+            if (position >= 0 && position < m_Colors.Length)
             {
                 m_Colors[position] = new SerializableColor(color);
             }
         }
         public Color GetColor(int position)
         {
-            if (position >= 0 && position < 24)
+            if (position >= 0 && position < m_Colors.Length)
             {
                 return m_Colors[position].ToColor();
             }
