@@ -81,94 +81,9 @@ namespace HBP.UI.Informations
                 graph.CurrentTime = currentTime;
             }
         }
-        public IEnumerator ExportGraphToImages()
-        {
-            yield return new WaitForEndOfFrame();
-
-            List<Graph.Curve> curves = new List<Graph.Curve>();
-            List<Graph.Curve> getCurves(Graph.Curve curve)
-            {
-                List<Graph.Curve> curves = new List<Graph.Curve>();
-                if (!curve.Enabled)
-                    return curves;
-
-                if (curve.Data != null && curve.Enabled)
-                {
-                    curves.Add(curve);
-                }
-                foreach (var subCurve in curve.SubCurves)
-                {
-                    curves.AddRange(getCurves(subCurve));
-                }
-                return curves;
-            }
-            foreach (var g in m_Graphs)
-            {
-                foreach (var curve in g.Curves)
-                {
-                    curves.AddRange(getCurves(curve));
-                }
-            }
-            string directory = Module3DMain.SelectedScene.GenerateExportDirectory();
-            string fileName = string.Join("#", curves.Select(c => c.ExportName));
-
-            Graph graph = transform.GetComponentInChildren<Graph>();
-            Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
-            var curvesName = graph.GetEnabledCurvesName();
-            try
-            {
-                string graphFilePath = Path.Combine(directory, $"{fileName}.png");
-                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
-                graphTexture.SaveToPNG(graphFilePath);
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                yield break;
-            }
-            try
-            {
-                string graphFilePath = Path.Combine(directory, $"{fileName}.svg");
-                ClassLoaderSaver.GenerateUniqueSavePath(ref graphFilePath);
-                using StreamWriter sw = new StreamWriter(graphFilePath);
-                sw.Write(graph.ToSVG());
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                yield break;
-            }
-            Dictionary<string, string> curveValues = graph.ToCSV();
-            try
-            {
-                foreach (var curve in curveValues)
-                {
-                    string curveFilePath = Path.Combine(directory, $"{curve.Key}.csv");
-                    ClassLoaderSaver.GenerateUniqueSavePath(ref curveFilePath);
-                    using StreamWriter sw = new StreamWriter(curveFilePath);
-                    sw.Write(curve.Value);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Screenshots could not be saved", "Please verify your rights");
-                yield break;
-            }
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Graph exported", "Graphs have been saved in " + directory);
-        }
         #endregion
 
         #region Private Methods
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.F1))
-            {
-                StartCoroutine(ExportGraphToImages());
-            }
-        }
         void ClearGraphs()
         {
             // Destroy toggles.

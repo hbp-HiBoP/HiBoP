@@ -59,6 +59,8 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         data.TrialMatrixGrid m_TrialMatrixGridData;
+
+        public string ExportName { get; set; }
         #endregion
 
         #region Public Methods
@@ -66,6 +68,10 @@ namespace HBP.UI.Informations.TrialMatrix
         {
             Clear();
             m_TrialMatrixGridData = trialMatrixGridData;
+            if (trialMatrixGridData.Channels.Length > 0 && trialMatrixGridData.DataStructs.Length > 0)
+            {
+                ExportName = $"{trialMatrixGridData.Channels[0].Patient.Name}_{trialMatrixGridData.Channels[0].Patient.Date}_{trialMatrixGridData.DataStructs[0].Dataset.Protocol.Name}_{trialMatrixGridData.Channels[0].Channel}";
+            }
             DisplayChannels(trialMatrixGridData.Channels);
             if(colormap != null) Colormap = colormap;
             foreach (var data in trialMatrixGridData.Data) AddData(data);
