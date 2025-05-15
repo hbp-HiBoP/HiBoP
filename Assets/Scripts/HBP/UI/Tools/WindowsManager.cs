@@ -141,10 +141,9 @@ namespace HBP.UI.Tools
                 }
             }
 
-            Window selectedWindow = WindowsReferencer.Windows.FirstOrDefault(w => w.GetComponent<Selector>().Selected);
-            if (selectedWindow != null)
+            if (parent != null)
             {
-                rectTransform.anchoredPosition = selectedWindow.GetComponent<RectTransform>().anchoredPosition + Offset;
+                rectTransform.anchoredPosition = parent.GetComponent<RectTransform>().anchoredPosition + Offset;
             }
             else
             {
