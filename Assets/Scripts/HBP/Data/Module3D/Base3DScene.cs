@@ -1718,15 +1718,14 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Copy the states of the sites of the selected column to all other columns
         /// </summary>
-        public void ApplySelectedColumnSiteStatesToOtherColumns()
+        public void ApplySiteStatesToOtherColumns(Column3D sourceColumn)
         {
-            Column3D selectedColumn = SelectedColumn;
             foreach (Column3D column in Columns)
             {
-                if (column == selectedColumn) continue;
+                if (column == sourceColumn) continue;
                 foreach (Core.Object3D.Site site in column.Sites)
                 {
-                    site.State.ApplyState(selectedColumn.SiteStateBySiteID[site.Information.FullID]);
+                    site.State.ApplyState(sourceColumn.SiteStateBySiteID[site.Information.FullID]);
                 }
             }
         }

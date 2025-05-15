@@ -42,16 +42,61 @@ namespace HBP.UI.Module3D
                 };
             }
         }
+
+        static bool m_HighlightToggleValue;
+        static bool m_UnhighlightToggleValue;
+        static bool m_BlacklistToggleValue;
+        static bool m_UnblacklistToggleValue;
+        static bool m_ColorToggleValue;
+        static Color? m_ColorPickedValue;
+        static bool m_AddLabelToggleValue;
+        static bool m_RemoveLabelToggleValue;
+        static bool m_RemoveAllLabelsToggleValue;
+        static string m_AddLabelInputFieldValue;
+        static string m_RemoveLabelInputFieldValue;
+        static int m_ScopeDropdownValue;
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
+            base.Initialize();
+
             m_ColorPickerButton.onClick.AddListener(async () => m_ColorPickedImage.color = await ColorPickerManager.OpenColorPickerAsync(m_ColorPickedImage.color));
         }
         public override async UniTask ApplyAsync()
         {
             await LoadingManager.LoadAsync(ApplyAsync);
+        }
+        public override void StoreSettings()
+        {
+            m_HighlightToggleValue = m_HighlightToggle.isOn;
+            m_UnhighlightToggleValue = m_UnhighlightToggle.isOn;
+            m_BlacklistToggleValue = m_BlacklistToggle.isOn;
+            m_UnblacklistToggleValue = m_UnblacklistToggle.isOn;
+            m_ColorToggleValue = m_ColorToggle.isOn;
+            m_ColorPickedValue = m_ColorPickedImage.color;
+            m_AddLabelToggleValue = m_AddLabelToggle.isOn;
+            m_RemoveLabelToggleValue = m_RemoveLabelToggle.isOn;
+            m_RemoveAllLabelsToggleValue = m_RemoveAllLabelsToggle.isOn;
+            m_AddLabelInputFieldValue = m_AddLabelInputField.text;
+            m_RemoveLabelInputFieldValue = m_RemoveLabelInputField.text;
+            m_ScopeDropdownValue = m_ScopeDropdown.value;
+        }
+        public override void LoadSettings()
+        {
+            m_HighlightToggle.isOn = m_HighlightToggleValue;
+            m_UnhighlightToggle.isOn = m_UnhighlightToggleValue;
+            m_BlacklistToggle.isOn = m_BlacklistToggleValue;
+            m_UnblacklistToggle.isOn = m_UnblacklistToggleValue;
+            m_ColorToggle.isOn = m_ColorToggleValue;
+            if (m_ColorPickedValue != null) m_ColorPickedImage.color = m_ColorPickedValue.Value;
+            m_AddLabelToggle.isOn = m_AddLabelToggleValue;
+            m_RemoveLabelToggle.isOn = m_RemoveLabelToggleValue;
+            m_RemoveAllLabelsToggle.isOn = m_RemoveAllLabelsToggleValue;
+            m_AddLabelInputField.text = m_AddLabelInputFieldValue;
+            m_RemoveLabelInputField.text = m_RemoveLabelInputFieldValue;
+            m_ScopeDropdown.value = m_ScopeDropdownValue;
         }
         #endregion
 

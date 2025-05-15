@@ -64,18 +64,20 @@ namespace HBP.UI.Module3D
         public override void Close()
         {
             base.Close();
+
+            foreach (var section in m_SiteToolSections) section.StoreSettings();
         }
         #endregion
 
         #region Private Methods
         protected override void Initialize()
         {
-            base.Initialize();
-
             m_ApplyChangesButton.onClick.AddListener(Apply);
             m_SelectToolDropdown.onValueChanged.AddListener(OnChangeSelectedTool);
             m_ApplyForDropdown.onValueChanged.AddListener(OnChangeApplyFor);
             foreach (var section in m_SiteToolSections) section.Initialize();
+
+            base.Initialize();
         }
         protected override void SetFields()
         {

@@ -15,9 +15,6 @@ namespace HBP.UI.Module3D
     public class ExportToCSVSection : SiteToolSection
     {
         #region Public Methods
-        public override void Initialize()
-        {
-        }
         public override async UniTask ApplyAsync()
         {
 #if UNITY_STANDALONE_OSX
@@ -42,6 +39,14 @@ namespace HBP.UI.Module3D
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
             }
 #endif
+        }
+        public override void StoreSettings()
+        {
+            // No settings to store
+        }
+        public override void LoadSettings()
+        {
+            // No settings to load
         }
         #endregion
 
