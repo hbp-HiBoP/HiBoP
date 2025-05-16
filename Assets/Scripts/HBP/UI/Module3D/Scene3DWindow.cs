@@ -323,6 +323,8 @@ namespace HBP.UI.Module3D
         /// <returns>Coroutine return</returns>
         private async UniTask VideoAsync(string path, Action<float, float, LoadingText> updateProgress)
         {
+            await UniTask.SwitchToMainThread();
+
             int totalWidth = 1920;
             int totalHeight = 1080;
             int timelineSize = 10;
