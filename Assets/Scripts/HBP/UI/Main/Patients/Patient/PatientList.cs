@@ -43,7 +43,7 @@ namespace HBP.UI.Main
 
         public void OpenFilterWindow()
         {
-            var filteringObjects = Objects.Select(o => (BaseData)o).ToList();
+            var filteringObjects = Objects.Select(o => (object)o).ToList();
             if (filteringObjects.Count == 0)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No objects to filter", "The list you are trying to filter contains no object. This is not supported.").Forget();

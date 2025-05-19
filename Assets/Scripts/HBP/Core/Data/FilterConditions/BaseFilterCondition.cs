@@ -41,7 +41,7 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public virtual bool Check(BaseData obj)
+        public virtual bool Check(object obj)
         {
             return true;
         }

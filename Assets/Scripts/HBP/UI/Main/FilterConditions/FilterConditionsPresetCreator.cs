@@ -6,7 +6,7 @@ namespace HBP.UI.Main
     public class FilterConditionsPresetCreator : ObjectCreator<FilterConditionsPreset>
     {
         #region Properties
-        public System.Collections.Generic.List<BaseData> FilteringObjects { get; set; }
+        public System.Collections.Generic.List<object> FilteringObjects { get; set; }
         #endregion
 
         #region Private Methods

@@ -14,8 +14,8 @@ namespace HBP.UI.Main
         [SerializeField] FilterConditionCreator m_ObjectCreator;
         public override ObjectCreator<BaseFilterCondition> ObjectCreator => m_ObjectCreator;
 
-        protected System.Collections.Generic.List<BaseData> m_FilteringObjects;
-        public System.Collections.Generic.List<BaseData> FilteringObjects
+        protected System.Collections.Generic.List<object> m_FilteringObjects;
+        public System.Collections.Generic.List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set

@@ -27,8 +27,8 @@ namespace HBP.UI.Main
         List<BaseSubModifier> m_SubModifiers;
         List<BaseFilterCondition> m_FilterConditionsTemp;
 
-        protected List<BaseData> m_FilteringObjects;
-        public List<BaseData> FilteringObjects
+        protected List<object> m_FilteringObjects;
+        public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set

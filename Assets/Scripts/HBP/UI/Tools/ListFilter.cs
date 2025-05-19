@@ -19,8 +19,8 @@ namespace HBP.UI.Tools
         [SerializeField] protected FilterConditionListGestion m_ListGestion;
         [SerializeField] protected Button m_ApplyButton;
 
-        protected List<BaseData> m_FilteringObjects;
-        public List<BaseData> FilteringObjects
+        protected List<object> m_FilteringObjects;
+        public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set
@@ -128,7 +128,7 @@ namespace HBP.UI.Tools
 
             OnApplyFilters.Invoke(result);
         }
-        protected virtual bool CheckConditions(BaseData obj)
+        protected virtual bool CheckConditions(object obj)
         {
             bool result = true;
             foreach (var condition in m_ListGestion.List.ObjectsSelected)

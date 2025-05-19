@@ -10,8 +10,8 @@ namespace HBP.UI.Main
     public class PlaceFilterConditionSubModifier : SubModifier<PlaceFilterCondition>
     {
         #region Properties
-        protected List<BaseData> m_FilteringObjects;
-        public List<BaseData> FilteringObjects
+        protected List<object> m_FilteringObjects;
+        public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set

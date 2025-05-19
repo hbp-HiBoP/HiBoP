@@ -16,8 +16,8 @@ namespace HBP.UI.Main
         [SerializeField] Dropdown m_TargetDropdown;
         [SerializeField] Dropdown m_TagDropdown;
 
-        protected List<BaseData> m_FilteringObjects;
-        public List<BaseData> FilteringObjects
+        protected List<object> m_FilteringObjects;
+        public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set

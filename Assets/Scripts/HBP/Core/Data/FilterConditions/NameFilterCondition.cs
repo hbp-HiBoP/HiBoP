@@ -51,7 +51,7 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override bool Check(BaseData obj)
+        public override bool Check(object obj)
         {
             if (obj is INameable nameable)
             {

@@ -14,8 +14,8 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] FilterConditionsPresetListGestion m_FilterConditionsPresetListGestion;
 
-        private List<BaseData> m_FilteringObjects = new();
-        public List<BaseData> FilteringObjects
+        private List<object> m_FilteringObjects = new();
+        public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set

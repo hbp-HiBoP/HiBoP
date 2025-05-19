@@ -50,7 +50,7 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public override bool Check(BaseData obj)
+        public override bool Check(object obj)
         {
             if (Conditions == null || Conditions.Count < 2)
                 return false;

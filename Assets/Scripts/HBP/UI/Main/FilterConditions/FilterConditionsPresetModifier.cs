@@ -14,8 +14,8 @@ namespace HBP.UI.Main
         [SerializeField] InputField m_NameInputField;
         [SerializeField] FilterConditionListGestion m_FilterConditionsListGestion;
 
-        protected List<BaseData> m_FilteringObjects;
-        public List<BaseData> FilteringObjects
+        protected List<object> m_FilteringObjects;
+        public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set
