@@ -85,7 +85,7 @@ namespace HBP.UI.Main
             int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Overwrite conditions", "This will overwrite the current preset with all the conditions of the currently used filter. Are you sure you want to do this?", "Overwrite", "Cancel");
             if (result == 0)
             {
-                m_ObjectTemp.Conditions = new List<BaseFilterCondition>(PersistentDataManager.FilterConditionsPresets.CurrentPreset.Conditions.DeepClone());
+                m_ObjectTemp.Conditions = new List<BaseFilterCondition>(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(m_FilteringObjects[0].GetType()).Conditions.DeepClone());
                 SetFields(m_ObjectTemp);
             }
         }

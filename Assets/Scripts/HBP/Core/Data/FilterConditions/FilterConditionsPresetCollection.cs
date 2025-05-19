@@ -1,5 +1,6 @@
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -14,24 +15,8 @@ namespace HBP.Core.Data
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "FilterConditionsPresets.json");
 
-        [JsonProperty] private List<FilterConditionsPreset> m_Presets = new List<FilterConditionsPreset>();
-        public ReadOnlyCollection<FilterConditionsPreset> Presets => new ReadOnlyCollection<FilterConditionsPreset>(m_Presets);
-
-        [JsonProperty] public FilterConditionsPreset CurrentPreset { get; set; } = new();
-        #endregion
-
-        #region Constructors
-        public FilterConditionsPresetCollection(IEnumerable<FilterConditionsPreset> presets, string ID) : base(ID)
-        {
-            m_Presets = presets.ToList();
-        }
-        public FilterConditionsPresetCollection(IEnumerable<FilterConditionsPreset> presets) : base()
-        {
-            m_Presets = presets.ToList();
-        }
-        public FilterConditionsPresetCollection() : this(new List<FilterConditionsPreset>())
-        {
-        }
+        [JsonProperty] private Dictionary<Type, List<FilterConditionsPreset>> m_PresetsByType = new();
+        [JsonProperty] private Dictionary<Type, FilterConditionsPreset> m_CurrentPresetByType = new();
         #endregion
 
         #region Public Methods
@@ -44,7 +29,7 @@ namespace HBP.Core.Data
                 {
                     presetsCollection = ClassLoaderSaver.LoadFromJson<FilterConditionsPresetCollection>(PATH);
                 }
-                catch (System.Exception e)
+                catch (Exception e)
                 {
                     Debug.LogException(e);
                     presetsCollection = new FilterConditionsPresetCollection();
@@ -56,12 +41,12 @@ namespace HBP.Core.Data
         public override void GenerateID()
         {
             base.GenerateID();
-            foreach (var alias in m_Presets) alias.GenerateID();
+            foreach (var preset in m_PresetsByType.Values.SelectMany(v => v)) preset.GenerateID();
         }
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
-            foreach (var alias in m_Presets) IDs.AddRange(alias.GetAllIdentifiable());
+            foreach (var preset in m_PresetsByType.Values.SelectMany(v => v)) IDs.AddRange(preset.GetAllIdentifiable());
             return IDs;
         }
         public void Save()
@@ -70,28 +55,48 @@ namespace HBP.Core.Data
         }
         public override object Clone()
         {
-            return new FilterConditionsPresetCollection(m_Presets.DeepClone(), ID);
+            return new FilterConditionsPresetCollection()
+            {
+                m_PresetsByType = m_PresetsByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList())
+            };
         }
         public override void Copy(object copy)
         {
             if (copy is FilterConditionsPresetCollection aliasCollection)
             {
-                m_Presets = aliasCollection.m_Presets;
+                m_PresetsByType = aliasCollection.m_PresetsByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList());
             }
         }
-        public void AddPreset(FilterConditionsPreset presets, bool autoSave = true)
+        public void AddPreset(FilterConditionsPreset preset, Type type, bool autoSave = true)
         {
-            m_Presets.Add(presets);
+            if (!m_PresetsByType.ContainsKey(type)) m_PresetsByType[type] = new List<FilterConditionsPreset>();
+            m_PresetsByType[type].Add(preset);
             if (autoSave) Save();
         }
-        public void RemovePreset(FilterConditionsPreset presets, bool autoSave = true)
+        public void RemovePreset(FilterConditionsPreset presets, Type type, bool autoSave = true)
         {
-            m_Presets.Remove(presets);
+            if (!m_PresetsByType.ContainsKey(type)) return;
+            m_PresetsByType[type].Remove(presets);
             if (autoSave) Save();
         }
-        public void SetPresets(IEnumerable<FilterConditionsPreset> presets, bool autoSave = true)
+        public void SetPresets(IEnumerable<FilterConditionsPreset> presets, Type type, bool autoSave = true)
         {
-            m_Presets = presets.ToList();
+            if (!m_PresetsByType.ContainsKey(type)) m_PresetsByType[type] = new List<FilterConditionsPreset>();
+            m_PresetsByType[type] = presets.ToList();
+            if (autoSave) Save();
+        }
+        public ReadOnlyCollection<FilterConditionsPreset> GetPresets(Type type)
+        {
+            return new ReadOnlyCollection<FilterConditionsPreset>(m_PresetsByType[type]);
+        }
+        public FilterConditionsPreset GetCurrentPreset(Type type)
+        {
+            if (!m_CurrentPresetByType.ContainsKey(type)) m_CurrentPresetByType[type] = new FilterConditionsPreset();
+            return m_CurrentPresetByType[type];
+        }
+        public void SetCurrentPreset(FilterConditionsPreset preset, Type type, bool autoSave = true)
+        {
+            m_CurrentPresetByType[type] = preset;
             if (autoSave) Save();
         }
         #endregion

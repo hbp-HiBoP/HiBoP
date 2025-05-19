@@ -54,7 +54,7 @@ namespace HBP.UI.Main
 
             var filterWindow = WindowsManager.Open("Filter window", parentWindow).GetComponent<ListFilter>();
             filterWindow.FilteringObjects = filteringObjects;
-            filterWindow.SetPreset(PersistentDataManager.FilterConditionsPresets.CurrentPreset);
+            filterWindow.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(filteringObjects[0].GetType()));
             filterWindow.OnApplyFilters.AddListener(mask =>
             {
                 MaskList(mask, false);

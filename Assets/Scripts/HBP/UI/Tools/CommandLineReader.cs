@@ -80,42 +80,54 @@ namespace HBP.UI.Tools
                 if (arguments.Count == 0)
                 {
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project name has not been specified.").Forget();
+                    return;
                 }
-                else
+
+                string path = Path.Combine(PersistentDataManager.UserPreferences.General.Project.DefaultLocation, arguments[0] + Project.EXTENSION);
+                if (!File.Exists(path))
                 {
-                    await ProjectLoaderSaver.LoadAsync(new ProjectInfo(PersistentDataManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project file does not exist.").Forget();
+                    return;
                 }
+
+                await ProjectLoaderSaver.LoadAsync(new ProjectInfo(path));
             }
             else if (action == "-pf") // Project File
             {
                 if (arguments.Count == 0)
                 {
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project name has not been specified.").Forget();
+                    return;
                 }
-                else
+
+                if (!File.Exists(arguments[0]))
                 {
-                    await ProjectLoaderSaver.LoadAsync(new ProjectInfo(arguments[0]));
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project file does not exist.").Forget();
+                    return;
                 }
+
+                await ProjectLoaderSaver.LoadAsync(new ProjectInfo(arguments[0]));
             }
             else if (action == "-v") // Visualization
             {
                 if (ApplicationState.LoadedProject == null)
                 {
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.").Forget();
+                    return;
                 }
-                else if (arguments.Count == 0)
+
+                if (arguments.Count == 0)
                 {
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.").Forget();
+                    return;
                 }
-                else
+
+                IEnumerable<Visualization> visualizations = from visu in ApplicationState.LoadedProject.Visualizations where arguments.Contains(visu.Name) select visu;
+                if (visualizations.Count() == 0 && arguments[0] == "all")
                 {
-                    IEnumerable<Visualization> visualizations = from visu in ApplicationState.LoadedProject.Visualizations where arguments.Contains(visu.Name) select visu;
-                    if (visualizations.Count() == 0 && arguments[0] == "all")
-                    {
-                        visualizations = ApplicationState.LoadedProject.Visualizations;
-                    }
-                    Module3DMain.LoadScenes(visualizations);
+                    visualizations = ApplicationState.LoadedProject.Visualizations;
                 }
+                Module3DMain.LoadScenes(visualizations);
             }
         }
         #endregion

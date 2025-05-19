@@ -42,7 +42,10 @@ namespace HBP.UI.Tools
         public override void Close()
         {
             base.Close();
-            PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects);
+            if (m_FilteringObjects.Count > 0)
+            {
+                PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new FilterConditionsPreset(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType());
+            }
         }
         public void ApplyFilters()
         {
@@ -64,13 +67,25 @@ namespace HBP.UI.Tools
             modifier.FilteringObjects = m_FilteringObjects;
             modifier.OnOk.AddListener(() =>
             {
-                PersistentDataManager.FilterConditionsPresets.AddPreset(modifier.Object);
+                if (m_FilteringObjects.Count == 0)
+                {
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Preset not created", "The preset could not be created because the list you are trying to filter contains no object. This is not supported.").Forget();
+                    return;
+                }
+
+                PersistentDataManager.FilterConditionsPresets.AddPreset(modifier.Object, m_FilteringObjects[0].GetType());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Preset created", "The preset has been created and added to the list of presets.").Forget();
             });
         }
         public void LoadConditionsFromPreset()
         {
-            var selector = WindowsManager.OpenSelector(PersistentDataManager.FilterConditionsPresets.Presets, this) as FilterConditionsPresetSelector;
+            if (m_FilteringObjects.Count == 0)
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Preset not loaded", "The presets can not be loaded because the list you are trying to filter contains no object. This is not supported.").Forget();
+                return;
+            }
+
+            var selector = WindowsManager.OpenSelector(PersistentDataManager.FilterConditionsPresets.GetPresets(m_FilteringObjects[0].GetType()), this) as FilterConditionsPresetSelector;
             selector.OnOk.AddListener(() =>
             {
                 m_ListGestion.List.Add(selector.ObjectsSelected.SelectMany(p => p.Conditions).Where(c => !m_ListGestion.List.Objects.Contains(c)));
@@ -88,9 +103,9 @@ namespace HBP.UI.Tools
             base.Initialize();
 
             m_ListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_ListGestion.List.OnAddObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
-            m_ListGestion.List.OnRemoveObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
-            m_ListGestion.List.OnUpdateObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.CurrentPreset = new(m_ListGestion.List.Objects));
+            m_ListGestion.List.OnAddObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType()));
+            m_ListGestion.List.OnRemoveObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType()));
+            m_ListGestion.List.OnUpdateObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType()));
             m_ListGestion.List.OnSelect.AddListener((condition) => SetApplyButtonState());
             m_ListGestion.List.OnDeselect.AddListener((condition) => SetApplyButtonState());
             m_ListGestion.List.OnRemoveObject.AddListener((condition) => SetApplyButtonState());

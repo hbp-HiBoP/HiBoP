@@ -14,13 +14,14 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] FilterConditionsPresetListGestion m_FilterConditionsPresetListGestion;
 
-        private List<BaseData> m_FilteringObjects;
+        private List<BaseData> m_FilteringObjects = new();
         public List<BaseData> FilteringObjects
         {
             get => m_FilteringObjects;
             set
             {
                 m_FilteringObjects = value;
+                SetFields(ObjectTemp);
                 m_FilterConditionsPresetListGestion.FilteringObjects = value;
             }
         }
@@ -42,8 +43,11 @@ namespace HBP.UI.Main
         public override void OK()
         {
             base.OK();
-            Object.SetPresets(m_FilterConditionsPresetListGestion.List.Objects.ToList());
-            PersistentDataManager.FilterConditionsPresets.Save();
+            if (m_FilteringObjects.Count > 0)
+            {
+                Object.SetPresets(m_FilterConditionsPresetListGestion.List.Objects.ToList(), m_FilteringObjects[0].GetType());
+                PersistentDataManager.FilterConditionsPresets.Save();
+            }
         }
         #endregion
 
@@ -56,7 +60,10 @@ namespace HBP.UI.Main
         }
         protected override void SetFields(FilterConditionsPresetCollection objectToDisplay)
         {
-            m_FilterConditionsPresetListGestion.List.Set(objectToDisplay.Presets);
+            if (m_FilteringObjects.Count > 0)
+            {
+                m_FilterConditionsPresetListGestion.List.Set(objectToDisplay.GetPresets(m_FilteringObjects[0].GetType()));
+            }
         }
         #endregion
     }
