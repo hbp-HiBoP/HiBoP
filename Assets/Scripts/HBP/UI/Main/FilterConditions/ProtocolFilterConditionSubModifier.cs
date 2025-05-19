@@ -30,6 +30,9 @@ namespace HBP.UI.Main
         [SerializeField] Button m_SelectAllButton;
         [SerializeField] Button m_DeselectAllButton;
         [SerializeField] Dropdown m_ScopeDropdown;
+        [SerializeField] InputField m_NameInputField;
+        [SerializeField] Toggle m_ExactMatchToggle;
+        [SerializeField] Toggle m_CaseSensitiveToggle;
         #endregion
 
         #region Public Methods
@@ -51,6 +54,9 @@ namespace HBP.UI.Main
             m_LogicDropdown.onValueChanged.AddListener(OnChangeLogic);
             m_ScopeDropdown.onValueChanged.AddListener(OnChangeScope);
             m_ScopeDropdown.interactable = ApplicationState.LoadedProject != null;
+            m_NameInputField.onValueChanged.AddListener(OnChangeName);
+            m_ExactMatchToggle.onValueChanged.AddListener(OnChangeExactMatch);
+            m_CaseSensitiveToggle.onValueChanged.AddListener(OnChangeCaseSensitive);
         }
         #endregion
 
@@ -76,6 +82,9 @@ namespace HBP.UI.Main
 
             m_LogicDropdown.value = (int)objectToDisplay.Logic;
             m_ScopeDropdown.value = (int)objectToDisplay.Scope;
+            m_NameInputField.text = objectToDisplay.Name;
+            m_ExactMatchToggle.isOn = objectToDisplay.ExactMatch;
+            m_CaseSensitiveToggle.isOn = objectToDisplay.CaseSensitive;
         }
         private void OnChangeLogic(int value)
         {
@@ -84,6 +93,19 @@ namespace HBP.UI.Main
         private void OnChangeScope(int value)
         {
             Object.Scope = (ProtocolFilterCondition.CheckScope)value;
+        }
+
+        private void OnChangeName(string value)
+        {
+            Object.Name = value;
+        }
+        private void OnChangeExactMatch(bool value)
+        {
+            Object.ExactMatch = value;
+        }
+        private void OnChangeCaseSensitive(bool value)
+        {
+            Object.CaseSensitive = value;
         }
         #endregion
     }

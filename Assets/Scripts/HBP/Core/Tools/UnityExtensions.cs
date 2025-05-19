@@ -157,7 +157,7 @@ namespace HBP.Core.Tools
             Type[] types = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(t => t.IsSubclassOf(parentType))
-                .Where(t => t.GetCustomAttributes(true).OfType<TypedAttribute>().FirstOrDefault(a => a.Type == attribute.Type) != null)
+                .Where(t => t.GetCustomAttributes(true).OfType<TypedAttribute>().FirstOrDefault(a => attribute.Type != null && a.Type != null && a.Type.IsAssignableFrom(attribute.Type)) != null)
                 .OrderBy(orderMethod)
                 .ToArray();
 

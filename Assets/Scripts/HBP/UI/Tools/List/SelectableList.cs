@@ -258,6 +258,18 @@ namespace HBP.UI.Tools.Lists
             int displayedIndex = m_DisplayedObjects.FindIndex(o => o.Equals(objectToUpdate));
             m_DisplayedObjects[displayedIndex] = objectToUpdate;
 
+            T oldKey = m_SelectedStateByObject.Keys.FirstOrDefault(k => k.Equals(objectToUpdate) && !ReferenceEquals(k, objectToUpdate));
+            if (oldKey != null)
+            {
+                bool selected = m_SelectedStateByObject[oldKey];
+                m_SelectedStateByObject.Remove(oldKey);
+                m_SelectedStateByObject[objectToUpdate] = selected;
+
+                bool selectable = m_SelectableStateByObject[oldKey];
+                m_SelectableStateByObject.Remove(oldKey);
+                m_SelectableStateByObject[objectToUpdate] = selectable;
+            }
+
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
                 SelectableItem<T> selectableItem = item as SelectableItem<T>;

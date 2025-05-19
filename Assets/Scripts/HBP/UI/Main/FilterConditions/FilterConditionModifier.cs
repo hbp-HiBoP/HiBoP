@@ -19,6 +19,8 @@ namespace HBP.UI.Main
         [SerializeField] PlaceFilterConditionSubModifier m_PlaceFilterConditionSubModifier;
         [SerializeField] ProtocolFilterConditionSubModifier m_ProtocolFilterConditionSubModifier;
         [SerializeField] TagFilterConditionSubModifier m_TagFilterConditionSubModifier;
+        [SerializeField] AllFilterConditionSubModifier m_AllFilterConditionSubModifier;
+        [SerializeField] AnyFilterConditionSubModifier m_AnyFilterConditionSubModifier;
 
         [SerializeField] Text m_ResultText;
 
@@ -43,6 +45,8 @@ namespace HBP.UI.Main
                 m_PlaceFilterConditionSubModifier.FilteringObjects = value;
                 m_ProtocolFilterConditionSubModifier.FilteringObjects = value;
                 m_TagFilterConditionSubModifier.FilteringObjects = value;
+                m_AllFilterConditionSubModifier.FilteringObjects = value;
+                m_AnyFilterConditionSubModifier.FilteringObjects = value;
             }
         }
 
@@ -77,6 +81,8 @@ namespace HBP.UI.Main
                 m_PlaceFilterConditionSubModifier.Interactable = value;
                 m_ProtocolFilterConditionSubModifier.Interactable = value;
                 m_TagFilterConditionSubModifier.Interactable = value;
+                m_AllFilterConditionSubModifier.Interactable = value;
+                m_AnyFilterConditionSubModifier.Interactable = value;
             }
         }
         #endregion
@@ -106,6 +112,8 @@ namespace HBP.UI.Main
             m_PlaceFilterConditionSubModifier.Initialize();
             m_ProtocolFilterConditionSubModifier.Initialize();
             m_TagFilterConditionSubModifier.Initialize();
+            m_AllFilterConditionSubModifier.Initialize();
+            m_AnyFilterConditionSubModifier.Initialize();
 
             m_SubModifiers = new List<BaseSubModifier>
             {
@@ -113,7 +121,9 @@ namespace HBP.UI.Main
                 m_DateFilterConditionSubModifier,
                 m_PlaceFilterConditionSubModifier,
                 m_ProtocolFilterConditionSubModifier,
-                m_TagFilterConditionSubModifier
+                m_TagFilterConditionSubModifier,
+                m_AllFilterConditionSubModifier,
+                m_AnyFilterConditionSubModifier
             };
             m_FilterConditionsTemp = new List<BaseFilterCondition>
             {
@@ -121,7 +131,9 @@ namespace HBP.UI.Main
                 new DateFilterCondition(),
                 new PlaceFilterCondition(),
                 new ProtocolFilterCondition(),
-                new TagFilterCondition()
+                new TagFilterCondition(),
+                new AllFilterCondition(),
+                new AnyFilterCondition()
             };
         }
         protected override void SetFields(BaseFilterCondition objectToDisplay)
