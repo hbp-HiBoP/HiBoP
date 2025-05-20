@@ -735,6 +735,25 @@ namespace HBP.UI.Informations.Graphs
         {
             m_OnChangeCurves.Invoke(m_Curves.ToArray());
         }
+        public List<Curve> GetDisplayedCurves()
+        {
+            return GetDisplayedCurves(m_Curves);
+        }
+        List<Curve> GetDisplayedCurves(IEnumerable<Curve> curves)
+        {
+            if (curves.Count() == 0) return new List<Curve>();
+
+            List<Curve> result = new List<Curve>();
+            foreach (var curve in curves)
+            {
+                if (curve.Enabled && curve.Data != null)
+                {
+                    result.Add(curve);
+                }
+                result.AddRange(GetDisplayedCurves(curve.SubCurves));
+            }
+            return result;
+        }
         List<Curve> GetEnabledCurves(IEnumerable<Curve> curves)
         {
             if (curves.Count() == 0) return new List<Curve>();
