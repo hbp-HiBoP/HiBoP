@@ -19,7 +19,8 @@ namespace HBP.UI.Main
         [SerializeField] DateFilterConditionSubModifier m_DateFilterConditionSubModifier;
         [SerializeField] PlaceFilterConditionSubModifier m_PlaceFilterConditionSubModifier;
         [SerializeField] ProtocolFilterConditionSubModifier m_ProtocolFilterConditionSubModifier;
-        [SerializeField] TagFilterConditionSubModifier m_TagFilterConditionSubModifier;
+        [SerializeField] PatientTagFilterConditionSubModifier m_PatientTagFilterConditionSubModifier;
+        [SerializeField] SiteTagFilterConditionSubModifier m_SiteTagFilterConditionSubModifier;
         [SerializeField] AllFilterConditionSubModifier m_AllFilterConditionSubModifier;
         [SerializeField] AnyFilterConditionSubModifier m_AnyFilterConditionSubModifier;
 
@@ -46,7 +47,8 @@ namespace HBP.UI.Main
                 m_DateFilterConditionSubModifier.FilteringObjects = value;
                 m_PlaceFilterConditionSubModifier.FilteringObjects = value;
                 m_ProtocolFilterConditionSubModifier.FilteringObjects = value;
-                m_TagFilterConditionSubModifier.FilteringObjects = value;
+                m_PatientTagFilterConditionSubModifier.FilteringObjects = value;
+                m_SiteTagFilterConditionSubModifier.FilteringObjects = value;
                 m_AllFilterConditionSubModifier.FilteringObjects = value;
                 m_AnyFilterConditionSubModifier.FilteringObjects = value;
             }
@@ -83,7 +85,8 @@ namespace HBP.UI.Main
                 m_DateFilterConditionSubModifier.Interactable = value;
                 m_PlaceFilterConditionSubModifier.Interactable = value;
                 m_ProtocolFilterConditionSubModifier.Interactable = value;
-                m_TagFilterConditionSubModifier.Interactable = value;
+                m_PatientTagFilterConditionSubModifier.Interactable = value;
+                m_SiteTagFilterConditionSubModifier.Interactable = value;
                 m_AllFilterConditionSubModifier.Interactable = value;
                 m_AnyFilterConditionSubModifier.Interactable = value;
             }
@@ -115,7 +118,8 @@ namespace HBP.UI.Main
             m_DateFilterConditionSubModifier.Initialize();
             m_PlaceFilterConditionSubModifier.Initialize();
             m_ProtocolFilterConditionSubModifier.Initialize();
-            m_TagFilterConditionSubModifier.Initialize();
+            m_PatientTagFilterConditionSubModifier.Initialize();
+            m_SiteTagFilterConditionSubModifier.Initialize();
             m_AllFilterConditionSubModifier.Initialize();
             m_AnyFilterConditionSubModifier.Initialize();
 
@@ -126,7 +130,8 @@ namespace HBP.UI.Main
                 m_DateFilterConditionSubModifier,
                 m_PlaceFilterConditionSubModifier,
                 m_ProtocolFilterConditionSubModifier,
-                m_TagFilterConditionSubModifier,
+                m_PatientTagFilterConditionSubModifier,
+                m_SiteTagFilterConditionSubModifier,
                 m_AllFilterConditionSubModifier,
                 m_AnyFilterConditionSubModifier
             };
@@ -137,7 +142,8 @@ namespace HBP.UI.Main
                 new DateFilterCondition(),
                 new PlaceFilterCondition(),
                 new ProtocolFilterCondition(),
-                new TagFilterCondition(),
+                new PatientTagFilterCondition(),
+                new SiteTagFilterCondition(),
                 new AllFilterCondition(),
                 new AnyFilterCondition()
             };

@@ -10,7 +10,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Main
 {
-    public class TagFilterConditionSubModifier : SubModifier<TagFilterCondition>
+    public class PatientTagFilterConditionSubModifier : SubModifier<PatientTagFilterCondition>
     {
         #region Properties
         [SerializeField] Dropdown m_TargetDropdown;
@@ -73,22 +73,22 @@ namespace HBP.UI.Main
         #endregion
 
         #region Private Methods
-        protected override void SetFields(TagFilterCondition objectToDisplay)
+        protected override void SetFields(PatientTagFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 
-            m_TargetDropdown.SetValue((int)objectToDisplay.Target);
+            m_TargetDropdown.Set(typeof(PatientTagFilterCondition.TargetType), (int)objectToDisplay.Target);
 
             var currentTag = m_Tags.FirstOrDefault(t => t == objectToDisplay.Tag);
             m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
         }
         void OnChangeTarget(int value)
         {
-            Object.Target = (TagFilterCondition.TargetType)value;
+            Object.Target = (PatientTagFilterCondition.TargetType)value;
             m_Tags = Object.Target switch
             {
-                TagFilterCondition.TargetType.Patient => PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
-                TagFilterCondition.TargetType.Site => PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
+                PatientTagFilterCondition.TargetType.Patient => PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
+                PatientTagFilterCondition.TargetType.Sites => PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
                 _ => PersistentDataManager.Tags.GeneralTags.ToList(),
             };
             m_TagDropdown.options = m_Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();
