@@ -5,7 +5,10 @@ namespace HBP.Core.Data
 {
     public class FilterConditionAttribute : TypedAttribute
     {
-        public FilterConditionAttribute(Type type) : base(type)
+        public FilterConditionAttribute() : base()
+        {
+        }
+        public FilterConditionAttribute(params Type[] type) : base(type)
         {
         }
     }

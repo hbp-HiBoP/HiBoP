@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("All of"), SortingOrder(100), FilterCondition(typeof(object))]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("All of"), SortingOrder(100), FilterCondition]
     public class AllFilterCondition : BaseFilterCondition
     {
         #region Properties

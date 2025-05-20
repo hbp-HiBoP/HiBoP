@@ -4,11 +4,15 @@ namespace HBP.Core.Tools
 {
     public class TypedAttribute : Attribute
     {
-        public Type Type { get; }
+        public Type[] Types { get; protected set; }
 
-        public TypedAttribute(Type type)
+        public TypedAttribute()
         {
-            Type = type;
+            Types = new Type[] { typeof(object) };
+        }
+        public TypedAttribute(params Type[] type)
+        {
+            Types = type;
         }
     }
 }

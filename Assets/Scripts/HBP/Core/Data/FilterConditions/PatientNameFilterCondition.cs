@@ -4,11 +4,11 @@ using System.ComponentModel;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Name"), SortingOrder(0), FilterCondition(typeof(Patient), typeof(Object3D.Site))]
-    public class NameFilterCondition : BaseFilterCondition
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Patient name"), SortingOrder(1), FilterCondition(typeof(Object3D.Site))]
+    public class PatientNameFilterCondition : BaseFilterCondition
     {
         #region Properties
-        public override string Description => $"The name {(IsNot ? (ExactMatch ? "is not exactly" : "does not contain") : (ExactMatch ? "is exactly" : "contains"))} \"{Name}\" (case {(CaseSensitive ? "sensitive" : "insensitive")})";
+        public override string Description => $"The name of the patient {(IsNot ? (ExactMatch ? "is not exactly" : "does not contain") : (ExactMatch ? "is exactly" : "contains"))} \"{Name}\" (case {(CaseSensitive ? "sensitive" : "insensitive")})";
 
         [JsonProperty("Name")] public string Name { get; set; }
         [JsonProperty("ExactMatch")] public bool ExactMatch { get; set; }
@@ -16,16 +16,16 @@ namespace HBP.Core.Data
         #endregion
 
         #region Constructors
-        public NameFilterCondition() : this("", false, false, false)
+        public PatientNameFilterCondition() : this("", false, false, false)
         {
         }
-        public NameFilterCondition(string name, bool exactMatch, bool caseSensitive, bool isNot) : base(isNot)
+        public PatientNameFilterCondition(string name, bool exactMatch, bool caseSensitive, bool isNot) : base(isNot)
         {
             Name = name;
             ExactMatch = exactMatch;
             CaseSensitive = caseSensitive;
         }
-        public NameFilterCondition(string name, bool exactMatch, bool caseSensitive, bool isNot, string ID) : base(isNot, ID)
+        public PatientNameFilterCondition(string name, bool exactMatch, bool caseSensitive, bool isNot, string ID) : base(isNot, ID)
         {
             Name = name;
             ExactMatch = exactMatch;
@@ -36,12 +36,12 @@ namespace HBP.Core.Data
         #region Operators
         public override object Clone()
         {
-            return new NameFilterCondition(Name, ExactMatch, CaseSensitive, IsNot, ID);
+            return new PatientNameFilterCondition(Name, ExactMatch, CaseSensitive, IsNot, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if (copy is NameFilterCondition nameFilterCondition)
+            if (copy is PatientNameFilterCondition nameFilterCondition)
             {
                 Name = nameFilterCondition.Name;
                 ExactMatch = nameFilterCondition.ExactMatch;
@@ -54,13 +54,9 @@ namespace HBP.Core.Data
         public override bool Check(object obj)
         {
             string name = "";
-            if (obj is INameable nameable)
-            {
-                name = nameable.Name;
-            }
             if (obj is Object3D.Site site)
             {
-                name = site.Information.Name;
+                name = site.Information.Patient.Name;
             }
 
             string nameToCompare = Name;

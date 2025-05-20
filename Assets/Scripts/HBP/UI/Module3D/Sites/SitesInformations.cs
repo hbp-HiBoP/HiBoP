@@ -1,4 +1,6 @@
-﻿using HBP.Data.Module3D;
+﻿using HBP.Core.Object3D;
+using HBP.Data.Module3D;
+using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using HBP.UI.Tools.ResizableGrids;
 using System.Collections.Generic;
@@ -16,9 +18,8 @@ namespace HBP.UI.Module3D
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
         [SerializeField] private SiteList m_SiteList;
-        [SerializeField] private Toggle m_SiteFiltersToggle;
+        [SerializeField] private Button m_SiteFiltersButton;
         [SerializeField] private Button m_SiteToolsButton;
-        [SerializeField] private SiteFilters m_SiteFilters;
         [SerializeField] private GameObject m_MinimizedGameObject;
 
         [SerializeField] private Tooltip m_SiteTooltip;
@@ -65,6 +66,17 @@ namespace HBP.UI.Module3D
             var siteTools = WindowsManager.Open("Site Tools window", null).GetComponent<SiteToolsWindow>();
             siteTools.Scene = m_Scene;
             siteTools.OnToolApplied.AddListener(UpdateList);
+        }
+        private void OpenSiteFilters()
+        {
+            var siteFilters = WindowsManager.Open("Site Filters window", null).GetComponent<SiteFiltersWindow>();
+            siteFilters.FilteringObjects = m_Scene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).Select(s => (object)s).ToList();
+            siteFilters.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(typeof(Site)));
+            siteFilters.OnApplyFilters.AddListener(mask =>
+            {
+                for (int i = 0; i < mask.Length; i++) ((Site)siteFilters.FilteringObjects[i]).State.IsFiltered = mask[i];
+                UpdateList();
+            });
         }
         private void OnSelectSite(Core.Object3D.Site site)
         {
@@ -122,9 +134,8 @@ namespace HBP.UI.Module3D
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            m_SiteFilters.Initialize(scene);
-            m_SiteFilters.OnRequestListUpdate.AddListener(UpdateList);
 
+            m_SiteFiltersButton.onClick.AddListener(OpenSiteFilters);
             m_SiteToolsButton.onClick.AddListener(OpenSiteTools);
 
             m_Scene.OnSelect.AddListener(SetList);

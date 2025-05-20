@@ -15,6 +15,7 @@ namespace HBP.UI.Main
         [SerializeField] Dropdown m_EvaluateDropdown;
 
         [SerializeField] NameFilterConditionSubModifier m_NameFilterConditionSubModifier;
+        [SerializeField] PatientNameFilterConditionSubModifier m_PatientNameFilterConditionSubModifier;
         [SerializeField] DateFilterConditionSubModifier m_DateFilterConditionSubModifier;
         [SerializeField] PlaceFilterConditionSubModifier m_PlaceFilterConditionSubModifier;
         [SerializeField] ProtocolFilterConditionSubModifier m_ProtocolFilterConditionSubModifier;
@@ -41,6 +42,7 @@ namespace HBP.UI.Main
                 else FilterConditionAttribute = new FilterConditionAttribute(null);
 
                 m_NameFilterConditionSubModifier.FilteringObjects = value;
+                m_PatientNameFilterConditionSubModifier.FilteringObjects = value;
                 m_DateFilterConditionSubModifier.FilteringObjects = value;
                 m_PlaceFilterConditionSubModifier.FilteringObjects = value;
                 m_ProtocolFilterConditionSubModifier.FilteringObjects = value;
@@ -77,6 +79,7 @@ namespace HBP.UI.Main
                 m_EvaluateDropdown.interactable = value;
 
                 m_NameFilterConditionSubModifier.Interactable = value;
+                m_PatientNameFilterConditionSubModifier.Interactable = value;
                 m_DateFilterConditionSubModifier.Interactable = value;
                 m_PlaceFilterConditionSubModifier.Interactable = value;
                 m_ProtocolFilterConditionSubModifier.Interactable = value;
@@ -108,6 +111,7 @@ namespace HBP.UI.Main
             m_EvaluateDropdown.onValueChanged.AddListener(value => ObjectTemp.IsNot = value != 0);
 
             m_NameFilterConditionSubModifier.Initialize();
+            m_PatientNameFilterConditionSubModifier.Initialize();
             m_DateFilterConditionSubModifier.Initialize();
             m_PlaceFilterConditionSubModifier.Initialize();
             m_ProtocolFilterConditionSubModifier.Initialize();
@@ -118,6 +122,7 @@ namespace HBP.UI.Main
             m_SubModifiers = new List<BaseSubModifier>
             {
                 m_NameFilterConditionSubModifier,
+                m_PatientNameFilterConditionSubModifier,
                 m_DateFilterConditionSubModifier,
                 m_PlaceFilterConditionSubModifier,
                 m_ProtocolFilterConditionSubModifier,
@@ -128,6 +133,7 @@ namespace HBP.UI.Main
             m_FilterConditionsTemp = new List<BaseFilterCondition>
             {
                 new NameFilterCondition(),
+                new PatientNameFilterCondition(),
                 new DateFilterCondition(),
                 new PlaceFilterCondition(),
                 new ProtocolFilterCondition(),

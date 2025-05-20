@@ -147,6 +147,7 @@ namespace HBP.Data.Module3D
         /// Event called when changing the selected scene
         /// </summary>
         [HideInInspector] public static GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnDeselectScene = new GenericEvent<Base3DScene>();
         /// <summary>
         /// Event called when minimizing a scene
         /// </summary>

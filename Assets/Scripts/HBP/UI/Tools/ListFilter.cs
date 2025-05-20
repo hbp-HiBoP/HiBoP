@@ -51,7 +51,7 @@ namespace HBP.UI.Tools
         {
             LoadingManager.Load((update, token) => ApplyFiltersAsync(update, token), false);
         }
-        public void ResetFilters()
+        public virtual void ResetFilters()
         {
             OnApplyFilters.Invoke(Enumerable.Repeat(true, FilteringObjects.Count).ToArray());
         }
@@ -111,7 +111,7 @@ namespace HBP.UI.Tools
             m_ListGestion.List.OnRemoveObject.AddListener((condition) => SetApplyButtonState());
             m_ListGestion.List.OnAddObject.AddListener((condition) => SetApplyButtonState());
         }
-        protected async UniTask ApplyFiltersAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        protected virtual async UniTask ApplyFiltersAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
 
@@ -137,7 +137,7 @@ namespace HBP.UI.Tools
             }
             return result;
         }
-        protected void SetApplyButtonState()
+        protected virtual void SetApplyButtonState()
         {
             m_ApplyButton.interactable = m_ListGestion.List.ObjectsSelected.Length > 0;
         }

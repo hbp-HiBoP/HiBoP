@@ -72,6 +72,10 @@ namespace HBP.Data.Module3D
                     OnSelect.Invoke();
                     Module3DMain.OnSelectScene.Invoke(this);
                 }
+                else
+                {
+                    Module3DMain.OnDeselectScene.Invoke(this);
+                }
             }
         }
         

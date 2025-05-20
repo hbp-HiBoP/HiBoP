@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Date"), SortingOrder(2), FilterCondition(typeof(Patient))]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Date"), SortingOrder(3), FilterCondition(typeof(Patient))]
     public class DateFilterCondition : BaseFilterCondition
     {
         #region Properties

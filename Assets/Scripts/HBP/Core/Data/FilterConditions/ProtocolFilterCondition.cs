@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Protocol"), SortingOrder(3), FilterCondition(typeof(Patient))]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Protocol"), SortingOrder(4), FilterCondition(typeof(Patient))]
     public class ProtocolFilterCondition : BaseFilterCondition
     {
         #region Properties
