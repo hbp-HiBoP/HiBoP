@@ -22,6 +22,7 @@ namespace HBP.UI.Main
         [SerializeField] PatientTagFilterConditionSubModifier m_PatientTagFilterConditionSubModifier;
         [SerializeField] SiteTagFilterConditionSubModifier m_SiteTagFilterConditionSubModifier;
         [SerializeField] SpecificSiteLocationFilterConditionSubModifier m_SpecificSiteLocationFilterConditionSubModifier;
+        [SerializeField] RawSitePositionFilterConditionSubModifier m_RawSitePositionFilterConditionSubModifier;
         [SerializeField] ActivityFilterConditionSubModifier m_ActivityFilterConditionSubModifier;
         [SerializeField] AllFilterConditionSubModifier m_AllFilterConditionSubModifier;
         [SerializeField] AnyFilterConditionSubModifier m_AnyFilterConditionSubModifier;
@@ -52,6 +53,7 @@ namespace HBP.UI.Main
                 m_PatientTagFilterConditionSubModifier.FilteringObjects = value;
                 m_SiteTagFilterConditionSubModifier.FilteringObjects = value;
                 m_SpecificSiteLocationFilterConditionSubModifier.FilteringObjects = value;
+                m_RawSitePositionFilterConditionSubModifier.FilteringObjects = value;
                 m_ActivityFilterConditionSubModifier.FilteringObjects = value;
                 m_AllFilterConditionSubModifier.FilteringObjects = value;
                 m_AnyFilterConditionSubModifier.FilteringObjects = value;
@@ -92,6 +94,7 @@ namespace HBP.UI.Main
                 m_PatientTagFilterConditionSubModifier.Interactable = value;
                 m_SiteTagFilterConditionSubModifier.Interactable = value;
                 m_SpecificSiteLocationFilterConditionSubModifier.Interactable = value;
+                m_RawSitePositionFilterConditionSubModifier.Interactable = value;
                 m_ActivityFilterConditionSubModifier.Interactable = value;
                 m_AllFilterConditionSubModifier.Interactable = value;
                 m_AnyFilterConditionSubModifier.Interactable = value;
@@ -127,6 +130,7 @@ namespace HBP.UI.Main
             m_PatientTagFilterConditionSubModifier.Initialize();
             m_SiteTagFilterConditionSubModifier.Initialize();
             m_SpecificSiteLocationFilterConditionSubModifier.Initialize();
+            m_RawSitePositionFilterConditionSubModifier.Initialize();
             m_ActivityFilterConditionSubModifier.Initialize();
             m_AllFilterConditionSubModifier.Initialize();
             m_AnyFilterConditionSubModifier.Initialize();
@@ -141,6 +145,7 @@ namespace HBP.UI.Main
                 m_PatientTagFilterConditionSubModifier,
                 m_SiteTagFilterConditionSubModifier,
                 m_SpecificSiteLocationFilterConditionSubModifier,
+                m_RawSitePositionFilterConditionSubModifier,
                 m_ActivityFilterConditionSubModifier,
                 m_AllFilterConditionSubModifier,
                 m_AnyFilterConditionSubModifier
@@ -155,6 +160,7 @@ namespace HBP.UI.Main
                 new PatientTagFilterCondition(),
                 new SiteTagFilterCondition(),
                 new SpecificSiteLocationFilterCondition(),
+                new RawSitePositionFilterCondition(),
                 new ActivityFilterCondition(),
                 new AllFilterCondition(),
                 new AnyFilterCondition()
