@@ -1,7 +1,10 @@
-﻿using System;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
-using HBP.Core.Tools;
 
 namespace HBP.Core.DLL
 {
@@ -15,7 +18,7 @@ namespace HBP.Core.DLL
         #endregion
 
         #region Public Methods
-        public void Load()
+        public override void Load()
         {
             string leftNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.0_areas_MPM_l_N10_nlin2StdColin27_public_103b99ab1e99961eeffe414978ffb415.nii.gz");
             string rightNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.0_areas_MPM_r_N10_nlin2StdColin27_public_ff55a994bb8c9e5dace0c93b6fa3e2a7.nii.gz");
@@ -36,6 +39,42 @@ namespace HBP.Core.DLL
             Loading = false;
             return Loaded;
         }
+        public override string GetAreaName(int index)
+        {
+            string[] areaInformation = GetInformation(index);
+            if (areaInformation.Length == 1)
+                return areaInformation[0];
+            return string.Empty;
+        }
+        #endregion
+
+        #region Private Methods
+        protected override void GetAreaNames()
+        {
+            var names = new List<string>();
+
+            string jsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels.json");
+
+            if (!File.Exists(jsonPath)) return;
+
+            string json = File.ReadAllText(jsonPath);
+            JObject root = JObject.Parse(json);
+
+            var structures = root["JulichBrainAtlas"]?["Structures"]?["Structure"];
+            if (structures != null)
+            {
+                foreach (var structure in structures)
+                {
+                    var name = structure["name"]?.ToString();
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        names.Add(name);
+                    }
+                }
+            }
+
+            m_AreaNames.AddRange(names.OrderBy(n => n).Distinct());
+        }
         #endregion
 
         #region Memory Management
@@ -44,6 +83,7 @@ namespace HBP.Core.DLL
         /// </summary>
         protected override void create_DLL_class()
         {
+            GetAreaNames();
             _handle = new HandleRef(this, create_JuBrainAtlas());
         }
         /// <summary>

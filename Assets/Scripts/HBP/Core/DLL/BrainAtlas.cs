@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
@@ -15,9 +17,12 @@ namespace HBP.Core.DLL
         /// </summary>
         public bool Loaded { get; protected set; }
         public bool Loading { get; protected set; }
+        protected List<string> m_AreaNames = new();
+        public ReadOnlyCollection<string> AreaNames => new(m_AreaNames);
         #endregion
 
         #region Public Methods
+        public abstract void Load();
         /// <summary>
         /// Get the index of the area closest to a position
         /// </summary>
@@ -68,6 +73,11 @@ namespace HBP.Core.DLL
             }
             return colors;
         }
+        public abstract string GetAreaName(int index);
+        #endregion
+
+        #region Private Methods
+        protected abstract void GetAreaNames();
         #endregion
 
         #region DLLImport

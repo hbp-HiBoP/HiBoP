@@ -1,6 +1,8 @@
 ﻿using HBP.Core.Tools;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace HBP.Core.DLL
@@ -132,7 +134,7 @@ namespace HBP.Core.DLL
         {
             return new RawSiteList(generate_atlas_sites_list_MarsAtlasIndex(_handle, dimension));
         }
-        public void Load()
+        public override void Load()
         {
             string indexPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "mars_atlas_index.csv");
             string brodmannPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "brodmann_areas.txt");
@@ -154,6 +156,62 @@ namespace HBP.Core.DLL
             Loading = false;
             return Loaded;
         }
+        public override string GetAreaName(int index)
+        {
+            string[] areaInformation = GetInformation(index);
+            if (areaInformation.Length == 5)
+                return areaInformation[4];
+            return string.Empty;
+        }
+        #endregion
+
+        #region Private Methods
+        protected override void GetAreaNames()
+        {
+            m_AreaNames = new List<string>();
+
+            string indexPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "mars_atlas_index.csv");
+            if (!File.Exists(indexPath)) return;
+
+            var names = new List<string>();
+
+            using (var reader = new StreamReader(indexPath))
+            {
+                string headerLine = reader.ReadLine();
+                if (headerLine == null) return;
+
+                var headers = headerLine.Split(',');
+                int labelIndex = -1, fullNameIndex = -1;
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    if (headers[i].Trim() == "Label") labelIndex = i;
+                    if (headers[i].Trim() == "Full name") fullNameIndex = i;
+                }
+                if (labelIndex == -1 || fullNameIndex == -1) return;
+
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    var columns = line.Split(',');
+
+                    if (columns.Length <= fullNameIndex || columns.Length <= labelIndex) continue;
+
+                    string label = columns[labelIndex].Trim();
+                    string fullName = columns[fullNameIndex].Trim();
+
+                    if (label == "0") continue; // Ignore White Matter
+
+                    if (!string.IsNullOrEmpty(fullName))
+                    {
+                        names.Add(fullName);
+                    }
+                }
+            }
+
+            m_AreaNames.AddRange(names.OrderBy(n => n).Distinct());
+        }
         #endregion
 
         #region Memory Management
@@ -162,6 +220,7 @@ namespace HBP.Core.DLL
         /// </summary>
         protected override void create_DLL_class()
         {
+            GetAreaNames();
             _handle = new HandleRef(this, create_MarsAtlasIndex());
         }
         /// <summary>
