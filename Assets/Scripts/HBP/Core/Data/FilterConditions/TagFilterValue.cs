@@ -1,3 +1,4 @@
+using HBP.Core.Enums;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -108,8 +109,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn)]
     public class NumberTagFilterValue : TagFilterValue
     {
-        public enum ComparisonType { Equal, Greater, GreaterOrEqual, Lower, LowerOrEqual, Range }
-        [JsonProperty("Type")] public ComparisonType Type { get; set; }
+        [JsonProperty("Type")] public NumberComparisonType Type { get; set; }
         [JsonProperty("Value")] public float Value { get; set; }
         [JsonProperty("Min")] public float Min { get; set; }
         [JsonProperty("Max")] public float Max { get; set; }
@@ -121,17 +121,17 @@ namespace HBP.Core.Data
                 float floatValue = (float)value;
                 switch (Type)
                 {
-                    case ComparisonType.Equal:
+                    case NumberComparisonType.Equal:
                         return floatValue == Value;
-                    case ComparisonType.Greater:
+                    case NumberComparisonType.Greater:
                         return floatValue > Value;
-                    case ComparisonType.GreaterOrEqual:
+                    case NumberComparisonType.GreaterOrEqual:
                         return floatValue >= Value;
-                    case ComparisonType.Lower:
+                    case NumberComparisonType.Lower:
                         return floatValue < Value;
-                    case ComparisonType.LowerOrEqual:
+                    case NumberComparisonType.LowerOrEqual:
                         return floatValue <= Value;
-                    case ComparisonType.Range:
+                    case NumberComparisonType.Range:
                         return floatValue >= Min && floatValue <= Max;
                 }
             }
@@ -140,17 +140,17 @@ namespace HBP.Core.Data
                 double doubleValue = (double)value;
                 switch (Type)
                 {
-                    case ComparisonType.Equal:
+                    case NumberComparisonType.Equal:
                         return doubleValue == Value;
-                    case ComparisonType.Greater:
+                    case NumberComparisonType.Greater:
                         return doubleValue > Value;
-                    case ComparisonType.GreaterOrEqual:
+                    case NumberComparisonType.GreaterOrEqual:
                         return doubleValue >= Value;
-                    case ComparisonType.Lower:
+                    case NumberComparisonType.Lower:
                         return doubleValue < Value;
-                    case ComparisonType.LowerOrEqual:
+                    case NumberComparisonType.LowerOrEqual:
                         return doubleValue <= Value;
-                    case ComparisonType.Range:
+                    case NumberComparisonType.Range:
                         return doubleValue >= Min && doubleValue <= Max;
                 }
             }
@@ -159,17 +159,17 @@ namespace HBP.Core.Data
                 int intValue = (int)value;
                 switch (Type)
                 {
-                    case ComparisonType.Equal:
+                    case NumberComparisonType.Equal:
                         return intValue == Value;
-                    case ComparisonType.Greater:
+                    case NumberComparisonType.Greater:
                         return intValue > Value;
-                    case ComparisonType.GreaterOrEqual:
+                    case NumberComparisonType.GreaterOrEqual:
                         return intValue >= Value;
-                    case ComparisonType.Lower:
+                    case NumberComparisonType.Lower:
                         return intValue < Value;
-                    case ComparisonType.LowerOrEqual:
+                    case NumberComparisonType.LowerOrEqual:
                         return intValue <= Value;
-                    case ComparisonType.Range:
+                    case NumberComparisonType.Range:
                         return intValue >= Min && intValue <= Max;
                 }
             }
@@ -178,17 +178,17 @@ namespace HBP.Core.Data
                 long longValue = (long)value;
                 switch (Type)
                 {
-                    case ComparisonType.Equal:
+                    case NumberComparisonType.Equal:
                         return longValue == Value;
-                    case ComparisonType.Greater:
+                    case NumberComparisonType.Greater:
                         return longValue > Value;
-                    case ComparisonType.GreaterOrEqual:
+                    case NumberComparisonType.GreaterOrEqual:
                         return longValue >= Value;
-                    case ComparisonType.Lower:
+                    case NumberComparisonType.Lower:
                         return longValue < Value;
-                    case ComparisonType.LowerOrEqual:
+                    case NumberComparisonType.LowerOrEqual:
                         return longValue <= Value;
-                    case ComparisonType.Range:
+                    case NumberComparisonType.Range:
                         return longValue >= Min && longValue <= Max;
                 }
             }
@@ -199,22 +199,22 @@ namespace HBP.Core.Data
             string description = $" with value{(isNot ? " not" : "")} ";
             switch (Type)
             {
-                case ComparisonType.Equal:
+                case NumberComparisonType.Equal:
                     description += $"equal to {Value}";
                     break;
-                case ComparisonType.Greater:
+                case NumberComparisonType.Greater:
                     description += $"greater than {Value}";
                     break;
-                case ComparisonType.GreaterOrEqual:
+                case NumberComparisonType.GreaterOrEqual:
                     description += $"greater or equal to {Value}";
                     break;
-                case ComparisonType.Lower:
+                case NumberComparisonType.Lower:
                     description += $"lower than {Value}";
                     break;
-                case ComparisonType.LowerOrEqual:
+                case NumberComparisonType.LowerOrEqual:
                     description += $"lower or equal to {Value}";
                     break;
-                case ComparisonType.Range:
+                case NumberComparisonType.Range:
                     description += $"between {Min} and {Max} (inclusive)";
                     break;
             }

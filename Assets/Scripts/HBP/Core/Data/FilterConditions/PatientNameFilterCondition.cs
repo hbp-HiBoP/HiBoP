@@ -1,4 +1,3 @@
-using HBP.Core.Interfaces;
 using Newtonsoft.Json;
 using System.ComponentModel;
 

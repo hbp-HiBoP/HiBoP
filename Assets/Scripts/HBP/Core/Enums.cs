@@ -42,4 +42,6 @@ namespace HBP.Core.Enums
     public enum RaycastHitResult { None, Cut, Mesh, Site, ROI }
     public enum LayoutDirection { Horizontal, Vertical }
     public enum DialogBoxType { Informational, Warning, Error }
+    public enum NumberComparisonType { Equal, Greater, GreaterOrEqual, Lower, LowerOrEqual, Range }
+    public enum MeasureType { Mean, Median, Min, Max, StandardDeviation }
 }

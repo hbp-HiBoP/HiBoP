@@ -21,6 +21,7 @@ namespace HBP.UI.Main
         [SerializeField] ProtocolFilterConditionSubModifier m_ProtocolFilterConditionSubModifier;
         [SerializeField] PatientTagFilterConditionSubModifier m_PatientTagFilterConditionSubModifier;
         [SerializeField] SiteTagFilterConditionSubModifier m_SiteTagFilterConditionSubModifier;
+        [SerializeField] ActivityFilterConditionSubModifier m_ActivityFilterConditionSubModifier;
         [SerializeField] AllFilterConditionSubModifier m_AllFilterConditionSubModifier;
         [SerializeField] AnyFilterConditionSubModifier m_AnyFilterConditionSubModifier;
 
@@ -49,6 +50,7 @@ namespace HBP.UI.Main
                 m_ProtocolFilterConditionSubModifier.FilteringObjects = value;
                 m_PatientTagFilterConditionSubModifier.FilteringObjects = value;
                 m_SiteTagFilterConditionSubModifier.FilteringObjects = value;
+                m_ActivityFilterConditionSubModifier.FilteringObjects = value;
                 m_AllFilterConditionSubModifier.FilteringObjects = value;
                 m_AnyFilterConditionSubModifier.FilteringObjects = value;
             }
@@ -87,6 +89,7 @@ namespace HBP.UI.Main
                 m_ProtocolFilterConditionSubModifier.Interactable = value;
                 m_PatientTagFilterConditionSubModifier.Interactable = value;
                 m_SiteTagFilterConditionSubModifier.Interactable = value;
+                m_ActivityFilterConditionSubModifier.Interactable = value;
                 m_AllFilterConditionSubModifier.Interactable = value;
                 m_AnyFilterConditionSubModifier.Interactable = value;
             }
@@ -120,6 +123,7 @@ namespace HBP.UI.Main
             m_ProtocolFilterConditionSubModifier.Initialize();
             m_PatientTagFilterConditionSubModifier.Initialize();
             m_SiteTagFilterConditionSubModifier.Initialize();
+            m_ActivityFilterConditionSubModifier.Initialize();
             m_AllFilterConditionSubModifier.Initialize();
             m_AnyFilterConditionSubModifier.Initialize();
 
@@ -132,6 +136,7 @@ namespace HBP.UI.Main
                 m_ProtocolFilterConditionSubModifier,
                 m_PatientTagFilterConditionSubModifier,
                 m_SiteTagFilterConditionSubModifier,
+                m_ActivityFilterConditionSubModifier,
                 m_AllFilterConditionSubModifier,
                 m_AnyFilterConditionSubModifier
             };
@@ -144,6 +149,7 @@ namespace HBP.UI.Main
                 new ProtocolFilterCondition(),
                 new PatientTagFilterCondition(),
                 new SiteTagFilterCondition(),
+                new ActivityFilterCondition(),
                 new AllFilterCondition(),
                 new AnyFilterCondition()
             };
