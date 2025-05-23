@@ -87,7 +87,7 @@ namespace HBP.Core.Data
             {
                 float axisValue = Axis switch
                 {
-                    AxisType.X => site.Information.DefaultPosition.x,
+                    AxisType.X => -site.Information.DefaultPosition.x,
                     AxisType.Y => site.Information.DefaultPosition.y,
                     AxisType.Z => site.Information.DefaultPosition.z,
                     _ => float.MinValue

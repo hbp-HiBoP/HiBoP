@@ -4,6 +4,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Data.Database;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -60,6 +61,7 @@ namespace HBP.UI.Main
             {
                 await LoadingManager.LoadAsync(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, true, update));
             }
+            await UniTask.SwitchToMainThread();
             if (requiresReload)
             {
                 DataManager.Clear();

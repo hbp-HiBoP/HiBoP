@@ -1,6 +1,7 @@
 ﻿using UnityEngine.EventSystems;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
@@ -17,7 +18,7 @@ namespace HBP.UI.Tools
 
         protected override GameObject CreateBlocker(Canvas rootCanvas)
         {
-            Canvas canvas = GetTopmostCanvas(this);
+            Canvas canvas = m_RectTransform.GetTopmostCanvas();
             GameObject blocker = base.CreateBlocker(canvas);
             return blocker;
         }
@@ -37,21 +38,6 @@ namespace HBP.UI.Tools
 
             m_DropdownRectTransform.pivot = new Vector2(0, 1);
             m_DropdownRectTransform.position = new Vector3(m_RectTransform.position.x + m_RectTransform.rect.width / 2, m_RectTransform.position.y + m_RectTransform.rect.height / 2, m_DropdownRectTransform.position.z);
-        }
-
-        /// <summary>
-        /// Get the topmost canvas of a component
-        /// </summary>
-        /// <param name="component">Component in a canvas</param>
-        /// <returns>Canvas associated to the component</returns>
-        private Canvas GetTopmostCanvas(Component component)
-        {
-            Canvas[] parentCanvases = component.GetComponentsInParent<Canvas>();
-            if (parentCanvases != null && parentCanvases.Length > 0)
-            {
-                return parentCanvases[parentCanvases.Length - 1];
-            }
-            return null;
         }
     }
 }

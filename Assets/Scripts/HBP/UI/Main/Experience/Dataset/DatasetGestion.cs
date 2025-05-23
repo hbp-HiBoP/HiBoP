@@ -4,6 +4,7 @@ using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 using HBP.Data.Database;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -35,6 +36,7 @@ namespace HBP.UI.Main
                 if (result == 0)
                 {
                     base.OK();
+                    await UniTask.SwitchToMainThread();
                     ApplicationState.LoadedProject.SetDatasets(m_ListGestion.List.Objects);
                     DataManager.Clear();
                     Module3DMain.ReloadScenes();

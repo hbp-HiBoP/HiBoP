@@ -233,6 +233,29 @@ namespace HBP.Core.Tools
             RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, position, null, out Vector2 pointInRectangle);
             return new Vector2(pointInRectangle.x / rectTransform.rect.width, pointInRectangle.y / rectTransform.rect.height) + rectTransform.pivot;
         }
+        public static void ClampToRectTransform(this RectTransform clampedRectTransform, RectTransform clampingRectTransform, RectOffset offset)
+        {
+            Vector3 l_pos = clampedRectTransform.localPosition;
+            Vector3 l_minPosition = clampingRectTransform.rect.min - clampedRectTransform.rect.min;
+            Vector3 l_maxPosition = clampingRectTransform.rect.max - clampedRectTransform.rect.max;
+
+            l_minPosition = new Vector3(l_minPosition.x + offset.left, l_minPosition.y + offset.bottom, l_minPosition.z);
+            l_maxPosition = new Vector3(l_maxPosition.x - offset.right, l_maxPosition.y - offset.top, l_maxPosition.z);
+
+            l_pos.x = Mathf.Clamp(clampedRectTransform.localPosition.x, l_minPosition.x, l_maxPosition.x);
+            l_pos.y = Mathf.Clamp(clampedRectTransform.localPosition.y, l_minPosition.y, l_maxPosition.y);
+
+            clampedRectTransform.localPosition = l_pos;
+        }
+        public static Canvas GetTopmostCanvas(this RectTransform rectTransform)
+        {
+            Canvas[] parentCanvases = rectTransform.GetComponentsInParent<Canvas>();
+            if (parentCanvases != null && parentCanvases.Length > 0)
+            {
+                return parentCanvases[^1];
+            }
+            return null;
+        }
     }
 
     public static class RenderTextureExtension

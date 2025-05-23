@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -142,7 +143,7 @@ namespace HBP.UI.Module3D
                         case SiteInformationDisplayMode.Light:
                             break;
                     }
-                    ClampToCanvas();
+                    m_RectTransform.ClampToRectTransform(m_Canvas, new RectOffset(30, 30, 30, 30));
                 }
                 gameObject.SetActive(siteInfo.Enabled);
             });
@@ -150,23 +151,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        /// <summary>
-        /// Clamp this object to the parent canvas
-        /// </summary>
-        void ClampToCanvas()
-		{
-            Vector3 l_pos = m_RectTransform.localPosition;
-			Vector3 l_minPosition = m_Canvas.rect.min - m_RectTransform.rect.min;
-			Vector3 l_maxPosition = m_Canvas.rect.max - m_RectTransform.rect.max;
-
-            l_minPosition = new Vector3(l_minPosition.x + 30.0f, l_minPosition.y + 30.0f, l_minPosition.z);
-            l_maxPosition = new Vector3(l_maxPosition.x - 30.0f, l_maxPosition.y - 30.0f, l_maxPosition.z);
-
-            l_pos.x = Mathf.Clamp (m_RectTransform.localPosition.x, l_minPosition.x, l_maxPosition.x);
-			l_pos.y = Mathf.Clamp (m_RectTransform.localPosition.y, l_minPosition.y, l_maxPosition.y);
-
-            m_RectTransform.localPosition = l_pos;
-		}
         /// <summary>
         /// Set the position of this object on the screen
         /// </summary>
