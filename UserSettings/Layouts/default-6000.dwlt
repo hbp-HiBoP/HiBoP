@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 2560
     height: 1357
   m_ShowMode: 4
-  m_Title: Game
+  m_Title: Console
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 100}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 200
+  controlID: 62
   draggingID: 0
 --- !u!114 &6
 MonoBehaviour:
@@ -252,7 +252,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 50}
   m_MaxSize: {x: 24288, y: 8096}
   vertical: 0
-  controlID: 74
+  controlID: 122
   draggingID: 0
 --- !u!114 &11
 MonoBehaviour:
@@ -483,7 +483,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 24
+    y: 79
     width: 356
     height: 922
   m_SerializedDataModeController:
@@ -502,7 +502,7 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: b664ffffbc64ffff6c70fffff8dbfffffedbffffa4ddffffaafaffff24fbffff2c73000042730000
+      m_ExpandedIDs: 24fbffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -549,8 +549,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Scene\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 358
-    y: 24
+    x: 357
+    y: 79
     width: 1785
     height: 922
   m_SerializedDataModeController:
@@ -1039,7 +1039,7 @@ MonoBehaviour:
   m_Position:
     m_Target: {x: 894.08826, y: 489.49036, z: 6.183629}
     speed: 2
-    m_Value: {x: 947.1902, y: 518.14557, z: -5.012942}
+    m_Value: {x: 894.08826, y: 489.49036, z: 6.183629}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1091,7 +1091,7 @@ MonoBehaviour:
   m_Size:
     m_Target: 502.08798
     speed: 2
-    m_Value: 550.48047
+    m_Value: 502.08798
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -1220,7 +1220,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 24
+    y: 1027
     width: 701
     height: 327
   m_SerializedDataModeController:
@@ -1235,7 +1235,7 @@ MonoBehaviour:
     m_ContainerData: []
     m_OverlaysVisible: 1
   m_SearchFilter:
-    m_NameFilter: filter con
+    m_NameFilter: site item
     m_ClassNames: []
     m_AssetLabels: []
     m_AssetBundleNames: []
@@ -1245,26 +1245,26 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts/HBP/UI/Main/FilterConditions
+    - Assets
     m_Globs: []
     m_ProductIds: 
     m_AnyWithAssetOrigin: 0
-    m_OriginalText: filter con
+    m_OriginalText: site item
     m_ImportLogFlags: 0
     m_FilterByTypeIntersection: 0
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - Assets/Scripts/HBP/UI/Main/FilterConditions
+  - Assets
   m_LastFoldersGridSize: 16
-  m_LastProjectPath: C:\HBP\Software\HiBoP
+  m_LastProjectPath: C:\Users\Zigaroula\Documents\HBP\Software\HiBoP
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
-    scrollPos: {x: 0, y: 781}
-    m_SelectedIDs: c4cf0000
-    m_LastClickedID: 53188
-    m_ExpandedIDs: 00000000081f02000a1f02000c1f02000e1f0200101f0200121f0200141f0200161f0200181f02001a1f02001c1f02001e1f0200201f0200221f0200241f0200261f0200281f02002a1f0200
+    scrollPos: {x: 0, y: 0}
+    m_SelectedIDs: 1ccf0000
+    m_LastClickedID: 53020
+    m_ExpandedIDs: 0000000016cc000018cc00001acc00001ccc00001ecc000020cc000022cc000024cc000026cc000028cc00002acc00002ccc00002ecc000030cc000032cc000034cc000036cc000038cc00003acc00003ccc000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1293,7 +1293,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000081f02000a1f02000c1f02000e1f0200101f0200121f0200141f0200161f0200181f02001a1f02001c1f02001e1f0200201f0200221f0200241f0200261f0200281f02002a1f0200
+    m_ExpandedIDs: 0000000016cc000018cc00001acc00001ccc00001ecc000020cc000022cc000024cc000026cc000028cc00002acc00002ccc00002ecc000030cc000032cc000034cc000036cc000038cc00003acc00003ccc0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1373,8 +1373,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Console\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 703
-    y: 24
+    x: 702
+    y: 1027
     width: 758
     height: 327
   m_SerializedDataModeController:
@@ -1410,8 +1410,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Profiler\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1463
-    y: 24
+    x: 1462
+    y: 1027
     width: 680
     height: 327
   m_SerializedDataModeController:
@@ -1455,7 +1455,7 @@ MonoBehaviour:
         m_PaneScroll: {x: 0, y: 0}
         m_ViewType: 0
         updateViewLive: 1
-        m_CurrentFrameIndex: 150648
+        m_CurrentFrameIndex: 52769
         m_HierarchyOverruledThreadFromSelection: 0
         m_ProfilerViewFilteringOptions: 1
         m_FrameDataHierarchyView:
@@ -2492,8 +2492,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 2145
-    y: 24
+    x: 2144
+    y: 79
     width: 415
     height: 1275
   m_SerializedDataModeController:
