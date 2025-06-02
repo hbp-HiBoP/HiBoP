@@ -13,6 +13,7 @@ namespace HBP.UI.Tools
     public class CommandLineReader : MonoBehaviour
     {
         #region Properties
+        [SerializeField] private bool m_AutoLoad = false;
         [SerializeField] private string m_ProjectName;
         [SerializeField] private string m_VisualizationName;
         #endregion
@@ -21,12 +22,12 @@ namespace HBP.UI.Tools
         private void Awake()
         {
             string[] args = System.Environment.GetCommandLineArgs();
-            #if UNITY_EDITOR
-            if (!string.IsNullOrEmpty(m_ProjectName) && !string.IsNullOrEmpty(m_VisualizationName))
+#if UNITY_EDITOR
+            if (!string.IsNullOrEmpty(m_ProjectName) && !string.IsNullOrEmpty(m_VisualizationName) && m_AutoLoad)
             {
                 args = new string[] { "HiBoP", "-p", m_ProjectName, "-v", m_VisualizationName };
             }
-            #endif
+#endif
             InterpreteCommandLineArguments(args).Forget();
         }
         #endregion

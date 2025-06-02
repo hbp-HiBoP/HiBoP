@@ -64,7 +64,16 @@ namespace HBP.Data.Database
             LoadSettings();
             if (m_Settings.IsFirstUse)
             {
-                ConfigureDefault();
+                var result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Default Protocols", "The default protocols have not yet been imported. Do you want to import them?", "Yes", "Later", "Never");
+                if (result == 0) // Yes
+                {
+                    ConfigureDefault();
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Default Protocols", "The default protocols have been imported.", "OK");
+                }
+                else if (result == 2) // Never
+                {
+                    m_Settings.IsFirstUse = false;
+                }
                 SaveSettings();
             }
             await LoadProtocolsAsync();

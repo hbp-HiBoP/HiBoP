@@ -72,6 +72,8 @@ namespace HBP.Data.Database
         #region Public Methods
         public void SetDefaultWorkspace()
         {
+            if (m_Workspaces.Count > 0 && SelectedWorkspace != null) return;
+
             Workspace workspace = new Workspace("Default");
             m_Workspaces.Add(workspace);
             SelectedWorkspace = workspace;
@@ -92,6 +94,10 @@ namespace HBP.Data.Database
         {
             base.OnDeserialized();
             SelectedWorkspace = m_Workspaces.FirstOrDefault(w => w.ID == m_SelectedWorkspaceID);
+            if (m_SelectedWorkspace == null && m_Workspaces.Count > 0)
+            {
+                SelectedWorkspace = m_Workspaces[0];
+            }
         }
         #endregion
     }

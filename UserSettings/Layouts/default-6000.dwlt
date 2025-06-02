@@ -483,7 +483,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 79
+    y: 24
     width: 356
     height: 922
   m_SerializedDataModeController:
@@ -549,8 +549,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Scene\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 357
-    y: 79
+    x: 358
+    y: 24
     width: 1785
     height: 922
   m_SerializedDataModeController:
@@ -1220,7 +1220,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 1027
+    y: 24
     width: 701
     height: 327
   m_SerializedDataModeController:
@@ -1264,7 +1264,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 1ccf0000
     m_LastClickedID: 53020
-    m_ExpandedIDs: 0000000016cc000018cc00001acc00001ccc00001ecc000020cc000022cc000024cc000026cc000028cc00002acc00002ccc00002ecc000030cc000032cc000034cc000036cc000038cc00003acc00003ccc000000ca9a3b
+    m_ExpandedIDs: 0000000016cc000018cc00001acc00001ccc00001ecc000020cc000022cc000024cc000026cc000028cc00002acc00002ccc00002ecc000030cc000032cc000034cc000036cc000038cc00003acc00003ccc0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1373,8 +1373,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Console\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 702
-    y: 1027
+    x: 703
+    y: 24
     width: 758
     height: 327
   m_SerializedDataModeController:
@@ -1410,8 +1410,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Profiler\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1462
-    y: 1027
+    x: 1463
+    y: 24
     width: 680
     height: 327
   m_SerializedDataModeController:
@@ -2492,8 +2492,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 2144
-    y: 79
+    x: 2145
+    y: 24
     width: 415
     height: 1275
   m_SerializedDataModeController:
