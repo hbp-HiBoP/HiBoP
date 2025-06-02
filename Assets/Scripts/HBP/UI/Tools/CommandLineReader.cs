@@ -62,14 +62,8 @@ namespace HBP.UI.Tools
                 }
                 for (int i = 0; i < actions.Count; ++i)
                 {
-#if UNITY_EDITOR
-                    await UniTask.WaitForSeconds(0.5f);
-#endif
                     await ApplyActionAsync(actions[i], arguments[i]);
                     await UniTask.WaitForEndOfFrame();
-#if UNITY_EDITOR
-                    await UniTask.WaitForSeconds(0.5f);
-#endif
                 }
             }
             Destroy(gameObject);
