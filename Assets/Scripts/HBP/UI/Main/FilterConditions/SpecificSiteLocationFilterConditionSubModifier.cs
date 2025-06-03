@@ -84,8 +84,8 @@ namespace HBP.UI.Main
         {
             m_MeshPart.SetActive(type == SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh);
             bool isAtlas = type == SpecificSiteLocationFilterCondition.SpecificLocationType.Atlas;
-            m_AtlasType.gameObject.SetActive(isAtlas);
-            m_AtlasArea.gameObject.SetActive(isAtlas);
+            m_AtlasType.SetActive(isAtlas);
+            m_AtlasArea.SetActive(isAtlas);
         }
         private void UpdateAtlasAreaDropdown(SpecificSiteLocationFilterCondition.Atlas atlasType, string selectedArea)
         {

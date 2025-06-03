@@ -317,7 +317,7 @@ namespace HBP.Core.Tools
             updateProgress.Invoke(startProgress, 0, new LoadingText(loadingText));
             if (parallel)
             {
-                if (maxConcurrency == 0)
+                if (maxConcurrency <= 0)
                 {
                     var tasksToExecute = taskList.Select(async task =>
                     {

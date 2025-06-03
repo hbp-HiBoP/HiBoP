@@ -28,7 +28,7 @@ namespace HBP.Core.Data
     *   - \a Columns.   
     */
     [JsonObject(MemberSerialization.OptIn)]
-    public class Visualization :  BaseData, ILoadable<Visualization>, INameable
+    public class Visualization : BaseData, ILoadable<Visualization>, INameable
     {
         #region Properties
         public const string EXTENSION = ".visualization";
