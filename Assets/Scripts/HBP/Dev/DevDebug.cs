@@ -318,9 +318,9 @@ namespace HBP.Dev
             //    }
             //}
         }
-        private void ScreenshotWindow()
+        private async void ScreenshotWindow()
         {
-            string path = FileBrowser.GetSavedFileName();
+            string path = await FileBrowser.GetSavedFileNameAsync();
             StartCoroutine(c_ScreenshotWindow(path));
         }
         private IEnumerator c_ScreenshotWindow(string path)
@@ -347,15 +347,6 @@ namespace HBP.Dev
                 {
                     site.transform.localPosition -= 0.2f * (dot / orientation.magnitude) * orientation.normalized;
                 }
-            }
-        }
-        private static void ActiveThemeElement()
-        {
-            var selected = Selection.activeGameObject;
-            var themeElements = selected.GetComponentsInChildren<ThemeElement>(true);
-            foreach (var element in themeElements)
-            {
-                element.enabled = true;
             }
         }
 #endif

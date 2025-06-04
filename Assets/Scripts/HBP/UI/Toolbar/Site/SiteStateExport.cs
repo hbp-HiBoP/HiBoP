@@ -62,23 +62,13 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Save the sites of the selected column
         /// </summary>
-        private void SaveSiteStatesOfSelectedColumn()
+        private async void SaveSiteStatesOfSelectedColumn()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetSavedFileNameAsync((savePath) =>
-            {
-                if (!string.IsNullOrEmpty(savePath))
-                {
-                    SaveSiteStates(savePath);
-                }
-            }, new string[] { "csv" }, "Save site states to");
-#else
-            string savePath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save site states to");
+            string savePath = await FileBrowser.GetSavedFileNameAsync(new string[] { "csv" }, "Save site states to");
             if (!string.IsNullOrEmpty(savePath))
             {
                 SaveSiteStates(savePath);
             }
-#endif
         }
         /// <summary>
         /// Save the state of the sites of the selected column to a file
@@ -109,31 +99,13 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private async void LoadSiteStatesToSelectedColumn()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingFileNameAsync(async (loadPath) =>
-            {
-                if (!string.IsNullOrEmpty(loadPath))
-                {
-                    var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Override Site Attributes", "Would you like to override the site attributes for all columns or just the selected one?\n\n" +
-                        "Reminder: a site's attributes consist of its:\n" +
-                        "- blacklist status\n" +
-                        "- highlight status\n" +
-                        "- color\n" +
-                        "- labels",
-                        "All columns", "Selected only", "Cancel");
-                    if (result == 2) return;
-                    LoadSiteStates(loadPath, result == 0);
-                }
-            }, new string[] { "csv" }, "Load site states");
-#else
-            string loadPath = FileBrowser.GetExistingFileName(new string[] { "csv" }, "Load site states");
+            string loadPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "csv" }, "Load site states");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Override Site Attributes", "Would you like to override the site attributes for all columns or just the selected one?\n\nReminder: a site's attributes consist of its blacklisted status, highlighted status, color and labels.", "All columns", "Selected only", "Cancel");
                 if (result == 2) return;
                 LoadSiteStates(loadPath, result == 0);
             }
-#endif
         }
         /// <summary>
         /// Load the states of the sites to this column from a file

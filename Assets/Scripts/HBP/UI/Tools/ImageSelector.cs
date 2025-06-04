@@ -46,25 +46,14 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        public void Open()
+        public async void Open()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingFileNameAsync((result) =>
-            {
-                if (result != string.Empty)
-                {
-                    result = result.StandardizeToPath();
-                    Path = result;
-                }
-            }, EXTENSIONS, Message, m_Path);
-#else
-            string result = FileBrowser.GetExistingFileName(EXTENSIONS, Message, m_Path);
+            string result = await FileBrowser.GetExistingFileNameAsync(EXTENSIONS, Message, m_Path);
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();
                 Path = result;
             }
-#endif
         }
         void LoadImage(string path)
         {

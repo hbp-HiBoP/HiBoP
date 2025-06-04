@@ -283,7 +283,7 @@ namespace HBP.UI.Toolbar
             }
             DialogBoxManager.Open(DialogBoxType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>").Forget();
         }
-        private void LoadCorrelations()
+        private async void LoadCorrelations()
         {
             void Load(string path)
             {
@@ -382,21 +382,12 @@ namespace HBP.UI.Toolbar
                     DialogBoxManager.Open(DialogBoxType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.").Forget();
                 }
             }
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingFileNameAsync((loadPath) =>
-            {
-                if (!string.IsNullOrEmpty(loadPath))
-                {
-                    Load(loadPath);
-                }
-            }, new string[] { "json" }, "Load correlations");
-#else
-            string loadPath = FileBrowser.GetExistingFileName(new string[] { "json" }, "Load correlations");
+
+            string loadPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "json" }, "Load correlations");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 Load(loadPath);
             }
-#endif
         }
         private async void ResetCorrelations()
         {

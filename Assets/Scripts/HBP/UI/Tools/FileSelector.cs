@@ -42,25 +42,14 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        public void Open()
+        public async void Open()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingFileNameAsync((result) =>
-            {
-                if (result != string.Empty)
-                {
-                    result = result.StandardizeToPath();
-                    m_InputField.text = result.ConvertToShortPath();
-                }
-            }, Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
-#else
-            string result = FileBrowser.GetExistingFileName(Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
+            string result = await FileBrowser.GetExistingFileNameAsync(Extension.Split(','), Message, m_InputField.text.ConvertToFullPath());
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();
                 m_InputField.text = result.ConvertToShortPath();
             }
-#endif
         }
         #endregion
     }

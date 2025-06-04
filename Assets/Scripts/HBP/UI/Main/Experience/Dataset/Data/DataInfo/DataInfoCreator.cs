@@ -74,26 +74,7 @@ namespace HBP.UI.Main
         }
         protected override async UniTaskVoid LoadFromDirectory()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNamesAsync(async (paths) =>
-            {
-                if (paths.Length > 0)
-                {
-                    ILoadableFromDirectory<DataInfo> loadable = new DataInfo() as ILoadableFromDirectory<DataInfo>;
-                    var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
-                    foreach (var dataInfo in result) dataInfo.RequireErrorCheck = true;
-                    var length = result.Count();
-                    if (length > 0)
-                    {
-                        if (length == 1)
-                            OnObjectCreated.Invoke(result.First());
-                        else
-                            OpenSelector(result, true, false, false);
-                    }
-                }
-            });
-#else
-            string[] paths = FileBrowser.GetExistingDirectoryNames();
+            string[] paths = await FileBrowser.GetExistingDirectoryNamesAsync();
             if (paths.Length > 0)
             {
                 ILoadableFromDirectory<DataInfo> loadable = new DataInfo() as ILoadableFromDirectory<DataInfo>;
@@ -108,7 +89,6 @@ namespace HBP.UI.Main
                         OpenSelector(result, true, false, false);
                 }
             }
-#endif
         }
         #endregion
     }

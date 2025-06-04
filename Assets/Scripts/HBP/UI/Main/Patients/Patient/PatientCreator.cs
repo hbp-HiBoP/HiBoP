@@ -51,32 +51,7 @@ namespace HBP.UI.Main
 
         protected async override UniTaskVoid LoadFromDirectory()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNamesAsync(async (paths) =>
-            {
-                if (paths.Length > 0)
-                {
-                    ILoadableFromDirectory<Patient> loadable = new Patient();
-                    var patients = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
-                    var length = patients.Count();
-                    if (length > 0)
-                    {
-                        if (length == 1)
-                        {
-                            var patient = patients.First();
-                            if (ExistingObjects.Contains(patient))
-                            {
-                                int result = await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Override patient", $"Patient {patient.Name} will be overridden. Are you sure you want to override it?", "Override", "Cancel");
-                                if (result == 0) OnObjectCreated.Invoke(patient);
-                            }
-                        }
-                        else
-                            OpenSelector(patients, true, false, false);
-                    }
-                }
-            });
-#else
-            string[] paths = FileBrowser.GetExistingDirectoryNames();
+            string[] paths = await FileBrowser.GetExistingDirectoryNamesAsync();
             if (paths.Length > 0)
             {
                 ILoadableFromDirectory<Patient> loadable = new Patient();
@@ -98,7 +73,6 @@ namespace HBP.UI.Main
                         OpenSelector(patients, true, false, false);
                 }
             }
-#endif
         }
         #endregion
     }

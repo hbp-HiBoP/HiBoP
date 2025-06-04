@@ -315,35 +315,11 @@ namespace HBP.UI.Tools
         /// </summary>
         /// <param name="result">Objects loaded from the file.</param>
         /// <returns>True if the method end without errors, False otherwise.</returns>
-        protected virtual void LoadFromFile()
+        protected virtual async void LoadFromFile()
         {
             List<T> items = new List<T>();
             ILoadable<T> loadable = new T() as ILoadable<T>;
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingFileNamesAsync((paths) =>
-            {
-                foreach (var rawPath in paths)
-                {
-                    if (rawPath != null)
-                    {
-                        string path = rawPath.StandardizeToPath();
-                        if (path != string.Empty)
-                        {
-                            bool loadResult = loadable.LoadFromFile(path, out T[] array);
-                            if (loadResult)
-                            {
-                                items.AddRange(array);
-                            }
-                        }
-                    }
-                }
-                foreach (var item in items)
-                {
-                    OnObjectCreated.Invoke(item);
-                }
-            }, loadable.GetExtensions());
-#else
-            string[] paths = FileBrowser.GetExistingFileNames(loadable.GetExtensions());
+            string[] paths = await FileBrowser.GetExistingFileNamesAsync(loadable.GetExtensions());
             foreach (var rawPath in paths)
             {
                 string path = rawPath.StandardizeToPath();
@@ -360,29 +336,10 @@ namespace HBP.UI.Tools
             {
                 OnObjectCreated.Invoke(item);
             }
-#endif
         }
         protected virtual async UniTaskVoid LoadFromDirectory()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNamesAsync(async (paths) =>
-            {
-                if (paths.Length > 0)
-                {
-                    ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
-                    var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDirectory(paths, update));
-                    var length = result.Count();
-                    if (length > 0)
-                    {
-                        if (length == 1)
-                            OnObjectCreated.Invoke(result.First());
-                        else
-                            OpenSelector(result, true, false, false);
-                    }
-                }
-            });
-#else
-            string[] paths = FileBrowser.GetExistingDirectoryNames();
+            string[] paths = await FileBrowser.GetExistingDirectoryNamesAsync();
             if (paths.Length > 0)
             {
                 ILoadableFromDirectory<T> loadable = new T() as ILoadableFromDirectory<T>;
@@ -397,7 +354,6 @@ namespace HBP.UI.Tools
                         OpenSelector(result, true, false, false);
                 }
             }
-#endif
         }
         protected virtual async UniTaskVoid LoadFromDatabase()
         {

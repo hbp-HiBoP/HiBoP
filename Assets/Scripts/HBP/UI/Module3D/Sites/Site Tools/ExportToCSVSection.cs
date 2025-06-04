@@ -17,20 +17,7 @@ namespace HBP.UI.Module3D
         #region Public Methods
         public override async UniTask ApplyAsync()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetSavedFileNameAsync(async (csvPath) =>
-            {
-                if (!string.IsNullOrEmpty(csvPath))
-                {
-                    await LoadingManager.LoadAsync((update, token) => ExportSitesAsync(Sites, csvPath, update, token));
-
-                    await UniTask.SwitchToMainThread();
-                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
-                }
-                ;
-            }, new string[] { "csv" }, "Save sites to");
-#else
-            string csvPath = FileBrowser.GetSavedFileName(new string[] { "csv" }, "Save sites to");
+            string csvPath = await FileBrowser.GetSavedFileNameAsync(new string[] { "csv" }, "Save sites to");
             if (!string.IsNullOrEmpty(csvPath))
             {
                 await LoadingManager.LoadAsync((update, token) => ExportSitesAsync(Sites, csvPath, update, token));
@@ -38,7 +25,6 @@ namespace HBP.UI.Module3D
                 await UniTask.SwitchToMainThread();
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
             }
-#endif
         }
         public override void StoreSettings()
         {

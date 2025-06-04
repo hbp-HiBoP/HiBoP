@@ -48,9 +48,9 @@ namespace HBP.UI.Tools
             ListGestion.List.OnSelect.AddListener((obj) => SetExport());
             ListGestion.List.OnDeselect.AddListener((obj) => SetExport());
         }
-        protected void ExportSelected()
+        protected async void ExportSelected()
         {
-            string directory = FileBrowser.GetExistingDirectoryName();
+            string directory = await FileBrowser.GetExistingDirectoryNameAsync();
             if (string.IsNullOrEmpty(directory)) return;
 
             var selectedObjects = ListGestion.List.ObjectsSelected;

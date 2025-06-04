@@ -58,7 +58,7 @@ namespace HBP.UI.Main
             if (result == 1)
                 return;
 
-            string path = FileBrowser.GetSavedFileName(new string[] { "txt" }, "Save report to", "", "database_integrity_report");
+            string path = await FileBrowser.GetSavedFileNameAsync(new string[] { "txt" }, "Save report to", "", "database_integrity_report");
             if (string.IsNullOrEmpty(path))
                 return;
 
