@@ -28,9 +28,9 @@ namespace HBP.Core.DLL
         /// </summary>
         /// <param name="position">Position to consider</param>
         /// <returns>Index of the closest area</returns>
-        public int GetClosestAreaIndex(Vector3 position)
+        public int GetClosestAreaIndex(Vector3 position, int radius)
         {
-            return get_closest_area_index_BrainAtlas(_handle, -position.x, position.y, position.z);
+            return get_closest_area_index_BrainAtlas(_handle, -position.x, position.y, position.z, radius);
         }
         /// <summary>
         /// Get information about an area given its index
@@ -82,7 +82,7 @@ namespace HBP.Core.DLL
 
         #region DLLImport
         [DllImport("hbp_export", EntryPoint = "get_closest_area_index_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int get_closest_area_index_BrainAtlas(HandleRef juBrainAtlas, float x, float y, float z);
+        static private extern int get_closest_area_index_BrainAtlas(HandleRef juBrainAtlas, float x, float y, float z, int radius);
         [DllImport("hbp_export", EntryPoint = "get_area_information_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr get_area_information_BrainAtlas(HandleRef juBrainAtlas, int labelIndex);
         [DllImport("hbp_export", EntryPoint = "get_vertices_area_index_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]

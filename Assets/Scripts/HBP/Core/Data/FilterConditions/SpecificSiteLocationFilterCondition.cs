@@ -123,7 +123,7 @@ namespace HBP.Core.Data
                         if (!atlas.Loaded)
                             atlas.Load();
 
-                        int areaID = atlas.GetClosestAreaIndex(site.Information.DefaultPosition);
+                        int areaID = atlas.GetClosestAreaIndex(site.Information.DefaultPosition, 2);
 
                         if (areaID == -1)
                             return false;

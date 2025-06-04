@@ -144,7 +144,7 @@ namespace HBP.UI.Module3D
         {
             if (m_Scene.AtlasManager.SelectedAtlas != null)
             {
-                int areaID = m_Scene.AtlasManager.SelectedAtlas.GetClosestAreaIndex(site.Information.DefaultPosition);
+                int areaID = m_Scene.AtlasManager.SelectedAtlas.GetClosestAreaIndex(site.Information.DefaultPosition, 2);
                 if (int.TryParse(areaName, out int comparedID))
                 {
                     if (areaID == comparedID) return true;
