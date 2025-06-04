@@ -9,11 +9,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Module3D
 {
     public class ExportToCSVSection : SiteToolSection
     {
+        #region Properties
+        [SerializeField] private Toggle m_ExportHighlighted;
+        [SerializeField] private Toggle m_ExportBlacklisted;
+        [SerializeField] private Toggle m_ExportColor;
+        [SerializeField] private Toggle m_ExportLabels;
+        [SerializeField] private Toggle m_ExportPosition;
+        [SerializeField] private Toggle m_ExportData;
+        [SerializeField] private Toggle m_ExportTags;
+        #endregion
+
         #region Public Methods
         public override async UniTask ApplyAsync()
         {
@@ -45,97 +56,138 @@ namespace HBP.UI.Module3D
             // Prepare DataInfo by Patient for performance increase
             await UniTask.SwitchToThreadPool();
             Dictionary<Patient, DataInfo> dataInfoByPatient = new Dictionary<Patient, DataInfo>();
-            for (int i = 0; i < length; i++)
+
+            if (m_ExportData.isOn)
             {
-                if (token.IsCancellationRequested) return;
-                Core.Object3D.Site site = sites[i];
-                if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
+                for (int i = 0; i < length; i++)
                 {
-                    if (Scene.SelectedColumn is Column3DIEEG columnIEEG)
+                    if (token.IsCancellationRequested) return;
+                    Core.Object3D.Site site = sites[i];
+                    if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                     {
-                        DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
-                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                        if (Scene.SelectedColumn is Column3DIEEG columnIEEG)
+                        {
+                            DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                            dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                        }
+                        else if (Scene.SelectedColumn is Column3DCCEP columnCCEP)
+                        {
+                            DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
+                            dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                        }
+                        else if (Scene.SelectedColumn is Column3DStatic columnStatic)
+                        {
+                            DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnStatic.ColumnStaticData);
+                            dataInfoByPatient.Add(site.Information.Patient, dataInfo);
+                        }
                     }
-                    else if (Scene.SelectedColumn is Column3DCCEP columnCCEP)
-                    {
-                        DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
-                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
-                    }
-                    else if (Scene.SelectedColumn is Column3DStatic columnStatic)
-                    {
-                        DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnStatic.ColumnStaticData);
-                        dataInfoByPatient.Add(site.Information.Patient, dataInfo);
-                    }
+                    progress = 0.5f * ((float)(i + 1) / length);
+                    updateProgress(progress, 0, new LoadingText(""));
                 }
-                progress = 0.5f * ((float)(i + 1) / length);
-                updateProgress(progress, 0, new LoadingText(""));
             }
 
             // Create string builder
             if (token.IsCancellationRequested) return;
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
-            string tagsString = "";
-            IEnumerable<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags);
-            if (tags.Count() > 0) tagsString = string.Format(",{0}", string.Join(",", tags.Select(t => !t.Name.Contains(",") ? t.Name : string.Format("\"{0}\"", t.Name))));
-            csvBuilder.AppendLine("Site,Patient,Place,Date,X,Y,Z,CoordSystem,Labels,DataType,DataFiles" + tagsString);
+
+            // Generate header
+            System.Text.StringBuilder headerBuilder = new System.Text.StringBuilder("Site");
+            if (m_ExportHighlighted.isOn) headerBuilder.Append(",Highlighted");
+            if (m_ExportBlacklisted.isOn) headerBuilder.Append(",Blacklisted");
+            if (m_ExportColor.isOn) headerBuilder.Append(",Color");
+            if (m_ExportLabels.isOn) headerBuilder.Append(",Labels");
+            if (m_ExportPosition.isOn) headerBuilder.Append(",X,Y,Z,CoordSystem");
+            if (m_ExportData.isOn) headerBuilder.Append(",DataType,DataFiles");
+            if (m_ExportTags.isOn)
+            {
+                List<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList();
+                if (tags.Count != 0)
+                {
+                    headerBuilder.Append(",");
+                    headerBuilder.Append(string.Join(",", tags.Select(t => !t.Name.Contains(",") ? t.Name : string.Format("\"{0}\"", t.Name))));
+                }
+            }
+
+            csvBuilder.AppendLine(headerBuilder.ToString());
 
             // Prepare sites positions for performance increase
             await UniTask.SwitchToMainThread();
-            List<Vector3> sitePositions = sites.Select(s => s.transform.localPosition).ToList();
+            List<Vector3> sitePositions = m_ExportPosition.isOn ? sites.Select(s => s.transform.localPosition).ToList() : new List<Vector3>();
             await UniTask.SwitchToThreadPool();
 
             for (int i = 0; i < length; i++)
             {
                 if (token.IsCancellationRequested) return;
+
                 // Get required values
                 Core.Object3D.Site site = sites[i];
-                Vector3 sitePosition = sitePositions[i];
-                DataInfo dataInfo = null;
-                if (Scene.SelectedColumn is Column3DDynamic || Scene.SelectedColumn is Column3DStatic)
+                Vector3 sitePosition = m_ExportPosition.isOn ? sitePositions[i] : Vector3.zero;
+
+                // Build row
+                System.Text.StringBuilder rowBuilder = new System.Text.StringBuilder();
+                rowBuilder.Append(site.Information.FullID);
+
+                // Append site state data based on export flags
+                if (m_ExportHighlighted.isOn) rowBuilder.AppendFormat(",{0}", site.State.IsHighlighted);
+                if (m_ExportBlacklisted.isOn) rowBuilder.AppendFormat(",{0}", site.State.IsBlackListed);
+                if (m_ExportColor.isOn) rowBuilder.AppendFormat(",{0}", site.State.Color.ToHexString());
+                if (m_ExportLabels.isOn) rowBuilder.AppendFormat(",{0}", string.Join(";", site.State.Labels));
+                if (m_ExportPosition.isOn)
                 {
-                    dataInfo = dataInfoByPatient[site.Information.Patient];
+                    rowBuilder.AppendFormat(",{0},{1},{2},{3}",
+                        sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                        sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                        sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
+                        Scene.ImplantationManager.SelectedImplantation.Name);
                 }
-                string dataType = "", dataFiles = "";
-                if (dataInfo != null)
+                if (m_ExportData.isOn)
                 {
-                    if (dataInfo.DataContainer is Core.Data.Container.BrainVision brainVisionDataContainer)
+                    DataInfo dataInfo = null;
+                    if ((Scene.SelectedColumn is Column3DDynamic || Scene.SelectedColumn is Column3DStatic)
+                        && dataInfoByPatient.ContainsKey(site.Information.Patient))
                     {
-                        dataType = "BrainVision";
-                        dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header }.Where(s => !string.IsNullOrEmpty(s)));
+                        dataInfo = dataInfoByPatient[site.Information.Patient];
                     }
-                    else if (dataInfo.DataContainer is Core.Data.Container.EDF edfDataContainer)
+
+                    string dataType = "", dataFiles = "";
+                    if (dataInfo != null)
                     {
-                        dataType = "EDF";
-                        dataFiles = string.Join(";", new string[] { edfDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
+                        if (dataInfo.DataContainer is Core.Data.Container.BrainVision brainVisionDataContainer)
+                        {
+                            dataType = "BrainVision";
+                            dataFiles = string.Join(";", new string[] { brainVisionDataContainer.Header }.Where(s => !string.IsNullOrEmpty(s)));
+                        }
+                        else if (dataInfo.DataContainer is Core.Data.Container.EDF edfDataContainer)
+                        {
+                            dataType = "EDF";
+                            dataFiles = string.Join(";", new string[] { edfDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
+                        }
+                        else if (dataInfo.DataContainer is Core.Data.Container.Elan elanDataContainer)
+                        {
+                            dataType = "ELAN";
+                            dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes }.Where(s => !string.IsNullOrEmpty(s)));
+                        }
+                        else if (dataInfo.DataContainer is Core.Data.Container.Micromed micromedDataContainer)
+                        {
+                            dataType = "Micromed";
+                            dataFiles = string.Join(";", new string[] { micromedDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
+                        }
+                        else if (dataInfo.DataContainer is Core.Data.Container.FIF fifDataContainer)
+                        {
+                            dataType = "FIF";
+                            dataFiles = string.Join(";", new string[] { fifDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
+                        }
                     }
-                    else if (dataInfo.DataContainer is Core.Data.Container.Elan elanDataContainer)
-                    {
-                        dataType = "ELAN";
-                        dataFiles = string.Join(";", new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes }.Where(s => !string.IsNullOrEmpty(s)));
-                    }
-                    else if (dataInfo.DataContainer is Core.Data.Container.Micromed micromedDataContainer)
-                    {
-                        dataType = "Micromed";
-                        dataFiles = string.Join(";", new string[] { micromedDataContainer.Path }.Where(s => !string.IsNullOrEmpty(s)));
-                    }
-                    else if (dataInfo.DataContainer is Core.Data.Container.FIF fifDataContainer)
-                    {
-                        dataType = "FIF";
-                        dataFiles = string.Join(";", new string[] { fifDataContainer.File }.Where(s => !string.IsNullOrEmpty(s)));
-                    }
-                    else
-                    {
-                        throw new Exception("Invalid data container type");
-                    }
+
+                    rowBuilder.AppendFormat(",{0},{1}", dataType, dataFiles);
                 }
-                IEnumerable<BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
-                string tagValuesString = "";
-                if (tagValues.Count() > 0)
+                if (m_ExportTags.isOn)
                 {
-                    System.Text.StringBuilder tagValuesStringBuilder = new System.Text.StringBuilder();
+                    List<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList();
+                    IEnumerable<BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
                     foreach (var tagValue in tagValues)
                     {
-                        tagValuesStringBuilder.Append(",");
+                        rowBuilder.Append(",");
                         if (tagValue != null)
                         {
                             string value = tagValue.DisplayableValue;
@@ -143,25 +195,14 @@ namespace HBP.UI.Module3D
                             {
                                 value = string.Format("\"{0}\"", value);
                             }
-                            tagValuesStringBuilder.Append(value);
+                            rowBuilder.Append(value);
                         }
                     }
-                    tagValuesString = tagValuesStringBuilder.ToString();
                 }
-                // Write in string builder
-                csvBuilder.AppendLine(string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}{11}",
-                        site.Information.Name,
-                        site.Information.Patient.Name,
-                        site.Information.Patient.Place,
-                        site.Information.Patient.Date,
-                        sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        Scene.ImplantationManager.SelectedImplantation.Name,
-                        string.Join(";", site.State.Labels),
-                        dataType,
-                        dataFiles,
-                        tagValuesString));
+
+                // Add the complete row to the CSV builder
+                csvBuilder.AppendLine(rowBuilder.ToString());
+
                 progress = 0.5f * (1 + (float)(i + 1) / length);
                 updateProgress(progress, 0, new LoadingText(""));
             }
