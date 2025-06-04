@@ -43,6 +43,9 @@ namespace HBP.UI.Module3D
         /// Button to trigger the application of the action
         /// </summary>
         [SerializeField] private Button m_ApplyChangesButton;
+
+        static int m_SelectToolDropdownValue;
+        static int m_ApplyForDropdownValue;
         #endregion
 
         #region Events
@@ -65,7 +68,18 @@ namespace HBP.UI.Module3D
         {
             base.Close();
 
+            StoreSettings();
             foreach (var section in m_SiteToolSections) section.StoreSettings();
+        }
+        public void StoreSettings()
+        {
+            m_SelectToolDropdownValue = m_SelectToolDropdown.value;
+            m_ApplyForDropdownValue = m_ApplyForDropdown.value;
+        }
+        public void LoadSettings()
+        {
+            m_SelectToolDropdown.SetValue(m_SelectToolDropdownValue);
+            m_ApplyForDropdown.Set(typeof(ApplyFor), m_ApplyForDropdownValue);
         }
         #endregion
 
@@ -82,9 +96,7 @@ namespace HBP.UI.Module3D
         protected override void SetFields()
         {
             base.SetFields();
-
-            m_SelectToolDropdown.SetValue(0);
-            m_ApplyForDropdown.Set(typeof(ApplyFor), 0);
+            LoadSettings();
         }
         private void OnChangeSelectedTool(int index)
         {

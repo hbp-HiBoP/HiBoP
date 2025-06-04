@@ -23,6 +23,14 @@ namespace HBP.UI.Module3D
         [SerializeField] private Toggle m_ExportPosition;
         [SerializeField] private Toggle m_ExportData;
         [SerializeField] private Toggle m_ExportTags;
+
+        static bool m_ExportHighlightedValue;
+        static bool m_ExportBlacklistedValue;
+        static bool m_ExportColorValue;
+        static bool m_ExportLabelsValue;
+        static bool m_ExportPositionValue;
+        static bool m_ExportDataValue;
+        static bool m_ExportTagsValue;
         #endregion
 
         #region Public Methods
@@ -39,11 +47,23 @@ namespace HBP.UI.Module3D
         }
         public override void StoreSettings()
         {
-            // No settings to store
+            m_ExportHighlightedValue = m_ExportHighlighted.isOn;
+            m_ExportBlacklistedValue = m_ExportBlacklisted.isOn;
+            m_ExportColorValue = m_ExportColor.isOn;
+            m_ExportLabelsValue = m_ExportLabels.isOn;
+            m_ExportPositionValue = m_ExportPosition.isOn;
+            m_ExportDataValue = m_ExportData.isOn;
+            m_ExportTagsValue = m_ExportTags.isOn;
         }
         public override void LoadSettings()
         {
-            // No settings to load
+            m_ExportHighlighted.isOn = m_ExportHighlightedValue;
+            m_ExportBlacklisted.isOn = m_ExportBlacklistedValue;
+            m_ExportColor.isOn = m_ExportColorValue;
+            m_ExportLabels.isOn = m_ExportLabelsValue;
+            m_ExportPosition.isOn = m_ExportPositionValue;
+            m_ExportData.isOn = m_ExportDataValue;
+            m_ExportTags.isOn = m_ExportTagsValue;
         }
         #endregion
 

@@ -5,7 +5,7 @@ namespace HBP.Core.Exceptions
     [Serializable]
     public class HBPException : Exception
     {
-        public virtual string Title { get; protected set; }
+        public virtual string Title { get; protected set; } = "Unknown error";
         public override string Message
         {
             get
@@ -14,11 +14,13 @@ namespace HBP.Core.Exceptions
             }
         }
         public HBPException() { }
+        public HBPException(string title, string message) : base(message)
+        {
+            Title = title;
+        }
         public HBPException(string message) : base(message) { }
         public HBPException(string message, Exception inner) : base(message, inner) { }
-        protected HBPException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+        protected HBPException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 
     [Serializable]
