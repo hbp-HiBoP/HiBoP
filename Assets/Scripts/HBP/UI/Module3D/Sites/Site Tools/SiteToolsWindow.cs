@@ -62,6 +62,7 @@ namespace HBP.UI.Module3D
         public async void Apply()
         {
             await m_SiteToolSections[m_SelectToolDropdown.value].ApplyAsync();
+            await UniTask.SwitchToMainThread();
             OnToolApplied.Invoke();
         }
         public override void Close()

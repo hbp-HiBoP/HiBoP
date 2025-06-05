@@ -1,12 +1,15 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,6 +26,7 @@ namespace HBP.UI.Module3D
         [SerializeField] private Toggle m_ExportPosition;
         [SerializeField] private Toggle m_ExportData;
         [SerializeField] private Toggle m_ExportTags;
+        [SerializeField] private Dropdown m_ExportModeDropdown;
 
         static bool m_ExportHighlightedValue;
         static bool m_ExportBlacklistedValue;
@@ -31,20 +35,34 @@ namespace HBP.UI.Module3D
         static bool m_ExportPositionValue;
         static bool m_ExportDataValue;
         static bool m_ExportTagsValue;
+        static int m_ExportModeValue;
         #endregion
 
         #region Public Methods
         public override async UniTask ApplyAsync()
         {
-            string csvPath = await FileBrowser.GetSavedFileNameAsync(new string[] { "csv" }, "Save sites to");
-            if (!string.IsNullOrEmpty(csvPath))
+            if (m_ExportModeDropdown.value == 0)
             {
-                await LoadingManager.LoadAsync((update, token) => ExportSitesAsync(Sites, csvPath, update, token));
-
-                await UniTask.SwitchToMainThread();
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
+                // Create new file mode
+                string csvPath = await FileBrowser.GetSavedFileNameAsync(new string[] { "csv" }, "Save sites to");
+                if (!string.IsNullOrEmpty(csvPath))
+                {
+                    await LoadingManager.LoadAsync((update, token) => ExportSitesAsync(Sites, csvPath, update, token));
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
+                }
+            }
+            else
+            {
+                // Merge with existing file mode
+                string csvPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "csv" }, "Select CSV file to merge with");
+                if (!string.IsNullOrEmpty(csvPath))
+                {
+                    await LoadingManager.LoadAsync((update, token) => MergeSitesWithExistingCSVAsync(Sites, csvPath, update, token));
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites merged", "The filtered sites have been successfully merged with " + csvPath).Forget();
+                }
             }
         }
+
         public override void StoreSettings()
         {
             m_ExportHighlightedValue = m_ExportHighlighted.isOn;
@@ -54,7 +72,9 @@ namespace HBP.UI.Module3D
             m_ExportPositionValue = m_ExportPosition.isOn;
             m_ExportDataValue = m_ExportData.isOn;
             m_ExportTagsValue = m_ExportTags.isOn;
+            m_ExportModeValue = m_ExportModeDropdown.value;
         }
+
         public override void LoadSettings()
         {
             m_ExportHighlighted.isOn = m_ExportHighlightedValue;
@@ -64,11 +84,23 @@ namespace HBP.UI.Module3D
             m_ExportPosition.isOn = m_ExportPositionValue;
             m_ExportData.isOn = m_ExportDataValue;
             m_ExportTags.isOn = m_ExportTagsValue;
+            m_ExportModeDropdown.value = m_ExportModeValue;
         }
         #endregion
 
         #region Private Methods
         private async UniTask ExportSitesAsync(List<Core.Object3D.Site> sites, string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            // Prepare data and generate CSV file
+            System.Text.StringBuilder csvBuilder = await PrepareCSVContentAsync(sites, updateProgress, token);
+
+            // Write the CSV file
+            token.ThrowIfCancellationRequested();
+            using StreamWriter sw = new(csvPath);
+            sw.Write(csvBuilder.ToString());
+        }
+
+        private async UniTask<System.Text.StringBuilder> PrepareCSVContentAsync(List<Core.Object3D.Site> sites, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             int length = sites.Count;
             float progress = 0;
@@ -81,7 +113,7 @@ namespace HBP.UI.Module3D
             {
                 for (int i = 0; i < length; i++)
                 {
-                    if (token.IsCancellationRequested) return;
+                    token.ThrowIfCancellationRequested();
                     Core.Object3D.Site site = sites[i];
                     if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                     {
@@ -107,7 +139,7 @@ namespace HBP.UI.Module3D
             }
 
             // Create string builder
-            if (token.IsCancellationRequested) return;
+            token.ThrowIfCancellationRequested();
             System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
 
             // Generate header
@@ -137,7 +169,7 @@ namespace HBP.UI.Module3D
 
             for (int i = 0; i < length; i++)
             {
-                if (token.IsCancellationRequested) return;
+                token.ThrowIfCancellationRequested();
 
                 // Get required values
                 Core.Object3D.Site site = sites[i];
@@ -227,10 +259,209 @@ namespace HBP.UI.Module3D
                 updateProgress(progress, 0, new LoadingText(""));
             }
 
-            // Write csv file
-            if (token.IsCancellationRequested) return;
-            using System.IO.StreamWriter sw = new System.IO.StreamWriter(csvPath);
-            sw.Write(csvBuilder.ToString());
+            return csvBuilder;
+        }
+
+        private async UniTask MergeSitesWithExistingCSVAsync(List<Core.Object3D.Site> sites, string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            await UniTask.SwitchToThreadPool();
+
+            token.ThrowIfCancellationRequested();
+            updateProgress(0.1f, 0, new LoadingText("Loading existing CSV file..."));
+
+            // Reading the existing CSV file
+            Dictionary<string, Dictionary<string, string>> existingData = new Dictionary<string, Dictionary<string, string>>();
+            List<string> headers = new List<string>();
+
+            // Regex for parsing CSV correctly (respecting quotes)
+            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+            using (StreamReader sr = new StreamReader(csvPath))
+            {
+                // Read header
+                string headerLine = sr.ReadLine();
+
+                // Split and retrieve headers
+                headers.AddRange(csvParser.Split(headerLine));
+
+                // Read data line by line
+                string line;
+                while ((line = sr.ReadLine()) != null)
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    string[] values = csvParser.Split(line);
+                    if (values.Length == 0 || string.IsNullOrEmpty(values[0])) continue;
+
+                    // Using SiteID as key for the dictionary
+                    string siteId = values[0].Trim('"');
+                    Dictionary<string, string> rowData = new Dictionary<string, string>();
+
+                    // Store all columns for this site
+                    for (int i = 0; i < values.Length && i < headers.Count; i++)
+                    {
+                        rowData[headers[i]] = values[i];
+                    }
+
+                    existingData[siteId] = rowData;
+                }
+            }
+
+            updateProgress(0.3f, 0, new LoadingText("Preparing new data..."));
+
+            // Prepare new data
+            System.Text.StringBuilder newCsvContent = await PrepareCSVContentAsync(sites, (p, _, t) => updateProgress(0.3f + p * 0.5f, 0, t), token);
+
+            token.ThrowIfCancellationRequested();
+            if (newCsvContent == null) throw new HBPException("Export error", "No data to export. Please check the selected sites and try again.");
+
+            // Parse the content of the new CSV
+            string[] newLines = newCsvContent.ToString().Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+            if (newLines.Length < 2) return;
+
+            // Headers of the new CSV
+            string newHeaderLine = newLines[0];
+            List<string> newHeaders = csvParser.Split(newHeaderLine).ToList();
+
+            // Merge headers
+            List<string> mergedHeaders = new List<string> { "Site" }; // Always start with the site identifier
+            // Add all unique existing headers
+            foreach (string header in headers)
+            {
+                if (header != "Site" && !mergedHeaders.Contains(header))
+                {
+                    mergedHeaders.Add(header);
+                }
+            }
+            // Add new headers
+            foreach (string header in newHeaders)
+            {
+                if (header != "Site" && !mergedHeaders.Contains(header))
+                {
+                    mergedHeaders.Add(header);
+                }
+            }
+
+            updateProgress(0.8f, 0, new LoadingText("Merging data..."));
+
+            // Create a dictionary with the new data
+            Dictionary<string, Dictionary<string, string>> newData = new Dictionary<string, Dictionary<string, string>>();
+            for (int i = 1; i < newLines.Length; i++)
+            {
+                if (string.IsNullOrWhiteSpace(newLines[i])) continue;
+
+                string[] values = csvParser.Split(newLines[i]);
+                if (values.Length == 0 || string.IsNullOrEmpty(values[0])) continue;
+
+                string siteId = values[0].Trim('"');
+                Dictionary<string, string> rowData = new Dictionary<string, string>();
+
+                for (int j = 0; j < values.Length && j < newHeaders.Count; j++)
+                {
+                    rowData[newHeaders[j]] = values[j];
+                }
+
+                newData[siteId] = rowData;
+            }
+
+            // Merge the data
+            System.Text.StringBuilder mergedCsvContent = new System.Text.StringBuilder();
+            // Merged headers
+            mergedCsvContent.AppendLine(string.Join(",", mergedHeaders));
+
+            // Merge all existing and new entries
+            HashSet<string> processedSites = new HashSet<string>();
+
+            // First process existing sites
+            foreach (var siteEntry in existingData)
+            {
+                string siteId = siteEntry.Key;
+                var existingRow = siteEntry.Value;
+
+                System.Text.StringBuilder rowBuilder = new System.Text.StringBuilder();
+                rowBuilder.Append(siteId); // Site identifier
+
+                // For each header in the merged list (except the first which is the ID)
+                for (int i = 1; i < mergedHeaders.Count; i++)
+                {
+                    string header = mergedHeaders[i];
+                    rowBuilder.Append(",");
+
+                    // Special handling for Labels column - merge labels from both sources
+                    if (header == "Labels" && newData.TryGetValue(siteId, out var newRow) &&
+                        existingRow.TryGetValue(header, out string existingLabels) &&
+                        newRow.TryGetValue(header, out string newLabels))
+                    {
+                        // Parse labels from both sources
+                        var existingLabelsList = existingLabels
+                            .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(l => l.Trim())
+                            .ToList();
+
+                        var newLabelsList = newLabels
+                            .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(l => l.Trim())
+                            .ToList();
+
+                        // Merge labels ensuring uniqueness
+                        HashSet<string> mergedLabels = new HashSet<string>(existingLabelsList);
+                        foreach (var label in newLabelsList)
+                        {
+                            mergedLabels.Add(label);
+                        }
+
+                        // Join labels back into a string
+                        rowBuilder.Append(string.Join(";", mergedLabels));
+                    }
+                    // If the site is also in the new data and the header is present
+                    else if (newData.TryGetValue(siteId, out var row) && row.TryGetValue(header, out string newValue))
+                    {
+                        rowBuilder.Append(newValue);
+                    }
+                    // Otherwise use existing if available
+                    else if (existingRow.TryGetValue(header, out string existingValue))
+                    {
+                        rowBuilder.Append(existingValue);
+                    }
+                }
+
+                mergedCsvContent.AppendLine(rowBuilder.ToString());
+                processedSites.Add(siteId);
+            }
+
+            // Then add new sites that were not in the existing data
+            foreach (var siteEntry in newData)
+            {
+                string siteId = siteEntry.Key;
+                if (processedSites.Contains(siteId)) continue;
+
+                var newRow = siteEntry.Value;
+                System.Text.StringBuilder rowBuilder = new System.Text.StringBuilder();
+                rowBuilder.Append(siteId); // Site identifier
+
+                // For each header in the merged list (except the first which is the ID)
+                for (int i = 1; i < mergedHeaders.Count; i++)
+                {
+                    string header = mergedHeaders[i];
+                    rowBuilder.Append(",");
+
+                    // Use the new value if available
+                    if (newRow.TryGetValue(header, out string newValue))
+                    {
+                        rowBuilder.Append(newValue);
+                    }
+                }
+
+                mergedCsvContent.AppendLine(rowBuilder.ToString());
+            }
+
+            updateProgress(0.95f, 0, new LoadingText("Writing merged file..."));
+
+            // Write the merged file
+            using StreamWriter sw = new StreamWriter(csvPath);
+            sw.Write(mergedCsvContent.ToString());
         }
         #endregion
     }

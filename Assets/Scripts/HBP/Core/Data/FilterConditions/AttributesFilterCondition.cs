@@ -32,14 +32,22 @@ namespace HBP.Core.Data
         {
             get
             {
-                return Type switch
+                switch (Type)
                 {
-                    AttributeType.Highlighted => $"The site is{(IsNot ? " not" : "")} highlighted",
-                    AttributeType.Blacklisted => $"The site is{(IsNot ? " not" : "")} blacklisted",
-                    AttributeType.Label => $"The site {(IsNot ? "does not have" : "has")} a label which {(ExactMatch ? "is exactly" : "contains")} \"{LabelValue}\" (case {(CaseSensitive ? "sensitive" : "insensitive")})",
-                    AttributeType.Color => $"The site's color is{(IsNot ? " not" : "")} <color={Color.ToHexString()}>{Color.ToHexString()}</color>",
-                    _ => "Invalid condition",
-                };
+                    case AttributeType.Highlighted:
+                        return $"The site is{(IsNot ? " not" : "")} highlighted";
+                    case AttributeType.Blacklisted:
+                        return $"The site is{(IsNot ? " not" : "")} blacklisted";
+                    case AttributeType.Color:
+                        return $"The site's color is{(IsNot ? " not" : "")} <color={Color.ToHexString()}>{Color.ToHexString()}</color>";
+                    case AttributeType.Label:
+                        if (string.IsNullOrEmpty(LabelValue))
+                            return $"The site {(IsNot ? "does not have any label" : "has at least one label")}";
+                        else
+                            return $"The site {(IsNot ? "does not have" : "has")} a label which {(ExactMatch ? "is exactly" : "contains")} \"{LabelValue}\" (case {(CaseSensitive ? "sensitive" : "insensitive")})";
+                    default:
+                        return "Invalid condition";
+                }
             }
         }
         #endregion
@@ -100,21 +108,25 @@ namespace HBP.Core.Data
                     case AttributeType.Label:
                         List<string> labels = site.State.Labels;
                         string labelToCompare = LabelValue;
-                        if (labels.All(l => string.IsNullOrEmpty(l)) && string.IsNullOrEmpty(labelToCompare))
-                            return false;
-
-                        if (!CaseSensitive)
+                        if (string.IsNullOrEmpty(labelToCompare))
                         {
-                            labels = labels.Select(l => l.ToLower()).ToList();
-                            labelToCompare = labelToCompare.ToLower();
-                        }
-                        if (ExactMatch)
-                        {
-                            result = labels.Contains(labelToCompare);
+                            result = labels != null && labels.Count > 0;
                         }
                         else
                         {
-                            result = labels.Any(l => l.Contains(labelToCompare));
+                            if (!CaseSensitive)
+                            {
+                                labels = labels.Select(l => l.ToLower()).ToList();
+                                labelToCompare = labelToCompare.ToLower();
+                            }
+                            if (ExactMatch)
+                            {
+                                result = labels.Contains(labelToCompare);
+                            }
+                            else
+                            {
+                                result = labels.Any(l => l.Contains(labelToCompare));
+                            }
                         }
                         break;
                     case AttributeType.Color:

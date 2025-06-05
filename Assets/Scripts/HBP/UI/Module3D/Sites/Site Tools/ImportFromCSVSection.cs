@@ -93,11 +93,9 @@ namespace HBP.UI.Module3D
         {
             await UniTask.SwitchToThreadPool();
 
-            if (token.IsCancellationRequested) return;
-
             var sites = Sites;
 
-            if (token.IsCancellationRequested) return;
+            token.ThrowIfCancellationRequested();
 
             bool mergeLabels = m_LabelsImportModeDropdown.value == 1;
 
@@ -128,7 +126,7 @@ namespace HBP.UI.Module3D
             string line;
             while ((line = sr.ReadLine()) != null)
             {
-                if (token.IsCancellationRequested) return;
+                token.ThrowIfCancellationRequested();
 
                 if (string.IsNullOrEmpty(line)) continue;
 
