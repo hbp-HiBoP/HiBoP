@@ -168,21 +168,21 @@ namespace HBP.UI.Tools
         {
             get
             {
-                return ((IsArrowKeyPressed && m_Timer >= SITE_SELECTION_DELAY) || IsArrowKeyDown) && !IsModPressed;
+                return ((IsArrowKeyPressed && m_Timer >= SITE_SELECTION_DELAY) || IsArrowKeyDown) && !IsModPressed && !IsWindowSelected;
             }
         }
         private bool CutModificationActionPerformed
         {
             get
             {
-                return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed;
+                return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed && !IsWindowSelected;
             }
         }
         private bool ChangeSiteStateActionPerformed
         {
             get
             {
-                return IsControlPressed && IsSiteStateActionDown;
+                return IsControlPressed && IsSiteStateActionDown && !IsWindowSelected;
             }
         }
         private bool IsWritingInInputField
@@ -208,6 +208,7 @@ namespace HBP.UI.Tools
                 return false;
             }
         }
+        private bool IsWindowSelected => SelectionManager.IsAnySelected;
         #endregion
 
         #region Private Methods

@@ -46,6 +46,8 @@ namespace HBP.UI.Database
                 m_ProtocolDropdown.gameObject.SetActive(value);
             }
         }
+
+        private Selector m_ParentSelector;
         #endregion
 
         #region Public Methods
@@ -91,9 +93,13 @@ namespace HBP.UI.Database
             PersistentDataManager.UserPreferences.OnSavePreferences.AddSafeListener(Refresh, gameObject);
             m_ChannelList.OnSelect.AddSafeListener(channelStruct => Display(channelStruct, m_CurrentDataInfo), gameObject);
             m_ProtocolDropdown.OnValueChanged.AddSafeListener(index => Display(m_CurrentChannelStruct, m_DataInfos[index]), gameObject);
+            m_ParentSelector = GetComponentInParent<Selector>();
         }
         private void Update()
         {
+            if (m_ParentSelector != null && !m_ParentSelector.Selected)
+                return;
+
             if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 m_ProtocolDropdown.SelectPrevious();

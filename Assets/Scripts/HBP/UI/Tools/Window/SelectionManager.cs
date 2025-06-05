@@ -15,6 +15,8 @@ namespace HBP.UI.Tools
 
         [SerializeField] private RectTransform m_ParentContainer;
         private List<RectTransform> m_Containers = new();
+
+        public static bool IsAnySelected => m_Instance.m_Selectors.Any(s => s.Selected);
         #endregion
 
         #region Public Methods

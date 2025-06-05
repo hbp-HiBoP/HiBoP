@@ -14,6 +14,8 @@ namespace HBP.UI.Tools.Lists
 
         private float m_DownKeyHoldTimer = 0f;
         private float m_UpKeyHoldTimer = 0f;
+
+        private Selector m_ParentSelector;
         #endregion
 
         #region Events
@@ -22,8 +24,15 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Private Methods
+        private void Awake()
+        {
+            m_ParentSelector = GetComponentInParent<Selector>();
+        }
         private void Update()
         {
+            if (m_ParentSelector != null && !m_ParentSelector.Selected)
+                return;
+
             if ((Input.GetKeyDown(KeyCode.DownArrow) && m_Direction == Direction.UpDown) || (Input.GetKeyDown(KeyCode.RightArrow) && m_Direction == Direction.LeftRight))
             {
                 OnSelectNext.Invoke();
