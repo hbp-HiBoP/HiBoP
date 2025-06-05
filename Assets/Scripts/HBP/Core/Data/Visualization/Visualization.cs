@@ -425,7 +425,7 @@ namespace HBP.Core.Data
                 catch (CannotEpochAllTrialsException e)
                 {
                     UnityEngine.Debug.LogException(e);
-                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Protocol.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), string.Format("You are trying to epoch a bloc from index {0} to index {1} while the minimum possible index is {2} and the maximum possible index is {3}.", e.StartIndex, e.EndIndex, 0, e.Length));
+                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Protocol.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
                 }
                 catch (Exception e)
                 {

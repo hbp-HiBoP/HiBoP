@@ -54,15 +54,9 @@ namespace HBP.Core.Exceptions
     [Serializable]
     public class CannotEpochAllTrialsException : HBPException
     {
-        public int Length;
-        public int StartIndex;
-        public int EndIndex;
         public CannotEpochAllTrialsException() { }
-        public CannotEpochAllTrialsException(Exception e, int length, int start, int end) : base(e.Message)
+        public CannotEpochAllTrialsException(int length, int start, int end) : base("Can not epoch all trials", $"You are trying to epoch a bloc from index {start} to index {end} while the minimum possible index is 0 and the maximum possible index is {length}.")
         {
-            Length = length;
-            StartIndex = start;
-            EndIndex = end;
         }
         public CannotEpochAllTrialsException(string message, Exception inner) : base(message, inner) { }
         protected CannotEpochAllTrialsException(
