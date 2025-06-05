@@ -69,6 +69,7 @@ namespace HBP.Data.Database
                 {
                     ConfigureDefault();
                     await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Default Protocols", "The default protocols have been imported.", "OK");
+                    m_Settings.IsFirstUse = false;
                 }
                 else if (result == 2) // Never
                 {
@@ -215,8 +216,6 @@ namespace HBP.Data.Database
         {
             DirectoryInfo defaultDatabaseDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
             defaultDatabaseDirectory.CopyFilesRecursively(new DirectoryInfo(ApplicationState.DatabasePath));
-            m_Settings.SetDefaultWorkspace();
-            m_Settings.IsFirstUse = false;
         }
 
         private void LoadSettings()
@@ -241,6 +240,10 @@ namespace HBP.Data.Database
                     UnityEngine.Debug.LogException(e);
                     throw e;
                 }
+            }
+            else
+            {
+                m_Settings.SetDefaultWorkspace();
             }
         }
 

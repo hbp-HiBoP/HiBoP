@@ -12,8 +12,8 @@
           "Order": 0,
           "Type": 0,
           "Window": {
-            "Start": -500,
-            "End": 700
+            "Start": -300,
+            "End": 1200
           },
           "Baseline": {
             "Start": -200,
@@ -47,8 +47,8 @@
           "Order": 0,
           "Type": 0,
           "Window": {
-            "Start": -500,
-            "End": 700
+            "Start": -300,
+            "End": 1200
           },
           "Baseline": {
             "Start": -200,

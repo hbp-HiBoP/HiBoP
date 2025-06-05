@@ -33,6 +33,7 @@ namespace HBP.UI.Tools
             }
             catch (HBPException e)
             {
+                Debug.LogError(e.ToString());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
                 throw e;
             }
@@ -58,6 +59,7 @@ namespace HBP.UI.Tools
             }
             catch (HBPException e)
             {
+                Debug.LogError(e.ToString());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
             }
             catch (Exception e)
@@ -88,6 +90,7 @@ namespace HBP.UI.Tools
             }
             catch (HBPException e)
             {
+                Debug.LogError(e.ToString());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
                 throw e;
             }
@@ -119,6 +122,7 @@ namespace HBP.UI.Tools
             }
             catch (HBPException e)
             {
+                Debug.LogError(e.ToString());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
                 throw e;
             }
@@ -152,6 +156,7 @@ namespace HBP.UI.Tools
             }
             catch (HBPException e)
             {
+                Debug.LogError(e.ToString());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
             }
             catch (Exception e)
@@ -176,6 +181,7 @@ namespace HBP.UI.Tools
             }
             catch (HBPException e)
             {
+                Debug.LogError(e.ToString());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
             }
             catch (Exception e)

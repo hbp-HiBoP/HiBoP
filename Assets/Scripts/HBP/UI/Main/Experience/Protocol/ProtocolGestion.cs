@@ -65,10 +65,10 @@ namespace HBP.UI.Main
             if (requiresReload)
             {
                 DataManager.Clear();
-                Module3DMain.ReloadScenes();
             }
             if (ApplicationState.LoadedProject != null)
             {
+                Module3DMain.ReloadScenes();
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
         }

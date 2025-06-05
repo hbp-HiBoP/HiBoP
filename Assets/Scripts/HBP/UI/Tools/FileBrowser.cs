@@ -1,7 +1,9 @@
 ﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
 using System;
 using System.IO;
 using ThirdParty.SFB;
+using System.Linq;
 using UnityEngine;
 
 namespace HBP.UI.Tools
@@ -29,7 +31,7 @@ namespace HBP.UI.Tools
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
-            return result.Length > 0 ? (m_LastSelectedDirectory = result[0]) : string.Empty;
+            return result.Length > 0 ? (m_LastSelectedDirectory = result[0].StandardizeToEnvironement()) : string.Empty;
         }
         public static async UniTask<string[]> GetExistingDirectoryNamesAsync(string message = "Select a directory", string directoryPath = "")
         {
@@ -47,7 +49,7 @@ namespace HBP.UI.Tools
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
-            return result;
+            return result.Select(r => r.StandardizeToEnvironement()).ToArray();
         }
         public static async UniTask<string> GetExistingFileNameAsync(string[] filtersArray = null, string message = "Select a file", string filePath = "")
         {
@@ -74,7 +76,7 @@ namespace HBP.UI.Tools
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
-            return result;
+            return result.StandardizeToEnvironement();
         }
         public static async UniTask<string[]> GetExistingFileNamesAsync(string[] filtersArray = null, string message = "Select files", string filePath = "")
         {
@@ -101,7 +103,7 @@ namespace HBP.UI.Tools
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
-            return result;
+            return result.Select(r => r.StandardizeToEnvironement()).ToArray();
         }
         public static async UniTask<string> GetSavedFileNameAsync(string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
         {
@@ -128,7 +130,7 @@ namespace HBP.UI.Tools
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
-            return result;
+            return result.StandardizeToEnvironement();
         }
         #endregion
     }
