@@ -11,6 +11,7 @@ namespace HBP.UI.Module3D
         [SerializeField] private Text m_Title;
         [SerializeField] private InputField m_InputField;
         [SerializeField] private Text m_NumberOfChar;
+        [SerializeField] private Button m_ResetButton;
 
         public int Index
         {
@@ -46,6 +47,8 @@ namespace HBP.UI.Module3D
                 m_Curve = value;
                 m_InputField.onValueChanged.RemoveAllListeners();
                 m_InputField.onValueChanged.AddListener(OnValueChanged);
+                m_ResetButton.onClick.RemoveAllListeners();
+                m_ResetButton.onClick.AddListener(() => m_InputField.text = m_Curve.BaseExportName);
                 m_InputField.text = m_Curve.ExportName;
             }
         }

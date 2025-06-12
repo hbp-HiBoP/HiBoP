@@ -746,11 +746,11 @@ namespace HBP.UI.Informations.Graphs
             List<Curve> result = new List<Curve>();
             foreach (var curve in curves)
             {
-                if (curve.Enabled && curve.Data != null)
+                if (curve.Enabled)
                 {
-                    result.Add(curve);
+                    if (curve.Data != null) result.Add(curve);
+                    result.AddRange(GetDisplayedCurves(curve.SubCurves));
                 }
-                result.AddRange(GetDisplayedCurves(curve.SubCurves));
             }
             return result;
         }
@@ -920,6 +920,7 @@ namespace HBP.UI.Informations.Graphs
             }
 
             public string ExportName { get; set; }
+            public string BaseExportName { get; set; }
             #endregion
 
             #region Constructor

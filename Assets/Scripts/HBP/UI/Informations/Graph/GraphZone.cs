@@ -408,6 +408,7 @@ namespace HBP.UI.Informations
             Graph.Curve result = new Graph.Curve(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             List<string> names = ChannelsByPatient.Select(kvp => $"{kvp.Key.Name}_{kvp.Key.Date}_{string.Join("_", kvp.Value)}").ToList();
             result.ExportName = $"{string.Join("-", names)}_{column.Data.Dataset.Protocol.Name}_{column.Data.Bloc.Name}";
+            result.BaseExportName = result.ExportName;
             return result;
         }
         Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, Core.Data.SubBloc subBloc, string ID)
@@ -425,6 +426,7 @@ namespace HBP.UI.Informations
             CurveData curveData = GetCurveData(column, subBloc, channel, channelBloc.TrialIsSelected);
             Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             result.ExportName = $"{channel.Patient.Name}_{channel.Patient.Date}_{column.Data.Dataset.Protocol.Name}_{channel.Channel}_{column.Data.Bloc.Name}";
+            result.BaseExportName = result.ExportName;
             channelBloc.OnChangeTrialSelected.AddListener(() => { result.Data = GetCurveData(column, subBloc, channel, channelBloc.TrialIsSelected); });
             return result;
         }
