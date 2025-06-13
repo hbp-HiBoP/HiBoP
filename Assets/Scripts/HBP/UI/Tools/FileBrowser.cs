@@ -18,7 +18,7 @@ namespace HBP.UI.Tools
         public static async UniTask<string> GetExistingDirectoryNameAsync(string message = "Select a directory", string directoryPath = "")
         {
             bool done = false;
-            string[] result;
+            string[] result = new string[0];
 
 #if UNITY_STANDALONE_OSX
             StandaloneFileBrowser.OpenFolderPanelAsync(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, false, (paths) =>
@@ -36,7 +36,7 @@ namespace HBP.UI.Tools
         public static async UniTask<string[]> GetExistingDirectoryNamesAsync(string message = "Select a directory", string directoryPath = "")
         {
             bool done = false;
-            string[] result;
+            string[] result = new string[0];
 
 #if UNITY_STANDALONE_OSX
             StandaloneFileBrowser.OpenFolderPanelAsync(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, true, (paths) =>
