@@ -57,8 +57,7 @@ namespace HBP.UI.Tools
         }
         void LoadImage(string path)
         {
-            Sprite sprite;
-            if (SpriteExtension.LoadSpriteFromFile(out sprite, path)) m_Image.sprite = sprite;
+            if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, path)) m_Image.sprite = sprite;
             else m_Image.sprite = m_Icon;
         }
         #endregion

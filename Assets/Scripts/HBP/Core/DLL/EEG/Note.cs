@@ -15,7 +15,7 @@ namespace HBP.Core.DLL.EEG
             {
                 lock (typeof(Marshal))
                 {
-                    return Marshal.PtrToStringAnsi(GetNoteDescription(_handle));
+                    return Marshal.PtrToStringUTF8(GetNoteDescription(_handle));
                 }
             }
         }

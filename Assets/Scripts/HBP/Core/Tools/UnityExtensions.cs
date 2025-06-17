@@ -1,11 +1,9 @@
-﻿using HBP.Core.Data;
-using HBP.Data.Preferences;
+﻿using HBP.Data.Preferences;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
@@ -306,13 +304,15 @@ namespace HBP.Core.Tools
             if (!string.IsNullOrEmpty(path))
             {
                 FileInfo fileInfo = new FileInfo(path);
-                if (fileInfo.Exists && (EXTENSIONS.Contains(fileInfo.Extension.Substring(1))))
+                if (fileInfo.Exists && EXTENSIONS.Contains(fileInfo.Extension[1..]))
                 {
                     byte[] bytes = File.ReadAllBytes(path);
-                    System.Drawing.Image image = System.Drawing.Image.FromFile(path);
-                    texture = new Texture2D(image.Width, image.Height);
-                    image.Dispose();
-                    return texture.LoadImage(bytes);
+                    texture = new Texture2D(2, 2);
+                    if (texture.LoadImage(bytes))
+                    {
+                        return true;
+                    }
+                    return false;
                 }
                 else return false;
             }
@@ -320,7 +320,7 @@ namespace HBP.Core.Tools
         }
         public static bool IsFileLoadable(string path)
         {
-            return File.Exists(path) && EXTENSIONS.Contains(new FileInfo(path).Extension.Substring(1));
+            return File.Exists(path) && EXTENSIONS.Contains(new FileInfo(path).Extension[1..]);
         }
     }
 

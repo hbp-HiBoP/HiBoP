@@ -15,7 +15,7 @@ namespace HBP.Core.DLL.EEG
             {
                 lock (typeof(Marshal))
                 {
-                    return Marshal.PtrToStringAnsi(GetElectrodeLabel(_handle));
+                    return Marshal.PtrToStringUTF8(GetElectrodeLabel(_handle));
                 }
             }
         }
@@ -28,7 +28,7 @@ namespace HBP.Core.DLL.EEG
             {
                 lock (typeof(Marshal))
                 {
-                    return Marshal.PtrToStringAnsi(GetElectrodeUnit(_handle));
+                    return Marshal.PtrToStringUTF8(GetElectrodeUnit(_handle));
                 }
             }
         }
@@ -91,7 +91,7 @@ namespace HBP.Core.DLL.EEG
             {
                 lock (typeof(Marshal))
                 {
-                    return Marshal.PtrToStringAnsi(GetElectrodeReferenceLabel(_handle));
+                    return Marshal.PtrToStringUTF8(GetElectrodeReferenceLabel(_handle));
                 }
             }
         }
