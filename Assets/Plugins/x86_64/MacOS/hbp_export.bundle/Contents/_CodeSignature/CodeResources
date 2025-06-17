@@ -361,10 +361,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			mNw+DJJw2nji6CKSG1mOX9WwU70=
+			dutGk5ihJwjv0Kratc5o0pS7S1o=
 			</data>
 			<key>requirement</key>
-			<string>cdhash H"98dc3e0c9270da78e2e822921b598e5fd5b053bd"</string>
+			<string>cdhash H"76eb469398a12708efd0aadab5ce68d294bb4b5a"</string>
 		</dict>
 		<key>MacOS/libjxl_threads.0.11.dylib</key>
 		<dict>
@@ -374,6 +374,15 @@
 			</data>
 			<key>requirement</key>
 			<string>cdhash H"70a277a8074cc8dd60613da868af498ea13252db"</string>
+		</dict>
+		<key>MacOS/liblcms2.2.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			EnORZIY3nbkM4ISoLgddsKwxiQ0=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"1273916486379db90ce084a82e075db0ac31890d"</string>
 		</dict>
 		<key>MacOS/liblzma.5.dylib</key>
 		<dict>
