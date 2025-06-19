@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.Data.Informations;
@@ -125,8 +126,16 @@ namespace HBP.UI.Database
             var loadedData = new List<Core.Data.IEEGData>();
             foreach (var dataInfo in m_DataInfos)
             {
-                updateProgress((float)progress / length, 0, new LoadingText("Loading data for ", dataInfo.Protocol.Name, $" {++progress} / {length}"));
-                loadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
+                try
+                {
+                    updateProgress((float)progress / length, 0, new LoadingText("Loading data for ", dataInfo.Protocol.Name, $" {++progress} / {length}"));
+                    loadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
+                }
+                catch (HBPException e)
+                {
+                    Debug.LogException(e);
+                    throw new CannotLoadDataInfoException(dataInfo, e.Message);
+                }
             }
             DataManager.NormalizeiEEGData();
 

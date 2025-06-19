@@ -422,15 +422,10 @@ namespace HBP.Core.Data
                         }
                     }
                 }
-                catch (CannotEpochAllTrialsException e)
+                catch (HBPException e)
                 {
                     UnityEngine.Debug.LogException(e);
-                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Protocol.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
-                }
-                catch (Exception e)
-                {
-                    UnityEngine.Debug.LogException(e);
-                    throw new CannotLoadDataInfoException(string.Format("{0} ({1})", dataInfo.Name, dataInfo.Protocol.Name), (dataInfo is PatientDataInfo pDataInfo ? pDataInfo.Patient.Name : "Unkwown patient"), e.Message);
+                    throw new CannotLoadDataInfoException(dataInfo, e.Message);
                 }
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);

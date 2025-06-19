@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HBP.Core.Data;
+using System;
 
 namespace HBP.Core.Exceptions
 {
@@ -41,7 +42,7 @@ namespace HBP.Core.Exceptions
     public class CannotLoadDataInfoException : HBPException
     {
         public CannotLoadDataInfoException() { }
-        public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n<i>Exception thrown: " + additionalInformation + "</i>\n\nPlease check your data files.")
+        public CannotLoadDataInfoException(DataInfo dataInfo, string additionalInformation = "") : base($"Can not load <color=red>{dataInfo.Name}</color> (of protocol <color=red>{dataInfo.Protocol.Name}</color>){(dataInfo is PatientDataInfo patientDataInfo ? $" for <color=red>{patientDataInfo.Patient.Name}</color>" : "")}.\n<i>Exception thrown: {additionalInformation}</i>\n\nPlease check your data files.")
         {
             Title = "Data can not be loaded";
         }
