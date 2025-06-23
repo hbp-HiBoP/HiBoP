@@ -147,6 +147,7 @@ namespace HBP.Data.Preferences
         #region Properties
         [JsonIgnore] const int NUMBER_OF_COLORS = 24;
         [JsonProperty] public bool ShowCurvesOfMinimizedColumns { get; set; }
+        [JsonProperty] public bool ShowSEM { get; set; }
         [JsonProperty] private SerializableColor[] m_Colors;
         [JsonIgnore] public Color[] Colors
         {
@@ -166,9 +167,10 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public GraphPreferences(bool showCurvesOfMinimizedColumns = false, Color[] colors = null)
+        public GraphPreferences(bool showCurvesOfMinimizedColumns = false, bool showSEM = true, Color[] colors = null)
         {
             ShowCurvesOfMinimizedColumns = showCurvesOfMinimizedColumns;
+            ShowSEM = showSEM;
             if (colors == null || colors.Length != NUMBER_OF_COLORS)
                 SetDefaultColors();
             else
@@ -241,7 +243,7 @@ namespace HBP.Data.Preferences
         }
         public object Clone()
         {
-            return new GraphPreferences(ShowCurvesOfMinimizedColumns, Colors);
+            return new GraphPreferences(ShowCurvesOfMinimizedColumns, ShowSEM, Colors);
         }
         #endregion
     }

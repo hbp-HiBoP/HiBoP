@@ -9,6 +9,7 @@ namespace HBP.UI.Main
     {
         #region Properties
         [SerializeField] Toggle m_ShowCurvesOfMinimizedColumns;
+        [SerializeField] Toggle m_ShowSEM;
         [SerializeField] Image[] m_ColorImages;
         [SerializeField] Button[] m_ColorButtons;
         [SerializeField] Button m_Default;
@@ -24,6 +25,7 @@ namespace HBP.UI.Main
                 base.Interactable = value;
 
                 m_ShowCurvesOfMinimizedColumns.interactable = value;
+                m_ShowSEM.interactable = value;
             }
         }
         #endregion
@@ -34,6 +36,7 @@ namespace HBP.UI.Main
             base.Initialize();
 
             m_ShowCurvesOfMinimizedColumns.onValueChanged.AddListener(value => Object.ShowCurvesOfMinimizedColumns = value);
+            m_ShowSEM.onValueChanged.AddListener(value => Object.ShowSEM = value);
             for (int i = 0; i < m_ColorButtons.Length; i++)
             {
                 int index = i;
@@ -62,6 +65,7 @@ namespace HBP.UI.Main
             base.SetFields(objectToDisplay);
 
             m_ShowCurvesOfMinimizedColumns.isOn = objectToDisplay.ShowCurvesOfMinimizedColumns;
+            m_ShowSEM.isOn = objectToDisplay.ShowSEM;
             Color[] colors = objectToDisplay.Colors;
             for (int i = 0; i < colors.Length; i++)
             {
