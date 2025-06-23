@@ -5,7 +5,6 @@ namespace HBP.UI.Tools
     [RequireComponent(typeof(RectTransform))]
     public class MousePositionAndClamp : MonoBehaviour
     {
-
         #region Properties
         public Vector2 BottomRightOffset;
         public Vector2 BottomLeftOffset;
@@ -15,6 +14,8 @@ namespace HBP.UI.Tools
         public RectOffset Padding;
         public RectTransform Container;
         public bool AlwaysUpdate;
+        public bool FollowX = true;
+        public bool FollowY = true;
 
         RectTransform m_RectTransform;
         CanvasScalerHandler m_CanvasScalerHandler;
@@ -47,8 +48,19 @@ namespace HBP.UI.Tools
         void Clamp(RectTransform rectTransform, RectTransform containerRectTransform)
         {
             Vector2 mousePosition = Input.mousePosition;
+            
+            // Ne pas suivre l'axe X ou Y si désactivé
+            if (!FollowX)
+            {
+                mousePosition.x = rectTransform.position.x;
+            }
+            if (!FollowY)
+            {
+                mousePosition.y = rectTransform.position.y;
+            }
+            
             float scale = m_CanvasScalerHandler.Scale;
-            Vector2 scaledMousePosition = new Vector2(scale * Input.mousePosition.x, scale * Input.mousePosition.y);
+            Vector2 scaledMousePosition = new Vector2(scale * mousePosition.x, scale * mousePosition.y);
             Vector2 containerScaledPosition = new Vector2(scale * containerRectTransform.position.x, scale * containerRectTransform.position.y);
 
             Rect containerRectPadded = Padding.Remove(containerRectTransform.rect);
