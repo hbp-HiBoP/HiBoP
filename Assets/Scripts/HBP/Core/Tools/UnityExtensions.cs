@@ -159,7 +159,7 @@ namespace HBP.Core.Tools
                     .OfType<TypedAttribute>()
                     .FirstOrDefault(a =>
                         attribute.Types != null && a.Types != null &&
-                        attribute.Types.Any(attrType => a.Types.Any(type => attrType.IsAssignableFrom(type)))
+                        attribute.Types.Any(attrType => a.Types.Any(type => type.IsAssignableFrom(attrType)))
                     ) != null)
                 .OrderBy(orderMethod)
                 .ToArray();
