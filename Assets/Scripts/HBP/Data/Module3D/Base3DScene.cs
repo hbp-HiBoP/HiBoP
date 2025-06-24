@@ -682,7 +682,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when requesting a graph from the filtered sites in the siteactions panel
         /// </summary>
-        [HideInInspector] public GenericEvent<IEnumerable<Core.Object3D.Site>> OnRequestFilteredSitesGraph = new GenericEvent<IEnumerable<Core.Object3D.Site>>();
+        [HideInInspector] public GenericEvent<string, IEnumerable<Core.Object3D.Site>> OnRequestFilteredSitesGraph = new GenericEvent<string, IEnumerable<Core.Object3D.Site>>();
         /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>

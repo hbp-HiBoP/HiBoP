@@ -7,6 +7,7 @@ using UnityEngine.Events;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Data.Preferences;
+using System;
 
 namespace HBP.UI.Informations
 {
@@ -107,7 +108,7 @@ namespace HBP.UI.Informations
         bool m_RequestGraphsUpdate;
 
         [SerializeField] SceneData m_SceneData;
-        [SerializeField] ChannelStruct[] m_FilteredChannelStructs;
+        [SerializeField] Dictionary<string, ChannelStruct[]> m_FilteredChannelStructs = new();
         [SerializeField] ChannelStruct[] m_ChannelStructs;
         public ChannelStruct[] ChannelStructs
         {
@@ -217,9 +218,9 @@ namespace HBP.UI.Informations
                         IEnumerable<ChannelStruct> channels = column.Sites.Where(site => !site.State.IsOutOfROI && !site.State.IsMasked && !site.State.IsBlackListed).Select(site => new ChannelStruct(site));
                         groups.Add(new ChannelStructsGroup(m_Scene.ROIManager.SelectedROI.Name, channels.ToList()));
                     }
-                    if (m_FilteredChannelStructs.Length > 0)
+                    foreach (var kv in m_FilteredChannelStructs)
                     {
-                        groups.Add(new ChannelStructsGroup("Filtered", m_FilteredChannelStructs));
+                        groups.Add(new ChannelStructsGroup(kv.Key, kv.Value));
                     }
                     if (column is Column3DIEEG ieegColumn)
                     {
@@ -251,9 +252,9 @@ namespace HBP.UI.Informations
         {
             m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
         }
-        void GenerateFilteredChannelStructs(IEnumerable<Core.Object3D.Site> sites)
+        void GenerateFilteredChannelStructs(string name, IEnumerable<Core.Object3D.Site> sites)
         {
-            m_FilteredChannelStructs = sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            m_FilteredChannelStructs[name] = sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
         }
         void Display()
         {
@@ -278,9 +279,9 @@ namespace HBP.UI.Informations
             m_RequestSceneDataUpdate = true;
             m_RequestDisplayUpdate = true;
         }
-        void OnFilteredSitesRequestHandler(IEnumerable<Core.Object3D.Site> sites)
+        void OnFilteredSitesRequestHandler(string name, IEnumerable<Core.Object3D.Site> sites)
         {
-            GenerateFilteredChannelStructs(sites);
+            GenerateFilteredChannelStructs(name, sites);
             m_RequestSceneDataUpdate = true;
             m_RequestGraphsUpdate = true;
         }
