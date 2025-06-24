@@ -8,6 +8,8 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         [SerializeField] private InputField m_NameInputField;
+
+        static string m_NameInputFieldValue;
         #endregion
 
         #region Public Methods
@@ -18,11 +20,11 @@ namespace HBP.UI.Module3D
         }
         public override void StoreSettings()
         {
-            // No settings to store
+            m_NameInputFieldValue = m_NameInputField.text;
         }
         public override void LoadSettings()
         {
-            // No settings to load
+            m_NameInputField.text = m_NameInputFieldValue;
         }
         #endregion
     }
