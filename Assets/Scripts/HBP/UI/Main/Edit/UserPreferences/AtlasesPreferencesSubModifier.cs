@@ -127,8 +127,8 @@ namespace HBP.UI.Main
 
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
             m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://julich-brain-atlas.de/"));
-            m_IBCWebsite.onClick.AddListener(() => Application.OpenURL(@"https://project.inria.fr/IBC/"));
-            m_DiFuMoWebsite.onClick.AddListener(() => Application.OpenURL(@"https://github.com/Parietal-INRIA/DiFuMo"));
+            m_IBCWebsite.onClick.AddListener(() => Application.OpenURL(@"https://individual-brain-charting.github.io/docs/"));
+            m_DiFuMoWebsite.onClick.AddListener(() => Application.OpenURL(@"https://parietal-inria.github.io/DiFuMo/"));
         }
         #endregion
 
