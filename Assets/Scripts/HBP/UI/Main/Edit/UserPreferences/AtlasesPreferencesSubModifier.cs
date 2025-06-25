@@ -4,6 +4,7 @@ using HBP.Data.Preferences;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -75,44 +76,52 @@ namespace HBP.UI.Main
             m_DiFuMo512.onValueChanged.AddListener(value => Object.PreloadDiFuMo512 = value);
             m_DiFuMo1024.onValueChanged.AddListener(value => Object.PreloadDiFuMo1024 = value);
             
-            m_LoadMarsAtlas.onClick.AddListener(() =>
+            m_LoadMarsAtlas.onClick.AddListener(async () =>
             {
                 Object3DManager.MarsAtlas.Load();
+                await UniTask.WaitUntil(() => Object3DManager.MarsAtlas.Loaded);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadJuBrain.onClick.AddListener(() =>
+            m_LoadJuBrain.onClick.AddListener(async () =>
             {
                 Object3DManager.JuBrain.Load();
+                await UniTask.WaitUntil(() => Object3DManager.JuBrain.Loaded);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadIBC.onClick.AddListener(() =>
+            m_LoadIBC.onClick.AddListener(async () =>
             {
                 Object3DManager.IBC.Load();
+                await UniTask.WaitUntil(() => Object3DManager.IBC.Loaded);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadDiFuMo64.onClick.AddListener(() =>
+            m_LoadDiFuMo64.onClick.AddListener(async () =>
             {
                 Object3DManager.DiFuMo.Load("64");
+                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("64"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadDiFuMo128.onClick.AddListener(() =>
+            m_LoadDiFuMo128.onClick.AddListener(async () =>
             {
                 Object3DManager.DiFuMo.Load("128");
+                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("128"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadDiFuMo256.onClick.AddListener(() =>
+            m_LoadDiFuMo256.onClick.AddListener(async () =>
             {
                 Object3DManager.DiFuMo.Load("256");
+                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("256"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadDiFuMo512.onClick.AddListener(() =>
+            m_LoadDiFuMo512.onClick.AddListener(async () =>
             {
                 Object3DManager.DiFuMo.Load("512");
+                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("512"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadDiFuMo1024.onClick.AddListener(() =>
+            m_LoadDiFuMo1024.onClick.AddListener(async () =>
             {
                 Object3DManager.DiFuMo.Load("1024");
+                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("1024"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
 

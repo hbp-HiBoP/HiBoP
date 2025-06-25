@@ -1,4 +1,5 @@
 ﻿using HBP.Core.Object3D;
+using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Data.Preferences;
 using HBP.UI.Tools;
@@ -43,6 +44,7 @@ namespace HBP.UI.Module3D
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            Module3DMain.OnRequestUpdateInSiteList.AddListener(UpdateList);
         }
         private void Update()
         {

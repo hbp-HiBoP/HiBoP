@@ -168,6 +168,7 @@ namespace HBP.Data.Module3D
         /// Event called when requesting an update in the toolbar
         /// </summary>
         [HideInInspector] public static UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnRequestUpdateInSiteList = new UnityEvent();
         #endregion
 
         #region Private Methods

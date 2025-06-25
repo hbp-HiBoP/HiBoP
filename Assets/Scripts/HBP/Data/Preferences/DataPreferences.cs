@@ -109,7 +109,7 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public ProtocolPreferences() : this(AveragingType.Median, -3000, 3000, 0)
+        public ProtocolPreferences() : this(AveragingType.Median, -10000, 10000, 100)
         {
 
         }

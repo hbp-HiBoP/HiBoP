@@ -45,6 +45,8 @@ namespace HBP.UI.Toolbar
         /// Open the Interactive Viewer from HBP
         /// </summary>
         [SerializeField] private OpenInteractiveViewer m_OpenInteractiveViewer;
+        [SerializeField] private SiteFilters m_SiteFilters;
+        [SerializeField] private OpenSiteTools m_OpenSiteTools;
         #endregion
 
         #region Private Methods
@@ -63,6 +65,8 @@ namespace HBP.UI.Toolbar
             m_Tools.Add(m_CutAroundSite);
             m_Tools.Add(m_OpenInteractiveViewer);
             m_Tools.Add(m_MoveSites);
+            m_Tools.Add(m_SiteFilters);
+            m_Tools.Add(m_OpenSiteTools);
         }
         #endregion
     }

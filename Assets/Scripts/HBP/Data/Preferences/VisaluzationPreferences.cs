@@ -115,7 +115,7 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public TrialMatrixPreferences(bool showWholeProtocol = false, bool trialsSynchronization = true, bool trialSmooting = true,
+        public TrialMatrixPreferences(bool showWholeProtocol = true, bool trialsSynchronization = true, bool trialSmooting = true,
             int numberOfIntermediateValues = 3, bool smooth2D = true, BlocFormatType subBlocFormat = BlocFormatType.BlocRatio,
             int trialHeight = (int)(0.3f * (MAXIMUM_TRIAL_HEIGHT - MINIMUM_TRIAL_HEIGHT)), float trialRatio = 0.3f * (MAXIMUM_TRIAL_RATIO - MINIMUM_TRIAL_RATIO), float blocRatio = 0.3f * (MAXIMUM_BLOC_RATIO - MINIMUM_BLOC_RATIO),
             float protocolRatio = 0.3f * (MAXIMUM_PROTOCOL_RATIO - MINIMUM_PROTOCOL_RATIO))
@@ -167,7 +167,7 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Constructors
-        public GraphPreferences(bool showCurvesOfMinimizedColumns = false, bool showSEM = true, Color[] colors = null)
+        public GraphPreferences(bool showCurvesOfMinimizedColumns = true, bool showSEM = true, Color[] colors = null)
         {
             ShowCurvesOfMinimizedColumns = showCurvesOfMinimizedColumns;
             ShowSEM = showSEM;
