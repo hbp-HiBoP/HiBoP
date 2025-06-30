@@ -36,7 +36,7 @@ namespace HBP.UI.Tools.Lists
             int displayedIndex = m_DisplayedObjects.FindIndex(o => o.Equals(objectToUpdate));
             m_DisplayedObjects[displayedIndex] = objectToUpdate;
 
-            T oldKey = m_SelectedStateByObject.Keys.FirstOrDefault(k => k.Equals(objectToUpdate) && !ReferenceEquals(k, objectToUpdate));
+            T oldKey = m_SelectedStateByObject.Keys.FirstOrDefault(k => k.Equals(objectToUpdate) && !ReferenceEquals(k, objectToUpdate));  
             if (oldKey != null)
             {
                 bool selected = m_SelectedStateByObject[oldKey];

@@ -172,6 +172,17 @@ namespace HBP.UI.Informations
                 }
             }
         }
+        public void OpenCustomGraphsManager()
+        {
+            var window = WindowsManager.Open("Channel structs groups window", null) as ChannelStructsGroupsWindow;
+            window.ChannelStructsGroups = m_ChannelStructsGroups;
+            window.OnChannelStructsGroupsChanged.AddListener((groups) =>
+            {
+                m_ChannelStructsGroups = groups;
+                m_RequestSceneDataUpdate = true;
+                m_RequestGraphsUpdate = true;
+            });
+        }
         #endregion
 
         #region Private Methods

@@ -12,6 +12,7 @@ namespace HBP.UI.Tools
         #region Properties
         public Text DisplayText;
         public BaseList List;
+        public bool DisplayFilteredCount = true;
         ISelectionCountable m_SelectionCountable;
         #endregion
 
@@ -38,7 +39,7 @@ namespace HBP.UI.Tools
                 int numberOfFilteredObjects = m_SelectionCountable.NumberOfFilteredObjects;
 
                 string selectedText = m_SelectionCountable.CanSelectMultipleObjects ? $"Selected: {numberOfSelectedObjects}" : "";
-                string filteredText = numberOfFilteredObjects < numberOfObjects ? $"Filtered: {numberOfFilteredObjects}" : "";
+                string filteredText = DisplayFilteredCount && numberOfFilteredObjects < numberOfObjects ? $"Filtered: {numberOfFilteredObjects}" : "";
                 string totalText = $"Total: {numberOfObjects}";
                 DisplayText.text = string.Join(" - ", new[] { selectedText, filteredText, totalText }.Where(s => !string.IsNullOrEmpty(s)));
             }
