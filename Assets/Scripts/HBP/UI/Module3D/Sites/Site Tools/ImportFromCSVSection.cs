@@ -173,6 +173,7 @@ namespace HBP.UI.Module3D
 
                 // Store the state for the corresponding sites
                 IEnumerable<Site> sitesToApply = sites.Where(s => s.Information.FullID.Equals(siteID, StringComparison.OrdinalIgnoreCase));
+                if (sitesToApply.Count() == 0) sitesToApply = sites.Where(s => s.Information.FullName.Equals(siteID, StringComparison.OrdinalIgnoreCase));
                 foreach (var site in sitesToApply)
                 {
                     stateBySite[site] = state;

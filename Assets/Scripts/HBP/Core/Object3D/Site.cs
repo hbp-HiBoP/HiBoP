@@ -53,6 +53,13 @@ namespace HBP.Core.Object3D
                 return PatientID + "_" + Name;
             }
         }
+        public string FullName
+        {
+            get
+            {
+                return Patient.Name + "_" + Name;
+            }
+        }
         /// <summary>
         /// Format the name of the string with information from the patient it is from in order to display it properly
         /// </summary>
