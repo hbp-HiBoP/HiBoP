@@ -140,7 +140,7 @@ namespace HBP.UI.Database
             DataManager.NormalizeiEEGData();
 
             // Create channel strucs
-            m_ChannelStructs = loadedData.SelectMany(d => d.UnitByChannel.Keys).OrderBy(c => c, new SiteNameComparer()).Distinct().Select(c => new ChannelStruct(c, m_Patient, false)).ToList();
+            m_ChannelStructs = loadedData.SelectMany(d => d.UnitByChannel.Keys).OrderBy(c => c, new SiteNameComparer()).Distinct().Select(c => new ChannelStruct(c, m_Patient)).ToList();
 
             // Set UI
             await UniTask.SwitchToMainThread();

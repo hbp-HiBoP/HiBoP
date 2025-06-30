@@ -22,7 +22,7 @@ namespace HBP.Core.Data
     /// </list>
     /// </remarks>
     [JsonObject(MemberSerialization.OptIn)]
-    public abstract class BaseData: ICopiable, ICloneable, IIdentifiable
+    public abstract class BaseData : ICopiable, ICloneable, IIdentifiable
     {
         #region Properties
         /// <summary>
@@ -112,7 +112,7 @@ namespace HBP.Core.Data
         public abstract object Clone();
         public virtual void Copy(object copy)
         {
-            if(copy is BaseData baseData)
+            if (copy is BaseData baseData)
             {
                 ID = baseData.ID;
             }

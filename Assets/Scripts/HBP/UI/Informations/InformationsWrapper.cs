@@ -108,7 +108,7 @@ namespace HBP.UI.Informations
         bool m_RequestGraphsUpdate;
 
         [SerializeField] SceneData m_SceneData;
-        [SerializeField] Dictionary<string, ChannelStruct[]> m_FilteredChannelStructs = new();
+        [SerializeField] List<ChannelStructsGroup> m_ChannelStructsGroups = new();
         [SerializeField] ChannelStruct[] m_ChannelStructs;
         public ChannelStruct[] ChannelStructs
         {
@@ -210,18 +210,16 @@ namespace HBP.UI.Informations
             m_ColumnDataBy3DColumn = new Dictionary<Column3D, Column>();
             foreach (var column in m_Scene.Columns)
             {
-                if(!column.IsMinimized || PersistentDataManager.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
+                if (!column.IsMinimized || PersistentDataManager.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
                     List<ChannelStructsGroup> groups = new List<ChannelStructsGroup>();
                     if (m_Scene.ROIManager.SelectedROI != null)
                     {
                         IEnumerable<ChannelStruct> channels = column.Sites.Where(site => !site.State.IsOutOfROI && !site.State.IsMasked && !site.State.IsBlackListed).Select(site => new ChannelStruct(site));
-                        groups.Add(new ChannelStructsGroup(m_Scene.ROIManager.SelectedROI.Name, channels.ToList()));
+                        if (channels.Count() > 0)
+                            groups.Add(new ChannelStructsGroup(m_Scene.ROIManager.SelectedROI.Name, channels.ToList()));
                     }
-                    foreach (var kv in m_FilteredChannelStructs)
-                    {
-                        groups.Add(new ChannelStructsGroup(kv.Key, kv.Value));
-                    }
+                    groups.AddRange(m_ChannelStructsGroups);
                     if (column is Column3DIEEG ieegColumn)
                     {
                         IEEGData data = new IEEGData(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
@@ -229,7 +227,7 @@ namespace HBP.UI.Informations
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
-                    else if(column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSiteSelected)
+                    else if (column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSiteSelected)
                     {
                         CCEPData data = new CCEPData(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
                         Column columnData = new Column(column.Name, data, groups);
@@ -254,7 +252,9 @@ namespace HBP.UI.Informations
         }
         void GenerateFilteredChannelStructs(string name, IEnumerable<Core.Object3D.Site> sites)
         {
-            m_FilteredChannelStructs[name] = sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            ChannelStructsGroup group = new ChannelStructsGroup(name, sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)));
+            m_ChannelStructsGroups.RemoveAll(g => g.Name == name);
+            m_ChannelStructsGroups.Add(group);
         }
         void Display()
         {
