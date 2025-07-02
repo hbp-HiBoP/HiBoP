@@ -381,21 +381,52 @@ namespace HBP.Core.Data
                     if (Object3DManager.MarsAtlas.Loaded)
                     {
                         int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
-                        if (marsAtlasIndex != -1)
+                        int intrAnatMarsAtlasIndex = splittedLines[0].IndexOf("IntrAnat-MarsAtlas");
+                        int mniMarsAtlasIndex = splittedLines[0].IndexOf("MNI-MarsAtlas");
+
+                        // Determine which column to use as the base for inserting additional fields
+                        int baseIndex = -1;
+                        if (marsAtlasIndex != -1) baseIndex = marsAtlasIndex;
+                        else if (intrAnatMarsAtlasIndex != -1) baseIndex = intrAnatMarsAtlasIndex;
+                        else if (mniMarsAtlasIndex != -1) baseIndex = mniMarsAtlasIndex;
+
+                        if (baseIndex != -1)
                         {
-                            splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere-MarsAtlas");
-                            splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe-MarsAtlas");
-                            splittedLines[0].Insert(marsAtlasIndex + 3, "NameFS-MarsAtlas");
-                            splittedLines[0].Insert(marsAtlasIndex + 4, "Fullname-MarsAtlas");
-                            splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 1, "Hemisphere-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 2, "Lobe-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 3, "NameFS-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 4, "Fullname-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 5, "Brodmann-MarsAtlas");
+
                             for (int i = 1; i < splittedLines.Count; ++i)
                             {
-                                int marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
-                                splittedLines[i].Insert(marsAtlasIndex + 1, Object3DManager.MarsAtlas.Hemisphere(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 2, Object3DManager.MarsAtlas.Lobe(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 3, Object3DManager.MarsAtlas.NameFS(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 4, Object3DManager.MarsAtlas.FullName(marsAtlasLabel));
-                                splittedLines[i].Insert(marsAtlasIndex + 5, Object3DManager.MarsAtlas.BrodmannArea(marsAtlasLabel));
+                                int marsAtlasLabel = -1;
+
+                                // Check MarsAtlas first, then fallback to IntrAnat-MarsAtlas, then MNI-MarsAtlas
+                                if (marsAtlasIndex != -1 && splittedLines[i][marsAtlasIndex].ToLower() != "n/a")
+                                    marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
+                                else if (intrAnatMarsAtlasIndex != -1 && splittedLines[i][intrAnatMarsAtlasIndex].ToLower() != "n/a")
+                                    marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][intrAnatMarsAtlasIndex]);
+                                else if (mniMarsAtlasIndex != -1 && splittedLines[i][mniMarsAtlasIndex].ToLower() != "n/a")
+                                    marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][mniMarsAtlasIndex]);
+
+                                // If all available values are N/A, set all derived fields to N/A
+                                if (marsAtlasLabel == -1)
+                                {
+                                    splittedLines[i].Insert(baseIndex + 1, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 2, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 3, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 4, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 5, "N/A");
+                                }
+                                else
+                                {
+                                    splittedLines[i].Insert(baseIndex + 1, Object3DManager.MarsAtlas.Hemisphere(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 2, Object3DManager.MarsAtlas.Lobe(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 3, Object3DManager.MarsAtlas.NameFS(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 4, Object3DManager.MarsAtlas.FullName(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 5, Object3DManager.MarsAtlas.BrodmannArea(marsAtlasLabel));
+                                }
                             }
                         }
                     }
@@ -406,7 +437,7 @@ namespace HBP.Core.Data
                     {
                         string tagName = tagNames[i];
                         BaseTag tag = null;
-                        if (tagName != "MNI" && tagName != "Contact" && tagName != "contact")
+                        if (tagName.ToLower() != "mni" && tagName.ToLower() != "contact" && tagName.ToLower() != "t1pre scanner based")
                         {
                             tag = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).FirstOrDefault(t => t.Name == tagName);
                             if (tag == null)
@@ -426,7 +457,7 @@ namespace HBP.Core.Data
                         {
                             BaseTag tag = tags[i];
                             string value = values[i];
-                            if (tag != null)
+                            if (tag != null && value.ToLower() != "n/a")
                             {
                                 var tagValue = tag.CreateValue(value);
                                 if (tagValue != null)
