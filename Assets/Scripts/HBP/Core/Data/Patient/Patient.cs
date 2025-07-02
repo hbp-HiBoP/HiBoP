@@ -388,6 +388,7 @@ namespace HBP.Core.Data
             // Read participants.tsv.
             updateProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
             FileInfo participantsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
+            if (!participantsFileInfo.Exists) throw new HBPException("Missing file", "The mandatory file 'participants.tsv' is missing in the BIDS database directory.");
             Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new Dictionary<string, Dictionary<string, string>>();
             using (StreamReader streamReader = new StreamReader(participantsFileInfo.FullName))
             {

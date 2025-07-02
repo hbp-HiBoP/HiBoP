@@ -56,6 +56,11 @@ namespace HBP.UI.Main
         #endregion
 
         #region Private Methods
+        private void Start()
+        {
+            transform.parent = transform.parent.parent;
+            transform.SetAsLastSibling();
+        }
         private void SendMail()
         {
             using (SmtpClient smtpServer = new SmtpClient("smtp-mail.outlook.com")
