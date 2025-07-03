@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.IO;
 
 namespace HBP.Data.Preferences
 {
@@ -52,9 +53,44 @@ namespace HBP.Data.Preferences
         public ProjectPreferences(string defaultName, string defaultLocation, string defaultExportLocation)
         {
             DefaultName = defaultName;
-            DefaultLocation = defaultLocation;
-            DefaultExportLocation = defaultExportLocation;
+
+            if (string.IsNullOrEmpty(defaultLocation))
+                DefaultLocation = GetDefaultPath("Projects");
+            else
+                DefaultLocation = defaultLocation;
+
+            if (string.IsNullOrEmpty(defaultExportLocation))
+                DefaultExportLocation = GetDefaultPath("Exports");
+            else
+                DefaultExportLocation = defaultExportLocation;
+
+            Directory.CreateDirectory(DefaultLocation);
+            Directory.CreateDirectory(DefaultExportLocation);
         }
+        #endregion
+
+        #region Private Methods
+        private static string GetDefaultPath(string subfolder)
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                string home = Environment.GetEnvironmentVariable("HOME") ?? "";
+
+                string nextcloudPath = Path.Combine(home, "nextcloud");
+                if (Directory.Exists(nextcloudPath))
+                    return Path.Combine(nextcloudPath, "HiBoP", subfolder);
+            }
+
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (string.IsNullOrEmpty(documentsPath))
+            {
+                string home = Environment.GetEnvironmentVariable("HOME") ?? "";
+                documentsPath = Path.Combine(home, "Documents");
+            }
+
+            return Path.Combine(documentsPath, "HiBoP", subfolder);
+        }
+
         #endregion
 
         #region Public Methods
