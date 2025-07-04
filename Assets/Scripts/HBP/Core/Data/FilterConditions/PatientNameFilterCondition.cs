@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Patient name"), SortingOrder(1), FilterCondition(typeof(Object3D.Site))]
+    [JsonObject(MemberSerialization.OptIn), DisplayName("Patient name"), SortingOrder(1), FilterCondition(typeof(Object3D.Site), typeof(DataInfo))]
     public class PatientNameFilterCondition : BaseFilterCondition
     {
         #region Properties
@@ -57,10 +57,14 @@ namespace HBP.Core.Data
             {
                 name = site.Information.Patient.Name;
             }
+            if (obj is PatientDataInfo dataInfo)
+            {
+                name = dataInfo.Patient.Name;
+            }
 
             string nameToCompare = Name;
 
-            if (string.IsNullOrEmpty(name) && string.IsNullOrEmpty(nameToCompare))
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(nameToCompare))
                 return false;
 
             if (!CaseSensitive)

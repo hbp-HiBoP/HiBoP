@@ -1,7 +1,10 @@
-﻿using HBP.UI.Tools.Lists;
+﻿using HBP.Data.Preferences;
+using HBP.UI.Tools;
+using HBP.UI.Tools.Lists;
 using System.Collections.Generic;
 using System.Linq;
-using HBP.UI.Tools;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace HBP.UI.Main
 {
@@ -13,7 +16,9 @@ namespace HBP.UI.Main
         #region Properties
         enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, State, DescendingState, Type, DescendingType }
         OrderBy m_OrderBy = OrderBy.None;
-        
+
+        [SerializeField] Button m_ResetFiltersButton;
+
         public SortingDisplayer m_NameSortingDisplayer;
         public SortingDisplayer m_PatientSortingDisplayer;
         public SortingDisplayer m_TypeSortingDisplayer;
@@ -30,6 +35,39 @@ namespace HBP.UI.Main
         {
             SortByNone();
             base.AddObject(objectToAdd);
+        }
+        public void OpenFilterWindow()
+        {
+            var filteringObjects = Objects.Select(o => (object)o).ToList();
+            if (filteringObjects.Count == 0)
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No objects to filter", "The list you are trying to filter contains no object. This is not supported.").Forget();
+                return;
+            }
+
+            var parentWindow = GetComponentInParent<Window>();
+
+            var filterWindow = WindowsManager.Open("Filter window", parentWindow).GetComponent<ListFilter>();
+            filterWindow.FilteringObjects = filteringObjects;
+            filterWindow.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(filteringObjects[0].GetType()));
+            filterWindow.OnApplyFilters.AddListener(mask =>
+            {
+                MaskList(mask, false);
+                SortByNone();
+            });
+
+            if (parentWindow)
+                parentWindow.WindowsReferencer.Add(filterWindow);
+        }
+        public void ResetFilters()
+        {
+            MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), false);
+            SortByNone();
+        }
+        public override bool MaskList(bool[] mask, bool hide = true)
+        {
+            m_ResetFiltersButton.interactable = mask.Any(m => !m);
+            return base.MaskList(mask, hide);
         }
         #endregion
 

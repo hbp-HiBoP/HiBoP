@@ -6,7 +6,6 @@ namespace HBP.Core.Enums
     public enum NormalizationType { None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto }
     public enum SiteInfluenceByDistanceType { Constant, Linear, Quadratic }
     public enum BlocFormatType {[Description("Trial height")] TrialHeight, [Description("Trial ratio")] TrialRatio, [Description("Bloc ratio")] BlocRatio, [Description("Protocol ratio")] ProtocolRatio }
-    public enum DisplayableError { LeftMeshEmpty, RightMeshEmpty, PreimplantationMRIEmpty, ImplantationEmpty }
     public enum SceneType { SinglePatient, MultiPatients }
     public enum CameraControl { Trackball, Orbital }
     public enum ColorType // For now, integers matter because of the link with the dll.

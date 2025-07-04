@@ -25,6 +25,8 @@ namespace HBP.UI.Main
         [SerializeField] SpecificSiteLocationFilterConditionSubModifier m_SpecificSiteLocationFilterConditionSubModifier;
         [SerializeField] RawSitePositionFilterConditionSubModifier m_RawSitePositionFilterConditionSubModifier;
         [SerializeField] ActivityFilterConditionSubModifier m_ActivityFilterConditionSubModifier;
+        [SerializeField] DataTypeFilterConditionSubModifier m_DataTypeFilterConditionSubModifier;
+        [SerializeField] DataStateFilterConditionSubModifier m_DataStateFilterConditionSubModifier;
         [SerializeField] AllFilterConditionSubModifier m_AllFilterConditionSubModifier;
         [SerializeField] AnyFilterConditionSubModifier m_AnyFilterConditionSubModifier;
 
@@ -57,6 +59,8 @@ namespace HBP.UI.Main
                 m_SpecificSiteLocationFilterConditionSubModifier.FilteringObjects = value;
                 m_RawSitePositionFilterConditionSubModifier.FilteringObjects = value;
                 m_ActivityFilterConditionSubModifier.FilteringObjects = value;
+                m_DataTypeFilterConditionSubModifier.FilteringObjects = value;
+                m_DataStateFilterConditionSubModifier.FilteringObjects = value;
                 m_AllFilterConditionSubModifier.FilteringObjects = value;
                 m_AnyFilterConditionSubModifier.FilteringObjects = value;
             }
@@ -99,6 +103,8 @@ namespace HBP.UI.Main
                 m_SpecificSiteLocationFilterConditionSubModifier.Interactable = value;
                 m_RawSitePositionFilterConditionSubModifier.Interactable = value;
                 m_ActivityFilterConditionSubModifier.Interactable = value;
+                m_DataTypeFilterConditionSubModifier.Interactable = value;
+                m_DataStateFilterConditionSubModifier.Interactable = value;
                 m_AllFilterConditionSubModifier.Interactable = value;
                 m_AnyFilterConditionSubModifier.Interactable = value;
             }
@@ -136,6 +142,8 @@ namespace HBP.UI.Main
             m_SpecificSiteLocationFilterConditionSubModifier.Initialize();
             m_RawSitePositionFilterConditionSubModifier.Initialize();
             m_ActivityFilterConditionSubModifier.Initialize();
+            m_DataTypeFilterConditionSubModifier.Initialize();
+            m_DataStateFilterConditionSubModifier.Initialize();
             m_AllFilterConditionSubModifier.Initialize();
             m_AnyFilterConditionSubModifier.Initialize();
 
@@ -152,6 +160,8 @@ namespace HBP.UI.Main
                 m_SpecificSiteLocationFilterConditionSubModifier,
                 m_RawSitePositionFilterConditionSubModifier,
                 m_ActivityFilterConditionSubModifier,
+                m_DataTypeFilterConditionSubModifier,
+                m_DataStateFilterConditionSubModifier,
                 m_AllFilterConditionSubModifier,
                 m_AnyFilterConditionSubModifier
             };
@@ -168,6 +178,8 @@ namespace HBP.UI.Main
                 new SpecificSiteLocationFilterCondition(),
                 new RawSitePositionFilterCondition(),
                 new ActivityFilterCondition(),
+                new DataTypeFilterCondition(),
+                new DataStateFilterCondition(),
                 new AllFilterCondition(),
                 new AnyFilterCondition()
             };
