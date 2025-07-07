@@ -69,6 +69,13 @@ namespace HBP.UI.Tools
         {
 
         }
+        public virtual void Refresh()
+        {
+            if (m_Object != null)
+            {
+                SetFields(m_Object);
+            }
+        }
         #endregion
 
         #region Protected Methods

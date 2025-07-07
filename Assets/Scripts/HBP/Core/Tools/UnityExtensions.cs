@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Xml.Schema;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -190,6 +191,21 @@ namespace HBP.Core.Tools
             else
             {
                 dropdown.value = value;
+            }
+        }
+    }
+
+    public static class ToggleExtension
+    {
+        public static void SetValue(this Toggle toggle, bool value)
+        {
+            if (toggle.isOn == value)
+            {
+                toggle.onValueChanged.Invoke(value);
+            }
+            else
+            {
+                toggle.isOn = value;
             }
         }
     }
