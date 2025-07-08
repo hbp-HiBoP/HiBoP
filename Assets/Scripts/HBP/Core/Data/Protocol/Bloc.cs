@@ -80,6 +80,7 @@ namespace HBP.Core.Data
                 if (m_NeedToReload || m_Image == null)
                 {
                     if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, IllustrationPath)) m_Image = sprite;
+                    m_NeedToReload = false;
                 }
                 return m_Image;
             }
