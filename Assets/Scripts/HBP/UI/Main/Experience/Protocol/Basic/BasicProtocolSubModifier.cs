@@ -14,8 +14,7 @@ namespace HBP.UI.Main
         [SerializeField] InputField m_NameInputField;
         [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] RangeSlider m_BaselineSlider;
-
-        [SerializeField] BlocListGestion m_BlocListGestion;
+        [SerializeField] BasicBlocListManager m_BasicBlocListManager;
 
         public override bool Interactable
         {
@@ -27,9 +26,17 @@ namespace HBP.UI.Main
                 m_NameInputField.interactable = value;
                 m_WindowSlider.interactable = value;
                 m_BaselineSlider.interactable = value;
+                m_BasicBlocListManager.Interactable = value;
+            }
+        }
 
-                m_BlocListGestion.Interactable = value;
-                m_BlocListGestion.Modifiable = value;
+        public override Protocol Object
+        {
+            get => base.Object;
+            set
+            {
+                base.Object = value;
+                m_BasicBlocListManager.Object = value;
             }
         }
         #endregion
@@ -42,10 +49,7 @@ namespace HBP.UI.Main
             m_NameInputField.onEndEdit.AddListener(ChangeName);
             m_WindowSlider.onValueChanged.AddListener(ChangeWindow);
             m_BaselineSlider.onValueChanged.AddListener(ChangeBaseline);
-
-            m_BlocListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-            m_BlocListGestion.List.OnAddObject.AddListener(AddBloc);
-            m_BlocListGestion.List.OnRemoveObject.AddListener(RemoveBloc);
+            m_BasicBlocListManager.OnAddBloc.AddListener(OnAddBloc);
         }
         #endregion
 
@@ -68,8 +72,6 @@ namespace HBP.UI.Main
             m_BaselineSlider.maxLimit = preferences.MaxLimit;
             m_BaselineSlider.step = preferences.Step;
             m_BaselineSlider.Values = firstSubBloc != null ? firstSubBloc.Baseline.ToVector2() : new Vector2(-300, 0);
-
-            m_BlocListGestion.List.Set(objectToDisplay.Blocs);
         }
         protected void ChangeName(string value)
         {
@@ -96,13 +98,10 @@ namespace HBP.UI.Main
                 subBloc.Baseline = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
             }
         }
-        protected void AddBloc(Bloc bloc)
+        protected void OnAddBloc(Bloc bloc)
         {
-            Object.Blocs.AddIfAbsent(bloc);
-        }
-        protected void RemoveBloc(Bloc bloc)
-        {
-            Object.Blocs.Remove(bloc);
+            bloc.MainSubBloc.Window = new TimeWindow(Mathf.RoundToInt(m_WindowSlider.Values.x), Mathf.RoundToInt(m_WindowSlider.Values.y));
+            bloc.MainSubBloc.Baseline = new TimeWindow(Mathf.RoundToInt(m_BaselineSlider.Values.x), Mathf.RoundToInt(m_BaselineSlider.Values.y));
         }
         #endregion
     }

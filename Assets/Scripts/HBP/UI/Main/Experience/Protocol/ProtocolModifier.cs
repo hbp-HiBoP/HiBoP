@@ -58,6 +58,8 @@ namespace HBP.UI.Main
             }
 
             m_IsChangingTab = false;
+
+            Refresh();
         }
         public async void OnChangeAdvancedToggle(bool value)
         {
@@ -77,6 +79,8 @@ namespace HBP.UI.Main
             }
 
             m_IsChangingTab = false;
+
+            Refresh();
         }
         #endregion
 

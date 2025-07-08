@@ -39,6 +39,13 @@
             OnOk.Invoke();
             base.Close();
         }
+        public virtual void Refresh()
+        {
+            if (m_ObjectTemp != null)
+            {
+                SetFields(m_ObjectTemp);
+            }
+        }
         #endregion
 
         #region Protected Methods
