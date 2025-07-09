@@ -28,14 +28,14 @@ namespace HBP.UI.Informations
                     {
                         if (!dataToDisplay.OfType<data.TrialMatrixGrid.IEEGTrialMatrixData>().Any(d => d.Name == data.Name && d.Dataset == data.Dataset))
                         {
-                            dataToDisplay.Add(new data.TrialMatrixGrid.IEEGTrialMatrixData(data.Dataset, data.Name, data.Dataset.Protocol.Blocs));
+                            dataToDisplay.Add(new data.TrialMatrixGrid.IEEGTrialMatrixData(data.Dataset, data.Name, data.Dataset.Protocol.OrderedBlocs.ToList()));
                         }
                     }
                     else if (data is CCEPData ccepData)
                     {
                         if (!dataToDisplay.OfType<data.TrialMatrixGrid.CCEPTrialMatrixData>().Any(d => d.Name == data.Name && d.Dataset == data.Dataset && d.Source == ccepData.Source))
                         {
-                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name, data.Dataset.Protocol.Blocs, ccepData.Source));
+                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name, data.Dataset.Protocol.OrderedBlocs.ToList(), ccepData.Source));
                         }
                     }
                 }

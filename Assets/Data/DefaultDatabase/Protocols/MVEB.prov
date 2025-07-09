@@ -4,7 +4,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_LOAD2.jpg",
       "Name": "LOAD2",
-      "Order": 1,
+      "Order": 0,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD2_CODE",
       "SubBlocs": [
         {
@@ -48,7 +48,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_LOAD4.jpg",
       "Name": "LOAD4",
-      "Order": 2,
+      "Order": 1,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD4_CODE",
       "SubBlocs": [
         {
@@ -92,7 +92,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_LOAD6.jpg",
       "Name": "LOAD6",
-      "Order": 3,
+      "Order": 2,
       "Sort": "Main_RESPONSE_LATENCY;Main_LOAD6_CODE",
       "SubBlocs": [
         {
@@ -136,7 +136,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\MVEB_CONT.jpg",
       "Name": "CONTROL",
-      "Order": 0,
+      "Order": 3,
       "Sort": "Main_RESPONSE_LATENCY;Main_CONTROL_CODE",
       "SubBlocs": [
         {

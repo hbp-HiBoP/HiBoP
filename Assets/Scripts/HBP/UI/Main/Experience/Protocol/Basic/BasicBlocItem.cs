@@ -1,4 +1,5 @@
 using HBP.Core.Data;
+using HBP.Core.Errors;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,7 +40,11 @@ namespace HBP.UI.Main
         }
 
         private Toggle m_Toggle;
-        public bool Selected => m_Toggle.isOn;
+        public bool Selected => m_Toggle != null ? m_Toggle.isOn : false;
+        #endregion
+
+        #region Events
+        public Toggle.ToggleEvent OnValueChanged => m_Toggle?.onValueChanged ?? new Toggle.ToggleEvent();
         #endregion
 
         #region Private Methods

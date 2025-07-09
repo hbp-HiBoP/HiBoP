@@ -47,7 +47,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_FACE.jpg",
       "Name": "FACE",
-      "Order": 7,
+      "Order": 1,
       "Sort": "Main_FACE_CODE",
       "SubBlocs": [
         {
@@ -82,7 +82,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_ANIMAL.jpg",
       "Name": "ANIMAL",
-      "Order": 6,
+      "Order": 2,
       "Sort": "Main_ANIMAL_CODE",
       "SubBlocs": [
         {
@@ -117,7 +117,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_LANDSCAPE.jpg",
       "Name": "LANDSCAPE",
-      "Order": 5,
+      "Order": 3,
       "Sort": "Main_LANDSCAPE_CODE",
       "SubBlocs": [
         {
@@ -187,7 +187,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_PWORD.jpg",
       "Name": "PSEUDOWORD",
-      "Order": 3,
+      "Order": 5,
       "Sort": "Main_PSEUDOWORD_CODE",
       "SubBlocs": [
         {
@@ -222,7 +222,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_CONSON.jpg",
       "Name": "CONSONANT",
-      "Order": 2,
+      "Order": 6,
       "Sort": "Main_CONSONANT_CODE",
       "SubBlocs": [
         {
@@ -257,7 +257,7 @@
     {
       "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_SCRAMB.jpg",
       "Name": "SCRAMBLED",
-      "Order": 1,
+      "Order": 7,
       "Sort": "Main_SCRAMBLED_CODE",
       "SubBlocs": [
         {

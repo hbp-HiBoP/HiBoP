@@ -11,7 +11,7 @@ namespace HBP.UI.Tools
     {
         #region Properties
         public Text DisplayText;
-        public BaseList List;
+        public MonoBehaviour List;
         public bool DisplayFilteredCount = true;
         ISelectionCountable m_SelectionCountable;
         #endregion
