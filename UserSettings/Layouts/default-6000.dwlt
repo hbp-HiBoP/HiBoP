@@ -271,7 +271,7 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 0
-    width: 734
+    width: 733
     height: 483
   m_MinSize: {x: 231, y: 276}
   m_MaxSize: {x: 10001, y: 10026}
@@ -295,7 +295,7 @@ MonoBehaviour:
   m_Children: []
   m_Position:
     serializedVersion: 2
-    x: 734
+    x: 733
     y: 0
     width: 678
     height: 483
@@ -321,9 +321,9 @@ MonoBehaviour:
   m_Children: []
   m_Position:
     serializedVersion: 2
-    x: 1412
+    x: 1411
     y: 0
-    width: 719
+    width: 720
     height: 483
   m_MinSize: {x: 902, y: 242}
   m_MaxSize: {x: 4002, y: 4026}
@@ -1037,7 +1037,7 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 852.13257, y: 373.02606, z: -3.2958858}
+    m_Target: {x: 851.3761, y: 416.18732, z: -3.5013187}
     speed: 2
     m_Value: {x: 852.13257, y: 373.02606, z: -3.2958858}
   m_RenderMode: 0
@@ -1089,7 +1089,7 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 378.77542
+    m_Target: 421.8583
     speed: 2
     m_Value: 378.77542
   m_Ortho:
@@ -1221,7 +1221,7 @@ MonoBehaviour:
     serializedVersion: 2
     x: 0
     y: 24
-    width: 733
+    width: 732
     height: 457
   m_SerializedDataModeController:
     m_DataMode: 0
@@ -1264,7 +1264,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 79}
     m_SelectedIDs: 2c7d0400
     m_LastClickedID: 294188
-    m_ExpandedIDs: 00000000cacc0000
+    m_ExpandedIDs: 00000000c02a0200
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1293,7 +1293,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000cacc0000
+    m_ExpandedIDs: 00000000c02a0200
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1373,7 +1373,7 @@ MonoBehaviour:
     m_TextWithWhitespace: "Console\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 735
+    x: 734
     y: 24
     width: 676
     height: 457
@@ -1410,9 +1410,9 @@ MonoBehaviour:
     m_TextWithWhitespace: "Profiler\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1413
+    x: 1412
     y: 24
-    width: 717
+    width: 718
     height: 457
   m_SerializedDataModeController:
     m_DataMode: 0

@@ -15,7 +15,6 @@ namespace HBP.UI.Main
 
         [SerializeField] Text m_PatientsText;
         [SerializeField] Text m_GroupsText;
-        [SerializeField] Text m_ProtocolsText;
         [SerializeField] Text m_DatasetsText;
         [SerializeField] Text m_VisualizationsText;
 
@@ -37,10 +36,9 @@ namespace HBP.UI.Main
 
                 base.Object = value;
 
-                m_NameText.text = value.Settings.Name;
+                m_NameText.text = value.Name;
                 m_PatientsText.SetIEnumerableFieldInItem(value.Patients, m_EmptyState);
                 m_GroupsText.SetIEnumerableFieldInItem(value.Groups, m_EmptyState);
-                m_ProtocolsText.SetIEnumerableFieldInItem(value.Protocols, m_EmptyState);
                 m_DatasetsText.SetIEnumerableFieldInItem(value.Datasets, m_EmptyState);
                 m_VisualizationsText.SetIEnumerableFieldInItem(value.Visualizations, m_EmptyState);
 

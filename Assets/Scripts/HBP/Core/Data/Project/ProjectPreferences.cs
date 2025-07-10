@@ -11,10 +11,6 @@ namespace HBP.Core.Data
         /// Project settings extension.
         /// </summary>
         public const string EXTENSION = ".settings";
-        /// <summary>
-        /// Project settings name.
-        /// </summary>
-        [JsonProperty] public string Name { get; set; }
         [JsonIgnore] public bool CanLoadProject = true;
         #endregion
 
@@ -27,11 +23,9 @@ namespace HBP.Core.Data
         /// <param name="localizerDatabase">Localizer database of the project.</param>
         public ProjectPreferences(string name, string ID) : base(ID)
         {
-            Name = name;
         }
         public ProjectPreferences(string name) : base()
         {
-            Name = name;
         }
         /// <summary>
         /// Create a new project settings instance with default value.
@@ -44,14 +38,13 @@ namespace HBP.Core.Data
         #region Private Methods
         public override object Clone()
         {
-            return new ProjectPreferences(Name, ID);
+            return new ProjectPreferences("", ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
             if (copy is ProjectPreferences projectSettings)
             {
-                Name = projectSettings.Name;
             }
         }
         #endregion

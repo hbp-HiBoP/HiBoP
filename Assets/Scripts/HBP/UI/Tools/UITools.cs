@@ -50,7 +50,7 @@ namespace HBP.UI.Tools
                 string[] lines = displayedString.Split("\n");
                 if (lines.Length > 20)
                 {
-                    string duplicateFilePath = Path.Combine(ApplicationState.LoadedProjectLocation, string.Format("{0}_duplicate_IDs.txt", ApplicationState.LoadedProject.Preferences.Name));
+                    string duplicateFilePath = Path.Combine(ApplicationState.LoadedProjectLocation, string.Format("{0}_duplicate_IDs.txt", ApplicationState.LoadedProject.Name));
                     displayedString = "";
                     for (int i = 0; i < 18; ++i)
                     {

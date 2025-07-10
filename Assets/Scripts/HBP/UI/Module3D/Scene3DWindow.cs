@@ -189,7 +189,7 @@ namespace HBP.UI.Module3D
         private async UniTask ScreenshotAsync(string path, bool multipleFiles)
         {
             await UniTask.WaitForEndOfFrame();
-            string openedProjectName = ApplicationState.LoadedProject.Preferences.Name;
+            string openedProjectName = ApplicationState.LoadedProject.Name;
 
             if (multipleFiles) // TODO : add iconic scenario and / or scales
             {
@@ -337,7 +337,7 @@ namespace HBP.UI.Module3D
             int numberOfViewLines = m_Scene.ViewLineNumber;
             int timelineLength = timeline.Length;
 
-            string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.LoadedProject.Preferences.Name, m_Scene.Name).GenerateUniqueFilePath();
+            string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.LoadedProject.Name, m_Scene.Name).GenerateUniqueFilePath();
 
             Core.DLL.VideoStream videoStream = new Core.DLL.VideoStream();
             videoStream.Open(videoPath, totalWidth, totalHeight, fps);

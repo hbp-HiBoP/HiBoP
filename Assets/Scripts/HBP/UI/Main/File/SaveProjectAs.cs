@@ -39,18 +39,18 @@ namespace HBP.UI.Main
                 if (result == 0)
                 {
                     var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
-                    preferences.Name = m_NameInputField.text;
+                    ApplicationState.LoadedProject.Name = m_NameInputField.text;
                     ApplicationState.LoadedProject.Preferences = preferences;
-                    ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder);
+                    ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder).Forget();
                     base.OK();
                 }
             }
             else
             {
                 var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
-                preferences.Name = m_NameInputField.text;
+                ApplicationState.LoadedProject.Name = m_NameInputField.text;
                 ApplicationState.LoadedProject.Preferences = preferences;
-                ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder);
+                ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder).Forget();
                 base.OK();
             }
         }
@@ -59,7 +59,7 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void Initialize()
         {
-            m_NameInputField.text = ApplicationState.LoadedProject.Preferences.Name;
+            m_NameInputField.text = ApplicationState.LoadedProject.Name;
             m_LocationFolderSelector.Folder = ApplicationState.LoadedProjectLocation;
         }
         #endregion

@@ -57,7 +57,7 @@ namespace HBP.UI.Main.QuickStart
                 Visualization visualization = new Visualization("QuickStart", patients, columns, new VisualizationConfiguration());
                 ApplicationState.LoadedProject.SetVisualizations(new Visualization[] { visualization });
             }
-            ApplicationState.LoadedProject.Preferences.Name = m_ProjectName.text;
+            ApplicationState.LoadedProject.Name = m_ProjectName.text;
             ApplicationState.LoadedProjectLocation = m_ProjectLocation.Folder;
             return base.OpenNextPanel();
         }

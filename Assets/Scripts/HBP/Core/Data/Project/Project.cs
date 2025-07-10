@@ -38,6 +38,7 @@ namespace HBP.Core.Data
         /// Project extension.
         /// </summary>
         public const string EXTENSION = ".hibop";
+        public string Name { get; set; }
         /// <summary>
         /// Project file
         /// </summary>
@@ -45,7 +46,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return Preferences.Name + EXTENSION;
+                return Name + EXTENSION;
             }
         }
 
@@ -121,8 +122,9 @@ namespace HBP.Core.Data
         /// Create a empty project with a name.
         /// </summary>
         /// <param name="name">Name of the project.</param>
-        public Project(string name) : this(new ProjectPreferences(name))
+        public Project(string name) : this(new ProjectPreferences())
         {
+            Name = name;
         }
         /// <summary>
         /// Create a empty project with default values.
@@ -426,14 +428,12 @@ namespace HBP.Core.Data
                 float settingsProgress = 1;
                 float patientsProgress = 2 * projectInfo.Patients;
                 float groupsProgress = projectInfo.Groups;
-                float protocolsProgress = projectInfo.Protocols;
                 float datasetsProgress = projectInfo.Datasets;
                 float visualizationsProgress = projectInfo.Visualizations;
-                float steps = settingsProgress + groupsProgress + patientsProgress + protocolsProgress + datasetsProgress + visualizationsProgress;
+                float steps = settingsProgress + groupsProgress + patientsProgress + datasetsProgress + visualizationsProgress;
                 settingsProgress /= steps;
                 patientsProgress /= steps;
                 groupsProgress /= steps;
-                protocolsProgress /= steps;
                 datasetsProgress /= steps;
                 visualizationsProgress /= steps;
 
@@ -447,6 +447,8 @@ namespace HBP.Core.Data
                 if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
                 if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
                 DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
+
+                Name = projectInfo.Name;
 
                 // Load Settings.
                 token.ThrowIfCancellationRequested();
@@ -672,7 +674,7 @@ namespace HBP.Core.Data
             updateProgress.Invoke(0, 0, new LoadingText("Saving settings"));
             try
             {
-                await ClassLoaderSaver.SaveToJsonAsync(Preferences, Path.Combine(projectDirectory.FullName, Preferences.Name + ProjectPreferences.EXTENSION));
+                await ClassLoaderSaver.SaveToJsonAsync(Preferences, Path.Combine(projectDirectory.FullName, Name + ProjectPreferences.EXTENSION));
             }
             catch (Exception e)
             {
