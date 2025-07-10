@@ -118,7 +118,7 @@ public class MaryneExportCSV : MonoBehaviour
             List<float> times = new List<float>();
             int start = protocol.Blocs[0].MainSubBloc.Window.Start;
             int timeLength = protocol.Blocs[0].MainSubBloc.Window.Length;
-            int numberOfSamples = Mathf.RoundToInt(new Frequency(64).ConvertToNumberOfSamples(timeLength));
+            int numberOfSamples = Mathf.RoundToInt(new Frequency(64).ConvertToNumberOfSamples(timeLength)) + 1;
             for (int i = 0; i < numberOfSamples; i++)
             {
                 times.Add((float)i / (numberOfSamples - 1) * timeLength + start);
