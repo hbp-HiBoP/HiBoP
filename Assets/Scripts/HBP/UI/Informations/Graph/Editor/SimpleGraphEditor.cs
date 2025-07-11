@@ -11,16 +11,13 @@ namespace HBP.UI.Informations.Graphs
         SerializedProperty m_Title;
         SerializedProperty m_FontColor;
         SerializedProperty m_BackgroundColor;
-        SerializedProperty m_UseDefaultDisplayRange;
 
         // Abscissa
         SerializedProperty m_AbscissaDisplayRange;
-        SerializedProperty m_DefaultAbscissaDisplayRange;
 
 
         // Ordinate
         SerializedProperty m_OrdinateDisplayRange;
-        SerializedProperty m_DefaultOrdinateDisplayRange;
 
         // Curves
         SerializedProperty m_Curves;
@@ -46,9 +43,6 @@ namespace HBP.UI.Informations.Graphs
             m_BackgroundColor = serializedObject.FindProperty("m_BackgroundColor");
             m_OrdinateDisplayRange = serializedObject.FindProperty("m_OrdinateDisplayRange");
             m_AbscissaDisplayRange = serializedObject.FindProperty("m_AbscissaDisplayRange");
-            m_DefaultOrdinateDisplayRange = serializedObject.FindProperty("m_DefaultOrdinateDisplayRange");
-            m_DefaultAbscissaDisplayRange = serializedObject.FindProperty("m_DefaultAbscissaDisplayRange");
-            m_UseDefaultDisplayRange = serializedObject.FindProperty("m_UseDefaultDisplayRange");
             m_Curves = serializedObject.FindProperty("m_Curves");
 
             // Events
@@ -69,19 +63,16 @@ namespace HBP.UI.Informations.Graphs
             EditorGUILayout.PropertyField(m_Title);
             EditorGUILayout.PropertyField(m_FontColor);
             EditorGUILayout.PropertyField(m_BackgroundColor);
-            EditorGUILayout.PropertyField(m_UseDefaultDisplayRange);
             EditorGUI.indentLevel--;
 
             EditorGUILayout.PrefixLabel("Abscissa");
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_AbscissaDisplayRange, new GUIContent("Range"));
-            EditorGUILayout.PropertyField(m_DefaultAbscissaDisplayRange, new GUIContent("Default Range"));
             EditorGUI.indentLevel--;
 
             EditorGUILayout.PrefixLabel("Ordinate");
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_OrdinateDisplayRange, new GUIContent("Range"));
-            EditorGUILayout.PropertyField(m_DefaultOrdinateDisplayRange, new GUIContent("Default Range"));
             EditorGUI.indentLevel--;
         
             EditorGUILayout.PropertyField(m_Curves, true);
