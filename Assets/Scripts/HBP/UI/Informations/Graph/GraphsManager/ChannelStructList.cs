@@ -1,5 +1,6 @@
 using HBP.Core.Tools;
 using HBP.Data.Informations;
+using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.UI.Tools.Lists;
 using System.Linq;
@@ -42,6 +43,15 @@ namespace HBP.UI.Informations
                     SortByNone();
                     break;
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public void SelectFilteredSites()
+        {
+            var filteredSites = Module3DMain.SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked && s.State.IsFiltered).Select(s => new ChannelStruct(s));
+            DeselectAll();
+            Select(filteredSites);
         }
         #endregion
 
