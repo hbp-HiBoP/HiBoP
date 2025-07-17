@@ -124,8 +124,6 @@ namespace HBP.UI.Informations.Graphs
             Profiler.BeginSample("SetPoints");
             if (m_Data != null)
             {
-                float x, y;
-
                 Profiler.BeginSample("Points");
                 Profiler.BeginSample("First-Last");
 

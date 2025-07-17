@@ -49,7 +49,7 @@ namespace HBP.UI.Main
         }
         public void Save()
         {
-            ProjectLoaderSaver.Save();
+            ProjectLoaderSaver.Save().Forget();
         }
         public void OpenSaveProjectAs()
         {
