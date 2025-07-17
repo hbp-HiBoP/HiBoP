@@ -68,6 +68,13 @@ namespace HBP.UI.Informations
 
             SetGraphs();
         }
+        public void UpdateTimeVisibility(bool visible)
+        {
+            foreach (Graph graph in m_Graphs)
+            {
+                graph.DisplayCurrentTime = visible;
+            }
+        }
         public void UpdateTime(Column column, Core.Data.SubBloc subBloc, float currentTime)
         {
             int index = Array.FindIndex(m_SubBlocsAndWindowByColumn, item => item.Item1.Any(t => t.Item1 == column.Data.Bloc && t.Item2 == subBloc));

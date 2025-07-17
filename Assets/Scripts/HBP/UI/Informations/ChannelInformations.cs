@@ -54,6 +54,10 @@ namespace HBP.UI.Informations
         {
             Display(m_Channels, m_Columns);
         }
+        public void UpdateTimeVisibility(bool visible)
+        {
+            m_GraphZone.UpdateTimeVisibility(visible);
+        }
         public void UpdateTime(data.Column column, Core.Data.SubBloc subBloc, float currentTime)
         {
             m_GraphZone.UpdateTime(column, subBloc, currentTime);
