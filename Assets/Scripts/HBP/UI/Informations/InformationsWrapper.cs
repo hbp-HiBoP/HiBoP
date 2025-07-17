@@ -338,6 +338,10 @@ namespace HBP.UI.Informations
             m_RequestSceneDataUpdate = true;
             m_RequestGraphsUpdate = true;
         }
+        void OnUpdateGeneratorState(bool state)
+        {
+            ChannelInformations.UpdateTimeVisibility(state);
+        }
         #endregion
 
         #region Setters
@@ -352,6 +356,7 @@ namespace HBP.UI.Informations
                 m_Scene.OnChangeColormap.AddListener((t) => OnChangeColorMapHandler());
                 m_Scene.OnSelectCCEPSource.AddListener(OnChangeSourceHandler);
                 m_Scene.OnSceneCompletelyLoaded.AddListener(OnSceneCompletelyLoaded);
+                m_Scene.OnUpdateGeneratorState.AddListener(OnUpdateGeneratorState);
                 foreach (var column in m_Scene.Columns)
                 {
                     column.OnSelect.AddListener(() => OnChangeSelectedColumn(column));

@@ -348,12 +348,13 @@ namespace HBP.UI.Informations.Graphs
                     tickMark.Label = m_Values[i].ToString(Format, cultureInfo);
                     SetPosition(tickMark, m_Values[i]);
                     tickMark.Color = m_Color;
-                    tickMark.gameObject.SetActive(true);
+                    tickMark.Value = m_Values[i];
+                    tickMark.Show();
                     m_TickMarkByValue.Add(m_Values[i], tickMark);
                 }
                 else
                 {
-                    tickMark.gameObject.SetActive(false);
+                    tickMark.Hide();
                 }
             }
         }

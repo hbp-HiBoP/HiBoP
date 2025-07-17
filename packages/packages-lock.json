@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.agm.edge-detection": {
+      "version": "https://github.com/AGM-GR/EdgeDetection.git#1.1.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "abd70c13b607079f2a1d48334a6989101405d7c7"
+    },
     "com.crnl.hibop_utilities": {
       "version": "https://github.com/hbp-HiBoP/HiBoP_Utilities.git",
       "depth": 0,
@@ -52,6 +59,15 @@
       "dependencies": {
         "com.unity.modules.uielements": "1.0.0"
       }
+    },
+    "com.unity.postprocessing": {
+      "version": "3.4.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.physics": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
       "version": "1.4.5",
