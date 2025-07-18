@@ -103,8 +103,9 @@ namespace HBP.Core.Data
         /// <param name="datasets">Datasets of the project.</param>
         /// <param name="visualizations">Single patient visualizations of the project.</param>
         /// <param name="multiVisualizations">Multi patients visualizations of the project.</param>
-        public Project(ProjectPreferences settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Dataset> datasets, IEnumerable<Visualization> visualizations)
+        public Project(string name, ProjectPreferences settings, IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Dataset> datasets, IEnumerable<Visualization> visualizations)
         {
+            Name = name;
             Preferences = settings;
             SetPatients(patients);
             SetGroups(groups);
@@ -115,21 +116,20 @@ namespace HBP.Core.Data
         /// Create a new project with only the settings.
         /// </summary>
         /// <param name="settings">Settings of the project.</param>
-        public Project(ProjectPreferences settings) : this(settings, new Patient[0], new Group[0], new Dataset[0], new Visualization[0])
+        public Project(string name, ProjectPreferences settings) : this(name, settings, new Patient[0], new Group[0], new Dataset[0], new Visualization[0])
         {
         }
         /// <summary>
         /// Create a empty project with a name.
         /// </summary>
         /// <param name="name">Name of the project.</param>
-        public Project(string name) : this(new ProjectPreferences())
+        public Project(string name) : this(name, new ProjectPreferences())
         {
-            Name = name;
         }
         /// <summary>
         /// Create a empty project with default values.
         /// </summary>
-        public Project() : this(new ProjectPreferences())
+        public Project() : this(PersistentDataManager.UserPreferences.General.Project.DefaultName, new ProjectPreferences())
         {
         }
         #endregion
@@ -674,6 +674,7 @@ namespace HBP.Core.Data
             updateProgress.Invoke(0, 0, new LoadingText("Saving settings"));
             try
             {
+                Preferences.Version = ApplicationState.Version;
                 await ClassLoaderSaver.SaveToJsonAsync(Preferences, Path.Combine(projectDirectory.FullName, Name + ProjectPreferences.EXTENSION));
             }
             catch (Exception e)

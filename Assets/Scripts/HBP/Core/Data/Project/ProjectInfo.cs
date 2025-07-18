@@ -66,7 +66,7 @@ namespace HBP.Core.Data
                         catch (System.Exception e)
                         {
                             Debug.LogException(e);
-                            Settings = new ProjectPreferences(System.IO.Path.GetFileNameWithoutExtension(path));
+                            Settings = new ProjectPreferences();
                             Settings.CanLoadProject = false;
                         }
                         settingsFile.Directory.Delete(true);

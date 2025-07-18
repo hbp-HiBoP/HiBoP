@@ -6,6 +6,8 @@ namespace HBP.Core.Tools
 {
     public static class ApplicationState
     {
+        public static string Version { get; private set; } = Application.version;
+
         /// <summary>
         /// ID of this instance of HiBoP
         /// </summary>

@@ -1,4 +1,4 @@
-﻿using HBP.Data.Preferences;
+﻿using HBP.Core.Tools;
 using Newtonsoft.Json;
 
 namespace HBP.Core.Data
@@ -11,6 +11,7 @@ namespace HBP.Core.Data
         /// Project settings extension.
         /// </summary>
         public const string EXTENSION = ".settings";
+        [JsonProperty] public string Version { get; set; }
         [JsonIgnore] public bool CanLoadProject = true;
         #endregion
 
@@ -21,16 +22,15 @@ namespace HBP.Core.Data
         /// <param name="name">Name of the project.</param>
         /// <param name="patientDatabase">Patient database of the project.</param>
         /// <param name="localizerDatabase">Localizer database of the project.</param>
-        public ProjectPreferences(string name, string ID) : base(ID)
+        public ProjectPreferences(string version, string ID) : base(ID)
         {
+            Version = version;
         }
-        public ProjectPreferences(string name) : base()
+        public ProjectPreferences(string version) : base()
         {
+            Version = version;
         }
-        /// <summary>
-        /// Create a new project settings instance with default value.
-        /// </summary>
-        public ProjectPreferences() : this(PersistentDataManager.UserPreferences.General.Project.DefaultName)
+        public ProjectPreferences() : this("Unknown")
         {
         }
         #endregion
@@ -38,7 +38,7 @@ namespace HBP.Core.Data
         #region Private Methods
         public override object Clone()
         {
-            return new ProjectPreferences("", ID);
+            return new ProjectPreferences(Version, ID);
         }
         public override void Copy(object copy)
         {

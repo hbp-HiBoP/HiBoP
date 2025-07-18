@@ -86,8 +86,8 @@ namespace HBP.UI.Main
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), "OK", "Cancel");
                 if (result == 0)
                 {
-                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text);
-                    ApplicationState.LoadedProject = new Project(preferences);
+                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences();
+                    ApplicationState.LoadedProject = new Project(m_NameInputField.text, preferences);
                     ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
                     ProjectLoaderSaver.SaveAndReload().Forget();
                     base.OK();
@@ -95,8 +95,8 @@ namespace HBP.UI.Main
             }
             else
             {
-                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences(m_NameInputField.text);
-                ApplicationState.LoadedProject = new Project(preferences);
+                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences();
+                ApplicationState.LoadedProject = new Project(m_NameInputField.text, preferences);
                 ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
                 ProjectLoaderSaver.SaveAndReload().Forget();
                 base.OK();
