@@ -45,6 +45,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if (copy is ProjectPreferences projectSettings)
             {
+                Version = projectSettings.Version;
             }
         }
         #endregion
