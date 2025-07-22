@@ -68,6 +68,22 @@ namespace HBP.Core.Data
                 return Blocs.Count > 0 && Blocs.All(b => b.IsVisualizable);
             }
         }
+        public bool IsAdvanced
+        {
+            get
+            {
+                if (Blocs.Count == 0) return false;
+                if (Blocs.Any(b => b.MainSubBloc == null)) return true;
+                if (Blocs.Any(b => b.SubBlocs.Count > 1)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.MainEvent == null)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.SecondaryEvents.Count > 1)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.Window != Blocs[0].MainSubBloc.Window)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.Baseline != Blocs[0].MainSubBloc.Baseline)) return true;
+                if (Blocs.Where(b => b.MainSubBloc.SecondaryEvents.Count == 1).Any(b => b.Sort != $"{b.MainSubBloc.Name}_{b.MainSubBloc.SecondaryEvents[0].Name}_LATENCY;{b.MainSubBloc.Name}_{b.MainSubBloc.MainEvent.Name}_CODE")) return true;
+                if (Blocs.Where(b => b.MainSubBloc.SecondaryEvents.Count == 0).Any(b => b.Sort != $"{b.MainSubBloc.Name}_{b.MainSubBloc.MainEvent.Name}_CODE")) return true;
+                return false;
+            }
+        }
         #endregion
 
         #region Constructors

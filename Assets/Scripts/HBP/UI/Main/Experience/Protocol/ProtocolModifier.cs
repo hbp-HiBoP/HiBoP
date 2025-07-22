@@ -3,13 +3,14 @@ using UnityEngine.UI;
 using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Core.Data;
 
 namespace HBP.UI.Main
 {
     /// <summary>
     /// Window to modify a protocol.
     /// </summary>
-	public class ProtocolModifier : ObjectModifier<Core.Data.Protocol>
+	public class ProtocolModifier : ObjectModifier<Protocol>
     {
         #region Properties
         [SerializeField] Toggle m_BasicProtocolTabToggle;
@@ -18,6 +19,16 @@ namespace HBP.UI.Main
         [SerializeField] AdvancedProtocolSubModifier m_AdvancedProtocolSubModifier;
 
         private bool m_IsChangingTab = false;
+
+        public override Protocol Object
+        {
+            get => base.Object;
+            set
+            {
+                base.Object = value;
+                SetDefaultEditionMode(value);
+            }
+        }
 
         /// <summary>
         /// True if interactable, False otherwise.
@@ -104,12 +115,20 @@ namespace HBP.UI.Main
         /// Set the fields
         /// </summary>
         /// <param name="objectToDisplay">Protocol to display</param>
-        protected override void SetFields(Core.Data.Protocol objectToDisplay)
+        protected override void SetFields(Protocol objectToDisplay)
         {
             base.SetFields();
 
             m_BasicProtocolSubModifier.Object = objectToDisplay;
             m_AdvancedProtocolSubModifier.Object = objectToDisplay;
+        }
+        protected void SetDefaultEditionMode(Protocol protocol)
+        {
+            var isAdvanced = protocol.IsAdvanced;
+            m_BasicProtocolTabToggle.SetIsOnWithoutNotify(!isAdvanced);
+            m_BasicProtocolSubModifier.gameObject.SetActive(!isAdvanced);
+            m_AdvancedProtocolTabToggle.SetIsOnWithoutNotify(isAdvanced);
+            m_AdvancedProtocolSubModifier.gameObject.SetActive(isAdvanced);
         }
         protected async UniTask<bool> CheckUnsavedChanges()
         {

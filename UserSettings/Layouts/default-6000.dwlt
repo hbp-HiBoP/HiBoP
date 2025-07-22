@@ -1093,9 +1093,9 @@ MonoBehaviour:
   m_AudioPlay: 0
   m_DebugDrawModesUseInteractiveLightBakingData: 0
   m_Position:
-    m_Target: {x: 890.2806, y: 487.25583, z: 8.083888}
+    m_Target: {x: 856, y: 459.01486, z: 0.26270688}
     speed: 2
-    m_Value: {x: 851.07104, y: 447.4946, z: -749.5525}
+    m_Value: {x: 890.2806, y: 487.25583, z: 8.083888}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -1145,9 +1145,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 511.03635
+    m_Target: 465.1341
     speed: 2
-    m_Value: 645.759
+    m_Value: 511.03635
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -1320,7 +1320,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 799}
     m_SelectedIDs: 68ee0200
     m_LastClickedID: 192104
-    m_ExpandedIDs: 00000000cef70100d0f70100d2f70100d4f70100d6f70100d8f70100daf70100dcf70100def70100e0f70100e2f70100e4f70100e6f70100e8f70100eaf70100ecf70100eef70100f0f70100f2f70100f4f70100f6f70100f8f70100faf70100fcf70100fef7010000f8010002f8010004f8010006f8010008f801000af801000cf801000ef8010010f8010012f8010014f8010016f80100
+    m_ExpandedIDs: 000000007ccf00007ecf000080cf000082cf000084cf000086cf000088cf00008acf00008ccf00008ecf000090cf000092cf000094cf000096cf000098cf00009acf00009ccf00009ecf0000a0cf0000a2cf0000a4cf0000a6cf0000a8cf0000aacf0000accf0000aecf0000b0cf0000b2cf0000b4cf0000b6cf0000b8cf0000bacf0000bccf0000becf0000c0cf0000c2cf0000c4cf0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1349,7 +1349,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000cef70100d0f70100d2f70100d4f70100d6f70100d8f70100daf70100dcf70100def70100e0f70100e2f70100e4f70100e6f70100e8f70100eaf70100ecf70100eef70100f0f70100f2f70100f4f70100f6f70100f8f70100faf70100fcf70100fef7010000f8010002f8010004f8010006f8010008f801000af801000cf801000ef8010010f8010012f8010014f8010016f80100
+    m_ExpandedIDs: 000000007ccf00007ecf000080cf000082cf000084cf000086cf000088cf00008acf00008ccf00008ecf000090cf000092cf000094cf000096cf000098cf00009acf00009ccf00009ecf0000a0cf0000a2cf0000a4cf0000a6cf0000a8cf0000aacf0000accf0000aecf0000b0cf0000b2cf0000b4cf0000b6cf0000b8cf0000bacf0000bccf0000becf0000c0cf0000c2cf0000c4cf0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
