@@ -51,6 +51,11 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
+        public override void OK()
+        {
+            if (m_BasicProtocolSubModifier.gameObject.activeSelf) m_ObjectTemp.SetBasicProtocolFeatures();
+            base.OK();
+        }
         public async void OnChangeBasicToggle(bool value)
         {
             if (!value || m_IsChangingTab) return;
@@ -59,9 +64,10 @@ namespace HBP.UI.Main
 
             m_AdvancedProtocolTabToggle.SetValue(true);
 
-            var swap = await CheckUnsavedChanges();
+            var changeAdvancedToBasic = await CheckAdvancedState();
+            var discardUnsavedChanges = await CheckUnsavedChanges();
 
-            if (swap)
+            if (discardUnsavedChanges && changeAdvancedToBasic)
             {
                 m_BasicProtocolTabToggle.SetValue(true);
                 m_BasicProtocolSubModifier.gameObject.SetActive(true);
@@ -80,9 +86,9 @@ namespace HBP.UI.Main
 
             m_BasicProtocolTabToggle.SetValue(true);
 
-            var swap = await CheckUnsavedChanges();
+            var discardUnsavedChanges = await CheckUnsavedChanges();
 
-            if (swap)
+            if (discardUnsavedChanges)
             {
                 m_AdvancedProtocolTabToggle.SetValue(true);
                 m_AdvancedProtocolSubModifier.gameObject.SetActive(true);
@@ -138,6 +144,15 @@ namespace HBP.UI.Main
                 if (result == 1) return false;
 
                 WindowsReferencer.CloseAll();
+            }
+            return true;
+        }
+        protected async UniTask<bool> CheckAdvancedState()
+        {
+            if (m_ObjectTemp.IsAdvanced)
+            {
+                var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Change edition mode", "Switching to basic protocol may remove some advanced features (such as multiple sub-blocs, different windows for each sub-bloc or custom trials sorting methods).\n\nAre you sure you want to continue?", "Continue", "Cancel");
+                if (result == 1) return false;
             }
             return true;
         }

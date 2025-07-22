@@ -5,6 +5,7 @@ using UnityEngine;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 
 namespace HBP.Core.Data
 {
@@ -101,6 +102,13 @@ namespace HBP.Core.Data
             get
             {
                 return SubBlocs.FirstOrDefault(s => s.Type == Enums.MainSecondaryEnum.Main);
+            }
+        }
+        public ReadOnlyCollection<SubBloc> SecondarySubBlocs
+        {
+            get
+            {
+                return new ReadOnlyCollection<SubBloc>(SubBlocs.FindAll(s => s.Type == Enums.MainSecondaryEnum.Secondary));
             }
         }
         /// <summary>
