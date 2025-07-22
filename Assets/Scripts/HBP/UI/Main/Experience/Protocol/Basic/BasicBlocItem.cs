@@ -103,6 +103,10 @@ namespace HBP.UI.Main
             if (m_SecondaryCodesInputField.text != codes)
                 m_SecondaryCodesInputField.text = m_Bloc.MainSubBloc.SecondaryEvents[0].CodesString;
         }
+        public void Refresh()
+        {
+            Bloc = m_Bloc;
+        }
         #endregion
     }
 }
