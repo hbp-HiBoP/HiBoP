@@ -34,7 +34,7 @@ namespace HBP.Core.Data.Container
     public class Micromed : DataContainer
     {
         #region Properties
-        const string MICROMED_EXTENSION = ".TRC";
+        public const string MICROMED_EXTENSION = ".TRC";
 
         /// <summary>
         /// Path to the EEG file with Alias.

@@ -1,6 +1,8 @@
 using HBP.Core.Data;
+using HBP.Core.Data.Container;
 using HBP.Core.Interfaces;
 using HBP.UI.Tools;
+using Newtonsoft.Json.Bson;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -72,6 +74,33 @@ namespace HBP.UI.Main
             }
             UpdateBlocOrders();
             OnSelectionUpdate();
+        }
+        private void AddBloc(Bloc bloc)
+        {
+            GameObject newBlocItemObject = Instantiate(m_BlocItemPrefab, m_BlocsContainer);
+            BasicBlocItem newBlocItem = newBlocItemObject.GetComponent<BasicBlocItem>();
+            newBlocItem.Bloc = bloc;
+            newBlocItem.OnValueChanged.AddListener(value => OnSelectionUpdate());
+
+            DraggableItem draggableItem = newBlocItem.GetComponent<DraggableItem>();
+            if (draggableItem != null)
+            {
+                draggableItem.OnDragStart.AddListener(OnItemDragStart);
+                draggableItem.OnDragMove.AddListener(OnItemDragMove);
+                draggableItem.OnDragEnd.AddListener(OnItemDragEnd);
+            }
+
+            m_BlocItems.Add(newBlocItem);
+            Object.Blocs.Add(newBlocItem.Bloc);
+            OnAddBloc.Invoke(newBlocItem.Bloc);
+            OnSelectionUpdate();
+        }
+        private void AddBlocsFromExampleFile(IEnumerable<Bloc> blocs)
+        {
+            foreach (var bloc in blocs)
+            {
+                AddBloc(bloc);
+            }
         }
         private void UpdateBlocOrders()
         {
@@ -176,11 +205,9 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public void AddBloc()
+        public void AddNewBloc()
         {
-            GameObject newBlocItemObject = Instantiate(m_BlocItemPrefab, m_BlocsContainer);
-            BasicBlocItem newBlocItem = newBlocItemObject.GetComponent<BasicBlocItem>();
-            newBlocItem.Bloc = new Bloc()
+            AddBloc(new Bloc()
             {
                 Name = "",
                 Order = m_BlocItems.Count,
@@ -201,21 +228,7 @@ namespace HBP.UI.Main
                         }
                     }
                 }
-            };
-            newBlocItem.OnValueChanged.AddListener(value => OnSelectionUpdate());
-            
-            DraggableItem draggableItem = newBlocItem.GetComponent<DraggableItem>();
-            if (draggableItem != null)
-            {
-                draggableItem.OnDragStart.AddListener(OnItemDragStart);
-                draggableItem.OnDragMove.AddListener(OnItemDragMove);
-                draggableItem.OnDragEnd.AddListener(OnItemDragEnd);
-            }
-            
-            m_BlocItems.Add(newBlocItem);
-            Object.Blocs.Add(newBlocItem.Bloc);
-            OnAddBloc.Invoke(newBlocItem.Bloc);
-            OnSelectionUpdate();
+            });
         }
         public void RemoveSelectedBlocs()
         {
@@ -230,6 +243,16 @@ namespace HBP.UI.Main
             }
             UpdateBlocOrders();
             OnSelectionUpdate();
+        }
+        public async void OpenBlocsImporterWindow()
+        {
+            var filePath = await FileBrowser.GetExistingFileNameAsync(new string[] { Elan.POS_EXTENSION[1..], Micromed.MICROMED_EXTENSION[1..], BrainVision.HEADER_EXTENSION[1..], FIF.FIF_EXTENSION[1..], EDF.EDF_EXTENSION[1..] }, "Select a data file containing events");
+            if (string.IsNullOrEmpty(filePath)) return;
+
+            var window = WindowsManager.Open("Basic bloc importer window", GetComponentInParent<Window>()).GetComponent<BasicBlocImporterWindow>();
+            window.FilePath = filePath;
+            window.OnBlocsImported.AddListener(AddBlocsFromExampleFile);
+            WindowsReferencer.Add(window);
         }
         #endregion
     }

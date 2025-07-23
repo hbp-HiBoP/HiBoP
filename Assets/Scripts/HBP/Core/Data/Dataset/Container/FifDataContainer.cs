@@ -36,7 +36,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// FIF files extension.
         /// </summary>
-        const string FIF_EXTENSION = ".fif";
+        public const string FIF_EXTENSION = ".fif";
 
         /// <summary>
         /// Path to the FIF file with Alias.

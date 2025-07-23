@@ -37,7 +37,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Brain vision header extension.
         /// </summary>
-        const string HEADER_EXTENSION = ".vhdr";
+        public const string HEADER_EXTENSION = ".vhdr";
 
         /// <summary>
         /// Path to the BrainVision header file with Alias.

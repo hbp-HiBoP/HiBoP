@@ -36,19 +36,19 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// EEG files extension.
         /// </summary>
-        const string EEG_EXTENSION = ".eeg";
+        public const string EEG_EXTENSION = ".eeg";
         /// <summary>
         /// EEG Header files extension.
         /// </summary>
-        const string HEADER_EXTENSION = ".ent";
+        public const string HEADER_EXTENSION = ".ent";
         /// <summary>
         /// POS files extension.
         /// </summary>
-        const string POS_EXTENSION = ".pos";
+        public const string POS_EXTENSION = ".pos";
         /// <summary>
         /// Notes files extension.
         /// </summary>
-        const string NOTES_EXTENSION = ".txt";
+        public const string NOTES_EXTENSION = ".txt";
 
         /// <summary>
         /// Path to the EEG file with Alias.

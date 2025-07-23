@@ -36,7 +36,7 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// EDF files extension.
         /// </summary>
-        const string EDF_EXTENSION = ".edf";
+        public const string EDF_EXTENSION = ".edf";
 
         /// <summary>
         /// Path to the EDF file with Alias.
