@@ -1,20 +1,27 @@
 using HBP.Core.Data;
 using HBP.Core.Data.Container;
 using HBP.UI.Tools;
-using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace HBP.UI.Main
 {
     public class BasicBlocImporterWindow : DialogWindow
     {
         #region Properties
+        [SerializeField] private Button m_PreviousButton;
+        [SerializeField] private Button m_NextButton;
+        [SerializeField] private Button m_FinishButton;
+        
+        [SerializeField] private BasicBlocImporterPanel[] m_Panels;
+        
+        public BlocImporterData Data { get; private set; } = new BlocImporterData();
+
         private string m_FilePath;
         public string FilePath
         {
@@ -26,7 +33,7 @@ namespace HBP.UI.Main
             }
         }
 
-        private Dictionary<int, int> m_OccurencesByCode = new();
+        private int m_CurrentPanelIndex = 0;
         #endregion
 
         #region Events
@@ -34,15 +41,36 @@ namespace HBP.UI.Main
         #endregion
 
         #region Private Methods
+        protected override void Initialize()
+        {
+            base.Initialize();
+            
+            m_PreviousButton.onClick.AddListener(GoToPreviousPanel);
+            m_NextButton.onClick.AddListener(GoToNextPanel);
+            m_FinishButton.onClick.AddListener(FinishImport);
+            
+            foreach (var panel in m_Panels)
+            {
+                panel.Initialize(Data);
+                panel.OnUpdateNavigation.AddListener(UpdateButtonStates);
+                panel.gameObject.SetActive(false);
+            }
+            
+            UpdateButtonStates();
+            ShowPanel(0);
+        }
         private void SetFilePath(string filePath)
         {
+            Data.Clear();
             LoadEvents(filePath);
+            RefreshCurrentPanel();
         }
         private void LoadEvents(string filePath)
         {
             FileInfo fileInfo = new FileInfo(filePath);
             Core.DLL.EEG.File.FileType type;
             string[] files;
+            
             if (fileInfo.Extension == BrainVision.HEADER_EXTENSION)
             {
                 type = Core.DLL.EEG.File.FileType.BrainVision;
@@ -72,18 +100,131 @@ namespace HBP.UI.Main
             {
                 throw new Exception("Invalid data container type");
             }
+            
             Core.DLL.EEG.File file = new Core.DLL.EEG.File(type, false, files);
             List<Core.DLL.EEG.Trigger> triggers = file.Triggers;
 
-            m_OccurencesByCode.Clear();
+            if (triggers.Count == 0)
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No triggers found", "The selected file does not contain any triggers.").Forget();
+                Close();
+                return;
+            }
+
             foreach (var uniqueCode in triggers.Select(t => t.Code).Distinct())
             {
-                m_OccurencesByCode[uniqueCode] = 0;
+                Data.OccurencesByCode[uniqueCode] = 0;
             }
             foreach (var trigger in triggers)
             {
-                m_OccurencesByCode[trigger.Code]++;
+                Data.OccurencesByCode[trigger.Code]++;
             }
+        }
+        private void ShowPanel(int index)
+        {
+            for (int i = 0; i < m_Panels.Length; i++)
+            {
+                m_Panels[i].gameObject.SetActive(i == index);
+            }
+            m_CurrentPanelIndex = index;
+            RefreshCurrentPanel();
+            UpdateButtonStates();
+        }
+        private void RefreshCurrentPanel()
+        {
+            if (m_CurrentPanelIndex < m_Panels.Length)
+            {
+                m_Panels[m_CurrentPanelIndex].Refresh();
+            }
+        }
+        private void UpdateButtonStates()
+        {
+            m_PreviousButton.interactable = m_CurrentPanelIndex > 0;
+            
+            bool canGoNext = m_CurrentPanelIndex < m_Panels.Length - 1 && m_Panels[m_CurrentPanelIndex].CanProceed();
+            m_NextButton.interactable = canGoNext;
+            
+            bool canFinish = m_CurrentPanelIndex >= 2 && m_CurrentPanelIndex < m_Panels.Length && m_Panels[m_CurrentPanelIndex].CanProceed();
+            m_FinishButton.interactable = canFinish;
+            
+            m_NextButton.gameObject.SetActive(m_CurrentPanelIndex < m_Panels.Length - 1);
+            m_FinishButton.gameObject.SetActive(m_CurrentPanelIndex >= 2);
+        }
+        private void GoToPreviousPanel()
+        {
+            if (m_CurrentPanelIndex > 0)
+            {
+                ShowPanel(m_CurrentPanelIndex - 1);
+            }
+        }
+        private void GoToNextPanel()
+        {
+            if (m_CurrentPanelIndex < m_Panels.Length - 1 && m_Panels[m_CurrentPanelIndex].CanProceed())
+            {
+                m_Panels[m_CurrentPanelIndex].OnProceed();
+                ShowPanel(m_CurrentPanelIndex + 1);
+            }
+        }
+        private void FinishImport()
+        {
+            if (m_Panels[m_CurrentPanelIndex].CanProceed())
+            {
+                m_Panels[m_CurrentPanelIndex].OnProceed();
+
+                // Process data and create blocs
+                Data.ProcessBlocNames();
+                List<Bloc> blocs = CreateBlocsFromData();
+                OnBlocsImported.Invoke(blocs.ToArray());
+                Close();
+            }
+        }
+        private List<Bloc> CreateBlocsFromData()
+        {
+            List<Bloc> blocs = new List<Bloc>();
+            
+            for (int i = 0; i < Data.CreatedBlocs.Count; i++)
+            {
+                var blocData = Data.CreatedBlocs[i];
+                
+                // Create main event with all main codes
+                var mainEvent = new Core.Data.Event(Core.Enums.MainSecondaryEnum.Main)
+                {
+                    Name = blocData.Name,
+                    CodesString = string.Join(",", blocData.MainCodes)
+                };
+
+                // Create sub-bloc
+                var subBloc = new SubBloc()
+                {
+                    Name = "Main",
+                    Order = 0,
+                    Type = Core.Enums.MainSecondaryEnum.Main,
+                    Events = new List<Core.Data.Event> { mainEvent }
+                };
+
+                // Add response events if any
+                if (blocData.ResponseCodes.Count > 0)
+                {
+                    var responseEvent = new Core.Data.Event(Core.Enums.MainSecondaryEnum.Secondary)
+                    {
+                        Name = "RESPONSE",
+                        CodesString = string.Join(",", blocData.ResponseCodes)
+                    };
+                    subBloc.Events.Add(responseEvent);
+                }
+
+                // Create bloc
+                var bloc = new Bloc()
+                {
+                    Name = blocData.Name,
+                    Order = i,
+                    SubBlocs = new List<SubBloc> { subBloc }
+                };
+
+                blocs.Add(bloc);
+            }
+            
+            return blocs;
         }
         #endregion
     }
