@@ -57,7 +57,7 @@ namespace HBP.UI.Main
             Occurrences = occurrences;
             
             m_ResponseCodeText.text = responseCode.ToString();
-            m_OccurrencesText.text = $"({occurrences})";
+            m_OccurrencesText.text = $"({occurrences} occurences)";
 
             foreach (Transform child in m_BlocTogglesContainer)
             {

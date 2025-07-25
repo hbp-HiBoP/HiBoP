@@ -141,14 +141,62 @@ namespace HBP.UI.Main
         {
             m_PreviousButton.interactable = m_CurrentPanelIndex > 0;
             
-            bool canGoNext = m_CurrentPanelIndex < m_Panels.Length - 1 && m_Panels[m_CurrentPanelIndex].CanProceed();
-            m_NextButton.interactable = canGoNext;
+            bool showNext = false;
+            bool showFinish = false;
+            bool secondButtonEnabled = false;
             
-            bool canFinish = m_CurrentPanelIndex >= 2 && m_CurrentPanelIndex < m_Panels.Length && m_Panels[m_CurrentPanelIndex].CanProceed();
-            m_FinishButton.interactable = canFinish;
+            switch (m_CurrentPanelIndex)
+            {
+                case 0: // Panel 1: Code selection
+                    showNext = true;
+                    secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
+                    break;
+                    
+                case 1: // Panel 2: Bloc naming
+                    showNext = true;
+                    secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
+                    break;
+                    
+                case 2: // Panel 3: Response code selection
+                    // Show Finish if no response codes selected, otherwise show Next
+                    if (Data.SelectedResponseCodes.Count == 0)
+                    {
+                        showFinish = true;
+                        secondButtonEnabled = true; // Can always finish if no response codes
+                    }
+                    else
+                    {
+                        showNext = true;
+                        secondButtonEnabled = true; // Can always proceed to next if response codes selected
+                    }
+                    break;
+                    
+                case 3: // Panel 4: Response assignment
+                    showFinish = true;
+                    secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
+                    break;
+                    
+                default:
+                    // Fallback for any additional panels
+                    if (m_CurrentPanelIndex < m_Panels.Length - 1)
+                    {
+                        showNext = true;
+                        secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
+                    }
+                    else
+                    {
+                        showFinish = true;
+                        secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
+                    }
+                    break;
+            }
             
-            m_NextButton.gameObject.SetActive(m_CurrentPanelIndex < m_Panels.Length - 1);
-            m_FinishButton.gameObject.SetActive(m_CurrentPanelIndex >= 2);
+            // Apply button states
+            m_NextButton.gameObject.SetActive(showNext);
+            m_NextButton.interactable = secondButtonEnabled;
+            
+            m_FinishButton.gameObject.SetActive(showFinish);
+            m_FinishButton.interactable = secondButtonEnabled;
         }
         private void GoToPreviousPanel()
         {
