@@ -20,6 +20,7 @@ namespace HBP.UI.Module3D
         /// GameObject displaying information about CCEP activity of the hovered site
         /// </summary>
         [SerializeField] GameObject m_CCEP;
+        [SerializeField] GameObject m_PatientTags;
         /// <summary>
         /// GameObject displaying information about the atlases of the hovered site
         /// </summary>
@@ -56,6 +57,10 @@ namespace HBP.UI.Module3D
         /// Displays the latency of the first spike
         /// </summary>
         [SerializeField] Text m_CCEPLatencyText;
+        /// <summary>
+        /// Displays the tags of the patient
+        /// </summary>
+        [SerializeField] Text m_PatientTagsText;
         /// <summary>
         /// Displays the tags of the site
         /// </summary>
@@ -96,24 +101,28 @@ namespace HBP.UI.Module3D
                         case SiteInformationDisplayMode.Anatomy:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
+                            m_PatientTags.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
+                            m_PatientTags.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
+                            m_PatientTags.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.Light:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
+                            m_PatientTags.SetActive(false);
                             m_Tags.SetActive(false);
                             m_States.SetActive(false);
                             break;
@@ -128,16 +137,19 @@ namespace HBP.UI.Module3D
                     {
                         case SiteInformationDisplayMode.Anatomy:
                             SetStates(siteInfo.Site);
+                            SetPatientTags(siteInfo);
                             SetTags(siteInfo);
                             break;
                         case SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetStates(siteInfo.Site);
+                            SetPatientTags(siteInfo);
                             SetTags(siteInfo);
                             break;
                         case SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
                             SetStates(siteInfo.Site);
+                            SetPatientTags(siteInfo);
                             SetTags(siteInfo);
                             break;
                         case SiteInformationDisplayMode.Light:
@@ -203,6 +215,22 @@ namespace HBP.UI.Module3D
             if (unit == "microV") unit = "µV";
             if (unit != string.Empty) unit = " (" + unit + ")";
             m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude + unit;      
+        }
+        void SetPatientTags(Core.Object3D.SiteInfo siteInfo)
+        {
+            if (siteInfo.Site && siteInfo.Site.Information.Patient.Tags.Count > 0)
+            {
+                System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
+                foreach (var tag in siteInfo.Site.Information.Patient.Tags)
+                {
+                    stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
+                }
+                m_PatientTagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
+            }
+            else
+            {
+                m_PatientTagsText.text = string.Empty;
+            }
         }
         /// <summary>
         /// Set the atlases of the site (Mars atlas, Brodmann, Freesurfer)

@@ -56,7 +56,7 @@ namespace HBP.UI.Database
         {
             m_Patient = patient;
             m_DataName = dataName;
-            LoadData(patient, dataName).Forget();
+            LoadingManager.Load(update => LoadDataAsync(patient, dataName, update));
         }
         public void Display(ChannelStruct channelStruct, IEEGDataInfo dataInfo)
         {
@@ -109,10 +109,6 @@ namespace HBP.UI.Database
             {
                 m_ProtocolDropdown.SelectNext();
             }
-        }
-        private async UniTaskVoid LoadData(Patient patient, string dataName)
-        {
-            await LoadingManager.LoadAsync(update => LoadDataAsync(patient, dataName, update));
         }
         private async UniTask LoadDataAsync(Patient patient, string dataName, Action<float, float, LoadingText> updateProgress)
         {
