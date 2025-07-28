@@ -1,5 +1,4 @@
 using HBP.Core.Data;
-using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using System;
@@ -7,14 +6,27 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {
-    public class PatientTagFilterConditionSubModifier : SubModifier<PatientTagFilterCondition>
+    public class SingleTagFilterModifier : ObjectModifier<SingleTagFilter>
     {
         #region Properties
-        [SerializeField] Dropdown m_TargetDropdown;
         [SerializeField] Dropdown m_TagDropdown;
+
+        [SerializeField] EmptyTagFilterValueSubModifier m_EmptyTagFilterValueSubModifier;
+        [SerializeField] BoolTagFilterValueSubModifier m_BoolTagFilterValueSubModifier;
+        [SerializeField] StringTagFilterValueSubModifier m_StringTagFilterValueSubModifier;
+        [SerializeField] NumberTagFilterValueSubModifier m_NumberTagFilterValueSubModifier;
+        [SerializeField] EnumTagFilterValueSubModifier m_EnumTagFilterValueSubModifier;
+
+        [SerializeField] Text m_ResultText;
+
+        private List<BaseTag> m_Tags = new();
+
+        Dictionary<Type, BaseSubModifier> m_SubModifiers;
+        Dictionary<Type, TagFilterValue> m_TagFilterValuesTemp;
 
         protected List<object> m_FilteringObjects;
         public List<object> FilteringObjects
@@ -23,27 +35,45 @@ namespace HBP.UI.Main
             set
             {
                 m_FilteringObjects = value;
+                UpdateAvailableTags();
             }
         }
 
-        [SerializeField] EmptyTagFilterValueSubModifier m_EmptyTagFilterValueSubModifier;
-        [SerializeField] BoolTagFilterValueSubModifier m_BoolTagFilterValueSubModifier;
-        [SerializeField] StringTagFilterValueSubModifier m_StringTagFilterValueSubModifier;
-        [SerializeField] NumberTagFilterValueSubModifier m_NumberTagFilterValueSubModifier;
-        [SerializeField] EnumTagFilterValueSubModifier m_EnumTagFilterValueSubModifier;
+        public override bool Interactable
+        {
+            get => base.Interactable;
+            set
+            {
+                base.Interactable = value;
 
-        private List<BaseTag> m_Tags = new();
+                m_TagDropdown.interactable = value;
 
-        Dictionary<Type, BaseSubModifier> m_SubModifiers;
-        Dictionary<Type, TagFilterValue> m_TagFilterValuesTemp;
+                m_EmptyTagFilterValueSubModifier.Interactable = value;
+                m_BoolTagFilterValueSubModifier.Interactable = value;
+                m_StringTagFilterValueSubModifier.Interactable = value;
+                m_NumberTagFilterValueSubModifier.Interactable = value;
+                m_EnumTagFilterValueSubModifier.Interactable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public override void Initialize()
+        public override void OK()
+        {
+            m_Object = ObjectTemp;
+            base.OK();
+        }
+        #endregion
+
+        #region Protected Methods
+        private void Update()
+        {
+            m_ResultText.text = ObjectTemp.Description;
+        }
+        protected override void Initialize()
         {
             base.Initialize();
 
-            m_TargetDropdown.onValueChanged.AddListener(OnChangeTarget);
             m_TagDropdown.onValueChanged.AddListener(OnChangeTag);
 
             m_EmptyTagFilterValueSubModifier.Initialize();
@@ -69,32 +99,18 @@ namespace HBP.UI.Main
                 { typeof(FloatTag), new NumberTagFilterValue() },
                 { typeof(EnumTag), new EnumTagFilterValue() }
             };
+
+            UpdateAvailableTags();
         }
-        #endregion
-
-        #region Private Methods
-        protected override void SetFields(PatientTagFilterCondition objectToDisplay)
+        protected override void SetFields(SingleTagFilter objectToDisplay)
         {
-            base.SetFields(objectToDisplay);
-
-            m_TargetDropdown.Set(typeof(PatientTagFilterCondition.TargetType), (int)objectToDisplay.Target);
-
             var currentTag = m_Tags.FirstOrDefault(t => t == objectToDisplay.Tag);
             m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
         }
-        void OnChangeTarget(int value)
+        void UpdateAvailableTags()
         {
-            Object.Target = (PatientTagFilterCondition.TargetType)value;
-            m_Tags = Object.Target switch
-            {
-                PatientTagFilterCondition.TargetType.Patient => PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
-                PatientTagFilterCondition.TargetType.Sites => PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList(),
-                _ => PersistentDataManager.Tags.GeneralTags.ToList(),
-            };
+            m_Tags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList();
             m_TagDropdown.options = m_Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();
-
-            var currentTag = m_Tags.FirstOrDefault(t => t == Object.Tag);
-            m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
         }
         void OnChangeTag(int value)
         {
@@ -103,22 +119,22 @@ namespace HBP.UI.Main
 
             if (m_Tags.Count == 0)
             {
-                Object.Tag = null;
-                Object.Value = new EmptyTagFilterValue();
+                ObjectTemp.Tag = null;
+                ObjectTemp.Value = new EmptyTagFilterValue();
                 return;
             }
 
             BaseTag tag = m_Tags[value];
-            Object.Tag = tag;
+            ObjectTemp.Tag = tag;
 
-            TagFilterValue tagFilterValue = m_TagFilterValuesTemp[Object.Tag.GetType()];
-            tagFilterValue.Copy(Object.Value);
-            Object.Value = tagFilterValue;
+            TagFilterValue tagFilterValue = m_TagFilterValuesTemp[ObjectTemp.Tag.GetType()];
+            tagFilterValue.Copy(ObjectTemp.Value);
+            ObjectTemp.Value = tagFilterValue;
 
-            BaseSubModifier subModifier = m_SubModifiers[Object.Value.GetType()];
+            BaseSubModifier subModifier = m_SubModifiers[ObjectTemp.Value.GetType()];
             if (subModifier is EnumTagFilterValueSubModifier enumTagFilterValueSubModifier) enumTagFilterValueSubModifier.Tag = tag as EnumTag;
             subModifier.IsActive = true;
-            subModifier.Object = Object.Value;
+            subModifier.Object = ObjectTemp.Value;
         }
         #endregion
     }

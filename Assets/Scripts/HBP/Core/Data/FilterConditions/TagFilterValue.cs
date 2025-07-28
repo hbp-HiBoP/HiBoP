@@ -71,10 +71,11 @@ namespace HBP.Core.Data
             if (value is not null and string)
             {
                 string valueString = (string)value;
+                string valueToCompare = Value;
                 if (!CaseSensitive)
                 {
                     valueString = valueString.ToLower();
-                    Value = Value.ToLower();
+                    valueToCompare = valueToCompare.ToLower();
                 }
                 if (ExactMatch)
                 {
