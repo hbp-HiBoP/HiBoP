@@ -13,15 +13,16 @@ namespace HBP.UI.Database
     public class TrialMatrixExplorerWindow : DialogWindow
     {
         #region Properties
-        [SerializeField] private Dropdown m_PatientDropdown;
+        [SerializeField] private Button m_SelectPatientsButton;
+        [SerializeField] private Text m_PatientsSelectedText;
         [SerializeField] private Dropdown m_DataDropdown;
         [SerializeField] private Button m_DisplayMatrixButton;
         [SerializeField] private TrialMatrixDisplayer m_TrialMatrixDisplayer;
 
-        List<Patient> m_Patients;
-        Patient m_SelectedPatient;
-
-        List<string> m_DataNames;
+        List<Patient> m_AvailablePatients;
+        List<Patient> m_SelectedPatients = new List<Patient>();
+        
+        List<string> m_AvailableDataNames;
         string m_SelectedDataName;
         #endregion
 
@@ -30,52 +31,69 @@ namespace HBP.UI.Database
         {
             base.Initialize();
 
-            m_PatientDropdown.onValueChanged.AddListener((i) => OnChangePatient(m_Patients[i]));
-            m_DataDropdown.onValueChanged.AddListener((i) => OnChangeDataName(m_DataNames[i]));
+            m_SelectPatientsButton.onClick.AddListener(OpenPatientSelector);
+            m_DataDropdown.onValueChanged.AddListener(OnChangeDataName);
             m_DisplayMatrixButton.onClick.AddListener(DisplayTrialMatrices);
         }
         protected override void SetFields()
         {
             base.SetFields();
-            SetPatients();
-            SetDataNames();
+
+            SetAvailablePatients();
+            SetAvailableDataNames();
+            UpdateUI();
         }
-        protected void SetPatients()
+        protected void SetAvailablePatients()
         {
-            m_Patients = DatabaseManager.Database.Patients.Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Any(d => d.Patient == p)).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
-            m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
-            if (m_SelectedPatient == null || !m_Patients.Contains(m_SelectedPatient))
+            m_AvailablePatients = DatabaseManager.Database.Patients.Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Any(d => d.Patient == p)).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
+        }
+        protected void SetAvailableDataNames()
+        {
+            m_AvailableDataNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Select(d => d.Name).Distinct().OrderBy(name => name).ToList();
+            m_DataDropdown.options = m_AvailableDataNames.Select(name => new Dropdown.OptionData(name)).ToList();
+            m_DataDropdown.SetValue(0);
+            m_SelectedDataName = m_AvailableDataNames.FirstOrDefault();
+        }
+        protected void OpenPatientSelector()
+        {
+            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(m_AvailablePatients, this);
+            selector.ObjectsSelected = m_SelectedPatients.ToArray();
+            selector.OnOk.AddListener(() => OnPatientsSelected(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
+        }
+        protected void OnPatientsSelected(Patient[] selectedPatients)
+        {
+            m_SelectedPatients = selectedPatients.ToList();
+            UpdateUI();
+        }
+        protected void OnChangeDataName(int index)
+        {
+            m_SelectedDataName = m_AvailableDataNames[index];
+        }
+        protected void UpdateUI()
+        {
+            // Update patients text
+            if (m_SelectedPatients.Count == 0)
             {
-                m_SelectedPatient = m_Patients.FirstOrDefault();
+                m_PatientsSelectedText.text = "No patients selected";
             }
-            int index = m_Patients.IndexOf(m_SelectedPatient);
-            m_PatientDropdown.SetValue(index != -1 ? index : 0);
-        }
-        protected void SetDataNames()
-        {
-            m_DataNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Where(d => d.Patient == m_SelectedPatient).Select(d => d.Name).Distinct().ToList();
-            m_DataDropdown.options = (from name in m_DataNames select new Dropdown.OptionData(name, null)).ToList();
-            if (string.IsNullOrEmpty(m_SelectedDataName) || !m_DataNames.Contains(m_SelectedDataName))
+            else if (m_SelectedPatients.Count == 1)
             {
-                m_SelectedDataName = m_DataNames.FirstOrDefault();
+                m_PatientsSelectedText.text = "1 patient selected";
             }
-            int index = m_DataNames.IndexOf(m_SelectedDataName);
-            m_DataDropdown.SetValue(index != -1 ? index : 0);
-        }
-        protected void OnChangePatient(Patient patient)
-        {
-            m_SelectedPatient = patient;
-            SetDataNames();
-        }
-        protected void OnChangeDataName(string name)
-        {
-            m_SelectedDataName = name;
+            else
+            {
+                m_PatientsSelectedText.text = $"{m_SelectedPatients.Count} patients selected";
+            }
+            
+            // Enable/disable display button
+            m_DisplayMatrixButton.interactable = m_SelectedPatients.Count > 0 && !string.IsNullOrEmpty(m_SelectedDataName);
         }
         protected void DisplayTrialMatrices()
         {
-            if (m_SelectedPatient != null && !string.IsNullOrEmpty(m_SelectedDataName))
+            if (m_SelectedPatients.Count > 0 && !string.IsNullOrEmpty(m_SelectedDataName))
             {
-                m_TrialMatrixDisplayer.Set(m_SelectedPatient, m_SelectedDataName);
+                m_TrialMatrixDisplayer.Set(m_SelectedPatients, m_SelectedDataName);
             }
         }
         #endregion

@@ -20,16 +20,24 @@ namespace HBP.UI.Database
     {
         #region Properties
         [SerializeField] TrialMatrixGrid m_TrialMatrixGrid;
+        [SerializeField] GameObject m_TrialMatrixGridContainer;
+        [SerializeField] GameObject m_NoDataContainer;
+        [SerializeField] Text m_NoDataText;
         [SerializeField] ChannelList m_ChannelList;
+        [SerializeField] Dropdown m_PatientDropdown;
         [SerializeField] CircularDropdown m_ProtocolDropdown;
         [SerializeField] Texture2D m_Colormap;
 
-        private Patient m_Patient;
+        private List<Patient> m_Patients;
         private string m_DataName;
-        private List<ChannelStruct> m_ChannelStructs;
+        private Dictionary<Patient, List<ChannelStruct>> m_ChannelStructsByPatient;
         private List<IEEGDataInfo> m_DataInfos;
+        private List<Protocol> m_AvailableProtocols;
+
         private ChannelStruct m_CurrentChannelStruct;
         private IEEGDataInfo m_CurrentDataInfo;
+        private Patient m_CurrentPatient;
+        private Protocol m_CurrentProtocol;
 
         Data.Informations.TrialMatrix.TrialMatrixGrid m_TrialMatrixGridData;
         Settings m_Settings;
@@ -38,12 +46,13 @@ namespace HBP.UI.Database
         {
             get
             {
-                return m_TrialMatrixGrid.gameObject.activeSelf && m_ChannelList.gameObject.activeSelf && m_ProtocolDropdown.gameObject.activeSelf;
+                return m_TrialMatrixGrid.gameObject.activeSelf && m_ChannelList.gameObject.activeSelf && m_PatientDropdown.gameObject.activeSelf && m_ProtocolDropdown.gameObject.activeSelf;
             }
             set
             {
                 m_TrialMatrixGrid.gameObject.SetActive(value);
                 m_ChannelList.gameObject.SetActive(value);
+                m_PatientDropdown.gameObject.SetActive(value);
                 m_ProtocolDropdown.gameObject.SetActive(value);
             }
         }
@@ -52,11 +61,11 @@ namespace HBP.UI.Database
         #endregion
 
         #region Public Methods
-        public void Set(Patient patient, string dataName)
+        public void Set(List<Patient> patients, string dataName)
         {
-            m_Patient = patient;
+            m_Patients = patients;
             m_DataName = dataName;
-            LoadingManager.Load(update => LoadDataAsync(patient, dataName, update));
+            LoadingManager.Load(update => LoadDataAsync(patients, dataName, update));
         }
         public void Display(ChannelStruct channelStruct, IEEGDataInfo dataInfo)
         {
@@ -65,7 +74,7 @@ namespace HBP.UI.Database
 
             if (m_CurrentChannelStruct == null || m_CurrentDataInfo == null)
             {
-                m_TrialMatrixGrid.gameObject.SetActive(false);
+                DisplayMatrix(false);
                 return;
             }
 
@@ -75,8 +84,8 @@ namespace HBP.UI.Database
             };
             SaveSettings();
             m_TrialMatrixGridData = new Data.Informations.TrialMatrix.TrialMatrixGrid(new ChannelStruct[] { channelStruct }, dataToDisplay.ToArray());
-            m_TrialMatrixGrid.gameObject.SetActive(true);
-            m_TrialMatrixGrid.Display(m_TrialMatrixGridData, $"{m_Patient.CompleteName} - {dataInfo.Protocol.Name} - {dataInfo.Name} - {channelStruct.Channel}", m_Colormap);
+            DisplayMatrix(true);
+            m_TrialMatrixGrid.Display(m_TrialMatrixGridData, $"{m_CurrentPatient.CompleteName} - {dataInfo.Protocol.Name} - {dataInfo.Name} - {channelStruct.Channel}", m_Colormap);
             ApplySettings();
         }
         public void Refresh()
@@ -93,7 +102,8 @@ namespace HBP.UI.Database
             Visible = false;
             PersistentDataManager.UserPreferences.OnSavePreferences.AddSafeListener(Refresh, gameObject);
             m_ChannelList.OnSelect.AddSafeListener(channelStruct => Display(channelStruct, m_CurrentDataInfo), gameObject);
-            m_ProtocolDropdown.OnValueChanged.AddSafeListener(index => Display(m_CurrentChannelStruct, m_DataInfos[index]), gameObject);
+            m_PatientDropdown.onValueChanged.AddSafeListener(index => OnChangePatient(m_Patients[index]), gameObject);
+            m_ProtocolDropdown.OnValueChanged.AddSafeListener(index => OnChangeProtocol(index), gameObject);
             m_ParentSelector = GetComponentInParent<Selector>();
         }
         private void Update()
@@ -102,47 +112,127 @@ namespace HBP.UI.Database
                 return;
 
             if (Input.GetKeyDown(KeyCode.LeftArrow))
-            {
                 m_ProtocolDropdown.SelectPrevious();
-            }
             else if (Input.GetKeyDown(KeyCode.RightArrow))
-            {
                 m_ProtocolDropdown.SelectNext();
+        }
+        private void OnChangePatient(Patient patient)
+        {
+            m_CurrentPatient = patient;
+            UpdateChannelList();
+            UpdateCurrentDataInfo();
+        }
+        private void OnChangeProtocol(int protocolIndex)
+        {
+            if (m_AvailableProtocols != null && protocolIndex >= 0 && protocolIndex < m_AvailableProtocols.Count)
+            {
+                m_CurrentProtocol = m_AvailableProtocols[protocolIndex];
+                UpdateCurrentDataInfo();
             }
         }
-        private async UniTask LoadDataAsync(Patient patient, string dataName, Action<float, float, LoadingText> updateProgress)
+        private void UpdateChannelList()
+        {
+            if (m_CurrentPatient == null || m_ChannelStructsByPatient == null) return;
+            
+            var channelStructsForPatient = m_ChannelStructsByPatient.GetValueOrDefault(m_CurrentPatient, new List<ChannelStruct>());
+            m_ChannelList.Set(channelStructsForPatient);
+            m_CurrentChannelStruct = channelStructsForPatient.FirstOrDefault();
+            UpdateCurrentDataInfo();
+        }
+        private void UpdateCurrentDataInfo()
+        {
+            if (m_CurrentPatient == null || m_CurrentProtocol == null || m_DataInfos == null) return;
+            
+            var dataInfo = m_DataInfos.FirstOrDefault(d => d.Patient == m_CurrentPatient && d.Protocol == m_CurrentProtocol);
+            Display(m_CurrentChannelStruct, dataInfo);
+        }
+        private void SetupDropdowns()
+        {
+            // Setup patient dropdown
+            m_PatientDropdown.options = m_Patients.Select(p => new Dropdown.OptionData(p.CompleteName)).ToList();
+            if (m_Patients.Count > 0)
+            {
+                m_CurrentPatient = m_Patients.First();
+                m_PatientDropdown.SetValueWithoutNotify(0);
+            }
+
+            // Setup protocol dropdown with all available protocols
+            m_ProtocolDropdown.Options = m_AvailableProtocols.Select(p => new Dropdown.OptionData(p.Name)).ToList();
+            if (m_AvailableProtocols.Count > 0)
+            {
+                m_CurrentProtocol = m_AvailableProtocols.First();
+                m_ProtocolDropdown.SetValue(0);
+            }
+
+            // Initialize channel list and data info
+            UpdateChannelList();
+        }
+        private async UniTask LoadDataAsync(List<Patient> patients, string dataName, Action<float, float, LoadingText> updateProgress)
         {
             await UniTask.SwitchToThreadPool();
 
-            // Load data
-            m_DataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Where(d => d.Patient == patient && d.Name == dataName).ToList();
-            int progress = 0;
-            int length = m_DataInfos.Count;
+            var allDataInfos = new List<IEEGDataInfo>();
+            m_ChannelStructsByPatient = new Dictionary<Patient, List<ChannelStruct>>();
+            
+            int currentPatientIndex = 0;
+            int totalPatients = patients.Count;
 
-            var loadedData = new List<Core.Data.IEEGData>();
-            foreach (var dataInfo in m_DataInfos)
+            foreach (var patient in patients)
             {
-                try
+                // Get all data infos for this patient with the specified data name
+                var patientDataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Where(d => d.Patient == patient && d.Name == dataName).ToList();
+                var patientLoadedData = new List<Core.Data.IEEGData>();
+
+                // Load all data for this patient
+                float patientProgress = (float)currentPatientIndex / totalPatients;
+                float dataCounter = 0;
+                foreach (var dataInfo in patientDataInfos)
                 {
-                    updateProgress((float)progress / length, 0, new LoadingText("Loading data for ", dataInfo.Protocol.Name, $" {++progress} / {length}"));
-                    loadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
+                    float dataProgress = dataCounter / patientDataInfos.Count;
+                    updateProgress((patientProgress + dataProgress) / totalPatients, 0, new LoadingText("Loading data for ", $"{patient.CompleteName} - {dataInfo.Protocol.Name}", $" Patient {currentPatientIndex + 1} / {totalPatients}"));
+                    try
+                    {                        
+                        patientLoadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
+                        allDataInfos.Add(dataInfo);
+                    }
+                    catch (HBPException e)
+                    {
+                        Debug.LogException(e);
+                        throw new CannotLoadDataInfoException(dataInfo, e.Message);
+                    }
+                    dataCounter++;
                 }
-                catch (HBPException e)
+
+                // Get channels for this patient from their loaded data
+                if (patientLoadedData.Count > 0)
                 {
-                    Debug.LogException(e);
-                    throw new CannotLoadDataInfoException(dataInfo, e.Message);
+                    var patientChannels = patientLoadedData.SelectMany(d => d.UnitByChannel.Keys).OrderBy(c => c, new SiteNameComparer()).Distinct().Select(channel => new ChannelStruct(channel, patient)).ToList();
+                    m_ChannelStructsByPatient[patient] = patientChannels;
                 }
+                else
+                {
+                    m_ChannelStructsByPatient[patient] = new List<ChannelStruct>();
+                }
+
+                currentPatientIndex++;
             }
+            
+            m_DataInfos = allDataInfos;
             DataManager.NormalizeiEEGData();
 
-            // Create channel strucs
-            m_ChannelStructs = loadedData.SelectMany(d => d.UnitByChannel.Keys).OrderBy(c => c, new SiteNameComparer()).Distinct().Select(c => new ChannelStruct(c, m_Patient)).ToList();
+            // Get all available protocols
+            m_AvailableProtocols = m_DataInfos.Select(d => d.Protocol).Distinct().OrderBy(p => p.Name).ToList();
 
             // Set UI
             await UniTask.SwitchToMainThread();
-            m_ChannelList.Set(m_ChannelStructs);
-            m_ProtocolDropdown.Options = m_DataInfos.Select(d => new Dropdown.OptionData(d.Protocol.Name)).ToList();
-            Visible = m_ChannelStructs.Count > 0 && m_DataInfos.Count > 0;
+            SetupDropdowns();
+            Visible = m_ChannelStructsByPatient.Values.Any(channels => channels.Count > 0) && m_DataInfos.Count > 0;
+        }
+        private void DisplayMatrix(bool display)
+        {
+            m_TrialMatrixGridContainer.SetActive(display);
+            m_NoDataContainer.SetActive(!display);
+            m_NoDataText.text = display ? string.Empty : $"No data of {m_CurrentProtocol.Name} available for {m_CurrentPatient.CompleteName}.";
         }
         void SaveSettings()
         {
