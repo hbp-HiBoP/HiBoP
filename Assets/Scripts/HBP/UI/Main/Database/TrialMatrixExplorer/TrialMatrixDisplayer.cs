@@ -26,6 +26,7 @@ namespace HBP.UI.Database
         [SerializeField] ChannelList m_ChannelList;
         [SerializeField] Dropdown m_PatientDropdown;
         [SerializeField] CircularDropdown m_ProtocolDropdown;
+        [SerializeField] InformationPanels m_InformationPanels;
         [SerializeField] Texture2D m_Colormap;
 
         private List<Patient> m_Patients;
@@ -54,6 +55,7 @@ namespace HBP.UI.Database
                 m_ChannelList.gameObject.SetActive(value);
                 m_PatientDropdown.gameObject.SetActive(value);
                 m_ProtocolDropdown.gameObject.SetActive(value);
+                m_InformationPanels.gameObject.SetActive(value);
             }
         }
 
@@ -78,14 +80,8 @@ namespace HBP.UI.Database
                 return;
             }
 
-            List<Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new()
-            {
-                new Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData(new Dataset(dataInfo.Protocol.Name, dataInfo.Protocol, new DataInfo[] { dataInfo }), dataInfo.Name, dataInfo.Protocol.OrderedBlocs.ToList())
-            };
             SaveSettings();
-            m_TrialMatrixGridData = new Data.Informations.TrialMatrix.TrialMatrixGrid(new ChannelStruct[] { channelStruct }, dataToDisplay.ToArray());
             DisplayMatrix(true);
-            m_TrialMatrixGrid.Display(m_TrialMatrixGridData, $"{m_CurrentPatient.CompleteName} - {dataInfo.Protocol.Name} - {dataInfo.Name} - {channelStruct.Channel}", m_Colormap);
             ApplySettings();
         }
         public void Refresh()
@@ -189,7 +185,7 @@ namespace HBP.UI.Database
                 foreach (var dataInfo in patientDataInfos)
                 {
                     float dataProgress = dataCounter / patientDataInfos.Count;
-                    updateProgress((patientProgress + dataProgress) / totalPatients, 0, new LoadingText("Loading data for ", $"{patient.CompleteName} - {dataInfo.Protocol.Name}", $" Patient {currentPatientIndex + 1} / {totalPatients}"));
+                    updateProgress(patientProgress + (dataProgress / totalPatients), 0, new LoadingText("Loading data for ", $"{patient.CompleteName} - {dataInfo.Protocol.Name}", $" {currentPatientIndex + 1} / {totalPatients}"));
                     try
                     {                        
                         patientLoadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
@@ -233,6 +229,14 @@ namespace HBP.UI.Database
             m_TrialMatrixGridContainer.SetActive(display);
             m_NoDataContainer.SetActive(!display);
             m_NoDataText.text = display ? string.Empty : $"No data of {m_CurrentProtocol.Name} available for {m_CurrentPatient.CompleteName}.";
+
+            if (display)
+            {
+                List<Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new() { new Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData(new Dataset(m_CurrentDataInfo.Protocol.Name, m_CurrentDataInfo.Protocol, new DataInfo[] { m_CurrentDataInfo }), m_CurrentDataInfo.Name, m_CurrentDataInfo.Protocol.OrderedBlocs.ToList()) };
+                m_TrialMatrixGridData = new Data.Informations.TrialMatrix.TrialMatrixGrid(new ChannelStruct[] { m_CurrentChannelStruct }, dataToDisplay.ToArray());
+                m_TrialMatrixGrid.Display(m_TrialMatrixGridData, $"{m_CurrentPatient.CompleteName} - {m_CurrentDataInfo.Protocol.Name} - {m_CurrentDataInfo.Name} - {m_CurrentChannelStruct.Channel}", m_Colormap);
+                m_InformationPanels.Set(m_CurrentChannelStruct);
+            }
         }
         void SaveSettings()
         {
