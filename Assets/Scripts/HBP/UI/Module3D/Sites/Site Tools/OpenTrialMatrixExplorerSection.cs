@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Tools;
+using HBP.Data.Database;
 using HBP.Data.Informations;
 using HBP.UI.Database;
 using HBP.UI.Tools;
@@ -13,20 +14,39 @@ namespace HBP.UI.Module3D
 {
     public class OpenTrialMatrixExplorerSection : SiteToolSection
     {
+        #region Enums
+        public enum DataSource { Project, Database }
+        #endregion
+
         #region Properties
+        [SerializeField] private Dropdown m_DataSourceDropdown;
         [SerializeField] private Dropdown m_DataNameDropdown;
-        List<IEEGDataInfo> m_IEEGDataInfos;
+        List<IEEGDataInfo> m_IEEGDataInfos = new();
 
         static string m_DataNameDropdownValue;
+        static DataSource m_DataSourceDropdownValue = DataSource.Project;
+        #endregion
+
+        #region Private Methods
+        private void UpdateDataNameDropdown()
+        {
+            m_IEEGDataInfos = (DataSource)m_DataSourceDropdown.value switch
+            {
+                DataSource.Project => ApplicationState.LoadedProject.Datasets.SelectMany(ds => ds.GetIEEGDataInfos()).ToList(),
+                DataSource.Database => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().ToList(),
+                _ => new List<IEEGDataInfo>(),
+            };
+            m_DataNameDropdown.options = m_IEEGDataInfos.Select(d => d.Name).Distinct().OrderBy(name => name).Select(dataName => new Dropdown.OptionData(dataName)).ToList();
+            m_DataNameDropdown.RefreshShownValue();
+        }
         #endregion
 
         #region Public Methods
         public override void Initialize()
         {
-            m_IEEGDataInfos = ApplicationState.LoadedProject.Datasets.SelectMany(ds => ds.GetIEEGDataInfos()).ToList();
-            m_DataNameDropdown.options = m_IEEGDataInfos.Select(d => d.Name).Distinct().OrderBy(name => name).Select(dataName => new Dropdown.OptionData(dataName)).ToList();
-
             base.Initialize();
+
+            m_DataSourceDropdown.onValueChanged.AddListener((value) => UpdateDataNameDropdown());
         }
         public override async UniTask ApplyAsync()
         {
@@ -59,10 +79,13 @@ namespace HBP.UI.Module3D
         }
         public override void StoreSettings()
         {
+            m_DataSourceDropdownValue = (DataSource)m_DataSourceDropdown.value;
             m_DataNameDropdownValue = m_DataNameDropdown.options[m_DataNameDropdown.value].text;
         }
         public override void LoadSettings()
         {
+            m_DataSourceDropdown.Set(typeof(DataSource), (int)m_DataSourceDropdownValue);
+            UpdateDataNameDropdown();
             int index = m_IEEGDataInfos.FindIndex(info => info.Name == m_DataNameDropdownValue);
             m_DataNameDropdown.value = index >= 0 && index < m_DataNameDropdown.options.Count ? index : 0;
         }

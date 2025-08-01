@@ -166,7 +166,7 @@ namespace HBP.UI.Tools.Lists
         /// <param name="transition">Transition</param>
         public virtual void Select(T objectToSelect, Toggle.ToggleTransition transition = Toggle.ToggleTransition.None)
         {
-            if (!m_SelectableStateByObject[objectToSelect]) return;
+            if (!m_SelectableStateByObject.TryGetValue(objectToSelect, out bool value) && !value) return;
 
             switch (m_ItemSelection)
             {
