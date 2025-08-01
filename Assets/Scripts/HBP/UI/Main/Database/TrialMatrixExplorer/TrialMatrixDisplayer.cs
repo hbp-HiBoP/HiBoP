@@ -25,6 +25,7 @@ namespace HBP.UI.Database
         [SerializeField] Text m_NoDataText;
         [SerializeField] ChannelList m_ChannelList;
         [SerializeField] Dropdown m_PatientDropdown;
+        [SerializeField] Button m_TrialMatrixActionsButton;
         [SerializeField] CircularDropdown m_ProtocolDropdown;
         [SerializeField] InformationPanels m_InformationPanels;
         [SerializeField] Texture2D m_Colormap;
@@ -40,6 +41,8 @@ namespace HBP.UI.Database
         private Patient m_CurrentPatient;
         private Protocol m_CurrentProtocol;
 
+        public Patient CurrentPatient => m_CurrentPatient;
+
         Data.Informations.TrialMatrix.TrialMatrixGrid m_TrialMatrixGridData;
         Settings m_Settings;
 
@@ -54,6 +57,7 @@ namespace HBP.UI.Database
                 m_TrialMatrixGrid.gameObject.SetActive(value);
                 m_ChannelList.gameObject.SetActive(value);
                 m_PatientDropdown.gameObject.SetActive(value);
+                m_TrialMatrixActionsButton.gameObject.SetActive(value);
                 m_ProtocolDropdown.gameObject.SetActive(value);
                 m_InformationPanels.gameObject.SetActive(value);
             }
