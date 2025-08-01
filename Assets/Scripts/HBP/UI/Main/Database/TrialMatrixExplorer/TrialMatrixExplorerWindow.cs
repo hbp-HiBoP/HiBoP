@@ -1,6 +1,7 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.Data.Database;
+using HBP.Data.Informations;
 using HBP.UI.Tools;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,12 +19,33 @@ namespace HBP.UI.Database
         [SerializeField] private Dropdown m_DataDropdown;
         [SerializeField] private Button m_DisplayMatrixButton;
         [SerializeField] private TrialMatrixDisplayer m_TrialMatrixDisplayer;
+        [SerializeField] private Transform m_ConfigurationContainer;
 
         List<Patient> m_AvailablePatients;
         List<Patient> m_SelectedPatients = new List<Patient>();
         
         List<string> m_AvailableDataNames;
         string m_SelectedDataName;
+        #endregion
+
+        #region Public Methods
+        public void SetWithPredefinedData(List<ChannelStruct> channelStructs, List<IEEGDataInfo> dataInfos, string dataName)
+        {
+            if (channelStructs == null || channelStructs.Count == 0)
+            {
+                Debug.LogWarning("No channels provided to SetWithChannels");
+                return;
+            }
+
+            m_SelectedDataName = dataName;
+            m_SelectedPatients = channelStructs.Select(cs => cs.Patient).Distinct().ToList();
+
+            // Disable configuration UI elements
+            m_ConfigurationContainer.gameObject.SetActive(false);
+
+            // Set the displayer with predefined channels and start loading automatically
+            m_TrialMatrixDisplayer.Set(channelStructs, dataInfos, dataName);
+        }
         #endregion
 
         #region Private Methods

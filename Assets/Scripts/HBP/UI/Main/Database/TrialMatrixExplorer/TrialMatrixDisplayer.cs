@@ -31,7 +31,7 @@ namespace HBP.UI.Database
 
         private List<Patient> m_Patients;
         private string m_DataName;
-        private Dictionary<Patient, List<ChannelStruct>> m_ChannelStructsByPatient;
+        private List<ChannelStruct> m_ChannelStructs;
         private List<IEEGDataInfo> m_DataInfos;
         private List<Protocol> m_AvailableProtocols;
 
@@ -65,9 +65,19 @@ namespace HBP.UI.Database
         #region Public Methods
         public void Set(List<Patient> patients, string dataName)
         {
+            m_ChannelStructs = new List<ChannelStruct>();
             m_Patients = patients;
             m_DataName = dataName;
-            LoadingManager.Load(update => LoadDataAsync(patients, dataName, update));
+            m_DataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Where(d => d.Name == m_DataName).ToList();
+            LoadingManager.Load(update => LoadDataAsync(update));
+        }
+        public void Set(List<ChannelStruct> channelStructs, List<IEEGDataInfo> dataInfos, string dataName)
+        {
+            m_ChannelStructs = channelStructs.OrderBy(c => c.Channel, new SiteNameComparer()).ToList();
+            m_Patients = channelStructs.Select(cs => cs.Patient).Distinct().ToList();
+            m_DataName = dataName;
+            m_DataInfos = dataInfos.Where(d => d.Name == m_DataName).ToList();
+            LoadingManager.Load(update => LoadDataAsync(update));
         }
         public void Display(ChannelStruct channelStruct, IEEGDataInfo dataInfo)
         {
@@ -128,9 +138,9 @@ namespace HBP.UI.Database
         }
         private void UpdateChannelList()
         {
-            if (m_CurrentPatient == null || m_ChannelStructsByPatient == null) return;
-            
-            var channelStructsForPatient = m_ChannelStructsByPatient.GetValueOrDefault(m_CurrentPatient, new List<ChannelStruct>());
+            if (m_CurrentPatient == null || m_ChannelStructs == null) return;
+
+            var channelStructsForPatient = m_ChannelStructs.Where(cs => cs.Patient == m_CurrentPatient).ToList();
             m_ChannelList.Set(channelStructsForPatient);
             m_CurrentChannelStruct = channelStructsForPatient.FirstOrDefault();
             UpdateCurrentDataInfo();
@@ -163,20 +173,18 @@ namespace HBP.UI.Database
             // Initialize channel list and data info
             UpdateChannelList();
         }
-        private async UniTask LoadDataAsync(List<Patient> patients, string dataName, Action<float, float, LoadingText> updateProgress)
+        private async UniTask LoadDataAsync(Action<float, float, LoadingText> updateProgress)
         {
             await UniTask.SwitchToThreadPool();
-
-            var allDataInfos = new List<IEEGDataInfo>();
-            m_ChannelStructsByPatient = new Dictionary<Patient, List<ChannelStruct>>();
             
+            bool getChannelStructsFromData = m_ChannelStructs.Count == 0;
             int currentPatientIndex = 0;
-            int totalPatients = patients.Count;
+            int totalPatients = m_Patients.Count;
 
-            foreach (var patient in patients)
+            foreach (var patient in m_Patients)
             {
                 // Get all data infos for this patient with the specified data name
-                var patientDataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Where(d => d.Patient == patient && d.Name == dataName).ToList();
+                var patientDataInfos = m_DataInfos.Where(d => d.Patient == patient).ToList();
                 var patientLoadedData = new List<Core.Data.IEEGData>();
 
                 // Load all data for this patient
@@ -189,7 +197,6 @@ namespace HBP.UI.Database
                     try
                     {                        
                         patientLoadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
-                        allDataInfos.Add(dataInfo);
                     }
                     catch (HBPException e)
                     {
@@ -200,20 +207,15 @@ namespace HBP.UI.Database
                 }
 
                 // Get channels for this patient from their loaded data
-                if (patientLoadedData.Count > 0)
+                if (getChannelStructsFromData && patientLoadedData.Count > 0)
                 {
                     var patientChannels = patientLoadedData.SelectMany(d => d.UnitByChannel.Keys).OrderBy(c => c, new SiteNameComparer()).Distinct().Select(channel => new ChannelStruct(channel, patient)).ToList();
-                    m_ChannelStructsByPatient[patient] = patientChannels;
-                }
-                else
-                {
-                    m_ChannelStructsByPatient[patient] = new List<ChannelStruct>();
+                    m_ChannelStructs.AddRange(patientChannels);
                 }
 
                 currentPatientIndex++;
             }
             
-            m_DataInfos = allDataInfos;
             DataManager.NormalizeiEEGData();
 
             // Get all available protocols
@@ -222,7 +224,7 @@ namespace HBP.UI.Database
             // Set UI
             await UniTask.SwitchToMainThread();
             SetupDropdowns();
-            Visible = m_ChannelStructsByPatient.Values.Any(channels => channels.Count > 0) && m_DataInfos.Count > 0;
+            Visible = m_ChannelStructs.Count > 0 && m_DataInfos.Count > 0;
         }
         private void DisplayMatrix(bool display)
         {
