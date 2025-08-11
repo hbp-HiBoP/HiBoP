@@ -201,7 +201,7 @@ namespace HBP.Data.Informations
     }
 
     [Serializable]
-    public class ChannelStructsGroup : BaseData
+    public class ChannelStructsGroup : BaseData 
     {
         #region Properties
         public string Name { get; set; }

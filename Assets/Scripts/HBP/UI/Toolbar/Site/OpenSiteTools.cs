@@ -1,3 +1,4 @@
+using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.UI.Module3D;
 using HBP.UI.Tools;
@@ -25,6 +26,11 @@ namespace HBP.UI.Toolbar
                 var siteTools = WindowsManager.Open("Site Tools window", null).GetComponent<SiteToolsWindow>();
                 siteTools.Scene = SelectedScene;
                 siteTools.OnToolApplied.AddListener(Module3DMain.OnRequestUpdateInSiteList.Invoke);
+
+                Module3DMain.OnRemoveScene.AddSafeListener(s =>
+                {
+                    if (SelectedScene == s) siteTools.Close();
+                }, siteTools.gameObject);
             });
         }
         /// <summary>

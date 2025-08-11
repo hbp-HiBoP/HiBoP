@@ -118,6 +118,8 @@ namespace HBP.UI.Informations
             }
         }
         private const int CHANNEL_WARNING_THRESHOLD = 50;
+
+        private WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
         #endregion
 
         #region Public Methods
@@ -182,6 +184,7 @@ namespace HBP.UI.Informations
                 m_RequestSceneDataUpdate = true;
                 m_RequestGraphsUpdate = true;
             });
+            m_WindowsReferencer.Add(window);
         }
         #endregion
 
@@ -213,6 +216,10 @@ namespace HBP.UI.Informations
             SetBase3DScene();
             SetColorMap();
             SetMinimized();
+        }
+        private void OnDestroy()
+        {
+            m_WindowsReferencer.CloseAll();
         }
         void GenerateSceneData()
         {

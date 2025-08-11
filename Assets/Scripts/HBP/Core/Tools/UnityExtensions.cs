@@ -59,6 +59,42 @@ namespace HBP.Core.Tools
             }
             e.AddListener(action);
         }
+        public static void AddSafeListener<T0>(this GenericEvent<T0> e, UnityAction<T0> a, GameObject parent)
+        {
+            void action(T0 t0)
+            {
+                if (parent != null) a(t0);
+                else e.RemoveListener(action);
+            }
+            e.AddListener(action);
+        }
+        public static void AddSafeListener<T0, T1>(this GenericEvent<T0, T1> e, UnityAction<T0, T1> a, GameObject parent)
+        {
+            void action(T0 t0, T1 t1)
+            {
+                if (parent != null) a(t0, t1);
+                else e.RemoveListener(action);
+            }
+            e.AddListener(action);
+        }
+        public static void AddSafeListener<T0, T1, T2>(this GenericEvent<T0, T1, T2> e, UnityAction<T0, T1, T2> a, GameObject parent)
+        {
+            void action(T0 t0, T1 t1, T2 t2)
+            {
+                if (parent != null) a(t0, t1, t2);
+                else e.RemoveListener(action);
+            }
+            e.AddListener(action);
+        }
+        public static void AddSafeListener<T0, T1, T2, T3>(this GenericEvent<T0, T1, T2, T3> e, UnityAction<T0, T1, T2, T3> a, GameObject parent)
+        {
+            void action(T0 t0, T1 t1, T2 t2, T3 t3)
+            {
+                if (parent != null) a(t0, t1, t2, t3);
+                else e.RemoveListener(action);
+            }
+            e.AddListener(action);
+        }
     }
 
     public static class Vector2Extension

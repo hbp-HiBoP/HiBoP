@@ -18,6 +18,7 @@ namespace HBP.UI.Tools
         #region Properties
         [SerializeField] protected FilterConditionListGestion m_ListGestion;
         [SerializeField] protected Button m_ApplyButton;
+        [SerializeField] protected Button m_ResetButton;
 
         protected List<object> m_FilteringObjects;
         public List<object> FilteringObjects
@@ -106,10 +107,10 @@ namespace HBP.UI.Tools
             m_ListGestion.List.OnAddObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType()));
             m_ListGestion.List.OnRemoveObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType()));
             m_ListGestion.List.OnUpdateObject.AddListener(condition => PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType()));
-            m_ListGestion.List.OnSelect.AddListener((condition) => SetApplyButtonState());
-            m_ListGestion.List.OnDeselect.AddListener((condition) => SetApplyButtonState());
-            m_ListGestion.List.OnRemoveObject.AddListener((condition) => SetApplyButtonState());
-            m_ListGestion.List.OnAddObject.AddListener((condition) => SetApplyButtonState());
+            m_ListGestion.List.OnSelect.AddListener((condition) => SetButtonsState());
+            m_ListGestion.List.OnDeselect.AddListener((condition) => SetButtonsState());
+            m_ListGestion.List.OnRemoveObject.AddListener((condition) => SetButtonsState());
+            m_ListGestion.List.OnAddObject.AddListener((condition) => SetButtonsState());
         }
         protected virtual async UniTask ApplyFiltersAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
@@ -137,7 +138,7 @@ namespace HBP.UI.Tools
             }
             return result;
         }
-        protected virtual void SetApplyButtonState()
+        protected virtual void SetButtonsState()
         {
             m_ApplyButton.interactable = m_ListGestion.List.ObjectsSelected.Length > 0;
         }

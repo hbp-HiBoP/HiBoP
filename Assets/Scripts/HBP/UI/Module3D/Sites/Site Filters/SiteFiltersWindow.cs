@@ -23,8 +23,8 @@ namespace HBP.UI.Module3D
         {
             base.Initialize();
 
-            Data.Module3D.Module3DMain.OnSelectScene.AddSafeListener(s => SetApplyButtonState(), gameObject);
-            Data.Module3D.Module3DMain.OnDeselectScene.AddSafeListener(s => SetApplyButtonState(), gameObject);
+            Data.Module3D.Module3DMain.OnSelectScene.AddSafeListener(s => SetButtonsState(), gameObject);
+            Data.Module3D.Module3DMain.OnDeselectScene.AddSafeListener(s => SetButtonsState(), gameObject);
         }
         protected override async UniTask ApplyFiltersAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
@@ -32,9 +32,10 @@ namespace HBP.UI.Module3D
             FilteringObjects = Data.Module3D.Module3DMain.SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).Select(s => (object)s).ToList();
             await base.ApplyFiltersAsync(updateProgress, token);
         }
-        protected override void SetApplyButtonState()
+        protected override void SetButtonsState()
         {
             m_ApplyButton.interactable = m_ListGestion.List.ObjectsSelected.Length > 0 && Data.Module3D.Module3DMain.SelectedScene != null;
+            m_ResetButton.interactable = Data.Module3D.Module3DMain.SelectedScene != null;
         }
         #endregion
     }

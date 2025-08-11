@@ -53,6 +53,7 @@ namespace HBP.UI.Informations
             base.SetFields();
 
             m_ChannelStructsGroupListGestion.List.Set(m_ChannelStructsGroups);
+            m_ChannelStructsGroupListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
         }
         #endregion
     }

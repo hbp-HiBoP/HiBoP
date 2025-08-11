@@ -1,4 +1,5 @@
 using HBP.Core.Object3D;
+using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Data.Preferences;
 using HBP.UI.Module3D;
@@ -34,6 +35,10 @@ namespace HBP.UI.Toolbar
                     for (int i = 0; i < mask.Length; i++) ((Site)siteFilters.FilteringObjects[i]).State.IsFiltered = mask[i];
                     Module3DMain.OnRequestUpdateInSiteList.Invoke();
                 });
+                Module3DMain.OnRemoveScene.AddSafeListener(s =>
+                {
+                    if (SelectedScene == s) siteFilters.Close();
+                }, siteFilters.gameObject);
             });
             m_ResetFiltersButton.onClick.AddListener(() =>
             {
