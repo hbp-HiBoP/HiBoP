@@ -216,30 +216,64 @@ namespace HBP.Data.Preferences
                 m_Colors[position] = new SerializableColor(color);
             }
         }
+        public Color GetSiteColor(int row, int column)
+        {
+            if (row >= 0 && row < 2 && column >= 0 && column < 8)
+            {
+                int position = (row * 8) + column;
+                return m_Colors[position].ToColor();
+            }
+            else
+            {
+                int position = 10000 + (row * 1000) + column;
+                return GetAdditionalColor(position);
+            }
+        }
+        public Color GetGroupColor(int groupIndex, int column)
+        {
+            if (groupIndex == 0 && column >= 0 && column < 8)
+            {
+                int position = 8 + column;
+                return m_Colors[position].ToColor();
+            }
+            else
+            {
+                int position = 100000 + groupIndex * 10000 + column;
+                return GetAdditionalColor(position);
+            }
+        }
         public Color GetColor(int position)
         {
-            if (position >= 0 && position < 24)
+            if (position < 0)
+            {
+                position = 0;
+            }
+            
+            if (position < NUMBER_OF_COLORS)
             {
                 return m_Colors[position].ToColor();
             }
             else
             {
-                if (m_AdditionalColors.TryGetValue(position, out Color color))
-                {
-                    return color;
-                }
-                else
-                {
-                    color = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
-                    m_AdditionalColors.Add(position, color);
-                    return color;
-                }
+                return GetAdditionalColor(position);
             }
         }
-        public Color GetColor(int row, int column)
+        private Color GetAdditionalColor(int position)
         {
-            int position = row * 8 + column;
-            return GetColor(position);
+            if (m_AdditionalColors.TryGetValue(position, out Color color))
+            {
+                return color;
+            }
+            else
+            {
+                UnityEngine.Random.State oldState = UnityEngine.Random.state;
+                UnityEngine.Random.InitState(position);
+                Color randomColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+                UnityEngine.Random.state = oldState;
+                
+                m_AdditionalColors.Add(position, randomColor);
+                return randomColor;
+            }
         }
         public object Clone()
         {
