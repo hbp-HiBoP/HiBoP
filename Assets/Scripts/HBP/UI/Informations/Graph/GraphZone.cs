@@ -305,7 +305,7 @@ namespace HBP.UI.Informations
         }
         Graph.Curve GenerateGroupsCurve(Column column, int index, Core.Data.SubBloc subBloc, string ID)
         {
-            ID += "_" + column.ChannelGroups[index].Name;
+            ID += "_" + column.ChannelGroups[index].ID;
             CurveData curveData = null;
             Dictionary<Core.Data.Patient, List<string>> channelsByPatient = new Dictionary<Core.Data.Patient, List<string>>();
             foreach (var channel in column.ChannelGroups[index].Channels)
