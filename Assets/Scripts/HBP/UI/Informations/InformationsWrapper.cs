@@ -174,9 +174,9 @@ namespace HBP.UI.Informations
                 }
             }
         }
-        public void OpenCustomGraphsManager()
+        public void OpenGraphSettingsWindow()
         {
-            var window = WindowsManager.Open("Channel structs groups window", null) as ChannelStructsGroupsWindow;
+            var window = WindowsManager.Open("Graph settings window", null) as GraphSettingsWindow;
             window.ChannelStructsGroups = m_ChannelStructsGroups;
             window.OnChannelStructsGroupsChanged.AddListener((groups) =>
             {

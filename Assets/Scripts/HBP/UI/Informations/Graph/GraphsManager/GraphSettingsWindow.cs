@@ -7,7 +7,7 @@ using UnityEngine.Events;
 
 namespace HBP.UI.Informations
 {
-    public class ChannelStructsGroupsWindow : DialogWindow
+    public class GraphSettingsWindow : DialogWindow
     {
         #region Properties
         [SerializeField] private ChannelStructsGroupListGestion m_ChannelStructsGroupListGestion;

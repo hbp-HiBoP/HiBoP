@@ -307,17 +307,17 @@ namespace HBP.UI.Informations
         {
             ID += "_" + column.ChannelGroups[index].Name;
             CurveData curveData = null;
-            Dictionary<Core.Data.Patient, List<string>> ChannelsByPatient = new Dictionary<Core.Data.Patient, List<string>>();
+            Dictionary<Core.Data.Patient, List<string>> channelsByPatient = new Dictionary<Core.Data.Patient, List<string>>();
             foreach (var channel in column.ChannelGroups[index].Channels)
             {
-                ChannelsByPatient.AddIfAbsent(channel.Patient, new List<string>());
-                ChannelsByPatient[channel.Patient].Add(channel.Channel);
+                channelsByPatient.AddIfAbsent(channel.Patient, new List<string>());
+                channelsByPatient[channel.Patient].Add(channel.Channel);
             }
-            Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo> dataInfoByPatient = new Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo>(ChannelsByPatient.Count);
+            Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo> dataInfoByPatient = new Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo>(channelsByPatient.Count);
             if (column.Data is IEEGData ieegDataStruct)
             {
                 Core.Data.IEEGDataInfo[] ieegDataInfo = ieegDataStruct.Dataset.GetIEEGDataInfos();
-                foreach (var patient in ChannelsByPatient.Keys)
+                foreach (var patient in channelsByPatient.Keys)
                 {
                     dataInfoByPatient.Add(patient, ieegDataInfo.First(d => d.Patient == patient && d.Name == ieegDataStruct.Name));
                 }
@@ -325,7 +325,7 @@ namespace HBP.UI.Informations
             else if (column.Data is CCEPData ccepDataStruct)
             {
                 Core.Data.CCEPDataInfo[] ccepDataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos();
-                foreach (var patient in ChannelsByPatient.Keys)
+                foreach (var patient in channelsByPatient.Keys)
                 {
                     dataInfoByPatient.Add(patient, ccepDataInfo.First(d => d.Patient == patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Name == ccepDataStruct.Name));
                 }
@@ -392,25 +392,40 @@ namespace HBP.UI.Informations
             }
             else if (column.ChannelGroups[index].Channels.Count == 1)
             {
+                // Use GetCurveData with all valid trials selected
                 ChannelStruct channel = column.ChannelGroups[index].Channels[0];
-                Core.Data.ChannelSubTrialStat stat = Core.Data.DataManager.GetStatistics(dataInfoByPatient[channel.Patient], column.Data.Bloc, channel.Channel).Trial.ChannelSubTrialBySubBloc[subBloc];
-                float[] values = stat.Values;
-
-                // Generate points.
-                int start = subBloc.Window.Start;
-                int end = subBloc.Window.End;
-                Vector2[] points = new Vector2[values.Length];
-                for (int i = 0; i < points.Length; i++)
+                Core.Data.PatientDataInfo dataInfo = dataInfoByPatient[channel.Patient];
+                Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
+                
+                if (blocChannelData == null)
                 {
-                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
-                    float ordinate = values[i];
-                    points[i] = new Vector2(abscissa, ordinate);
+                    Graph.Curve nullResult = new Graph.Curve(column.ChannelGroups[index].Name, null, true, ID, new Graph.Curve[0], m_DefaultColor);
+                    return nullResult;
                 }
-                curveData = CurveData.CreateInstance(points, color);
+
+                // Create a selection array with all valid trials selected
+                Core.Data.ChannelTrial[] validTrials = blocChannelData.Trials.Where(t => t.IsValid).ToArray();
+                bool[] allValidTrialsSelected = new bool[validTrials.Length];
+                for (int i = 0; i < allValidTrialsSelected.Length; i++)
+                {
+                    allValidTrialsSelected[i] = true;
+                }
+
+                // Use existing GetCurveData method
+                curveData = GetCurveData(column, subBloc, channel, allValidTrialsSelected);
+                
+                // Update color to match group color instead of site color
+                if (curveData != null)
+                {
+                    curveData.Color = color;
+                }
+                
+                Graph.Curve result = new Graph.Curve(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+                return result;
             }
 
-            Graph.Curve result = new Graph.Curve(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
-            return result;
+            Graph.Curve finalResult = new Graph.Curve(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            return finalResult;
         }
         Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, Core.Data.SubBloc subBloc, string ID)
         {
