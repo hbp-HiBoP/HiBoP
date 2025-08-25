@@ -229,18 +229,14 @@ namespace HBP.Data.Preferences
                 return GetAdditionalColor(position);
             }
         }
-        public Color GetGroupColor(int groupIndex, int column)
+        public Color GetROIColor(int column)
         {
-            if (groupIndex == 0 && column >= 0 && column < 8)
-            {
-                int position = 8 + column;
-                return m_Colors[position].ToColor();
-            }
-            else
-            {
-                int position = 100000 + groupIndex * 10000 + column;
-                return GetAdditionalColor(position);
-            }
+            return GetGroupColor(0, column);
+        }
+        public Color GetCustomGroupColor(int groupIndex, int column)
+        {
+            if (groupIndex == 0) groupIndex++;
+            return GetGroupColor(groupIndex, column);
         }
         public Color GetColor(int position)
         {
@@ -258,6 +254,26 @@ namespace HBP.Data.Preferences
                 return GetAdditionalColor(position);
             }
         }
+        public object Clone()
+        {
+            return new GraphPreferences(ShowCurvesOfMinimizedColumns, ShowSEM, Colors);
+        }
+        #endregion
+
+        #region Private Methods
+        private Color GetGroupColor(int groupIndex, int column)
+        {
+            if (groupIndex == 0 && column >= 0 && column < 8)
+            {
+                int position = 16 + column;
+                return m_Colors[position].ToColor();
+            }
+            else
+            {
+                int position = 100000 + groupIndex * 10000 + column;
+                return GetAdditionalColor(position);
+            }
+        }
         private Color GetAdditionalColor(int position)
         {
             if (m_AdditionalColors.TryGetValue(position, out Color color))
@@ -270,14 +286,10 @@ namespace HBP.Data.Preferences
                 UnityEngine.Random.InitState(position);
                 Color randomColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
                 UnityEngine.Random.state = oldState;
-                
+
                 m_AdditionalColors.Add(position, randomColor);
                 return randomColor;
             }
-        }
-        public object Clone()
-        {
-            return new GraphPreferences(ShowCurvesOfMinimizedColumns, ShowSEM, Colors);
         }
         #endregion
     }

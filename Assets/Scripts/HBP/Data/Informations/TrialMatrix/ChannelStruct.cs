@@ -203,23 +203,30 @@ namespace HBP.Data.Informations
     [Serializable]
     public class ChannelStructsGroup : BaseData 
     {
+        #region Enums
+        public enum GroupType { ROI, Custom }
+        #endregion
+
         #region Properties
         public string Name { get; set; }
         public List<ChannelStruct> Channels { get; set; }
+        public GroupType Type { get; set; }
         #endregion
 
         #region Constructors
-        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels, string id) : base(id)
+        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels, GroupType type, string id) : base(id)
         {
             Name = name;
             Channels = channels.ToList();
+            Type = type;
         }
-        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels) : base()
+        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels, GroupType type) : base()
         {
             Name = name;
             Channels = channels.ToList();
+            Type = type;
         }
-        public ChannelStructsGroup() : this(string.Empty, new List<ChannelStruct>())
+        public ChannelStructsGroup() : this(string.Empty, new List<ChannelStruct>(), GroupType.Custom)
         {
         }
         #endregion
@@ -227,7 +234,7 @@ namespace HBP.Data.Informations
         #region Public Methods
         public override object Clone()
         {
-            return new ChannelStructsGroup(Name, Channels.DeepClone(), ID);
+            return new ChannelStructsGroup(Name, Channels.DeepClone(), Type, ID);
         }
         public override void Copy(object copy)
         {
@@ -236,6 +243,7 @@ namespace HBP.Data.Informations
             {
                 Name = group.Name;
                 Channels = group.Channels.ToList();
+                Type = group.Type;
             }
         }
         #endregion

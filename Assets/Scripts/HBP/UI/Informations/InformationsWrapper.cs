@@ -178,9 +178,9 @@ namespace HBP.UI.Informations
         {
             var window = WindowsManager.Open("Graph settings window", null) as GraphSettingsWindow;
             window.ChannelStructsGroups = m_ChannelStructsGroups;
-            window.OnChannelStructsGroupsChanged.AddListener((groups) =>
+            window.OnOk.AddListener(() =>
             {
-                m_ChannelStructsGroups = groups;
+                m_ChannelStructsGroups = window.ChannelStructsGroups;
                 m_RequestSceneDataUpdate = true;
                 m_RequestGraphsUpdate = true;
             });
@@ -235,7 +235,7 @@ namespace HBP.UI.Informations
                     {
                         IEnumerable<ChannelStruct> channels = column.Sites.Where(site => !site.State.IsOutOfROI && !site.State.IsMasked && !site.State.IsBlackListed).Select(site => new ChannelStruct(site));
                         if (channels.Count() > 0)
-                            groups.Add(new ChannelStructsGroup(m_Scene.ROIManager.SelectedROI.Name, channels.ToList()));
+                            groups.Add(new ChannelStructsGroup(m_Scene.ROIManager.SelectedROI.Name, channels.ToList(), ChannelStructsGroup.GroupType.ROI));
                     }
                     groups.AddRange(m_ChannelStructsGroups);
                     if (column is Column3DIEEG ieegColumn)
@@ -270,7 +270,7 @@ namespace HBP.UI.Informations
         }
         void GenerateFilteredChannelStructs(string name, IEnumerable<Core.Object3D.Site> sites)
         {
-            ChannelStructsGroup group = new ChannelStructsGroup(name, sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)));
+            ChannelStructsGroup group = new ChannelStructsGroup(name, sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)), ChannelStructsGroup.GroupType.Custom);
             m_ChannelStructsGroups.RemoveAll(g => g.Name == name);
             m_ChannelStructsGroups.Add(group);
         }

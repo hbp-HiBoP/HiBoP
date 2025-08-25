@@ -331,7 +331,12 @@ namespace HBP.UI.Informations
                 }
             }
 
-            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetGroupColor(index, Array.IndexOf(m_Columns, column));
+            var color = column.ChannelGroups[index].Type switch
+            {
+                ChannelStructsGroup.GroupType.ROI => PersistentDataManager.UserPreferences.Visualization.Graph.GetROIColor(Array.IndexOf(m_Columns, column)),
+                ChannelStructsGroup.GroupType.Custom => PersistentDataManager.UserPreferences.Visualization.Graph.GetCustomGroupColor(index, Array.IndexOf(m_Columns, column)),
+                _ => PersistentDataManager.UserPreferences.Visualization.Graph.GetCustomGroupColor(index, Array.IndexOf(m_Columns, column)),
+            };
             if (column.ChannelGroups[index].Channels.Count > 1)
             {
                 int channelCount = column.ChannelGroups[index].Channels.Count;

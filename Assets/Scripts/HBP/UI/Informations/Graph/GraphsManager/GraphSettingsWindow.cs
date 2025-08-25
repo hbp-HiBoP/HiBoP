@@ -25,25 +25,12 @@ namespace HBP.UI.Informations
         private List<ChannelStructsGroup> m_ChannelStructsGroups = new();
         public List<ChannelStructsGroup> ChannelStructsGroups
         {
-            get => m_ChannelStructsGroups;
+            get => m_ChannelStructsGroupListGestion.List.Objects.ToList();
             set
             {
                 m_ChannelStructsGroups = value;
                 SetFields();
             }
-        }
-        #endregion
-
-        #region Events
-        public GenericEvent<List<ChannelStructsGroup>> OnChannelStructsGroupsChanged = new GenericEvent<List<ChannelStructsGroup>>();
-        #endregion
-
-        #region Public Methods
-        public override void OK()
-        {
-            base.OK();
-
-            OnChannelStructsGroupsChanged.Invoke(m_ChannelStructsGroupListGestion.List.Objects.ToList());
         }
         #endregion
 
