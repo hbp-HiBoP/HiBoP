@@ -146,6 +146,13 @@ namespace HBP.Data.Preferences
     public class GraphPreferences : ICloneable
     {
         #region Properties
+        public const int MINIMUM_NUMBER_OF_SITES = 2;
+        public const int MAXIMUM_NUMBER_OF_SITES = 10;
+        public const int MINIMUM_NUMBER_OF_COLUMNS = 8;
+        public const int MAXIMUM_NUMBER_OF_COLUMNS = 16;
+        public const int MINIMUM_NUMBER_OF_GROUPS = 1;
+        public const int MAXIMUM_NUMBER_OF_GROUPS = 10;
+
         [JsonProperty] public bool ShowCurvesOfMinimizedColumns { get; set; }
         [JsonProperty] public bool ShowSEM { get; set; }
         
