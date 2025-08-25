@@ -223,7 +223,7 @@ namespace HBP.Data.Preferences
             if (maxSites > MaxSites || maxColumns > MaxColumns)
             {
                 // Redimensionner la grille des sites si nécessaire
-                ColorGrid newSiteColors = new ColorGrid(maxSites, maxColumns);
+                ColorGrid newSiteColors = new ColorGrid(maxSites, maxColumns, ColorGrid.ColorGridType.Site);
                 for (int r = 0; r < Math.Min(MaxSites, maxSites); r++)
                 {
                     for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
@@ -237,7 +237,7 @@ namespace HBP.Data.Preferences
             if (maxColumns > MaxColumns)
             {
                 // Redimensionner la grille des ROI si nécessaire
-                ColorGrid newROIColors = new ColorGrid(1, maxColumns);
+                ColorGrid newROIColors = new ColorGrid(1, maxColumns, ColorGrid.ColorGridType.ROI);
                 for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
                 {
                     newROIColors.SetColor(0, c, ROIColors.GetColor(0, c));
@@ -248,7 +248,7 @@ namespace HBP.Data.Preferences
             if (maxGroups > MaxGroups || maxColumns > MaxColumns)
             {
                 // Redimensionner la grille des groupes si nécessaire
-                ColorGrid newGroupColors = new ColorGrid(maxGroups, maxColumns);
+                ColorGrid newGroupColors = new ColorGrid(maxGroups, maxColumns, ColorGrid.ColorGridType.Group);
                 for (int r = 0; r < Math.Min(MaxGroups, maxGroups); r++)
                 {
                     for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
@@ -279,9 +279,9 @@ namespace HBP.Data.Preferences
         #region Private Methods
         private void InitializeDefaultColors()
         {
-            SiteColors = new ColorGrid(MaxSites, MaxColumns);
-            ROIColors = new ColorGrid(1, MaxColumns);
-            GroupColors = new ColorGrid(MaxGroups, MaxColumns);
+            SiteColors = new ColorGrid(MaxSites, MaxColumns, ColorGrid.ColorGridType.Site);
+            ROIColors = new ColorGrid(1, MaxColumns, ColorGrid.ColorGridType.ROI);
+            GroupColors = new ColorGrid(MaxGroups, MaxColumns, ColorGrid.ColorGridType.Group);
 
             SiteColors.InitializeWithColors(new Color[]
             {
@@ -326,71 +326,6 @@ namespace HBP.Data.Preferences
             });
         }
         #endregion
-
-        // Propriété pour la compatibilité avec l'ancien UI
-        [JsonIgnore] const int NUMBER_OF_COLORS = 24;
-        [JsonIgnore] public Color[] Colors
-        {
-            get
-            {
-                // Maintenir la compatibilité avec l'ancien système d'UI
-                Color[] colors = new Color[NUMBER_OF_COLORS];
-                for (int i = 0; i < NUMBER_OF_COLORS; i++)
-                {
-                    if (i < 16) // Couleurs des sites (2 * 8)
-                    {
-                        int row = i / 8;
-                        int col = i % 8;
-                        colors[i] = SiteColors.GetColor(row, col);
-                    }
-                    else // Couleurs des ROI (8 suivantes)
-                    {
-                        int col = i - 16;
-                        colors[i] = ROIColors.GetColor(0, col);
-                    }
-                }
-                return colors;
-            }
-        }
-        // FIXME : supprimer ces méthodes dès que l'ancien UI sera supprimé, ne pas supprimer pour l'instant pour garder la compatibilité
-        public void SetColor(int position, Color color)
-        {
-            if (position >= 0 && position < NUMBER_OF_COLORS)
-            {
-                if (position < 16) // Couleurs des sites
-                {
-                    int row = position / 8;
-                    int col = position % 8;
-                    SiteColors.SetColor(row, col, color);
-                }
-                else // Couleurs des ROI
-                {
-                    int col = position - 16;
-                    ROIColors.SetColor(0, col, color);
-                }
-            }
-        }
-        public Color GetColor(int position)
-        {
-            if (position < 0)
-            {
-                position = 0;
-            }
-
-            if (position < NUMBER_OF_COLORS)
-            {
-                return Colors[position];
-            }
-            else
-            {
-                // Générer une couleur aléatoire basée sur la position
-                UnityEngine.Random.State oldState = UnityEngine.Random.state;
-                UnityEngine.Random.InitState(position);
-                Color randomColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
-                UnityEngine.Random.state = oldState;
-                return randomColor;
-            }
-        }
     }
 
     [JsonObject(MemberSerialization.OptIn)]
@@ -418,17 +353,23 @@ namespace HBP.Data.Preferences
     [JsonObject(MemberSerialization.OptIn)]
     public class ColorGrid : ICloneable
     {
+        #region Enums
+        public enum ColorGridType { Site, ROI, Group }
+        #endregion
+
         #region Properties
         [JsonProperty] private SerializableColor[,] m_Colors;
+        [JsonProperty] private ColorGridType m_Type;
 
         public int Rows => m_Colors?.GetLength(0) ?? 0;
         public int Columns => m_Colors?.GetLength(1) ?? 0;
         #endregion
 
         #region Constructors
-        public ColorGrid(int rows, int columns)
+        public ColorGrid(int rows, int columns, ColorGridType type)
         {
             m_Colors = new SerializableColor[rows, columns];
+            m_Type = type;
         }
         #endregion
 
@@ -471,7 +412,7 @@ namespace HBP.Data.Preferences
         }
         public object Clone()
         {
-            ColorGrid clone = new ColorGrid(Rows, Columns);
+            ColorGrid clone = new ColorGrid(Rows, Columns, m_Type);
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Columns; c++)
@@ -519,7 +460,14 @@ namespace HBP.Data.Preferences
         }
         private Color GenerateRandomColor(int row, int column)
         {
-            int seed = 1000000 + (row * 1000) + column;
+            int baseSeed = m_Type switch
+            {
+                ColorGridType.Site => 2000000,
+                ColorGridType.ROI => 3000000,
+                ColorGridType.Group => 4000000,
+                _ => 1000000
+            };
+            int seed = baseSeed + (row * 1000) + column;
             UnityEngine.Random.State oldState = UnityEngine.Random.state;
             UnityEngine.Random.InitState(seed);
             Color randomColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));

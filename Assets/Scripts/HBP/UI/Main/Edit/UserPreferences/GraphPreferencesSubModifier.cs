@@ -11,6 +11,7 @@ namespace HBP.UI.Main
         [SerializeField] Toggle m_ShowCurvesOfMinimizedColumns;
         [SerializeField] Toggle m_ShowSEM;
         [SerializeField] Button m_Default;
+        [SerializeField] GameObject m_ColorGridSettingsMenu;
         [SerializeField] Slider m_MaxSitesSlider;
         [SerializeField] Slider m_MaxColumnsSlider;
         [SerializeField] Slider m_MaxGroupsSlider;
@@ -59,6 +60,7 @@ namespace HBP.UI.Main
                 }
             });
             m_RegenerateGridButton.onClick.AddListener(RegenerateGrid);
+            m_ColorGridSettingsMenu.SetActive(false);
         }
         #endregion
 
@@ -76,18 +78,20 @@ namespace HBP.UI.Main
             m_MaxColumnsSlider.value = objectToDisplay.MaxColumns;
 
             m_MaxSitesSlider.minValue = GraphPreferences.MINIMUM_NUMBER_OF_SITES;
-            m_MaxSitesSlider.maxValue = GraphPreferences.MAXIMUM_NUMBER_OF_SITES;
+            m_MaxSitesSlider.maxValue = Mathf.Max(GraphPreferences.MAXIMUM_NUMBER_OF_SITES, objectToDisplay.MaxSites);
             m_MaxSitesSlider.wholeNumbers = true;
             m_MaxSitesSlider.value = objectToDisplay.MaxSites;
 
             m_MaxGroupsSlider.minValue = GraphPreferences.MINIMUM_NUMBER_OF_GROUPS;
-            m_MaxGroupsSlider.maxValue = GraphPreferences.MAXIMUM_NUMBER_OF_GROUPS;
+            m_MaxGroupsSlider.maxValue = Mathf.Max(GraphPreferences.MAXIMUM_NUMBER_OF_GROUPS, objectToDisplay.MaxGroups);
             m_MaxGroupsSlider.wholeNumbers = true;
             m_MaxGroupsSlider.value = objectToDisplay.MaxGroups;
+
             GenerateGrid();
         }
         protected async void RegenerateGrid()
         {
+            m_ColorGridSettingsMenu.SetActive(false);
             var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Regenerate color grid", "If you regenerate the color grid, some colors may be reset — especially if you reduced one of the sliders. Do you want to proceed?", "Yes", "No");
             if (result == 0)
             {
