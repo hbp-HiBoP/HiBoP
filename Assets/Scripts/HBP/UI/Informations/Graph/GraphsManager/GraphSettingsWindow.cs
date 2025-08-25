@@ -1,4 +1,6 @@
+using Cysharp.Threading.Tasks;
 using HBP.Data.Informations;
+using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +33,18 @@ namespace HBP.UI.Informations
                 m_ChannelStructsGroups = value;
                 SetFields();
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public async void OpenUserPreferences()
+        {
+            var window = WindowsManager.OpenModifier(PersistentDataManager.UserPreferences, null);
+            var navigator = window.GetComponent<ToggleNavigator>();
+            navigator.Navigate("Visualization");
+            await UniTask.WaitForEndOfFrame();
+            navigator.Navigate("Visualization_Graph");
+            Close();
         }
         #endregion
 
