@@ -333,9 +333,9 @@ namespace HBP.UI.Informations
 
             var color = column.ChannelGroups[index].Type switch
             {
-                ChannelStructsGroup.GroupType.ROI => PersistentDataManager.UserPreferences.Visualization.Graph.GetROIColor(Array.IndexOf(m_Columns, column)),
-                ChannelStructsGroup.GroupType.Custom => PersistentDataManager.UserPreferences.Visualization.Graph.GetCustomGroupColor(index, Array.IndexOf(m_Columns, column)),
-                _ => PersistentDataManager.UserPreferences.Visualization.Graph.GetCustomGroupColor(index, Array.IndexOf(m_Columns, column)),
+                ChannelStructsGroup.GroupType.ROI => PersistentDataManager.UserPreferences.Visualization.Graph.ROIColors.GetColor(0, Array.IndexOf(m_Columns, column)),
+                ChannelStructsGroup.GroupType.Custom => PersistentDataManager.UserPreferences.Visualization.Graph.GroupColors.GetColor(index, Array.IndexOf(m_Columns, column)),
+                _ => PersistentDataManager.UserPreferences.Visualization.Graph.GroupColors.GetColor(index, Array.IndexOf(m_Columns, column)),
             };
             if (column.ChannelGroups[index].Channels.Count > 1)
             {
@@ -483,7 +483,7 @@ namespace HBP.UI.Informations
             }
             Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetSiteColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (blocChannelData == null)
                 return null;
 
@@ -569,7 +569,7 @@ namespace HBP.UI.Informations
                 if (dataInfo == null) return null;
             }
             Core.Data.MEGcData megData = Core.Data.DataManager.GetData(dataInfo) as Core.Data.MEGcData;
-            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.GetSiteColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
                 return null;
 
