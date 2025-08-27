@@ -15,6 +15,10 @@ namespace HBP.Core.DLL
             GeneratorSurface = generatorSurface;
             initialize_ActivityGenerator(_handle, generatorSurface.getHandle());
         }
+        public bool SaveActivityAsNifti(string path, int timelineLength)
+        {
+            return save_activity_as_nifti_ActivityGenerator(_handle, path, timelineLength);
+        }
         #endregion
 
         #region DLLImport
@@ -22,6 +26,8 @@ namespace HBP.Core.DLL
         static private extern void initialize_ActivityGenerator(HandleRef generator, HandleRef generatorSurface);
         [DllImport("hbp_export", EntryPoint = "get_progress_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern float get_progress_ActivityGenerator(HandleRef generator);
+        [DllImport("hbp_export", EntryPoint = "save_activity_as_nifti_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static public extern bool save_activity_as_nifti_ActivityGenerator(HandleRef generator, string path, int timelineLength);
         #endregion
     }
 }

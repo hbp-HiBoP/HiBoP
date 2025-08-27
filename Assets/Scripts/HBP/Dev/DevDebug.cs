@@ -1,5 +1,4 @@
-﻿using UnityEditor;
-using HBP.Theme;
+﻿using HBP.Theme;
 using System.Linq;
 using UnityEngine;
 using System.IO;
@@ -16,12 +15,18 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Threading;
 using UnityEngine.EventSystems;
+using HBP.Data.Preferences;
 
 namespace HBP.Dev
 {
     public class DevDebug : MonoBehaviour
     {
-#if UNITY_EDITOR
+#if !UNITY_EDITOR
+        private void Awake()
+        {
+            Destroy(this);
+        }
+#endif
         private List<Vector3> m_InitialPositions = new List<Vector3>();
         private List<Vector3> m_FinalPositions = new List<Vector3>();
         private float m_Percent;
@@ -41,7 +46,8 @@ namespace HBP.Dev
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                DataManager.Clear();
+                //DataManager.Clear();
+                Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii"), (Module3DMain.SelectedColumn as Column3DIEEG).Timeline.Length);
             }
             //if (Input.GetKeyDown(KeyCode.F1))
             //{
@@ -349,6 +355,5 @@ namespace HBP.Dev
                 }
             }
         }
-#endif
     }
 }
