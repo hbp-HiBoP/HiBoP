@@ -1,21 +1,22 @@
-﻿using HBP.Theme;
-using System.Linq;
-using UnityEngine;
-using System.IO;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Data;
+using HBP.Core.Enums;
+using HBP.Core.Tools;
+using HBP.Data.Database;
+using HBP.Data.Module3D;
+using HBP.Data.Preferences;
+using HBP.Theme;
+using HBP.UI.Tools;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using HBP.Core.Enums;
-using HBP.Core.Data;
-using HBP.Data.Module3D;
-using HBP.Core.Tools;
-using HBP.UI.Tools;
-using HBP.Data.Database;
-using Cysharp.Threading.Tasks;
-using Newtonsoft.Json;
+using System.IO;
+using System.Linq;
 using System.Threading;
+using UnityEngine;
 using UnityEngine.EventSystems;
-using HBP.Data.Preferences;
+using UnityEngine.UIElements;
 
 namespace HBP.Dev
 {
@@ -42,12 +43,28 @@ namespace HBP.Dev
         private void Start()
         {
         }
+        private async UniTask SaveActivityAsNifti(Action<float, float, LoadingText> onChangeProgress)
+        {
+            async UniTaskVoid checkProgress(CancellationToken cancellationToken)
+            {
+                while (true)
+                {
+                    if (cancellationToken.IsCancellationRequested) return;
+                    onChangeProgress.Invoke(Module3DMain.SelectedColumn.ActivityGenerator.Progress, 0, new LoadingText("Exporting as Nifti"));
+                    await UniTask.WaitForSeconds(0.05f);
+                }
+            }
+            CancellationTokenSource source = new();
+            checkProgress(source.Token).Forget();
+            await UniTask.SwitchToThreadPool();
+            Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii"), (Module3DMain.SelectedColumn as Column3DIEEG).Timeline.Length);
+            source.Cancel();
+        }
         private async void Update()
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                //DataManager.Clear();
-                Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii"), (Module3DMain.SelectedColumn as Column3DIEEG).Timeline.Length);
+                LoadingManager.Load(SaveActivityAsNifti);
             }
             //if (Input.GetKeyDown(KeyCode.F1))
             //{
