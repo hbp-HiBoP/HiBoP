@@ -10,6 +10,7 @@ namespace HBP.Core.Object3D
         /// Name of the MRI
         /// </summary>
         public string Name { get; set; }
+        private string m_File = "";
         public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
         public List<DLL.Volume> Volumes { get; private set; } = new List<DLL.Volume>();
         public bool Loading { get; private set; } = false;
@@ -22,21 +23,27 @@ namespace HBP.Core.Object3D
             Name = "Default";
             Volumes.Add(new DLL.Volume());
         }
-        public FMRI(Data.MRI mri) : this(mri.Name, mri.File)
+        public FMRI(Data.MRI mri, bool loadInBackground = true) : this(mri.Name, mri.File, loadInBackground)
         {
         }
-        public FMRI(string name, string file)
+        public FMRI(string name, string file, bool loadInBackground = true)
         {
             Name = name;
-            Load(file).Forget();
+            m_File = file;
+            if (loadInBackground)
+                Load(file).Forget();
         }
         #endregion
 
         #region Private Methods
+        private async UniTaskVoid Load(string file)
+        {
+            await LoadAsync(file);
+        }
         /// <summary>
         /// Load the FMRI
         /// </summary>
-        private async UniTaskVoid Load(string file)
+        private async UniTask LoadAsync(string file)
         {
             await UniTask.SwitchToThreadPool();
             Loading = true;
@@ -51,6 +58,10 @@ namespace HBP.Core.Object3D
         #endregion
 
         #region Public Methods
+        public async UniTask LoadAsync()
+        {
+            await LoadAsync(m_File);
+        }
         /// <summary>
         /// Dispose all DLL objects
         /// </summary>

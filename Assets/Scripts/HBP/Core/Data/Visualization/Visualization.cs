@@ -521,7 +521,7 @@ namespace HBP.Core.Data
                     SharedFMRIDataInfo[] sharedFMRIDataInfos = fmriColumn.Dataset.GetSharedFMRIDataInfos();
                     progress += loadingDataStep;
                     onChangeProgress(progress, TIME_BY_DATAINFO * (dataInfos.Length + sharedFMRIDataInfos.Length), new LoadingText("Loading FMRI column ", fmriColumn.Name, " [" + (i + 1) + "/" + nbFMRIColumns + "]"));
-                    fmriColumn.Data.Load(dataInfos, sharedFMRIDataInfos);
+                    await fmriColumn.Data.LoadAsync(dataInfos, sharedFMRIDataInfos);
                 }
             }
 
@@ -545,7 +545,7 @@ namespace HBP.Core.Data
                     PatientDataInfo[] dataInfos = megColumn.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)).ToArray();
                     progress += loadingDataStep;
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfos.Length, new LoadingText("Loading MEG column ", megColumn.Name, " [" + (i + 1) + "/" + nbMegColumns + "]"));
-                    megColumn.Data.Load(dataInfos);
+                    await megColumn.Data.LoadAsync(dataInfos);
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HBP.Core.Data.Processed
@@ -43,7 +44,7 @@ namespace HBP.Core.Data.Processed
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<PatientDataInfo> columnData)
+        public async UniTask LoadAsync(IEnumerable<PatientDataInfo> columnData)
         {
             foreach (PatientDataInfo dataInfo in columnData)
             {
@@ -53,15 +54,19 @@ namespace HBP.Core.Data.Processed
                     MEGItem existingItem = MEGItems.Find(i => i.Patient == vDataInfo.Patient && i.Label == vDataInfo.Name);
                     if (existingItem != null)
                     {
-                        existingItem.FMRI = new Object3D.FMRI(data.FMRI);
+                        var fmri = new Object3D.FMRI(data.FMRI, false);
+                        await fmri.LoadAsync();
+                        existingItem.FMRI = fmri;
                     }
                     else
                     {
+                        var fmri = new Object3D.FMRI(data.FMRI, false);
+                        await fmri.LoadAsync();
                         MEGItem newItem = new MEGItem()
                         {
                             Label = vDataInfo.Name,
                             Patient = vDataInfo.Patient,
-                            FMRI = new Object3D.FMRI(data.FMRI)
+                            FMRI = fmri
                         };
                         MEGItems.Add(newItem);
                     }
