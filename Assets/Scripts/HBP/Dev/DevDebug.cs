@@ -57,7 +57,7 @@ namespace HBP.Dev
             CancellationTokenSource source = new();
             checkProgress(source.Token).Forget();
             await UniTask.SwitchToThreadPool();
-            Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii"), (Module3DMain.SelectedColumn as Column3DIEEG).Timeline.Length);
+            Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii"), (Module3DMain.SelectedColumn as Column3DIEEG).Timeline.CurrentSubtimeline, "IEEG Activity");
             source.Cancel();
         }
         private async void Update()

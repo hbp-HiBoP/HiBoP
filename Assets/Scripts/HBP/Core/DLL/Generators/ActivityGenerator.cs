@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using HBP.Core.Data;
+using System.Runtime.InteropServices;
 
 namespace HBP.Core.DLL
 {
@@ -15,9 +16,9 @@ namespace HBP.Core.DLL
             GeneratorSurface = generatorSurface;
             initialize_ActivityGenerator(_handle, generatorSurface.getHandle());
         }
-        public bool SaveActivityAsNifti(string path, int timelineLength)
+        public bool SaveActivityAsNifti(string path, SubTimeline timeline, string description)
         {
-            return save_activity_as_nifti_ActivityGenerator(_handle, path, timelineLength);
+            return save_activity_as_nifti_ActivityGenerator(_handle, path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description);
         }
         #endregion
 
@@ -27,7 +28,7 @@ namespace HBP.Core.DLL
         [DllImport("hbp_export", EntryPoint = "get_progress_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern float get_progress_ActivityGenerator(HandleRef generator);
         [DllImport("hbp_export", EntryPoint = "save_activity_as_nifti_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static public extern bool save_activity_as_nifti_ActivityGenerator(HandleRef generator, string path, int timelineLength);
+        static public extern bool save_activity_as_nifti_ActivityGenerator(HandleRef generator, string path, int timelineLength, float samplingFrequency, float startTime, string description);
         #endregion
     }
 }
