@@ -43,7 +43,6 @@ namespace HBP.Core.DLL
         }
         public void ComputeActivityUV(int timelineIndex = 0, float alpha = 0)
         {
-            Debug.Log(timelineIndex + " " + alpha);
             int nbVertices = ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices;
             if (ActivityUV.Length != nbVertices)
             {

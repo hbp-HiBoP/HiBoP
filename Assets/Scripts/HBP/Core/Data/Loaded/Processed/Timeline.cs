@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Tools;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -190,10 +191,10 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #region Public Methods
         public void Update(Object3D.FMRI fmri)
         {
-            Frequency = new Tools.Frequency(1);
-            Unit = "dt";
+            Unit = fmri.TimeUnit;
+            Frequency = TimelineTools.GetFrequencyFromUnit(fmri.TimeUnit, fmri.TimeStep);
             Length = fmri.Volumes.Count;
-            TimeLength = fmri.Volumes.Count - 1;
+            TimeLength = fmri.TimeStep * (fmri.Volumes.Count - 1);
             CurrentIndex = 0;
             m_DefaultSubtimeline = new SubTimeline(fmri);
         }
@@ -275,12 +276,12 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             Length = fmri.Volumes.Count;
             Before = 0;
             After = 0;
-            Frequency = new Tools.Frequency(1);
-            MinTime = 0;
-            MaxTime = fmri.Volumes.Count - 1;
+            Frequency = TimelineTools.GetFrequencyFromUnit(fmri.TimeUnit, fmri.TimeStep);
+            MinTime = fmri.StartTime;
+            MaxTime = fmri.StartTime + fmri.TimeStep * (fmri.Volumes.Count - 1);
             FirstSampleTime = MinTime;
             LastSampleTime = MaxTime;
-            TimeStep = 1;
+            TimeStep = fmri.TimeStep;
         }
         public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.Frequency frequency)
         {
@@ -334,5 +335,31 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             return Mathf.Clamp(globalIndex - GlobalMinIndex, 0, Length - 1);
         }
         #endregion
+    }
+    public class TimelineTools
+    {
+        public static Frequency GetFrequencyFromUnit(string unit, float timeStep)
+        {
+            if (unit == "dt")
+            {
+                return new Frequency(1);
+            }
+            else if (unit == "ms")
+            {
+                return new Frequency(1000f / timeStep);
+            }
+            else if (unit == "s")
+            {
+                return new Frequency(1f / timeStep);
+            }
+            else if (unit == "us")
+            {
+                return new Frequency(1000000f / timeStep);
+            }
+            else
+            {
+                return new Frequency(1);
+            }
+        }
     }
 }

@@ -35,6 +35,31 @@ namespace HBP.Core.DLL
                 return number_of_volumes_NIFTI(_handle);
             }
         }
+        public float StartTime
+        {
+            get
+            {
+                return get_start_time_NIFTI(_handle);
+            }
+        }
+        public float TimeStep
+        {
+            get
+            {
+                return get_time_step_NIFTI(_handle);
+            }
+        }
+        public string TimeUnit
+        {
+            get
+            {
+                lock (typeof(Marshal))
+                {
+                    IntPtr ptr = get_time_unit_NIFTI(_handle);
+                    return Marshal.PtrToStringAnsi(ptr);
+                }
+            }
+        }
         public bool IsLoaded { get; private set; }
         #endregion
 
@@ -88,6 +113,12 @@ namespace HBP.Core.DLL
         static private extern void convertToVolume_NIFTI(HandleRef handleNii, HandleRef handleVolume, int t);
         [DllImport("hbp_export", EntryPoint = "retrieveExtremeValues_NIFTI", CallingConvention = CallingConvention.Cdecl)]
         static private extern void retrieveExtremeValues_NIFTI(HandleRef handleNii, float[] extremeValues);
+        [DllImport("hbp_export", EntryPoint = "get_start_time_NIFTI", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float get_start_time_NIFTI(HandleRef handleNii);
+        [DllImport("hbp_export", EntryPoint = "get_time_step_NIFTI", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float get_time_step_NIFTI(HandleRef handleNii);
+        [DllImport("hbp_export", EntryPoint = "get_time_unit_NIFTI", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr get_time_unit_NIFTI(HandleRef handleNii);
         #endregion
     }
 }
