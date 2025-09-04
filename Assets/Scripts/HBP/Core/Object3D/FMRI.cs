@@ -1,5 +1,8 @@
 ﻿using Cysharp.Threading.Tasks;
+using HBP.Core.DLL;
+using HBP.Core.Tools;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace HBP.Core.Object3D
 {
@@ -11,20 +14,23 @@ namespace HBP.Core.Object3D
         /// </summary>
         public string Name { get; set; }
         private string m_File = "";
-        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
-        public List<DLL.Volume> Volumes { get; private set; } = new List<DLL.Volume>();
+        public List<Volume> Volumes { get; private set; } = new List<Volume>();
+        public bool Loading { get; private set; } = false;
+        public bool Loaded { get; private set; } = false;
+
+        // Store these properties so we can dispose the NIFTI object after loading
         public float StartTime { get; private set; } = 1;
         public float TimeStep { get; private set; } = 1;
         public string TimeUnit { get; private set; } = "dt";
-        public bool Loading { get; private set; } = false;
-        public bool Loaded { get; private set; } = false;
+        public MRICalValues ExtremeValues { get; private set; }
+        public Texture HistogramTexture { get; private set; }
         #endregion
 
         #region Constructors
         public FMRI()
         {
             Name = "Default";
-            Volumes.Add(new DLL.Volume());
+            Volumes.Add(new Volume());
         }
         public FMRI(Data.MRI mri, bool loadInBackground = true) : this(mri.Name, mri.File, loadInBackground)
         {
@@ -50,16 +56,20 @@ namespace HBP.Core.Object3D
         {
             await UniTask.SwitchToThreadPool();
             Loading = true;
-            NIFTI.Load(file);
-            for (int i = 0; i < NIFTI.NumberOfVolumes; i++)
+            var nifti = new NIFTI();
+            nifti.Load(file);
+            for (int i = 0; i < nifti.NumberOfVolumes; i++)
             {
-                Volumes.Add(NIFTI.ExtractVolume(i));
+                Volumes.Add(nifti.ExtractVolume(i));
             }
-            if (NIFTI.NumberOfVolumes > 0)
+            ExtremeValues = nifti.ExtremeValues;
+            UnityEngine.Debug.Log($"Extreme values: {ExtremeValues.Min}, {ExtremeValues.Max}");
+            HistogramTexture = Texture.GenerateDistributionHistogram(nifti, 440, 440, false);
+            if (nifti.NumberOfVolumes > 0)
             {
-                StartTime = NIFTI.StartTime;
-                TimeStep = NIFTI.TimeStep;
-                TimeUnit = NIFTI.TimeUnit;
+                StartTime = nifti.StartTime;
+                TimeStep = nifti.TimeStep;
+                TimeUnit = nifti.TimeUnit;
             }
             Loading = false;
             Loaded = true;
@@ -80,7 +90,6 @@ namespace HBP.Core.Object3D
             {
                 volume.Dispose();
             }
-            NIFTI.Dispose();
         }
         #endregion
     }

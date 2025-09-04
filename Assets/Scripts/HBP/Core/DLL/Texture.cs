@@ -201,13 +201,13 @@ namespace HBP.Core.DLL
         /// <summary>
         /// Generate a texture representing the values of the voxels of the input volume as a histogram
         /// </summary>
-        /// <param name="fmri">FMRI to get values from</param>
+        /// <param name="nifti">FMRI to get values from</param>
         /// <param name="height">Height of the resulting texture</param>
         /// <param name="width">Width of the resulting texture</param>
         /// <returns>Newly created texture</returns>
-        public static Texture GenerateDistributionHistogram(Object3D.FMRI fmri, int height, int width, bool withGreyArea = true)
+        public static Texture GenerateDistributionHistogram(NIFTI nifti, int height, int width, bool withGreyArea = true)
         {
-            return new Texture(generate_distribution_histogram_NIFTI_Texture(fmri.NIFTI.getHandle(), height, width, withGreyArea));
+            return new Texture(generate_distribution_histogram_NIFTI_Texture(nifti.getHandle(), height, width, withGreyArea));
         }
         /// <summary>
         /// Generate a texture representing the input set of values as a histogram

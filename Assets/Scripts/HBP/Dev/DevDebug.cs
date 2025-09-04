@@ -64,7 +64,8 @@ namespace HBP.Dev
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                LoadingManager.Load(SaveActivityAsNifti);
+                //LoadingManager.Load(SaveActivityAsNifti);
+                Core.Object3D.FMRI fmri = new("FMRI", Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "FRUIT.nii.gz"));
             }
             //if (Input.GetKeyDown(KeyCode.F1))
             //{

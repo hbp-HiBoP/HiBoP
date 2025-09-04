@@ -122,7 +122,6 @@ namespace HBP.UI.Toolbar
         {
             if (SelectedColumn is Column3DFMRI fmriColumn)
             {
-                m_ThresholdFMRI.CleanHistograms();
                 m_ThresholdFMRI.UpdateFMRICalValues(fmriColumn.SelectedFMRI, fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
                 m_LowerToggle.isOn = fmriColumn.FMRIParameters.HideLowerValues;
                 m_MiddleToggle.isOn = fmriColumn.FMRIParameters.HideMiddleValues;
@@ -130,7 +129,6 @@ namespace HBP.UI.Toolbar
             }
             else if (SelectedColumn is Column3DMEG megColumn && megColumn.SelectedFMRI.Loaded)
             {
-                m_ThresholdFMRI.CleanHistograms();
                 m_ThresholdFMRI.UpdateFMRICalValues(megColumn.SelectedFMRI, megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
                 m_LowerToggle.isOn = megColumn.MEGParameters.HideLowerValues;
                 m_MiddleToggle.isOn = megColumn.MEGParameters.HideMiddleValues;

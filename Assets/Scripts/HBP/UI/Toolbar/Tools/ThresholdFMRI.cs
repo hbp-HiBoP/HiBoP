@@ -42,12 +42,6 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private float m_PositiveMax = 1.0f;
         private float PositiveMaxValue { get { return m_PositiveMax * m_Max; } }
-        /// <summary>
-        /// Textures of the histograms (one per MRI)
-        /// </summary>
-        private Dictionary<Core.Object3D.FMRI, Texture2D> m_HistogramByFMRI = new Dictionary<Core.Object3D.FMRI, Texture2D>();
-
-        private Queue<Core.Object3D.FMRI> m_HistogramsToBeDestroyed = new Queue<Core.Object3D.FMRI>();
 
         /// <summary>
         /// Used to display the current histogram
@@ -106,20 +100,9 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private void UpdateMRIHistogram(Core.Object3D.FMRI fmri)
         {
-            UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM FMRI");
-            if (!m_HistogramByFMRI.TryGetValue(fmri, out m_MRIHistogram))
-            {
-                if (!m_MRIHistogram)
-                {
-                    m_MRIHistogram = new Texture2D(1, 1);
-                }
-                Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(fmri, 440, 440, false);
-                texture.UpdateTexture2D(m_MRIHistogram);
-                texture.Dispose();
-                m_HistogramByFMRI.Add(fmri, m_MRIHistogram);
-            }
+            if (m_MRIHistogram == null) m_MRIHistogram = new(1, 1);
+            fmri.HistogramTexture.UpdateTexture2D(m_MRIHistogram);
             m_Histogram.texture = m_MRIHistogram;
-            UnityEngine.Profiling.Profiler.EndSample();
         }
 
         private void SetNegativeValues(float min, float max)
@@ -248,17 +231,6 @@ namespace HBP.UI.Toolbar
                     SetPositiveValues(m_PositiveMin, m_PositiveMax);
                 }
             });
-
-            Module3DMain.OnRemoveScene.AddListener((s) =>
-            {
-                foreach (var column in s.ColumnsFMRI)
-                {
-                    foreach (var fmri in column.ColumnFMRIData.Data.FMRIs)
-                    {
-                        m_HistogramsToBeDestroyed.Enqueue(fmri.Item1);
-                    }
-                }
-            });
         }
         /// <summary>
         /// Update Maximum and Minimum Cal value
@@ -269,7 +241,7 @@ namespace HBP.UI.Toolbar
             m_Initialized = false;
 
             // Fixed values
-            Core.Tools.MRICalValues values = fmri.NIFTI.ExtremeValues;
+            MRICalValues values = fmri.ExtremeValues;
             m_Min = values.Min;
             m_Max = values.Max;
             m_MinText.text = m_Min.ToString("N2");
@@ -306,21 +278,6 @@ namespace HBP.UI.Toolbar
             if (updateHistogram) UpdateMRIHistogram(fmri);
 
             m_Initialized = true;
-        }
-        /// <summary>
-        /// Method used to clean useless histograms
-        /// </summary>
-        public void CleanHistograms()
-        {
-            while (m_HistogramsToBeDestroyed.Count > 0)
-            {
-                Core.Object3D.FMRI histogramID = m_HistogramsToBeDestroyed.Dequeue();
-                if (m_HistogramByFMRI.TryGetValue(histogramID, out Texture2D texture))
-                {
-                    DestroyImmediate(texture);
-                    m_HistogramByFMRI.Remove(histogramID);
-                }
-            }
         }
         #endregion
     }

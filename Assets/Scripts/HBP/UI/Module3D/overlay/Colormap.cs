@@ -119,7 +119,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void UpdateTextFMRI(Column3DFMRI fmriColumn)
         {
-            Core.Tools.MRICalValues values = fmriColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            Core.Tools.MRICalValues values = fmriColumn.SelectedFMRI.ExtremeValues;
             float min = values.Min;
             float max = values.Max;
             float negativeMin = fmriColumn.FMRIParameters.FMRINegativeCalMinFactor * min;
@@ -147,7 +147,7 @@ namespace HBP.UI.Module3D
         }
         private void UpdateTextMEG(Column3DMEG megColumn)
         {
-            Core.Tools.MRICalValues values = megColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            Core.Tools.MRICalValues values = megColumn.SelectedFMRI.ExtremeValues;
             float min = values.Min;
             float max = values.Max;
             float negativeMin = megColumn.MEGParameters.FMRINegativeCalMinFactor * min;
