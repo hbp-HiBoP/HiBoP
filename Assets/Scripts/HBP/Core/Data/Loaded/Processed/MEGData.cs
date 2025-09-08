@@ -54,13 +54,13 @@ namespace HBP.Core.Data.Processed
                     MEGItem existingItem = MEGItems.Find(i => i.Patient == vDataInfo.Patient && i.Label == vDataInfo.Name);
                     if (existingItem != null)
                     {
-                        var fmri = new Object3D.FMRI(data.FMRI, false);
+                        var fmri = new Object3D.FMRI(data.FMRI, data.Mask, false);
                         await fmri.LoadAsync();
                         existingItem.FMRI = fmri;
                     }
                     else
                     {
-                        var fmri = new Object3D.FMRI(data.FMRI, false);
+                        var fmri = new Object3D.FMRI(data.FMRI, data.Mask, false);
                         await fmri.LoadAsync();
                         MEGItem newItem = new MEGItem()
                         {

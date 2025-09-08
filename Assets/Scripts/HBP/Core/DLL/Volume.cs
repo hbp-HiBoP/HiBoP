@@ -175,6 +175,10 @@ namespace HBP.Core.DLL
         {
             return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
+        public bool Compare(BBox other)
+        {
+            return (Min == other.Min && Max == other.Max && Center == other.Center);
+        }
         #endregion
 
         #region Memory Management

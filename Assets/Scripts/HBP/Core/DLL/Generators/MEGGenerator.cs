@@ -7,14 +7,16 @@ namespace HBP.Core.DLL
     public class MEGGenerator : ActivityGenerator
     {
         #region Public Methods
-        public void ComputeActivity(IEnumerable<Volume> volumes)
+        public void ComputeActivity(IEnumerable<(Volume, Volume)> volumesAndMasks)
         {
             MultiVolume multiVolume = new MultiVolume();
-            foreach (var volume in volumes)
+            MultiVolume maskMultiVolume = new MultiVolume();
+            foreach (var volumeAndMask in volumesAndMasks)
             {
-                multiVolume.AddVolume(volume);
+                multiVolume.AddVolume(volumeAndMask.Item1);
+                maskMultiVolume.AddVolume(volumeAndMask.Item2);
             }
-            compute_activity_MEGGenerator(_handle, multiVolume.getHandle());
+            compute_activity_MEGGenerator(_handle, multiVolume.getHandle(), maskMultiVolume.getHandle());
         }
         public void AdjustValues(float fmriNegativeCalMinFactor, float fmriNegativeCalMaxFactor, float fmriPositiveCalMinFactor, float fmriPositiveCalMaxFactor)
         {
@@ -49,7 +51,7 @@ namespace HBP.Core.DLL
         [DllImport("hbp_export", EntryPoint = "delete_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_MEGGenerator(HandleRef generator);
         [DllImport("hbp_export", EntryPoint = "compute_activity_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void compute_activity_MEGGenerator(HandleRef generator, HandleRef multiVolume);
+        static private extern void compute_activity_MEGGenerator(HandleRef generator, HandleRef multiVolume, HandleRef maskMultiVolume);
         [DllImport("hbp_export", EntryPoint = "adjust_values_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void adjust_values_MEGGenerator(HandleRef generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
         [DllImport("hbp_export", EntryPoint = "set_hide_values_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]

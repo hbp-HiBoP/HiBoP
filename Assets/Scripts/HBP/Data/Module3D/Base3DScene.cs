@@ -2202,14 +2202,32 @@ namespace HBP.Data.Module3D
                 {
                     Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(fmriColumn.ColumnFMRIData.Data.FMRIs.SelectMany(fmri => fmri.Item1.Volumes));
+                    // Generate pairs of (volume, mask) for each fmri and its corresponding mask (or null if none)
+                    List<(Core.DLL.Volume, Core.DLL.Volume)> volumesAndMasks = new();
+                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    {
+                        foreach (var volume in fmri.Item1.Volumes)
+                        {
+                            volumesAndMasks.Add((volume, fmri.Item1.MaskVolume));
+                        }
+                    }
+                    generator.ComputeActivity(volumesAndMasks);
                     generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
                 }
                 else if (column is Column3DMEG megColumn)
                 {
                     Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
                     currentGenerator = generator;
-                    generator.ComputeActivity(megColumn.ColumnMEGData.Data.MEGItems.SelectMany(fmri => fmri.FMRI.Volumes));
+                    // Generate pairs of (volume, mask) for each fmri and its corresponding mask (or null if none)
+                    List<(Core.DLL.Volume, Core.DLL.Volume)> volumesAndMasks = new();
+                    foreach (var megItem in megColumn.ColumnMEGData.Data.MEGItems)
+                    {
+                        foreach (var volume in megItem.FMRI.Volumes)
+                        {
+                            volumesAndMasks.Add((volume, megItem.FMRI.MaskVolume));
+                        }
+                    }
+                    generator.ComputeActivity(volumesAndMasks);
                     generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
                 }
                 else if (column is Column3DStatic staticColumn)

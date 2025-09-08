@@ -1,10 +1,12 @@
 ﻿using HBP.UI.Tools;
+using UnityEngine;
 
 namespace HBP.UI.Main
 {
     public class MEGvDataInfoSubModifier : SubModifier<Core.Data.MEGvDataInfo>
     {
-        #region Properties     
+        #region Properties    
+        [SerializeField] FileSelector m_FileSelector;
         public override bool Interactable
         {
             get
@@ -14,6 +16,7 @@ namespace HBP.UI.Main
             set
             {
                 base.Interactable = value;
+                m_FileSelector.interactable = value;
             }
         }
         #endregion
@@ -22,12 +25,14 @@ namespace HBP.UI.Main
         public override void Initialize()
         {
             base.Initialize();
+            m_FileSelector.onValueChanged.AddListener((path) => { Object.MaskDataContainer.File = path; });
         }
         #endregion
 
         #region Protected Methods
         protected override void SetFields(Core.Data.MEGvDataInfo objectToDisplay)
         {
+            m_FileSelector.File = objectToDisplay.MaskDataContainer.SavedFile;
         }
         #endregion
     }
