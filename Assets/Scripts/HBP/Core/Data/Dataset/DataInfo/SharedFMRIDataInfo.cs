@@ -53,6 +53,15 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), DisplayName("Shared FMRI")]
     public class SharedFMRIDataInfo : DataInfo
     {
+        #region Properties
+        [JsonProperty("MaskDataContainer")] protected Container.Nifti m_MaskDataContainer;
+        public Container.Nifti MaskDataContainer
+        {
+            get => m_MaskDataContainer;
+            set => m_MaskDataContainer = value;
+        }
+        #endregion
+
         #region Constructors
         /// <summary>
         /// Create a new CCEPDataInfo instance.
@@ -62,8 +71,9 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public SharedFMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID, ID)
+        public SharedFMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Container.Nifti maskDataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID, ID)
         {
+            m_MaskDataContainer = maskDataContainer;
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
@@ -72,13 +82,14 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public SharedFMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID)
+        public SharedFMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Container.Nifti maskDataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID)
         {
+            m_MaskDataContainer = maskDataContainer;
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public SharedFMRIDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Nifti(), new Error[0], new Warning[0], "")
+        public SharedFMRIDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Nifti(), new Container.Nifti(), new Error[0], new Warning[0], "")
         {
 
         }
@@ -91,11 +102,15 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new SharedFMRIDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, CorrespondingDatabaseID, ID);
+            return new SharedFMRIDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, MaskDataContainer.Clone() as Container.Nifti, Errors, Warnings, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
+            if (copy is SharedFMRIDataInfo fMRIDataInfo)
+            {
+                m_MaskDataContainer = fMRIDataInfo.MaskDataContainer;
+            }
         }
         #endregion
 
@@ -114,6 +129,7 @@ namespace HBP.Core.Data
         private IEnumerable<Error> GetFMRIErrors()
         {
             List<Error> errors = new List<Error>();
+            if (!string.IsNullOrEmpty(MaskDataContainer.File)) errors.AddRange(MaskDataContainer.GetErrors());
             return errors;
         }
         protected override IEnumerable<Warning> GetWarnings()
@@ -130,6 +146,7 @@ namespace HBP.Core.Data
         private IEnumerable<Warning> GetFMRIWarnings()
         {
             List<Warning> warnings = new List<Warning>();
+            if (!string.IsNullOrEmpty(MaskDataContainer.File)) warnings.AddRange(MaskDataContainer.GetWarnings());
             return warnings;
         }
         #endregion
