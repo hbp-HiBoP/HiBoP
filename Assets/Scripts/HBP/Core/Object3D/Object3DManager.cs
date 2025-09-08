@@ -10,6 +10,7 @@ namespace HBP.Core.Object3D
         public static MNIObjects MNI { get; set; } = new MNIObjects();
         public static DiFuMoObjects DiFuMo { get; set; } = new DiFuMoObjects();
         public static IBCObjects IBC { get; set; } = new IBCObjects();
+        public static LocalizersObjects Localizers { get; set; } = new LocalizersObjects();
         #endregion
 
         #region Public Methods
@@ -18,6 +19,7 @@ namespace HBP.Core.Object3D
             MNI.Clean();
             IBC.Clean();
             DiFuMo.Clean();
+            Localizers.Clean();
             MarsAtlas.Dispose();
             JuBrain.Dispose();
         }

@@ -173,6 +173,10 @@ namespace HBP.Data.Module3D
             {
                 m_Scene.FMRIManager.DisplayDiFuMo = false;
             }
+            if (m_Scene.FMRIManager.DisplayLocalizers && SelectedMesh.Type != MeshType.MNI)
+            {
+                m_Scene.FMRIManager.DisplayLocalizers = false;
+            }
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
 

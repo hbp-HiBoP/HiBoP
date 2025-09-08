@@ -186,14 +186,15 @@ namespace HBP.Data.Preferences
         [JsonProperty] public bool PreloadDiFuMo256 { get; set; }
         [JsonProperty] public bool PreloadDiFuMo512 { get; set; }
         [JsonProperty] public bool PreloadDiFuMo1024 { get; set; }
+        [JsonProperty] public bool PreloadLocalizerVISU { get; set; }
         #endregion
 
         #region Constructors
-        public AtlasesPreferences() : this(true, true, false, false, false, false, false, false)
+        public AtlasesPreferences() : this(true, true, false, false, false, false, false, false, false)
         {
 
         }
-        public AtlasesPreferences(bool preloadMarsAtlas, bool preloadJuBrain, bool preloadIBC, bool preloadDiFuMo64, bool preloadDiFuMo128, bool preloadDiFuMo256, bool preloadDiFuMo512, bool preloadDiFuMo1024)
+        public AtlasesPreferences(bool preloadMarsAtlas, bool preloadJuBrain, bool preloadIBC, bool preloadDiFuMo64, bool preloadDiFuMo128, bool preloadDiFuMo256, bool preloadDiFuMo512, bool preloadDiFuMo1024, bool preloadLocalizerVISU)
         {
             PreloadMarsAtlas = preloadMarsAtlas;
             PreloadJuBrain = preloadJuBrain;
@@ -203,13 +204,14 @@ namespace HBP.Data.Preferences
             PreloadDiFuMo256 = preloadDiFuMo256;
             PreloadDiFuMo512 = preloadDiFuMo512;
             PreloadDiFuMo1024 = preloadDiFuMo1024;
+            PreloadLocalizerVISU = preloadLocalizerVISU;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new AtlasesPreferences(PreloadMarsAtlas, PreloadJuBrain, PreloadIBC, PreloadDiFuMo64, PreloadDiFuMo128, PreloadDiFuMo256, PreloadDiFuMo512, PreloadDiFuMo1024);
+            return new AtlasesPreferences(PreloadMarsAtlas, PreloadJuBrain, PreloadIBC, PreloadDiFuMo64, PreloadDiFuMo128, PreloadDiFuMo256, PreloadDiFuMo512, PreloadDiFuMo1024, PreloadLocalizerVISU);
         }
         #endregion
     }

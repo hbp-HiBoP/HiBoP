@@ -367,6 +367,7 @@ namespace HBP.Data.Module3D
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.Load("VISU");
         }
         #endregion
     }
