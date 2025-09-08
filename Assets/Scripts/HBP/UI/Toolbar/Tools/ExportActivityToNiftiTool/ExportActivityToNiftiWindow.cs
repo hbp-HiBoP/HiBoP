@@ -24,6 +24,7 @@ namespace HBP.UI.Toolbar
         [SerializeField] private Toggle m_NiiToggle;
         [SerializeField] private Toggle m_NiiGzToggle;
         [SerializeField] private FolderSelector m_ExportFolderSelector;
+        [SerializeField] private Toggle m_ExportMaskToggle;
         #endregion
 
         #region Public Methods
@@ -135,12 +136,21 @@ namespace HBP.UI.Toolbar
                 if (item.AssociatedColumn is Column3DIEEG column)
                 {
                     currentGenerator = column.ActivityGenerator;
-                    currentMessage = new LoadingText($"Exporting ", $"{column.Name} as {item.FileName}", $" [{currentColumn + 1}/{numberOfColumns}]");
+                    currentMessage = new LoadingText($"Exporting activity of ", $"{column.Name}", $" [{currentColumn + 1}/{numberOfColumns}]");
                     string path = Path.Join(m_ExportFolderSelector.Folder, item.FileName);
                     bool success = currentGenerator.SaveActivityAsNifti(path, column.Timeline.CurrentSubtimeline, $"IEEG Activity of {column.ColumnIEEGData.Dataset.Protocol.Name} - {column.ColumnIEEGData.Bloc.Name} - {column.ColumnIEEGData.DataName}");
                     if (!success)
                     {
                         throw new HBPException("Export failed", $"The export of the activity for column {item.AssociatedColumn.Name} failed.");
+                    }
+                    if (m_ExportMaskToggle.isOn)
+                    {
+                        currentMessage = new LoadingText($"Exporting activity mask of ", $"{column.Name}", $" [{currentColumn + 1}/{numberOfColumns}]");
+                        success = currentGenerator.SaveMaskAsNifti(Path.Join(m_ExportFolderSelector.Folder, $"{item.FileNameWithoutExtension}_mask{item.Extension}"), $"IEEG Activity Mask of {column.ColumnIEEGData.Dataset.Protocol.Name} - {column.ColumnIEEGData.Bloc.Name} - {column.ColumnIEEGData.DataName}");
+                        if (!success)
+                        {
+                            throw new HBPException("Export failed", $"The export of the activity mask for column {item.AssociatedColumn.Name} failed.");
+                        }
                     }
                 }
                 currentColumn++;

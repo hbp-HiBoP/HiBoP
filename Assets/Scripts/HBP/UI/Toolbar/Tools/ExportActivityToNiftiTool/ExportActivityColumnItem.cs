@@ -16,6 +16,11 @@ namespace HBP.UI.Toolbar
 
         public bool IsSelected { get { return m_Toggle.isOn; } }
         public string FileName { get { return m_FileNameInputField.text + m_ExtensionText.text; } }
+        public string FileNameWithoutExtension
+        {
+            get { return m_FileNameInputField.text; }
+            set { m_FileNameInputField.text = value; }
+        }
         public string Extension
         {
             get { return m_ExtensionText.text; }
