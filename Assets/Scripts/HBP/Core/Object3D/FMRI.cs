@@ -62,7 +62,10 @@ namespace HBP.Core.Object3D
             Loading = true;
             // FILE
             var nifti = new NIFTI();
-            nifti.Load(file);
+            if (!nifti.Load(file))
+            {
+                throw new HBPException("fMRI loading error", $"The fMRI {Name} could not be loaded.");
+            }
             for (int i = 0; i < nifti.NumberOfVolumes; i++)
             {
                 Volumes.Add(nifti.ExtractVolume(i));
@@ -79,10 +82,13 @@ namespace HBP.Core.Object3D
             if (!string.IsNullOrEmpty(maskFile))
             {
                 MaskVolume = new Volume();
-                MaskVolume.LoadNIFTIFile(maskFile);
+                if (!MaskVolume.LoadNIFTIFile(maskFile))
+                {
+                    throw new HBPException("Mask loading error", $"The mask of the fMRI {Name} could not be loaded.");
+                }
                 if (!MaskVolume.BoundingBox.Compare(Volumes[0].BoundingBox))
                 {
-                    throw new HBPException("Mask and fMRI bounding box mismatch", $"The mask {maskFile} does not have the same bounding box as the fMRI {file}.");
+                    throw new HBPException("Mask and fMRI bounding box mismatch", $"The mask of the fMRI {Name} does not have the same bounding box as the fMRI.");
                 }
             }
             Loading = false;
