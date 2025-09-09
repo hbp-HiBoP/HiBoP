@@ -2,6 +2,7 @@ using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using HBP.UI.Tools;
 
 namespace HBP.Core.Object3D
 {
@@ -20,7 +21,7 @@ namespace HBP.Core.Object3D
                 protocol?.Clean();
             }
         }
-        public void Load(string protocol)
+        public void Load(string protocol, bool displayErrors = true)
         {
             string protocolDirectory = Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers", protocol);
             
@@ -29,6 +30,19 @@ namespace HBP.Core.Object3D
                 LocalizerProtocol localizerProtocol = new LocalizerProtocol(protocol, protocolDirectory);
                 Protocols.Add(localizerProtocol);
             }
+            else if (displayErrors)
+            {
+                DialogBoxManager.Open(Enums.DialogBoxType.Error, "Can not load localizer", $"The localizer {protocol} could not be loaded. Please make sure you downloaded it and put it in the right folder.").Forget();
+            }
+        }
+        public FMRI GetCurrentFMRI(string protocolName, string blocName)
+        {
+            if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(blocName))
+                return null;
+
+            var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
+            var bloc = protocol?.Blocs.FirstOrDefault(b => b.Name == blocName);
+            return bloc?.FMRI;
         }
         #endregion
     }

@@ -5,6 +5,7 @@ using HBP.Core.Object3D;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
+using System.Linq;
 
 namespace HBP.UI.Main
 {
@@ -19,6 +20,15 @@ namespace HBP.UI.Main
         [SerializeField] Toggle m_DiFuMo256;
         [SerializeField] Toggle m_DiFuMo512;
         [SerializeField] Toggle m_DiFuMo1024;
+        [SerializeField] Toggle m_AUDI;
+        [SerializeField] Toggle m_LEC1;
+        [SerializeField] Toggle m_LEC2;
+        [SerializeField] Toggle m_MCSE;
+        [SerializeField] Toggle m_MOTO;
+        [SerializeField] Toggle m_MVEB;
+        [SerializeField] Toggle m_MVIS;
+        [SerializeField] Toggle m_VISU;
+
         [SerializeField] Button m_LoadMarsAtlas;
         [SerializeField] Button m_LoadJuBrain;
         [SerializeField] Button m_LoadIBC;
@@ -27,10 +37,20 @@ namespace HBP.UI.Main
         [SerializeField] Button m_LoadDiFuMo256;
         [SerializeField] Button m_LoadDiFuMo512;
         [SerializeField] Button m_LoadDiFuMo1024;
+        [SerializeField] Button m_LoadAUDI;
+        [SerializeField] Button m_LoadLEC1;
+        [SerializeField] Button m_LoadLEC2;
+        [SerializeField] Button m_LoadMCSE;
+        [SerializeField] Button m_LoadMOTO;
+        [SerializeField] Button m_LoadMVEB;
+        [SerializeField] Button m_LoadMVIS;
+        [SerializeField] Button m_LoadVISU;
+
         [SerializeField] Button m_MarsAtlasWebsite;
         [SerializeField] Button m_JuBrainWebsite;
         [SerializeField] Button m_IBCWebsite;
         [SerializeField] Button m_DiFuMoWebsite;
+        [SerializeField] Button m_LocalizersWebsite;
 
         public override bool Interactable
         {
@@ -50,6 +70,15 @@ namespace HBP.UI.Main
                 m_DiFuMo256.interactable = value;
                 m_DiFuMo512.interactable = value;
                 m_DiFuMo1024.interactable = value;
+                m_AUDI.interactable = value;
+                m_LEC1.interactable = value;
+                m_LEC2.interactable = value;
+                m_MCSE.interactable = value;
+                m_MOTO.interactable = value;
+                m_MVEB.interactable = value;
+                m_MVIS.interactable = value;
+                m_VISU.interactable = value;
+                
                 m_LoadMarsAtlas.interactable = value;
                 m_LoadJuBrain.interactable = value;
                 m_LoadIBC.interactable = value;
@@ -58,6 +87,14 @@ namespace HBP.UI.Main
                 m_LoadDiFuMo256.interactable = value;
                 m_LoadDiFuMo512.interactable = value;
                 m_LoadDiFuMo1024.interactable = value;
+                m_LoadAUDI.interactable = value;
+                m_LoadLEC1.interactable = value;
+                m_LoadLEC2.interactable = value;
+                m_LoadMCSE.interactable = value;
+                m_LoadMOTO.interactable = value;
+                m_LoadMVEB.interactable = value;
+                m_LoadMVIS.interactable = value;
+                m_LoadVISU.interactable = value;
             }
         }
         #endregion
@@ -75,6 +112,14 @@ namespace HBP.UI.Main
             m_DiFuMo256.onValueChanged.AddListener(value => Object.PreloadDiFuMo256 = value);
             m_DiFuMo512.onValueChanged.AddListener(value => Object.PreloadDiFuMo512 = value);
             m_DiFuMo1024.onValueChanged.AddListener(value => Object.PreloadDiFuMo1024 = value);
+            m_AUDI.onValueChanged.AddListener(value => Object.PreloadLocalizerAUDI = value);
+            m_LEC1.onValueChanged.AddListener(value => Object.PreloadLocalizerLEC1 = value);
+            m_LEC2.onValueChanged.AddListener(value => Object.PreloadLocalizerLEC2 = value);
+            m_MCSE.onValueChanged.AddListener(value => Object.PreloadLocalizerMCSE = value);
+            m_MOTO.onValueChanged.AddListener(value => Object.PreloadLocalizerMOTO = value);
+            m_MVEB.onValueChanged.AddListener(value => Object.PreloadLocalizerMVEB = value);
+            m_MVIS.onValueChanged.AddListener(value => Object.PreloadLocalizerMVIS = value);
+            m_VISU.onValueChanged.AddListener(value => Object.PreloadLocalizerVISU = value);
             
             m_LoadMarsAtlas.onClick.AddListener(async () =>
             {
@@ -125,10 +170,60 @@ namespace HBP.UI.Main
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
 
+            m_LoadAUDI.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("AUDI");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadLEC1.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("LEC1");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadLEC2.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("LEC2");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadMCSE.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("MCSE");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadMOTO.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("MOTO");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadMVEB.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("MVEB");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadMVIS.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("MVIS");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+            m_LoadVISU.onClick.AddListener(async () =>
+            {
+                Object3DManager.Localizers.Load("VISU");
+                await UniTask.WaitUntil(() => Object3DManager.Localizers.Loaded);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            });
+
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
             m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://julich-brain-atlas.de/"));
             m_IBCWebsite.onClick.AddListener(() => Application.OpenURL(@"https://individual-brain-charting.github.io/docs/"));
             m_DiFuMoWebsite.onClick.AddListener(() => Application.OpenURL(@"https://parietal-inria.github.io/DiFuMo/"));
+            m_LocalizersWebsite.onClick.AddListener(() => Application.OpenURL(@"https://github.com/CRNL-Eduwell/Localizer"));
         }
         #endregion
 
@@ -216,7 +311,32 @@ namespace HBP.UI.Main
                 m_LoadDiFuMo1024.GetComponentInChildren<Text>().text = "Loading...";
             }
 
+            // Update Localizers status
+            UpdateLocalizerButtonStatus("AUDI", m_LoadAUDI);
+            UpdateLocalizerButtonStatus("LEC1", m_LoadLEC1);
+            UpdateLocalizerButtonStatus("LEC2", m_LoadLEC2);
+            UpdateLocalizerButtonStatus("MCSE", m_LoadMCSE);
+            UpdateLocalizerButtonStatus("MOTO", m_LoadMOTO);
+            UpdateLocalizerButtonStatus("MVEB", m_LoadMVEB);
+            UpdateLocalizerButtonStatus("MVIS", m_LoadMVIS);
+            UpdateLocalizerButtonStatus("VISU", m_LoadVISU);
         }
+
+        private void UpdateLocalizerButtonStatus(string protocolName, Button button)
+        {
+            var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
+            if (protocol != null && protocol.Loaded)
+            {
+                button.interactable = false;
+                button.GetComponentInChildren<Text>().text = "Loaded";
+            }
+            else if (protocol != null)
+            {
+                button.interactable = false;
+                button.GetComponentInChildren<Text>().text = "Loading...";
+            }
+        }
+
         protected override void SetFields(AtlasesPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -229,6 +349,14 @@ namespace HBP.UI.Main
             m_DiFuMo256.isOn = objectToDisplay.PreloadDiFuMo256;
             m_DiFuMo512.isOn = objectToDisplay.PreloadDiFuMo512;
             m_DiFuMo1024.isOn = objectToDisplay.PreloadDiFuMo1024;
+            m_AUDI.isOn = objectToDisplay.PreloadLocalizerAUDI;
+            m_LEC1.isOn = objectToDisplay.PreloadLocalizerLEC1;
+            m_LEC2.isOn = objectToDisplay.PreloadLocalizerLEC2;
+            m_MCSE.isOn = objectToDisplay.PreloadLocalizerMCSE;
+            m_MOTO.isOn = objectToDisplay.PreloadLocalizerMOTO;
+            m_MVEB.isOn = objectToDisplay.PreloadLocalizerMVEB;
+            m_MVIS.isOn = objectToDisplay.PreloadLocalizerMVIS;
+            m_VISU.isOn = objectToDisplay.PreloadLocalizerVISU;
         }
         #endregion
     }

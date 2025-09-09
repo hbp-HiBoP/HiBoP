@@ -186,15 +186,24 @@ namespace HBP.Data.Preferences
         [JsonProperty] public bool PreloadDiFuMo256 { get; set; }
         [JsonProperty] public bool PreloadDiFuMo512 { get; set; }
         [JsonProperty] public bool PreloadDiFuMo1024 { get; set; }
+        [JsonProperty] public bool PreloadLocalizerAUDI { get; set; }
+        [JsonProperty] public bool PreloadLocalizerLEC1 { get; set; }
+        [JsonProperty] public bool PreloadLocalizerLEC2 { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMCSE { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMOTO { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMVEB { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMVIS { get; set; }
         [JsonProperty] public bool PreloadLocalizerVISU { get; set; }
         #endregion
 
         #region Constructors
-        public AtlasesPreferences() : this(true, true, false, false, false, false, false, false, false)
+        public AtlasesPreferences() : this(true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false)
         {
 
         }
-        public AtlasesPreferences(bool preloadMarsAtlas, bool preloadJuBrain, bool preloadIBC, bool preloadDiFuMo64, bool preloadDiFuMo128, bool preloadDiFuMo256, bool preloadDiFuMo512, bool preloadDiFuMo1024, bool preloadLocalizerVISU)
+        public AtlasesPreferences(bool preloadMarsAtlas, bool preloadJuBrain, bool preloadIBC,
+            bool preloadDiFuMo64, bool preloadDiFuMo128, bool preloadDiFuMo256, bool preloadDiFuMo512, bool preloadDiFuMo1024,
+            bool preloadLocalizerAUDI, bool preloadLocalizerLEC1, bool preloadLocalizerLEC2, bool preloadLocalizerMCSE, bool preloadLocalizerMOTO, bool preloadLocalizerMVEB, bool preloadLocalizerMVIS, bool preloadLocalizerVISU)
         {
             PreloadMarsAtlas = preloadMarsAtlas;
             PreloadJuBrain = preloadJuBrain;
@@ -204,6 +213,13 @@ namespace HBP.Data.Preferences
             PreloadDiFuMo256 = preloadDiFuMo256;
             PreloadDiFuMo512 = preloadDiFuMo512;
             PreloadDiFuMo1024 = preloadDiFuMo1024;
+            PreloadLocalizerAUDI = preloadLocalizerAUDI;
+            PreloadLocalizerLEC1 = preloadLocalizerLEC1;
+            PreloadLocalizerLEC2 = preloadLocalizerLEC2;
+            PreloadLocalizerMCSE = preloadLocalizerMCSE;
+            PreloadLocalizerMOTO = preloadLocalizerMOTO;
+            PreloadLocalizerMVEB = preloadLocalizerMVEB;
+            PreloadLocalizerMVIS = preloadLocalizerMVIS;
             PreloadLocalizerVISU = preloadLocalizerVISU;
         }
         #endregion
@@ -211,7 +227,7 @@ namespace HBP.Data.Preferences
         #region Public Methods
         public object Clone()
         {
-            return new AtlasesPreferences(PreloadMarsAtlas, PreloadJuBrain, PreloadIBC, PreloadDiFuMo64, PreloadDiFuMo128, PreloadDiFuMo256, PreloadDiFuMo512, PreloadDiFuMo1024, PreloadLocalizerVISU);
+            return new AtlasesPreferences(PreloadMarsAtlas, PreloadJuBrain, PreloadIBC, PreloadDiFuMo64, PreloadDiFuMo128, PreloadDiFuMo256, PreloadDiFuMo512, PreloadDiFuMo1024, PreloadLocalizerAUDI, PreloadLocalizerLEC1, PreloadLocalizerLEC2, PreloadLocalizerMCSE, PreloadLocalizerMOTO, PreloadLocalizerMVEB, PreloadLocalizerMVIS, PreloadLocalizerVISU);
         }
         #endregion
     }

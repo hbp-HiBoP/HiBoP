@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Toolbar
 {
-    public class IBCParameters : Tool
+    public class FMRIAtlasParameters : Tool
     {
         #region Properties
         /// <summary>
@@ -56,8 +56,9 @@ namespace HBP.UI.Toolbar
         public override void UpdateInteractable()
         {
             bool isIBC = SelectedScene.FMRIManager.DisplayIBCContrasts;
+            bool isLocalizers = SelectedScene.FMRIManager.DisplayLocalizers;
 
-            gameObject.SetActive(isIBC);
+            gameObject.SetActive(isIBC || isLocalizers);
         }
         /// <summary>
         /// Update the status of the tool
@@ -65,9 +66,17 @@ namespace HBP.UI.Toolbar
         public override void UpdateStatus()
         {
             bool hasIBC = SelectedScene.FMRIManager.CurrentVolume != null && SelectedScene.FMRIManager.DisplayIBCContrasts;
+            bool hasLocalizers = SelectedScene.FMRIManager.CurrentVolume != null && SelectedScene.FMRIManager.DisplayLocalizers;
             if (hasIBC)
             {
                 m_ThresholdFMRI.UpdateFMRICalValues(Object3DManager.IBC.FMRI, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor);
+                m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
+            }
+            else if (hasLocalizers)
+            {
+                var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersBloc);
+                if (currentFMRI == null) return;
+                m_ThresholdFMRI.UpdateFMRICalValues(currentFMRI, SelectedScene.FMRIManager.FMRINegativeCalMinFactor, SelectedScene.FMRIManager.FMRINegativeCalMaxFactor, SelectedScene.FMRIManager.FMRIPositiveCalMinFactor, SelectedScene.FMRIManager.FMRIPositiveCalMaxFactor);
                 m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
             }
         }

@@ -367,7 +367,15 @@ namespace HBP.Data.Module3D
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.Load("VISU");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerAUDI) Object3DManager.Localizers.Load("AUDI", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC1) Object3DManager.Localizers.Load("LEC1", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC2) Object3DManager.Localizers.Load("LEC2", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMCSE) Object3DManager.Localizers.Load("MCSE", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMOTO) Object3DManager.Localizers.Load("MOTO", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVEB) Object3DManager.Localizers.Load("MVEB", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVIS) Object3DManager.Localizers.Load("MVIS", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.Load("VISU", false);
+
         }
         #endregion
     }
