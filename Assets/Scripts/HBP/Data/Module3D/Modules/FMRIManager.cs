@@ -1,4 +1,6 @@
-﻿using HBP.Core.Object3D;
+﻿using HBP.Core.Data;
+using HBP.Core.DLL;
+using HBP.Core.Object3D;
 using System.Linq;
 using UnityEngine;
 
@@ -197,28 +199,44 @@ namespace HBP.Data.Module3D
             }
         }
 
-        /// <summary>
-        /// Currently used volume (depends on the type of fMRI we are displaying)
-        /// </summary>
-        public Core.DLL.Volume CurrentVolume
+        public Core.Object3D.FMRI CurrentFMRI
         {
             get
             {
                 if (m_DisplayIBCContrasts)
                 {
-                    return Object3DManager.IBC.FMRI.Volumes[m_SelectedIBCContrastID];
+                    return Object3DManager.IBC.FMRI;
                 }
                 else if (m_DisplayDiFuMo)
                 {
-                    return Object3DManager.DiFuMo.FMRIs[m_SelectedDiFuMoAtlas].Volumes[m_SelectedDiFuMoArea];
+                    return Object3DManager.DiFuMo.FMRIs[m_SelectedDiFuMoAtlas];
                 }
                 else if (m_DisplayLocalizers)
                 {
-                    var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersBloc);
-                    if (currentFMRI != null && currentFMRI.Volumes.Count > SelectedLocalizersTimelineIndex)
-                    {
-                        return currentFMRI.Volumes[SelectedLocalizersTimelineIndex];
-                    }
+                    return Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersBloc);
+                }
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Currently used volume (depends on the type of fMRI we are displaying)
+        /// </summary>
+        public Volume CurrentVolume
+        {
+            get
+            {
+                if (m_DisplayIBCContrasts)
+                {
+                    return CurrentFMRI.Volumes[m_SelectedIBCContrastID];
+                }
+                else if (m_DisplayDiFuMo)
+                {
+                    return CurrentFMRI.Volumes[m_SelectedDiFuMoArea];
+                }
+                else if (m_DisplayLocalizers)
+                {
+                    return CurrentFMRI.Volumes[m_SelectedLocalizersTimelineIndex];
                 }
                 return null;
             }
@@ -332,6 +350,8 @@ namespace HBP.Data.Module3D
         private const float m_DiFuMoPositiveMin = 0;
         private const float m_DiFuMoPositiveMax = 1;
         private const float m_DiFuMoAlpha = 1f;
+
+        private readonly Core.DLL.Texture m_LocalizersTexture = Core.DLL.Texture.Generate1DColorTexture(Core.Enums.ColorType.MatLab);
         #endregion
 
         #region Public Methods
@@ -348,20 +368,22 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateSurfaceFMRIColors()
         {
-            if (CurrentVolume != null)
+            var currentFMRI = CurrentFMRI;
+            var currentVolume = CurrentVolume;
+            if (currentVolume != null)
             {
                 Color[] colors;
                 if (m_DisplayDiFuMo)
                 {
-                    colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_DiFuMoNegativeMin, m_DiFuMoNegativeMax, m_DiFuMoPositiveMin, m_DiFuMoPositiveMax, m_DiFuMoAlpha);
+                    colors = currentVolume.ConvertValuesToColors(m_FMRIValues, m_DiFuMoNegativeMin, m_DiFuMoNegativeMax, m_DiFuMoPositiveMin, m_DiFuMoPositiveMax, m_DiFuMoAlpha);
                 }
                 else if (m_DisplayLocalizers)
                 {
-                    colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+                    colors = currentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha, m_LocalizersTexture, currentFMRI.ExtremeValues.Min, currentFMRI.ExtremeValues.Max);
                 }
                 else
                 {
-                    colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+                    colors = currentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
                 }
                 m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
                 foreach (Column3D column in m_Scene.Columns)
