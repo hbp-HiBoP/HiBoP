@@ -475,7 +475,7 @@ namespace HBP.Data.Module3D
             }
             else if (m_DisplayLocalizers)
             {
-                //column.CutTextures.ColorCutsTexturesWithLocalizersAtlas(CurrentVolume, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, CurrentLocalizersMask);
+                column.CutTextures.ColorCutsTexturesWithLocalizersAtlas(CurrentVolume, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, CurrentLocalizersMask, m_LocalizersTexture);
             }
         }
 

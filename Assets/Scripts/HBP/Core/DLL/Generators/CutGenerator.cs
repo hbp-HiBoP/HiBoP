@@ -33,9 +33,9 @@ namespace HBP.Core.DLL
         {
             fill_texture_with_fmri_CutGenerator(_handle, volume.getHandle(), negativeMin, negativeMax, positiveMin, positiveMax, alpha);
         }
-        public void FillTextureWithLocalizer(Volume volume, float min, float middle, float max, Volume mask)
+        public void FillTextureWithLocalizer(Volume volume, float min, float middle, float max, Volume mask, Texture texture)
         {
-            fill_texture_with_localizer_CutGenerator(_handle, volume.getHandle(), min, middle, max, mask.getHandle());
+            fill_texture_with_localizer_CutGenerator(_handle, volume.getHandle(), mask.getHandle(), min, middle, max, texture.getHandle());
         }
         public void UpdateTextureWithVolume(Texture texture)
         {
@@ -84,7 +84,7 @@ namespace HBP.Core.DLL
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_fmri_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void fill_texture_with_fmri_CutGenerator(HandleRef generator, HandleRef volumeHandle, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_localizer_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void fill_texture_with_localizer_CutGenerator(HandleRef generator, HandleRef volumeHandle, float min, float middle, float max, HandleRef maskHandle);
+        static private extern void fill_texture_with_localizer_CutGenerator(HandleRef generator, HandleRef volumeHandle, HandleRef maskHandle, float min, float middle, float max, HandleRef textureHandle);
         [DllImport("hbp_export", EntryPoint = "update_texture_with_volume_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_texture_with_volume_CutGenerator(HandleRef generator, HandleRef texture);
         [DllImport("hbp_export", EntryPoint = "update_texture_with_atlas_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
