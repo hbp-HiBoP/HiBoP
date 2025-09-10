@@ -143,6 +143,7 @@ namespace HBP.Data.Module3D
             {
                 m_SelectedLocalizersProtocol = value;
                 SelectedLocalizersBloc = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol)?.Blocs.FirstOrDefault()?.Name;
+                SetLocalizersDefaultParameters();
             }
         }
 
@@ -254,6 +255,7 @@ namespace HBP.Data.Module3D
         }
 
         private float[] m_FMRIValues;
+        private int[] m_FMRIMask;
 
         private float m_FMRIAlpha = 0.2f;
         /// <summary>
@@ -352,6 +354,76 @@ namespace HBP.Data.Module3D
         private const float m_DiFuMoAlpha = 1f;
 
         private readonly Core.DLL.Texture m_LocalizersTexture = Core.DLL.Texture.Generate1DColorTexture(Core.Enums.ColorType.MatLab);
+
+        private float m_LocalizersMin = 80f;
+        /// <summary>
+        /// Min value for Localizers threshold
+        /// </summary>
+        public float LocalizersMin
+        {
+            get
+            {
+                return m_LocalizersMin;
+            }
+            set
+            {
+                m_LocalizersMin = value;
+                UpdateSurfaceFMRIValues();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private float m_LocalizersMiddle = 100f;
+        /// <summary>
+        /// Middle value for Localizers threshold
+        /// </summary>
+        public float LocalizersMiddle
+        {
+            get
+            {
+                return m_LocalizersMiddle;
+            }
+            set
+            {
+                m_LocalizersMiddle = value;
+                UpdateSurfaceFMRIValues();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        private float m_LocalizersMax = 120f;
+        /// <summary>
+        /// Max value for Localizers threshold
+        /// </summary>
+        public float LocalizersMax
+        {
+            get
+            {
+                return m_LocalizersMax;
+            }
+            set
+            {
+                m_LocalizersMax = value;
+                UpdateSurfaceFMRIValues();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Currently used mask volume for Localizers (if available)
+        /// </summary>
+        public Volume CurrentLocalizersMask
+        {
+            get
+            {
+                if (m_DisplayLocalizers)
+                {
+                    var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersBloc);
+                    return currentFMRI?.MaskVolume;
+                }
+                return null;
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -360,6 +432,8 @@ namespace HBP.Data.Module3D
             m_Scene.BrainMaterials.SetDisplayFMRI(DisplayFMRI);
             if (CurrentVolume != null)
                 m_FMRIValues = CurrentVolume.GetVerticesValues(m_Scene.MeshManager.BrainSurface);
+            if (CurrentLocalizersMask != null)
+                m_FMRIMask = CurrentLocalizersMask.GetVerticesValues(m_Scene.MeshManager.BrainSurface).Select(v => v > 0 ? 1 : 0).ToArray();
 
             UpdateSurfaceFMRIColors();
         }
@@ -368,33 +442,28 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateSurfaceFMRIColors()
         {
-            var currentFMRI = CurrentFMRI;
-            var currentVolume = CurrentVolume;
-            if (currentVolume != null)
+            Color[] colors = new Color[0];
+            if (m_DisplayIBCContrasts)
             {
-                Color[] colors;
-                if (m_DisplayDiFuMo)
-                {
-                    colors = currentVolume.ConvertValuesToColors(m_FMRIValues, m_DiFuMoNegativeMin, m_DiFuMoNegativeMax, m_DiFuMoPositiveMin, m_DiFuMoPositiveMax, m_DiFuMoAlpha);
-                }
-                else if (m_DisplayLocalizers)
-                {
-                    colors = currentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha, m_LocalizersTexture, currentFMRI.ExtremeValues.Min, currentFMRI.ExtremeValues.Max);
-                }
-                else
-                {
-                    colors = currentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
-                }
-                m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
-                foreach (Column3D column in m_Scene.Columns)
-                {
-                    column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
-                }
+                colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+            }
+            else if (m_DisplayDiFuMo)
+            {
+                colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_DiFuMoNegativeMin, m_DiFuMoNegativeMax, m_DiFuMoPositiveMin, m_DiFuMoPositiveMax, m_DiFuMoAlpha);
+            }
+            else if (m_DisplayLocalizers)
+            {
+                colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRIMask, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, m_LocalizersTexture);
+            }
+            m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
+            foreach (Column3D column in m_Scene.Columns)
+            {
+                column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
             }
             m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
         }
 
-        internal void ColorCuts(Column3D column)
+        public void ColorCuts(Column3D column)
         {
             if (m_DisplayIBCContrasts) 
             {
@@ -404,9 +473,29 @@ namespace HBP.Data.Module3D
             {
                 column.CutTextures.ColorCutsTexturesWithFMRIAtlas(CurrentVolume, m_DiFuMoNegativeMin, m_DiFuMoNegativeMax, m_DiFuMoPositiveMin, m_DiFuMoPositiveMax, m_DiFuMoAlpha);
             }
-            else if (m_DisplayLocalizers) 
+            else if (m_DisplayLocalizers)
             {
-                column.CutTextures.ColorCutsTexturesWithFMRIAtlas(CurrentVolume, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_FMRIAlpha);
+                //column.CutTextures.ColorCutsTexturesWithLocalizersAtlas(CurrentVolume, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, CurrentLocalizersMask);
+            }
+        }
+
+        public void SetLocalizersDefaultParameters()
+        {
+            if (m_DisplayLocalizers)
+            {
+                var currentFMRI = CurrentFMRI;
+                if (currentFMRI != null)
+                {
+                    LocalizersMin = currentFMRI.ExtremeValues.ComputedCalMin;
+                    LocalizersMiddle = (currentFMRI.ExtremeValues.ComputedCalMin + currentFMRI.ExtremeValues.ComputedCalMax) / 2f;
+                    LocalizersMax = currentFMRI.ExtremeValues.ComputedCalMax;
+                }
+            }
+            else
+            {
+                LocalizersMin = 80f;
+                LocalizersMiddle = 100f;
+                LocalizersMax = 120f;
             }
         }
         #endregion

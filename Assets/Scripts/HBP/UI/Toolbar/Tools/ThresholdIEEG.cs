@@ -169,6 +169,28 @@ namespace HBP.UI.Toolbar
             UnityEngine.Profiling.Profiler.EndSample();
         }
         /// <summary>
+        /// Update IEEG Histogram for FMRIManager (Localizers case)
+        /// </summary>
+        private void UpdateIEEGHistogram(FMRIManager manager)
+        {
+            UnityEngine.Profiling.Profiler.BeginSample("LOCALIZERS HISTOGRAM");
+            var currentFMRI = manager.CurrentFMRI;
+            if (currentFMRI != null && currentFMRI.HistogramTexture != null)
+            {
+                if (!m_IEEGHistogram)
+                {
+                    m_IEEGHistogram = new Texture2D(1, 1);
+                }
+                currentFMRI.HistogramTexture.UpdateTexture2D(m_IEEGHistogram);
+                m_Histogram.texture = m_IEEGHistogram;
+            }
+            else
+            {
+                m_Histogram.texture = Texture2D.blackTexture;
+            }
+            UnityEngine.Profiling.Profiler.EndSample();
+        }
+        /// <summary>
         /// Set the values of the threshold
         /// </summary>
         /// <param name="minFactor"></param>
@@ -395,6 +417,28 @@ namespace HBP.UI.Toolbar
             SetValues((column.StaticParameters.SpanMin - m_MinAmplitude) / m_Amplitude, (column.StaticParameters.Middle - m_MinAmplitude) / m_Amplitude, (column.StaticParameters.SpanMax - m_MinAmplitude) / m_Amplitude);
 
             UpdateIEEGHistogram(column);
+
+            m_Initialized = true;
+        }
+        public void UpdateIEEGValues(FMRIManager manager)
+        {
+            m_Initialized = false;
+
+            var currentFMRI = manager.CurrentFMRI;
+            if (currentFMRI == null) return;
+
+            // Fixed values
+            m_MinAmplitude = currentFMRI.ExtremeValues.Min;
+            m_MaxAmplitude = currentFMRI.ExtremeValues.Max;
+            m_Amplitude = m_MaxAmplitude - m_MinAmplitude;
+            m_MinText.text = m_MinAmplitude.ToString("N2");
+            m_MaxText.text = m_MaxAmplitude.ToString("N2");
+
+            // Non-fixed values
+            SetValues((manager.LocalizersMin - m_MinAmplitude) / m_Amplitude, (manager.LocalizersMiddle - m_MinAmplitude) / m_Amplitude, (manager.LocalizersMax - m_MinAmplitude) / m_Amplitude);
+
+            // Update histogram - for now using a simple distribution histogram
+            UpdateIEEGHistogram(manager);
 
             m_Initialized = true;
         }

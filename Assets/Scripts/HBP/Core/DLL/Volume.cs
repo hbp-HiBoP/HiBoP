@@ -391,11 +391,11 @@ namespace HBP.Core.DLL
             }
             return colors;
         }
-        public Color[] ConvertValuesToColors(float[] values, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, Texture texture, float fmriMin, float fmriMax)
+        public Color[] ConvertValuesToColors(float[] values, int[] mask, float min, float middle, float max, Texture texture)
         {
             Color[] colors = new Color[values.Length];
             float[] result = new float[values.Length * 4];
-            get_colors_from_values_texture_Volume(_handle, values, values.Length, negativeMin, negativeMax, positiveMin, positiveMax, alpha, texture.getHandle(), fmriMin, fmriMax, result);
+            get_colors_from_values_texture_Volume(_handle, values, mask, values.Length, min, middle, max, texture.getHandle(), result);
             for (int i = 0; i < colors.Length; ++i)
             {
                 colors[i] = new Color(result[4 * i], result[4 * i + 1], result[4 * i + 2], result[4 * i + 3]);
@@ -451,7 +451,7 @@ namespace HBP.Core.DLL
         [DllImport("hbp_export", EntryPoint = "get_colors_from_values_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_colors_from_values_Volume(HandleRef handleVolume, float[] values, int valuesLength, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, float[] result);
         [DllImport("hbp_export", EntryPoint = "get_colors_from_values_texture_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void get_colors_from_values_texture_Volume(HandleRef handleVolume, float[] values, int valuesLength, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, HandleRef texture, float fmriMin, float fmriMax, float[] result);
+        static private extern void get_colors_from_values_texture_Volume(HandleRef handleVolume, float[] values, int[] mask, int valuesLength, float min, float middle, float max, HandleRef textureHandle, float[] result);
         #endregion
     }
 

@@ -15,15 +15,15 @@ namespace HBP.Core.DLL
             {
                 Tools.MRICalValues values = new Tools.MRICalValues();
 
-                float[] valuesF = new float[2];
+                float[] valuesF = new float[6];
                 retrieveExtremeValues_NIFTI(_handle, valuesF);
 
                 values.Min = valuesF[0];
                 values.Max = valuesF[1];
-                values.LoadedCalMin = valuesF[0];
-                values.LoadedCalMax = valuesF[1];
-                values.ComputedCalMin = valuesF[0];
-                values.ComputedCalMax = valuesF[1];
+                values.LoadedCalMin = valuesF[2];
+                values.LoadedCalMax = valuesF[3];
+                values.ComputedCalMin = valuesF[4];
+                values.ComputedCalMax = valuesF[5];
 
                 return values;
             }

@@ -218,6 +218,21 @@ namespace HBP.Data.Module3D
             }
         }
         /// <summary>
+        /// Color cuts with Localizers atlas using min, middle, max parameters (with mask)
+        /// </summary>
+        public void ColorCutsTexturesWithLocalizersAtlas(Core.DLL.Volume volume, float min, float middle, float max, Core.DLL.Volume mask)
+        {
+            for (int i = 0; i < CutGenerators.Count; i++)
+            {
+                Core.DLL.CutGenerator generator = CutGenerators[i];
+                generator.FillTextureWithLocalizer(volume, min, middle, max, mask);
+
+                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                generator.UpdateTextureWithAtlas(cutTexture);
+                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+            }
+        }
+        /// <summary>
         /// Reset the color schemes
         /// </summary>
         /// <param name="colormap">Color map to be used</param>

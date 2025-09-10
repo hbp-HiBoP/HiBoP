@@ -20,6 +20,8 @@ namespace HBP.UI.Toolbar
 
         [SerializeField] private DiFuMoSelector m_DiFuMoSelector;
 
+        [SerializeField] private LocalizersParameters m_LocalizersParameters;
+
         [SerializeField] private LocalizersSelector m_LocalizersSelector;
 
         [SerializeField] private LocalizersTimeline m_LocalizersTimeline;
@@ -36,6 +38,7 @@ namespace HBP.UI.Toolbar
             m_Tools.Add(m_IBCSelector);
             m_Tools.Add(m_FMRIAtlasParameters);
             m_Tools.Add(m_DiFuMoSelector);
+            m_Tools.Add(m_LocalizersParameters);
             m_Tools.Add(m_LocalizersSelector);
             m_Tools.Add(m_LocalizersTimeline);
         }
