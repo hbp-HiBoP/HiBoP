@@ -126,17 +126,17 @@ namespace HBP.UI.Module3D
             float negativeMax = fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor * min;
             float positiveMin = fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor * max;
             float positiveMax = fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor * max;
-            if (min > 0)
+            if (min >= 0)
             {
-                m_Min.text = "";
-                m_Mid.text = positiveMin.ToString("0.0");
+                m_Min.text = positiveMin.ToString("0.0");
+                m_Mid.text = ((positiveMax - positiveMin) / 2).ToString("0.0");
                 m_Max.text = positiveMax.ToString("0.0");
             }
-            else if (max < 0)
+            else if (max <= 0)
             {
                 m_Min.text = negativeMax.ToString("0.0");
-                m_Mid.text = negativeMin.ToString("0.0");
-                m_Max.text = "";
+                m_Mid.text = ((negativeMin - negativeMax) / 2).ToString("0.0");
+                m_Max.text = negativeMin.ToString("0.0");
             }
             else
             {
