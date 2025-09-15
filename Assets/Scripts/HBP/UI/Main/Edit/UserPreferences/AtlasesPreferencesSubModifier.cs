@@ -70,15 +70,15 @@ namespace HBP.UI.Main
                 m_DiFuMo256.interactable = value;
                 m_DiFuMo512.interactable = value;
                 m_DiFuMo1024.interactable = value;
-                m_AUDI.interactable = value;
-                m_LEC1.interactable = value;
-                m_LEC2.interactable = value;
-                m_MCSE.interactable = value;
-                m_MOTO.interactable = value;
-                m_MVEB.interactable = value;
-                m_MVIS.interactable = value;
-                m_VISU.interactable = value;
-                
+                m_AUDI.interactable = Object3DManager.Localizers.IsAvailable("AUDI");
+                m_LEC1.interactable = Object3DManager.Localizers.IsAvailable("LEC1");
+                m_LEC2.interactable = Object3DManager.Localizers.IsAvailable("LEC2");
+                m_MCSE.interactable = Object3DManager.Localizers.IsAvailable("MCSE");
+                m_MOTO.interactable = Object3DManager.Localizers.IsAvailable("MOTO");
+                m_MVEB.interactable = Object3DManager.Localizers.IsAvailable("MVEB");
+                m_MVIS.interactable = Object3DManager.Localizers.IsAvailable("MVIS");
+                m_VISU.interactable = Object3DManager.Localizers.IsAvailable("VISU");
+
                 m_LoadMarsAtlas.interactable = value;
                 m_LoadJuBrain.interactable = value;
                 m_LoadIBC.interactable = value;
@@ -120,7 +120,7 @@ namespace HBP.UI.Main
             m_MVEB.onValueChanged.AddListener(value => Object.PreloadLocalizerMVEB = value);
             m_MVIS.onValueChanged.AddListener(value => Object.PreloadLocalizerMVIS = value);
             m_VISU.onValueChanged.AddListener(value => Object.PreloadLocalizerVISU = value);
-            
+
             m_LoadMarsAtlas.onClick.AddListener(async () =>
             {
                 Object3DManager.MarsAtlas.Load();
@@ -169,7 +169,6 @@ namespace HBP.UI.Main
                 await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("1024"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-
             m_LoadAUDI.onClick.AddListener(async () =>
             {
                 Object3DManager.Localizers.Load("AUDI");
@@ -321,22 +320,6 @@ namespace HBP.UI.Main
             UpdateLocalizerButtonStatus("MVIS", m_LoadMVIS);
             UpdateLocalizerButtonStatus("VISU", m_LoadVISU);
         }
-
-        private void UpdateLocalizerButtonStatus(string protocolName, Button button)
-        {
-            var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
-            if (protocol != null && protocol.Loaded)
-            {
-                button.interactable = false;
-                button.GetComponentInChildren<Text>().text = "Loaded";
-            }
-            else if (protocol != null)
-            {
-                button.interactable = false;
-                button.GetComponentInChildren<Text>().text = "Loading...";
-            }
-        }
-
         protected override void SetFields(AtlasesPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -357,6 +340,30 @@ namespace HBP.UI.Main
             m_MVEB.isOn = objectToDisplay.PreloadLocalizerMVEB;
             m_MVIS.isOn = objectToDisplay.PreloadLocalizerMVIS;
             m_VISU.isOn = objectToDisplay.PreloadLocalizerVISU;
+        }
+        private void UpdateLocalizerButtonStatus(string protocolName, Button button)
+        {
+            var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
+            if (protocol != null && protocol.Loaded)
+            {
+                button.interactable = false;
+                button.GetComponentInChildren<Text>().text = "Loaded";
+            }
+            else if (protocol != null)
+            {
+                button.interactable = false;
+                button.GetComponentInChildren<Text>().text = "Loading...";
+            }
+            else if (Object3DManager.Localizers.IsAvailable(protocolName))
+            {
+                button.interactable = true;
+                button.GetComponentInChildren<Text>().text = "Load";
+            }
+            else
+            {
+                button.interactable = false;
+                button.GetComponentInChildren<Text>().text = "Not available";
+            }
         }
         #endregion
     }

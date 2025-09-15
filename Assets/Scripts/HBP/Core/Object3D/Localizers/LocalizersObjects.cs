@@ -21,6 +21,11 @@ namespace HBP.Core.Object3D
                 protocol?.Clean();
             }
         }
+        public bool IsAvailable(string protocol)
+        {
+            string protocolDirectory = Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers", protocol);
+            return Directory.Exists(protocolDirectory);
+        }
         public void Load(string protocol, bool displayErrors = true)
         {
             string protocolDirectory = Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers", protocol);

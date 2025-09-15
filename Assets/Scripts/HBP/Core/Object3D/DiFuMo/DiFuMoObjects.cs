@@ -28,6 +28,12 @@ namespace HBP.Core.Object3D
             FMRIs.Add(atlas, new FMRI(atlas, file));
             Information.Add(atlas, new DiFuMoInformation(csvFile));
         }
+        public bool IsAvailable(string atlas)
+        {
+            string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, string.Format("labels_{0}_dictionary.csv", atlas));
+            string file = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, "3mm", "maps.nii.gz");
+            return File.Exists(csvFile) && File.Exists(file);
+        }
         public bool IsLoaded(string atlas)
         {
             if (FMRIs.TryGetValue(atlas, out FMRI fmri) && Information.TryGetValue(atlas, out DiFuMoInformation information))
