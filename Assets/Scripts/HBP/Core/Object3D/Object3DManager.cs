@@ -23,6 +23,38 @@ namespace HBP.Core.Object3D
             MarsAtlas.Dispose();
             JuBrain.Dispose();
         }
+        public static void UnloadMarsAtlas()
+        {
+            if (MarsAtlas.Loaded)
+            {
+                MarsAtlas.Dispose();
+                MarsAtlas = new MarsAtlas();
+            }
+        }
+        public static void UnloadJuBrain()
+        {
+            if (JuBrain.Loaded)
+            {
+                JuBrain.Dispose();
+                JuBrain = new JuBrainAtlas();
+            }
+        }
+        public static void UnloadIBC()
+        {
+            if (IBC.Loaded)
+            {
+                IBC.Clean();
+                IBC = new IBCObjects();
+            }
+        }
+        public static void UnloadDiFuMo(string atlas)
+        {
+            DiFuMo.Unload(atlas);
+        }
+        public static void UnloadLocalizer(string protocolName)
+        {
+            Localizers.Unload(protocolName);
+        }
         #endregion
     }
 }

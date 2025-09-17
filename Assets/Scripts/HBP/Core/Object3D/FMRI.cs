@@ -78,6 +78,7 @@ namespace HBP.Core.Object3D
                 TimeStep = nifti.TimeStep;
                 TimeUnit = nifti.TimeUnit;
             }
+            nifti.Dispose();
             // MASK
             if (!string.IsNullOrEmpty(maskFile))
             {

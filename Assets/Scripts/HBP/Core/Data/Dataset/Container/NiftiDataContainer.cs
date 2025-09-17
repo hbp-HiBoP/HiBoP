@@ -156,7 +156,7 @@ namespace HBP.Core.Data.Container
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            SavedFile = SavedFile.StandardizeToEnvironement();
+            SavedFile = SavedFile?.StandardizeToEnvironement();
         }
         #endregion
     }

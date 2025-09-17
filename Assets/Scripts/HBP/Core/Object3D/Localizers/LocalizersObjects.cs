@@ -40,6 +40,15 @@ namespace HBP.Core.Object3D
                 DialogBoxManager.Open(Enums.DialogBoxType.Error, "Can not load localizer", $"The localizer {protocol} could not be loaded. Please make sure you downloaded it and put it in the right folder.").Forget();
             }
         }
+        public void Unload(string protocolName)
+        {
+            var protocol = Protocols.FirstOrDefault(p => p.Name == protocolName);
+            if (protocol != null)
+            {
+                protocol.Clean();
+                Protocols.Remove(protocol);
+            }
+        }
         public FMRI GetCurrentFMRI(string protocolName, string dataName, string blocName)
         {
             if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || string.IsNullOrEmpty(blocName))
