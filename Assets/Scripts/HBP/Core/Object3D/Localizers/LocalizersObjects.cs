@@ -40,13 +40,14 @@ namespace HBP.Core.Object3D
                 DialogBoxManager.Open(Enums.DialogBoxType.Error, "Can not load localizer", $"The localizer {protocol} could not be loaded. Please make sure you downloaded it and put it in the right folder.").Forget();
             }
         }
-        public FMRI GetCurrentFMRI(string protocolName, string blocName)
+        public FMRI GetCurrentFMRI(string protocolName, string dataName, string blocName)
         {
-            if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(blocName))
+            if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || string.IsNullOrEmpty(blocName))
                 return null;
 
             var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
-            var bloc = protocol?.Blocs.FirstOrDefault(b => b.Name == blocName);
+            var data = protocol?.Datas.FirstOrDefault(d => d.Name == dataName);
+            var bloc = data?.Blocs.FirstOrDefault(b => b.Name == blocName);
             return bloc?.FMRI;
         }
         #endregion
@@ -56,15 +57,61 @@ namespace HBP.Core.Object3D
     {
         #region Properties
         public string Name { get; private set; }
-        public List<LocalizerBloc> Blocs { get; private set; } = new List<LocalizerBloc>();
-        public bool Loaded => Blocs.All(b => b.Loaded);
+        public List<LocalizerData> Datas { get; private set; } = new List<LocalizerData>();
+        public bool Loaded => Datas.All(d => d.Loaded);
         #endregion
 
         #region Constructors
         public LocalizerProtocol(string name, string protocolDirectory)
         {
             Name = name;
-            LoadBlocsFromDirectory(protocolDirectory);
+            LoadDatasFromDirectory(protocolDirectory);
+        }
+        #endregion
+
+        #region Private Methods
+        private void LoadDatasFromDirectory(string directory)
+        {
+            if (!Directory.Exists(directory))
+                return;
+
+            var dataDirectories = Directory.GetDirectories(directory);
+            foreach (string dataDirectory in dataDirectories)
+            {
+                string dataName = Path.GetFileName(dataDirectory);
+                LocalizerData data = new LocalizerData(dataName, dataDirectory);
+                if (data.Blocs.Count > 0) // Seulement ajouter si des blocs ont été trouvés
+                {
+                    Datas.Add(data);
+                }
+            }
+        }
+        #endregion
+
+        #region Public Methods
+        public void Clean()
+        {
+            foreach (var data in Datas)
+            {
+                data?.Clean();
+            }
+        }
+        #endregion
+    }
+
+    public class LocalizerData
+    {
+        #region Properties
+        public string Name { get; private set; }
+        public List<LocalizerBloc> Blocs { get; private set; } = new List<LocalizerBloc>();
+        public bool Loaded => Blocs.All(b => b.Loaded);
+        #endregion
+
+        #region Constructors
+        public LocalizerData(string name, string dataDirectory)
+        {
+            Name = name;
+            LoadBlocsFromDirectory(dataDirectory);
         }
         #endregion
 

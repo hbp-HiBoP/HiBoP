@@ -142,8 +142,31 @@ namespace HBP.Data.Module3D
             set
             {
                 m_SelectedLocalizersProtocol = value;
-                SelectedLocalizersBloc = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol)?.Blocs.FirstOrDefault()?.Name;
+                SelectedLocalizersData = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol)?.Datas.FirstOrDefault()?.Name;
                 SetLocalizersDefaultParameters();
+            }
+        }
+
+        private string m_SelectedLocalizersData;
+        /// <summary>
+        /// Currently selected Localizers data
+        /// </summary>
+        public string SelectedLocalizersData
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_SelectedLocalizersData))
+                {
+                    m_SelectedLocalizersData = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol)?.Datas.FirstOrDefault()?.Name;
+                }
+                return m_SelectedLocalizersData;
+            }
+            set
+            {
+                m_SelectedLocalizersData = value;
+                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol);
+                var data = protocol?.Datas.FirstOrDefault(d => d.Name == m_SelectedLocalizersData);
+                SelectedLocalizersBloc = data?.Blocs.FirstOrDefault()?.Name;
             }
         }
 
@@ -157,7 +180,9 @@ namespace HBP.Data.Module3D
             {
                 if (string.IsNullOrEmpty(m_SelectedLocalizersBloc))
                 {
-                    m_SelectedLocalizersBloc = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol)?.Blocs.FirstOrDefault()?.Name;
+                    var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol);
+                    var data = protocol?.Datas.FirstOrDefault(d => d.Name == m_SelectedLocalizersData);
+                    m_SelectedLocalizersBloc = data?.Blocs.FirstOrDefault()?.Name;
                 }
                 return m_SelectedLocalizersBloc;
             }
@@ -177,7 +202,7 @@ namespace HBP.Data.Module3D
             get
             {
                 // Ensure the index is within the valid range for the current FMRI
-                var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersBloc);
+                var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersData, SelectedLocalizersBloc);
                 if (currentFMRI != null && currentFMRI.Volumes.Count > 0)
                 {
                     return Mathf.Clamp(m_SelectedLocalizersTimelineIndex, 0, currentFMRI.Volumes.Count - 1);
@@ -186,7 +211,7 @@ namespace HBP.Data.Module3D
             }
             set
             {
-                var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersBloc);
+                var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersData, SelectedLocalizersBloc);
                 if (currentFMRI != null && currentFMRI.Volumes.Count > 0)
                 {
                     m_SelectedLocalizersTimelineIndex = Mathf.Clamp(value, 0, currentFMRI.Volumes.Count - 1);
@@ -214,7 +239,7 @@ namespace HBP.Data.Module3D
                 }
                 else if (m_DisplayLocalizers)
                 {
-                    return Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersBloc);
+                    return Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersData, SelectedLocalizersBloc);
                 }
                 return null;
             }
@@ -418,7 +443,7 @@ namespace HBP.Data.Module3D
             {
                 if (m_DisplayLocalizers)
                 {
-                    var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersBloc);
+                    var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersData, SelectedLocalizersBloc);
                     return currentFMRI?.MaskVolume;
                 }
                 return null;

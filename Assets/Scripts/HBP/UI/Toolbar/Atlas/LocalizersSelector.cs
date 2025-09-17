@@ -13,6 +13,10 @@ namespace HBP.UI.Toolbar
         /// </summary>
         [SerializeField] private Dropdown m_ProtocolDropdown;
         /// <summary>
+        /// Dropdown to select the data to display
+        /// </summary>
+        [SerializeField] private Dropdown m_DataDropdown;
+        /// <summary>
         /// Dropdown to select the bloc to display
         /// </summary>
         [SerializeField] private Dropdown m_BlocDropdown;
@@ -31,6 +35,15 @@ namespace HBP.UI.Toolbar
                 if (value >= 0 && value < m_ProtocolDropdown.options.Count)
                 {
                     SelectedScene.FMRIManager.SelectedLocalizersProtocol = m_ProtocolDropdown.options[value].text;
+                }
+            });
+            m_DataDropdown.onValueChanged.AddListener((value) =>
+            {
+                if (ListenerLock) return;
+
+                if (value >= 0 && value < m_DataDropdown.options.Count)
+                {
+                    SelectedScene.FMRIManager.SelectedLocalizersData = m_DataDropdown.options[value].text;
                 }
             });
             m_BlocDropdown.onValueChanged.AddListener((value) =>
@@ -65,6 +78,7 @@ namespace HBP.UI.Toolbar
         public override void UpdateStatus()
         {
             UpdateProtocolDropdown();
+            UpdateDataDropdown();
             UpdateBlocDropdown();
         }
         #endregion
@@ -96,11 +110,11 @@ namespace HBP.UI.Toolbar
             m_ProtocolDropdown.RefreshShownValue();
         }
         /// <summary>
-        /// Update the bloc dropdown with available blocs from selected protocol
+        /// Update the data dropdown with available datas from selected protocol
         /// </summary>
-        private void UpdateBlocDropdown()
+        private void UpdateDataDropdown()
         {
-            m_BlocDropdown.options.Clear();
+            m_DataDropdown.options.Clear();
             
             if (Object3DManager.Localizers.Loaded)
             {
@@ -112,7 +126,40 @@ namespace HBP.UI.Toolbar
                     int selectedIndex = 0;
                     int count = 0;
                     
-                    foreach (var bloc in selectedProtocol.Blocs.OrderBy(b => b.Name))
+                    foreach (var data in selectedProtocol.Datas.OrderBy(d => d.Name))
+                    {
+                        m_DataDropdown.options.Add(new Dropdown.OptionData(data.Name));
+                        if (data.Name == SelectedScene.FMRIManager.SelectedLocalizersData)
+                            selectedIndex = count;
+                        count++;
+                    }
+                    
+                    m_DataDropdown.value = selectedIndex;
+                }
+            }
+            
+            m_DataDropdown.RefreshShownValue();
+        }
+        /// <summary>
+        /// Update the bloc dropdown with available blocs from selected data
+        /// </summary>
+        private void UpdateBlocDropdown()
+        {
+            m_BlocDropdown.options.Clear();
+            
+            if (Object3DManager.Localizers.Loaded)
+            {
+                var selectedProtocol = Object3DManager.Localizers.Protocols
+                    .FirstOrDefault(p => p.Name == SelectedScene.FMRIManager.SelectedLocalizersProtocol);
+                var selectedData = selectedProtocol?.Datas
+                    .FirstOrDefault(d => d.Name == SelectedScene.FMRIManager.SelectedLocalizersData);
+                
+                if (selectedData != null)
+                {
+                    int selectedIndex = 0;
+                    int count = 0;
+                    
+                    foreach (var bloc in selectedData.Blocs.OrderBy(b => b.Name))
                     {
                         m_BlocDropdown.options.Add(new Dropdown.OptionData(bloc.Name));
                         if (bloc.Name == SelectedScene.FMRIManager.SelectedLocalizersBloc)

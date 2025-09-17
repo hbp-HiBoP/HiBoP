@@ -37,7 +37,7 @@ namespace HBP.UI.Toolbar
         {
             DeleteZeroMarker();
 
-            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersBloc);
+            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersData, SelectedScene.FMRIManager.SelectedLocalizersBloc);
             if (currentFMRI != null && currentFMRI.Loaded && m_ZeroMarkerPrefab != null)
             {
                 // Calculate the position of time zero in the timeline
@@ -76,7 +76,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private void UpdateTimeline()
         {
-            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersBloc);
+            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersData, SelectedScene.FMRIManager.SelectedLocalizersBloc);
 
             if (currentFMRI != null && currentFMRI.Loaded)
             {
@@ -105,7 +105,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private void UpdateTimeTexts()
         {
-            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersBloc);
+            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersData, SelectedScene.FMRIManager.SelectedLocalizersBloc);
             
             if (currentFMRI != null && currentFMRI.Loaded)
             {
@@ -158,7 +158,7 @@ namespace HBP.UI.Toolbar
         public override void UpdateInteractable()
         {
             bool isLocalizersDisplayed = SelectedScene.FMRIManager.DisplayLocalizers;
-            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersBloc);
+            var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersData, SelectedScene.FMRIManager.SelectedLocalizersBloc);
             bool hasFMRI = currentFMRI != null && currentFMRI.Loaded;
 
             gameObject.SetActive(isLocalizersDisplayed);
@@ -171,7 +171,7 @@ namespace HBP.UI.Toolbar
         {
             if (SelectedScene.FMRIManager.DisplayLocalizers == true)
             {
-                var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersBloc);
+                var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersData, SelectedScene.FMRIManager.SelectedLocalizersBloc);
                 if (currentFMRI != null && currentFMRI.Loaded)
                 {
                     UpdateTimeline();
