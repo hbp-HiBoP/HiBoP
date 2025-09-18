@@ -3,14 +3,74 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using HBP.UI.Tools;
+using System;
 
 namespace HBP.Core.Object3D
 {
+    #region Shared Helpers
+    internal static class LocalizersHelpers
+    {
+        public static readonly string[] NiftiExtensions = { ".nii", ".nii.gz", ".img" };
+        public static bool IsMaskFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath)) return false;
+            string fileName = Path.GetFileName(filePath).ToUpperInvariant();
+            return fileName.EndsWith("_MASK.NII") || fileName.EndsWith("_MASK.NII.GZ") || fileName.EndsWith("_MASK.IMG");
+        }
+        public static string GetBlocNameFromFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath)) return string.Empty;
+            string fileName = Path.GetFileName(filePath);
+            if (fileName.EndsWith(".nii.gz", StringComparison.OrdinalIgnoreCase))
+            {
+                return fileName[..^7];
+            }
+            else if (fileName.EndsWith(".nii", StringComparison.OrdinalIgnoreCase))
+            {
+                return fileName[..^4];
+            }
+            else if (fileName.EndsWith(".img", StringComparison.OrdinalIgnoreCase))
+            {
+                return fileName[..^4];
+            }
+            return Path.GetFileNameWithoutExtension(fileName);
+        }
+    }
+    #endregion
+
     public class LocalizersObjects
     {
         #region Properties
         public List<LocalizerProtocol> Protocols { get; private set; } = new List<LocalizerProtocol>();
         public bool Loaded => Protocols.Count > 0 && Protocols.All(p => p.Loaded);
+        private readonly string m_LocalizersPath = Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers");
+        public List<string> AvailableProtocolNames
+        {
+            get
+            {
+                if (Directory.Exists(m_LocalizersPath))
+                {
+                    return Directory.GetDirectories(m_LocalizersPath).Select(Path.GetFileName).OrderBy(n => n).ToList();
+                }
+                return new List<string>();
+            }
+        }
+        public List<string> AvailableDataNames
+        {
+            get
+            {
+                var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                if (!Directory.Exists(m_LocalizersPath)) return new List<string>();
+                foreach (var protocolDirectory in Directory.GetDirectories(m_LocalizersPath))
+                {
+                    foreach (var dataDirectory in Directory.GetDirectories(protocolDirectory))
+                    {
+                        names.Add(Path.GetFileName(dataDirectory));
+                    }
+                }
+                return names.OrderBy(n => n).ToList();
+            }
+        }
         #endregion
 
         #region Public Methods
@@ -23,12 +83,12 @@ namespace HBP.Core.Object3D
         }
         public bool IsAvailable(string protocol)
         {
-            string protocolDirectory = Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers", protocol);
+            string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
             return Directory.Exists(protocolDirectory);
         }
         public void Load(string protocol, bool displayErrors = true)
         {
-            string protocolDirectory = Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers", protocol);
+            string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
             
             if (Directory.Exists(protocolDirectory))
             {
@@ -58,6 +118,29 @@ namespace HBP.Core.Object3D
             var data = protocol?.Datas.FirstOrDefault(d => d.Name == dataName);
             var bloc = data?.Blocs.FirstOrDefault(b => b.Name == blocName);
             return bloc?.FMRI;
+        }
+        /// <summary>
+        /// Return all available bloc names for a protocol by parsing directories (does not use loaded data).
+        /// </summary>
+        public List<string> GetAvailableBlocNames(string protocol)
+        {
+            var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrEmpty(protocol)) return new List<string>();
+            string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
+            if (!Directory.Exists(protocolDirectory)) return new List<string>();
+
+            foreach (var dataDirectory in Directory.GetDirectories(protocolDirectory))
+            {
+                var files = Directory.GetFiles(dataDirectory)
+                    .Where(f => LocalizersHelpers.NiftiExtensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                    .Where(f => !LocalizersHelpers.IsMaskFile(f));
+                foreach (var file in files)
+                {
+                    result.Add(LocalizersHelpers.GetBlocNameFromFile(file));
+                }
+            }
+
+            return result.OrderBy(n => n).ToList();
         }
         #endregion
     }
@@ -89,7 +172,7 @@ namespace HBP.Core.Object3D
             {
                 string dataName = Path.GetFileName(dataDirectory);
                 LocalizerData data = new LocalizerData(dataName, dataDirectory);
-                if (data.Blocs.Count > 0) // Seulement ajouter si des blocs ont été trouvés
+                if (data.Blocs.Count > 0)
                 {
                     Datas.Add(data);
                 }
@@ -130,30 +213,22 @@ namespace HBP.Core.Object3D
             if (!Directory.Exists(directory))
                 return;
 
-            // Extensions supportées pour les fichiers NIFTI
-            string[] niftiExtensions = { ".nii", ".nii.gz", ".img" };
-            
-            // Chercher tous les fichiers NIFTI qui ne sont pas des masks
+            var niftiExtensions = LocalizersHelpers.NiftiExtensions;
             var niftiFiles = Directory.GetFiles(directory)
-                .Where(file => niftiExtensions.Any(ext => file.EndsWith(ext, System.StringComparison.OrdinalIgnoreCase)))
-                .Where(file => !IsMaskFile(file))
+                .Where(file => niftiExtensions.Any(ext => file.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                .Where(file => !LocalizersHelpers.IsMaskFile(file))
                 .ToList();
 
-            // Créer un bloc pour chaque fichier NIFTI trouvé
             foreach (string niftiFile in niftiFiles)
             {
-                string blocName = GetBlocNameFromFile(niftiFile);
-                
-                // Chercher le fichier mask correspondant à ce bloc
+                string blocName = LocalizersHelpers.GetBlocNameFromFile(niftiFile);
                 string maskFile = FindMaskFileForBloc(directory, blocName, niftiExtensions);
-                
                 LocalizerBloc bloc = new LocalizerBloc(blocName, niftiFile, maskFile);
                 Blocs.Add(bloc);
             }
         }
         private string FindMaskFileForBloc(string directory, string blocName, string[] extensions)
         {
-            // Pattern: {BlocName}_mask avec différentes extensions
             foreach (string extension in extensions)
             {
                 string maskPattern = $"{blocName}_mask{extension}";
@@ -164,36 +239,6 @@ namespace HBP.Core.Object3D
                 }
             }
             return string.Empty;
-        }
-        private bool IsMaskFile(string filePath)
-        {
-            // Extraire le nom de fichier complet sans le chemin
-            string fileName = Path.GetFileName(filePath);
-            
-            // Vérifier si le fichier se termine par _mask suivi d'une extension supportée
-            return fileName.ToUpper().Contains("_MASK.NII") || 
-                   fileName.ToUpper().Contains("_MASK.IMG") ||
-                   fileName.ToUpper().EndsWith("_MASK.NII.GZ");
-        }
-        private string GetBlocNameFromFile(string filePath)
-        {
-            string fileName = Path.GetFileName(filePath);
-            
-            // Retirer toutes les extensions possibles
-            if (fileName.EndsWith(".nii.gz", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return fileName[..^7]; // Enlever .nii.gz
-            }
-            else if (fileName.EndsWith(".nii", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return fileName[..^4]; // Enlever .nii
-            }
-            else if (fileName.EndsWith(".img", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return fileName[..^4]; // Enlever .img
-            }
-            
-            return Path.GetFileNameWithoutExtension(fileName);
         }
         #endregion
 
