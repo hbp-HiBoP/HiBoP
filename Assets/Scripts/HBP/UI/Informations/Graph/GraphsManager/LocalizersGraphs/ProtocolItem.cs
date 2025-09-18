@@ -13,8 +13,10 @@ namespace HBP.UI.Informations
         [SerializeField] private GameObject m_BlocItemPrefab;
         [SerializeField] private Transform m_BlocsContainer;
         
+        public string Name => m_ProtocolNameText.text;
         private List<BlocItem> m_Blocs = new List<BlocItem>();
         public List<BlocItem> SelectedBlocs => m_Blocs.Where(b => b.IsSelected).ToList();
+        public bool IsSelected => SelectedBlocs.Count > 0;
         #endregion
 
         #region Public Methods

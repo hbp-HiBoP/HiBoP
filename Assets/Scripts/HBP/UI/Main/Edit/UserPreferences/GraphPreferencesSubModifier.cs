@@ -148,6 +148,15 @@ namespace HBP.UI.Main
                 colorButton.Initialize(Object.ROIColors.GetColor(0, j));
                 colorButton.OnColorPicked.AddListener(color => Object.ROIColors.SetColor(0, j, color));
             }
+            // Localizers
+            var localizersRow = Instantiate(m_RowPrefab, m_ColorsContainer);
+            localizersRow.GetComponentInChildren<Text>().text = "Localizers";
+            for (int j = 0; j < Object.MaxColumns; j++)
+            {
+                var colorButton = Instantiate(m_ColorButtonPrefab, localizersRow.transform).GetComponent<ColorPickerButton>();
+                colorButton.Initialize(Object.LocalizersColors.GetColor(0, j));
+                colorButton.OnColorPicked.AddListener(color => Object.LocalizersColors.SetColor(0, j, color));
+            }
         }
         #endregion
     }

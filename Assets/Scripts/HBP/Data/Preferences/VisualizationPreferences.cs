@@ -199,6 +199,7 @@ namespace HBP.Data.Preferences
         [JsonProperty] public ColorGrid SiteColors { get; set; }
         [JsonProperty] public ColorGrid ROIColors { get; set; }
         [JsonProperty] public ColorGrid GroupColors { get; set; }
+        [JsonProperty] public ColorGrid LocalizersColors { get; set; }
         #endregion
 
         #region Constructors
@@ -259,6 +260,20 @@ namespace HBP.Data.Preferences
                 GroupColors = newGroupColors;
             }
 
+            if (maxColumns > MaxColumns)
+            {
+                // Redimensionner la grille des localizers si nécessaire
+                ColorGrid newLocalizersColors = new ColorGrid(1, maxColumns, ColorGrid.ColorGridType.Localizers);
+                if (LocalizersColors != null)
+                {
+                    for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
+                    {
+                        newLocalizersColors.SetColor(0, c, LocalizersColors.GetColor(0, c));
+                    }
+                }
+                LocalizersColors = newLocalizersColors;
+            }
+
             MaxSites = maxSites;
             MaxColumns = maxColumns;
             MaxGroups = maxGroups;
@@ -272,6 +287,7 @@ namespace HBP.Data.Preferences
             clone.SiteColors = SiteColors?.Clone() as ColorGrid;
             clone.ROIColors = ROIColors?.Clone() as ColorGrid;
             clone.GroupColors = GroupColors?.Clone() as ColorGrid;
+            clone.LocalizersColors = LocalizersColors?.Clone() as ColorGrid;
             return clone;
         }
         #endregion
@@ -282,6 +298,7 @@ namespace HBP.Data.Preferences
             SiteColors = new ColorGrid(MaxSites, MaxColumns, ColorGrid.ColorGridType.Site);
             ROIColors = new ColorGrid(1, MaxColumns, ColorGrid.ColorGridType.ROI);
             GroupColors = new ColorGrid(MaxGroups, MaxColumns, ColorGrid.ColorGridType.Group);
+            LocalizersColors = new ColorGrid(1, MaxColumns, ColorGrid.ColorGridType.Localizers);
 
             SiteColors.InitializeWithColors(new Color[]
             {
@@ -324,6 +341,17 @@ namespace HBP.Data.Preferences
                 new Color(180f / 255f, 130f / 255f, 80f / 255f),
                 new Color(140f / 255f, 140f / 255f, 140f / 255f)
             });
+            LocalizersColors.InitializeWithColors(new Color[]
+            {
+                new Color(171f / 255f, 61f / 255f, 58f / 255f),
+                new Color(46f / 255f, 135f / 255f, 52f / 255f),
+                new Color(66f / 255f, 49f / 255f, 118f / 255f),
+                new Color(35f / 255f, 103f / 255f, 103f / 255f),
+                new Color(89f / 255f, 43f / 255f, 114f / 255f),
+                new Color(47f / 255f, 66f / 255f, 115f / 255f),
+                new Color(137f / 255f, 47f / 255f, 98f / 255f),
+                new Color(18f / 255f, 103f / 255f, 18f / 255f)
+            });
         }
         #endregion
     }
@@ -354,7 +382,7 @@ namespace HBP.Data.Preferences
     public class ColorGrid : ICloneable
     {
         #region Enums
-        public enum ColorGridType { Site, ROI, Group }
+        public enum ColorGridType { Site, ROI, Group, Localizers }
         #endregion
 
         #region Properties

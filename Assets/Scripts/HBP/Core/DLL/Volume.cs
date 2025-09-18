@@ -402,6 +402,10 @@ namespace HBP.Core.DLL
             }
             return colors;
         }
+        public float GetValueFromPosition(Vector3 position)
+        {
+            return get_value_from_position_Volume(_handle, -position.x, position.y, position.z);
+        }
         #endregion
 
         #region Memory Management
@@ -452,6 +456,8 @@ namespace HBP.Core.DLL
         static private extern void get_colors_from_values_Volume(HandleRef handleVolume, float[] values, int valuesLength, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, float[] result);
         [DllImport("hbp_export", EntryPoint = "get_colors_from_values_texture_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_colors_from_values_texture_Volume(HandleRef handleVolume, float[] values, int[] mask, int valuesLength, float min, float middle, float max, HandleRef textureHandle, float[] result);
+        [DllImport("hbp_export", EntryPoint = "get_value_from_position_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float get_value_from_position_Volume(HandleRef handleVolume, float x, float y, float z);
         #endregion
     }
 

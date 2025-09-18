@@ -5,6 +5,11 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using HBP.UI.Tools;
+using Cysharp.Threading.Tasks;
+using UnityEngine.Events;
+using HBP.Data.Informations;
+using HBP.Data.Informations.Graphs;
 
 namespace HBP.UI.Informations
 {
@@ -33,6 +38,12 @@ namespace HBP.UI.Informations
         
         public string SelectedDataType => m_SelectedDataType;
         public List<ProtocolItem> ProtocolItems => m_ProtocolItems;
+
+        private LocalizersGraphsWorker m_Worker = new();
+        #endregion
+
+        #region Events
+        public GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>> OnGenerateLocalizersGraphs = new GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>>();
         #endregion
 
         #region Public Methods
@@ -51,6 +62,18 @@ namespace HBP.UI.Informations
         }
         public async void GenerateLocalizersGraphs()
         {
+            var mode = (LocalizersGraphsMode)m_LocalizersGraphsModeDropdown.value;
+            var atlas = (LocalizersGraphsAtlas)m_LocalizersGraphsAtlasDropdown.value;
+            var precision = (int)m_LocalizersGraphsPrecisionSlider.value;
+            var dataType = m_DataTypeDropdown.options[m_DataTypeDropdown.value].text;
+            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = mode switch
+            {
+                LocalizersGraphsMode.Voxel => await LoadingManager.LoadAsync(progress => m_Worker.GenerateLocalizersGraphsVoxelAsync(dataType, m_ProtocolItems, progress)),
+                LocalizersGraphsMode.Region => await LoadingManager.LoadAsync(progress => m_Worker.GenerateLocalizersGraphsRegionAsync(precision, dataType, m_ProtocolItems, progress)),
+                LocalizersGraphsMode.Atlas => await LoadingManager.LoadAsync(progress => m_Worker.GenerateLocalizersGraphsAtlasAsync(atlas, dataType, m_ProtocolItems, progress)),
+                _ => new(),
+            };
+            OnGenerateLocalizersGraphs.Invoke(result);
         }
         #endregion
 

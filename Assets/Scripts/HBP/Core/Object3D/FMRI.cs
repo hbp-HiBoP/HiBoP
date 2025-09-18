@@ -14,8 +14,8 @@ namespace HBP.Core.Object3D
         /// Name of the MRI
         /// </summary>
         public string Name { get; set; }
-        private string m_File = "";
-        private string m_MaskFile = "";
+        private readonly string m_File = "";
+        private readonly string m_MaskFile = "";
         public List<Volume> Volumes { get; private set; } = new List<Volume>();
         public Volume MaskVolume { get; private set; } = new Volume();
         public bool Loading { get; private set; } = false;
