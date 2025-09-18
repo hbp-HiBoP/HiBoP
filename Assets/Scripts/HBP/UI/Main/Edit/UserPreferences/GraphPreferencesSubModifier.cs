@@ -124,7 +124,9 @@ namespace HBP.UI.Main
                 {
                     var colorButton = Instantiate(m_ColorButtonPrefab, row.transform).GetComponent<ColorPickerButton>();
                     colorButton.Initialize(Object.SiteColors.GetColor(i, j));
-                    colorButton.OnColorPicked.AddListener(color => Object.SiteColors.SetColor(i, j, color));
+                    int currentI = i;
+                    int currentJ = j;
+                    colorButton.OnColorPicked.AddListener(color => Object.SiteColors.SetColor(currentI, currentJ, color));
                 }
             }
             // Groups
@@ -136,7 +138,9 @@ namespace HBP.UI.Main
                 {
                     var colorButton = Instantiate(m_ColorButtonPrefab, row.transform).GetComponent<ColorPickerButton>();
                     colorButton.Initialize(Object.GroupColors.GetColor(i, j));
-                    colorButton.OnColorPicked.AddListener(color => Object.GroupColors.SetColor(i, j, color));
+                    int currentI = i;
+                    int currentJ = j;
+                    colorButton.OnColorPicked.AddListener(color => Object.GroupColors.SetColor(currentI, currentJ, color));
                 }
             }
             // ROI
@@ -146,7 +150,8 @@ namespace HBP.UI.Main
             {
                 var colorButton = Instantiate(m_ColorButtonPrefab, roiRow.transform).GetComponent<ColorPickerButton>();
                 colorButton.Initialize(Object.ROIColors.GetColor(0, j));
-                colorButton.OnColorPicked.AddListener(color => Object.ROIColors.SetColor(0, j, color));
+                int currentJ = j;
+                colorButton.OnColorPicked.AddListener(color => Object.ROIColors.SetColor(0, currentJ, color));
             }
             // Localizers
             var localizersRow = Instantiate(m_RowPrefab, m_ColorsContainer);
@@ -155,7 +160,8 @@ namespace HBP.UI.Main
             {
                 var colorButton = Instantiate(m_ColorButtonPrefab, localizersRow.transform).GetComponent<ColorPickerButton>();
                 colorButton.Initialize(Object.LocalizersColors.GetColor(0, j));
-                colorButton.OnColorPicked.AddListener(color => Object.LocalizersColors.SetColor(0, j, color));
+                int currentJ = j;
+                colorButton.OnColorPicked.AddListener(color => Object.LocalizersColors.SetColor(0, currentJ, color));
             }
         }
         #endregion

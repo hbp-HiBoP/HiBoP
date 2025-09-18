@@ -36,6 +36,7 @@ namespace HBP.UI.Informations
 
         [SerializeField] Column[] m_Columns;
         [SerializeField] ChannelStruct[] m_Channels;
+        private Dictionary<ChannelStruct, List<LocalizerCurveData>> m_LocalizersCurves = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
         Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
         bool m_isLock;
         #endregion
@@ -83,6 +84,10 @@ namespace HBP.UI.Informations
                 Graph graph = m_Graphs[index];
                 graph.CurrentTime = currentTime;
             }
+        }
+        public void SetLocalizersCurves(Dictionary<ChannelStruct, List<LocalizerCurveData>> curves)
+        {
+            m_LocalizersCurves = curves;
         }
         #endregion
 
@@ -260,6 +265,11 @@ namespace HBP.UI.Informations
                         Graph.Curve curve = GenerateColumnCurve(column, channels, tuple.Item2);
                         curves.Add(curve);
                     }
+                }
+                // Localizer data
+                if (channels.Length == 1 && m_LocalizersCurves.ContainsKey(channels[0]))
+                {
+                    curves.Add(GenerateLocalizersCurve(channels[0]));
                 }
                 result.Add(new Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>(curves.ToArray(), subBlocsAndWindow.Item2, subBlocsAndWindow.Item1[0].Item2.Type == MainSecondaryEnum.Main));
             }
@@ -448,6 +458,50 @@ namespace HBP.UI.Informations
             Graph.Curve result = new Graph.Curve(channel.Channel, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             channelBloc.OnChangeTrialSelected.AddListener(() => { result.Data = GetCurveData(column, subBloc, channel, channelBloc.TrialIsSelected); });
             return result;
+        }
+        Graph.Curve GenerateLocalizersCurve(ChannelStruct channel)
+        {
+            // Grouper les données par protocole
+            var dataByProtocol = new Dictionary<string, Dictionary<string, LocalizerCurveData>>();
+
+            if (m_LocalizersCurves.TryGetValue(channel, out List<LocalizerCurveData> localizerDatas))
+            {
+                foreach (var localizerData in localizerDatas)
+                {
+                    if (!dataByProtocol.ContainsKey(localizerData.ProtocolName))
+                    {
+                        dataByProtocol[localizerData.ProtocolName] = new Dictionary<string, LocalizerCurveData>();
+                    }
+
+                    dataByProtocol[localizerData.ProtocolName][localizerData.BlocName] = localizerData;
+                }
+            }
+
+            // Créer les sous-courbes de protocoles
+            List<Graph.Curve> protocolCurves = new List<Graph.Curve>();
+
+            foreach (var protocolPair in dataByProtocol)
+            {
+                string protocolName = protocolPair.Key;
+                var blocData = protocolPair.Value;
+                List<Graph.Curve> blocCurves = new List<Graph.Curve>();
+                int blocIndex = 0;
+                foreach (var blocPair in blocData)
+                {
+                    string blocName = blocPair.Key;
+                    string blocID = $"Localizers_{protocolName}_{blocName}";
+                    var blocCurveData = blocPair.Value.Points.Length > 0 ? CurveData.CreateInstance(blocPair.Value.Points, PersistentDataManager.UserPreferences.Visualization.Graph.LocalizersColors.GetColor(0, blocIndex++)) : null;
+                    var blocCurve = new Graph.Curve(blocName, blocCurveData, true, blocID, new Graph.Curve[0], m_DefaultColor);
+                    blocCurves.Add(blocCurve);
+                }
+
+                string protocolID = $"Localizers_{protocolName}";
+                var protocolCurve = new Graph.Curve(protocolName, null, true, protocolID, blocCurves.ToArray(), m_DefaultColor);
+                protocolCurves.Add(protocolCurve);
+            }
+
+            // Créer la courbe principale "Localizers" (sans data, contenant les courbes de protocoles)
+            return new Graph.Curve("Localizers", null, true, "Localizers", protocolCurves.ToArray(), m_DefaultColor);
         }
 
         Graph.Curve GenerateNonEpochedColumnCurve(Column column, ChannelStruct[] channels)

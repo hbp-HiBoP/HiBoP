@@ -27,6 +27,7 @@ namespace HBP.UI.Informations
 
         #region Events
         public GenericEvent<List<ChannelStructsGroup>> OnDisplayChannelStructsGroupsGraphs => m_ChannelStructGroupsPanel.OnDisplayChannelStructsGroupsGraphs;
+        public GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>> OnGenerateLocalizersGraphs => m_LocalizersPanel.OnGenerateLocalizersGraphs;
         #endregion
 
         #region Public Methods

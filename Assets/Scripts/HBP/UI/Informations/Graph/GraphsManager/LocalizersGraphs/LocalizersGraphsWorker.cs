@@ -18,14 +18,14 @@ namespace HBP.UI.Informations
         public string DataType;
         public string ProtocolName;
         public string BlocName;
-        public CurveData Curve;
+        public Vector2[] Points;
 
-        public LocalizerCurveData(string dataType, string protocolName, string blocName, CurveData curve)
+        public LocalizerCurveData(string dataType, string protocolName, string blocName, Vector2[] points)
         {
             DataType = dataType;
             ProtocolName = protocolName;
             BlocName = blocName;
-            Curve = curve;
+            Points = points;
         }
     }
 
@@ -70,8 +70,7 @@ namespace HBP.UI.Informations
                         {
                             points.Add(new Vector2(times[i], values[i]));
                         }
-                        var curve = CurveData.CreateInstance(points, PersistentDataManager.UserPreferences.Visualization.Graph.LocalizersColors.GetColor(0, data.Blocs.IndexOf(bloc)));
-                        curves.Add(new LocalizerCurveData(dataType, protocolItem.Name, blocItem.Name, curve));
+                        curves.Add(new LocalizerCurveData(dataType, protocolItem.Name, blocItem.Name, points.ToArray()));
                     }
                 }
 

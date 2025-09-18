@@ -493,6 +493,7 @@ namespace HBP.Data.Preferences
                 ColorGridType.Site => 2000000,
                 ColorGridType.ROI => 3000000,
                 ColorGridType.Group => 4000000,
+                ColorGridType.Localizers => 5000000,
                 _ => 1000000
             };
             int seed = baseSeed + (row * 1000) + column;

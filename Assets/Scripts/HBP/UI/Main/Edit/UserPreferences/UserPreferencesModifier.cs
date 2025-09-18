@@ -56,7 +56,7 @@ namespace HBP.UI.Main
         /// <summary>
         /// Save the modifications.
         /// </summary>
-        public override  void OK()
+        public override void OK()
         {
             base.OK();
             PersistentDataManager.UserPreferences.Save();

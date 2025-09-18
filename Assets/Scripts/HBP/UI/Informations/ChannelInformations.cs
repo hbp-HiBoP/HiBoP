@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using data = HBP.Data.Informations;
 
@@ -61,6 +62,10 @@ namespace HBP.UI.Informations
         public void UpdateTime(data.Column column, Core.Data.SubBloc subBloc, float currentTime)
         {
             m_GraphZone.UpdateTime(column, subBloc, currentTime);
+        }
+        public void SetLocalizersCurves(Dictionary<data.ChannelStruct, List<LocalizerCurveData>> curves)
+        {
+            m_GraphZone.SetLocalizersCurves(curves);
         }
         #endregion
 

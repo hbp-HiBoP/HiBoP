@@ -184,6 +184,11 @@ namespace HBP.UI.Informations
                 m_RequestSceneDataUpdate = true;
                 m_RequestGraphsUpdate = true;
             });
+            window.OnGenerateLocalizersGraphs.AddListener(curves =>
+            {
+                ChannelInformations.SetLocalizersCurves(curves);
+                m_RequestGraphsUpdate = true;
+            });
             m_WindowsReferencer.Add(window);
         }
         #endregion
