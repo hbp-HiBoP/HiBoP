@@ -11,62 +11,29 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Informations
 {
-    #region Enums
-    public enum LocalizersGraphsMode { Voxel, Region, Atlas }
-    public enum LocalizersGraphsAtlas { MarsAtlas, Jubrain }
-    #endregion
-
     public class GraphSettingsWindow : DialogWindow
     {
-
         #region Properties
-        // Custom channel groups graphs
-        [SerializeField] private ChannelStructsGroupListGestion m_ChannelStructsGroupListGestion;
+        [SerializeField] private ChannelStructGroupsPanel m_ChannelStructGroupsPanel;
+        [SerializeField] private LocalizersPanel m_LocalizersPanel;
+        [SerializeField] private ColorsPanel m_ColorsPanel;
 
-        // Localizers graphs
-        [SerializeField] private Dropdown m_LocalizersGraphsModeDropdown;
-        [SerializeField] private Dropdown m_LocalizersGraphsAtlasDropdown;
-        [SerializeField] private InputField m_LocalizersGraphsPrecisionInputField;
-
-        [SerializeField] private GameObject m_LocalizersGraphsVoxelSettingsContainer;
-        [SerializeField] private GameObject m_LocalizersGraphsRegionSettingsContainer;
-        [SerializeField] private GameObject m_LocalizersGraphsAtlasSettingsContainer;
-
-        public override bool Interactable
-        {
-            get => base.Interactable;
-            set
-            {
-                base.Interactable = value;
-                m_ChannelStructsGroupListGestion.Interactable = value;
-            }
-        }
-
-        private List<ChannelStructsGroup> m_ChannelStructsGroups = new();
         public List<ChannelStructsGroup> ChannelStructsGroups
         {
-            get => m_ChannelStructsGroupListGestion.List.Objects.ToList();
-            set
-            {
-                m_ChannelStructsGroups = value;
-                m_ChannelStructsGroupListGestion.List.Set(m_ChannelStructsGroups);
-            }
+            get => m_ChannelStructGroupsPanel.ChannelStructsGroups;
+            set => m_ChannelStructGroupsPanel.ChannelStructsGroups = value;
         }
         #endregion
 
-        #region Public Methods
-        public async void OpenUserPreferences()
-        {
-            var window = WindowsManager.OpenModifier(PersistentDataManager.UserPreferences, null);
-            var navigator = window.GetComponent<ToggleNavigator>();
-            navigator.Navigate("Visualization");
-            await UniTask.WaitForEndOfFrame();
-            navigator.Navigate("Visualization_Graph");
-            Close();
-        }
-        public async void GenerateLocalizersGraphs()
-        {
+        #region Events
+        public GenericEvent<List<ChannelStructsGroup>> OnDisplayChannelStructsGroupsGraphs => m_ChannelStructGroupsPanel.OnDisplayChannelStructsGroupsGraphs;
+        #endregion
 
+        #region Public Methods
+        public override void OK()
+        {
+            base.OK();
+            m_ChannelStructGroupsPanel.DisplayGraphs();
         }
         #endregion
 
@@ -75,20 +42,8 @@ namespace HBP.UI.Informations
         {
             base.SetFields();
 
-            m_ChannelStructsGroupListGestion.List.Set(m_ChannelStructsGroups);
-            m_ChannelStructsGroupListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
-
-            m_LocalizersGraphsModeDropdown.Set(typeof(LocalizersGraphsMode), (int)LocalizersGraphsMode.Voxel);
-            m_LocalizersGraphsModeDropdown.onValueChanged.AddListener(OnChangeLocalizersGraphsMode);
-            m_LocalizersGraphsAtlasDropdown.Set(typeof(LocalizersGraphsAtlas), (int)LocalizersGraphsAtlas.MarsAtlas);
-            m_LocalizersGraphsPrecisionInputField.text = "1";
-        }
-        protected void OnChangeLocalizersGraphsMode(int value)
-        {
-            LocalizersGraphsMode mode = (LocalizersGraphsMode)value;
-            m_LocalizersGraphsVoxelSettingsContainer.SetActive(mode == LocalizersGraphsMode.Voxel);
-            m_LocalizersGraphsRegionSettingsContainer.SetActive(mode == LocalizersGraphsMode.Region);
-            m_LocalizersGraphsAtlasSettingsContainer.SetActive(mode == LocalizersGraphsMode.Atlas);
+            m_ChannelStructGroupsPanel.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
+            m_LocalizersPanel.Initialize();
         }
         #endregion
     }

@@ -178,9 +178,9 @@ namespace HBP.UI.Informations
         {
             var window = WindowsManager.Open("Graph settings window", null) as GraphSettingsWindow;
             window.ChannelStructsGroups = m_ChannelStructsGroups;
-            window.OnOk.AddListener(() =>
+            window.OnDisplayChannelStructsGroupsGraphs.AddListener(groups =>
             {
-                m_ChannelStructsGroups = window.ChannelStructsGroups;
+                m_ChannelStructsGroups = groups;
                 m_RequestSceneDataUpdate = true;
                 m_RequestGraphsUpdate = true;
             });
