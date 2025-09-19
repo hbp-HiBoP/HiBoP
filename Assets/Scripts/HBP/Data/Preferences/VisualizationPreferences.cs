@@ -343,14 +343,14 @@ namespace HBP.Data.Preferences
             });
             LocalizersColors.InitializeWithColors(new Color[]
             {
-                new Color(171f / 255f, 61f / 255f, 58f / 255f),
-                new Color(46f / 255f, 135f / 255f, 52f / 255f),
-                new Color(66f / 255f, 49f / 255f, 118f / 255f),
-                new Color(35f / 255f, 103f / 255f, 103f / 255f),
-                new Color(89f / 255f, 43f / 255f, 114f / 255f),
-                new Color(47f / 255f, 66f / 255f, 115f / 255f),
-                new Color(137f / 255f, 47f / 255f, 98f / 255f),
-                new Color(18f / 255f, 103f / 255f, 18f / 255f)
+                new Color(255f / 255f, 140f / 255f, 0f / 255f),
+                new Color(0f / 255f, 191f / 255f, 255f / 255f),
+                new Color(255f / 255f, 20f / 255f, 147f / 255f),
+                new Color(50f / 255f, 205f / 255f, 50f / 255f),
+                new Color(138f / 255f, 43f / 255f, 226f / 255f),
+                new Color(255f / 255f, 215f / 255f, 0f / 255f),
+                new Color(220f / 255f, 20f / 255f, 60f / 255f),
+                new Color(64f / 255f, 224f / 255f, 208f / 255f)
             });
         }
         #endregion

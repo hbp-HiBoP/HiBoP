@@ -110,6 +110,121 @@ namespace HBP.Core.Object3D
                 Protocols.Remove(protocol);
             }
         }
+
+        /// <summary>
+        /// Load specific blocs for a protocol and data type. Creates the protocol structure if it doesn't exist.
+        /// </summary>
+        /// <param name="protocolName">Name of the protocol</param>
+        /// <param name="dataName">Name of the data type</param>
+        /// <param name="blocNames">List of bloc names to load</param>
+        /// <returns>List of loaded bloc names that weren't previously loaded</returns>
+        public async UniTask<List<string>> LoadSpecificBlocsAsync(string protocolName, string dataName, IEnumerable<string> blocNames)
+        {
+            var loadedBlocs = new List<string>();
+            if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || blocNames == null)
+                return loadedBlocs;
+
+            string protocolDirectory = Path.Combine(m_LocalizersPath, protocolName);
+            if (!Directory.Exists(protocolDirectory))
+                return loadedBlocs;
+
+            string dataDirectory = Path.Combine(protocolDirectory, dataName);
+            if (!Directory.Exists(dataDirectory))
+                return loadedBlocs;
+
+            // Get or create protocol
+            var protocol = Protocols.FirstOrDefault(p => p.Name == protocolName);
+            if (protocol == null)
+            {
+                protocol = new LocalizerProtocol(protocolName, protocolDirectory, loadBlocs: false);
+                Protocols.Add(protocol);
+            }
+
+            // Get or create data
+            var data = protocol.Datas.FirstOrDefault(d => d.Name == dataName);
+            if (data == null)
+            {
+                data = new LocalizerData(dataName, dataDirectory, loadBlocs: false);
+                protocol.Datas.Add(data);
+            }
+
+            // Load specific blocs
+            foreach (string blocName in blocNames)
+            {
+                var existingBloc = data.Blocs.FirstOrDefault(b => b.Name == blocName);
+                if (existingBloc == null)
+                {
+                    // Find the bloc file
+                    var niftiFiles = Directory.GetFiles(dataDirectory)
+                        .Where(file => LocalizersHelpers.NiftiExtensions.Any(ext => file.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                        .Where(file => !LocalizersHelpers.IsMaskFile(file))
+                        .Where(file => LocalizersHelpers.GetBlocNameFromFile(file).Equals(blocName, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    if (niftiFiles.Count > 0)
+                    {
+                        string niftiFile = niftiFiles[0];
+                        string maskFile = data.FindMaskFileForBloc(dataDirectory, blocName, LocalizersHelpers.NiftiExtensions);
+                        var bloc = new LocalizerBloc(blocName, niftiFile, maskFile);
+                        data.Blocs.Add(bloc);
+                        
+                        // Wait for the bloc to load
+                        await UniTask.WaitUntil(() => bloc.Loaded);
+                        loadedBlocs.Add(blocName);
+                    }
+                }
+                else if (!existingBloc.Loaded)
+                {
+                    // Load the existing bloc if not already loaded
+                    await existingBloc.FMRI.LoadAsync();
+                    loadedBlocs.Add(blocName);
+                }
+            }
+
+            return loadedBlocs;
+        }
+
+        /// <summary>
+        /// Unload specific blocs from a protocol and data type
+        /// </summary>
+        /// <param name="protocolName">Name of the protocol</param>
+        /// <param name="dataName">Name of the data type</param>
+        /// <param name="blocNames">List of bloc names to unload</param>
+        public void UnloadSpecificBlocs(string protocolName, string dataName, IEnumerable<string> blocNames)
+        {
+            if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || blocNames == null)
+                return;
+
+            var protocol = Protocols.FirstOrDefault(p => p.Name == protocolName);
+            if (protocol == null)
+                return;
+
+            var data = protocol.Datas.FirstOrDefault(d => d.Name == dataName);
+            if (data == null)
+                return;
+
+            foreach (string blocName in blocNames)
+            {
+                var bloc = data.Blocs.FirstOrDefault(b => b.Name == blocName);
+                if (bloc != null)
+                {
+                    bloc.Clean();
+                    data.Blocs.Remove(bloc);
+                }
+            }
+
+            // Clean up empty data/protocol structures if needed
+            if (data.Blocs.Count == 0)
+            {
+                protocol.Datas.Remove(data);
+            }
+
+            if (protocol.Datas.Count == 0)
+            {
+                Protocols.Remove(protocol);
+            }
+        }
+
         public FMRI GetCurrentFMRI(string protocolName, string dataName, string blocName)
         {
             if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || string.IsNullOrEmpty(blocName))
@@ -155,10 +270,13 @@ namespace HBP.Core.Object3D
         #endregion
 
         #region Constructors
-        public LocalizerProtocol(string name, string protocolDirectory)
+        public LocalizerProtocol(string name, string protocolDirectory, bool loadBlocs = true)
         {
             Name = name;
-            LoadDatasFromDirectory(protocolDirectory);
+            if (loadBlocs)
+            {
+                LoadDatasFromDirectory(protocolDirectory);
+            }
         }
         #endregion
 
@@ -201,10 +319,13 @@ namespace HBP.Core.Object3D
         #endregion
 
         #region Constructors
-        public LocalizerData(string name, string dataDirectory)
+        public LocalizerData(string name, string dataDirectory, bool loadBlocs = true)
         {
             Name = name;
-            LoadBlocsFromDirectory(dataDirectory);
+            if (loadBlocs)
+            {
+                LoadBlocsFromDirectory(dataDirectory);
+            }
         }
         #endregion
 
@@ -228,7 +349,10 @@ namespace HBP.Core.Object3D
                 Blocs.Add(bloc);
             }
         }
-        private string FindMaskFileForBloc(string directory, string blocName, string[] extensions)
+        #endregion
+
+        #region Public Methods
+        public string FindMaskFileForBloc(string directory, string blocName, string[] extensions)
         {
             foreach (string extension in extensions)
             {
@@ -241,9 +365,7 @@ namespace HBP.Core.Object3D
             }
             return string.Empty;
         }
-        #endregion
 
-        #region Public Methods
         public void Clean()
         {
             foreach (var bloc in Blocs)
