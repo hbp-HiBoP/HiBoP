@@ -480,12 +480,12 @@ namespace HBP.UI.Informations
             // Créer les sous-courbes de protocoles
             List<Graph.Curve> protocolCurves = new List<Graph.Curve>();
 
+            int blocIndex = 0;
             foreach (var protocolPair in dataByProtocol)
             {
                 string protocolName = protocolPair.Key;
                 var blocData = protocolPair.Value;
                 List<Graph.Curve> blocCurves = new List<Graph.Curve>();
-                int blocIndex = 0;
                 foreach (var blocPair in blocData)
                 {
                     string blocName = blocPair.Key;

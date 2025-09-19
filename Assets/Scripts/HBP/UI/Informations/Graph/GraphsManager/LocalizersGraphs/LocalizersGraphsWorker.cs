@@ -37,39 +37,63 @@ namespace HBP.UI.Informations
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
             var sites = GetSceneSites();
             
-            // Dictionary to track which blocs we loaded ourselves and need to unload
-            Dictionary<string, Dictionary<string, List<string>>> protocolBlocsToUnload = new Dictionary<string, Dictionary<string, List<string>>>();
+            // Calculate total work units for progress tracking
+            var selectedProtocols = protocolItems.Where(p => p.IsSelected).ToList();
+            var totalBlocs = selectedProtocols.Sum(p => p.SelectedBlocs.Count);
             
-            foreach (var protocolItem in protocolItems.Where(p => p.IsSelected))
+            if (totalBlocs == 0)
             {
-                try
+                return result;
+            }
+
+            progress?.Invoke(0.0f, 0, new LoadingText("Initializing localizer graphs generation"));
+
+            int processedBlocs = 0;
+            int blocIndex = 0;
+            int totalNumberOfBlocs = selectedProtocols.Sum(p => p.SelectedBlocs.Count);
+
+            foreach (var protocolItem in selectedProtocols)
+            {
+                var selectedBlocNames = protocolItem.SelectedBlocs.Select(b => b.Name).ToList();
+                
+                if (selectedBlocNames.Count == 0)
+                    continue;
+
+                var protocolWasLoadedExternally = Object3DManager.Localizers.Protocols.Any(p => p.Name == protocolItem.Name);
+                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolItem.Name);
+                var data = protocol?.Datas.FirstOrDefault(d => d.Name == dataType);
+
+                foreach (var blocItem in protocolItem.SelectedBlocs)
                 {
-                    var protocolWasLoadedExternally = Object3DManager.Localizers.Protocols.Any(p => p.Name == protocolItem.Name);
-                    var selectedBlocNames = protocolItem.SelectedBlocs.Select(b => b.Name).ToList();
+                    blocIndex++;
                     
-                    if (selectedBlocNames.Count == 0)
-                        continue;
+                    // Progress for loading phase
+                    float loadingProgress = (float)(processedBlocs + 1) / totalBlocs;
+                    progress?.Invoke(loadingProgress, 2f, new LoadingText("Loading bloc ", $"{blocItem.Name} from {protocolItem.Name}", $" [{blocIndex}/{totalNumberOfBlocs}]"));
 
-                    // Load only the specific blocs we need
-                    var newlyLoadedBlocs = await Object3DManager.Localizers.LoadSpecificBlocsAsync(protocolItem.Name, dataType, selectedBlocNames);
-                    
-                    // Track which blocs we loaded so we can unload them later if protocol wasn't loaded externally
-                    if (!protocolWasLoadedExternally && newlyLoadedBlocs.Count > 0)
-                    {
-                        if (!protocolBlocsToUnload.ContainsKey(protocolItem.Name))
-                            protocolBlocsToUnload[protocolItem.Name] = new Dictionary<string, List<string>>();
+                    // Check if bloc is already loaded
+                    var existingBloc = data?.Blocs.FirstOrDefault(b => b.Name == blocItem.Name);
+                    bool blocWasLoadedExternally = existingBloc?.Loaded ?? false;
                         
-                        if (!protocolBlocsToUnload[protocolItem.Name].ContainsKey(dataType))
-                            protocolBlocsToUnload[protocolItem.Name][dataType] = new List<string>();
-                            
-                        protocolBlocsToUnload[protocolItem.Name][dataType].AddRange(newlyLoadedBlocs);
-                    }
+                    // Load only this specific bloc
+                    var newlyLoadedBlocs = await Object3DManager.Localizers.LoadSpecificBlocsAsync(protocolItem.Name, dataType, new[] { blocItem.Name });
+                        
+                    // Get the protocol and data after loading
+                    protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolItem.Name);
+                    if (protocol == null)
+                        throw new HBPException("Protocol not found", $"The protocol '{protocolItem.Name}' could not be loaded.\n\nPlease check your Localizers Atlas installation.");
 
-                    var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolItem.Name) ?? throw new HBPException("Protocol not found", $"The protocol '{protocolItem.Name}' could not be loaded.\n\nPlease check your Localizers Atlas installation.");
-                    var data = protocol.Datas.FirstOrDefault(d => d.Name == dataType) ?? throw new HBPException("Data not found", $"The data '{dataType}' was not found in the protocol '{protocolItem.Name}'.\n\nPlease check your Localizers Atlas installation.");
-                    foreach (var blocItem in protocolItem.SelectedBlocs)
+                    data = protocol.Datas.FirstOrDefault(d => d.Name == dataType);
+                    if (data == null)
+                        throw new HBPException("Data not found", $"The data '{dataType}' was not found in the protocol '{protocolItem.Name}'.\n\nPlease check your Localizers Atlas installation.");
+
+                    var bloc = data.Blocs.FirstOrDefault(b => b.Name == blocItem.Name);
+                    if (bloc == null)
+                        throw new HBPException("Bloc not found", $"The bloc '{blocItem.Name}' was not found in the protocol '{protocolItem.Name}'.\n\nPlease check your Localizers Atlas installation.");
+
+                    try
                     {
-                        var bloc = data.Blocs.FirstOrDefault(b => b.Name == blocItem.Name) ?? throw new HBPException("Bloc not found", $"The bloc '{blocItem.Name}' was not found in the protocol '{protocolItem.Name}'.\n\nPlease check your Localizers Atlas installation.");
+                        // Extract all the data we need from this bloc
                         var times = GetTimes(bloc.FMRI);
                         foreach (var site in sites)
                         {
@@ -88,30 +112,21 @@ namespace HBP.UI.Informations
                             curves.Add(new LocalizerCurveData(dataType, protocolItem.Name, blocItem.Name, points.ToArray()));
                         }
                     }
-                }
-                catch (Exception)
-                {
-                    // If something went wrong, we should still clean up any loaded blocs for this protocol
-                    if (protocolBlocsToUnload.ContainsKey(protocolItem.Name))
+                    finally
                     {
-                        foreach (var dataEntry in protocolBlocsToUnload[protocolItem.Name])
+                        // Clean up this bloc immediately if we loaded it and protocol wasn't loaded externally
+                        if (!protocolWasLoadedExternally && !blocWasLoadedExternally && newlyLoadedBlocs.Contains(blocItem.Name))
                         {
-                            Object3DManager.Localizers.UnloadSpecificBlocs(protocolItem.Name, dataEntry.Key, dataEntry.Value);
+                            Object3DManager.Localizers.UnloadSpecificBlocs(protocolItem.Name, dataType, new[] { blocItem.Name });
                         }
-                        protocolBlocsToUnload.Remove(protocolItem.Name);
                     }
-                    throw; // Re-throw the exception
+
+                    processedBlocs++;
                 }
             }
 
-            // Clean up blocs that we loaded and that weren't loaded externally
-            foreach (var protocolEntry in protocolBlocsToUnload)
-            {
-                foreach (var dataEntry in protocolEntry.Value)
-                {
-                    Object3DManager.Localizers.UnloadSpecificBlocs(protocolEntry.Key, dataEntry.Key, dataEntry.Value);
-                }
-            }
+            // Final progress update
+            progress?.Invoke(1.0f, 0, new LoadingText($"Completed: generated curves for {processedBlocs} blocs and {sites.Count} sites"));
 
             return result;
         }
