@@ -29,10 +29,26 @@ namespace HBP.UI.Informations
         }
     }
 
+    public struct RescalingParameters
+    {
+        public bool EnableRescaling;
+        public float BaselineValue;
+        public float GainFactor;
+        public float Offset;
+
+        public RescalingParameters(bool enableRescaling, float baselineValue, float gainFactor, float offset)
+        {
+            EnableRescaling = enableRescaling;
+            BaselineValue = baselineValue;
+            GainFactor = gainFactor;
+            Offset = offset;
+        }
+    }
+
     public class LocalizersGraphsWorker
     {
         #region Public Methods
-        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsVoxelAsync(string dataType, List<ProtocolItem> protocolItems, Action<float, float, LoadingText> progress)
+        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsVoxelAsync(string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
             var sites = GetSceneSites();
@@ -104,6 +120,13 @@ namespace HBP.UI.Informations
                                 result[channelStruct] = curves;
                             }
                             var values = GetVoxelData(site.Information.DefaultPosition, bloc.FMRI);
+                            
+                            // Apply rescaling if enabled
+                            if (rescalingParams.EnableRescaling)
+                            {
+                                ApplyRescaling(values, rescalingParams);
+                            }
+                            
                             var points = new List<Vector2>();
                             for (int i = 0; i < times.Length; i++)
                             {
@@ -130,12 +153,12 @@ namespace HBP.UI.Informations
 
             return result;
         }
-        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsRegionAsync(int precision, string dataType, List<ProtocolItem> protocolItems, Action<float, float, LoadingText> progress)
+        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsRegionAsync(int precision, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
             return result;
         }
-        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsAtlasAsync(LocalizersGraphsAtlas atlas, string dataType, List<ProtocolItem> protocolItems, Action<float, float, LoadingText> progress)
+        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsAtlasAsync(LocalizersGraphsAtlas atlas, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
             return result;
@@ -143,6 +166,22 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Private Methods
+        /// <summary>
+        /// Apply rescaling to an array of values using the formula: newValue = (oldValue - baseline) * gain + baseline + offset
+        /// </summary>
+        /// <param name="values">Array of values to rescale (modified in place)</param>
+        /// <param name="rescalingParams">Rescaling parameters</param>
+        private void ApplyRescaling(float[] values, RescalingParameters rescalingParams)
+        {
+            if (!rescalingParams.EnableRescaling || values == null || values.Length == 0)
+                return;
+
+            for (int i = 0; i < values.Length; i++)
+            {
+                // Apply rescaling formula: newValue = (oldValue - baseline) * gain + baseline + offset
+                values[i] = (values[i] - rescalingParams.BaselineValue) * rescalingParams.GainFactor + rescalingParams.BaselineValue + rescalingParams.Offset;
+            }
+        }
         public List<Site> GetSceneSites()
         {
             return Module3DMain.SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).GroupBy(s => s.Information.FullID).Select(g => g.First()).ToList();
