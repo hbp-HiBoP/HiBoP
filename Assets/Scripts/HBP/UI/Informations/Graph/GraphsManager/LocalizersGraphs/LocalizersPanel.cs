@@ -93,15 +93,26 @@ namespace HBP.UI.Informations
             
             // Create rescaling parameters
             var rescalingParams = new RescalingParameters(m_EnableRescaling, m_BaselineValue, m_GainFactor, m_Offset);
-            
-            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = mode switch
+            try
             {
-                LocalizersGraphsMode.Voxel => await LoadingManager.LoadAsync(progress => m_Worker.GenerateLocalizersGraphsVoxelAsync(dataType, m_ProtocolItems, rescalingParams, progress)),
-                LocalizersGraphsMode.Region => await LoadingManager.LoadAsync(progress => m_Worker.GenerateLocalizersGraphsRegionAsync(precision, dataType, m_ProtocolItems, rescalingParams, progress)),
-                LocalizersGraphsMode.Atlas => await LoadingManager.LoadAsync(progress => m_Worker.GenerateLocalizersGraphsAtlasAsync(atlas, dataType, m_ProtocolItems, rescalingParams, progress)),
-                _ => new(),
-            };
-            OnGenerateLocalizersGraphs.Invoke(result);
+                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = mode switch
+                {
+                    LocalizersGraphsMode.Voxel => await LoadingManager.LoadAsync((progress, token) => m_Worker.GenerateLocalizersGraphsVoxelAsync(dataType, m_ProtocolItems, rescalingParams, progress, token)),
+                    LocalizersGraphsMode.Region => await LoadingManager.LoadAsync((progress, token) => m_Worker.GenerateLocalizersGraphsRegionAsync(precision, dataType, m_ProtocolItems, rescalingParams, progress, token)),
+                    LocalizersGraphsMode.Atlas => await LoadingManager.LoadAsync((progress, token) => m_Worker.GenerateLocalizersGraphsAtlasAsync(atlas, dataType, m_ProtocolItems, rescalingParams, progress, token)),
+                    _ => new(),
+                };
+                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Localizers Graphs", $"Curves generated for all selected blocs.", "OK");
+                OnGenerateLocalizersGraphs.Invoke(result);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignore cancellation
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
         #endregion
 

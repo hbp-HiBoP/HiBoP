@@ -9,6 +9,7 @@ using HBP.Data.Preferences;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 namespace HBP.UI.Informations
@@ -48,7 +49,7 @@ namespace HBP.UI.Informations
     public class LocalizersGraphsWorker
     {
         #region Public Methods
-        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsVoxelAsync(string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress)
+        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsVoxelAsync(string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
             var sites = GetSceneSites();
@@ -81,6 +82,7 @@ namespace HBP.UI.Informations
 
                 foreach (var blocItem in protocolItem.SelectedBlocs)
                 {
+                    token.ThrowIfCancellationRequested();
                     blocIndex++;
                     
                     // Progress for loading phase
@@ -153,12 +155,12 @@ namespace HBP.UI.Informations
 
             return result;
         }
-        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsRegionAsync(int precision, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress)
+        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsRegionAsync(int precision, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
             return result;
         }
-        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsAtlasAsync(LocalizersGraphsAtlas atlas, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress)
+        public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsAtlasAsync(LocalizersGraphsAtlas atlas, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
             return result;
