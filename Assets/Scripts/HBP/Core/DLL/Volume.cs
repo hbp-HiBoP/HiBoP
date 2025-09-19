@@ -406,6 +406,10 @@ namespace HBP.Core.DLL
         {
             return get_value_from_position_Volume(_handle, -position.x, position.y, position.z);
         }
+        public float GetAverageValueAroundPositionWithMask(Vector3 position, int precision, Volume maskVolume, ref float[] rawValues, ref int actualLength)
+        {
+            return get_average_value_around_position_with_mask_Volume(_handle, -position.x, position.y, position.z, precision, maskVolume.getHandle(), rawValues, rawValues.Length, ref actualLength);
+        }
         #endregion
 
         #region Memory Management
@@ -458,6 +462,8 @@ namespace HBP.Core.DLL
         static private extern void get_colors_from_values_texture_Volume(HandleRef handleVolume, float[] values, int[] mask, int valuesLength, float min, float middle, float max, HandleRef textureHandle, float[] result);
         [DllImport("hbp_export", EntryPoint = "get_value_from_position_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern float get_value_from_position_Volume(HandleRef handleVolume, float x, float y, float z);
+        [DllImport("hbp_export", EntryPoint = "get_average_value_around_position_with_mask_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float get_average_value_around_position_with_mask_Volume(HandleRef handleVolume, float x, float y, float z, int precision, HandleRef maskVolume, float[] rawValues, int length, ref int actualLength);
         #endregion
     }
 

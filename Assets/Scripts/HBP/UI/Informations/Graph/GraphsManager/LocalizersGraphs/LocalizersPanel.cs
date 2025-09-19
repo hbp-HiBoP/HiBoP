@@ -75,7 +75,7 @@ namespace HBP.UI.Informations
             m_LocalizersGraphsModeDropdown.onValueChanged.AddListener(OnChangeLocalizersGraphsMode);
             m_LocalizersGraphsAtlasDropdown.Set(typeof(LocalizersGraphsAtlas), (int)LocalizersGraphsAtlas.MarsAtlas);
             m_LocalizersGraphsPrecisionSlider.minValue = 1;
-            m_LocalizersGraphsPrecisionSlider.maxValue = 5;
+            m_LocalizersGraphsPrecisionSlider.maxValue = 10;
             m_LocalizersGraphsPrecisionSlider.value = 1;
 
             m_DataTypeDropdown.options = Object3DManager.Localizers.AvailableDataNames.Select(name => new Dropdown.OptionData(name)).ToList();

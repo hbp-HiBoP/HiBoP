@@ -490,7 +490,18 @@ namespace HBP.UI.Informations
                 {
                     string blocName = blocPair.Key;
                     string blocID = $"Localizers_{protocolName}_{blocName}";
-                    var blocCurveData = blocPair.Value.Points.Length > 0 ? CurveData.CreateInstance(blocPair.Value.Points, PersistentDataManager.UserPreferences.Visualization.Graph.LocalizersColors.GetColor(0, blocIndex++)) : null;
+                    CurveData blocCurveData = null;
+                    if (blocPair.Value.Points.Length > 0)
+                    {
+                        if (blocPair.Value.SEM != null)
+                        {
+                            blocCurveData = ShapedCurveData.CreateInstance(blocPair.Value.Points, blocPair.Value.SEM, PersistentDataManager.UserPreferences.Visualization.Graph.LocalizersColors.GetColor(0, blocIndex++));
+                        }
+                        else
+                        {
+                            blocCurveData = CurveData.CreateInstance(blocPair.Value.Points, PersistentDataManager.UserPreferences.Visualization.Graph.LocalizersColors.GetColor(0, blocIndex++));
+                        }
+                    }
                     var blocCurve = new Graph.Curve(blocName, blocCurveData, true, blocID, new Graph.Curve[0], m_DefaultColor);
                     blocCurves.Add(blocCurve);
                 }
