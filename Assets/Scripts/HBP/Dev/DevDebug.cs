@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
+using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.Data.Module3D;
@@ -60,12 +61,18 @@ namespace HBP.Dev
             Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii.gz"), (Module3DMain.SelectedColumn as Column3DIEEG).Timeline.CurrentSubtimeline, "IEEG Activity");
             source.Cancel();
         }
+        [SerializeField] private GameObject m_CubePrefab;
         private async void Update()
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
                 //LoadingManager.Load(SaveActivityAsNifti);
-                Core.Object3D.FMRI fmri = new("FMRI", Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "FRUIT.nii.gz"));
+                //Core.Object3D.FMRI fmri = new("FMRI", Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "FRUIT.nii.gz"));
+                //Vector3[] positions = Module3DMain.SelectedScene.AtlasManager.SelectedAtlas.GetAreaCoordinates(Module3DMain.SelectedScene.AtlasManager.HoveredArea);
+                //foreach (var pos in positions)
+                //{
+                //    Instantiate(m_CubePrefab, pos, Quaternion.identity);
+                //}
             }
             //if (Input.GetKeyDown(KeyCode.F1))
             //{

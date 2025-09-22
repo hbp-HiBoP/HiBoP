@@ -74,6 +74,18 @@ namespace HBP.Core.DLL
             return colors;
         }
         public abstract string GetAreaName(int index);
+        public Vector3[] GetAreaCoordinates(int labelIndex)
+        {
+            int numCoords = get_region_coordinates_BrainAtlas(_handle, labelIndex, null, 0); // Get number of coordinates
+            float[] coords = new float[numCoords * 3];
+            get_region_coordinates_BrainAtlas(_handle, labelIndex, coords, coords.Length / 3);
+            Vector3[] result = new Vector3[numCoords];
+            for (int i = 0; i < numCoords; i++)
+            {
+                result[i] = new Vector3(-coords[3 * i], coords[3 * i + 1], coords[3 * i + 2]);
+            }
+            return result;
+        }
         #endregion
 
         #region Private Methods
@@ -82,13 +94,15 @@ namespace HBP.Core.DLL
 
         #region DLLImport
         [DllImport("hbp_export", EntryPoint = "get_closest_area_index_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int get_closest_area_index_BrainAtlas(HandleRef juBrainAtlas, float x, float y, float z, int radius);
+        static private extern int get_closest_area_index_BrainAtlas(HandleRef atlas, float x, float y, float z, int radius);
         [DllImport("hbp_export", EntryPoint = "get_area_information_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr get_area_information_BrainAtlas(HandleRef juBrainAtlas, int labelIndex);
+        static private extern IntPtr get_area_information_BrainAtlas(HandleRef atlas, int labelIndex);
         [DllImport("hbp_export", EntryPoint = "get_vertices_area_index_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void get_vertices_area_index_BrainAtlas(HandleRef juBrainAtlas, HandleRef surfaceHandle, int[] indices);
+        static private extern void get_vertices_area_index_BrainAtlas(HandleRef atlas, HandleRef surfaceHandle, int[] indices);
         [DllImport("hbp_export", EntryPoint = "get_colors_from_indices_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void get_colors_from_indices_BrainAtlas(HandleRef juBrainAtlas, int[] indices, int size, int selectedArea, float[] colors);
+        static private extern void get_colors_from_indices_BrainAtlas(HandleRef atlas, int[] indices, int size, int selectedArea, float[] colors);
+        [DllImport("hbp_export", EntryPoint = "get_region_coordinates_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int get_region_coordinates_BrainAtlas(HandleRef atlas, int labelIndex, float[] coordinates, int maxCoordinates);
         #endregion
     }
 }
