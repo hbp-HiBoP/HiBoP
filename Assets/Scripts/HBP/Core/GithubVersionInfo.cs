@@ -13,5 +13,18 @@ namespace HBP.Core.Data
 
         [JsonProperty("body")]
         public string Description { get; set; }
+
+        public GithubVersionInfo()
+        {
+            VersionNumber = string.Empty;
+            URL = string.Empty;
+            Description = string.Empty;
+        }
+        public GithubVersionInfo(string versionNumber, string url, string description)
+        {
+            VersionNumber = versionNumber;
+            URL = url;
+            Description = description;
+        }
     }
 }

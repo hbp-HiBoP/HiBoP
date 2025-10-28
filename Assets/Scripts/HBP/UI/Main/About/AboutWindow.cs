@@ -1,4 +1,5 @@
 using HBP.UI.Tools;
+using HBP.Core.Tools;
 using System.Globalization;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace HBP.UI.Main
             TextAsset buildInfo = Resources.Load<TextAsset>("BuildInfo");
             if (buildInfo != null)
             {
-                Core.Data.BuildInfo info = Newtonsoft.Json.JsonConvert.DeserializeObject<Core.Data.BuildInfo>(buildInfo.text);
+                Core.Data.BuildInfo info = ClassLoaderSaver.LoadFromJsonString<Core.Data.BuildInfo>(buildInfo.text);
                 m_VersionText.text = m_VersionText.text.Replace("{VERSION}", info.Version);
                 m_BuildInfoText.text = m_BuildInfoText.text.Replace("{DATE}", info.BuildDate.ToString("MMM dd yyyy HH:mm:ss", CultureInfo.InvariantCulture)).Replace("{UNITY_VERSION}", info.UnityVersion);
             }

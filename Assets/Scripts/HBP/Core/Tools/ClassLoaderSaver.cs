@@ -4,9 +4,6 @@ using System.IO;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Cysharp.Threading.Tasks;
-using Newtonsoft.Json.Serialization;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace HBP.Core.Tools
 {
@@ -14,10 +11,15 @@ namespace HBP.Core.Tools
     {
         private static readonly JsonSerializerSettings m_Settings = new()
         {
+#if !ENABLE_IL2CPP
             TypeNameHandling = TypeNameHandling.Auto,
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
+#else
+            TypeNameHandling = TypeNameHandling.None,
+#endif
             Formatting = Formatting.Indented,
         };
+
         public static T LoadFromJson<T>(string path) where T : new()
         {
             T result = new T();
@@ -68,6 +70,10 @@ namespace HBP.Core.Tools
                 Debug.LogException(e);
                 return false;
             }
+        }
+        public static T LoadFromJsonString<T>(string jsonString) where T : new()
+        {
+            return JsonConvert.DeserializeObject<T>(jsonString, m_Settings);
         }
         public static T LoadFromXML<T>(string path) where T : new()
         {
