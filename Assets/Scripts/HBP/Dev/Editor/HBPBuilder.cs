@@ -3,6 +3,7 @@ using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace HBP.Dev
@@ -25,15 +26,18 @@ namespace HBP.Dev
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
-                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.x64;
+                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
+                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = OSArchitecture.x64;
                     os = "win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
-                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.x64;
+                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
+                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = OSArchitecture.x64;
                     os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
-                    UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.Build.OSArchitecture.ARM64;
+                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+                    UnityEditor.OSXStandalone.UserBuildSettings.architecture = OSArchitecture.ARM64;
                     os = "macos64";
                     break;
             }
