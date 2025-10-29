@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using HBP.Core.Tools;
+using AOT;
 
 namespace HBP.Core.DLL
 {
@@ -47,15 +48,6 @@ namespace HBP.Core.DLL
         /// List of all DLL objects created during this instance of the program
         /// </summary>
         public List<DLLObject> DLLObjects { get; private set; } = new List<DLLObject>();
-
-        /// <summary>
-        /// Delegate for the log callback method
-        /// </summary>
-        private LoggerDelegate m_LogCallbackDelegate;
-        /// <summary>
-        /// Pointer to the log callback delegate
-        /// </summary>
-        private IntPtr m_LogCallbackIntPtr;
         #endregion;
 
         #region Private Methods
@@ -64,9 +56,7 @@ namespace HBP.Core.DLL
             base.Initialization();
             if (m_LogDLLToUnity)
             {
-                m_LogCallbackDelegate = new LoggerDelegate(LogCallback);
-                m_LogCallbackIntPtr = Marshal.GetFunctionPointerForDelegate(m_LogCallbackDelegate);
-                set_debug_callback_Logger(m_LogCallbackIntPtr);
+                set_debug_callback_Logger(LogCallback);
             }
             if (m_LogDLLToFile)
             {
@@ -82,19 +72,14 @@ namespace HBP.Core.DLL
         /// </summary>
         /// <param name="str">String to be passed from the DLL to Unity</param>
         /// <param name="type">Type of the log (log, warning, error)</param>
-        private void LogCallback(string str, int type)
+        [MonoPInvokeCallback(typeof(LoggerDelegate))]
+        private static void LogCallback([MarshalAs(UnmanagedType.LPUTF8Str)] string str, int type)
         {
             switch (type)
             {
-                case 0:
-                    Debug.Log(str);
-                    return;
-                case 1:
-                    Debug.LogWarning(str);
-                    return;
-                case 2:
-                    Debug.LogError(str);
-                    return;
+                case 0: Debug.Log(str); return;
+                case 1: Debug.LogWarning(str); return;
+                case 2: Debug.LogError(str); return;
             }
         }
         #endregion
@@ -142,11 +127,11 @@ namespace HBP.Core.DLL
 
         #region DllImport
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void LoggerDelegate(string str, int type);
+        public delegate void LoggerDelegate([MarshalAs(UnmanagedType.LPUTF8Str)] string str, int type);
         [DllImport("hbp_export", EntryPoint = "set_debug_callback_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void set_debug_callback_Logger(IntPtr logCallback);
+        static private extern void set_debug_callback_Logger(LoggerDelegate logCallback);
         [DllImport("hbp_export", EntryPoint = "redirect_standard_output_to_file_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void redirect_standard_output_to_file_Logger(string pathToFile);
+        static private extern void redirect_standard_output_to_file_Logger([MarshalAs(UnmanagedType.LPUTF8Str)] string pathToFile);
         [DllImport("hbp_export", EntryPoint = "reset_Logger", CallingConvention = CallingConvention.Cdecl)]
         static private extern void reset_Logger();
         #endregion

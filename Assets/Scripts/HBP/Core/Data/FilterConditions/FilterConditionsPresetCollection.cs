@@ -27,7 +27,11 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    presetsCollection = ClassLoaderSaver.LoadFromJson<FilterConditionsPresetCollection>(PATH);
+                    var loadedPresetCollection = ClassLoaderSaver.LoadFromJson<FilterConditionsPresetCollection>(PATH);
+                    if (loadedPresetCollection != null)
+                    {
+                        presetsCollection = loadedPresetCollection;
+                    }
                 }
                 catch (Exception e)
                 {

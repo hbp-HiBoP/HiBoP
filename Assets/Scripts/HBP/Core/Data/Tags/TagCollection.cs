@@ -76,7 +76,11 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    tagsCollection = ClassLoaderSaver.LoadFromJson<TagCollection>(PATH);
+                    var loadedTagsCollection = ClassLoaderSaver.LoadFromJson<TagCollection>(PATH);
+                    if (loadedTagsCollection != null)
+                    {
+                        tagsCollection = loadedTagsCollection;
+                    }
                 }
                 catch (System.Exception e)
                 {

@@ -11,12 +11,8 @@ namespace HBP.Core.Tools
     {
         private static readonly JsonSerializerSettings m_Settings = new()
         {
-#if !ENABLE_IL2CPP
             TypeNameHandling = TypeNameHandling.Auto,
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
-#else
-            TypeNameHandling = TypeNameHandling.None,
-#endif
             Formatting = Formatting.Indented,
         };
 
@@ -25,7 +21,8 @@ namespace HBP.Core.Tools
             T result = new T();
             using (StreamReader streamReader = new StreamReader(path))
             {
-                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), m_Settings);
+                string jsonContent = streamReader.ReadToEnd();
+                result = JsonConvert.DeserializeObject<T>(jsonContent, m_Settings);
             }
             return result;
         }

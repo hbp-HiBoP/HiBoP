@@ -45,7 +45,11 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    aliasCollection = ClassLoaderSaver.LoadFromJson<AliasCollection>(PATH);
+                    var loadedAliasCollection = ClassLoaderSaver.LoadFromJson<AliasCollection>(PATH);
+                    if (loadedAliasCollection != null)
+                    {
+                        aliasCollection = loadedAliasCollection;
+                    }
                 }
                 catch (System.Exception e)
                 {

@@ -60,7 +60,11 @@ namespace HBP.Data.Preferences
             {
                 try
                 {
-                    userPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(PATH);
+                    var loadedPreferences = ClassLoaderSaver.LoadFromJson<UserPreferences>(PATH);
+                    if (loadedPreferences != null)
+                    {
+                        userPreferences = loadedPreferences;
+                    }
                 }
                 catch (Exception e)
                 {
