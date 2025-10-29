@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Collections.ObjectModel;
-using HBP.Core.Errors;
-using System.ComponentModel;
-using System.Linq;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -31,7 +32,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("CSV"), Static]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("CSV"), Static]
     public class CSV : DataContainer
     {
         #region Properties

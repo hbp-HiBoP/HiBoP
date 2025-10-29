@@ -1,9 +1,10 @@
 using Newtonsoft.Json;
 using System;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BuildInfo
     {
         [JsonProperty("Version")]

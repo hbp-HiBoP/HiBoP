@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Errors;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using UnityEngine.Events;
-using HBP.Core.Errors;
-using Newtonsoft.Json;
-using System.Collections.ObjectModel;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -26,7 +27,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class DataContainer : BaseData
     {
         #region Properties

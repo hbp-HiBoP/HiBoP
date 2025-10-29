@@ -1,23 +1,24 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Text;
-using UnityEngine.Events;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Enums;
 using HBP.Core.Errors;
 using HBP.Core.Interfaces;
-using Newtonsoft.Json;
-using HBP.Data.Database;
-using System.Collections.ObjectModel;
-using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Data.Database;
+using HBP.UI.Main;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using HBP.Core.Enums;
 using UnityEditor;
+using UnityEngine.Events;
+using UnityEngine.Scripting;
 using UnityEngine.UIElements;
-using System.Diagnostics;
-using HBP.UI.Main;
 
 namespace HBP.Core.Data
 {
@@ -56,7 +57,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class DataInfo : BaseData, ILoadableFromDatabase<DataInfo>, INameable
     {
         #region Properties

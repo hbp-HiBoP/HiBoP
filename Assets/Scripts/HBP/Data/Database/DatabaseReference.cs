@@ -1,10 +1,11 @@
 using HBP.Core.Data;
 using Newtonsoft.Json;
 using System;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Database
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class DatabaseReference : BaseData
     {
         #region Properties
@@ -58,13 +59,13 @@ namespace HBP.Data.Database
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class DatabaseReferenceParameters : BaseData
     {
 
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BrainvisaDatabaseParameters : DatabaseReferenceParameters
     {
         public override object Clone()
@@ -77,7 +78,7 @@ namespace HBP.Data.Database
         }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class LocalizerDatabaseParameters : DatabaseReferenceParameters
     {
         [JsonProperty] public bool IncludeRaw { get; set; } = false;
@@ -100,7 +101,7 @@ namespace HBP.Data.Database
         }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BIDSDatabaseParameters : DatabaseReferenceParameters
     {
         public override object Clone()
@@ -113,7 +114,7 @@ namespace HBP.Data.Database
         }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class TagsDatabaseParameters : DatabaseReferenceParameters
     {
         public override object Clone()

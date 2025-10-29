@@ -2,10 +2,11 @@ using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Raw position"), SortingOrder(7), FilterCondition(typeof(Object3D.Site))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Raw position"), SortingOrder(7), FilterCondition(typeof(Object3D.Site))]
     public class RawSitePositionFilterCondition : BaseFilterCondition
     {
         #region Enums

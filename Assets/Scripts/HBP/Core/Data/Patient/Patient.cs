@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
+﻿using Cysharp.Threading.Tasks;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
 using HBP.Data.Database;
-using Cysharp.Threading.Tasks;
+using HBP.Data.Preferences;
 using Newtonsoft.Json;
-using System.Threading;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
+using System.Threading;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -54,7 +55,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Patient : BaseData, ILoadable<Patient>, ILoadableFromDatabase<Patient>, ILoadableFromDirectory<Patient>, INameable
     {
         #region Properties

@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using HBP.Core.Errors;
-using System.ComponentModel;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -30,7 +31,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Micromed"), IEEG, CCEP]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Micromed"), IEEG, CCEP]
     public class Micromed : DataContainer
     {
         #region Properties

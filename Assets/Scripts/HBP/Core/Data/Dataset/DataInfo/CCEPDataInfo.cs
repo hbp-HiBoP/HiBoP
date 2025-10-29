@@ -1,10 +1,11 @@
-﻿using System;
+﻿using HBP.Core.Errors;
+using HBP.Data.Database;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using HBP.Core.Errors;
-using HBP.Data.Database;
-using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -51,7 +52,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("CCEP")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("CCEP")]
     public class CCEPDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties

@@ -1,15 +1,16 @@
-﻿using System;
-using System.Linq;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
-using System.IO;
+﻿using Cysharp.Threading.Tasks;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
-using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Threading;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -27,7 +28,7 @@ namespace HBP.Core.Data
     *   - \a Configuration.
     *   - \a Columns.   
     */
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Visualization : BaseData, ILoadable<Visualization>, INameable
     {
         #region Properties

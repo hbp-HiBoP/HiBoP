@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Anatomic")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Anatomic")]
     public class AnatomicColumn : Column
     {
         #region Properties

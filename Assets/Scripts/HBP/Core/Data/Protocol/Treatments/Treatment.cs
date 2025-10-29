@@ -1,5 +1,6 @@
 ﻿using HBP.Core.Tools;
 using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -38,7 +39,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Treatment : BaseData
     {
         #region Properties

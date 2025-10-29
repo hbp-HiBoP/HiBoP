@@ -1,9 +1,10 @@
-﻿using UnityEngine;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct SerializableVector3
     {
         [JsonProperty] public float x { get; set; }

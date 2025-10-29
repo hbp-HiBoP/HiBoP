@@ -1,10 +1,11 @@
-﻿using System.Linq;
+﻿using Newtonsoft.Json;
 using System.Collections.Generic;
-using Newtonsoft.Json;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BaseConfiguration : BaseData
     {
         #region Properties

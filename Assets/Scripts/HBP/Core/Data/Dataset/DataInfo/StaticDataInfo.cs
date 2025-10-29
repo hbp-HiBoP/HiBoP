@@ -1,13 +1,14 @@
-﻿using System;
+﻿using HBP.Core.Errors;
+using HBP.Core.Tools;
+using HBP.Data.Database;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using HBP.Core.Errors;
-using HBP.Core.Tools;
-using HBP.Data.Database;
-using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -54,7 +55,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Static")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Static")]
     public class StaticDataInfo : PatientDataInfo
     {
         #region Constructors

@@ -1,8 +1,9 @@
-﻿using System.Linq;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
-using HBP.Core.Tools;
-using Newtonsoft.Json;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -18,7 +19,7 @@ namespace HBP.Core.Data
     *   - \a Protocol.
     *   - \a Bloc.
     */
-    [JsonObject(MemberSerialization.OptIn), DisplayName("CCEP")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("CCEP")]
     public class CCEPColumn : Column
     {
         #region Properties

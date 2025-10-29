@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Tools
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct TimeWindow
     {
         #region Properties

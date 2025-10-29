@@ -1,14 +1,15 @@
-﻿using System;
+﻿using HBP.Core.Data;
+using HBP.Core.Enums;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using HBP.Core.Enums;
-using HBP.Core.Data;
-using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Preferences
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class VisualizationPreferences : ICloneable
     {
         #region Properties
@@ -40,7 +41,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class _3DPreferences : ICloneable
     {
         #region Properties
@@ -90,7 +91,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class TrialMatrixPreferences : ICloneable
     {
         #region Properties
@@ -142,7 +143,7 @@ namespace HBP.Data.Preferences
     }
 
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class GraphPreferences : ICloneable
     {
         #region Properties
@@ -356,7 +357,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class CutPreferences : ICloneable
     {
         #region Properties
@@ -378,7 +379,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ColorGrid : ICloneable
     {
         #region Enums

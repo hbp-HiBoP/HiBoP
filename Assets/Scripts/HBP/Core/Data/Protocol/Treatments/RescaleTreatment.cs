@@ -1,6 +1,7 @@
-﻿using System.ComponentModel;
-using HBP.Core.Tools;
+﻿using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System.ComponentModel;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -55,7 +56,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Rescale")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Rescale")]
     public class RescaleTreatment : Treatment
     {
         #region Properties

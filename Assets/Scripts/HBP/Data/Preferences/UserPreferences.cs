@@ -1,10 +1,11 @@
-﻿using UnityEngine;
-using System.IO;
-using UnityEngine.Events;
-using HBP.Core.Data;
+﻿using HBP.Core.Data;
 using HBP.Core.Tools;
-using System;
 using Newtonsoft.Json;
+using System;
+using System.IO;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Preferences
 {
@@ -20,7 +21,7 @@ namespace HBP.Data.Preferences
     *     - Data preferences.
     *     - Visualization preferences.
     */
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class UserPreferences : BaseData
     {
         #region Properties

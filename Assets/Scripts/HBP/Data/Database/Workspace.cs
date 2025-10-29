@@ -2,10 +2,11 @@ using HBP.Core.Data;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Database
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Workspace : BaseData, INameable
     {
         #region Properties

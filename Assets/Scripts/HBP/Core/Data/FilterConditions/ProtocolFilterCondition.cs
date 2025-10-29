@@ -6,10 +6,11 @@ using System.ComponentModel;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Protocol"), SortingOrder(4), FilterCondition(typeof(Patient))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Protocol"), SortingOrder(4), FilterCondition(typeof(Patient))]
     public class ProtocolFilterCondition : BaseFilterCondition
     {
         #region Properties

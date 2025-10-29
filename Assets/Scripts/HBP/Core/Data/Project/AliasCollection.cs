@@ -6,10 +6,11 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class AliasCollection : BaseData
     {
         #region Properties

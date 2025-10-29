@@ -6,10 +6,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class FilterConditionsPresetCollection : BaseData
     {
         #region Properties

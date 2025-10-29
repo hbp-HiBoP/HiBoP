@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -44,7 +45,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("LeftRight")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("LeftRight")]
     public class LeftRightMesh : BaseMesh
     {
         #region Properties

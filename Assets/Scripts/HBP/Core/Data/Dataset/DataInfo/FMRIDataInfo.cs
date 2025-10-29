@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using HBP.Core.Errors;
+﻿using HBP.Core.Errors;
 using HBP.Data.Database;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -50,7 +51,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("FMRI")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("FMRI")]
     public class FMRIDataInfo : PatientDataInfo
     {
         #region Properties

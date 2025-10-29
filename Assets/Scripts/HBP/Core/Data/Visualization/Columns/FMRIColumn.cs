@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using HBP.Core.Tools;
-using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("FMRI")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("FMRI")]
     public class FMRIColumn : Column
     {
         #region Properties

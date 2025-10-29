@@ -1,6 +1,7 @@
 ﻿using HBP.Core.Interfaces;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -13,7 +14,7 @@ namespace HBP.Core.Data
     * 
     * \detail Visualization column is a class which contains the base information of the visualization column.
     */
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class Column : BaseData, INameable
     {
         #region Properties

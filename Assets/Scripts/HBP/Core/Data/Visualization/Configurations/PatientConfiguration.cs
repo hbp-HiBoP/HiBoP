@@ -1,10 +1,11 @@
-﻿using UnityEngine;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+﻿using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Serialization;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -19,7 +20,7 @@ namespace HBP.Core.Data
     *   - \a Color of the patient.
     *   - \a Patient electrode configurations.
     */
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class PatientConfiguration : ICloneable
     {
         #region Properties

@@ -2,10 +2,11 @@ using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class FilterConditionsPreset : BaseData
     {
         #region Properties

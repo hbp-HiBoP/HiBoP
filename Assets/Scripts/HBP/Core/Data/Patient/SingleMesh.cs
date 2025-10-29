@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -36,7 +37,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Single")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Single")]
     public class SingleMesh : BaseMesh
     {
         #region Properties

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using HBP.Core.Errors;
-using System.ComponentModel;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -30,7 +31,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("BrainVision"), IEEG, CCEP, MEGc]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("BrainVision"), IEEG, CCEP, MEGc]
     public class BrainVision : DataContainer
     {
         #region Properties
