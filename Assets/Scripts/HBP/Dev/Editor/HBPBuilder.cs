@@ -32,7 +32,6 @@ namespace HBP.Dev
                     break;
                 case BuildTarget.StandaloneLinux64:
                     PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
-                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = OSArchitecture.x64;
                     os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
@@ -85,6 +84,19 @@ namespace HBP.Dev
             foreach (var file in dataDirectoryInfo.GetFiles("*.obj", SearchOption.AllDirectories))
             {
                 file.Delete();
+            }
+
+            DirectoryInfo doNotShipDirectory = new DirectoryInfo(Path.Join(dataDirectory, "HiBoP_BackUpThisFolder_ButDontShipItWithYourGame"));
+            if (doNotShipDirectory.Exists)
+            {
+                doNotShipDirectory.Delete(true);
+            }
+
+            // Remove Localizer atlas if it exists (we do not ship it with the build)
+            DirectoryInfo localizerDirectory = new DirectoryInfo(Path.Combine(dataDirectory, m_DataBuild, "Atlases", "Localizers"));
+            if (localizerDirectory.Exists)
+            {
+                localizerDirectory.Delete(true);
             }
 
             if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.Build.OSArchitecture.ARM64)
