@@ -5,17 +5,7 @@
 	<key>files</key>
 	<dict/>
 	<key>files2</key>
-	<dict>
-		<key>MacOS/libboost_filesystem.dylib</key>
-		<dict>
-			<key>cdhash</key>
-			<data>
-			4DF2n2Q2FHFhYGSHplSx8j/sDUk=
-			</data>
-			<key>requirement</key>
-			<string>cdhash H"e031769f6436147161606487a654b1f23fec0d49"</string>
-		</dict>
-	</dict>
+	<dict/>
 	<key>rules</key>
 	<dict>
 		<key>^Resources/</key>

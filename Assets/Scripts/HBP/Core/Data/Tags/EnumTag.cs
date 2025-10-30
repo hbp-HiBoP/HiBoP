@@ -1,17 +1,18 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.Serialization;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DisplayName("Enumerable")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Enumerable")]
     public class EnumTag : BaseTag
     {
         #region Properties
-        [DataMember] public string[] Values { get; set; } = new string[0];
+        [JsonProperty] public string[] Values { get; set; } = new string[0];
         #endregion
 
         #region Constructors
@@ -70,6 +71,10 @@ namespace HBP.Core.Data
             {
                 Values = enumTag.Values;
             }
+        }
+        public override BaseTagValue CreateValue(string value)
+        {
+            return new EnumTagValue(this, value);
         }
         #endregion
     }

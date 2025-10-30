@@ -2,173 +2,104 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI.Extensions;
+using HBP.Core.Data;
+using HBP.Core.Tools;
+using System.Linq;
 
 namespace HBP.Data.Informations
 {
     [Serializable]
-    public class ChannelStruct : IEquatable<ChannelStruct>
+    public class ChannelStruct : BaseData
     {
         #region Properties
-        [SerializeField] string m_Channel;
-        public string Channel
-        {
-            get
-            {
-                return m_Channel;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Channel, value);
-            }
-        }
-
-        [SerializeField] bool m_IsBlacklisted;
-        public bool IsBlacklisted
-        {
-            get
-            {
-                return m_IsBlacklisted;
-            }
-            set
-            {
-                SetPropertyUtility.SetStruct(ref m_IsBlacklisted, value);
-            }
-        }
-
-        [SerializeField] Core.Data.Patient m_Patient;
-        public Core.Data.Patient Patient
-        {
-            get
-            {
-                return m_Patient;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Patient, value);
-            }
-        }
+        public string Channel { get; set; }
+        public Patient Patient { get; set; }
         #endregion
 
         #region Constructors
-        public ChannelStruct(string channel, Core.Data.Patient patient, bool isBlacklisted)
+        public ChannelStruct(string channel, Patient patient, string id) : base(id)
         {
             Channel = channel;
             Patient = patient;
-            IsBlacklisted = isBlacklisted;
         }
-        public ChannelStruct(Core.Object3D.Site site)
+        public ChannelStruct(string channel, Patient patient) : base()
+        {
+            Channel = channel;
+            Patient = patient;
+        }
+        public ChannelStruct(Core.Object3D.Site site) : base()
         {
             Channel = site.Information.Name;
             Patient = site.Information.Patient;
-            IsBlacklisted = site.State.IsBlackListed;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as ChannelStruct);
-        }
-        public bool Equals(ChannelStruct other)
-        {
-            return other != null &&
-                   Channel == other.Channel &&
-                   EqualityComparer<Core.Data.Patient>.Default.Equals(Patient, other.Patient);
-        }
-        public override int GetHashCode()
-        {
-            var hashCode = 252110562;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Channel);
-            hashCode = hashCode * -1521134295 + EqualityComparer<Core.Data.Patient>.Default.GetHashCode(Patient);
-            return hashCode;
-        }
-        public static bool operator ==(ChannelStruct struct1, ChannelStruct struct2)
-        {
-            return EqualityComparer<ChannelStruct>.Default.Equals(struct1, struct2);
-        }
-        public static bool operator !=(ChannelStruct struct1, ChannelStruct struct2)
-        {
-            return !(struct1 == struct2);
-        }
-        #endregion
-    }
-
-    [Serializable]
-    public class Data : IEquatable<Data>
-    {
-        #region Properties
-        [SerializeField] Core.Data.Dataset m_Dataset;
-        public Core.Data.Dataset Dataset
-        {
-            get
-            {
-                return m_Dataset;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Dataset, value);
-            }
-        }
-
-        [SerializeField] string m_Name;
-        public string Name
-        {
-            get
-            {
-                return m_Name;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Name, value);
-            }
-        }
-
-        [SerializeField] Core.Data.Bloc m_Bloc;
-        public Core.Data.Bloc Bloc
-        {
-            get
-            {
-                return m_Bloc;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Bloc, value);
-            }
-        }
-        #endregion
-
-        #region Constructors
-        public Data(Core.Data.Dataset dataset, string data, Core.Data.Bloc bloc)
-        {
-            m_Dataset = dataset;
-            m_Name = data;
-            m_Bloc = bloc;
         }
         #endregion
 
         #region Public Methods
         public override bool Equals(object obj)
         {
-            return Equals(obj as Data);
-        }
-        public bool Equals(Data other)
-        {
-            return other != null &&
-                   EqualityComparer<Core.Data.Dataset>.Default.Equals(Dataset, other.Dataset) &&
-                   Name == other.Name;
+            if (obj is ChannelStruct channelStruct)
+                return Channel.Equals(channelStruct.Channel) && Patient.Equals(channelStruct.Patient);
+
+            return false;
         }
         public override int GetHashCode()
         {
-            var hashCode = 139406400;
-            hashCode = hashCode * -1521134295 + EqualityComparer<Core.Data.Dataset>.Default.GetHashCode(Dataset);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-            return hashCode;
+            return HashCode.Combine(Channel, Patient);
         }
-        public static bool operator ==(Data struct1, Data struct2)
+        public override object Clone()
         {
-            return EqualityComparer<Data>.Default.Equals(struct1, struct2);
+            return new ChannelStruct(Channel, Patient, ID);
         }
-        public static bool operator !=(Data struct1, Data struct2)
+        public override void Copy(object copy)
         {
-            return !(struct1 == struct2);
+            base.Copy(copy);
+            if (copy is ChannelStruct channelStruct)
+            {
+                Channel = channelStruct.Channel;
+                Patient = channelStruct.Patient;
+            }
+        }
+        #endregion
+    }
+
+    [Serializable]
+    public class Data : BaseData
+    {
+        #region Properties
+        public Dataset Dataset { get; set; }
+        public string Name { get; set; }
+        public Bloc Bloc { get; set; }
+        #endregion
+
+        #region Constructors
+        public Data(Dataset dataset, string data, Bloc bloc, string id) : base(id)
+        {
+            Dataset = dataset;
+            Name = data;
+            Bloc = bloc;
+        }
+        public Data(Dataset dataset, string data, Bloc bloc) : base()
+        {
+            Dataset = dataset;
+            Name = data;
+            Bloc = bloc;
+        }
+        #endregion
+
+        #region Public Methods
+        public override object Clone()
+        {
+            return new Data(Dataset, Name, Bloc, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is Data data)
+            {
+                Dataset = data.Dataset;
+                Name = data.Name;
+                Bloc = data.Bloc;
+            }
         }
         #endregion
     }
@@ -177,49 +108,32 @@ namespace HBP.Data.Informations
     public class CCEPData : Data
     {
         #region Properties
-        [SerializeField] ChannelStruct m_Source;
-        public ChannelStruct Source
-        {
-            get
-            {
-                return m_Source;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Source, value);
-            }
-        }
+        public ChannelStruct Source { get; set; }
         #endregion
 
         #region Constructors
-        public CCEPData(Core.Data.Dataset dataset, string data, ChannelStruct source, Core.Data.Bloc bloc) : base(dataset, data, bloc)
+        public CCEPData(Dataset dataset, string data, ChannelStruct source, Bloc bloc, string id) : base(dataset, data, bloc, id)
+        {
+            Source = source;
+        }
+        public CCEPData(Dataset dataset, string data, ChannelStruct source, Bloc bloc) : base(dataset, data, bloc)
         {
             Source = source;
         }
         #endregion
 
         #region Public Methods
-        public override bool Equals(object obj)
+        public override object Clone()
         {
-            return Equals(obj as CCEPData);
+            return new CCEPData(Dataset, Name, Source, Bloc, ID);
         }
-        public bool Equals(CCEPData other)
+        public override void Copy(object copy)
         {
-            return base.Equals(other) && Source.Equals(other.Source);
-        }
-        public override int GetHashCode()
-        {
-            var hashCode = 139406400 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + Source.GetHashCode();
-            return hashCode;
-        }
-        public static bool operator ==(CCEPData struct1, CCEPData struct2)
-        {
-            return EqualityComparer<CCEPData>.Default.Equals(struct1, struct2);
-        }
-        public static bool operator !=(CCEPData struct1, CCEPData struct2)
-        {
-            return !(struct1 == struct2);
+            base.Copy(copy);
+            if (copy is CCEPData ccepData)
+            {
+                Source = ccepData.Source;
+            }
         }
         #endregion
     }
@@ -228,15 +142,26 @@ namespace HBP.Data.Informations
     public class IEEGData : Data
     {
         #region Constructors
-        public IEEGData(Core.Data.Dataset dataset, string data, Core.Data.Bloc bloc) : base(dataset, data, bloc)
+        public IEEGData(Dataset dataset, string data, Bloc bloc, string id) : base(dataset, data, bloc, id)
+        {
+        }
+        public IEEGData(Dataset dataset, string data, Bloc bloc) : base(dataset, data, bloc)
         {
         }
         #endregion
 
         #region Public Methods
-        public bool Equals(IEEGData other)
+        public override object Clone()
         {
-            return base.Equals(other);
+            return new IEEGData(Dataset, Name, Bloc, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is IEEGData ieegData)
+            {
+                // No specific properties to copy for IEEGData
+            }
         }
         #endregion
     }
@@ -245,212 +170,157 @@ namespace HBP.Data.Informations
     public class MEGData : Data
     {
         #region Properties
-        [SerializeField] Core.Tools.TimeWindow m_Window;
-        public Core.Tools.TimeWindow Window
-        {
-            get
-            {
-                return m_Window;
-            }
-            set
-            {
-                SetPropertyUtility.SetStruct(ref m_Window, value);
-            }
-        }
+        public TimeWindow Window { get; set; }
         #endregion
 
         #region Constructors
-        public MEGData(Core.Data.Dataset dataset, string data, Core.Tools.TimeWindow window) : base(dataset, data, null)
+        public MEGData(Dataset dataset, string data, TimeWindow window, string id) : base(dataset, data, null, id)
+        {
+            Window = window;
+        }
+        public MEGData(Dataset dataset, string data, TimeWindow window) : base(dataset, data, null)
         {
             Window = window;
         }
         #endregion
 
         #region Public Methods
-        public bool Equals(MEGData other)
+        public override object Clone()
         {
-            return base.Equals(other);
+            return new MEGData(Dataset, Name, Window, ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is MEGData megData)
+            {
+                Window = megData.Window;
+            }
         }
         #endregion
     }
 
     [Serializable]
-    public class ChannelStructsGroup : IEquatable<ChannelStructsGroup>
+    public class ChannelStructsGroup : BaseData 
     {
-        #region Properties
-        [SerializeField] string m_Name;
-        public string Name
-        {
-            get
-            {
-                return m_Name;
-            }
-            set
-            {
-                m_Name = value;
-            }
-        }
-
-        [SerializeField] List<ChannelStruct> m_Channels;
-        public List<ChannelStruct> Channels
-        {
-            get
-            {
-                return m_Channels;
-            }
-            set
-            {
-                m_Channels = value;
-            }
-        }
+        #region Enums
+        public enum GroupType { ROI, Custom }
         #endregion
 
-        #region Constructors
-        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels)
-        {
-            Name = name;
-            Channels = new List<ChannelStruct>(channels);
-        }
-        #endregion
-
-        #region Public Methods
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as ChannelStructsGroup);
-        }
-        public bool Equals(ChannelStructsGroup other)
-        {
-            bool notNull = other != null;
-            if (notNull)
-            {
-                bool sameName = Name == other.Name;
-                bool collection = EqualityComparer<List<ChannelStruct>>.Default.Equals(Channels, other.Channels);
-            }
-            return other != null &&
-                   Name == other.Name &&
-                   EqualityComparer<List<ChannelStruct>>.Default.Equals(Channels, other.Channels);
-        }
-        public override int GetHashCode()
-        {
-            var hashCode = 252110562;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<List<ChannelStruct>>.Default.GetHashCode(Channels);
-            return hashCode;
-        }
-        public static bool operator ==(ChannelStructsGroup struct1, ChannelStructsGroup struct2)
-        {
-            return EqualityComparer<ChannelStructsGroup>.Default.Equals(struct1, struct2);
-        }
-        public static bool operator !=(ChannelStructsGroup struct1, ChannelStructsGroup struct2)
-        {
-            return !(struct1 == struct2);
-        }
-        #endregion
-    }
-
-    [Serializable]
-    public class SceneROIStruct : IEquatable<SceneROIStruct>
-    {
         #region Properties
         public string Name { get; set; }
-        public Dictionary<Data, List<ChannelStruct>> ChannelsByData { get; set; }
+        public List<ChannelStruct> Channels { get; set; }
+        public GroupType Type { get; set; }
         #endregion
 
         #region Constructors
-        public SceneROIStruct(string name, Dictionary<Data, List<ChannelStruct>> channelsByData)
+        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels, GroupType type, string id) : base(id)
         {
             Name = name;
-            ChannelsByData = new Dictionary<Data, List<ChannelStruct>>(channelsByData);
+            Channels = channels.ToList();
+            Type = type;
+        }
+        public ChannelStructsGroup(string name, IEnumerable<ChannelStruct> channels, GroupType type) : base()
+        {
+            Name = name;
+            Channels = channels.ToList();
+            Type = type;
+        }
+        public ChannelStructsGroup() : this(string.Empty, new List<ChannelStruct>(), GroupType.Custom)
+        {
         }
         #endregion
 
         #region Public Methods
-        public override bool Equals(object obj)
+        public override object Clone()
         {
-            return Equals(obj as SceneROIStruct);
+            return new ChannelStructsGroup(Name, Channels.DeepClone(), Type, ID);
         }
-        public bool Equals(SceneROIStruct other)
+        public override void Copy(object copy)
         {
-            bool notNull = other != null;
-            if (notNull)
+            base.Copy(copy);
+            if (copy is ChannelStructsGroup group)
             {
-                bool sameName = Name == other.Name;
-                bool collection = EqualityComparer<Dictionary<Data, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
+                Name = group.Name;
+                Channels = group.Channels.ToList();
+                Type = group.Type;
             }
-            return other != null &&
-                   Name == other.Name &&
-                   EqualityComparer<Dictionary<Data, List<ChannelStruct>>>.Default.Equals(ChannelsByData, other.ChannelsByData);
-        }
-        public override int GetHashCode()
-        {
-            var hashCode = 252110562;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<Dictionary<Data, List<ChannelStruct>>>.Default.GetHashCode(ChannelsByData);
-            return hashCode;
-        }
-        public static bool operator ==(SceneROIStruct struct1, SceneROIStruct struct2)
-        {
-            return EqualityComparer<SceneROIStruct>.Default.Equals(struct1, struct2);
-        }
-        public static bool operator !=(SceneROIStruct struct1, SceneROIStruct struct2)
-        {
-            return !(struct1 == struct2);
         }
         #endregion
     }
 
     [Serializable]
-    public class Column : IEquatable<Column>
+    public class Column : BaseData
     {
-        public string Name;
-        public Data Data;
-        public List<ChannelStructsGroup> ChannelGroups;
+        public string Name { get; set; }
+        public Data Data { get; set; }
+        public List<ChannelStructsGroup> ChannelGroups { get; set; }
 
-        public Column(string name, Data data, List<ChannelStructsGroup> channelGroups)
+        #region Constructors
+        public Column(string name, Data data, IEnumerable<ChannelStructsGroup> channelGroups, string id) : base(id)
         {
             Name = name;
             Data = data;
-            ChannelGroups = new List<ChannelStructsGroup>(channelGroups);
+            ChannelGroups = channelGroups.ToList();
         }
+        public Column(string name, Data data, IEnumerable<ChannelStructsGroup> channelGroups) : base()
+        {
+            Name = name;
+            Data = data;
+            ChannelGroups = channelGroups.ToList();
+        }
+        #endregion
 
         #region Public Methods
-        public override bool Equals(object obj)
+        public override object Clone()
         {
-            return Equals(obj as Column);
+            return new Column(Name, Data, ChannelGroups.DeepClone(), ID);
         }
-        public bool Equals(Column other)
+        public override void Copy(object copy)
         {
-            return other != null &&
-                   Name == other.Name &&
-                   Data == other.Data;
-        }
-        public override int GetHashCode()
-        {
-            var hashCode = 139406400;
-            hashCode = hashCode * -1521134295 + EqualityComparer<Data>.Default.GetHashCode(Data);
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Name);
-            return hashCode;
-        }
-        public static bool operator ==(Column struct1, Column struct2)
-        {
-            return EqualityComparer<Column>.Default.Equals(struct1, struct2);
-        }
-        public static bool operator !=(Column struct1, Column struct2)
-        {
-            return !(struct1 == struct2);
+            base.Copy(copy);
+            if (copy is Column column)
+            {
+                Name = column.Name;
+                Data = column.Data;
+                ChannelGroups = column.ChannelGroups.ToList();
+            }
         }
         #endregion
     }
 
     [Serializable]
-    public class SceneData
+    public class SceneData : BaseData
     {
-        public List<Column> Columns;
+        #region Properties
+        public List<Column> Columns { get; set; }
+        #endregion
 
-        public SceneData(List<Column> columns)
+        #region Constructors
+        public SceneData(IEnumerable<Column> columns, string id) : base(id)
         {
-            Columns = columns;
+            Columns = columns.ToList();
         }
+        public SceneData(IEnumerable<Column> columns) : base()
+        {
+            Columns = columns.ToList();
+        }
+        #endregion
+
+        #region Public Methods
+        public override object Clone()
+        {
+            return new SceneData(Columns.DeepClone(), ID);
+        }
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is SceneData sceneData)
+            {
+                Columns = sceneData.Columns.ToList();
+            }
+        }
+        #endregion
     }
 
     [Serializable] public class ChannelsEvent : UnityEngine.Events.UnityEvent<ChannelStruct[]> { }

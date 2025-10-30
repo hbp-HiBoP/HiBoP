@@ -98,6 +98,10 @@ namespace HBP.Core.DLL
         {
             return LerpDLL(value1, value2, percentage);
         }
+        public static float BiLerp(float value1, float value2, float value3, float value4, float percentageX, float percentageY)
+        {
+            return BiLerpDLL(value1, value2, value3, value4, percentageX, percentageY);
+        }
         public static float[] LinearSmooth(this float[] values, int smoothFactor)
         {
             if (values.Length <= 1) return values.Clone() as float[];
@@ -106,6 +110,44 @@ namespace HBP.Core.DLL
             LinearSmooth(values, values.Length, smoothFactor, newValues);
             return newValues;
         }
+        public static float[][] LinearSmooth2D(this float[][] values, int smoothFactor)
+        {
+            if (values.Length <= 1 || values[0].Length <= 1)
+                return values.Clone() as float[][];
+
+            int width = values.Length;
+            int height = values[0].Length;
+
+            int newWidth = (width - 1) * smoothFactor + 1;
+            int newHeight = (height - 1) * smoothFactor + 1;
+
+            float[] rawValues = new float[width * height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    rawValues[y * width + x] = values[x][y];
+                }
+            }
+
+            float[] smoothedValues = new float[newWidth * newHeight];
+            LinearSmooth2D(rawValues, width, height, smoothFactor, smoothedValues);
+
+            float[][] result = new float[newWidth][];
+            for (int x = 0; x < newWidth; x++)
+                result[x] = new float[newHeight];
+
+            for (int y = 0; y < newHeight; y++)
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    result[x][y] = smoothedValues[y * newWidth + x];
+                }
+            }
+
+            return result;
+        }
+
         public static float[] Interpolate(this float[] values, int size, int before, int after)
         {
             if (size == values.Length || values.Length == 0) return values.Clone() as float[];
@@ -148,8 +190,12 @@ namespace HBP.Core.DLL
         private static extern void Normalize(float[] values, int length, float[] targetArray, float average, float standardDeviation);
         [DllImport("hbp_math", EntryPoint = "Lerp", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern float LerpDLL(float value1, float value2, float percentage);
+        [DllImport("hbp_math", EntryPoint = "BiLerp", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern float BiLerpDLL(float value1, float value2, float value3, float value4, float percentageX, float percentageY);
         [DllImport("hbp_math", EntryPoint = "LinearSmooth", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void LinearSmooth(float[] values, int length, int smoothFactor, float[] newValues);
+        [DllImport("hbp_math", EntryPoint = "LinearSmooth2D", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private static extern void LinearSmooth2D(float[] values, int width, int height, int smoothFactor, float[] newValues);
         [DllImport("hbp_math", EntryPoint = "Interpolate", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
         private static extern void Interpolate(float[] values, int length, float[] newValues, int newLength, int before, int after);
         [DllImport("hbp_math", EntryPoint = "PearsonCorrelationCoefficient", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]

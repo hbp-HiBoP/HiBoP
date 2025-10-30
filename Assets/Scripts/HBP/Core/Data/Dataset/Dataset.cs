@@ -1,17 +1,21 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using UnityEngine.Events;
-using System.IO;
-using System.Collections.ObjectModel;
-using System.Collections;
-using ThirdParty.CielaSpike;
-using System.Text.RegularExpressions;
+﻿using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
+using HBP.Core.Errors;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using HBP.Data.Database;
+using HBP.Data.Preferences;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -42,17 +46,17 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
-    public class Dataset : BaseData, ILoadable<Dataset>, ILoadableFromDatabase<Dataset>, INameable
+    [JsonObject(MemberSerialization.OptIn), Preserve]
+    public class Dataset : BaseData, ILoadable<Dataset>, INameable
     {
         #region Properties
         public const string EXTENSION = ".dataset";
         /// <summary>
         /// Name of the dataset.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
 
-        [DataMember(Name = "Protocol", Order = 3)] string m_ProtocolID;
+        [JsonProperty("Protocol", Order = 3)] string m_ProtocolID;
         Protocol m_Protocol;
         /// <summary>
         /// Protocol used during the experiment.
@@ -66,12 +70,14 @@ namespace HBP.Core.Data
             set
             {
                 m_Protocol = value;
-                UpdateDataStates();
+
+                if (m_Data != null)
+                    foreach (DataInfo dataInfo in m_Data)
+                        dataInfo.Protocol = value;
             }
         }
 
-        Dictionary<DataInfo, UnityAction> m_ActionByDataInfo;
-        [DataMember(Order = 4, Name = "Data")] List<DataInfo> m_Data;
+        [JsonProperty("Data", Order = 4)] List<DataInfo> m_Data;
         /// <summary>
         /// DataInfo of the dataset.
         /// </summary>
@@ -113,7 +119,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new Dataset instance with default values.
         /// </summary>
-        public Dataset() : this("New dataset", ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
         {
         }
         #endregion
@@ -178,9 +184,6 @@ namespace HBP.Core.Data
             if (!m_Data.Contains(data))
             {
                 m_Data.Add(data);
-                UnityAction action = new UnityAction(() => { data.GetErrorsAndWarnings(Protocol); });
-                m_ActionByDataInfo.Add(data, action);
-                data.OnRequestErrorCheck.AddListener(action);
                 return true;
             }
             else return false;
@@ -204,8 +207,6 @@ namespace HBP.Core.Data
             if (m_Data.Contains(data))
             {
                 m_Data.Remove(data);
-                data.OnRequestErrorCheck.RemoveListener(m_ActionByDataInfo[data]);
-                m_ActionByDataInfo.Remove(data);
                 return true;
             }
             else return false;
@@ -217,7 +218,12 @@ namespace HBP.Core.Data
         /// <returns>True if its worked, False otherwise</returns>
         public bool RemoveData(IEnumerable<DataInfo> data)
         {
-            return data.All((d) => RemoveData(d));
+            bool result = true;
+            foreach (var d in data)
+            {
+                result &= RemoveData(d);
+            }
+            return result;
         }
         /// <summary>
         /// Update a specified dataInfo.
@@ -242,18 +248,7 @@ namespace HBP.Core.Data
         public bool SetData(IEnumerable<DataInfo> data)
         {
             m_Data = new List<DataInfo>();
-            m_ActionByDataInfo = new Dictionary<DataInfo, UnityAction>();
             return data.All((d) => AddData(d));
-        }
-        /// <summary>
-        /// Update all the dataInfo states.
-        /// </summary>
-        public void UpdateDataStates()
-        {
-            if (m_Data != null)
-            {
-                foreach (DataInfo dataInfo in m_Data) dataInfo.GetErrorsAndWarnings(Protocol);
-            }
         }
         public override void GenerateID()
         {
@@ -275,7 +270,7 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static string[] GetExtensions()
         {
-            return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
+            return new string[] { EXTENSION[0] == '.' ? EXTENSION[1..] : EXTENSION };
         }
         /// <summary>
         /// Load a dataset from a specified file.
@@ -293,192 +288,20 @@ namespace HBP.Core.Data
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
+                Debug.LogException(e);
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
-        /// <summary>
-        /// Loads datasets from localizers database.
-        /// </summary>
-        /// <param name="path">The specified path of the localizers database.</param>
-        /// <param name="datasets">Datasets loaded in the database.</param>
-        /// <returns></returns>
-        public static void LoadFromLocalizersDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
+        public static async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, bool force, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
-            OnChangeProgress?.Invoke(0, 0, new LoadingText("Finding datasets to load"));
-            datasets = new Dataset[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo directory = new DirectoryInfo(path);
-            if (!directory.Exists) return;
-
-            string GetDownsamplingString(DirectoryInfo dir)
+            List<DataInfo> dataInfos = DatabaseManager.Database.DataInfos.Where(d => protocols.Contains(d.Protocol)).ToList();
+            if (ApplicationState.LoadedProject != null) dataInfos.AddRange(ApplicationState.LoadedProject.Datasets.Where(d => protocols.Contains(d.Protocol)).SelectMany(d => d.Data));
+            var tasks = dataInfos.Select(d => (Func<UniTask>)(async () =>
             {
-                Regex posRegex = new Regex(dir.Name + @"_(ds[0-9]+)?\.pos$");
-                FileInfo[] posFiles = dir.GetFiles("*.pos", SearchOption.AllDirectories);
-                string ds = "";
-                foreach (var file in posFiles)
-                {
-                    Match match = posRegex.Match(file.FullName);
-                    if (match.Success)
-                    {
-                        ds = match.Groups[1].Value;
-                    }
-                }
-                return ds;
-            }
-
-            IEnumerable<DirectoryInfo> directories = directory.GetDirectories().SelectMany(d => d.GetDirectories());
-            int length = directories.Count();
-            int progress = 0;
-            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
-            foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
-            {
-                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
-            }
-            foreach (var dir in directories)
-            {
-                OnChangeProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
-                Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
-                if (patient != null)
-                {
-                    DirectoryInfo[] subDirectories = dir.GetDirectories();
-                    foreach (var subdir in subDirectories)
-                    {
-                        string[] splits = subdir.Name.Split('_');
-                        if (splits.Length == 4)
-                        {
-                            Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == splits[3]);
-                            if (protocol != null)
-                            {
-                                FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
-                                FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
-                                if (rawEEG.Exists && rawPos.Exists)
-                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo("raw", new Container.Elan(rawEEG.FullName, rawPos.FullName, ""), patient, NormalizationType.Auto));
-
-                                string ds = GetDownsamplingString(subdir);
-                                if (!string.IsNullOrEmpty(ds))
-                                {
-                                    FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
-                                    if (posDS.Exists)
-                                    {
-                                        // Maybe TODO : parameters (specific UI or user preferences)
-                                        string[] frequencies = new string[] { "f8f24", "f50f150" };
-                                        string[] temporalSmoothings = new string[] { "sm0", "sm250", "sm500", "sm1000", "sm2500", "sm5000" };
-                                        foreach (var freq in frequencies)
-                                        {
-                                            foreach (var ts in temporalSmoothings)
-                                            {
-                                                FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
-                                                if (eeg.Exists)
-                                                {
-                                                    datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", freq, ts), new Container.Elan(eeg.FullName, posDS.FullName, ""), patient, NormalizationType.Auto));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            datasets = datasetByProtocol.Values.OrderBy(d => d.Name).ToArray();
-            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
-        }
-        /// <summary>
-        /// Loads datasets from BIDS database.
-        /// </summary>
-        /// <param name="path">The specified path of the BIDS database.</param>
-        /// <param name="datasets"></param>
-        /// <returns></returns>
-        public static void LoadFromBIDSDatabase(string path, out Dataset[] datasets, Action<float, float, LoadingText> OnChangeProgress = null)
-        {
-            datasets = new Dataset[0];
-            if (string.IsNullOrEmpty(path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(path);
-            if (!databaseDirectoryInfo.Exists) return;
-
-            Dictionary<Protocol, Dataset> datasetByProtocol = new Dictionary<Protocol, Dataset>(ApplicationState.ProjectLoaded.Protocols.Count);
-            foreach (var protocol in ApplicationState.ProjectLoaded.Protocols)
-            {
-                datasetByProtocol.Add(protocol, new Dataset(protocol.Name, protocol, new DataInfo[0]));
-            }
-
-            // Brainvision
-            Regex brainvisionHeaderRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.vhdr$");
-            FileInfo[] brainvisionHeaderFiles = databaseDirectoryInfo.GetFiles("*.vhdr", SearchOption.AllDirectories);
-            foreach (var file in brainvisionHeaderFiles)
-            {
-                Match match = brainvisionHeaderRegex.Match(file.FullName);
-                if (match.Success)
-                {
-                    Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
-                    if (patient != null)
-                    {
-                        Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
-                        if (protocol != null)
-                        {
-                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
-                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.BrainVision(file.FullName), patient, NormalizationType.Auto));
-                        }
-                    }
-                }
-            }
-
-            // EDF
-            Regex edfRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.edf$");
-            FileInfo[] edfFiles = databaseDirectoryInfo.GetFiles("*.edf", SearchOption.AllDirectories);
-            foreach (var file in edfFiles)
-            {
-                Match match = edfRegex.Match(file.FullName);
-                if (match.Success)
-                {
-                    Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
-                    if (patient != null)
-                    {
-                        Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == match.Groups[3].Value);
-                        if (protocol != null)
-                        {
-                            string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
-                            string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
-                            datasetByProtocol[protocol].AddData(new IEEGDataInfo(string.Format("{0}{1}", acq, run), new Container.EDF(file.FullName), patient, NormalizationType.Auto));
-                        }
-                    }
-                }
-            }
-
-            datasets = datasetByProtocol.Values.OrderBy(d => d.Name).ToArray();
-            OnChangeProgress?.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
-        }
-        /// <summary>
-        /// Coroutine to load datasets from database. Implementation of ILoadableFromDatabase.
-        /// </summary>
-        /// <param name="path">The specified path of the dataset file.</param>
-        /// <param name="OnChangeProgress">Action called on change progress.</param>
-        /// <param name="result">The datasets loaded.</param>
-        /// <returns></returns>
-        public static IEnumerator c_LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
-        {
-            yield return Ninja.JumpBack;
-            Dataset[] datasets;
-            if (IsBIDSDirectory(path)) LoadFromBIDSDatabase(path, out datasets, OnChangeProgress);
-            else LoadFromLocalizersDatabase(path, out datasets, OnChangeProgress);
-            yield return Ninja.JumpToUnity;
-            result(datasets);
-        }
-        #endregion
-
-        #region Private Static Methods
-        /// <summary>
-        /// Checks if the input directory is a BIDS database
-        /// </summary>
-        /// <param name="path">Path to the input database</param>
-        /// <returns>True if the input database is a BIDS database</returns>
-        private static bool IsBIDSDirectory(string path)
-        {
-            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
-            return participantsFileInfo.Exists;
+                await UniTask.SwitchToThreadPool();
+                d.CheckErrorsAndWarnings(force);
+            }));
+            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
         }
         #endregion
 
@@ -516,15 +339,8 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            var protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID);
-            if (protocol == null) protocol = ApplicationState.ProjectLoaded.Protocols.First();
+            var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
             Protocol = protocol;
-            foreach (var data in m_Data)
-            {
-                UnityAction action = new UnityAction(() => data.GetErrorsAndWarnings(Protocol));
-                m_ActionByDataInfo.Add(data, action);
-                data.OnRequestErrorCheck.AddListener(action);
-            }
         }
         #endregion
 
@@ -548,12 +364,6 @@ namespace HBP.Core.Data
             bool success = LoadFromFile(path, out Dataset dataset);
             result = new Dataset[] { dataset };
             return success;
-        }
-        IEnumerator ILoadableFromDatabase<Dataset>.LoadFromDatabase(string path, Action<float, float, LoadingText> OnChangeProgress, Action<IEnumerable<Dataset>> result)
-        {
-            yield return Ninja.JumpToUnity;
-            yield return CoroutineManager.StartAsync(c_LoadFromDatabase(path, OnChangeProgress, result));
-            yield return Ninja.JumpBack;
         }
         #endregion
     }

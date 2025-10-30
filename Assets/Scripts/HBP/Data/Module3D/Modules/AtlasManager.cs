@@ -162,7 +162,7 @@ namespace HBP.Data.Module3D
         {
             if (canDisplay && SelectedAtlas != null)
             {
-                HoveredArea = SelectedAtlas.GetClosestAreaIndex(hitPoint);
+                HoveredArea = SelectedAtlas.GetClosestAreaIndex(hitPoint, 1);
                 string[] information = SelectedAtlas.GetInformation(HoveredArea);
                 if (information.Length == 5)
                 {

@@ -1,8 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
-using ThirdParty.ImageEffects;
-using HBP.Core.Enums;
+﻿using HBP.Core.Enums;
 using HBP.Core.Tools;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace HBP.Data.Module3D
 {
@@ -133,11 +133,11 @@ namespace HBP.Data.Module3D
         {
             get
             {
-                return m_Camera3D.GetComponent<EdgeDetection>().enabled;
+                return m_Camera3D.GetComponent<PostProcessLayer>().enabled;
             }
             set
             {
-                m_Camera3D.GetComponent<EdgeDetection>().enabled = value;
+                m_Camera3D.GetComponent<PostProcessLayer>().enabled = value;
             }
         }
         /// <summary>

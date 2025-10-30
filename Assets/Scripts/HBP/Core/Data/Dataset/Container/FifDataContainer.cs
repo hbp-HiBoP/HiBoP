@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using HBP.Core.Errors;
-using System.ComponentModel;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,26 +30,26 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("FIF"), IEEG, CCEP, MEGc]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("FIF"), IEEG, CCEP, MEGc]
     public class FIF : DataContainer
     {
         #region Properties
         /// <summary>
         /// FIF files extension.
         /// </summary>
-        const string FIF_EXTENSION = ".fif";
+        public const string FIF_EXTENSION = ".fif";
 
         /// <summary>
         /// Path to the FIF file with Alias.
         /// </summary>
-        [DataMember(Name = "FIF")] public string SavedFile { get; protected set; } = "";
+        [JsonProperty("FIF")] public string SavedFile { get; protected set; } = "";
         /// <summary>
         /// Path to the FIF file without Alias.
         /// </summary>
         public string File
         {
             get { return SavedFile?.ConvertToFullPath(); }
-            set { SavedFile = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedFile = value?.ConvertToShortPath(); }
         }
         #endregion
 
@@ -58,7 +59,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(File))
             {
-                errors.Add(new RequieredFieldEmptyError("FIF file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("FIF file path is empty"));
             }
             else
             {
@@ -100,7 +101,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="file">Path to the FIF file</param>
         /// <param name="ID"></param>
-        public FIF(string file, string ID) : base(ID)
+        public FIF(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             File = file;
         }
@@ -108,14 +109,14 @@ namespace HBP.Core.Data.Container
         /// Create a new FIF data container.
         /// </summary>
         /// <param name="file">Path to the FIF file</param>
-        public FIF(string file) : base()
+        public FIF(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             File = file;
         }
         /// <summary>
         /// Create a new FIF data container.
         /// </summary>
-        public FIF() : this("")
+        public FIF() : base()
         {
 
         }
@@ -128,13 +129,15 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new FIF(File, ID);
+            return new FIF(File, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            FIF dataInfo = copy as FIF;
-            File = dataInfo.File;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if (copy is FIF fif)
+            {
+                File = fif.File;
+            }
         }
         #endregion
 

@@ -8,13 +8,23 @@ using HBP.Data.Module3D;
 using HBP.UI.Main;
 using HBP.UI.Module3D;
 using HBP.Core.Object3D;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
-    public class ShortcutManager : MonoBehaviour
+    public class ShortcutManager : Manager<ShortcutManager>
     {
         #region Properties
-        [SerializeField] MainMenu m_MainMenu;
+        private MainMenu m_MainMenu;
+        private MainMenu MainMenu
+        {
+            get
+            {
+                if (m_MainMenu == null)
+                    m_MainMenu = FindFirstObjectByType<MainMenu>();
+                return m_MainMenu;
+            }
+        }
 
         private bool IsControlPressed
         {
@@ -158,21 +168,21 @@ namespace HBP.UI.Tools
         {
             get
             {
-                return ((IsArrowKeyPressed && m_Timer >= SITE_SELECTION_DELAY) || IsArrowKeyDown) && !IsModPressed;
+                return ((IsArrowKeyPressed && m_Timer >= SITE_SELECTION_DELAY) || IsArrowKeyDown) && !IsModPressed && !IsWindowSelected;
             }
         }
         private bool CutModificationActionPerformed
         {
             get
             {
-                return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed;
+                return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed && !IsWindowSelected;
             }
         }
         private bool ChangeSiteStateActionPerformed
         {
             get
             {
-                return IsControlPressed && IsSiteStateActionDown;
+                return IsControlPressed && IsSiteStateActionDown && !IsWindowSelected;
             }
         }
         private bool IsWritingInInputField
@@ -198,6 +208,7 @@ namespace HBP.UI.Tools
                 return false;
             }
         }
+        private bool IsWindowSelected => SelectionManager.IsAnySelected;
         #endregion
 
         #region Private Methods
@@ -274,63 +285,55 @@ namespace HBP.UI.Tools
         }
         private void NewProject()
         {
-            if (m_MainMenu.FileMenu.NewProjectInteractableConditions.interactable)
-                m_MainMenu.FileMenu.OpenNewProject();
+            MainMenu.FileMenu.NewProjectButton.Action();
         }
         private void OpenProject()
         {
-            if (m_MainMenu.FileMenu.OpenProjectInteractableConditions.interactable)
-                m_MainMenu.FileMenu.OpenLoadProject();
+            MainMenu.FileMenu.OpenProjectButton.Action();
         }
         private void Save()
         {
-            if (m_MainMenu.FileMenu.SaveProjectInteractableConditions.interactable)
-                m_MainMenu.FileMenu.Save();
+            MainMenu.FileMenu.SaveButton.Action();
         }
         private void SaveAs()
         {
-            if (m_MainMenu.FileMenu.SaveProjectAsInteractableConditions.interactable)
-                m_MainMenu.FileMenu.OpenSaveProjectAs();
+            MainMenu.FileMenu.SaveAsButton.Action();
         }
         private void Quit()
         {
-            if (m_MainMenu.FileMenu.QuitInteractableConditions.interactable)
-                m_MainMenu.FileMenu.Quit();
+            MainMenu.FileMenu.QuitButton.Action();
         }
         private void UserPreferences()
         {
-            if (m_MainMenu.EditMenu.PreferencesInteractableConditions.interactable)
-                m_MainMenu.EditMenu.OpenPreferences();
+            MainMenu.EditMenu.OpenPreferencesButton.Action();
+        }
+        private void TagsManager()
+        {
+            MainMenu.EditMenu.OpenTagsManagerButton.Action();
         }
         private void ProjectPreferences()
         {
-            if (m_MainMenu.EditMenu.ProjectPreferencesInteractableConditions.interactable)
-                m_MainMenu.EditMenu.OpenProjectPreferences();
+            MainMenu.ProjectMenu.OpenProjectPreferencesButton.Action();
         }
         private void Patients()
         {
-            if (m_MainMenu.PatientMenu.PatientsInteractableConditions.interactable)
-                m_MainMenu.PatientMenu.OpenPatientGestion();
+            MainMenu.ProjectMenu.OpenPatientGestionButton.Action();
         }
         private void Groups()
         {
-            if (m_MainMenu.PatientMenu.GroupsInteractableConditions.interactable)
-                m_MainMenu.PatientMenu.OpenGroupGestion();
-        }
-        private void Protocols()
-        {
-            if (m_MainMenu.ExperienceMenu.ProtocolsInteractableConditions.interactable)
-                m_MainMenu.ExperienceMenu.OpenProtocolGestion();
+            MainMenu.ProjectMenu.OpenGroupGestionButton.Action();
         }
         private void Datasets()
         {
-            if (m_MainMenu.ExperienceMenu.DatasetsInteractableConditions.interactable)
-                m_MainMenu.ExperienceMenu.OpenDatasetGestion();
+            MainMenu.ProjectMenu.OpenDatasetGestionButton.Action();
         }
         private void Visualizations()
         {
-            if (m_MainMenu.VisualizationMenu.InteractableConditions.interactable)
-                m_MainMenu.VisualizationMenu.OpenVisualizationGestion();
+            MainMenu.ProjectMenu.OpenVisualizationGestionButton.Action();
+        }
+        private void Protocols()
+        {
+            MainMenu.DatabaseMenu.OpenProtocolGestionButton.Action();
         }
         private void ChangeSiteSelection(SiteNavigationDirection direction)
         {
@@ -372,7 +375,7 @@ namespace HBP.UI.Tools
                 Column3D column = scene.SelectedColumn;
                 if (column)
                 {
-                    Core.Object3D.Site selectedSite = column.SelectedSite;
+                    Site selectedSite = column.SelectedSite;
                     if (selectedSite)
                     {
                         List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
@@ -418,7 +421,7 @@ namespace HBP.UI.Tools
                                     int index = m_ChangeColorActions.IndexOf(downAction);
                                     if (index == -1) break;
 
-                                    Color color = ColorPicker.GetDefaultColor(index);
+                                    Color color = ColorPickerManager.GetDefaultColor(index);
                                     foreach (var site in sites) site.State.Color = color;
                                 }
                                 break;

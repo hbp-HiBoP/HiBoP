@@ -1,5 +1,6 @@
-﻿using System.Runtime.Serialization;
-using HBP.Core.Tools;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -38,30 +39,30 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Treatment : BaseData
     {
         #region Properties
         /// <summary>
         /// Order of the tretmeant to apply to the subBloc.
         /// </summary>
-        [DataMember] public int Order { get; set; }
+        [JsonProperty] public int Order { get; set; }
         /// <summary>
         /// True if we apply the treatment on the window, False otherwise.
         /// </summary>
-        [DataMember] public bool UseOnWindow { get; set; }
+        [JsonProperty] public bool UseOnWindow { get; set; }
         /// <summary>
         /// Temporal window to apply the treatment on the window of the subBloc.
         /// </summary>
-        [DataMember] public TimeWindow Window { get; set; }
+        [JsonProperty] public TimeWindow Window { get; set; }
         /// <summary>
         /// True if we apply the treatment on the baseline, False otherwise.
         /// </summary>
-        [DataMember] public bool UseOnBaseline { get; set; }
+        [JsonProperty] public bool UseOnBaseline { get; set; }
         /// <summary>
         /// Temporal window to apply the treatment on the baseline of the subBloc.
         /// </summary>
-        [DataMember] public TimeWindow Baseline { get; set; }
+        [JsonProperty] public TimeWindow Baseline { get; set; }
         #endregion
 
         #region Constructors

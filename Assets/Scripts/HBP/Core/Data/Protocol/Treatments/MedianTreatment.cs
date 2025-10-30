@@ -1,6 +1,5 @@
 ﻿using HBP.Core.Tools;
 using System;
-using System.Runtime.Serialization;
 using System.ComponentModel;
 using HBP.Core.DLL;
 
@@ -41,7 +40,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Median")]
+    [DisplayName("Median")]
     public class MedianTreatment : Treatment
     {
         #region Constructors

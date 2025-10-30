@@ -31,6 +31,8 @@ namespace HBP.UI.Main
 
             set
             {
+                SetInteractable();
+
                 base.Object = value;
 
                 m_NameText.text = value.Name;
@@ -40,6 +42,8 @@ namespace HBP.UI.Main
 
                 m_ImageIcon.sprite = value.Image;
                 m_ImageTooltip.Image = value.Image;
+
+                SetNotInteractable();
             }
         }
         #endregion

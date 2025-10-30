@@ -1,0 +1,461 @@
+{
+  "Name": "AUDI",
+  "Blocs": [
+    {
+      "IllustrationPath": "",
+      "Name": "TALK",
+      "Order": 0,
+      "Sort": "Main_TALK_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "TALK",
+              "Codes": [
+                1
+              ],
+              "Type": 0,
+              "ID": "8e2b4ecf-b1d8-44bf-be99-547c18c6de85"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "56589adc-1906-440d-b86b-6c6b56cdb953"
+        }
+      ],
+      "ID": "0009a8e0-3379-4b96-a893-32e5f240fdf5"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "REVERSE",
+      "Order": 1,
+      "Sort": "Main_REVERSE_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "REVERSE",
+              "Codes": [
+                2
+              ],
+              "Type": 0,
+              "ID": "c1db2487-2b83-45dc-b00d-bc8f4b91bb75"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "a8a56683-c25b-4651-934d-94b63311e856"
+        }
+      ],
+      "ID": "a05f2a3b-8902-4353-b184-a7ae75fdd2b4"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "FINNISH",
+      "Order": 2,
+      "Sort": "Main_FINNISH_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "FINNISH",
+              "Codes": [
+                3
+              ],
+              "Type": 0,
+              "ID": "a97622bf-1b93-4bb0-a1c7-d10c386f98db"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "eef248cb-9c86-4c0c-a172-241719f7cddc"
+        }
+      ],
+      "ID": "7e05a7ec-0efb-4053-b0e0-75dc27ff411f"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "ALPHA",
+      "Order": 3,
+      "Sort": "Main_ALPHA_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "ALPHA",
+              "Codes": [
+                4
+              ],
+              "Type": 0,
+              "ID": "898297de-26f4-4d9e-a5e4-d8b68b9917f1"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "c81e224d-84d4-4dcd-bd00-88dbf6b38889"
+        }
+      ],
+      "ID": "c22ef94c-26fe-4395-8063-c898b04a5f7e"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "HUMAN",
+      "Order": 4,
+      "Sort": "Main_HUMAN_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "HUMAN",
+              "Codes": [
+                5
+              ],
+              "Type": 0,
+              "ID": "f488171c-d65e-4b9a-99c8-9a7bb1a4121b"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "e1e88f96-de34-4e74-b8ae-bb0dfe1f50c4"
+        }
+      ],
+      "ID": "c1525c1f-3db3-49ec-9be8-56e1d2594e25"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "CRY",
+      "Order": 5,
+      "Sort": "Main_CRY_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "CRY",
+              "Codes": [
+                6
+              ],
+              "Type": 0,
+              "ID": "fc77e9d6-12a3-40cc-a3bb-2e4352734309"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "e8c6e6dd-791f-47ee-ac98-0b014a64f16d"
+        }
+      ],
+      "ID": "4defe7e7-e63a-4d89-8967-c22c2939f9c5"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "LAUGH",
+      "Order": 6,
+      "Sort": "Main_LAUGH_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "LAUGH",
+              "Codes": [
+                7
+              ],
+              "Type": 0,
+              "ID": "e5a63cfb-fd48-463d-857f-925be476f3bd"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "945145dd-ac86-4508-899a-d2d10ffe53f7"
+        }
+      ],
+      "ID": "8a06a809-b385-4696-959a-f97b4aeabd67"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "YAWNY",
+      "Order": 7,
+      "Sort": "Main_YAWNY_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "YAWNY",
+              "Codes": [
+                8
+              ],
+              "Type": 0,
+              "ID": "7847505a-1f48-4214-8013-be9495323ca9"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "a589d5bd-5207-4034-b959-c176c08d8960"
+        }
+      ],
+      "ID": "09a1d74d-8d87-451f-9547-cdc86a2e229b"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "COUGH",
+      "Order": 8,
+      "Sort": "Main_COUGH_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "COUGH",
+              "Codes": [
+                9
+              ],
+              "Type": 0,
+              "ID": "08fb0b9a-24a9-4be5-9459-460fb72b7206"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "6f0aded5-ed36-46a6-aa22-4a5cb30fef57"
+        }
+      ],
+      "ID": "75804882-1e79-400d-b479-2cb6f26f0ce0"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "MUSIC",
+      "Order": 9,
+      "Sort": "Main_MUSIC_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "MUSIC",
+              "Codes": [
+                10
+              ],
+              "Type": 0,
+              "ID": "023863f1-bf20-410a-bd92-9aa194a2f5f9"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "8462d440-d297-4f64-8666-694f9e2391a9"
+        }
+      ],
+      "ID": "6be80038-0c85-4b94-b594-f37a2690256f"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "ENVIRONMENT",
+      "Order": 10,
+      "Sort": "Main_ENVIRONMENT_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "ENVIRONMENT",
+              "Codes": [
+                11
+              ],
+              "Type": 0,
+              "ID": "b1bcc1f0-80f4-4be9-aa0b-b4417bdbff18"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "dbd31ca1-1d35-4722-8c35-da83654f3625"
+        }
+      ],
+      "ID": "646f564d-4ba5-4495-9fc6-06ab653da873"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "ANIMAL",
+      "Order": 11,
+      "Sort": "Main_ANIMAL_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "ANIMAL",
+              "Codes": [
+                12
+              ],
+              "Type": 0,
+              "ID": "63e75ec0-de14-45c3-b517-4da1b146ccbf"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "f58a2c70-216e-485a-87ca-4e1903653e2a"
+        }
+      ],
+      "ID": "c4aa3af8-cb2f-437b-84a4-3b7055b125de"
+    },
+    {
+      "IllustrationPath": "",
+      "Name": "SILENCE",
+      "Order": 19,
+      "Sort": "Main_SILENCE_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 500
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "SILENCE",
+              "Codes": [
+                20
+              ],
+              "Type": 0,
+              "ID": "f5eab56b-832d-4d1a-9be9-d1789bf039db"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "e4a911ad-5863-451c-9a20-46a07e9558a3"
+        }
+      ],
+      "ID": "7de4e035-2c59-4302-b801-6b30e69a2bc7"
+    }
+  ],
+  "ID": "61bf0dc5-cb7d-4249-b0fc-3d1633a13417"
+}

@@ -1,7 +1,8 @@
 ﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.ComponentModel;
 using System.IO;
-using System.Runtime.Serialization;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -44,14 +45,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("LeftRight")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("LeftRight")]
     public class LeftRightMesh : BaseMesh
     {
         #region Properties
         /// <summary>
         /// Left hemisphere mesh file path with Alias.
         /// </summary>
-        [DataMember(Order = 1, Name = "LeftHemisphere")] public string SavedLeftHemisphere { get; protected set; }
+        [JsonProperty("LeftHemisphere", Order = 1)] public string SavedLeftHemisphere { get; protected set; }
         /// <summary>
         /// Left hemisphere mesh file path without Alias.
         /// </summary>
@@ -69,7 +70,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Right hemisphere mesh file path with Alias.
         /// </summary>
-        [DataMember(Order = 2, Name = "RightHemisphere")] public string SavedRightHemisphere { get; protected set; }
+        [JsonProperty("RightHemisphere", Order = 2)] public string SavedRightHemisphere { get; protected set; }
         /// <summary>
         /// Right hemisphere mesh file path without Alias.
         /// </summary>
@@ -87,7 +88,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Left hemisphere MarsAtlas file path with Alias.
         /// </summary>
-        [DataMember(Order = 3, Name = "LeftMarsAtlasHemisphere")] public string SavedLeftMarsAtlasHemisphere { get; protected set; }
+        [JsonProperty("LeftMarsAtlasHemisphere", Order = 3)] public string SavedLeftMarsAtlasHemisphere { get; protected set; }
         /// <summary>
         /// Left hemisphere MarsAtlas file path without Alias.
         /// </summary>
@@ -102,7 +103,7 @@ namespace HBP.Core.Data
                 SavedLeftMarsAtlasHemisphere = value.ConvertToShortPath();
             }
         }
-        [DataMember(Order = 4, Name = "RightMarsAtlasHemisphere")] public string SavedRightMarsAtlasHemisphere { get; protected set; }
+        [JsonProperty("RightMarsAtlasHemisphere", Order = 4)] public string SavedRightMarsAtlasHemisphere { get; protected set; }
         /// <summary>
         /// Right hemisphere MarsAtlas file.
         /// </summary>

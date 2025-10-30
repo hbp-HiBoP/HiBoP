@@ -81,21 +81,25 @@ namespace HBP.UI.Main
             m_TypeDropdown.onValueChanged.AddListener(ChangeType);
             m_Types = m_TypeDropdown.Set(typeof(Core.Data.BaseTag));
 
-            m_SubModifiers = new List<BaseSubModifier>();
-            m_SubModifiers.Add(m_EmptyTagSubModifier);
-            m_SubModifiers.Add(m_BoolTagSubModifier);
-            m_SubModifiers.Add(m_IntTagSubModifier);
-            m_SubModifiers.Add(m_FloatTagSubModifier);
-            m_SubModifiers.Add(m_StringTagSubModifier);
-            m_SubModifiers.Add(m_EnumTagSubModifier);
+            m_SubModifiers = new List<BaseSubModifier>
+            {
+                m_EmptyTagSubModifier,
+                m_BoolTagSubModifier,
+                m_IntTagSubModifier,
+                m_FloatTagSubModifier,
+                m_StringTagSubModifier,
+                m_EnumTagSubModifier
+            };
 
-            m_TagsTemp = new List<Core.Data.BaseTag>();
-            m_TagsTemp.Add(new Core.Data.EmptyTag());
-            m_TagsTemp.Add(new Core.Data.BoolTag());
-            m_TagsTemp.Add(new Core.Data.IntTag());
-            m_TagsTemp.Add(new Core.Data.FloatTag());
-            m_TagsTemp.Add(new Core.Data.StringTag());
-            m_TagsTemp.Add(new Core.Data.EnumTag());
+            m_TagsTemp = new List<Core.Data.BaseTag>
+            {
+                new Core.Data.EmptyTag(),
+                new Core.Data.BoolTag(),
+                new Core.Data.IntTag(),
+                new Core.Data.FloatTag(),
+                new Core.Data.StringTag(),
+                new Core.Data.EnumTag()
+            };
         }
         /// <summary>
         /// Set the fields

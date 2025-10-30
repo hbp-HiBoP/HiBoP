@@ -1,30 +1,39 @@
 ﻿using HBP.Core.Data;
 using HBP.Data.Module3D;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
 {
     public class CommandLineReader : MonoBehaviour
     {
+        #region Properties
+        [SerializeField] private bool m_AutoLoad = false;
+        [SerializeField] private string m_ProjectName;
+        [SerializeField] private string m_VisualizationName;
+        #endregion
+
         #region Private Methods
         private void Awake()
         {
             string[] args = System.Environment.GetCommandLineArgs();
-            #if UNITY_EDITOR
-            //args = new string[] { "HiBoP", "-p", "AllModalities", "-v", "VISU"};
-            #endif
-            StartCoroutine(c_InterpreteCommandLineArguments(args));
+#if UNITY_EDITOR
+            if (!string.IsNullOrEmpty(m_ProjectName) && !string.IsNullOrEmpty(m_VisualizationName) && m_AutoLoad)
+            {
+                args = new string[] { "HiBoP", "-p", m_ProjectName, "-v", m_VisualizationName };
+            }
+#endif
+            InterpreteCommandLineArguments(args).Forget();
         }
         #endregion
 
         #region Coroutines
-        private IEnumerator c_InterpreteCommandLineArguments(string[] args)
+        private async UniTaskVoid InterpreteCommandLineArguments(string[] args)
         {
             if (args.Length != 0)
             {
@@ -53,59 +62,68 @@ namespace HBP.UI.Tools
                 }
                 for (int i = 0; i < actions.Count; ++i)
                 {
-                    yield return StartCoroutine(c_ApplyAction(actions[i], arguments[i]));
+                    await ApplyActionAsync(actions[i], arguments[i]);
+                    await UniTask.WaitForEndOfFrame();
                 }
             }
+            Destroy(gameObject);
         }
-        private IEnumerator c_ApplyAction(string action, List<string> arguments)
+        private async UniTask ApplyActionAsync(string action, List<string> arguments)
         {
             if (action == "-p") // Project
             {
                 if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project name has not been specified.").Forget();
+                    return;
                 }
-                else
+
+                string path = Path.Combine(PersistentDataManager.UserPreferences.General.Project.DefaultLocation, arguments[0] + Project.EXTENSION);
+                if (!File.Exists(path))
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(PreferencesManager.UserPreferences.General.Project.DefaultLocation + Path.DirectorySeparatorChar + arguments[0] + Project.EXTENSION));
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project file does not exist.").Forget();
+                    return;
                 }
+
+                await ProjectLoaderSaver.LoadAsync(new ProjectInfo(path));
             }
             else if (action == "-pf") // Project File
             {
                 if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't open project", "The project name has not been specified.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project name has not been specified.").Forget();
+                    return;
                 }
-                else
+
+                if (!File.Exists(arguments[0]))
                 {
-                    FindObjectOfType<ProjectLoaderSaver>().Load(new ProjectInfo(arguments[0]));
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't open project", "The project file does not exist.").Forget();
+                    return;
                 }
+
+                await ProjectLoaderSaver.LoadAsync(new ProjectInfo(arguments[0]));
             }
             else if (action == "-v") // Visualization
             {
-                if (ApplicationState.ProjectLoaded == null)
+                if (ApplicationState.LoadedProject == null)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Project not loaded", "You are trying to open a visualization without opening a project. This is not supported.").Forget();
+                    return;
                 }
-                else if (arguments.Count == 0)
+
+                if (arguments.Count == 0)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Couldn't load visualizations", "The names of the visualizations have not been specified.").Forget();
+                    return;
                 }
-                else
+
+                IEnumerable<Visualization> visualizations = from visu in ApplicationState.LoadedProject.Visualizations where arguments.Contains(visu.Name) select visu;
+                if (visualizations.Count() == 0 && arguments[0] == "all")
                 {
-                    IEnumerable<Visualization> visualizations;
-                    if (arguments[0] == "all")
-                    {
-                        visualizations = ApplicationState.ProjectLoaded.Visualizations;
-                    }
-                    else
-                    {
-                        visualizations = from visu in ApplicationState.ProjectLoaded.Visualizations where arguments.Contains(visu.Name) select visu;
-                    }
-                    Module3DMain.LoadScenes(visualizations);
+                    visualizations = ApplicationState.LoadedProject.Visualizations;
                 }
+                Module3DMain.LoadScenes(visualizations);
             }
-            yield return null;
         }
         #endregion
     }

@@ -1,13 +1,12 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Tools;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Tools
 {
-    public class TooltipManager : MonoBehaviour
+    public class TooltipManager : Manager<TooltipManager>
     {
         #region Properties
-        private static TooltipManager m_Instance;
-
         private static Vector3 m_Offset = new Vector3(0, -20, 0);
         public const float TIME_TO_DISPLAY = 0.7f;
 
@@ -37,17 +36,6 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
         private void Update()
         {
             if (!IsTooltipDisplayed)
@@ -64,22 +52,8 @@ namespace HBP.UI.Tools
             }
             if (IsTooltipDisplayed)
             {
-                ClampToCanvas();
+                m_Tooltip.ClampToRectTransform(m_Canvas, new RectOffset(0, 0, 0, 0));
             }
-        }
-        private void ClampToCanvas()
-        {
-            Vector3 l_pos = m_Tooltip.localPosition;
-            Vector3 l_minPosition = m_Canvas.rect.min - m_Tooltip.rect.min;
-            Vector3 l_maxPosition = m_Canvas.rect.max - m_Tooltip.rect.max;
-
-            l_minPosition = new Vector3(l_minPosition.x, l_minPosition.y, l_minPosition.z);
-            l_maxPosition = new Vector3(l_maxPosition.x, l_maxPosition.y, l_maxPosition.z);
-
-            l_pos.x = Mathf.Clamp(m_Tooltip.localPosition.x, l_minPosition.x, l_maxPosition.x);
-            l_pos.y = Mathf.Clamp(m_Tooltip.localPosition.y, l_minPosition.y, l_maxPosition.y);
-
-            m_Tooltip.localPosition = l_pos;
         }
         private void MoveAtMousePosition()
         {

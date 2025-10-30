@@ -26,10 +26,10 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="objectToAdd">Mesh to add</param>
         /// <returns>True if ended without errors, False otherwise</returns>
-        public override bool Add(Core.Data.BaseMesh objectToAdd)
+        protected override void AddObject(Core.Data.BaseMesh objectToAdd)
         {
             SortByNone();
-            return base.Add(objectToAdd);
+            base.AddObject(objectToAdd);
         }
         #endregion
 

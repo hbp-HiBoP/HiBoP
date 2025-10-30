@@ -24,13 +24,17 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 string keyString = value.Key;
-                if (value.Key.Length > 30) keyString = value.Key.Substring(0, 30) + "...";
+                if (value.Key.Length > 30) keyString = value.Key[..30] + "...";
                 string valueString = value.Value;
-                if (value.Value.Length > 30) valueString = value.Value.Substring(0, 30) + "...";
+                if (value.Value.Length > 30) valueString = value.Value[..30] + "...";
                 m_KeyText.text = keyString;
                 m_ValueText.text = valueString;
+
+                SetNotInteractable();
             }
         }
         #endregion

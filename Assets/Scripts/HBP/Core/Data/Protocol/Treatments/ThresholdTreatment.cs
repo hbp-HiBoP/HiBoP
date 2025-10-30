@@ -1,6 +1,7 @@
-﻿using System.ComponentModel;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.ComponentModel;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -55,26 +56,26 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Threshold")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Threshold")]
     public class ThresholdTreatment : Treatment
     {
         #region Properties
         /// <summary>
         /// True to set a minimun treshold, False otherwise.
         /// </summary>
-        [DataMember] public bool UseMinTreshold { get; set; }
+        [JsonProperty] public bool UseMinTreshold { get; set; }
         /// <summary>
         /// Minimum treshold.
         /// </summary>
-        [DataMember] public float Min { get; set; }
+        [JsonProperty] public float Min { get; set; }
         /// <summary>
         /// True to set a maximum treshold, False otherwise.
         /// </summary>
-        [DataMember] public bool UseMaxTreshold { get; set; }
+        [JsonProperty] public bool UseMaxTreshold { get; set; }
         /// <summary>
         /// Maximum treshold.
         /// </summary>
-        [DataMember] public float Max { get; set; }
+        [JsonProperty] public float Max { get; set; }
         #endregion
 
         #region Constructors

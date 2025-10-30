@@ -2,7 +2,7 @@
 using HBP.Data.Module3D;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Module3D
 {
@@ -80,26 +80,26 @@ namespace HBP.UI.Module3D
         {
             base.Initialize(scene);
             m_TagDropdown.options.Clear();
-            foreach (var tag in ApplicationState.ProjectLoaded.Preferences.GeneralTags)
+            foreach (var tag in PersistentDataManager.Tags.GeneralTags)
             {
                 m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
             }
-            foreach (var tag in ApplicationState.ProjectLoaded.Preferences.SitesTags)
+            foreach (var tag in PersistentDataManager.Tags.SitesTags)
             {
                 m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
             }
             m_TagDropdown.onValueChanged.AddListener((selected) =>
             {
-                if (selected < ApplicationState.ProjectLoaded.Preferences.GeneralTags.Count)
+                if (selected < PersistentDataManager.Tags.GeneralTags.Count)
                 {
-                    m_SelectedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags[selected];
+                    m_SelectedTag = PersistentDataManager.Tags.GeneralTags[selected];
                 }
                 else
                 {
-                    m_SelectedTag = ApplicationState.ProjectLoaded.Preferences.SitesTags[selected - ApplicationState.ProjectLoaded.Preferences.GeneralTags.Count];
+                    m_SelectedTag = PersistentDataManager.Tags.SitesTags[selected - PersistentDataManager.Tags.GeneralTags.Count];
                 }
             });
-            m_SelectedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.Count > 0 ? ApplicationState.ProjectLoaded.Preferences.GeneralTags[0] : ApplicationState.ProjectLoaded.Preferences.SitesTags.Count > 0 ? ApplicationState.ProjectLoaded.Preferences.SitesTags[0] : null;
+            m_SelectedTag = PersistentDataManager.Tags.GeneralTags.Count > 0 ? PersistentDataManager.Tags.GeneralTags[0] : PersistentDataManager.Tags.SitesTags.Count > 0 ? PersistentDataManager.Tags.SitesTags[0] : null;
         }
         #endregion
 

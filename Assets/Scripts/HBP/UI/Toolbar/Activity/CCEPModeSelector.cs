@@ -3,7 +3,7 @@ using HBP.Data.Module3D;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Toolbar
 {
@@ -57,7 +57,7 @@ namespace HBP.UI.Toolbar
         public override void UpdateInteractable()
         {
             bool isColumnCCEP = SelectedColumn is Column3DCCEP;
-            bool isMarsAtlasAvailable = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") != null && Object3DManager.MarsAtlas.Loaded;
+            bool isMarsAtlasAvailable = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") != null && Object3DManager.MarsAtlas.Loaded;
 
             gameObject.SetActive(isColumnCCEP);
             m_Site.interactable = isColumnCCEP;

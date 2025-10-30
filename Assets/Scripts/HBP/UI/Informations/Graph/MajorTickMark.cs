@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.CodeDom;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 
@@ -57,6 +58,40 @@ namespace HBP.UI.Informations.Graphs
                 return m_OnChangeShowLabel;
             }
         }
+
+        [SerializeField] protected float m_Value;
+        public float Value
+        {
+            get
+            {
+                return m_Value;
+            }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Value, value))
+                {
+                    SetValue();
+                }
+            }
+        }
+
+        [SerializeField] protected FloatEvent m_OnChangeValue;
+        public FloatEvent OnChangeValue
+        {
+            get
+            {
+                return m_OnChangeValue;
+            }
+        }
+
+        [SerializeField] protected BoolEvent m_OnChangeShow;
+        public BoolEvent OnChangeShow
+        {
+            get
+            {
+                return m_OnChangeShow;
+            }
+        }
         #endregion
 
         #region Protected Setters
@@ -73,6 +108,23 @@ namespace HBP.UI.Informations.Graphs
         protected void SetHidden()
         {
             m_OnChangeShowLabel.Invoke(m_ShowLabel);
+        }
+        protected void SetValue()
+        {
+            m_OnChangeValue.Invoke(m_Value);
+        }
+        #endregion
+
+        #region Public Methods
+        public void Show()
+        {
+            gameObject.SetActive(true);
+            m_OnChangeShow.Invoke(true);
+        }
+        public void Hide()
+        {
+            gameObject.SetActive(false);
+            m_OnChangeShow.Invoke(false);
         }
         #endregion
     }

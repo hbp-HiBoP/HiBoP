@@ -1,6 +1,7 @@
-﻿using System.ComponentModel;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.ComponentModel;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -43,14 +44,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Factor")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Factor")]
     public class FactorTreatment : Treatment
     {
         #region Properties
         /// <summary>
         /// Factor to multiply all the values with.
         /// </summary>
-        [DataMember] public float Factor { get; set; }
+        [JsonProperty] public float Factor { get; set; }
         #endregion
 
         #region Constructors

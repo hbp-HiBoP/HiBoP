@@ -175,6 +175,10 @@ namespace HBP.Core.DLL
         {
             return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
+        public bool Compare(BBox other)
+        {
+            return (Min == other.Min && Max == other.Max && Center == other.Center);
+        }
         #endregion
 
         #region Memory Management
@@ -387,6 +391,25 @@ namespace HBP.Core.DLL
             }
             return colors;
         }
+        public Color[] ConvertValuesToColors(float[] values, int[] mask, float min, float middle, float max, Texture texture)
+        {
+            Color[] colors = new Color[values.Length];
+            float[] result = new float[values.Length * 4];
+            get_colors_from_values_texture_Volume(_handle, values, mask, values.Length, min, middle, max, texture.getHandle(), result);
+            for (int i = 0; i < colors.Length; ++i)
+            {
+                colors[i] = new Color(result[4 * i], result[4 * i + 1], result[4 * i + 2], result[4 * i + 3]);
+            }
+            return colors;
+        }
+        public float GetValueFromPosition(Vector3 position)
+        {
+            return get_value_from_position_Volume(_handle, -position.x, position.y, position.z);
+        }
+        public float GetAverageValueAroundPositionWithMask(Vector3 position, int precision, Volume maskVolume, ref float[] rawValues, ref int actualLength)
+        {
+            return get_average_value_around_position_with_mask_Volume(_handle, -position.x, position.y, position.z, precision, maskVolume.getHandle(), rawValues, rawValues.Length, ref actualLength);
+        }
         #endregion
 
         #region Memory Management
@@ -435,6 +458,12 @@ namespace HBP.Core.DLL
         static private extern void get_vertices_values_Volume(HandleRef handleVolume, HandleRef surfaceHandle, float[] result);
         [DllImport("hbp_export", EntryPoint = "get_colors_from_values_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_colors_from_values_Volume(HandleRef handleVolume, float[] values, int valuesLength, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, float[] result);
+        [DllImport("hbp_export", EntryPoint = "get_colors_from_values_texture_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void get_colors_from_values_texture_Volume(HandleRef handleVolume, float[] values, int[] mask, int valuesLength, float min, float middle, float max, HandleRef textureHandle, float[] result);
+        [DllImport("hbp_export", EntryPoint = "get_value_from_position_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float get_value_from_position_Volume(HandleRef handleVolume, float x, float y, float z);
+        [DllImport("hbp_export", EntryPoint = "get_average_value_around_position_with_mask_Volume", CallingConvention = CallingConvention.Cdecl)]
+        static private extern float get_average_value_around_position_with_mask_Volume(HandleRef handleVolume, float x, float y, float z, int precision, HandleRef maskVolume, float[] rawValues, int length, ref int actualLength);
         #endregion
     }
 

@@ -12,7 +12,7 @@ namespace HBP.UI.Module3D
     {
         #region Properties
         [SerializeField] private Button m_Site;
-        [SerializeField] private SiteLabel m_SiteLabel;
+        [SerializeField] private SiteItemInfoDisplayer m_SiteItemInfoDisplayer;
         [SerializeField] private Image m_SelectedImage;
         [SerializeField] private SiteLabels m_Labels;
         [SerializeField] private Text m_LabelsText;
@@ -34,9 +34,13 @@ namespace HBP.UI.Module3D
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 UpdateFields();
                 value.State.OnChangeState.AddListener(() => m_UpdateRequired = true);
+
+                SetNotInteractable();
             }
         }
         /// <summary>
@@ -48,25 +52,10 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void Awake()
         {
-            m_Site.onClick.AddListener(() =>
-            {
-                Object.IsSelected = true;
-            });
-
-            m_Blacklisted.onValueChanged.AddListener((isOn) =>
-            {
-                Object.State.IsBlackListed = isOn;
-            });
-
-            m_Highlighted.onValueChanged.AddListener((isOn) =>
-            {
-                Object.State.IsHighlighted = isOn;
-            });
-
-            m_Color.onClick.AddListener(() =>
-            {
-                ColorPicker.Open(Object.State.Color, (c) => Object.State.Color = c);
-            });
+            m_Site.onClick.AddListener(() => Object.IsSelected = true);
+            m_Blacklisted.onValueChanged.AddListener((isOn) => Object.State.IsBlackListed = isOn);
+            m_Highlighted.onValueChanged.AddListener((isOn) => Object.State.IsHighlighted = isOn);
+            m_Color.onClick.AddListener(async () => Object.State.Color = await ColorPickerManager.OpenColorPickerAsync(Object.State.Color));
         }
         private void Update()
         {
@@ -81,7 +70,7 @@ namespace HBP.UI.Module3D
         private void UpdateFields()
         {
             m_Site.GetComponentInChildren<Text>().text = Object.Information.Name;
-            m_SiteLabel.Initialize(Object);
+            m_SiteItemInfoDisplayer.Initialize(Object);
             m_SelectedImage.gameObject.SetActive(Object.IsSelected);
             m_LabelsText.text = Object.State.Labels.Count.ToString();
             m_Patient.text = Object.Information.Patient.Name;

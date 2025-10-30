@@ -12,6 +12,7 @@ namespace HBP.UI.Tools
             x = float.IsNaN(x) ? -1 : x;
             rectTransform.anchorMin = new Vector2(x, rectTransform.anchorMin.y);
             rectTransform.anchorMax = new Vector2(x, rectTransform.anchorMax.y);
+            rectTransform.anchoredPosition = Vector2.zero;
         }
         public void SetYPosition(float y)
         {
@@ -19,6 +20,7 @@ namespace HBP.UI.Tools
             y = float.IsNaN(y) ? -1 : y;
             rectTransform.anchorMin = new Vector2(rectTransform.anchorMin.x, y);
             rectTransform.anchorMax = new Vector2(rectTransform.anchorMax.x, y);
+            rectTransform.anchoredPosition = Vector2.zero;
         }
         #endregion
     }

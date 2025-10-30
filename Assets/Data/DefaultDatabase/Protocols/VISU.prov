@@ -1,0 +1,329 @@
+{
+  "Name": "VISU",
+  "Blocs": [
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_FRUIT.jpg",
+      "Name": "FRUIT",
+      "Order": 0,
+      "Sort": "Main_RESPONSE_LATENCY;Main_FRUIT_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "FRUIT",
+              "Codes": [
+                80
+              ],
+              "Type": 0,
+              "ID": "8737dfe2-cc57-46fc-b8c5-0cf2cf134cbe"
+            },
+            {
+              "Name": "RESPONSE",
+              "Codes": [
+                1
+              ],
+              "Type": 1,
+              "ID": "d764faf5-5452-43f0-984d-c946585cace8"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "51bbf696-c698-42a2-9ecb-7b60a8264bd4"
+        }
+      ],
+      "ID": "e65e9f04-f626-44e4-9516-97def8fc7c0a"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_FACE.jpg",
+      "Name": "FACE",
+      "Order": 1,
+      "Sort": "Main_FACE_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "FACE",
+              "Codes": [
+                20
+              ],
+              "Type": 0,
+              "ID": "6479f1f1-b9d7-48cd-8f8a-c71c3554643c"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "433ec4c7-ddc9-4a12-90c8-ab36ffccb8ee"
+        }
+      ],
+      "ID": "b7bd58e5-8b42-44ec-9f75-360b967d227d"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_ANIMAL.jpg",
+      "Name": "ANIMAL",
+      "Order": 2,
+      "Sort": "Main_ANIMAL_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "ANIMAL",
+              "Codes": [
+                30
+              ],
+              "Type": 0,
+              "ID": "bc696dda-bf61-460c-9fdd-7bb15bcc0911"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "ec88d25b-9157-47d6-bbd9-586e9fdeca1d"
+        }
+      ],
+      "ID": "fa56e7bc-83ef-485b-a38f-31e78e0cb7a0"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_LANDSCAPE.jpg",
+      "Name": "LANDSCAPE",
+      "Order": 3,
+      "Sort": "Main_LANDSCAPE_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "LANDSCAPE",
+              "Codes": [
+                40
+              ],
+              "Type": 0,
+              "ID": "64611439-e606-47b0-bede-7ac5468033db"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "178f2cb8-73b6-4675-90de-2228b59cf45a"
+        }
+      ],
+      "ID": "2630224e-08bc-44c4-9857-93e90002508b"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_OBJECT.jpg",
+      "Name": "OBJECT",
+      "Order": 4,
+      "Sort": "Main_OBJECT_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "OBJECT",
+              "Codes": [
+                50
+              ],
+              "Type": 0,
+              "ID": "e6d52937-b5fe-41c0-97dd-0fe7603f1655"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "53d6e3f1-23e5-4e09-ba6c-c04caf3c45fe"
+        }
+      ],
+      "ID": "87564be1-5fe3-4c84-b9e3-eb890683240d"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_PWORD.jpg",
+      "Name": "PSEUDOWORD",
+      "Order": 5,
+      "Sort": "Main_PSEUDOWORD_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "PSEUDOWORD",
+              "Codes": [
+                60
+              ],
+              "Type": 0,
+              "ID": "6dd7d0ad-2641-492a-91a9-c64143aad9fe"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "9890d2c1-cbac-4ce0-b71b-aa940e820760"
+        }
+      ],
+      "ID": "5a144fa1-6662-4f97-a3e3-be8197983a49"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_CONSON.jpg",
+      "Name": "CONSONANT",
+      "Order": 6,
+      "Sort": "Main_CONSONANT_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "CONSONANT",
+              "Codes": [
+                70
+              ],
+              "Type": 0,
+              "ID": "f0ff110c-944a-4816-b71e-8a8fccdc09b3"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "42913a12-3baa-42d5-912b-bac71adc4e4f"
+        }
+      ],
+      "ID": "ab59a3d2-1c8f-4c38-9ab6-90a656928aba"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_SCRAMB.jpg",
+      "Name": "SCRAMBLED",
+      "Order": 7,
+      "Sort": "Main_SCRAMBLED_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "SCRAMBLED",
+              "Codes": [
+                90
+              ],
+              "Type": 0,
+              "ID": "68eb8c5c-886b-4761-aa32-6b03eea8a715"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "1e15af37-b9ca-4b10-85c0-6808e847d836"
+        }
+      ],
+      "ID": "85d1e3aa-ac94-4144-8d27-297695f00f74"
+    },
+    {
+      "IllustrationPath": "[DATABASE_FOLDER]\\Images\\VISU_HOUSE.jpg",
+      "Name": "HOUSE",
+      "Order": 8,
+      "Sort": "Main_HOUSE_CODE",
+      "SubBlocs": [
+        {
+          "Name": "Main",
+          "Order": 0,
+          "Type": 0,
+          "Window": {
+            "Start": -500,
+            "End": 1000
+          },
+          "Baseline": {
+            "Start": -200,
+            "End": 0
+          },
+          "Events": [
+            {
+              "Name": "HOUSE",
+              "Codes": [
+                10
+              ],
+              "Type": 0,
+              "ID": "691fa0f3-2113-4385-9ad0-53e67261856e"
+            }
+          ],
+          "Icons": [],
+          "Treatments": [],
+          "ID": "ca32f740-95e1-45af-b39a-8562fdbee6cb"
+        }
+      ],
+      "ID": "d876b5ac-c097-46f4-9016-1c359eb4fe1c"
+    }
+  ],
+  "ID": "63690a41-6f1b-4968-b1b7-e5df08c18b3d"
+}

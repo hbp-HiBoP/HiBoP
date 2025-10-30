@@ -33,7 +33,7 @@ namespace HBP.UI.Toolbar
             if (left && right) return MeshPart.Both;
             if (left && !right) return MeshPart.Left;
             if (!left && right) return MeshPart.Right;
-            return MeshPart.None;
+            return MeshPart.Both;
         }
         #endregion
 
@@ -129,11 +129,9 @@ namespace HBP.UI.Toolbar
                     m_Left.isOn = true;
                     m_Right.isOn = true;
                     break;
-                case MeshPart.None:
+                default:
                     m_Left.isOn = false;
                     m_Right.isOn = false;
-                    break;
-                default:
                     break;
             }
         }

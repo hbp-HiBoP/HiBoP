@@ -1,11 +1,12 @@
-﻿using HBP.Core.Errors;
+﻿using HBP.Core.Enums;
+using HBP.Core.Errors;
+using HBP.Data.Database;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Enums;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -52,37 +53,15 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("iEEG")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("iEEG")]
     public class IEEGDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties
         /// <summary>
         /// Normalization of the Data.
         /// </summary>
-        [DataMember(Name = "Normalization")]
+        [JsonProperty("Normalization")]
         public NormalizationType Normalization { get; set; }
-
-        protected Error[] m_iEEGErrors = new Error[0];
-        public override Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_iEEGErrors);
-                return errors.Distinct().ToArray();
-            }
-        }
-
-        protected Warning[] m_iEEGWarnings = new Warning[0];
-        public override Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>(base.Warnings);
-                warnings.AddRange(m_iEEGWarnings);
-                return warnings.Distinct().ToArray();
-            }
-        }
         #endregion
 
         #region Constructors
@@ -94,7 +73,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="normalization">Normalization of the iEEG data.</param>
         /// <param name="ID">Unique identifier</param>
-        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization, string ID) : base(name, dataContainer, patient,ID)
+        public IEEGDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, NormalizationType normalization, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID, ID)
         {
             Normalization = normalization;
         }
@@ -105,14 +84,14 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the iEEG data.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="normalization">Normalization of the iEEG data.</param>
-        public IEEGDataInfo(string name, Container.DataContainer dataContainer, Patient patient, NormalizationType normalization) : base(name, dataContainer, patient)
+        public IEEGDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, NormalizationType normalization, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID)
         {
             Normalization = normalization;
         }
         /// <summary>
         /// Create a new iEEG dataInfo instance.
         /// </summary>
-        public IEEGDataInfo() : this("Data", new Container.Elan(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault(), NormalizationType.Auto)
+        public IEEGDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, NormalizationType.Auto, "")
         {
         }
         #endregion
@@ -124,7 +103,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new IEEGDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, Normalization, ID);
+            return new IEEGDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, Normalization, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object obj)
         {
@@ -136,31 +115,30 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        #region Private Methods
+        protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetiEEGErrors(protocol));
-            return errors.Distinct().ToArray();
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetiEEGErrors());
+            return errors;
         }
         /// <summary>
         /// Get all dataInfo errors related to iEEG.
         /// </summary>
         /// <param name="protocol">Protocol of the dataset the dataInfo belongs to.</param>
         /// <returns>iEEG related errors</returns>
-        public virtual Error[] GetiEEGErrors(Protocol protocol)
+        private IEnumerable<Error> GetiEEGErrors()
         {
             List<Error> errors = new List<Error>();
-            m_iEEGErrors = errors.ToArray();
-            return m_iEEGErrors;
+            return errors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetiEEGWarnings(protocol));
-            return warnings.Distinct().ToArray();
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetiEEGWarnings());
+            return warnings;
         }
-        public virtual Warning[] GetiEEGWarnings(Protocol protocol)
+        private IEnumerable<Warning> GetiEEGWarnings()
         {
             List<Warning> warnings = new List<Warning>();
             if (m_DataContainer.IsOk)
@@ -198,19 +176,18 @@ namespace HBP.Core.Data
                 }
                 DLL.EEG.File file = new DLL.EEG.File(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
-                if (protocol.IsVisualizable && !protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
+                if (Protocol.IsVisualizable && !Protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
-                    IEnumerable<string> blocsNotFound = protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
+                    IEnumerable<string> blocsNotFound = Protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
                     warnings.Add(new BlocsCantBeEpochedWarning(string.Join(", ", blocsNotFound)));
                 }
                 List<DLL.EEG.Electrode> electrodes = file.Electrodes;
-                if (!Patient.Sites.Any(s => electrodes.Any(e => e.Label == s.Name)))
+                if (Patient != null && !Patient.Sites.Any(s => electrodes.Any(e => e.Label == s.Name)))
                 {
                     warnings.Add(new NoMatchingSiteWarning());
                 }
-            }
-            m_iEEGWarnings = warnings.ToArray();
-            return m_iEEGWarnings;
+        }
+            return warnings;
         }
         #endregion
     }

@@ -1,7 +1,9 @@
-﻿using System;
-using UnityEngine;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -17,20 +19,20 @@ namespace HBP.Core.Data
     *   - \a Configuration of the sites.
     *   - \a Color of the electrode.
     */
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ElectrodeConfiguration : ICloneable
     {
         #region Properties
-        [DataMember(Name = "Color")] SerializableColor m_Color;
+        [JsonProperty("Color")] SerializableColor m_Color;
         /// <summary>
         /// Color of the electrode.
         /// </summary>
-        [IgnoreDataMember] public Color Color { get; set; }
+        [JsonIgnore] public Color Color { get; set; }
 
         /// <summary>
         /// Configurations of the electrode sites.
         /// </summary>
-        [DataMember] public Dictionary<string,SiteConfiguration> ConfigurationBySite { get; set; }
+        [JsonProperty] public Dictionary<string,SiteConfiguration> ConfigurationBySite { get; set; }
         #endregion
 
         #region Constructors

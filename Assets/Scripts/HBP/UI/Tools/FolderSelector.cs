@@ -18,24 +18,15 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        public void Open()
+        public async void Open()
         {
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingDirectoryNameAsync((result) =>
-            {
-                result = result.StandardizeToPath();
-                m_Inputfield.text = result;
-                m_Inputfield.onEndEdit.Invoke(result);
-            }, Message, m_Inputfield.text);
-#else
-            string result = FileBrowser.GetExistingDirectoryName( Message, m_Inputfield.text);
+            string result = await FileBrowser.GetExistingDirectoryNameAsync(Message, m_Inputfield.text);
             if (result != string.Empty)
             {
                 result = result.StandardizeToPath();
                 m_Inputfield.text = result;
                 m_Inputfield.onEndEdit.Invoke(result);
             }
-#endif
         }
         #endregion
     }

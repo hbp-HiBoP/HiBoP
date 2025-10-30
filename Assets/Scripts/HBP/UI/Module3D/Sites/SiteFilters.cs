@@ -1,11 +1,11 @@
-﻿using ThirdParty.CielaSpike;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using System.Threading;
 
 namespace HBP.UI.Module3D
 {
@@ -25,7 +25,9 @@ namespace HBP.UI.Module3D
         [SerializeField] private Button m_ApplyButton;
         [SerializeField] private Button m_ResetButton;
 
-        private Coroutine m_Coroutine;
+        private bool m_Filtering;
+        private CancellationTokenSource m_FilterSource;
+        private CancellationTokenSource m_ProgressSource;
         #endregion
 
         #region Events
@@ -62,20 +64,23 @@ namespace HBP.UI.Module3D
             m_ProgressBar.Begin();
             try
             {
+                m_FilterSource = new CancellationTokenSource();
+                m_ProgressSource = new CancellationTokenSource();
+                m_Filtering = true;
                 if (m_AdvancedToggle.isOn)
                 {
                     m_AdvancedSiteConditions.ParseConditions();
-                    m_Coroutine = this.StartCoroutineAsync(m_AdvancedSiteConditions.c_FilterSitesWithConditions(sites));
+                    m_AdvancedSiteConditions.FilterSitesWithConditions(sites, m_FilterSource.Token, m_ProgressSource.Token).Forget();
                 }
                 else
                 {
-                    m_Coroutine = this.StartCoroutineAsync(m_BasicSiteConditions.c_FilterSitesWithConditions(sites));
+                    m_BasicSiteConditions.FilterSitesWithConditions(sites, m_FilterSource.Token, m_ProgressSource.Token).Forget();
                 }
             }
             catch (Exception e)
             {
                 StopFiltering(false);
-                DialogBoxManager.Open(DialogBoxManager.AlertType.Warning, e.ToString(), e.Message);
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
         }
         public void ResetFilters()
@@ -101,16 +106,17 @@ namespace HBP.UI.Module3D
         }
         private void StopFiltering(bool filterCompleted)
         {
-            m_Coroutine = null;
+            m_FilterSource?.Cancel();
+            m_ProgressSource?.Cancel();
+            m_Filtering = false;
             m_ProgressBar.End();
             if (!filterCompleted) ResetFilters();
             OnRequestListUpdate.Invoke();
         }
         private void ApplyButtonClicked()
         {
-            if (m_Coroutine != null)
+            if (m_Filtering)
             {
-                StopCoroutine(m_Coroutine);
                 StopFiltering(false);
             }
             else
@@ -120,9 +126,8 @@ namespace HBP.UI.Module3D
         }
         private void ResetButtonClicked()
         {
-            if (m_Coroutine != null)
+            if (m_Filtering)
             {
-                StopCoroutine(m_Coroutine);
                 StopFiltering(false);
             }
             else

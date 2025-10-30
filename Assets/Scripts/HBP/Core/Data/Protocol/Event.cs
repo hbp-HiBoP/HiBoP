@@ -1,8 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using HBP.Core.Interfaces;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using HBP.Core.Interfaces;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -33,8 +34,8 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
-	public class Event : BaseData, INameable
+	[JsonObject(MemberSerialization.OptIn), Preserve]
+    public class Event : BaseData, INameable
 	{
         #region Properties
         /// <summary>
@@ -44,19 +45,19 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Codes.
         /// </summary>
-        [DataMember] public List<int> Codes { get; set; }
+        [JsonProperty] public List<int> Codes { get; set; }
         /// <summary>
         /// Type (main or secondary).
         /// </summary>
-        [DataMember] public Enums.MainSecondaryEnum Type { get; set; }
+        [JsonProperty] public Enums.MainSecondaryEnum Type { get; set; }
         /// <summary>
         /// Codes of the event in a string format with code separate with the string separator.
         /// </summary>
-        [IgnoreDataMember] public string CodesString
+        [JsonIgnore] public string CodesString
         {
             get { return GetStringFromCodes(Codes.ToArray()); }
             set {Codes = GetCodesFromString(value).ToList(); }

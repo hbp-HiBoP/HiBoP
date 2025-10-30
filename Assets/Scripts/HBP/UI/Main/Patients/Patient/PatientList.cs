@@ -2,17 +2,23 @@
 using System.Linq;
 using UnityEngine;
 using HBP.UI.Tools;
+using HBP.Core.Data;
+using System.Collections.Generic;
+using HBP.Data.Preferences;
+using UnityEngine.UI;
 
 namespace HBP.UI.Main
 {
 	/// <summary>
 	/// List to display patients.
 	/// </summary>
-	public class PatientList : ActionableList<Core.Data.Patient>
+	public class PatientList : ActionableList<Patient>
 	{
         #region Properties
         enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }
         OrderBy m_OrderBy = OrderBy.None;
+
+        [SerializeField] Button m_ResetFiltersButton;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_PlaceSortingDisplayer;
@@ -29,10 +35,44 @@ namespace HBP.UI.Main
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public override bool Add(Core.Data.Patient obj)
+        protected override void AddObject(Patient obj)
         {
             SortByNone();
-            return base.Add(obj);
+            base.AddObject(obj);
+        }
+
+        public void OpenFilterWindow()
+        {
+            var filteringObjects = Objects.Select(o => (object)o).ToList();
+            if (filteringObjects.Count == 0)
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No objects to filter", "The list you are trying to filter contains no object. This is not supported.").Forget();
+                return;
+            }
+
+            var parentWindow = GetComponentInParent<Window>();
+
+            var filterWindow = WindowsManager.Open("Filter window", parentWindow).GetComponent<ListFilter>();
+            filterWindow.FilteringObjects = filteringObjects;
+            filterWindow.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(filteringObjects[0].GetType()));
+            filterWindow.OnApplyFilters.AddListener(mask =>
+            {
+                MaskList(mask, false);
+                SortByNone();
+            });
+
+            if (parentWindow)
+                parentWindow.WindowsReferencer.Add(filterWindow);
+        }
+        public void ResetFilters()
+        {
+            MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), false);
+            SortByNone();
+        }
+        public override bool MaskList(bool[] mask, bool hide = true)
+        {
+            m_ResetFiltersButton.interactable = mask.Any(m => !m);
+            return base.MaskList(mask, hide);
         }
 
         /// <summary>
@@ -323,6 +363,13 @@ namespace HBP.UI.Main
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override IEnumerable<Patient> DefaultSorting(IEnumerable<Patient> objects)
+        {
+            return objects.OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name);
         }
         #endregion
     }

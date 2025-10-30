@@ -1,11 +1,12 @@
-﻿using System;
+﻿using HBP.Core.Data;
+using System;
 
 namespace HBP.Core.Exceptions
 {
     [Serializable]
     public class HBPException : Exception
     {
-        public virtual string Title { get; protected set; }
+        public virtual string Title { get; protected set; } = "Unknown error";
         public override string Message
         {
             get
@@ -13,16 +14,14 @@ namespace HBP.Core.Exceptions
                 return base.Message;
             }
         }
-        public override string ToString()
-        {
-            return Title;
-        }
         public HBPException() { }
+        public HBPException(string title, string message) : base(message)
+        {
+            Title = title;
+        }
         public HBPException(string message) : base(message) { }
         public HBPException(string message, Exception inner) : base(message, inner) { }
-        protected HBPException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+        protected HBPException(System.Runtime.Serialization.SerializationInfo info, System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 
     [Serializable]
@@ -43,7 +42,7 @@ namespace HBP.Core.Exceptions
     public class CannotLoadDataInfoException : HBPException
     {
         public CannotLoadDataInfoException() { }
-        public CannotLoadDataInfoException(string data, string patient, string additionalInformation = "") : base("Can not load <color=red>" + data + "</color> for <color=red>" + patient + "</color>.\n<i>Exception thrown: " + additionalInformation + "</i>\n\nPlease check your data files.")
+        public CannotLoadDataInfoException(DataInfo dataInfo, string additionalInformation = "") : base($"Can not load <color=red>{dataInfo.Name}</color> (of protocol <color=red>{dataInfo.Protocol.Name}</color>){(dataInfo is PatientDataInfo patientDataInfo ? $" for <color=red>{patientDataInfo.Patient.Name}</color>" : "")}.\n<i>Exception thrown: {additionalInformation}</i>\n\nPlease check your data files.")
         {
             Title = "Data can not be loaded";
         }
@@ -56,15 +55,9 @@ namespace HBP.Core.Exceptions
     [Serializable]
     public class CannotEpochAllTrialsException : HBPException
     {
-        public int Length;
-        public int StartIndex;
-        public int EndIndex;
         public CannotEpochAllTrialsException() { }
-        public CannotEpochAllTrialsException(Exception e, int length, int start, int end) : base(e.Message)
+        public CannotEpochAllTrialsException(int length, int start, int end) : base("Can not epoch all trials", $"You are trying to epoch a bloc from index {start} to index {end} while the minimum possible index is 0 and the maximum possible index is {length}.")
         {
-            Length = length;
-            StartIndex = start;
-            EndIndex = end;
         }
         public CannotEpochAllTrialsException(string message, Exception inner) : base(message, inner) { }
         protected CannotEpochAllTrialsException(

@@ -1,36 +1,104 @@
-﻿using UnityEditor;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Data;
+using HBP.Core.Enums;
+using HBP.Core.Object3D;
+using HBP.Core.Tools;
+using HBP.Data.Database;
+using HBP.Data.Module3D;
+using HBP.Data.Preferences;
 using HBP.Theme;
-using System.Linq;
-using UnityEngine;
-using System.IO;
+using HBP.UI.Tools;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using HBP.Core.Enums;
-using HBP.Core.Data;
-using HBP.Data.Module3D;
-using HBP.Core.Tools;
-using HBP.UI.Tools;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 
 namespace HBP.Dev
 {
     public class DevDebug : MonoBehaviour
     {
-#if UNITY_EDITOR
+#if !UNITY_EDITOR
+        private void Awake()
+        {
+            Destroy(this);
+        }
+#endif
         private List<Vector3> m_InitialPositions = new List<Vector3>();
         private List<Vector3> m_FinalPositions = new List<Vector3>();
         private float m_Percent;
         private bool m_Initialized = false;
         private float m_TimeSinceLastAction = 0;
-/*        private void OnApplicationQuit()
+        /*        private void OnApplicationQuit()
+                {
+                    Debug.Log("quitting");
+                    using StreamWriter sw = new(Path.Combine(Application.persistentDataPath, "quit.txt"));
+                    sw.WriteLine("quit");
+                    sw.Close();
+                }*/
+        private void Start()
         {
-            Debug.Log("quitting");
-            using StreamWriter sw = new(Path.Combine(Application.persistentDataPath, "quit.txt"));
-            sw.WriteLine("quit");
-            sw.Close();
-        }*/
-        private void Update()
+        }
+        private async UniTask SaveActivityAsNifti(Action<float, float, LoadingText> onChangeProgress)
         {
+            async UniTaskVoid checkProgress(CancellationToken cancellationToken)
+            {
+                while (true)
+                {
+                    if (cancellationToken.IsCancellationRequested) return;
+                    onChangeProgress.Invoke(Module3DMain.SelectedColumn.ActivityGenerator.Progress, 0, new LoadingText("Exporting as Nifti"));
+                    await UniTask.WaitForSeconds(0.05f);
+                }
+            }
+            CancellationTokenSource source = new();
+            checkProgress(source.Token).Forget();
+            await UniTask.SwitchToThreadPool();
+            Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii.gz"), (Module3DMain.SelectedColumn as Column3DIEEG).Timeline.CurrentSubtimeline, "IEEG Activity");
+            source.Cancel();
+        }
+        [SerializeField] private GameObject m_CubePrefab;
+        private async void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                //LoadingManager.Load(SaveActivityAsNifti);
+                //Core.Object3D.FMRI fmri = new("FMRI", Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "FRUIT.nii.gz"));
+                //Vector3[] positions = Module3DMain.SelectedScene.AtlasManager.SelectedAtlas.GetAreaCoordinates(Module3DMain.SelectedScene.AtlasManager.HoveredArea);
+                //foreach (var pos in positions)
+                //{
+                //    Instantiate(m_CubePrefab, pos, Quaternion.identity);
+                //}
+            }
+            //if (Input.GetKeyDown(KeyCode.F1))
+            //{
+            //    DialogBoxManager.Open(DialogBoxType.Error, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F2))
+            //{
+            //    DialogBoxManager.Open(DialogBoxType.Warning, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F3))
+            //{
+            //    DialogBoxManager.Open(DialogBoxType.Informational, "Lorem ipsum dolor sit", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n").Forget();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F4))
+            //{
+            //    int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Test", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi accumsan lacus quam, vitae vestibulum libero malesuada vitae. Fusce ornare rutrum tortor vitae bibendum. Phasellus dolor.\r\n\r\n", "Yes", "No");
+            //    Debug.Log(result);
+            //}
+            //if (Input.GetKeyDown(KeyCode.F1))
+            //{
+            //    CheckProjectAndDatabaseIntegrity();
+            //}
+            //if (Input.GetKeyDown(KeyCode.F2))
+            //{
+            //    DatabaseManager.Database.LoadDatabase();
+            //}
 /*            if (Input.GetKeyDown(KeyCode.A))
             {
                 Core.Object3D.Cut cut = Module3DMain.SelectedScene.Cuts[0];
@@ -112,39 +180,178 @@ namespace HBP.Dev
             }
             */
         }
-        private void MarsAtlasCCEP()
+
+        private void TestLoadCancel()
         {
-            DirectoryInfo dir = new DirectoryInfo(@"D:\HBP\CCEP\07-bids_20190416\converted");
-            FileInfo[] files = dir.GetFiles("*.vhdr");
-            foreach (var file in files)
+            LoadingManager.Load(TestLoadCancelAsync);
+        }
+        private async UniTask TestLoadCancelAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            for (int i = 0; i < 10; i++)
             {
-                ApplicationState.ProjectLoaded.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.ProjectLoaded.Patients[0], file.Name.Replace(file.Extension, "")));
+                if (token.IsCancellationRequested) return;
+                updateProgress((float)(i + 1) / 10, 3, new LoadingText("Loading ", "", $"{i + 1} / 10"));
+                await UniTask.WaitForSeconds(3);
             }
         }
-        private void GetAllCCEPData()
+
+        private async UniTaskVoid TestLoadPatients1()
         {
-            string ccepDB = @"D:\HBP\CCEP\07-bids_20190416\07-bids";
-            DirectoryInfo baseDir = new DirectoryInfo(ccepDB);
-            DirectoryInfo[] patientDirs = baseDir.GetDirectories("sub-*");
-            foreach (var dir in patientDirs)
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            foreach (var file in patientFiles)
             {
-                string patientName = dir.Name.Substring(4);
-                Patient patient = ApplicationState.ProjectLoaded.Patients.FirstOrDefault(p => p.Name == patientName);
-                if (patient == null) continue;
-                DirectoryInfo ieegDir = new DirectoryInfo(Path.Combine(dir.FullName, "ses-postimp01", "ieeg"));
-                FileInfo[] files = ieegDir.GetFiles("*.vhdr").Where(f => f.FullName.Contains("ccep")).ToArray();
-                foreach (var file in files)
+                patients.Add(await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName));
+            }
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients2()
+        {
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            await UniTask.SwitchToThreadPool();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            foreach (var file in patientFiles)
+            {
+                patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(file.FullName));
+            }
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients4()
+        {
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            patients = (await UniTask.WhenAll(patientFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Patient>(pf.FullName)))).ToList();
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients5()
+        {
+            await UniTask.SwitchToThreadPool();
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () => await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)));
+            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", (a, b, c) => { }, 20, true);
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+        private async UniTaskVoid TestLoadPatients6()
+        {
+            await UniTask.SwitchToThreadPool();
+            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
+            List<Patient> patients = new List<Patient>();
+            DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
+            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            System.Random rand = new();
+            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
+            {
+                await UniTask.SwitchToThreadPool();
+                await UniTask.WaitForSeconds((float)rand.NextDouble() * 10);
+                using StreamReader streamReader = new StreamReader(file.FullName);
+                var str = streamReader.ReadToEnd();
+                var result = JsonConvert.DeserializeObject<Patient>(str, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                return new Patient();
+
+                /*return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)*/
+            }));
+            await LoadingManager.LoadAsync(update => Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", update, 0, true));
+            watch.Stop();
+            Debug.Log("Time : " + watch.ElapsedMilliseconds);
+        }
+
+        private T LoadFromJson<T>(string path) where T : new()
+        {
+            T result = new T();
+            using (StreamReader streamReader = new StreamReader(path))
+            {
+                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+            }
+            return result;
+        }
+        private async UniTaskVoid ThrowError()
+        {
+            await ThrowErrorAsync();
+        }
+        private async UniTask ThrowErrorAsync()
+        {
+            await ThrowErrorAsync2();
+            throw new Exception("Test");
+        }
+        private async UniTask ThrowErrorAsync2()
+        {
+            await UniTask.WaitForSeconds(1);
+            throw new Exception("Test2");
+        }
+        private void CheckProjectAndDatabaseIntegrity()
+        {
+            // Database
+            foreach (var dataInfo in DatabaseManager.Database.DataInfos)
+            {
+                if (dataInfo is PatientDataInfo patientDataInfo && !DatabaseManager.Database.Patients.Contains(patientDataInfo.Patient))
                 {
-                    string site = file.Name.Split('_')[3].Substring(4, 8);
-                    if (!site.Contains("p")) site = site.Substring(0, 6);
-                    site = site.Insert(site.Length / 2, "-");
-                    ApplicationState.ProjectLoaded.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site));
+                    Debug.LogError(string.Format("Patient of {0} not found in database", patientDataInfo.Name));
+                }
+            }
+            // Project
+            if (ApplicationState.LoadedProject == null) return;
+            foreach (var dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                foreach (var data in dataset.Data.OfType<PatientDataInfo>())
+                {
+                    if (!ApplicationState.LoadedProject.Patients.Contains(data.Patient))
+                    {
+                        Debug.LogError(string.Format("Patient of {0}-{1} not found in project", dataset.Name, data.Name));
+                    }
                 }
             }
         }
-        private void ScreenshotWindow()
+        private void MarsAtlasCCEP()
         {
-            string path = FileBrowser.GetSavedFileName();
+            //DirectoryInfo dir = new DirectoryInfo(@"D:\HBP\CCEP\07-bids_20190416\converted");
+            //FileInfo[] files = dir.GetFiles("*.vhdr");
+            //foreach (var file in files)
+            //{
+            //    ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.LoadedProject.Patients[0], file.Name.Replace(file.Extension, ""), ""));
+            //}
+        }
+        private void GetAllCCEPData()
+        {
+            //string ccepDB = @"D:\HBP\CCEP\07-bids_20190416\07-bids";
+            //DirectoryInfo baseDir = new DirectoryInfo(ccepDB);
+            //DirectoryInfo[] patientDirs = baseDir.GetDirectories("sub-*");
+            //foreach (var dir in patientDirs)
+            //{
+            //    string patientName = dir.Name.Substring(4);
+            //    Patient patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.Name == patientName);
+            //    if (patient == null) continue;
+            //    DirectoryInfo ieegDir = new DirectoryInfo(Path.Combine(dir.FullName, "ses-postimp01", "ieeg"));
+            //    FileInfo[] files = ieegDir.GetFiles("*.vhdr").Where(f => f.FullName.Contains("ccep")).ToArray();
+            //    foreach (var file in files)
+            //    {
+            //        string site = file.Name.Split('_')[3].Substring(4, 8);
+            //        if (!site.Contains("p")) site = site.Substring(0, 6);
+            //        site = site.Insert(site.Length / 2, "-");
+            //        ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), patient, site, ""));
+            //    }
+            //}
+        }
+        private async void ScreenshotWindow()
+        {
+            string path = await FileBrowser.GetSavedFileNameAsync();
             StartCoroutine(c_ScreenshotWindow(path));
         }
         private IEnumerator c_ScreenshotWindow(string path)
@@ -173,19 +380,5 @@ namespace HBP.Dev
                 }
             }
         }
-        private static void ActiveThemeElement()
-        {
-            var selected = Selection.activeGameObject;
-            var themeElements = selected.GetComponentsInChildren<ThemeElement>(true);
-            foreach (var element in themeElements)
-            {
-                element.enabled = true;
-            }
-        }
-        private static void LoadDatabase()
-        {
-            Patient.LoadFromBIDSDatabase(@"Z:\BrainTV\HBP\Development\BaseBidsCCEPGrenoble\07-bids_20190416\07-bids", out Patient[] patients);
-        }
-#endif
     }
 }

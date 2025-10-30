@@ -1,7 +1,9 @@
-﻿using System;
+﻿using HBP.Core.Interfaces;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HBP.Core.Interfaces;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -20,14 +22,14 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
-    public abstract class BaseData: ICopiable, ICloneable, IIdentifiable
+    [JsonObject(MemberSerialization.OptIn), Preserve]
+    public abstract class BaseData : ICopiable, ICloneable, IIdentifiable
     {
         #region Properties
         /// <summary>
         /// Unique identifier to identify the data.
         /// </summary>
-        [DataMember] public string ID { get; set; }
+        [JsonProperty] public string ID { get; set; }
         #endregion
 
         #region Constructors
@@ -97,7 +99,7 @@ namespace HBP.Core.Data
                 return true;
             }
 
-            if (((object)a == null) || ((object)b == null))
+            if ((a is null) || (b is null))
             {
                 return false;
             }
@@ -111,7 +113,7 @@ namespace HBP.Core.Data
         public abstract object Clone();
         public virtual void Copy(object copy)
         {
-            if(copy is BaseData baseData)
+            if (copy is BaseData baseData)
             {
                 ID = baseData.ID;
             }

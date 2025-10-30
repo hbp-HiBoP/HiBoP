@@ -1,5 +1,6 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -26,18 +27,18 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Coordinate : BaseData
     {
         #region Properties
         /// <summary>
         /// Reference system of the coordinate.
         /// </summary>
-        [DataMember] public string ReferenceSystem { get; set; }
+        [JsonProperty] public string ReferenceSystem { get; set; }
         /// <summary>
         /// Position in the reference system.
         /// </summary>
-        [DataMember] public SerializableVector3 Position { get; set; }
+        [JsonProperty] public SerializableVector3 Position { get; set; }
         #endregion
 
         #region Constructors

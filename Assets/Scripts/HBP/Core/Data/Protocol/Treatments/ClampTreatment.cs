@@ -1,6 +1,7 @@
-﻿using System.ComponentModel;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.ComponentModel;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -43,26 +44,26 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Clamp")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Clamp")]
     public class ClampTreatment : Treatment
     {
         #region Properties
         /// <summary>
         /// True to floor by a minimum value, False otherwise.
         /// </summary>
-        [DataMember] public bool UseMinClamp { get; set; }
+        [JsonProperty] public bool UseMinClamp { get; set; }
         /// <summary>
         /// Minimum value to floor with.
         /// </summary>
-        [DataMember] public float Min { get; set; }
+        [JsonProperty] public float Min { get; set; }
         /// <summary>
         /// True to cap by a maximum value, False otherwise.
         /// </summary>
-        [DataMember] public bool UseMaxClamp { get; set; }
+        [JsonProperty] public bool UseMaxClamp { get; set; }
         /// <summary>
         /// Maximum value to cap with.
         /// </summary>
-        [DataMember] public float Max { get; set; }
+        [JsonProperty] public float Max { get; set; }
         #endregion
 
         #region Constructors

@@ -33,6 +33,10 @@ namespace HBP.Core.DLL
         {
             fill_texture_with_fmri_CutGenerator(_handle, volume.getHandle(), negativeMin, negativeMax, positiveMin, positiveMax, alpha);
         }
+        public void FillTextureWithLocalizer(Volume volume, float min, float middle, float max, Volume mask, Texture texture)
+        {
+            fill_texture_with_localizer_CutGenerator(_handle, volume.getHandle(), mask.getHandle(), min, middle, max, texture.getHandle());
+        }
         public void UpdateTextureWithVolume(Texture texture)
         {
             update_texture_with_volume_CutGenerator(_handle, texture.getHandle());
@@ -79,6 +83,8 @@ namespace HBP.Core.DLL
         static private extern void fill_texture_with_activity_CutGenerator(HandleRef generator, HandleRef colorScheme, int timelineIndex, float alpha);
         [DllImport("hbp_export", EntryPoint = "fill_texture_with_fmri_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void fill_texture_with_fmri_CutGenerator(HandleRef generator, HandleRef volumeHandle, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha);
+        [DllImport("hbp_export", EntryPoint = "fill_texture_with_localizer_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void fill_texture_with_localizer_CutGenerator(HandleRef generator, HandleRef volumeHandle, HandleRef maskHandle, float min, float middle, float max, HandleRef textureHandle);
         [DllImport("hbp_export", EntryPoint = "update_texture_with_volume_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_texture_with_volume_CutGenerator(HandleRef generator, HandleRef texture);
         [DllImport("hbp_export", EntryPoint = "update_texture_with_atlas_CutGenerator", CallingConvention = CallingConvention.Cdecl)]

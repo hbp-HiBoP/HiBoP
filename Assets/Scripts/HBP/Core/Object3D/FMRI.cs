@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.DLL;
+using HBP.Core.Exceptions;
+using HBP.Core.Tools;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace HBP.Core.Object3D
 {
@@ -9,45 +14,94 @@ namespace HBP.Core.Object3D
         /// Name of the MRI
         /// </summary>
         public string Name { get; set; }
-        public DLL.NIFTI NIFTI { get; private set; } = new DLL.NIFTI();
-        public List<DLL.Volume> Volumes { get; private set; } = new List<DLL.Volume>();
+        private readonly string m_File = "";
+        private readonly string m_MaskFile = "";
+        public List<Volume> Volumes { get; private set; } = new List<Volume>();
+        public Volume MaskVolume { get; private set; } = new Volume();
+        public bool Loading { get; private set; } = false;
         public bool Loaded { get; private set; } = false;
+
+        // Store these properties so we can dispose the NIFTI object after loading
+        public float StartTime { get; private set; } = 1;
+        public float TimeStep { get; private set; } = 1;
+        public string TimeUnit { get; private set; } = "dt";
+        public MRICalValues ExtremeValues { get; private set; }
+        public Texture HistogramTexture { get; private set; }
         #endregion
 
         #region Constructors
         public FMRI()
         {
             Name = "Default";
-            Volumes.Add(new DLL.Volume());
+            Volumes.Add(new Volume());
         }
-        public FMRI(Data.MRI mri)
+        public FMRI(Data.MRI mri, Data.MRI mask, bool loadInBackground = true) : this(mri.Name, mri.File, mask.File, loadInBackground)
         {
-            Name = mri.Name;
-            Load(mri.File);
         }
-        public FMRI(string name, string file)
+        public FMRI(string name, string file, string maskFile = "", bool loadInBackground = true)
         {
             Name = name;
-            Load(file);
+            m_File = file;
+            m_MaskFile = maskFile;
+            if (loadInBackground)
+                Load(file, maskFile).Forget();
         }
         #endregion
 
         #region Private Methods
+        private async UniTaskVoid Load(string file, string maskFile)
+        {
+            await LoadAsync(file, maskFile);
+        }
         /// <summary>
         /// Load the FMRI
         /// </summary>
-        private void Load(string file)
+        private async UniTask LoadAsync(string file, string maskFile)
         {
-            NIFTI.Load(file);
-            for (int i = 0; i < NIFTI.NumberOfVolumes; i++)
+            await UniTask.SwitchToThreadPool();
+            Loading = true;
+            // FILE
+            var nifti = new NIFTI();
+            if (!nifti.Load(file))
             {
-                Volumes.Add(NIFTI.ExtractVolume(i));
+                throw new HBPException("fMRI loading error", $"The fMRI {Name} could not be loaded.");
             }
+            for (int i = 0; i < nifti.NumberOfVolumes; i++)
+            {
+                Volumes.Add(nifti.ExtractVolume(i));
+            }
+            ExtremeValues = nifti.ExtremeValues;
+            HistogramTexture = Texture.GenerateDistributionHistogram(nifti, 440, 440, false);
+            if (nifti.NumberOfVolumes > 0)
+            {
+                StartTime = nifti.StartTime;
+                TimeStep = nifti.TimeStep;
+                TimeUnit = nifti.TimeUnit;
+            }
+            nifti.Dispose();
+            // MASK
+            if (!string.IsNullOrEmpty(maskFile))
+            {
+                MaskVolume = new Volume();
+                if (!MaskVolume.LoadNIFTIFile(maskFile))
+                {
+                    throw new HBPException("Mask loading error", $"The mask of the fMRI {Name} could not be loaded.");
+                }
+                if (!MaskVolume.BoundingBox.Compare(Volumes[0].BoundingBox))
+                {
+                    throw new HBPException("Mask and fMRI bounding box mismatch", $"The mask of the fMRI {Name} does not have the same bounding box as the fMRI.");
+                }
+            }
+            Loading = false;
             Loaded = true;
         }
         #endregion
 
         #region Public Methods
+        public async UniTask LoadAsync()
+        {
+            await LoadAsync(m_File, m_MaskFile);
+        }
         /// <summary>
         /// Dispose all DLL objects
         /// </summary>
@@ -57,7 +111,6 @@ namespace HBP.Core.Object3D
             {
                 volume.Dispose();
             }
-            NIFTI.Dispose();
         }
         #endregion
     }

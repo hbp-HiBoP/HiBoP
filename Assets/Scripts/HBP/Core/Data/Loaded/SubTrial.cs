@@ -127,9 +127,9 @@ namespace HBP.Core.Data
                     Array.Copy(pair.Value, startIndex, values, 0, length);
                     result.Add(pair.Key, values);
                 }
-                catch (Exception e)
+                catch
                 {
-                    throw new CannotEpochAllTrialsException(e, pair.Value.Length - 1, startIndex, endIndex);
+                    throw new CannotEpochAllTrialsException(pair.Value.Length - 1, startIndex, endIndex);
                 }
             }
             return result;

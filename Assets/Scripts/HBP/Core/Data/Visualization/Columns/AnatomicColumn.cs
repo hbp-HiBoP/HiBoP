@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.Serialization;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract, DisplayName("Anatomic")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Anatomic")]
     public class AnatomicColumn : Column
     {
         #region Properties
-        [DataMember] public AnatomicConfiguration AnatomicConfiguration { get; set; }
+        [JsonProperty] public AnatomicConfiguration AnatomicConfiguration { get; set; }
         #endregion
 
         #region Constructors
@@ -49,7 +50,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is AnatomicColumn anatomicColumn)
             {
-                AnatomicConfiguration = anatomicColumn.AnatomicConfiguration;
+                AnatomicConfiguration.Copy(anatomicColumn.AnatomicConfiguration);
             }
         }
         public override bool IsCompatible(IEnumerable<Patient> patients)

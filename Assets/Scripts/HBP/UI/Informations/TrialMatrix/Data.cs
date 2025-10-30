@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Enums;
+using HBP.Data.Preferences;
+using HBP.UI.Tools;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 using d = HBP.Data.Informations.TrialMatrix;
 
@@ -145,7 +149,9 @@ namespace HBP.UI.Informations.TrialMatrix
 
         List<TimeLegend> m_TimeLegends = new List<TimeLegend>();
         [SerializeField] GameObject m_TimeLegendPrefab;
-        [SerializeField] RectTransform m_TimeLegendContainer; 
+        [SerializeField] RectTransform m_TimeLegendContainer;
+
+        [SerializeField] LayoutElement m_LayoutElement;
         #endregion
 
         #region Public Methods

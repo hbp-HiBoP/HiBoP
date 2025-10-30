@@ -26,28 +26,11 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void Initialize()
         {
-            m_Save.onClick.AddListener(() =>
+            m_Save.onClick.AddListener(async () =>
             {
                 if (ListenerLock) return;
-#if UNITY_STANDALONE_OSX
-                FileBrowser.GetSavedFileNameAsync((file) =>
-                {
-                    if (!string.IsNullOrEmpty(file))
-                    {
-                        try
-                        {
-                            string fileContent = string.Join("\n", SelectedScene.TriangleEraser.CurrentMasks.Select(m => string.Join(" ", m)));
-                            File.WriteAllText(file, fileContent);
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
-                            DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
-                        }
-                    }
-                }, new string[] { "trimask" }, "Save brain state to");
-#else
-                string file = FileBrowser.GetSavedFileName(new string[] { "trimask" }, "Save brain state to");
+
+                string file = await FileBrowser.GetSavedFileNameAsync(new string[] { "trimask" }, "Save brain state to");
                 if (!string.IsNullOrEmpty(file))
                 {
                     try
@@ -58,34 +41,15 @@ namespace HBP.UI.Toolbar
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Save Error", "The file could not be saved.");
+                        DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Save Error", "The file could not be saved.").Forget();
                     }
                 }
-#endif
             });
-            m_Load.onClick.AddListener(() =>
+            m_Load.onClick.AddListener(async () =>
             {
                 if (ListenerLock) return;
 
-#if UNITY_STANDALONE_OSX
-                FileBrowser.GetExistingFileNameAsync((file) =>
-                {
-                    if (!string.IsNullOrEmpty(file))
-                    {
-                        try
-                        {
-                            string fileContent = File.ReadAllText(file);
-                            SelectedScene.TriangleEraser.CurrentMasks = fileContent.Split('\n').Select(s => s.Split(' ').Select(split => int.Parse(split)).ToArray()).ToList();
-                        }
-                        catch (Exception e)
-                        {
-                            Debug.LogException(e);
-                            DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
-                        }
-                    }
-                }, new string[] { "trimask" }, "Load brain state from");
-#else
-                string file = FileBrowser.GetExistingFileName(new string[] { "trimask" }, "Load brain state from");
+                string file = await FileBrowser.GetExistingFileNameAsync(new string[] { "trimask" }, "Load brain state from");
                 if (!string.IsNullOrEmpty(file))
                 {
                     try
@@ -96,10 +60,9 @@ namespace HBP.UI.Toolbar
                     catch (Exception e)
                     {
                         Debug.LogException(e);
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Load Error", "The file could not be loaded.");
+                        DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Load Error", "The file could not be loaded.").Forget();
                     }
                 }
-#endif
             });
         }
         /// <summary>

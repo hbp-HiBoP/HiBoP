@@ -1,11 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.IO;
-using HBP.Core.Exceptions;
+﻿using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -32,8 +33,8 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
-	public class Protocol : BaseData, ILoadable<Protocol>, INameable
+	[JsonObject(MemberSerialization.OptIn), Preserve]
+    public class Protocol : BaseData, ILoadable<Protocol>, INameable
     {
         #region Properties
         /// <summary>
@@ -43,11 +44,11 @@ namespace HBP.Core.Data
         /// <summary>
         /// Name of the protocol.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Blocs of the protocol.
         /// </summary>
-        [DataMember] public List<Bloc> Blocs { get; set; }
+        [JsonProperty] public List<Bloc> Blocs { get; set; }
         /// <summary>
         /// Blocs ordered by Bloc.Order.
         /// </summary>
@@ -66,6 +67,22 @@ namespace HBP.Core.Data
             get
             {
                 return Blocs.Count > 0 && Blocs.All(b => b.IsVisualizable);
+            }
+        }
+        public bool IsAdvanced
+        {
+            get
+            {
+                if (Blocs.Count == 0) return false;
+                if (Blocs.Any(b => b.MainSubBloc == null)) return true;
+                if (Blocs.Any(b => b.SubBlocs.Count > 1)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.MainEvent == null)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.SecondaryEvents.Count > 1)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.Window != Blocs[0].MainSubBloc.Window)) return true;
+                if (Blocs.Any(b => b.MainSubBloc.Baseline != Blocs[0].MainSubBloc.Baseline)) return true;
+                if (Blocs.Where(b => b.MainSubBloc.SecondaryEvents.Count == 1).Any(b => b.Sort != $"{b.MainSubBloc.Name}_{b.MainSubBloc.SecondaryEvents[0].Name}_LATENCY;{b.MainSubBloc.Name}_{b.MainSubBloc.MainEvent.Name}_CODE")) return true;
+                if (Blocs.Where(b => b.MainSubBloc.SecondaryEvents.Count == 0).Any(b => b.Sort != $"{b.MainSubBloc.Name}_{b.MainSubBloc.MainEvent.Name}_CODE")) return true;
+                return false;
             }
         }
         #endregion
@@ -101,6 +118,29 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        public void SetBasicProtocolFeatures()
+        {
+            foreach (var bloc in Blocs)
+            {
+                if (bloc.MainSubBloc == null)
+                    bloc.SubBlocs.Add(new SubBloc() { Name = "Main" });
+
+                if (bloc.MainSubBloc.MainEvent == null)
+                    bloc.MainSubBloc.Events.Add(new Event(Enums.MainSecondaryEnum.Main) { Name = bloc.Name });
+
+                if (bloc.MainSubBloc.SecondaryEvents.Count > 1)
+                    bloc.MainSubBloc.Events.RemoveAll(e => e.Type == Enums.MainSecondaryEnum.Secondary && e != bloc.MainSubBloc.SecondaryEvents[0]);
+
+                if (bloc.SecondarySubBlocs.Count > 0)
+                    foreach (var subBloc in bloc.SecondarySubBlocs)
+                        bloc.SubBlocs.Remove(subBloc);
+
+                if (bloc.MainSubBloc.SecondaryEvents.Count == 1)
+                    bloc.Sort = $"{bloc.MainSubBloc.Name}_{bloc.MainSubBloc.SecondaryEvents[0].Name}_LATENCY;{bloc.MainSubBloc.Name}_{bloc.MainSubBloc.MainEvent.Name}_CODE";
+                else
+                    bloc.Sort = $"{bloc.MainSubBloc.Name}_{bloc.MainSubBloc.MainEvent.Name}_CODE";
+            }
+        }
         /// <summary>
         /// Generates new unique identifier recursively.
         /// </summary>

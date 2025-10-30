@@ -11,4 +11,5 @@ namespace UnityEngine.Events
     [Serializable] public class WindowArrayEvent : UnityEvent<HBP.Core.Tools.TimeWindow[]> { }
     [Serializable] public class StringEvent : UnityEvent<string> { }
     [Serializable] public class Texture2DEvent : UnityEvent<Texture2D> { }
+    [Serializable] public class SpriteEvent : UnityEvent<Sprite> { }
 }

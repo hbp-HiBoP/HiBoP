@@ -1,11 +1,11 @@
-﻿using ThirdParty.CielaSpike;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using Cysharp.Threading.Tasks;
+using System.Threading;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -72,25 +72,19 @@ namespace HBP.UI.Main.QuickStart
                 if (CurrentPanel.OpenNextPanel())
                     CurrentPanel = CurrentPanel.NextPanel;
                 if (CurrentPanel == null)
-                    Finish();
+                    Finish().Forget();
             });
-            m_CurrentlyOpenedProject = ApplicationState.ProjectLoaded;
-            m_CurrentlyOpenedProjectLocation = ApplicationState.ProjectLoadedLocation;
-            ApplicationState.ProjectLoaded = new Project();
-            ApplicationState.ProjectLoadedLocation = Application.dataPath;
+            m_CurrentlyOpenedProject = ApplicationState.LoadedProject;
+            m_CurrentlyOpenedProjectLocation = ApplicationState.LoadedProjectLocation;
+            ApplicationState.LoadedProject = new Project();
+            ApplicationState.LoadedProjectLocation = Application.dataPath;
         }
-        private void Finish()
+        private async UniTaskVoid Finish()
         {
             base.Close();
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(ApplicationState.ProjectLoaded.c_Save(ApplicationState.ProjectLoadedLocation, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress, (state) =>
-            {
-                if (state == TaskState.Done)
-                {
-                    FindObjectOfType<MenuButtonState>().SetInteractables();
-                    Module3DMain.LoadScenes(ApplicationState.ProjectLoaded.Visualizations);
-                }
-            });
+            await LoadingManager.LoadAsync((update, token) => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update, token));
+            InteractableStateManager.SetInteractables();
+            Module3DMain.LoadScenes(ApplicationState.LoadedProject.Visualizations);
         }
         #endregion
 
@@ -98,8 +92,8 @@ namespace HBP.UI.Main.QuickStart
         public override void Close()
         {
             base.Close();
-            ApplicationState.ProjectLoaded = m_CurrentlyOpenedProject;
-            ApplicationState.ProjectLoadedLocation = m_CurrentlyOpenedProjectLocation;
+            ApplicationState.LoadedProject = m_CurrentlyOpenedProject;
+            ApplicationState.LoadedProjectLocation = m_CurrentlyOpenedProjectLocation;
         }
         #endregion
     }

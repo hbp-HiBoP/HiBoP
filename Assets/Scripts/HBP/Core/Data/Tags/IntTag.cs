@@ -1,16 +1,17 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel;
-using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DisplayName("Integer")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Integer")]
     public class IntTag : BaseTag
     {
         #region Properties
-        [DataMember(Name = "Clamped")] bool m_Clamped;
+        [JsonProperty("Clamped")] bool m_Clamped;
         public bool Clamped
         {
             get => m_Clamped;
@@ -23,7 +24,7 @@ namespace HBP.Core.Data
                 }
             }
         }
-        [DataMember(Name = "Min")] int m_Min;
+        [JsonProperty("Min")] int m_Min;
         public int Min
         {
             get => m_Min;
@@ -37,7 +38,7 @@ namespace HBP.Core.Data
             }
 
         }
-        [DataMember(Name = "Max")] int m_Max;
+        [JsonProperty("Max")] int m_Max;
         public int Max
         {
             get => m_Max;
@@ -115,6 +116,14 @@ namespace HBP.Core.Data
                 Min = (int) floatTag.Min;
                 Max = (int) floatTag.Max;
             }
+        }
+        public override BaseTagValue CreateValue(string value)
+        {
+            if (int.TryParse(value, out int result))
+            {
+                return new IntTagValue(this, result);
+            }
+            return null;
         }
         #endregion
     }

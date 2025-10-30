@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using HBP.Core.Errors;
-using System.ComponentModel;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,38 +30,38 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Elan"), IEEG, CCEP]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Elan"), IEEG, CCEP]
     public class Elan : DataContainer
     {
         #region Properties
         /// <summary>
         /// EEG files extension.
         /// </summary>
-        const string EEG_EXTENSION = ".eeg";
+        public const string EEG_EXTENSION = ".eeg";
         /// <summary>
         /// EEG Header files extension.
         /// </summary>
-        const string HEADER_EXTENSION = ".ent";
+        public const string HEADER_EXTENSION = ".ent";
         /// <summary>
         /// POS files extension.
         /// </summary>
-        const string POS_EXTENSION = ".pos";
+        public const string POS_EXTENSION = ".pos";
         /// <summary>
         /// Notes files extension.
         /// </summary>
-        const string NOTES_EXTENSION = ".txt";
+        public const string NOTES_EXTENSION = ".txt";
 
         /// <summary>
         /// Path to the EEG file with Alias.
         /// </summary>
-        [DataMember(Name = "EEG")] public string SavedEEG { get; protected set; } = "";
+        [JsonProperty("EEG")] public string SavedEEG { get; protected set; } = "";
         /// <summary>
         /// Path to the EEG file without Alias.
         /// </summary>
         public string EEG
         {
             get { return SavedEEG?.ConvertToFullPath(); }
-            set { SavedEEG = value?.ConvertToShortPath(); OnRequestErrorCheck.Invoke(); }
+            set { SavedEEG = value?.ConvertToShortPath(); }
         }
         /// <summary>
         /// Path to the EEG header file.
@@ -76,27 +77,27 @@ namespace HBP.Core.Data.Container
         /// <summary>
         /// Path to the POS file with Alias.
         /// </summary>
-        [DataMember(Name = "POS")] public string SavedPOS { get; protected set; } = "";
+        [JsonProperty("POS")] public string SavedPOS { get; protected set; } = "";
         /// <summary>
         /// Path of the POS file without Alias.
         /// </summary>
         public string POS
         {
             get { return SavedPOS?.ConvertToFullPath(); }
-            set { SavedPOS = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedPOS = value?.ConvertToShortPath(); }
         }
 
         /// <summary>
         /// Path to the notes file with Alias.
         /// </summary>
-        [DataMember(Name = "Notes")] public string SavedNotes { get; protected set; } = "";
+        [JsonProperty("Notes")] public string SavedNotes { get; protected set; } = "";
         /// <summary>
         /// Path of the notes file without Alias.
         /// </summary>
         public string Notes
         {
             get { return SavedNotes?.ConvertToFullPath(); }
-            set { SavedNotes = value?.ConvertToShortPath(); GetErrors(); OnRequestErrorCheck.Invoke(); }
+            set { SavedNotes = value?.ConvertToShortPath(); }
         }
         #endregion
 
@@ -106,7 +107,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(EEG))
             {
-                errors.Add(new RequieredFieldEmptyError("EEG file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("EEG file path is empty"));
             }
             else
             {
@@ -125,7 +126,7 @@ namespace HBP.Core.Data.Container
                     {
                         if (!File.Exists(EEGHeader))
                         {
-                            errors.Add(new RequieredFieldEmptyError("EEG header file path is empty"));
+                            errors.Add(new RequiredFieldEmptyError("EEG header file path is empty"));
                         }
                         else
                         {
@@ -139,7 +140,7 @@ namespace HBP.Core.Data.Container
             }
             if (string.IsNullOrEmpty(POS))
             {
-                errors.Add(new RequieredFieldEmptyError("POS file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("POS file path is empty"));
             }
             else
             {
@@ -188,7 +189,7 @@ namespace HBP.Core.Data.Container
         /// <param name="pos">Path to the POS file.</param>
         /// <param name="notes">Path to the notes file.</param>
         /// <param name="ID">Unique identifier.</param>
-        public Elan(string eeg, string pos, string notes, string ID) : base(ID)
+        public Elan(string eeg, string pos, string notes, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             EEG = eeg;
             POS = pos;
@@ -200,7 +201,7 @@ namespace HBP.Core.Data.Container
         /// <param name="eeg">Path to the EEG file.</param>
         /// <param name="pos">Path to the POS file.</param>
         /// <param name="notes">Path to the notes file.</param>
-        public Elan(string eeg, string pos, string notes) : base()
+        public Elan(string eeg, string pos, string notes, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             EEG = eeg;
             POS = pos;
@@ -221,15 +222,17 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new Elan(EEG, POS, Notes, ID);
+            return new Elan(EEG, POS, Notes, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            Elan dataInfo = copy as Elan;
-            EEG = dataInfo.EEG;
-            POS = dataInfo.POS;
-            Notes = dataInfo.Notes;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if (copy is Elan elan)
+            {
+                EEG = elan.EEG;
+                POS = elan.POS;
+                Notes = elan.Notes;
+            }
         }
         #endregion
 

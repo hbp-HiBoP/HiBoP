@@ -104,8 +104,7 @@ namespace HBP.Core.Data.Processed
         /// </summary>
         public void Load()
         {
-            Sprite sprite;
-            if (SpriteExtension.LoadSpriteFromFile(out sprite, IllustrationPath)) m_Illustration = sprite;
+            if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, IllustrationPath)) m_Illustration = sprite;
         }
     }
 }

@@ -23,6 +23,10 @@ namespace HBP.Core.Data
         {
             return new EmptyTag(Name, ID);
         }
+        public override BaseTagValue CreateValue(string value)
+        {
+            return new EmptyTagValue(this);
+        }
         #endregion
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 
 namespace HBP.Core.Data.Processed
@@ -10,17 +11,21 @@ namespace HBP.Core.Data.Processed
         #endregion
 
         #region Public Methods
-        public void Load(IEnumerable<FMRIDataInfo> columnData, IEnumerable<SharedFMRIDataInfo> sharedFMRIs)
+        public async UniTask LoadAsync(IEnumerable<FMRIDataInfo> columnData, IEnumerable<SharedFMRIDataInfo> sharedFMRIs)
         {
             foreach (FMRIDataInfo dataInfo in columnData)
             {
                 Core.Data.FMRIData data = DataManager.GetData(dataInfo) as Core.Data.FMRIData;
-                FMRIs.Add(new Tuple<Object3D.FMRI, Patient>(new Object3D.FMRI(data.FMRI), dataInfo.Patient));
+                var fmri = new Object3D.FMRI(data.FMRI, data.Mask, false);
+                await fmri.LoadAsync();
+                FMRIs.Add(new Tuple<Object3D.FMRI, Patient>(fmri, dataInfo.Patient));
             }
             foreach (SharedFMRIDataInfo dataInfo in sharedFMRIs)
             {
                 Core.Data.FMRIData data = DataManager.GetData(dataInfo) as Core.Data.FMRIData;
-                FMRIs.Add(new Tuple<Object3D.FMRI, Patient>(new Object3D.FMRI(data.FMRI), null));
+                var fmri = new Object3D.FMRI(data.FMRI, data.Mask, false);
+                await fmri.LoadAsync();
+                FMRIs.Add(new Tuple<Object3D.FMRI, Patient>(fmri, null));
             }
         }
         public void Unload()

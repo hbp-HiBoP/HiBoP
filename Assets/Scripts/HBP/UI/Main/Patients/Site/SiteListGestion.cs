@@ -28,6 +28,7 @@ namespace HBP.UI.Main
             {
                 m_List.Add(site);
             }
+            HasBeenModified = true;
         }
         #endregion
     }

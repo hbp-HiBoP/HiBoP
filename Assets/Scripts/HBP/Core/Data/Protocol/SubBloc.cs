@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Interfaces;
+using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Interfaces;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -54,30 +55,30 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class SubBloc : BaseData, INameable
     {
         #region Properties
         /// <summary> 
         /// Name of the SubBloc.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Order of the SubBloc in the Bloc.
         /// </summary>
-        [DataMember] public int Order { get; set; }
+        [JsonProperty] public int Order { get; set; }
         /// <summary>
         /// Type of SubBloc.
         /// </summary>
-        [DataMember] public Enums.MainSecondaryEnum Type { get; set; }
+        [JsonProperty] public Enums.MainSecondaryEnum Type { get; set; }
         /// <summary>
         /// Window of the SubBloc (\a x : time before main event in ms. \a y : time after main event in ms.)
         /// </summary>
-        [DataMember] public Tools.TimeWindow Window { get; set; }
+        [JsonProperty] public Tools.TimeWindow Window { get; set; }
         /// <summary>
         /// Baseline of the SubBloc (\a x : start of the Baseline in ms. \a y : end of the Baseline in ms.)
         /// </summary>
-        [DataMember] public Tools.TimeWindow Baseline { get; set; }
+        [JsonProperty] public Tools.TimeWindow Baseline { get; set; }
         /// <summary>
         /// Main event of the SubBloc.
         /// </summary>
@@ -89,15 +90,15 @@ namespace HBP.Core.Data
         /// <summary>
         /// Events of the SubBloc.
         /// </summary>
-        [DataMember] public List<Event> Events { get; set; }
+        [JsonProperty] public List<Event> Events { get; set; }
         /// <summary>
         /// Iconic scenario of the SubBloc.
         /// </summary>
-        [DataMember] public List<Icon> Icons { get; set; }
+        [JsonProperty] public List<Icon> Icons { get; set; }
         /// <summary>
         /// Treatments of the subBloc.
         /// </summary>
-        [DataMember] public List<Treatment> Treatments { get; set; }
+        [JsonProperty] public List<Treatment> Treatments { get; set; }
         /// <summary>
         /// True if the subBloc is visualizable, False otherwise.
         /// </summary>

@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract, DisplayName("FMRI")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("FMRI")]
     public class FMRIColumn : Column
     {
         #region Properties
-        [DataMember(Name = "Dataset")] string datasetID;
+        [JsonProperty("Dataset")] string datasetID;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
@@ -18,7 +19,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
+                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
             }
             set
             {
@@ -33,12 +34,12 @@ namespace HBP.Core.Data
             }
         }
         
-        [DataMember] public FMRIConfiguration FMRIConfiguration { get; set; }
+        [JsonProperty] public FMRIConfiguration FMRIConfiguration { get; set; }
         
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public Processed.FMRIData Data { get; set; } = new Processed.FMRIData();
+        [JsonIgnore] public Processed.FMRIData Data { get; set; } = new Processed.FMRIData();
         #endregion
 
         #region Constructors
@@ -51,6 +52,18 @@ namespace HBP.Core.Data
         {
             FMRIConfiguration = fmriConfiguration;
             Dataset = dataset;
+        }
+        public FMRIColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
+        {
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                FMRIDataInfo[] fmriDataInfos = dataset.GetFMRIDataInfos();
+                if (patients.All((patient) => fmriDataInfos.Any((data) => data.Patient == patient)))
+                {
+                    Dataset = dataset;
+                    return;
+                }
+            }
         }
         public FMRIColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, new FMRIConfiguration())
         {
@@ -81,7 +94,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is FMRIColumn fmriColumn)
             {
-                FMRIConfiguration = fmriColumn.FMRIConfiguration;
+                FMRIConfiguration.Copy(fmriColumn.FMRIConfiguration);
                 Dataset = fmriColumn.Dataset;
             }
         }

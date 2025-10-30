@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using System.Runtime.Serialization;
-using HBP.Core.Interfaces;
+﻿using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -36,24 +37,22 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Icon : BaseData, INameable
     {
         #region Properties
         /// <summary>
         /// Name of the icon.
         /// </summary>
-        [DataMember]
-        public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Path to the image icon with Aliases.
         /// </summary>
-        [DataMember(Name = "ImagePath")]
-        private string m_ImagePath = "";
+        [JsonProperty("ImagePath")] private string m_ImagePath = "";
         /// <summary>
         /// Path of the image icon without Aliases.
         /// </summary>
-        [IgnoreDataMember]
+        [JsonIgnore]
         public string ImagePath
         {
             get
@@ -86,8 +85,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Temporal window when the icon is displayed.
         /// </summary>
-        [DataMember]
-        public TimeWindow Window { get; set; }
+        [JsonProperty] public TimeWindow Window { get; set; }
         #endregion
 
         #region Constructors

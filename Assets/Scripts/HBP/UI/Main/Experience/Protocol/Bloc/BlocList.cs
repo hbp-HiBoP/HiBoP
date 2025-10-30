@@ -1,7 +1,9 @@
-﻿using System.Linq;
-using UnityEngine;
-using HBP.UI.Tools.Lists;
+﻿using HBP.Core.Data;
 using HBP.UI.Tools;
+using HBP.UI.Tools.Lists;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Main
 {
@@ -176,6 +178,13 @@ namespace HBP.UI.Main
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
+        }
+        #endregion
+
+        #region Protected Methods
+        protected override IEnumerable<Bloc> DefaultSorting(IEnumerable<Bloc> objects)
+        {
+            return objects.OrderBy(b => b.Order);
         }
         #endregion
     }

@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Errors;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using UnityEngine.Events;
-using HBP.Core.Errors;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -25,47 +27,26 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class DataContainer : BaseData
     {
         #region Properties
-        protected Error[] m_Errors = new Error[0];
+        [JsonProperty] protected Error[] m_Errors = new Error[0];
         /// <summary>
         /// Errors of the dataContainer.
         /// </summary>
-        public virtual Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>();
-                errors.AddRange(m_Errors);
-                return errors.Distinct().ToArray();
-            }
-        }
+        public virtual ReadOnlyCollection<Error> Errors => new(m_Errors);
 
-        protected Warning[] m_Warnings = new Warning[0];
+        [JsonProperty] protected Warning[] m_Warnings = new Warning[0];
         /// <summary>
         /// Errors of the dataContainer.
         /// </summary>
-        public virtual Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>();
-                warnings.AddRange(m_Warnings);
-                return warnings.Distinct().ToArray();
-            }
-        }
+        public virtual ReadOnlyCollection<Warning> Warnings => new(m_Warnings);
 
         /// <summary>
         /// True if the dataContainer is OK, False otherwise.
         /// </summary>v 
-        public bool IsOk => Errors.Length == 0;
-
-        /// <summary>
-        /// Callback executed when error checking is required.
-        /// </summary>
-        public UnityEvent OnRequestErrorCheck { get; } = new UnityEvent();
+        public bool IsOk => Errors.Count == 0;
         #endregion
 
         #region Constructors
@@ -73,8 +54,15 @@ namespace HBP.Core.Data.Container
         /// Create a new DataContainer instance with a specified ID.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
-        public DataContainer(string ID) : base(ID)
+        public DataContainer(IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(ID)
         {
+            m_Errors = errors.ToArray();
+            m_Warnings = warnings.ToArray();
+        }
+        public DataContainer(IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base()
+        {
+            m_Errors = errors.ToArray();
+            m_Warnings = warnings.ToArray();
         }
         /// <summary>
         /// Create a new DataContainer instance with default values.
@@ -82,6 +70,18 @@ namespace HBP.Core.Data.Container
         public DataContainer() : base()
         {
 
+        }
+        #endregion
+
+        #region Operators
+        public override void Copy(object copy)
+        {
+            base.Copy(copy);
+            if (copy is DataContainer dataContainer)
+            {
+                m_Errors = dataContainer.m_Errors;
+                m_Warnings = dataContainer.m_Warnings;
+            }
         }
         #endregion
 

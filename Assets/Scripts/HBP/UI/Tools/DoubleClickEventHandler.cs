@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -7,31 +6,36 @@ using UnityEngine.UI;
 namespace HBP.UI.Tools
 {
     [RequireComponent(typeof(Selectable))]
-	public class DoubleClickEventHandler : MonoBehaviour , IPointerClickHandler
-	{
+    public class DoubleClickEventHandler : MonoBehaviour, IPointerClickHandler
+    {
         #region Properties
-        public float DelayBetweenClick = 0.1f;
         public UnityEvent OnSimpleClick;
         public UnityEvent OnDoubleClick;
 
-        bool m_IsSecondClick = false;
-		bool m_IsWaiting = false;
-        Selectable m_Selectable;
+        private float m_DelayBetweenClicks = 0.3f;
+        private float m_LastClickTime = 0f;
+        private bool m_IsSecondClick = false;
+        private Selectable m_Selectable;
         #endregion
 
         #region Public Methods
         public void OnPointerClick(PointerEventData eventData)
         {
-            if(isActiveAndEnabled && m_Selectable.interactable)
+            if (isActiveAndEnabled && m_Selectable.interactable)
             {
-                if (!m_IsWaiting)
+                float currentTime = Time.time;
+                if (m_IsSecondClick && (currentTime - m_LastClickTime <= m_DelayBetweenClicks))
                 {
-                    m_IsWaiting = true;
-                    StartCoroutine(c_WaitForClick(DelayBetweenClick));
+                    // Double click detected
+                    m_IsSecondClick = false;
+                    OnDoubleClick.Invoke();
                 }
                 else
                 {
+                    // Possible first click
                     m_IsSecondClick = true;
+                    m_LastClickTime = currentTime;
+                    Invoke(nameof(HandleSingleClick), m_DelayBetweenClicks);
                 }
             }
         }
@@ -42,16 +46,16 @@ namespace HBP.UI.Tools
         {
             m_Selectable = GetComponent<Selectable>();
         }
-        IEnumerator c_WaitForClick(float delay) 
-		{
-			yield return new WaitForSeconds(delay);
-            if (m_IsSecondClick == true && m_IsWaiting == true) OnDoubleClick.Invoke();
-            else OnSimpleClick.Invoke();
-			m_IsWaiting=false;
-			m_IsSecondClick=false;
-		}
+
+        private void HandleSingleClick()
+        {
+            if (m_IsSecondClick)
+            {
+                // If no second click happened in the delay, treat as single click
+                m_IsSecondClick = false;
+                OnSimpleClick.Invoke();
+            }
+        }
         #endregion
     }
 }
-
-

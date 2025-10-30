@@ -2,6 +2,7 @@
 using UnityEngine;
 using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {
@@ -20,10 +21,10 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override bool Add(Core.Data.Site obj)
+        protected override void AddObject(Core.Data.Site obj)
         {
             SortByNone();
-            return base.Add(obj);
+            base.AddObject(obj);
         }
 
         /// <summary>
@@ -35,12 +36,12 @@ namespace HBP.UI.Main
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending(s => s.Name, new SiteNameComparer()).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy(s => s.Name, new SiteNameComparer()).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;

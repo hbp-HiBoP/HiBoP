@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using UnityEngine;
 
 namespace HBP.Core.Tools
 {
@@ -22,9 +25,16 @@ namespace HBP.Core.Tools
             stringBuilder.Append(")");
             return stringBuilder.ToString();
         }
-        public static IEnumerable<T> DeepClone<T>(this IEnumerable<T> IEnumerable) where T : ICloneable
+        public static IEnumerable<T> DeepClone<T>(this IEnumerable<T> IEnumerable, bool forceEnumeration = false) where T : ICloneable
         {
-            return IEnumerable.Select(a => (T)a.Clone());
+            if (forceEnumeration)
+            {
+                return IEnumerable.Select(a => (T)a.Clone()).ToList();
+            }
+            else
+            {
+                return IEnumerable.Select(a => (T)a.Clone());
+            }
         }
     }
 
@@ -115,6 +125,35 @@ namespace HBP.Core.Tools
                 stringBuilder.Append("  • None");
             }
             return stringBuilder.ToString();
+        }
+        public static string GenerateUniqueFilePath(this string path)
+        {
+            string result = path;
+            string extension = Path.GetExtension(result);
+            string pathWithoutExtension = Path.GetFullPath(result).Remove(Path.GetFullPath(result).Length - extension.Length);
+            int count = 0;
+            while (File.Exists(result))
+            {
+                string temp = string.Format("{0}({1})", pathWithoutExtension, ++count);
+                result = temp + extension;
+            }
+            return result;
+        }
+        public static string GenerateUniqueDirectoryPath(this string path)
+        {
+            string result = path;
+            string fullPath = Path.GetFullPath(result);
+            int count = 0;
+            while (Directory.Exists(result))
+            {
+                result = string.Format("{0}({1})", fullPath, ++count);
+            }
+            return result;
+        }
+        public static bool IsBIDS(this string path)
+        {
+            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
+            return participantsFileInfo.Exists;
         }
     }
 
@@ -252,6 +291,147 @@ namespace HBP.Core.Tools
 
             File.Copy(file.FullName, newFilePath, overwrite);
             return newFilePath;
+        }
+    }
+
+    public static class UniTaskExtensions
+    {
+        public static async UniTask WhenAllSequenced(IEnumerable<UniTask> tasks)
+        {
+            foreach (var task in tasks)
+                await task;
+        }
+        public static async UniTask<IEnumerable<T>> WhenAllSequenced<T>(IEnumerable<UniTask<T>> tasks)
+        {
+            T[] results = new T[tasks.Count()];
+            int i = 0;
+            foreach (var task in tasks)
+                results[i++] = await task;
+            return results;
+        }
+        public static async UniTask PerformMultipleTasksAsync(IEnumerable<Func<UniTask>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel, CancellationToken token = default)
+        {
+            var taskList = tasks.ToList();
+            int count = 0;
+            int length = taskList.Count;
+            updateProgress.Invoke(startProgress, 0, new LoadingText(loadingText));
+            if (parallel)
+            {
+                if (maxConcurrency <= 0)
+                {
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        await task();
+                        lock (updateProgress)
+                        {
+                            count++;
+                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
+                        }
+                    });
+                    await UniTask.WhenAll(tasksToExecute);
+                }
+                else
+                {
+                    using var semaphore = new SemaphoreSlim(maxConcurrency);
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        await semaphore.WaitAsync();
+                        try
+                        {
+                            if (token.IsCancellationRequested) return;
+                            await task();
+                            lock (updateProgress)
+                            {
+                                count++;
+                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
+                            }
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    });
+
+                    await UniTask.WhenAll(tasksToExecute);
+                }
+            }
+            else
+            {
+                foreach (var task in taskList)
+                {
+                    if (token.IsCancellationRequested) break;
+                    await task();
+                    count++;
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
+                }
+            }
+        }
+        public static async UniTask<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<UniTask<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel, CancellationToken token = default)
+        {
+            var taskList = tasks.ToList();
+            int count = 0;
+            int length = taskList.Count;
+            updateProgress.Invoke(startProgress, 0, new LoadingText(loadingText));
+            if (parallel)
+            {
+                if (maxConcurrency == 0)
+                {
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        T data = await task();
+                        lock (updateProgress)
+                        {
+                            count++;
+                            updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
+                        }
+                        return data;
+                    });
+                    var result = await UniTask.WhenAll(tasksToExecute);
+                    return result;
+                }
+                else
+                {
+                    using var semaphore = new SemaphoreSlim(maxConcurrency);
+                    var results = new List<T>();
+                    var tasksToExecute = taskList.Select(async task =>
+                    {
+                        await semaphore.WaitAsync();
+                        try
+                        {
+                            if (token.IsCancellationRequested) return;
+                            T data = await task();
+                            lock (updateProgress)
+                            {
+                                count++;
+                                updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
+                            }
+                            lock (results)
+                            {
+                                results.Add(data);
+                            }
+                        }
+                        finally
+                        {
+                            semaphore.Release();
+                        }
+                    });
+
+                    await UniTask.WhenAll(tasksToExecute);
+                    return results;
+                }
+            }
+            else
+            {
+                List<T> result = new List<T>();
+                foreach (var task in taskList)
+                {
+                    if (token.IsCancellationRequested) break;
+                    result.Add(await task());
+                    count++;
+                    updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
+                }
+                return result;
+            }
         }
     }
 }

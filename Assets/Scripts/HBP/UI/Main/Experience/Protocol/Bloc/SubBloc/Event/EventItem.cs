@@ -32,6 +32,8 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
 
                 m_NameText.text = m_Object.Name;
@@ -58,6 +60,8 @@ namespace HBP.UI.Main
                     case MainSecondaryEnum.Main: m_TypeText.text = "M"; break;
                     case MainSecondaryEnum.Secondary: m_TypeText.text = "S"; break;
                 }
+
+                SetNotInteractable();
             }
         }
         #endregion

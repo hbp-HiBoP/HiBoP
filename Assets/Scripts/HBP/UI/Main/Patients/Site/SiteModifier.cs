@@ -4,6 +4,7 @@ using System.Linq;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -32,8 +33,12 @@ namespace HBP.UI.Main
                 base.Interactable = value;
 
                 m_NameInputField.interactable = value;
+
                 m_CoordinateListGestion.Interactable = value;
+                m_CoordinateListGestion.Modifiable = value;
+
                 m_TagValueListGestion.Interactable = value;
+                m_TagValueListGestion.Modifiable = value;
             }
         }
         #endregion
@@ -66,7 +71,7 @@ namespace HBP.UI.Main
         {
             m_NameInputField.text = objectToDisplay.Name;
             m_CoordinateListGestion.List.Set(objectToDisplay.Coordinates);
-            m_TagValueListGestion.Tags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).ToArray();
+            m_TagValueListGestion.Tags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(objectToDisplay.Tags);
         }
         /// <summary>

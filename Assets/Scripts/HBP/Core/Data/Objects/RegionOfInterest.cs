@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct RegionOfInterest
     {
         #region Properties
-        [DataMember]
-        public string Name { get; set; }
-        [DataMember]
-        public List<Sphere> Spheres { get; set; }
+        [JsonProperty] public string Name { get; set; }
+        [JsonProperty] public List<Sphere> Spheres { get; set; }
         #endregion
 
         #region Constructors
@@ -23,14 +22,12 @@ namespace HBP.Core.Data
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct Sphere
     {
         #region Properties
-        [DataMember]
-        public SerializableVector3 Position { get; set; }
-        [DataMember]
-        public float Radius { get; set; }
+        [JsonProperty] public SerializableVector3 Position { get; set; }
+        [JsonProperty] public float Radius { get; set; }
         #endregion
 
         #region Constructors

@@ -56,17 +56,20 @@ namespace HBP.UI.Tools
         #region Private Methods
         private void Update()
         {
-            if (m_Entered)
+            if (m_Text != "" || m_Image != null)
             {
-                m_TimeSinceEntered += Time.deltaTime;
-                if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY/3)) && !TooltipManager.IsTooltipDisplayed)
+                if (m_Entered)
                 {
-                    OnBeforeDisplayTooltip.Invoke();
-                    TooltipManager.ShowTooltip(m_Text, m_Image, m_FollowMouse);
-                }
-                if (Input.GetAxis("Mouse X") !=0 && Input.GetAxis("Mouse Y") != 0)
-                {
-                    m_TimeSinceEntered = 0;
+                    m_TimeSinceEntered += Time.deltaTime;
+                    if ((m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY || (TooltipManager.TooltipHasBeenDisplayedRecently && m_TimeSinceEntered > TooltipManager.TIME_TO_DISPLAY / 3)) && !TooltipManager.IsTooltipDisplayed)
+                    {
+                        OnBeforeDisplayTooltip.Invoke();
+                        TooltipManager.ShowTooltip(m_Text, m_Image, m_FollowMouse);
+                    }
+                    if (Input.GetAxis("Mouse X") != 0 && Input.GetAxis("Mouse Y") != 0)
+                    {
+                        m_TimeSinceEntered = 0;
+                    }
                 }
             }
         }

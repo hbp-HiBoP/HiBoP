@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Informations.Graphs
 {
@@ -111,7 +111,7 @@ namespace HBP.UI.Informations.Graphs
         {
             if (gameObject.activeInHierarchy)
             {
-                StartCoroutine(c_OnRect());
+                OnRect().Forget();
             }
         }
         void SetOrdinateDisplayRange()
@@ -123,13 +123,9 @@ namespace HBP.UI.Informations.Graphs
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
         }
 
-        IEnumerator c_OnRect()
+        async UniTaskVoid OnRect()
         {
-            yield return new WaitForEndOfFrame();
-            OnRect();
-        }
-        void OnRect()
-        {
+            await UniTask.WaitForEndOfFrame();
             Rect rect = m_RectTransform.rect;
             if (m_LastHeight != rect.height || m_LastWidth != rect.width)
             {

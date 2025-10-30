@@ -1,9 +1,10 @@
-﻿using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Collections.Generic;
-using HBP.Core.Interfaces;
+﻿using HBP.Core.Interfaces;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -30,22 +31,22 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class MRI : BaseData, INameable
     {
         #region Properties
         /// <summary>
         /// Extension of MRI files.
         /// </summary>
-        public const string EXTENSION = ".nii";
+        public static readonly string[] EXTENSIONS = new string[] { ".nii", ".nii.gz", ".img" };
         /// <summary>
         /// Name of the MRI.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// MRI file path with Alias.
         /// </summary>
-        [DataMember(Name = "File")] public string SavedFile { get; protected set; }
+        [JsonProperty("File")] public string SavedFile { get; protected set; }
         /// <summary>
         /// MRI file path without Alias.
         /// </summary>
@@ -83,7 +84,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && (new FileInfo(File).Extension == EXTENSION);
+                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && EXTENSIONS.Any(e => e == new FileInfo(File).Extension);
             }
         }
         #endregion
@@ -149,7 +150,7 @@ namespace HBP.Core.Data
                 DirectoryInfo preimplantationDirectory = t1mriDirectoy.GetDirectories("T1pre_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
                 if (preimplantationDirectory != null && preimplantationDirectory.Exists)
                 {
-                    FileInfo preimplantationMRIFile = preimplantationDirectory.GetFiles(directoryInfo.Name + EXTENSION).FirstOrDefault();
+                    FileInfo preimplantationMRIFile = GetMRIFileWithExtensions(preimplantationDirectory, directoryInfo.Name);
                     if (preimplantationMRIFile != null && preimplantationMRIFile.Exists)
                     {
                         MRIs.Add(new MRI("Preimplantation", preimplantationMRIFile.FullName));
@@ -160,7 +161,7 @@ namespace HBP.Core.Data
                 DirectoryInfo postimplantationDirectory = t1mriDirectoy.GetDirectories("T1post_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
                 if (postimplantationDirectory != null && postimplantationDirectory.Exists)
                 {
-                    FileInfo postimplantationMRIFile = postimplantationDirectory.GetFiles(directoryInfo.Name + EXTENSION).FirstOrDefault();
+                    FileInfo postimplantationMRIFile = GetMRIFileWithExtensions(postimplantationDirectory, directoryInfo.Name);
                     if (postimplantationMRIFile != null && postimplantationMRIFile.Exists)
                     {
                         MRIs.Add(new MRI("Postimplantation", postimplantationMRIFile.FullName));
@@ -173,7 +174,7 @@ namespace HBP.Core.Data
                     DirectoryInfo ctDirectory = ct.GetDirectories("CTpost_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
                     if (ctDirectory != null && ctDirectory.Exists)
                     {
-                        FileInfo ctMRIFile = ctDirectory.GetFiles(directoryInfo.Name + "-CTPost_*" + EXTENSION).FirstOrDefault();
+                        FileInfo ctMRIFile = GetMRIFileWithPattern(ctDirectory, directoryInfo.Name + "-CTPost_*");
                         if (ctMRIFile != null && ctMRIFile.Exists)
                         {
                             MRIs.Add(new MRI("CT", ctMRIFile.FullName));
@@ -182,6 +183,47 @@ namespace HBP.Core.Data
                 }
             }
             return MRIs.ToArray();
+        }
+        #endregion
+
+        #region Private Static Methods
+        /// <summary>
+        /// Helper method to find MRI files with supported extensions.
+        /// </summary>
+        /// <param name="directory">Directory to search in</param>
+        /// <param name="baseName">Base name of the file</param>
+        /// <returns>First matching MRI file or null</returns>
+        private static FileInfo GetMRIFileWithExtensions(DirectoryInfo directory, string baseName)
+        {
+            foreach (string extension in EXTENSIONS)
+            {
+                string fileName = baseName + extension;
+                FileInfo file = new FileInfo(Path.Combine(directory.FullName, fileName));
+                if (file.Exists)
+                {
+                    return file;
+                }
+            }
+            return null;
+        }
+        /// <summary>
+        /// Helper method to find MRI files with a pattern and supported extensions.
+        /// </summary>
+        /// <param name="directory">Directory to search in</param>
+        /// <param name="pattern">Pattern without extension</param>
+        /// <returns>First matching MRI file or null</returns>
+        private static FileInfo GetMRIFileWithPattern(DirectoryInfo directory, string pattern)
+        {
+            foreach (string extension in EXTENSIONS)
+            {
+                string searchPattern = pattern + extension;
+                FileInfo[] files = directory.GetFiles(searchPattern, SearchOption.TopDirectoryOnly);
+                if (files.Length > 0)
+                {
+                    return files[0];
+                }
+            }
+            return null;
         }
         #endregion
 

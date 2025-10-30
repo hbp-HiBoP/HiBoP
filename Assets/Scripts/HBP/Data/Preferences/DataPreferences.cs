@@ -1,18 +1,19 @@
-﻿using System;
-using System.Runtime.Serialization;
-using HBP.Core.Data;
+﻿using HBP.Core.Data;
 using HBP.Core.Enums;
+using Newtonsoft.Json;
+using System;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Preferences
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class DataPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public EEGPreferences EEG { get; set; }
-        [DataMember] public ProtocolPreferences Protocol { get; set; }
-        [DataMember] public AnatomicPreferences Anatomic { get; set; }
-        [DataMember] public AtlasesPreferences Atlases { get; set; }
+        [JsonProperty] public EEGPreferences EEG { get; set; }
+        [JsonProperty] public ProtocolPreferences Protocol { get; set; }
+        [JsonProperty] public AnatomicPreferences Anatomic { get; set; }
+        [JsonProperty] public AtlasesPreferences Atlases { get; set; }
         #endregion
 
         #region Constructors
@@ -37,11 +38,10 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
     public class EEGPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public AveragingType Averaging
+        [JsonProperty] public AveragingType Averaging
         {
             get
             {
@@ -52,7 +52,7 @@ namespace HBP.Data.Preferences
                 DataManager.DefaultAveraging = value;
             }
         }
-        [DataMember] public NormalizationType Normalization
+        [JsonProperty] public NormalizationType Normalization
         {
             get
             {
@@ -63,8 +63,8 @@ namespace HBP.Data.Preferences
                 DataManager.DefaultNormalization = value;
             }
         }
-        [DataMember] public float CorrelationAlpha { get; set; }
-        [DataMember] public bool BonferroniCorrection { get; set; }
+        [JsonProperty] public float CorrelationAlpha { get; set; }
+        [JsonProperty] public bool BonferroniCorrection { get; set; }
         #endregion
 
         #region Constructors
@@ -89,11 +89,11 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ProtocolPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public AveragingType PositionAveraging
+        [JsonProperty] public AveragingType PositionAveraging
         {
             get
             {
@@ -104,13 +104,13 @@ namespace HBP.Data.Preferences
                 DataManager.DefaultPositionAveraging = value;
             }
         }
-        [DataMember] public float MinLimit { get; set; }
-        [DataMember] public float MaxLimit { get; set; }
-        [DataMember] public int Step { get; set; }
+        [JsonProperty] public float MinLimit { get; set; }
+        [JsonProperty] public float MaxLimit { get; set; }
+        [JsonProperty] public int Step { get; set; }
         #endregion
 
         #region Constructors
-        public ProtocolPreferences() : this(AveragingType.Median, -3000, 3000, 0)
+        public ProtocolPreferences() : this(AveragingType.Median, -10000, 10000, 100)
         {
 
         }
@@ -131,11 +131,11 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class AnatomicPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public bool SiteNameCorrection
+        [JsonProperty] public bool SiteNameCorrection
         {
             get
             {
@@ -146,10 +146,10 @@ namespace HBP.Data.Preferences
                 Site.SiteNameCorrection = value;
             }
         }
-        [DataMember] public bool MeshPreloading { get; set; }
-        [DataMember] public bool MRIPreloading { get; set; }
-        [DataMember] public bool ImplantationPreloading { get; set; }
-        [DataMember] public bool PreloadSinglePatientDataInMultiPatientVisualization { get; set; }
+        [JsonProperty] public bool MeshPreloading { get; set; }
+        [JsonProperty] public bool MRIPreloading { get; set; }
+        [JsonProperty] public bool ImplantationPreloading { get; set; }
+        [JsonProperty] public bool PreloadSinglePatientDataInMultiPatientVisualization { get; set; }
         #endregion
 
         #region Constructors
@@ -175,26 +175,36 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class AtlasesPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public bool PreloadMarsAtlas { get; set; }
-        [DataMember] public bool PreloadJuBrain { get; set; }
-        [DataMember] public bool PreloadIBC { get; set; }
-        [DataMember] public bool PreloadDiFuMo64 { get; set; }
-        [DataMember] public bool PreloadDiFuMo128 { get; set; }
-        [DataMember] public bool PreloadDiFuMo256 { get; set; }
-        [DataMember] public bool PreloadDiFuMo512 { get; set; }
-        [DataMember] public bool PreloadDiFuMo1024 { get; set; }
+        [JsonProperty] public bool PreloadMarsAtlas { get; set; }
+        [JsonProperty] public bool PreloadJuBrain { get; set; }
+        [JsonProperty] public bool PreloadIBC { get; set; }
+        [JsonProperty] public bool PreloadDiFuMo64 { get; set; }
+        [JsonProperty] public bool PreloadDiFuMo128 { get; set; }
+        [JsonProperty] public bool PreloadDiFuMo256 { get; set; }
+        [JsonProperty] public bool PreloadDiFuMo512 { get; set; }
+        [JsonProperty] public bool PreloadDiFuMo1024 { get; set; }
+        [JsonProperty] public bool PreloadLocalizerAUDI { get; set; }
+        [JsonProperty] public bool PreloadLocalizerLEC1 { get; set; }
+        [JsonProperty] public bool PreloadLocalizerLEC2 { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMCSE { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMOTO { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMVEB { get; set; }
+        [JsonProperty] public bool PreloadLocalizerMVIS { get; set; }
+        [JsonProperty] public bool PreloadLocalizerVISU { get; set; }
         #endregion
 
         #region Constructors
-        public AtlasesPreferences() : this(true, true, false, false, false, false, false, false)
+        public AtlasesPreferences() : this(true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false)
         {
 
         }
-        public AtlasesPreferences(bool preloadMarsAtlas, bool preloadJuBrain, bool preloadIBC, bool preloadDiFuMo64, bool preloadDiFuMo128, bool preloadDiFuMo256, bool preloadDiFuMo512, bool preloadDiFuMo1024)
+        public AtlasesPreferences(bool preloadMarsAtlas, bool preloadJuBrain, bool preloadIBC,
+            bool preloadDiFuMo64, bool preloadDiFuMo128, bool preloadDiFuMo256, bool preloadDiFuMo512, bool preloadDiFuMo1024,
+            bool preloadLocalizerAUDI, bool preloadLocalizerLEC1, bool preloadLocalizerLEC2, bool preloadLocalizerMCSE, bool preloadLocalizerMOTO, bool preloadLocalizerMVEB, bool preloadLocalizerMVIS, bool preloadLocalizerVISU)
         {
             PreloadMarsAtlas = preloadMarsAtlas;
             PreloadJuBrain = preloadJuBrain;
@@ -204,13 +214,21 @@ namespace HBP.Data.Preferences
             PreloadDiFuMo256 = preloadDiFuMo256;
             PreloadDiFuMo512 = preloadDiFuMo512;
             PreloadDiFuMo1024 = preloadDiFuMo1024;
+            PreloadLocalizerAUDI = preloadLocalizerAUDI;
+            PreloadLocalizerLEC1 = preloadLocalizerLEC1;
+            PreloadLocalizerLEC2 = preloadLocalizerLEC2;
+            PreloadLocalizerMCSE = preloadLocalizerMCSE;
+            PreloadLocalizerMOTO = preloadLocalizerMOTO;
+            PreloadLocalizerMVEB = preloadLocalizerMVEB;
+            PreloadLocalizerMVIS = preloadLocalizerMVIS;
+            PreloadLocalizerVISU = preloadLocalizerVISU;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new AtlasesPreferences(PreloadMarsAtlas, PreloadJuBrain, PreloadIBC, PreloadDiFuMo64, PreloadDiFuMo128, PreloadDiFuMo256, PreloadDiFuMo512, PreloadDiFuMo1024);
+            return new AtlasesPreferences(PreloadMarsAtlas, PreloadJuBrain, PreloadIBC, PreloadDiFuMo64, PreloadDiFuMo128, PreloadDiFuMo256, PreloadDiFuMo512, PreloadDiFuMo1024, PreloadLocalizerAUDI, PreloadLocalizerLEC1, PreloadLocalizerLEC2, PreloadLocalizerMCSE, PreloadLocalizerMOTO, PreloadLocalizerMVEB, PreloadLocalizerMVIS, PreloadLocalizerVISU);
         }
         #endregion
     }

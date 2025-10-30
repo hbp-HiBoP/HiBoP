@@ -47,6 +47,7 @@ namespace HBP.UI.Toolbar
         /// Compute IEEG values
         /// </summary>
         [SerializeField] private ComputeActivity m_ComputeActivity;
+        [SerializeField] private ExportActivityToNifti m_ExportActivityToNifti;
         /// <summary>
         /// Compute and display site correlations
         /// </summary>
@@ -79,6 +80,7 @@ namespace HBP.UI.Toolbar
             m_Tools.Add(m_CCEPSiteSourceSelector);
             m_Tools.Add(m_CCEPAreaSourceSelector);
             m_Tools.Add(m_ComputeActivity);
+            m_Tools.Add(m_ExportActivityToNifti);
             m_Tools.Add(m_SiteCorrelations);
             m_Tools.Add(m_FMRISelector);
             m_Tools.Add(m_MEGSelector);

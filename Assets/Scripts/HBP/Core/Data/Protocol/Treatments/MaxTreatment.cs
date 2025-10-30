@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Runtime.Serialization;
 using HBP.Core.Tools;
 
 namespace HBP.Core.Data
@@ -39,7 +38,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Max")]
+    [DisplayName("Max")]
     public class MaxTreatment : Treatment
     {
         #region Constructors

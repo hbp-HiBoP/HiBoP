@@ -1,4 +1,7 @@
-﻿using HBP.Data.Module3D;
+﻿using HBP.Core.Object3D;
+using HBP.Core.Tools;
+using HBP.Data.Module3D;
+using HBP.Data.Preferences;
 using HBP.UI.Tools;
 using HBP.UI.Tools.ResizableGrids;
 using System.Collections.Generic;
@@ -16,10 +19,8 @@ namespace HBP.UI.Module3D
         private RectTransform m_RectTransform;
         private ResizableGrid m_ParentGrid;
         [SerializeField] private SiteList m_SiteList;
-        [SerializeField] private Toggle m_SiteFiltersToggle;
-        [SerializeField] private SiteFilters m_SiteFilters;
-        [SerializeField] private Toggle m_SiteActionsToggle;
-        [SerializeField] private SiteActions m_SiteActions;
+        [SerializeField] private Button m_SiteFiltersButton;
+        [SerializeField] private Button m_SiteToolsButton;
         [SerializeField] private GameObject m_MinimizedGameObject;
 
         [SerializeField] private Tooltip m_SiteTooltip;
@@ -43,6 +44,7 @@ namespace HBP.UI.Module3D
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
+            Module3DMain.OnRequestUpdateInSiteList.AddListener(UpdateList);
         }
         private void Update()
         {
@@ -61,81 +63,94 @@ namespace HBP.UI.Module3D
         {
             m_SiteList.MaskList(m_Scene.SelectedColumn.Sites.Select(s => s.State.IsFiltered && !s.State.IsMasked).ToArray());
         }
+        private void OpenSiteTools()
+        {
+            var siteTools = WindowsManager.Open("Site Tools window", null).GetComponent<SiteToolsWindow>();
+            siteTools.Scene = m_Scene;
+            siteTools.OnToolApplied.AddListener(UpdateList);
+        }
+        private void OpenSiteFilters()
+        {
+            var siteFilters = WindowsManager.Open("Site Filters window", null).GetComponent<SiteFiltersWindow>();
+            siteFilters.FilteringObjects = m_Scene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).Select(s => (object)s).ToList();
+            siteFilters.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(typeof(Site)));
+            siteFilters.OnApplyFilters.AddListener(mask =>
+            {
+                for (int i = 0; i < mask.Length; i++) ((Site)siteFilters.FilteringObjects[i]).State.IsFiltered = mask[i];
+                UpdateList();
+            });
+        }
+        private void OnSelectSite(Core.Object3D.Site site)
+        {
+            UpdateList();
+            m_SiteList.ScrollToObject(site);
+        }
+
+        private void CountSites()
+        {
+            m_SiteTooltip.Text = string.Format("Number of sites: {0}", m_SiteList.Objects.Count);
+        }
+        private void CountPatients()
+        {
+            m_PatientsTooltip.Text = string.Format("Number of distinct patients: {0}", m_SiteList.Objects.Select(s => s.Information.Patient).Distinct().Count());
+        }
+        private void CountLabels()
+        {
+            string labelsTooltip = "Number of sites with";
+            Dictionary<int, int> countByNumberOfLabels = new Dictionary<int, int>();
+            foreach (var site in m_SiteList.Objects)
+            {
+                if (!countByNumberOfLabels.ContainsKey(site.State.Labels.Count))
+                {
+                    countByNumberOfLabels.Add(site.State.Labels.Count, 1);
+                }
+                else
+                {
+                    countByNumberOfLabels[site.State.Labels.Count]++;
+                }
+            }
+            foreach (var kv in countByNumberOfLabels)
+            {
+                if (kv.Key == 1)
+                    labelsTooltip += string.Format("\n{0} label: {1}", kv.Key, kv.Value);
+                else
+                    labelsTooltip += string.Format("\n{0} labels: {1}", kv.Key, kv.Value);
+            }
+            m_LabelsTooltip.Text = labelsTooltip;
+        }
+        private void CountHighlighted()
+        {
+            m_HighlightedTooltip.Text = string.Format("Number of highlighted sites: {0}", m_SiteList.Objects.Count(s => s.State.IsHighlighted));
+        }
+        private void CountBlacklisted()
+        {
+            m_BlacklistedTooltip.Text = string.Format("Number of blacklisted sites: {0}", m_SiteList.Objects.Count(s => s.State.IsBlackListed));
+        }
+        private void CountColors()
+        {
+            m_ColorTooltip.Text = string.Format("Number of distinct colors: {0}", m_SiteList.Objects.Select(s => s.State.Color).Distinct().Count());
+        }
         #endregion
 
         #region Public Methods
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
-            m_SiteFilters.Initialize(scene);
-            m_SiteFilters.OnRequestListUpdate.AddListener(UpdateList);
-            m_SiteFiltersToggle.onValueChanged.AddListener((isOn) =>
-            {
-                if (isOn)
-                {
-                    m_SiteActionsToggle.isOn = false;
-                }
-            });
-            m_SiteActions.Initialize(scene);
-            m_SiteActions.OnRequestListUpdate.AddListener(UpdateList);
-            m_SiteActionsToggle.onValueChanged.AddListener((isOn) =>
-            {
-                if (isOn)
-                {
-                    m_SiteFiltersToggle.isOn = false;
-                }
-            });
+
+            m_SiteFiltersButton.onClick.AddListener(OpenSiteFilters);
+            m_SiteToolsButton.onClick.AddListener(OpenSiteTools);
+
             m_Scene.OnSelect.AddListener(SetList);
             m_Scene.OnSitesRenderingUpdated.AddListener(SetList);
-            m_Scene.OnSelectSite.AddListener((s) =>
-            {
-                UpdateList();
-                m_SiteList.ScrollToObject(s);
-            });
-            m_SiteTooltip.OnBeforeDisplayTooltip.AddListener(() =>
-            {
-                m_SiteTooltip.Text = string.Format("Number of sites: {0}", m_SiteList.Objects.Count);
-            });
-            m_PatientsTooltip.OnBeforeDisplayTooltip.AddListener(() =>
-            {
-                m_PatientsTooltip.Text = string.Format("Number of distinct patients: {0}", m_SiteList.Objects.Select(s => s.Information.Patient).Distinct().Count());
-            });
-            m_LabelsTooltip.OnBeforeDisplayTooltip.AddListener(() =>
-            {
-                string labelsTooltip = "Number of sites with";
-                Dictionary<int, int> countByNumberOfLabels = new Dictionary<int, int>();
-                foreach (var site in m_SiteList.Objects)
-                {
-                    if (!countByNumberOfLabels.ContainsKey(site.State.Labels.Count))
-                    {
-                        countByNumberOfLabels.Add(site.State.Labels.Count, 1);
-                    }
-                    else
-                    {
-                        countByNumberOfLabels[site.State.Labels.Count]++;
-                    }
-                }
-                foreach (var kv in countByNumberOfLabels)
-                {
-                    if (kv.Key == 1)
-                        labelsTooltip += string.Format("\n{0} label: {1}", kv.Key, kv.Value);
-                    else
-                        labelsTooltip += string.Format("\n{0} labels: {1}", kv.Key, kv.Value);
-                }
-                m_LabelsTooltip.Text = labelsTooltip;
-            });
-            m_HighlightedTooltip.OnBeforeDisplayTooltip.AddListener(() =>
-            {
-                m_HighlightedTooltip.Text = string.Format("Number of highlighted sites: {0}", m_SiteList.Objects.Count(s => s.State.IsHighlighted));
-            });
-            m_BlacklistedTooltip.OnBeforeDisplayTooltip.AddListener(() =>
-            {
-                m_BlacklistedTooltip.Text = string.Format("Number of blacklisted sites: {0}", m_SiteList.Objects.Count(s => s.State.IsBlackListed));
-            });
-            m_ColorTooltip.OnBeforeDisplayTooltip.AddListener(() =>
-            {
-                m_ColorTooltip.Text = string.Format("Number of distinct colors: {0}", m_SiteList.Objects.Select(s => s.State.Color).Distinct().Count());
-            });
+            m_Scene.OnSelectSite.AddListener(OnSelectSite);
+
+            m_SiteTooltip.OnBeforeDisplayTooltip.AddListener(CountSites);
+            m_PatientsTooltip.OnBeforeDisplayTooltip.AddListener(CountPatients);
+            m_LabelsTooltip.OnBeforeDisplayTooltip.AddListener(CountLabels);
+            m_HighlightedTooltip.OnBeforeDisplayTooltip.AddListener(CountHighlighted);
+            m_BlacklistedTooltip.OnBeforeDisplayTooltip.AddListener(CountBlacklisted);
+            m_ColorTooltip.OnBeforeDisplayTooltip.AddListener(CountColors);
+
             foreach (var column in m_Scene.Columns)
             {
                 column.OnSelect.AddListener(SetList);

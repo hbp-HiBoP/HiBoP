@@ -1,27 +1,28 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class StaticConfiguration : BaseData
     {
         #region Properties
         /// <summary>
         /// Maximum site influence
         /// </summary>
-        [DataMember(Name = "Site Maximum Influence")] public float MaximumInfluence { get; set; }
+        [JsonProperty("Site Maximum Influence")] public float MaximumInfluence { get; set; }
         /// <summary>
         /// IEEG Span Min
         /// </summary>
-        [DataMember(Name = "Span Min")] public float SpanMin { get; set; }
+        [JsonProperty("Span Min")] public float SpanMin { get; set; }
         /// <summary>
         /// IEEG Span Min
         /// </summary>
-        [DataMember(Name = "Middle")] public float Middle { get; set; }
+        [JsonProperty("Middle")] public float Middle { get; set; }
         /// <summary>
         /// IEEG Span Max
         /// </summary>
-        [DataMember(Name = "Span Max")] public float SpanMax { get; set; }
+        [JsonProperty("Span Max")] public float SpanMax { get; set; }
         #endregion
 
         #region Constructor

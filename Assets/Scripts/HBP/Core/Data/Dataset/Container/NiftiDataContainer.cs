@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using System.Collections.ObjectModel;
-using HBP.Core.Errors;
-using System.ComponentModel;
-using System.Linq;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -31,7 +32,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Nifti"), FMRI, MEGv]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Nifti"), FMRI, MEGv]
     public class Nifti : DataContainer
     {
         #region Properties
@@ -47,7 +48,7 @@ namespace HBP.Core.Data.Container
             }
         }
 
-        [DataMember(Name = "File")] public string SavedFile { get; protected set; }
+        [JsonProperty("File")] public string SavedFile { get; protected set; }
         /// <summary>
         /// Path to the file containing the NIFTI data.
         /// </summary>
@@ -60,8 +61,6 @@ namespace HBP.Core.Data.Container
             set
             {
                 SavedFile = value?.ConvertToShortPath();
-                GetErrors();
-                OnRequestErrorCheck.Invoke();
             }
         }
         #endregion
@@ -72,7 +71,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="file">Path to the file containing the NIFTI data</param>
         /// <param name="ID">Unique identifier</param>
-        public Nifti(string file, string ID) : base(ID)
+        public Nifti(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             File = file;
         }
@@ -80,7 +79,7 @@ namespace HBP.Core.Data.Container
         /// Create a new Nifti data container.
         /// </summary>
         /// <param name="file">Path to the file containing the NIFTI data</param>
-        public Nifti(string file) : base()
+        public Nifti(string file, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             File = file;
         }
@@ -99,7 +98,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(File))
             {
-                errors.Add(new RequieredFieldEmptyError("Nifti file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("Nifti file path is empty"));
             }
             else
             {
@@ -142,13 +141,15 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new Nifti(File, ID);
+            return new Nifti(File, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            Nifti nifti = copy as Nifti;
-            File = nifti.File;
-            ID = nifti.ID;
+            base.Copy(copy);
+            if (copy is Nifti nifti)
+            {
+                File = nifti.File;
+            }
         }
         #endregion
 
@@ -156,7 +157,7 @@ namespace HBP.Core.Data.Container
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            SavedFile = SavedFile.StandardizeToEnvironement();
+            SavedFile = SavedFile?.StandardizeToEnvironement();
         }
         #endregion
     }

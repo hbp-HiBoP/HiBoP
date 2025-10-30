@@ -8,6 +8,7 @@ using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.Data.Preferences;
 using HBP.Core.DLL;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations.TrialMatrix
 {
@@ -148,14 +149,15 @@ namespace HBP.UI.Informations.TrialMatrix
             if(m_Data != null)
             {
                 float[][] trials = ExtractDataTrials(m_Data.SubTrials);
-                if (PreferencesManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
+                if (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
                 {
-                    trials = SmoothTrials(trials, PreferencesManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues);
+                    trials = SmoothTrials(trials, PersistentDataManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues, PersistentDataManager.UserPreferences.Visualization.TrialMatrix.Smooth2D);
                 }
 
                 Texture2D texture = GenerateTexture(trials, m_Limits, m_Colors);
                 texture.mipMapBias = -5;
                 texture.wrapMode = TextureWrapMode.Clamp;
+                texture.filterMode = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing && PersistentDataManager.UserPreferences.Visualization.TrialMatrix.Smooth2D ? FilterMode.Bilinear : FilterMode.Point;
                 m_RawImage.texture = texture;
             }
         }
@@ -203,14 +205,21 @@ namespace HBP.UI.Informations.TrialMatrix
             texture.Apply();
             return texture;
         }
-        float[][] SmoothTrials(float[][] trials, int pass)
+        float[][] SmoothTrials(float[][] trials, int pass, bool smooth2D)
         {
-            float[][] result = new float[trials.Length][];
-            for (int l = 0; l < result.Length; l++)
+            if (smooth2D)
             {
-                result[l] = trials[l].LinearSmooth(pass);
+                return trials.LinearSmooth2D(pass);
             }
-            return result;
+            else
+            {
+                float[][] result = new float[trials.Length][];
+                for (int l = 0; l < result.Length; l++)
+                {
+                    result[l] = trials[l].LinearSmooth(pass);
+                }
+                return result;
+            }
         }
         float[][] ExtractDataTrials(data.SubTrial[] subTrials)
         {

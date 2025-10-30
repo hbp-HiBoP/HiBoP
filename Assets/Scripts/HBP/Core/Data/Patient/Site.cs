@@ -1,12 +1,14 @@
+using HBP.Core.Interfaces;
+using HBP.Core.Object3D;
+using HBP.Core.Tools;
+using HBP.Data.Preferences;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
-using HBP.Core.Interfaces;
-using HBP.Core.Object3D;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -37,26 +39,26 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Site : BaseData, INameable, ILoadable<Site>
     {
         #region Properties
         /// <summary>
         /// Name of the site.
         /// </summary>
-        [DataMember] public string Name { get; set; }
+        [JsonProperty] public string Name { get; set; }
         /// <summary>
         /// Coordinates of the site in specific reference systems.
         /// </summary>
-        [DataMember] public List<Coordinate> Coordinates { get; set; }
+        [JsonProperty] public List<Coordinate> Coordinates { get; set; }
         /// <summary>
         /// Tags of the site.
         /// </summary>
-        [DataMember] public List<BaseTagValue> Tags { get; set; }
+        [JsonProperty] public List<BaseTagValue> Tags { get; set; }
         /// <summary>
         /// Do we need to fix site names ?
         /// </summary>
-        [IgnoreDataMember] public static bool SiteNameCorrection = true;
+        [JsonIgnore] public static bool SiteNameCorrection = true;
         #endregion
 
         #region Constructors
@@ -143,7 +145,7 @@ namespace HBP.Core.Data
                     foreach (var site in csvSites)
                     {
                         var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
-                        if (existingSite != null) existingSite.Tags.AddRange(site.Tags);
+                        existingSite?.Tags.AddRange(site.Tags);
                     }
                 }
             }
@@ -203,18 +205,18 @@ namespace HBP.Core.Data
                     List<string> columns = splittedLines[0];
                     if (loadTags)
                     {
-                        IEnumerable<BaseTag> tags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                        IEnumerable<BaseTag> tags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags);
                         foreach (var column in columns)
                         {
                             if (column != "name" && column != "x" && column != "y" && column != "z" && !tags.Any(t => t.Name == column))
                             {
-                                ApplicationState.ProjectLoaded.Preferences.SitesTags.Add(new StringTag(column));
+                                PersistentDataManager.Tags.AddSiteTag(new StringTag(column));
                             }
                         }
                     }
 
                     // Create sites.
-                    IEnumerable<BaseTag> projectTags = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags);
+                    IEnumerable<BaseTag> projectTags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags);
                     for (int l = 1; l < splittedLines.Count; l++)
                     {
                         Site site = new Site("", new Coordinate[] { new Coordinate(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
@@ -227,48 +229,12 @@ namespace HBP.Core.Data
                             else if (column == "x" && NumberExtension.TryParseFloat(value, out float x)) site.Coordinates[0].Position = new SerializableVector3(x, site.Coordinates[0].Position.y, site.Coordinates[0].Position.z);
                             else if (column == "y" && NumberExtension.TryParseFloat(value, out float y)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, y, site.Coordinates[0].Position.z);
                             else if (column == "z" && NumberExtension.TryParseFloat(value, out float z)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, site.Coordinates[0].Position.y, z);
-                            else if(loadTags)
+                            else if (loadTags)
                             {
                                 BaseTag tag = projectTags.FirstOrDefault(t => t.Name == column);
                                 if (tag != null)
                                 {
-                                    BaseTagValue tagValue = null;
-                                    if (tag is EmptyTag emptyTag)
-                                    {
-                                        tagValue = new EmptyTagValue(emptyTag);
-                                    }
-                                    else if (tag is BoolTag boolTag)
-                                    {
-                                        if (bool.TryParse(value, out bool result))
-                                        {
-                                            tagValue = new BoolTagValue(boolTag, result);
-                                        }
-                                    }
-                                    else if (tag is EnumTag enumTag)
-                                    {
-                                        tagValue = new EnumTagValue(enumTag, value);
-                                    }
-                                    else if (tag is FloatTag floatTag)
-                                    {
-                                        if (NumberExtension.TryParseFloat(value, out float result))
-                                        {
-                                            tagValue = new FloatTagValue(floatTag, result);
-                                        }
-                                    }
-                                    else if (tag is IntTag intTag)
-                                    {
-                                        if (int.TryParse(value, out int result))
-                                        {
-                                            tagValue = new IntTagValue(intTag, result);
-                                        }
-                                    }
-                                    else if (tag is StringTag stringTag)
-                                    {
-                                        if (!string.IsNullOrEmpty(value))
-                                        {
-                                            tagValue = new StringTagValue(stringTag, value);
-                                        }
-                                    }
+                                    var tagValue = tag.CreateValue(value);
                                     if (tagValue != null)
                                     {
                                         site.Tags.Add(tagValue);
@@ -302,7 +268,7 @@ namespace HBP.Core.Data
                         Site site = new Site();
                         string[] splits = Regex.Split(line, "[\\s\t]+");
                         if (splits.Length < 4) continue;
-                        site.Name = SiteNameCorrection ? FixName(splits[0]) : splits[0];
+                        site.Name = SiteNameCorrection ? SiteTools.FixName(splits[0]) : splits[0];
                         if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
                         if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
                         if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
@@ -328,8 +294,8 @@ namespace HBP.Core.Data
                         for (int i = 0; i < firstLineSplits.Length; i++)
                         {
                             if (indices.Contains(i)) continue;
-                            BaseTag associatedTag = ApplicationState.ProjectLoaded.Preferences.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                            if (associatedTag == null) associatedTag = ApplicationState.ProjectLoaded.Preferences.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
+                            BaseTag associatedTag = PersistentDataManager.Tags.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
+                            if (associatedTag == null) associatedTag = PersistentDataManager.Tags.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
                             tagByColumnIndex.Add(i, associatedTag);
                         }
                         // Fill tags
@@ -337,7 +303,7 @@ namespace HBP.Core.Data
                         while ((line = csvsr.ReadLine()) != null)
                         {
                             string[] args = line.Split('\t');
-                            string siteName = SiteNameCorrection ? FixName(args[indices[0]]) : args[indices[0]];
+                            string siteName = SiteNameCorrection ? SiteTools.FixName(args[indices[0]]) : args[indices[0]];
                             Site site = result.FirstOrDefault(s => s.Name == siteName);
                             if (site != null)
                             {
@@ -372,7 +338,7 @@ namespace HBP.Core.Data
                         Site site = new Site();
                         string[] splits = Regex.Split(line, "[\\s\t]+");
                         if (splits.Length < 4) continue;
-                        site.Name = SiteNameCorrection ? FixName(splits[0]) : splits[0];
+                        site.Name = SiteNameCorrection ? SiteTools.FixName(splits[0]) : splits[0];
                         if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
                         if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
                         if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
@@ -393,149 +359,121 @@ namespace HBP.Core.Data
             var sites = new List<Site>();
             if (!string.IsNullOrEmpty(csvFile))
             {
-                using (StreamReader streamReader = new StreamReader(csvFile))
+                using StreamReader streamReader = new StreamReader(csvFile);
+                string file = streamReader.ReadToEnd();
+                string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                int titleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
+                if (titleLine > -1)
                 {
-                    string file = streamReader.ReadToEnd();
-                    string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    int titleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
-                    if (titleLine > -1)
+                    // Split the lines before handling them
+                    List<List<string>> splittedLines = new List<List<string>>(lines.Length - titleLine)
                     {
-                        // Split the lines before handling them
-                        List<List<string>> splittedLines = new List<List<string>>(lines.Length - titleLine);
-                        splittedLines.Add(lines[titleLine].Split('\t').ToList());
-                        for (int i = titleLine + 1; i < lines.Length; ++i)
+                        lines[titleLine].Split('\t').ToList()
+                    };
+                    for (int i = titleLine + 1; i < lines.Length; ++i)
+                    {
+                        List<string> splittedLine = lines[i].Split('\t').ToList();
+                        if (splittedLine.Count == splittedLines[0].Count)
                         {
-                            List<string> splittedLine = lines[i].Split('\t').ToList();
-                            if (splittedLine.Count == splittedLines[0].Count)
-                            {
-                                splittedLines.Add(splittedLine);
-                            }
+                            splittedLines.Add(splittedLine);
                         }
-                        // Look for Mars Atlas specific case and add more information
-                        if (Object3DManager.MarsAtlas.Loaded)
+                    }
+                    // Look for Mars Atlas specific case and add more information
+                    if (Object3DManager.MarsAtlas.Loaded)
+                    {
+                        int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
+                        int intrAnatMarsAtlasIndex = splittedLines[0].IndexOf("IntrAnat-MarsAtlas");
+                        int mniMarsAtlasIndex = splittedLines[0].IndexOf("MNI-MarsAtlas");
+
+                        // Determine which column to use as the base for inserting additional fields
+                        int baseIndex = -1;
+                        if (marsAtlasIndex != -1) baseIndex = marsAtlasIndex;
+                        else if (intrAnatMarsAtlasIndex != -1) baseIndex = intrAnatMarsAtlasIndex;
+                        else if (mniMarsAtlasIndex != -1) baseIndex = mniMarsAtlasIndex;
+
+                        if (baseIndex != -1)
                         {
-                            int marsAtlasIndex = splittedLines[0].IndexOf("MarsAtlas");
-                            if (marsAtlasIndex != -1)
+                            splittedLines[0].Insert(baseIndex + 1, "Hemisphere-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 2, "Lobe-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 3, "NameFS-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 4, "Fullname-MarsAtlas");
+                            splittedLines[0].Insert(baseIndex + 5, "Brodmann-MarsAtlas");
+
+                            for (int i = 1; i < splittedLines.Count; ++i)
                             {
-                                splittedLines[0].Insert(marsAtlasIndex + 1, "Hemisphere-MarsAtlas");
-                                splittedLines[0].Insert(marsAtlasIndex + 2, "Lobe-MarsAtlas");
-                                splittedLines[0].Insert(marsAtlasIndex + 3, "NameFS-MarsAtlas");
-                                splittedLines[0].Insert(marsAtlasIndex + 4, "Fullname-MarsAtlas");
-                                splittedLines[0].Insert(marsAtlasIndex + 5, "Brodmann-MarsAtlas");
-                                for (int i = 1; i < splittedLines.Count; ++i)
+                                int marsAtlasLabel = -1;
+
+                                // Check MarsAtlas first, then fallback to IntrAnat-MarsAtlas, then MNI-MarsAtlas
+                                if (marsAtlasIndex != -1 && splittedLines[i][marsAtlasIndex].ToLower() != "n/a")
+                                    marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
+                                else if (intrAnatMarsAtlasIndex != -1 && splittedLines[i][intrAnatMarsAtlasIndex].ToLower() != "n/a")
+                                    marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][intrAnatMarsAtlasIndex]);
+                                else if (mniMarsAtlasIndex != -1 && splittedLines[i][mniMarsAtlasIndex].ToLower() != "n/a")
+                                    marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][mniMarsAtlasIndex]);
+
+                                // If all available values are N/A, set all derived fields to N/A
+                                if (marsAtlasLabel == -1)
                                 {
-                                    int marsAtlasLabel = Object3DManager.MarsAtlas.Label(splittedLines[i][marsAtlasIndex]);
-                                    splittedLines[i].Insert(marsAtlasIndex + 1, Object3DManager.MarsAtlas.Hemisphere(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 2, Object3DManager.MarsAtlas.Lobe(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 3, Object3DManager.MarsAtlas.NameFS(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 4, Object3DManager.MarsAtlas.FullName(marsAtlasLabel));
-                                    splittedLines[i].Insert(marsAtlasIndex + 5, Object3DManager.MarsAtlas.BrodmannArea(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 1, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 2, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 3, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 4, "N/A");
+                                    splittedLines[i].Insert(baseIndex + 5, "N/A");
+                                }
+                                else
+                                {
+                                    splittedLines[i].Insert(baseIndex + 1, Object3DManager.MarsAtlas.Hemisphere(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 2, Object3DManager.MarsAtlas.Lobe(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 3, Object3DManager.MarsAtlas.NameFS(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 4, Object3DManager.MarsAtlas.FullName(marsAtlasLabel));
+                                    splittedLines[i].Insert(baseIndex + 5, Object3DManager.MarsAtlas.BrodmannArea(marsAtlasLabel));
                                 }
                             }
                         }
-                        // Create tags and tagValues
-                        List<string> tagNames = splittedLines[0];
-                        BaseTag[] tags = new BaseTag[tagNames.Count];
-                        for (int i = 0; i < tagNames.Count; i++)
+                    }
+                    // Create tags and tagValues
+                    List<string> tagNames = splittedLines[0];
+                    BaseTag[] tags = new BaseTag[tagNames.Count];
+                    for (int i = 0; i < tagNames.Count; i++)
+                    {
+                        string tagName = tagNames[i];
+                        BaseTag tag = null;
+                        if (tagName.ToLower() != "mni" && tagName.ToLower() != "contact" && tagName.ToLower() != "t1pre scanner based")
                         {
-                            string tagName = tagNames[i];
-                            BaseTag tag = null;
-                            if (tagName != "MNI" && tagName != "Contact" && tagName != "contact")
+                            tag = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).FirstOrDefault(t => t.Name == tagName);
+                            if (tag == null)
                             {
-                                tag = ApplicationState.ProjectLoaded.Preferences.SitesTags.Concat(ApplicationState.ProjectLoaded.Preferences.GeneralTags).FirstOrDefault(t => t.Name == tagName);
-                                if (tag == null)
+                                tag = new StringTag(tagNames[i]);
+                                PersistentDataManager.Tags.AddSiteTag(tag);
+                            }
+                        }
+                        tags[i] = tag;
+                    }
+                    for (int l = 1; l < splittedLines.Count; l++)
+                    {
+                        List<string> values = splittedLines[l];
+                        string name = SiteNameCorrection ? SiteTools.FixName(values[0]) : values[0];
+                        List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                        for (int i = 1; i < values.Count; i++)
+                        {
+                            BaseTag tag = tags[i];
+                            string value = values[i];
+                            if (tag != null && value.ToLower() != "n/a")
+                            {
+                                var tagValue = tag.CreateValue(value);
+                                if (tagValue != null)
                                 {
-                                    tag = new StringTag(tagNames[i]);
-                                    ApplicationState.ProjectLoaded.Preferences.SitesTags.Add(tag);
+                                    tagValues.Add(tagValue);
                                 }
                             }
-                            tags[i] = tag;
                         }
-                        for (int l = 1; l < splittedLines.Count; l++)
-                        {
-                            List<string> values = splittedLines[l];
-                            string name = SiteNameCorrection ? FixName(values[0]) : values[0];
-                            List<BaseTagValue> tagValues = new List<BaseTagValue>();
-                            for (int i = 1; i < values.Count; i++)
-                            {
-                                BaseTag tag = tags[i];
-                                string value = values[i];
-                                if (tag != null)
-                                {
-                                    BaseTagValue tagValue = null;
-                                    if (tag is EmptyTag emptyTag)
-                                    {
-                                        tagValue = new EmptyTagValue(emptyTag);
-                                    }
-                                    else if (tag is BoolTag boolTag)
-                                    {
-                                        if (bool.TryParse(value, out bool result))
-                                        {
-                                            tagValue = new BoolTagValue(boolTag, result);
-                                        }
-                                    }
-                                    else if (tag is EnumTag enumTag)
-                                    {
-                                        tagValue = new EnumTagValue(enumTag, value);
-                                    }
-                                    else if (tag is FloatTag floatTag)
-                                    {
-                                        if (NumberExtension.TryParseFloat(value, out float result))
-                                        {
-                                            tagValue = new FloatTagValue(floatTag, result);
-                                        }
-                                    }
-                                    else if (tag is IntTag intTag)
-                                    {
-                                        if (int.TryParse(value, out int result))
-                                        {
-                                            tagValue = new IntTagValue(intTag, result);
-                                        }
-                                    }
-                                    else if (tag is StringTag stringTag)
-                                    {
-                                        if (!string.IsNullOrEmpty(value))
-                                        {
-                                            tagValue = new StringTagValue(stringTag, value);
-                                        }
-                                    }
-                                    if (tagValue != null)
-                                    {
-                                        tagValues.Add(tagValue);
-                                    }
-                                }
-                            }
-                            sites.Add(new Site(name, new Coordinate[0], tagValues));
-                        }
+                        sites.Add(new Site(name, new Coordinate[0], tagValues));
                     }
                 }
             }
             return sites;
         }
 
-        /// <summary>
-        /// Fix the name (P,'p).
-        /// </summary>
-        /// <param name="name">Name</param>
-        /// <returns>Fixed name</returns>
-        public static string FixName(string name)
-        {
-            string siteName = name.ToUpper();
-            siteName = siteName.Replace("PLOT", "");
-            int prime = siteName.LastIndexOf('P');
-            if (prime > 0)
-            {
-                siteName = siteName.Remove(prime, 1).Insert(prime, "\'");
-            }
-            for (int i = siteName.Length - 1; i > 0; --i)
-            {
-                if (siteName[i] == '0' && !char.IsDigit(siteName[i - 1]))
-                {
-                    siteName = siteName.Remove(i, 1);
-                }
-            }
-            return siteName;
-        }
         /// <summary>
         /// Generates  ID recursively.
         /// </summary>

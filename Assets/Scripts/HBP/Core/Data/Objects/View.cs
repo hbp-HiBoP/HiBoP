@@ -1,15 +1,16 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct View
     {
         #region Properties
-        [DataMember] public SerializableVector3 Position { get; set; }
-        [DataMember] public SerializableQuaternion Rotation { get; set; }
-        [DataMember] public SerializableVector3 Target { get; set; }
+        [JsonProperty] public SerializableVector3 Position { get; set; }
+        [JsonProperty] public SerializableQuaternion Rotation { get; set; }
+        [JsonProperty] public SerializableVector3 Target { get; set; }
         #endregion
 
         #region Constructors

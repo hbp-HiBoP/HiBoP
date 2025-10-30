@@ -32,10 +32,6 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Copy the state of the sites to other columns
         /// </summary>
-        [SerializeField] private SiteStateCopy m_SiteStateCopy;
-        /// <summary>
-        /// Copy the state of the sites to other columns
-        /// </summary>
         [SerializeField] private SiteStateExport m_SiteStateExport;
         /// <summary>
         /// Cut the mesh around the selected site
@@ -49,6 +45,8 @@ namespace HBP.UI.Toolbar
         /// Open the Interactive Viewer from HBP
         /// </summary>
         [SerializeField] private OpenInteractiveViewer m_OpenInteractiveViewer;
+        [SerializeField] private SiteFilters m_SiteFilters;
+        [SerializeField] private OpenSiteTools m_OpenSiteTools;
         #endregion
 
         #region Private Methods
@@ -63,11 +61,12 @@ namespace HBP.UI.Toolbar
             m_Tools.Add(m_SiteGain);
             m_Tools.Add(m_LoadPatient);
             m_Tools.Add(m_BlacklistedSitesDisplay);
-            m_Tools.Add(m_SiteStateCopy);
             m_Tools.Add(m_SiteStateExport);
             m_Tools.Add(m_CutAroundSite);
             m_Tools.Add(m_OpenInteractiveViewer);
             m_Tools.Add(m_MoveSites);
+            m_Tools.Add(m_SiteFilters);
+            m_Tools.Add(m_OpenSiteTools);
         }
         #endregion
     }

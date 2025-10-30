@@ -119,24 +119,24 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void UpdateTextFMRI(Column3DFMRI fmriColumn)
         {
-            Core.Tools.MRICalValues values = fmriColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            Core.Tools.MRICalValues values = fmriColumn.SelectedFMRI.ExtremeValues;
             float min = values.Min;
             float max = values.Max;
             float negativeMin = fmriColumn.FMRIParameters.FMRINegativeCalMinFactor * min;
             float negativeMax = fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor * min;
             float positiveMin = fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor * max;
             float positiveMax = fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor * max;
-            if (min > 0)
+            if (min >= 0)
             {
-                m_Min.text = "";
-                m_Mid.text = positiveMin.ToString("0.0");
+                m_Min.text = positiveMin.ToString("0.0");
+                m_Mid.text = ((positiveMax - positiveMin) / 2).ToString("0.0");
                 m_Max.text = positiveMax.ToString("0.0");
             }
-            else if (max < 0)
+            else if (max <= 0)
             {
                 m_Min.text = negativeMax.ToString("0.0");
-                m_Mid.text = negativeMin.ToString("0.0");
-                m_Max.text = "";
+                m_Mid.text = ((negativeMin - negativeMax) / 2).ToString("0.0");
+                m_Max.text = negativeMin.ToString("0.0");
             }
             else
             {
@@ -147,7 +147,7 @@ namespace HBP.UI.Module3D
         }
         private void UpdateTextMEG(Column3DMEG megColumn)
         {
-            Core.Tools.MRICalValues values = megColumn.SelectedFMRI.NIFTI.ExtremeValues;
+            Core.Tools.MRICalValues values = megColumn.SelectedFMRI.ExtremeValues;
             float min = values.Min;
             float max = values.Max;
             float negativeMin = megColumn.MEGParameters.FMRINegativeCalMinFactor * min;

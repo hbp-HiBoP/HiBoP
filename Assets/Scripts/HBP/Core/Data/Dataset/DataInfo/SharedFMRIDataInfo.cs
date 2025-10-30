@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Errors;
+using HBP.Data.Database;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Errors;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -50,30 +51,15 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Shared FMRI")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Shared FMRI")]
     public class SharedFMRIDataInfo : DataInfo
     {
         #region Properties
-        protected Error[] m_FMRIErrors = new Error[0];
-        public override Error[] Errors
+        [JsonProperty("MaskDataContainer")] protected Container.Nifti m_MaskDataContainer;
+        public Container.Nifti MaskDataContainer
         {
-            get
-            {
-                List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_FMRIErrors);
-                return errors.Distinct().ToArray();
-            }
-        }
-
-        protected Warning[] m_FMRIWarnings = new Warning[0];
-        public override Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>(base.Warnings);
-                warnings.AddRange(m_FMRIWarnings);
-                return warnings.Distinct().ToArray();
-            }
+            get => m_MaskDataContainer;
+            set => m_MaskDataContainer = value;
         }
         #endregion
 
@@ -86,8 +72,9 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public SharedFMRIDataInfo(string name, Container.DataContainer dataContainer, string ID) : base(name, dataContainer, ID)
+        public SharedFMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Container.Nifti maskDataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID, ID)
         {
+            m_MaskDataContainer = maskDataContainer;
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
@@ -96,13 +83,14 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public SharedFMRIDataInfo(string name, Container.DataContainer dataContainer) : base(name, dataContainer)
+        public SharedFMRIDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, Container.Nifti maskDataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, correspondingDatabaseID)
         {
+            m_MaskDataContainer = maskDataContainer;
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public SharedFMRIDataInfo() : this("Data", new Container.Nifti())
+        public SharedFMRIDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Nifti(), new Container.Nifti(), new Error[0], new Warning[0], "")
         {
 
         }
@@ -115,49 +103,52 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new SharedFMRIDataInfo(Name, DataContainer.Clone() as Container.DataContainer, ID);
+            return new SharedFMRIDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, MaskDataContainer.Clone() as Container.Nifti, Errors, Warnings, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {
             base.Copy(copy);
+            if (copy is SharedFMRIDataInfo fMRIDataInfo)
+            {
+                m_MaskDataContainer = fMRIDataInfo.MaskDataContainer;
+            }
         }
         #endregion
 
-        #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        #region Private Methods
+        protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetFMRIErrors(protocol));
-            return errors.Distinct().ToArray();
+            List<Error> errors = new(base.GetErrors());
+            errors.AddRange(GetFMRIErrors());
+            return errors;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetFMRIErrors(Protocol protocol)
+        private IEnumerable<Error> GetFMRIErrors()
         {
             List<Error> errors = new List<Error>();
-            // TODO
-            m_FMRIErrors = errors.ToArray();
-            return m_FMRIErrors;
+            if (!string.IsNullOrEmpty(MaskDataContainer.File)) errors.AddRange(MaskDataContainer.GetErrors());
+            return errors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetFMRIWarnings(protocol));
-            return warnings.Distinct().ToArray();
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetFMRIWarnings());
+            return warnings;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetFMRIWarnings(Protocol protocol)
+        private IEnumerable<Warning> GetFMRIWarnings()
         {
             List<Warning> warnings = new List<Warning>();
-            m_FMRIWarnings = warnings.ToArray();
-            return m_FMRIWarnings;
+            if (!string.IsNullOrEmpty(MaskDataContainer.File)) warnings.AddRange(MaskDataContainer.GetWarnings());
+            return warnings;
         }
         #endregion
     }

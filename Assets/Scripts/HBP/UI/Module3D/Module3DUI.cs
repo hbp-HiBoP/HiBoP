@@ -4,17 +4,16 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
 using HBP.Data.Preferences;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
     /// <summary>
     /// Base class for the UI of the 3D
     /// </summary>
-    public class Module3DUI : MonoBehaviour
+    public class Module3DUI : Singleton<Module3DUI>
     {
         #region Properties
-        private static Module3DUI m_Instance;
-
         /// <summary>
         /// Reference to the SiteInfoDisplayer of the software
         /// </summary>
@@ -37,17 +36,8 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-
             m_SiteInfoDisplayer.Initialize();
             m_AtlasInfoDisplayer.Initialize();
             ChangeLayoutDirection();
@@ -60,24 +50,17 @@ namespace HBP.UI.Module3D
                 sceneWindow.gameObject.SetActive(false);
                 m_Scenes.Add(scene, sceneWindow);
             });
-            PreferencesManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
+            PersistentDataManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
         }
         private void ChangeLayoutDirection()
         {
             DestroyImmediate(gameObject.GetComponent<HorizontalOrVerticalLayoutGroup>());
-            HorizontalOrVerticalLayoutGroup layout;
-            switch (PreferencesManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection)
+            HorizontalOrVerticalLayoutGroup layout = PersistentDataManager.UserPreferences.Visualization._3D.VisualizationsLayoutDirection switch
             {
-                case LayoutDirection.Horizontal:
-                    layout = gameObject.AddComponent<HorizontalLayoutGroup>();
-                    break;
-                case LayoutDirection.Vertical:
-                    layout = gameObject.AddComponent<VerticalLayoutGroup>();
-                    break;
-                default:
-                    layout = gameObject.AddComponent<VerticalLayoutGroup>();
-                    break;
-            }
+                LayoutDirection.Horizontal => gameObject.AddComponent<HorizontalLayoutGroup>(),
+                LayoutDirection.Vertical => gameObject.AddComponent<VerticalLayoutGroup>(),
+                _ => gameObject.AddComponent<VerticalLayoutGroup>(),
+            };
             layout.childControlHeight = true;
             layout.childControlWidth = true;
             layout.childForceExpandHeight = true;

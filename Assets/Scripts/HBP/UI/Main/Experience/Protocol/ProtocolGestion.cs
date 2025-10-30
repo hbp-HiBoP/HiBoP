@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
-using UnityEngine.Events;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Data.Database;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -12,34 +13,70 @@ namespace HBP.UI.Main
         #region Properties
         [SerializeField] ProtocolListGestion m_ListGestion;
         public override ListGestion<Protocol> ListGestion => m_ListGestion;
+
+        public override bool Interactable
+        {
+            get => base.Interactable;
+            set
+            {
+                base.Interactable = value;
+
+                m_ListGestion.Interactable = value;
+                m_ListGestion.Modifiable = value;
+            }
+        }
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
+            bool requiresReload = false;
+            bool requiresCheck = false;
+
             if (DataManager.HasData)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", () =>
-                {
-                    base.OK();
-                    ApplicationState.ProjectLoaded.SetProtocols(m_ListGestion.List.Objects);
-                    FindObjectOfType<MenuButtonState>().SetInteractables();
-                    GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                    LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
-                    DataManager.Clear();
-                    Module3DMain.ReloadScenes();
-                    UITools.CheckProjectIDAndAskForRegeneration();
-                });
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data is already loaded. Your recent changes won't be applied unless you reload the data.\n\nWould you like to save and reload now?", "Save&Reload", "Cancel");
+                
+                if (result == 0)
+                    requiresReload = true;
+                else
+                    return;
             }
-            else
+
+            if (m_ListGestion.ModifiedProtocols.Count > 0)
             {
-                base.OK();
-                ApplicationState.ProjectLoaded.SetProtocols((m_ListGestion.List.Objects));
-                FindObjectOfType<MenuButtonState>().SetInteractables();
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(ApplicationState.ProjectLoaded.c_CheckDatasets(m_ListGestion.ModifiedProtocols, (progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
-                UITools.CheckProjectIDAndAskForRegeneration();
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Data check required", "Some protocols have been modified. A data integrity check is required to ensure there are no errors.\n\nWould you like to proceed with the check?", "Check", "Cancel");
+
+                if (result == 0)
+                    requiresCheck = true;
+                else
+                    return;
             }
+
+            base.OK();
+            DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
+            DatabaseManager.Database.SaveProtocols().Forget();
+            InteractableStateManager.SetInteractables();
+            if (requiresCheck)
+            {
+                await LoadingManager.LoadAsync(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, true, update));
+            }
+            await UniTask.SwitchToMainThread();
+            if (requiresReload)
+            {
+                DataManager.Clear();
+            }
+            if (ApplicationState.LoadedProject != null)
+            {
+                Module3DMain.ReloadScenes();
+                UITools.CheckProjectIDAndAskForRegeneration().Forget();
+            }
+        }
+        public override void Close()
+        {
+            if (m_ListGestion.HasBeenModified)
+                LoadingManager.Load(update => RestoreOldValuesAsync(DatabaseManager.Database.Protocols, update), false);
+            base.Close();
         }
         #endregion
 
@@ -47,7 +84,7 @@ namespace HBP.UI.Main
         protected override void SetFields()
         {
             base.SetFields();
-            ListGestion.List.Set(ApplicationState.ProjectLoaded.Protocols);
+            SetList(DatabaseManager.Database.Protocols);
         }
         #endregion
     }

@@ -3,42 +3,45 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
 using HBP.UI.Tools.Lists;
+using System.Linq;
 
 namespace HBP.UI.Tools
 {
-    [RequireComponent(typeof(SelectableList<>))]
     public class ListSelectionCounter : MonoBehaviour
     {
         #region Properties
-        public Text Counter;
-        public BaseList List;
-        UnityAction m_Action;
+        public Text DisplayText;
+        public MonoBehaviour List;
+        public bool DisplayFilteredCount = true;
         ISelectionCountable m_SelectionCountable;
         #endregion
 
         #region Private Methods
         void OnEnable()
         {
-            m_Action = UpdateCounter;
             if (List is ISelectionCountable selectionCountable)
             {
                 m_SelectionCountable = selectionCountable;
-                m_SelectionCountable.OnSelectionChanged.AddListener(m_Action);
-            }
-            else
-            {
-                List = null;
+                m_SelectionCountable.OnSelectionChanged.AddListener(UpdateCounter);
+                UpdateCounter();
             }
         }
         void OnDisable()
         {
-            if(m_SelectionCountable != null) m_SelectionCountable.OnSelectionChanged.RemoveListener(m_Action);
+            m_SelectionCountable?.OnSelectionChanged.RemoveListener(UpdateCounter);
         }
         void UpdateCounter()
         {
-            if(m_SelectionCountable != null)
+            if (m_SelectionCountable != null)
             {
-                Counter.text = m_SelectionCountable.NumberOfItemSelected.ToString();
+                int numberOfSelectedObjects = m_SelectionCountable.NumberOfSelectedObjects;
+                int numberOfObjects = m_SelectionCountable.NumberOfObjects;
+                int numberOfFilteredObjects = m_SelectionCountable.NumberOfFilteredObjects;
+
+                string selectedText = m_SelectionCountable.CanSelectMultipleObjects ? $"Selected: {numberOfSelectedObjects}" : "";
+                string filteredText = DisplayFilteredCount && numberOfFilteredObjects < numberOfObjects ? $"Filtered: {numberOfFilteredObjects}" : "";
+                string totalText = $"Total: {numberOfObjects}";
+                DisplayText.text = string.Join(" - ", new[] { selectedText, filteredText, totalText }.Where(s => !string.IsNullOrEmpty(s)));
             }
         }
         #endregion

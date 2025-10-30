@@ -1,5 +1,10 @@
-﻿using System.IO;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
+using System;
+using System.IO;
 using ThirdParty.SFB;
+using System.Linq;
+using UnityEngine;
 
 namespace HBP.UI.Tools
 {
@@ -10,146 +15,122 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Open a qt file dialog and return the path of an existing directory.
-        /// </summary>
-        /// <param name="message"> message to be displayed in top of the file dialog </param>
-        /// <param name="directoryPath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
-        public static string GetExistingDirectoryName(string message = "Select a directory", string directoryPath = "")
+        public static async UniTask<string> GetExistingDirectoryNameAsync(string message = "Select a directory", string directoryPath = "")
         {
-            string[] paths = StandaloneFileBrowser.OpenFolderPanel(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, false);
-            return paths.Length > 0 ? (m_LastSelectedDirectory = paths[0]) : string.Empty;
-        }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="directoryPath"></param>
-        /// <returns></returns>
-        public static string[] GetExistingDirectoryNames(string message = "Select a directory", string directoryPath = "")
-        {
-            string[] paths = StandaloneFileBrowser.OpenFolderPanel(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, true);
-            return paths;
-        }
-        /// <summary>
-        /// Open a qt file dialog and return the path of a selected file.
-        /// </summary>
-        /// <param name="filtersArray"> extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
-        /// <param name="message">  message to be displayed in top of the file dialog  </param>
-        /// <param name="filePath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static string GetExistingFileName(string[] filtersArray = null, string message = "Select a file", string filePath = "")
-        {
-            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, false);
-            if (paths.Length > 0)
-            {
-                m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
-                return paths[0];
-            }
-            else
-            {
-                return string.Empty;
-            }
-        }
-        /// <summary>
-        /// Open a qt file dialog and return the list of path of the selected files.
-        /// </summary>
-        /// <param name="filtersArray">  extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
-        /// <param name="message"> message to be displayed in top of the file dialog </param>
-        /// <param name="filePath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static string[] GetExistingFileNames(string[] filtersArray = null, string message = "Select files", string filePath = "")
-        {
-            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true);
-            return paths;
-        }
-        /// <summary>
-        /// Open a qt file dialog and return the path of a saved file
-        /// </summary>
-        /// <param name="filtersArray"> extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
-        /// <param name="message">  message to be displayed in top of the file dialog  </param>
-        /// <param name="filePath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static string GetSavedFileName(string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
-        {
-            string path = StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) });
-            return path;
-        }
-        /// <summary>
-        /// Open a qt file dialog and return the path of an existing directory.
-        /// </summary>
-        /// <param name="callback">Action to be performed</param>
-        /// <param name="message"> message to be displayed in top of the file dialog </param>
-        /// <param name="directoryPath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no directory has been choosen or if an error occurs </returns>
-        public static void GetExistingDirectoryNameAsync(System.Action<string> callback, string message = "Select a directory", string directoryPath = "")
-        {
+            bool done = false;
+            string[] result = new string[0];
+
+#if UNITY_STANDALONE_OSX
             StandaloneFileBrowser.OpenFolderPanelAsync(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, false, (paths) =>
             {
-                callback(paths.Length > 0 ? (m_LastSelectedDirectory = paths[0]) : string.Empty);
+                result = paths;
+                done = true;
             });
+#else
+            result = StandaloneFileBrowser.OpenFolderPanel(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, false);
+            done = true;
+#endif
+            await UniTask.WaitUntil(() => done);
+            return result.Length > 0 ? (m_LastSelectedDirectory = result[0].StandardizeToEnvironement()) : string.Empty;
         }
-        public static void GetExistingDirectoryNamesAsync(System.Action<string[]> callback, string message = "Select a directory", string directoryPath = "")
+        public static async UniTask<string[]> GetExistingDirectoryNamesAsync(string message = "Select a directory", string directoryPath = "")
         {
+            bool done = false;
+            string[] result = new string[0];
+
+#if UNITY_STANDALONE_OSX
             StandaloneFileBrowser.OpenFolderPanelAsync(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, true, (paths) =>
             {
-                callback(paths);
+                result = paths;
+                done = true;
             });
+#else
+            result = StandaloneFileBrowser.OpenFolderPanel(message, string.IsNullOrEmpty(directoryPath) ? m_LastSelectedDirectory : directoryPath, true);
+            done = true;
+#endif
+            await UniTask.WaitUntil(() => done);
+            return result.Select(r => r.StandardizeToEnvironement()).ToArray();
         }
-        /// <summary>
-        /// Open a qt file dialog and return the path of a selected file.
-        /// </summary>
-        /// <param name="callback">Action to be performed</param>
-        /// <param name="filtersArray"> extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
-        /// <param name="message">  message to be displayed in top of the file dialog  </param>
-        /// <param name="filePath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static void GetExistingFileNameAsync(System.Action<string> callback, string[] filtersArray = null, string message = "Select a file", string filePath = "")
+        public static async UniTask<string> GetExistingFileNameAsync(string[] filtersArray = null, string message = "Select a file", string filePath = "")
         {
+            bool done = false;
+            string result = string.Empty;
+
+#if UNITY_STANDALONE_OSX
             StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, false, (paths) =>
             {
-                if (paths.Length > 0)
+                if (paths.Length > 0 && !string.IsNullOrEmpty(paths[0]))
                 {
-                    if (!string.IsNullOrEmpty(paths[0]))
-                    {
-                        m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
-                        callback(paths[0]);
-                    }
-                    else
-                    {
-                        callback(string.Empty);
-                    }
+                    m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
+                    result = paths[0];
                 }
-                else
-                {
-                    callback(string.Empty);
-                }
+                done = true;
             });
+#else
+            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, false);
+            if (paths.Length > 0 && !string.IsNullOrEmpty(paths[0]))
+            {
+                m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
+                result = paths[0];
+            }
+            done = true;
+#endif
+            await UniTask.WaitUntil(() => done);
+            return result.StandardizeToEnvironement();
         }
-        /// <summary>
-        /// Open a qt file dialog and return the list of path of the selected files.
-        /// </summary>
-        /// <param name="callback">Action to be performed</param>
-        /// <param name="filtersArray">  extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
-        /// <param name="message"> message to be displayed in top of the file dialog </param>
-        /// <param name="filePath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static void GetExistingFileNamesAsync(System.Action<string[]> callback, string[] filtersArray = null, string message = "Select files", string filePath = "")
+        public static async UniTask<string[]> GetExistingFileNamesAsync(string[] filtersArray = null, string message = "Select files", string filePath = "")
         {
-            StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true, callback);
+            bool done = false;
+            string[] result = Array.Empty<string>();
+
+#if UNITY_STANDALONE_OSX
+            StandaloneFileBrowser.OpenFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true, (paths) =>
+            {
+                if (paths.Length > 0 && !string.IsNullOrEmpty(paths[0]))
+                {
+                    m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
+                    result = paths;
+                }
+                done = true;
+            });
+#else
+            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true);
+            if (paths.Length > 0 && !string.IsNullOrEmpty(paths[0]))
+            {
+                m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
+                result = paths;
+            }
+            done = true;
+#endif
+            await UniTask.WaitUntil(() => done);
+            return result.Select(r => r.StandardizeToEnvironement()).ToArray();
         }
-        /// <summary>
-        /// Open a qt file dialog and return the path of a saved file
-        /// </summary>
-        /// <param name="callback">Action to be performed</param>
-        /// <param name="filtersArray"> extension filters of the files of be displayed in the file dialog (ex: filtersArray[0] = "txt", filtersArray[1] = "png" ...) </param>
-        /// <param name="message">  message to be displayed in top of the file dialog  </param>
-        /// <param name="filePath"> default directory of the file dialog </param>
-        /// <returns> return an empty path if no file has been choosen or if an error occurs </returns>
-        public static void GetSavedFileNameAsync(System.Action<string> callback, string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
+        public static async UniTask<string> GetSavedFileNameAsync(string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
         {
-            StandaloneFileBrowser.SaveFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, callback);
+            bool done = false;
+            string result = string.Empty;
+
+#if UNITY_STANDALONE_OSX
+            StandaloneFileBrowser.SaveFilePanelAsync(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, (path) =>
+            {
+                if (!string.IsNullOrEmpty(path))
+                {
+                    m_LastSelectedDirectory = new FileInfo(path).DirectoryName;
+                    result = path;
+                }
+                done = true;
+            });
+#else
+            string path = StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) });
+            if (!string.IsNullOrEmpty(path))
+            {
+                m_LastSelectedDirectory = new FileInfo(path).DirectoryName;
+                result = path;
+            }
+            done = true;
+#endif
+            await UniTask.WaitUntil(() => done);
+            return result.StandardizeToEnvironement();
         }
         #endregion
     }

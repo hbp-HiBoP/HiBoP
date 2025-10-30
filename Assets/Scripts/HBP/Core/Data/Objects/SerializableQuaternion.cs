@@ -1,19 +1,16 @@
-﻿using UnityEngine;
-using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct SerializableQuaternion
     {
-        [DataMember]
-        float x;
-        [DataMember]
-        float y;
-        [DataMember]
-        float z;
-        [DataMember]
-        float w;
+        [JsonProperty] float x;
+        [JsonProperty] float y;
+        [JsonProperty] float z;
+        [JsonProperty] float w;
 
         public SerializableQuaternion(Quaternion quaternion)
         {

@@ -42,21 +42,21 @@ namespace HBP.UI.Toolbar
 
                 NumberExtension.TryParseFloat(value, out float val);
 
-                if (SelectedColumn is Column3DDynamic)
+                if (SelectedColumn is Column3DDynamic dynamicColumn)
                 {
                     foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         ((Column3DDynamic)column).DynamicParameters.InfluenceDistance = val;
                     }
-                    m_InputField.text = ((Column3DDynamic)SelectedColumn).DynamicParameters.InfluenceDistance.ToString("N2");
+                    m_InputField.text = dynamicColumn.DynamicParameters.InfluenceDistance.ToString("N2");
                 }
-                else if (SelectedColumn is Column3DStatic)
+                else if (SelectedColumn is Column3DStatic staticColumn)
                 {
                     foreach (var column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
                     {
                         ((Column3DStatic)column).StaticParameters.InfluenceDistance = val;
                     }
-                    m_InputField.text = ((Column3DStatic)SelectedColumn).StaticParameters.InfluenceDistance.ToString("N2");
+                    m_InputField.text = staticColumn.StaticParameters.InfluenceDistance.ToString("N2");
                 }
             });
             m_ThresholdIEEG.Initialize();

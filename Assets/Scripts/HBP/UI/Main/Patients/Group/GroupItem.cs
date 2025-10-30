@@ -27,10 +27,14 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
 
                 m_PatientsText.SetIEnumerableFieldInItem("Patients", from patient in m_Object.Patients select patient.Name, m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

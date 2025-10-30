@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -19,6 +20,7 @@ namespace HBP.UI.Module3D
         /// GameObject displaying information about CCEP activity of the hovered site
         /// </summary>
         [SerializeField] GameObject m_CCEP;
+        [SerializeField] GameObject m_PatientTags;
         /// <summary>
         /// GameObject displaying information about the atlases of the hovered site
         /// </summary>
@@ -55,6 +57,10 @@ namespace HBP.UI.Module3D
         /// Displays the latency of the first spike
         /// </summary>
         [SerializeField] Text m_CCEPLatencyText;
+        /// <summary>
+        /// Displays the tags of the patient
+        /// </summary>
+        [SerializeField] Text m_PatientTagsText;
         /// <summary>
         /// Displays the tags of the site
         /// </summary>
@@ -95,24 +101,28 @@ namespace HBP.UI.Module3D
                         case SiteInformationDisplayMode.Anatomy:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
+                            m_PatientTags.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.IEEG:
                             m_IEEG.SetActive(true);
                             m_CCEP.SetActive(false);
+                            m_PatientTags.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.CCEP:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(true);
+                            m_PatientTags.SetActive(true);
                             m_Tags.SetActive(true);
                             m_States.SetActive(true);
                             break;
                         case SiteInformationDisplayMode.Light:
                             m_IEEG.SetActive(false);
                             m_CCEP.SetActive(false);
+                            m_PatientTags.SetActive(false);
                             m_Tags.SetActive(false);
                             m_States.SetActive(false);
                             break;
@@ -127,22 +137,25 @@ namespace HBP.UI.Module3D
                     {
                         case SiteInformationDisplayMode.Anatomy:
                             SetStates(siteInfo.Site);
+                            SetPatientTags(siteInfo);
                             SetTags(siteInfo);
                             break;
                         case SiteInformationDisplayMode.IEEG:
                             SetIEEG(siteInfo);
                             SetStates(siteInfo.Site);
+                            SetPatientTags(siteInfo);
                             SetTags(siteInfo);
                             break;
                         case SiteInformationDisplayMode.CCEP:
                             SetCCEP(siteInfo);
                             SetStates(siteInfo.Site);
+                            SetPatientTags(siteInfo);
                             SetTags(siteInfo);
                             break;
                         case SiteInformationDisplayMode.Light:
                             break;
                     }
-                    ClampToCanvas();
+                    m_RectTransform.ClampToRectTransform(m_Canvas, new RectOffset(30, 30, 30, 30));
                 }
                 gameObject.SetActive(siteInfo.Enabled);
             });
@@ -150,23 +163,6 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        /// <summary>
-        /// Clamp this object to the parent canvas
-        /// </summary>
-        void ClampToCanvas()
-		{
-            Vector3 l_pos = m_RectTransform.localPosition;
-			Vector3 l_minPosition = m_Canvas.rect.min - m_RectTransform.rect.min;
-			Vector3 l_maxPosition = m_Canvas.rect.max - m_RectTransform.rect.max;
-
-            l_minPosition = new Vector3(l_minPosition.x + 30.0f, l_minPosition.y + 30.0f, l_minPosition.z);
-            l_maxPosition = new Vector3(l_maxPosition.x - 30.0f, l_maxPosition.y - 30.0f, l_maxPosition.z);
-
-            l_pos.x = Mathf.Clamp (m_RectTransform.localPosition.x, l_minPosition.x, l_maxPosition.x);
-			l_pos.y = Mathf.Clamp (m_RectTransform.localPosition.y, l_minPosition.y, l_maxPosition.y);
-
-            m_RectTransform.localPosition = l_pos;
-		}
         /// <summary>
         /// Set the position of this object on the screen
         /// </summary>
@@ -216,9 +212,25 @@ namespace HBP.UI.Module3D
         void SetIEEG(Core.Object3D.SiteInfo siteInfo)
         {
             string unit = siteInfo.IEEGUnit;
-            if (unit == "microV") unit = "mV";
+            if (unit == "microV") unit = "µV";
             if (unit != string.Empty) unit = " (" + unit + ")";
             m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude + unit;      
+        }
+        void SetPatientTags(Core.Object3D.SiteInfo siteInfo)
+        {
+            if (siteInfo.Site && siteInfo.Site.Information.Patient.Tags.Count > 0)
+            {
+                System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
+                foreach (var tag in siteInfo.Site.Information.Patient.Tags)
+                {
+                    stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
+                }
+                m_PatientTagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
+            }
+            else
+            {
+                m_PatientTagsText.text = string.Empty;
+            }
         }
         /// <summary>
         /// Set the atlases of the site (Mars atlas, Brodmann, Freesurfer)

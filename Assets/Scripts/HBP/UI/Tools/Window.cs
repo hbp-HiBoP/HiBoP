@@ -43,6 +43,9 @@ namespace HBP.UI.Tools
         /// Children windows referencer.
         /// </summary>
         public WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
+
+        public Window ParentWindow { get; set; } = null;
+        public int Height => ParentWindow != null ? ParentWindow.Height + 1 : 0;
         #endregion
 
         #region Public Methods

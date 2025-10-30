@@ -1,16 +1,14 @@
-﻿using UnityEngine;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Tools
 {
-    public class MemoryManager : MonoBehaviour
+    public class MemoryManager : Manager<MemoryManager>
     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
         #region Properties
-        private static MemoryManager m_Instance;
-
         const float DELAY = 5.0f; // in s.
         const long MEMORY_LIMIT = 1000; // in MB
 
@@ -31,17 +29,6 @@ namespace HBP.Data.Tools
         #endregion
 
         #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
         private void Start()
         {
             //InvokeRepeating("CheckMemory", 0, DELAY);

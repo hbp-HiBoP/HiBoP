@@ -58,16 +58,16 @@ namespace HBP.UI.Main
         /// <summary>
         /// Save the modifications.
         /// </summary>
-        public override void OK()
+        public override async void OK()
         {
             if (Module3DMain.Visualizations.Contains(Object))
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Visualization already open", "The visualization you are trying to modify is already open. This visualization needs to be closed before saving the changes.\n\nWould you like to close it and save the changes ?", "Close & Save", "Cancel");
+                if (result == 0)
                 {
                     Module3DMain.RemoveScene(Object);
                     base.OK();
-                },
-                "Close & Save");
+                }
             }
             else
             {
@@ -79,7 +79,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void AddPatients()
         {
-            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)));
+            ObjectSelector<Patient> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Patients.Where(p => !m_ObjectTemp.Patients.Contains(p)), this);
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -88,7 +88,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void AddGroups()
         {
-            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Groups, this);
             selector.OnOk.AddListener(() => AddGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -97,7 +97,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void RemoveGroups()
         {
-            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.ProjectLoaded.Groups);
+            ObjectSelector<Group> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Groups, this);
             selector.OnOk.AddListener(() => RemoveGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
@@ -106,7 +106,7 @@ namespace HBP.UI.Main
         /// </summary>
         public void AddColumn()
         {
-            Column column = new IEEGColumn("Column n°" + (ObjectTemp.Columns.Count + 1), new BaseConfiguration(), ObjectTemp.Patients);
+            Column column = GenerateNewColumn();
             ObjectTemp.Columns.Add(column);
             m_TabGestion.AddTab(column.Name, -1, true);
             m_ColumnModifier.Object = column;
@@ -119,6 +119,8 @@ namespace HBP.UI.Main
             int index = m_TabGestion.ActiveTabIndex;
             ObjectTemp.Columns.RemoveAt(index);
             m_TabGestion.RemoveTab(index);
+            if (ObjectTemp.Columns.Count == 0)
+                m_ColumnModifier.Object = null;
         }
         #endregion
 
@@ -172,7 +174,7 @@ namespace HBP.UI.Main
         /// <param name="groups">Groups to add</param>
         protected void AddGroups(IEnumerable<Group> groups)
         {
-            m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct());
+            m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_PatientListGestion.List.Objects.Contains(p)));
         }
         /// <summary>
         /// Remove groups to the visualization.
@@ -180,7 +182,7 @@ namespace HBP.UI.Main
         /// <param name="groups">Groups to remove</param>
         protected void RemoveGroups(IEnumerable<Group> groups)
         {
-            m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct());
+            m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_PatientListGestion.List.Objects.Contains(p)));
         }
         /// <summary>
         /// Select column.
@@ -211,7 +213,7 @@ namespace HBP.UI.Main
         /// <param name="column">Column selected</param>
         protected void SelectColumn(Column column)
         {
-            if (ObjectTemp != null)
+            if (ObjectTemp != null && column != null)
             {
                 ObjectTemp.Columns[m_TabGestion.ActiveTabIndex] = column;
             }
@@ -233,6 +235,45 @@ namespace HBP.UI.Main
         {
             m_ObjectTemp.Patients.AddIfAbsent(patient);
             m_NeedToUpdate = true;
+        }
+        private Column GenerateNewColumn()
+        {
+            string columnName = "Column n°" + (ObjectTemp.Columns.Count + 1);
+
+            if (m_ColumnModifier.Object == null)
+            {
+                if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<PatientDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new IEEGColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<FMRIDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new FMRIColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<MEGcDataInfo>().Any(d => d.Patient == p) || ds.Data.OfType<MEGvDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new MEGColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<CCEPDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new CCEPColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else if (ObjectTemp.Patients.All(p => ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.OfType<StaticDataInfo>().Any(d => d.Patient == p))))
+                {
+                    return new StaticColumn(columnName, new BaseConfiguration(), ObjectTemp.Patients);
+                }
+                else
+                {
+                    return new AnatomicColumn(columnName, new BaseConfiguration());
+                }
+            }
+            else
+            {
+                Column column = m_ColumnModifier.Object.Clone() as Column;
+                column.Name = columnName;
+                column.GenerateID();
+                return column;
+            }
         }
         private void Update()
         {

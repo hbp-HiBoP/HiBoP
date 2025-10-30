@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
-using ThirdParty.CielaSpike;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
@@ -8,6 +6,7 @@ using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
@@ -38,22 +37,22 @@ namespace HBP.UI.Main
         #region Public Methods
         public void Load(ProjectInfo info)
         {
-            FindObjectOfType<ProjectLoaderSaver>().Load(info);
+            ProjectLoaderSaver.Load(info).Forget();
             base.Close();
             WindowsManager.CloseAll();
         }
-        public override void OK()
+        public override async void OK()
 		{
-            if (ApplicationState.ProjectLoaded != null)
+            if (ApplicationState.LoadedProject != null)
             {
-                if (ApplicationState.ProjectLoaded.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
+                if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", () =>
+                    int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", "Load project", "Cancel");
+                    if (result == 0)
                     {
                         Module3DMain.RemoveAllScenes();
                         Load(m_ProjectList.ObjectsSelected[0]);
-                    },
-                    "Load project");
+                    }
                 }
                 else
                 {
@@ -76,7 +75,7 @@ namespace HBP.UI.Main
             m_ProjectList.OnAction.AddListener((info, i) => Load(info));
 
             // Initialise location folder selector.
-            m_LocationFolderSelector.onValueChanged.AddListener((value) => this.StartCoroutineAsync(c_DisplayProjects(value)));
+            m_LocationFolderSelector.onValueChanged.AddListener((value) => DisplayProjects(value).Forget());
 
             // Base method.
             base.Initialize();
@@ -87,27 +86,31 @@ namespace HBP.UI.Main
             base.SetFields();
 
             // Set location folder selector.
-            m_LocationFolderSelector.Folder = PreferencesManager.UserPreferences.General.Project.DefaultLocation;
+            m_LocationFolderSelector.Folder = PersistentDataManager.UserPreferences.General.Project.DefaultLocation;
         }
         #endregion
 
         #region Coroutines
-        IEnumerator c_DisplayProjects(string path)
+        private async UniTaskVoid DisplayProjects(string path)
         {
-            yield return Ninja.JumpToUnity;
-            m_OKButton.interactable = false;
-            m_ProjectList.Set(new ProjectInfo[0]);
-            yield return Ninja.JumpBack;
-            string[] paths = Project.GetProject(path).ToArray();
-            foreach (string projectPath in paths)
+            try
             {
-                ProjectInfo project = new ProjectInfo(projectPath);
-                yield return Ninja.JumpToUnity;
-                m_ProjectList.Add(project);
-                yield return Ninja.JumpBack;
+                m_OKButton.interactable = false;
+                m_ProjectList.Set(new ProjectInfo[0]);
+                string[] paths = Project.GetProject(path).ToArray();
+                foreach (string projectPath in paths)
+                {
+                    await UniTask.SwitchToThreadPool();
+                    ProjectInfo project = new ProjectInfo(projectPath);
+                    await UniTask.SwitchToMainThread();
+                    m_ProjectList.Add(project);
+                }
+                m_ProjectList.SortByName(BaseList.Sorting.Descending);
             }
-            yield return Ninja.JumpToUnity;
-            m_ProjectList.SortByName(BaseList.Sorting.Descending);
+            catch(System.Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
         void SetLoadButton()
         {

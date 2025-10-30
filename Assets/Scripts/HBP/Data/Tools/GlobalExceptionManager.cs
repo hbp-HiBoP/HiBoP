@@ -1,26 +1,15 @@
 ﻿using UnityEngine;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
+using System.Transactions;
 
 namespace HBP.Data.Tools
 {
-    public class GlobalExceptionManager : MonoBehaviour
+    public class GlobalExceptionManager : Manager<GlobalExceptionManager>
     {
-        #region Properties
-        private static GlobalExceptionManager m_Instance;
-        #endregion
-
         #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
+        private string m_LastException;
+
         private void OnEnable()
         {
             Application.logMessageReceived += HandleException;
@@ -33,7 +22,12 @@ namespace HBP.Data.Tools
         {
             if (type == LogType.Exception)
             {
-                WindowsManager.Open("Bug Reporter window");
+                string exception = condition + "\n" + stackTrace;
+                if (!string.Equals(exception, m_LastException, System.StringComparison.Ordinal))
+                {
+                    WindowsManager.Open("Bug Reporter window", null);
+                    m_LastException = exception;
+                }
             }
         }
         #endregion

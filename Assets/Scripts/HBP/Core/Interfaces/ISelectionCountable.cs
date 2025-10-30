@@ -4,7 +4,11 @@ namespace HBP.Core.Interfaces
 {
     public interface ISelectionCountable
     {
-        int NumberOfItemSelected { get; }
+        int NumberOfSelectedObjects { get; }
+        int NumberOfObjects { get; }
+        int NumberOfFilteredObjects { get; }
         UnityEvent OnSelectionChanged { get; }
+
+        bool CanSelectMultipleObjects { get; }
     }
 }

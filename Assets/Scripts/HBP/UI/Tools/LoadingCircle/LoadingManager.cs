@@ -1,63 +1,199 @@
-﻿using ThirdParty.CielaSpike;
-using System;
-using System.Collections;
+﻿using System;
 using UnityEngine;
-using UnityEngine.Events;
 using HBP.Core.Tools;
+using Cysharp.Threading.Tasks;
+using System.Threading;
+using HBP.Core.Exceptions;
 
 namespace HBP.UI.Tools
 {
-    public class LoadingManager : MonoBehaviour
+    public class LoadingManager : Manager<LoadingManager>
     {
         #region Properties
-        private static LoadingManager m_Instance;
-
-        [SerializeField] private Canvas m_Canvas;
-        [SerializeField] GameObject m_LoadingCirclePrefab;
+        [SerializeField] private LoadingCircle m_LoadingCircle;
         #endregion
 
         #region Private Methods
-        private void Awake()
+        protected override void Initialization()
         {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
+            base.Initialization();
+            m_LoadingCircle.Initialize();
         }
         #endregion
 
         #region Public Methods
-        public static LoadingCircle Open()
+        public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute, bool showInformations = true)
         {
-            GameObject loadingCircleGameObject = Instantiate(m_Instance.m_LoadingCirclePrefab, m_Instance.m_Canvas.transform);
-            LoadingCircle loadingCircle = loadingCircleGameObject.GetComponent<LoadingCircle>();
-            return loadingCircle;
-        }
-        public static void Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
-        {
-            m_Instance.StartCoroutine(c_Load(action, onChangeProgress, callBack));
-        }
-        public static IEnumerator c_Load(IEnumerator action, GenericEvent<float, float, LoadingText> onChangeProgress, Action<TaskState> callBack = null)
-        {
-            LoadingCircle loadingCircle = Open();
-            onChangeProgress.AddListener((progress, time, message) => loadingCircle.ChangePercentage(progress, time, message));
-            yield return m_Instance.StartCoroutineAsync(action, out Task task);
-            switch (task.State)
+            AsyncMethod<T> method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open(showInformations);
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
+            try
             {
-                case TaskState.Done:
-                    yield return new WaitForSeconds(0.2f);
-                    break;
-                case TaskState.Error:
-                    Exception exception = task.Exception;
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, exception.ToString(), exception.Message);
-                    break;
+                return await method.ExecuteAsync();
             }
-            loadingCircle.Close();
-            if (callBack != null) callBack.Invoke(task.State);
+            catch (HBPException e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
+                throw e;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
+                throw e;
+            }
+            finally
+            {
+                m_Instance.m_LoadingCircle.Close();
+            }
+        }
+        public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
+        {
+            AsyncMethod method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open(showInformations);
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
+            try
+            {
+                await method.ExecuteAsync();
+            }
+            catch (HBPException e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
+            }
+            m_Instance.m_LoadingCircle.Close();
+        }
+        public static void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
+        {
+            LoadVoid(taskToExecute, showInformations).Forget();
+        }
+
+        public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, CancellationToken, UniTask<T>> taskToExecute, bool showInformations = true)
+        {
+            CancelableAsyncMethod<T> method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open(showInformations, true);
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
+            m_Instance.m_LoadingCircle.OnCancel.AddListener(method.Cancel);
+            try
+            {
+                return await method.ExecuteAsync();
+            }
+            catch (OperationCanceledException e)
+            {
+                throw e;
+            }
+            catch (HBPException e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
+                throw e;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
+                throw e;
+            }
+            finally
+            {
+                m_Instance.m_LoadingCircle.Close();
+                m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
+            }
+        }
+        public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations = true)
+        {
+            CancelableAsyncMethod method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open(showInformations, true);
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
+            m_Instance.m_LoadingCircle.OnCancel.AddListener(method.Cancel);
+            try
+            {
+                await method.ExecuteAsync();
+            }
+            catch (OperationCanceledException e)
+            {
+                throw e;
+            }
+            catch (HBPException e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
+                throw e;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
+                throw e;
+            }
+            finally
+            {
+                m_Instance.m_LoadingCircle.Close();
+                m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
+            }
+        }
+        public static void Load(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations = true)
+        {
+            LoadVoid(taskToExecute, showInformations).Forget();
+        }
+        #endregion
+
+        #region Private Methods
+        private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations)
+        {
+            AsyncMethod method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open(showInformations);
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
+            try
+            {
+                await method.ExecuteAsync();
+            }
+            catch (HBPException e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
+            }
+            m_Instance.m_LoadingCircle.Close();
+        }
+        private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations)
+        {
+            CancelableAsyncMethod method = new(taskToExecute);
+            m_Instance.m_LoadingCircle.Open(showInformations, true);
+            method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message));
+            m_Instance.m_LoadingCircle.OnCancel.AddListener(method.Cancel);
+            try
+            {
+                await method.ExecuteAsync();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (HBPException e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Title, e.Message).Forget();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.ToString());
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
+            }
+            finally
+            {
+                m_Instance.m_LoadingCircle.Close();
+                m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
+            }
         }
         #endregion
     }

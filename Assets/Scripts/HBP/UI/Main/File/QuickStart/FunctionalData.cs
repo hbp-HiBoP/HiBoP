@@ -1,5 +1,6 @@
 ﻿using System;
 using HBP.Core.Enums;
+using HBP.Core.Errors;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -38,7 +39,7 @@ namespace HBP.UI.Main.QuickStart
             {
                 container = FIFDataContainer;
             }
-            DataInfo = new Core.Data.IEEGDataInfo("Data", container, patient, NormalizationType.Auto);
+            DataInfo = new Core.Data.IEEGDataInfo("Data", null, container, new Error[0], new Warning[0], patient, NormalizationType.Auto, "");
         }
         #endregion
 

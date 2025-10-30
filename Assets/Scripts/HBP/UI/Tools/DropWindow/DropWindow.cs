@@ -1,6 +1,7 @@
 ﻿using UnityEngine.Events;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
@@ -35,7 +36,7 @@ namespace HBP.UI.Tools
         #region Public Methods
         public void Open()
         {
-            m_Blocker = Instantiate(BlockerPrefab, GetTopmostCanvas(GetComponent<RectTransform>()).GetComponent<RectTransform>());
+            m_Blocker = Instantiate(BlockerPrefab, GetComponent<RectTransform>().GetTopmostCanvas().GetComponent<RectTransform>());
             m_Blocker.GetComponent<Button>().onClick.AddListener(() =>
             {
                 ChangeWindowState();
@@ -56,20 +57,6 @@ namespace HBP.UI.Tools
         {
             if(Window.activeSelf) Close();
             else Open();
-        }
-        /// <summary>
-        /// Get the topmost canvas of a component
-        /// </summary>
-        /// <param name="component">Component in a canvas</param>
-        /// <returns>Canvas associated to the component</returns>
-        public Canvas GetTopmostCanvas(Component component)
-        {
-            Canvas[] parentCanvases = component.GetComponentsInParent<Canvas>();
-            if (parentCanvases != null && parentCanvases.Length > 0)
-            {
-                return parentCanvases[parentCanvases.Length - 1];
-            }
-            return null;
         }
         #endregion
     }

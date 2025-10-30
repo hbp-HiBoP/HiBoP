@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract, DisplayName("MEG")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("MEG")]
     public class MEGColumn : Column
     {
         #region Properties
-        [DataMember(Name = "Dataset")] string datasetID;
+        [JsonProperty("Dataset")] string datasetID;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
@@ -18,7 +19,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
+                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
             }
             set
             {
@@ -33,12 +34,12 @@ namespace HBP.Core.Data
             }
         }
         
-        [DataMember] public MEGConfiguration MEGConfiguration { get; set; }
+        [JsonProperty] public MEGConfiguration MEGConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public Processed.MEGData Data { get; set; } = new Processed.MEGData();
+        [JsonIgnore] public Processed.MEGData Data { get; set; } = new Processed.MEGData();
         #endregion
 
         #region Constructors
@@ -51,6 +52,18 @@ namespace HBP.Core.Data
         {
             MEGConfiguration = fmriConfiguration;
             Dataset = dataset;
+        }
+        public MEGColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
+        {
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                PatientDataInfo[] megDataInfos = dataset.GetMEGDataInfos();
+                if (patients.All((patient) => megDataInfos.Any((data) => data.Patient == patient)))
+                {
+                    Dataset = dataset;
+                    return;
+                }
+            }
         }
         public MEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, new MEGConfiguration())
         {
@@ -81,7 +94,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is MEGColumn megColumn)
             {
-                MEGConfiguration = megColumn.MEGConfiguration;
+                MEGConfiguration.Copy(megColumn.MEGConfiguration);
                 Dataset = megColumn.Dataset;
             }
         }

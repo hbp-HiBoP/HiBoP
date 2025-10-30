@@ -1,46 +1,49 @@
-﻿using ThirdParty.CielaSpike;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
+﻿using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
-using HBP.UI.Tools;
 using HBP.Data.Preferences;
+using HBP.UI.Tools;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.Scripting;
+using UnityEngine.UI;
 
 namespace HBP.UI.Toolbar
 {
     public class SiteCorrelations : Tool
     {
         #region Internal Classes
-        [DataContract]
+        [JsonObject(MemberSerialization.OptIn), Preserve]
         public class CorrelationsContainer
         {
-            [DataMember] public string PatientName { get; set; }
-            [DataMember] public string PatientID { get; set; }
-            [DataMember] public List<ColumnContainer> Columns { get; set; }
-            [DataMember] public NormalizationType DefaultNormalization { get; set; }
-            [DataMember] public float CorrelationThreshold { get; set; }
-            [DataMember] public bool UseBonferroniCorrection { get; set; }
+            [JsonProperty] public string PatientName { get; set; }
+            [JsonProperty] public string PatientID { get; set; }
+            [JsonProperty] public List<ColumnContainer> Columns { get; set; }
+            [JsonProperty] public NormalizationType DefaultNormalization { get; set; }
+            [JsonProperty] public float CorrelationThreshold { get; set; }
+            [JsonProperty] public bool UseBonferroniCorrection { get; set; }
         }
-        [DataContract]
+
+        [JsonObject(MemberSerialization.OptIn), Preserve]
         public class ColumnContainer
         {
-            [DataMember] public string Name { get; set; }
-            [DataMember] public Bloc Bloc { get; set; }
-            [DataMember] public DataInfo Data { get; set; }
-            [DataMember] public string CorrelationsFile { get; set; }
-            [DataMember] public string CorrelationsBinaryFile { get; set; }
-            [DataMember] public string CorrelationsMeanFile { get; set; }
+            [JsonProperty] public string Column { get; set; }
+            [JsonProperty] public string Protocol { get; set; }
+            [JsonProperty] public string Bloc { get; set; }
+            [JsonProperty] public string Dataset { get; set; }
+            [JsonProperty] public string Data { get; set; }
+            [JsonProperty] public string CorrelationsFile { get; set; }
+            [JsonProperty] public string CorrelationsBinaryFile { get; set; }
+            [JsonProperty] public string CorrelationsMeanFile { get; set; }
         }
         #endregion
 
@@ -81,8 +84,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-                LoadingManager.Load(c_ComputeCorrelations((progress, duration, text) => onChangeProgress.Invoke(progress, duration, text)), onChangeProgress);
+                LoadingManager.Load((update, token) => ComputeCorrelations(update, token));
             });
             m_Load.onClick.AddListener(() =>
             {
@@ -158,9 +160,9 @@ namespace HBP.UI.Toolbar
             {
                 PatientName = SelectedScene.Visualization.Patients[0].Name,
                 PatientID = SelectedScene.Visualization.Patients[0].ID,
-                DefaultNormalization = PreferencesManager.UserPreferences.Data.EEG.Normalization,
-                CorrelationThreshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha,
-                UseBonferroniCorrection = PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection,
+                DefaultNormalization = PersistentDataManager.UserPreferences.Data.EEG.Normalization,
+                CorrelationThreshold = PersistentDataManager.UserPreferences.Data.EEG.CorrelationAlpha,
+                UseBonferroniCorrection = PersistentDataManager.UserPreferences.Data.EEG.BonferroniCorrection,
                 Columns = new List<ColumnContainer>(SelectedScene.ColumnsIEEG.Count)
             };
             foreach (var column in SelectedScene.ColumnsIEEG)
@@ -168,12 +170,21 @@ namespace HBP.UI.Toolbar
                 Bloc bloc = column.ColumnIEEGData.Bloc.Clone() as Bloc;
                 IEEGDataInfo dataInfo = column.ColumnIEEGData.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Patient == SelectedScene.Visualization.Patients[0] && d.Name == column.ColumnIEEGData.DataName).Clone() as IEEGDataInfo;
                 dataInfo.DataContainer.ConvertAllPathsToFullPaths();
-                container.Columns.Add(new ColumnContainer() { Name = column.Name, Bloc = bloc, Data = dataInfo, CorrelationsFile = string.Format("{0}_{1}_correlations.csv", container.PatientName, column.Name), CorrelationsBinaryFile = string.Format("{0}_{1}_significant.csv", container.PatientName, column.Name), CorrelationsMeanFile = string.Format("{0}_{1}_pearson.csv", container.PatientName, column.Name) });
+                container.Columns.Add(new ColumnContainer()
+                {
+                    Column = column.Name,
+                    Protocol = column.ColumnIEEGData.Dataset.Protocol.Name,
+                    Bloc = bloc.Name,
+                    Dataset = column.ColumnIEEGData.Dataset.Name,
+                    Data = dataInfo.Name,
+                    CorrelationsFile = string.Format("{0}_{1}_correlations.csv", container.PatientID, column.Name),
+                    CorrelationsBinaryFile = string.Format("{0}_{1}_significant.csv", container.PatientID, column.Name),
+                    CorrelationsMeanFile = string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name)
+                });
             }
-            string saveDirectory = Path.Combine(SelectedScene.GenerateExportDirectory(), "Correlations");
-            ClassLoaderSaver.GenerateUniqueDirectoryPath(ref saveDirectory);
+            string saveDirectory = Path.Combine(SelectedScene.GenerateExportDirectory(), "Correlations").GenerateUniqueDirectoryPath();
             if (!Directory.Exists(saveDirectory)) Directory.CreateDirectory(saveDirectory);
-            ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, string.Format("{0}_Correlations.json", container.PatientName)));
+            ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, string.Format("{0}_Correlations.json", container.PatientID)));
 
             int siteWeight(string name)
             {
@@ -218,8 +229,8 @@ namespace HBP.UI.Toolbar
                             if (correlationsOfSite.TryGetValue(s, out float correlationValue))
                             {
                                 csvText.Append(correlationValue.ToString("R", CultureInfo.InvariantCulture));
-                                float threshold = PreferencesManager.UserPreferences.Data.EEG.CorrelationAlpha;
-                                if (PreferencesManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
+                                float threshold = PersistentDataManager.UserPreferences.Data.EEG.CorrelationAlpha;
+                                if (PersistentDataManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                                 csvBinaryText.Append(correlationValue < threshold ? 1 : 0);
                             }
                             else
@@ -251,15 +262,15 @@ namespace HBP.UI.Toolbar
                 }
                 try
                 {
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_correlations.csv", container.PatientName, column.Name))))
+                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_correlations.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvText.ToString());
                     }
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_significant.csv", container.PatientName, column.Name))))
+                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_significant.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvBinaryText.ToString());
                     }
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_pearson.csv", container.PatientName, column.Name))))
+                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvMeanText.ToString());
                     }
@@ -267,13 +278,13 @@ namespace HBP.UI.Toolbar
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not save correlations", "Please verify your rights.");
+                    DialogBoxManager.Open(DialogBoxType.Error, "Can not save correlations", "Please verify your rights.").Forget();
                     return;
                 }
             }
-            DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>");
+            DialogBoxManager.Open(DialogBoxType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>").Forget();
         }
-        private void LoadCorrelations()
+        private async void LoadCorrelations()
         {
             void Load(string path)
             {
@@ -283,12 +294,12 @@ namespace HBP.UI.Toolbar
                     // Checks
                     if (SelectedScene.Visualization.Patients[0].ID != container.PatientID)
                     {
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.");
+                        DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.").Forget();
                         return;
                     }
-                    if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Name && col.ColumnIEEGData.Bloc == c.Bloc)))
+                    if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Column)))
                     {
-                        DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.");
+                        DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.").Forget();
                         return;
                     }
                     // Load
@@ -299,7 +310,7 @@ namespace HBP.UI.Toolbar
                     string directory = new FileInfo(path).Directory.FullName;
                     foreach (var column in SelectedScene.ColumnsIEEG)
                     {
-                        ColumnContainer columnContainer = container.Columns.FirstOrDefault(c => c.Name == column.Name);
+                        ColumnContainer columnContainer = container.Columns.FirstOrDefault(c => c.Column == column.Name);
                         string csvFilePath = Path.Combine(directory, columnContainer.CorrelationsFile);
                         using (StreamReader sr = new StreamReader(csvFilePath))
                         {
@@ -369,35 +380,27 @@ namespace HBP.UI.Toolbar
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.");
+                    DialogBoxManager.Open(DialogBoxType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.").Forget();
                 }
             }
-#if UNITY_STANDALONE_OSX
-            FileBrowser.GetExistingFileNameAsync((loadPath) =>
-            {
-                if (!string.IsNullOrEmpty(loadPath))
-                {
-                    Load(loadPath);
-                }
-            }, new string[] { "json" }, "Load correlations");
-#else
-            string loadPath = FileBrowser.GetExistingFileName(new string[] { "json" }, "Load correlations");
+
+            string loadPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "json" }, "Load correlations");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 Load(loadPath);
             }
-#endif
         }
-        private void ResetCorrelations()
+        private async void ResetCorrelations()
         {
-            DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", () =>
+            int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", "Reset", "Cancel");
+            if (result == 0)
             {
                 foreach (var column in SelectedScene.ColumnsIEEG)
                 {
                     column.CorrelationBySitePair.Clear();
                 }
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            }, "Reset", () => { }, "Cancel");
+            }
         }
         #endregion
 
@@ -405,22 +408,32 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Compute correlations for all ieeg columns
         /// </summary>
-        /// <param name="onChangeProgress">Action for the loading circle</param>
+        /// <param name="updateProgress">Action for the loading circle</param>
         /// <returns>Coroutine return</returns>
-        private IEnumerator c_ComputeCorrelations(Action<float, float, LoadingText> onChangeProgress)
+        private async UniTask ComputeCorrelations(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            yield return Ninja.JumpToUnity;
             m_CorrelationsComputing = true;
+            await UniTask.SwitchToMainThread();
             UpdateInteractable();
-            yield return Ninja.JumpBack;
+            await UniTask.SwitchToThreadPool();
             List<Column3DIEEG> columns = SelectedScene.ColumnsIEEG;
-            for (int i = 0; i < columns.Count; i++)
+            try
             {
-                columns[i].ComputeCorrelations((progress, duration, text) => { onChangeProgress((i + progress) / columns.Count, duration, text); } );
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    await columns[i].ComputeCorrelationsAsync((progress, duration, text) => { updateProgress((i + progress) / columns.Count, duration, text); }, token);
+                }
             }
-            yield return Ninja.JumpToUnity;
+            catch (Exception)
+            {
+                m_CorrelationsComputing = false;
+                await UniTask.SwitchToMainThread();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                return;
+            }
             m_CorrelationsComputing = false;
-            onChangeProgress(1, 0, new LoadingText("Correlations computed"));
+            updateProgress(1, 0, new LoadingText("Correlations computed"));
+            await UniTask.SwitchToMainThread();
             SelectedScene.DisplayCorrelations = true;
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }

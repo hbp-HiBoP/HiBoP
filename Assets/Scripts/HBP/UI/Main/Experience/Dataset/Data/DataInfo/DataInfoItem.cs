@@ -33,22 +33,37 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name + (value is Core.Data.CCEPDataInfo ccepDataInfo ? " (" + ccepDataInfo.StimulatedChannel + ")" : "");
-                if (value is Core.Data.PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.Name;
+                if (value is Core.Data.PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.CompleteName;
                 else m_PatientText.text = "None";
                 m_TypeText.text = value.GetType().GetDisplayName();
 
                 var errors = Object.Errors;
                 var warnings = Object.Warnings;
-                if (errors.Length > 0 && warnings.Length > 0)
+                if (errors.Count > 0 && warnings.Count > 0)
                     m_ErrorText.Text = Object.GetErrorsMessage() + "\n\n" + Object.GetWarningsMessage();
-                else if (warnings.Length > 0)
+                else if (warnings.Count > 0)
                     m_ErrorText.Text = Object.GetWarningsMessage();
                 else
                     m_ErrorText.Text = Object.GetErrorsMessage();
 
-                m_StateThemeElement.Set(value.IsOk ? (warnings.Length > 0 ? m_WarningState : m_OKState) : m_ErrorState);
+                switch (value.State)
+                {
+                    case Core.Data.DataInfo.DataState.Error:
+                        m_StateThemeElement.Set(m_ErrorState);
+                        break;
+                    case Core.Data.DataInfo.DataState.Warning:
+                        m_StateThemeElement.Set(m_WarningState);
+                        break;
+                    case Core.Data.DataInfo.DataState.Ok:
+                        m_StateThemeElement.Set(m_OKState);
+                        break;
+                }
+
+                SetNotInteractable();
             }
         }
         #endregion

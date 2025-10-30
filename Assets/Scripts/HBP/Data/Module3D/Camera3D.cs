@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using ThirdParty.ImageEffects;
 using HBP.Core.Enums;
 using System.Linq;
+using UnityEngine.Rendering.PostProcessing;
 
 namespace HBP.Data.Module3D
 {
@@ -252,7 +252,7 @@ namespace HBP.Data.Module3D
             m_OriginalTarget = LocalTarget;
             transform.position = Target - transform.forward * m_StartDistance;
 
-            GetComponent<EdgeDetection>().enabled = m_AssociatedScene.EdgeMode;
+            GetComponent<PostProcessLayer>().enabled = m_AssociatedScene.EdgeMode;
             AutomaticRotation = m_AssociatedScene.AutomaticRotation;
             AutomaticRotationSpeed = m_AssociatedScene.AutomaticRotationSpeed;
 

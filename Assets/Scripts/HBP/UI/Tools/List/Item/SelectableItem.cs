@@ -32,7 +32,7 @@ namespace HBP.UI.Tools.Lists
         public override bool Interactable
         {
             get { return m_Toggle.interactable; }
-            set { m_Toggle.interactable = value; }
+            set { m_Toggle.interactable = value; if (m_Object != null) Object = m_Object; }
         }
         #endregion
 
@@ -79,8 +79,7 @@ namespace HBP.UI.Tools.Lists
         #region Private Methods
         protected virtual void Awake()
         {
-            m_Toggle = GetComponent<Toggle>();
-            if (m_Toggle != null) m_Toggle.onValueChanged.AddListener((value) => { if (!m_isLock) OnChangeSelected.Invoke(value); });
+            if (TryGetComponent(out m_Toggle)) m_Toggle.onValueChanged.AddListener((value) => { if (!m_isLock) OnChangeSelected.Invoke(value); });
         }
         #endregion
     }

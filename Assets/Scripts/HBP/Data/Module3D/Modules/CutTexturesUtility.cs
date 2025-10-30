@@ -78,7 +78,7 @@ namespace HBP.Data.Module3D
             }
             for (int i = 0; i < size; i++)
             {
-                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], PreferencesManager.UserPreferences.Visualization._3D.RawCuts ? 0 : 4);
+                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], PersistentDataManager.UserPreferences.Visualization._3D.RawCuts ? 0 : 4);
             }
         }
         /// <summary>
@@ -211,6 +211,21 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithFMRI(volume, negativeMin, negativeMax, positiveMin, positiveMax, alpha);
+
+                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
+                generator.UpdateTextureWithAtlas(cutTexture);
+                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+            }
+        }
+        /// <summary>
+        /// Color cuts with Localizers atlas using min, middle, max parameters (with mask)
+        /// </summary>
+        public void ColorCutsTexturesWithLocalizersAtlas(Core.DLL.Volume volume, float min, float middle, float max, Core.DLL.Volume mask, Core.DLL.Texture texture)
+        {
+            for (int i = 0; i < CutGenerators.Count; i++)
+            {
+                Core.DLL.CutGenerator generator = CutGenerators[i];
+                generator.FillTextureWithLocalizer(volume, min, middle, max, mask, texture);
 
                 Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithAtlas(cutTexture);

@@ -9,9 +9,18 @@ namespace HBP.UI.Main
     {
         #region Properties
         [SerializeField] Toggle m_ShowCurvesOfMinimizedColumns;
-        [SerializeField] Image[] m_ColorImages;
-        [SerializeField] Button[] m_ColorButtons;
+        [SerializeField] Toggle m_ShowSEM;
         [SerializeField] Button m_Default;
+        [SerializeField] GameObject m_ColorGridSettingsMenu;
+        [SerializeField] Slider m_MaxSitesSlider;
+        [SerializeField] Slider m_MaxColumnsSlider;
+        [SerializeField] Slider m_MaxGroupsSlider;
+        [SerializeField] Button m_RegenerateGridButton;
+
+        [SerializeField] GameObject m_ColumnTitlePrefab;
+        [SerializeField] GameObject m_RowPrefab;
+        [SerializeField] GameObject m_ColorButtonPrefab;
+        [SerializeField] Transform m_ColorsContainer;
 
         public override bool Interactable
         {
@@ -24,6 +33,12 @@ namespace HBP.UI.Main
                 base.Interactable = value;
 
                 m_ShowCurvesOfMinimizedColumns.interactable = value;
+                m_ShowSEM.interactable = value;
+                m_Default.interactable = value;
+                m_MaxSitesSlider.interactable = value;
+                m_MaxColumnsSlider.interactable = value;
+                m_MaxGroupsSlider.interactable = value;
+                m_RegenerateGridButton.interactable = value;
             }
         }
         #endregion
@@ -34,26 +49,18 @@ namespace HBP.UI.Main
             base.Initialize();
 
             m_ShowCurvesOfMinimizedColumns.onValueChanged.AddListener(value => Object.ShowCurvesOfMinimizedColumns = value);
-            for (int i = 0; i < m_ColorButtons.Length; i++)
+            m_ShowSEM.onValueChanged.AddListener(value => Object.ShowSEM = value);
+            m_Default.onClick.AddListener(async () =>
             {
-                int index = i;
-                m_ColorButtons[index].onClick.AddListener(() =>
-                {
-                    ColorPicker.Open(Object.GetColor(index), (c) =>
-                    {
-                        Object.SetColor(index, c);
-                        m_ColorImages[index].color = c;
-                    });
-                });
-            }
-            m_Default.onClick.AddListener(() =>
-            {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Restore colors to default", "Do you want to restore the colors to their original states?", () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Restore colors to default", "Do you want to restore the colors to their original states?", "Yes", "No");
+                if (result == 0)
                 {
                     Object.SetDefaultColors();
                     SetFields(Object);
-                }, "Yes", () => { }, "No");
+                }
             });
+            m_RegenerateGridButton.onClick.AddListener(RegenerateGrid);
+            m_ColorGridSettingsMenu.SetActive(false);
         }
         #endregion
 
@@ -63,10 +70,98 @@ namespace HBP.UI.Main
             base.SetFields(objectToDisplay);
 
             m_ShowCurvesOfMinimizedColumns.isOn = objectToDisplay.ShowCurvesOfMinimizedColumns;
-            Color[] colors = objectToDisplay.Colors;
-            for (int i = 0; i < colors.Length; i++)
+            m_ShowSEM.isOn = objectToDisplay.ShowSEM;
+
+            m_MaxColumnsSlider.minValue = GraphPreferences.MINIMUM_NUMBER_OF_COLUMNS;
+            m_MaxColumnsSlider.maxValue = GraphPreferences.MAXIMUM_NUMBER_OF_COLUMNS;
+            m_MaxColumnsSlider.wholeNumbers = true;
+            m_MaxColumnsSlider.value = objectToDisplay.MaxColumns;
+
+            m_MaxSitesSlider.minValue = GraphPreferences.MINIMUM_NUMBER_OF_SITES;
+            m_MaxSitesSlider.maxValue = Mathf.Max(GraphPreferences.MAXIMUM_NUMBER_OF_SITES, objectToDisplay.MaxSites);
+            m_MaxSitesSlider.wholeNumbers = true;
+            m_MaxSitesSlider.value = objectToDisplay.MaxSites;
+
+            m_MaxGroupsSlider.minValue = GraphPreferences.MINIMUM_NUMBER_OF_GROUPS;
+            m_MaxGroupsSlider.maxValue = Mathf.Max(GraphPreferences.MAXIMUM_NUMBER_OF_GROUPS, objectToDisplay.MaxGroups);
+            m_MaxGroupsSlider.wholeNumbers = true;
+            m_MaxGroupsSlider.value = objectToDisplay.MaxGroups;
+
+            GenerateGrid();
+        }
+        protected async void RegenerateGrid()
+        {
+            m_ColorGridSettingsMenu.SetActive(false);
+            var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Regenerate color grid", "If you regenerate the color grid, some colors may be reset — especially if you reduced one of the sliders. Do you want to proceed?", "Yes", "No");
+            if (result == 0)
             {
-                m_ColorImages[i].color = colors[i];
+                Object.MaxColumns = (int)m_MaxColumnsSlider.value;
+                Object.MaxSites = (int)m_MaxSitesSlider.value;
+                Object.MaxGroups = (int)m_MaxGroupsSlider.value;
+                GenerateGrid();
+            }
+        }
+        protected void GenerateGrid()
+        {
+            foreach (Transform child in m_ColorsContainer)
+            {
+                Destroy(child.gameObject);
+            }
+            // Header
+            var header = Instantiate(m_RowPrefab, m_ColorsContainer);
+            header.GetComponentInChildren<Text>().text = "Column n°";
+            for (int i = 0; i < Object.MaxColumns; i++)
+            {
+                var columnTitle = Instantiate(m_ColumnTitlePrefab, header.transform);
+                columnTitle.GetComponentInChildren<Text>().text = (i + 1).ToString();
+            }
+            // Channels
+            for (int i = 0; i < Object.MaxSites; i++)
+            {
+                var row = Instantiate(m_RowPrefab, m_ColorsContainer);
+                row.GetComponentInChildren<Text>().text = $"Channel {(i + 1)}";
+                for (int j = 0; j < Object.MaxColumns; j++)
+                {
+                    var colorButton = Instantiate(m_ColorButtonPrefab, row.transform).GetComponent<ColorPickerButton>();
+                    colorButton.Initialize(Object.SiteColors.GetColor(i, j));
+                    int currentI = i;
+                    int currentJ = j;
+                    colorButton.OnColorPicked.AddListener(color => Object.SiteColors.SetColor(currentI, currentJ, color));
+                }
+            }
+            // Groups
+            for (int i = 0; i < Object.MaxGroups; i++)
+            {
+                var row = Instantiate(m_RowPrefab, m_ColorsContainer);
+                row.GetComponentInChildren<Text>().text = $"Channel group {(i + 1)}";
+                for (int j = 0; j < Object.MaxColumns; j++)
+                {
+                    var colorButton = Instantiate(m_ColorButtonPrefab, row.transform).GetComponent<ColorPickerButton>();
+                    colorButton.Initialize(Object.GroupColors.GetColor(i, j));
+                    int currentI = i;
+                    int currentJ = j;
+                    colorButton.OnColorPicked.AddListener(color => Object.GroupColors.SetColor(currentI, currentJ, color));
+                }
+            }
+            // ROI
+            var roiRow = Instantiate(m_RowPrefab, m_ColorsContainer);
+            roiRow.GetComponentInChildren<Text>().text = "ROI";
+            for (int j = 0; j < Object.MaxColumns; j++)
+            {
+                var colorButton = Instantiate(m_ColorButtonPrefab, roiRow.transform).GetComponent<ColorPickerButton>();
+                colorButton.Initialize(Object.ROIColors.GetColor(0, j));
+                int currentJ = j;
+                colorButton.OnColorPicked.AddListener(color => Object.ROIColors.SetColor(0, currentJ, color));
+            }
+            // Localizers
+            var localizersRow = Instantiate(m_RowPrefab, m_ColorsContainer);
+            localizersRow.GetComponentInChildren<Text>().text = "Localizers";
+            for (int j = 0; j < Object.MaxColumns; j++)
+            {
+                var colorButton = Instantiate(m_ColorButtonPrefab, localizersRow.transform).GetComponent<ColorPickerButton>();
+                colorButton.Initialize(Object.LocalizersColors.GetColor(0, j));
+                int currentJ = j;
+                colorButton.OnColorPicked.AddListener(color => Object.LocalizersColors.SetColor(0, currentJ, color));
             }
         }
         #endregion

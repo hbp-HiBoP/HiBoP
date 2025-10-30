@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
-using HBP.Core.Tools;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -18,23 +20,23 @@ namespace HBP.Core.Data
     *   - \a Color of the patient.
     *   - \a Patient electrode configurations.
     */
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class PatientConfiguration : ICloneable
     {
         #region Properties
-        [DataMember(Name = "Patient")]
+        [JsonProperty("Patient")]
         string m_PatientID;
         Patient m_Patient;
 
-        [DataMember(Name = "ConfigurationByElectrode")]
+        [JsonProperty("ConfigurationByElectrode")]
         Dictionary <string, ElectrodeConfiguration> m_ConfigurationByElectrodeName;
         /// <summary>
         /// Configuration of the patient electrodes.
         /// </summary>
-        [IgnoreDataMember]
+        [JsonIgnore]
         public Dictionary<string,ElectrodeConfiguration> ConfigurationByElectrode { get; set; }
 
-        [DataMember(Name = "Color")]
+        [JsonProperty("Color")]
         SerializableColor m_Color;
         /// <summary>
         /// Color of the patient.
@@ -75,7 +77,7 @@ namespace HBP.Core.Data
         void OnDeserialized(StreamingContext streamingContext)
         {
             Color = m_Color.ToColor();
-            m_Patient = ApplicationState.ProjectLoaded.Patients.First((p) => p.ID == m_PatientID);
+            m_Patient = ApplicationState.LoadedProject.Patients.First((p) => p.ID == m_PatientID);
         }
         #endregion
     }

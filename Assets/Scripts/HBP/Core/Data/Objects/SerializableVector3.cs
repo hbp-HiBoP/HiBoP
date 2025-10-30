@@ -1,14 +1,15 @@
-﻿using UnityEngine;
-using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct SerializableVector3
     {
-        [DataMember] public float x { get; set; }
-        [DataMember] public float y { get; set; }
-        [DataMember] public float z { get; set; }
+        [JsonProperty] public float x { get; set; }
+        [JsonProperty] public float y { get; set; }
+        [JsonProperty] public float z { get; set; }
 
         public SerializableVector3(float x, float y, float z)
         {

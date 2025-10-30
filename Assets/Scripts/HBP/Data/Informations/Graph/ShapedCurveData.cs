@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+﻿using HBP.Data.Preferences;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI.Extensions;
 
 namespace HBP.Data.Informations.Graphs
@@ -37,11 +38,18 @@ namespace HBP.Data.Informations.Graphs
                 Shapes = new float[Points.Length];
             }
         }
-        public static ShapedCurveData CreateInstance(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color, float width = 3.0f)
+        public static CurveData CreateInstance(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color, float width = 3.0f)
         {
-            ShapedCurveData result = CreateInstance<ShapedCurveData>();
-            result.Init(points, shapes, color, width);
-            return result;
+            if (PersistentDataManager.UserPreferences.Visualization.Graph.ShowSEM)
+            {
+                ShapedCurveData result = CreateInstance<ShapedCurveData>();
+                result.Init(points, shapes, color, width);
+                return result;
+            }
+            else
+            {
+                return CreateInstance(points, color, width);
+            }
         }
         #endregion
     }

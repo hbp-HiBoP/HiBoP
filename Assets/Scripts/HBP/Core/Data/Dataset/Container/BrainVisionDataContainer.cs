@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Runtime.Serialization;
-using HBP.Core.Errors;
-using System.ComponentModel;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,19 +31,19 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("BrainVision"), IEEG, CCEP, MEGc]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("BrainVision"), IEEG, CCEP, MEGc]
     public class BrainVision : DataContainer
     {
         #region Properties
         /// <summary>
         /// Brain vision header extension.
         /// </summary>
-        const string HEADER_EXTENSION = ".vhdr";
+        public const string HEADER_EXTENSION = ".vhdr";
 
         /// <summary>
         /// Path to the BrainVision header file with Alias.
         /// </summary>
-        [DataMember(Name = "Header")] public string SavedHeader { get; protected set; } = "";
+        [JsonProperty("Header")] public string SavedHeader { get; protected set; } = "";
         /// <summary>
         /// Path to the BrainVision format header file without Alias.
         /// </summary>
@@ -54,8 +56,6 @@ namespace HBP.Core.Data.Container
             set
             {
                 SavedHeader = value?.ConvertToShortPath();
-                GetErrors();
-                OnRequestErrorCheck.Invoke();
             }
         }
         #endregion
@@ -66,7 +66,7 @@ namespace HBP.Core.Data.Container
             List<Error> errors = new List<Error>();
             if (string.IsNullOrEmpty(Header))
             {
-                errors.Add(new RequieredFieldEmptyError("BrainVision header file path is empty"));
+                errors.Add(new RequiredFieldEmptyError("BrainVision header file path is empty"));
             }
             else
             {
@@ -108,7 +108,7 @@ namespace HBP.Core.Data.Container
         /// </summary>
         /// <param name="header">Path to the BrainVision format header file</param>
         /// <param name="ID">Unique identifier</param>
-        public BrainVision(string header, string ID) : base(ID)
+        public BrainVision(string header, IEnumerable<Error> errors, IEnumerable<Warning> warnings, string ID) : base(errors, warnings, ID)
         {
             Header = header;
         }
@@ -116,7 +116,7 @@ namespace HBP.Core.Data.Container
         /// Create a new BrainVision data container.
         /// </summary>
         /// <param name="header">Path to the BrainVision format header file</param>
-        public BrainVision(string header) : base()
+        public BrainVision(string header, IEnumerable<Error> errors, IEnumerable<Warning> warnings) : base(errors, warnings)
         {
             Header = header;
         }
@@ -135,13 +135,15 @@ namespace HBP.Core.Data.Container
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new BrainVision(Header, ID);
+            return new BrainVision(Header, Errors, Warnings, ID);
         }
         public override void Copy(object copy)
         {
-            BrainVision dataInfo = copy as BrainVision;
-            Header = dataInfo.Header;
-            ID = dataInfo.ID;
+            base.Copy(copy);
+            if (copy is BrainVision brainVision)
+            {
+                Header = brainVision.Header;
+            }
         }
         #endregion
 

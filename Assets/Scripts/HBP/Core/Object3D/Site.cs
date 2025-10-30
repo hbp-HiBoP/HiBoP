@@ -53,6 +53,13 @@ namespace HBP.Core.Object3D
                 return PatientID + "_" + Name;
             }
         }
+        public string FullName
+        {
+            get
+            {
+                return Patient.Name + "_" + Name;
+            }
+        }
         /// <summary>
         /// Format the name of the string with information from the patient it is from in order to display it properly
         /// </summary>
@@ -231,6 +238,36 @@ namespace HBP.Core.Object3D
             m_IsHighlighted = highlighted;
             m_Color = color;
             Labels = labels.ToList();
+            OnChangeState.Invoke();
+        }
+        public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted,  bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
+        {
+            if (importHighlighted && m_IsHighlighted != isHighlighted)
+                m_IsHighlighted = isHighlighted;
+
+            if (importBlacklisted && m_IsBlackListed != isBlacklisted)
+                m_IsBlackListed = isBlacklisted;
+
+            if (importColor && m_Color != color)
+                m_Color = color;
+
+            if (importLabels)
+            {
+                if (mergeLabels)
+                {
+                    foreach (var label in labels)
+                    {
+                        if (!Labels.Contains(label))
+                        {
+                            Labels.Add(label);
+                        }
+                    }
+                }
+                else
+                {
+                    Labels = labels.ToList();
+                }
+            }
             OnChangeState.Invoke();
         }
         #endregion

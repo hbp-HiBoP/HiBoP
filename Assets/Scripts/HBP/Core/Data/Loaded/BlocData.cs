@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -39,7 +38,7 @@ namespace HBP.Core.Data
                 endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
                 trials.Add(new Trial(data.ValuesByChannel, data.UnitByChannel, startIndex, MainSubBlocMainEventOccurences[i], endIndex, occurencesByEvent, bloc, data.Frequency));
             }
-            Trials = SortTrials(bloc, trials).ToArray();
+            Trials = SortTrials(bloc, trials);
 
             Frequency = data.Frequency;
         }
@@ -57,73 +56,48 @@ namespace HBP.Core.Data
         #endregion
 
         #region Private Methods
-        static IOrderedEnumerable<Trial> SortTrials(Bloc bloc, IEnumerable<Trial> trials)
+        static Trial[] SortTrials(Bloc bloc, IEnumerable<Trial> trials)
         {
-            IOrderedEnumerable<Trial> ordereredTrials = trials.OrderBy(t => t.IsValid);
-            string[] orders = bloc.Sort.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+            var orderedTrials = trials.Where(t => t.IsValid).ToList();
+            string[] orders = bloc.Sort.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
             for (int i = orders.Length - 1; i >= 0; i--)
             {
-                string order = orders[i];
-                string[] parts = order.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length >= 3)
+                string[] parts = orders[i].Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 3) continue;
+
+                string subBlocName = parts[0];
+                string eventName = string.Join('_', parts[1..^1]);
+                string command = parts[^1];
+
+                SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
+                if (subBloc == null) continue;
+
+                Event @event = subBloc.Events.FirstOrDefault(e => e.Name == eventName);
+                if (@event == null) continue;
+
+                var trialsFound = new List<Trial>();
+                var trialsNotFound = new List<Trial>();
+
+                foreach (var trial in orderedTrials)
                 {
-                    string subBlocName = parts[0];
-                    string eventName = string.Join('_', parts[1..^1]);
-                    string command = parts[^1];
-                    SubBloc subBloc = bloc.SubBlocs.FirstOrDefault(s => s.Name == subBlocName);
-                    if (subBloc != null)
-                    {
-                        Event @event = subBloc.Events.FirstOrDefault(e => e.Name == eventName);
-                        if (@event != null)
-                        {
-                            if (command == "LATENCY")
-                            {
-                                List<Trial> trialsFound = new List<Trial>();
-                                List<Trial> trialsNotFound = new List<Trial>();
-                                foreach (var trial in ordereredTrials)
-                                {
-                                    if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
-                                    {
-                                        trialsFound.Add(trial);
-                                    }
-                                    else
-                                    {
-                                        trialsNotFound.Add(trial);
-                                    }
-                                }
-                                ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().TimeFromMainEvent);
-                                foreach (var trial in trialsNotFound)
-                                {
-                                    ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
-                                }
-                            }
-                            else if (command == "CODE")
-                            {
-                                List<Trial> trialsFound = new List<Trial>();
-                                List<Trial> trialsNotFound = new List<Trial>();
-                                foreach (var trial in ordereredTrials)
-                                {
-                                    if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
-                                    {
-                                        trialsFound.Add(trial);
-                                    }
-                                    else
-                                    {
-                                        trialsNotFound.Add(trial);
-                                    }
-                                }
-                                ordereredTrials = trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().Code);
-                                foreach (var trial in trialsNotFound)
-                                {
-                                    ordereredTrials = ordereredTrials.Append(trial).OrderBy(a => 1); // Trick to convert IEnumerable to IOrderedEnumerable
-                                }
-                            }
-                        }
-                    }
+                    if (trial.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].IsFound)
+                        trialsFound.Add(trial);
+                    else
+                        trialsNotFound.Add(trial);
                 }
+
+                orderedTrials = command switch
+                {
+                    "LATENCY" => trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().TimeFromMainEvent).ToList(),
+                    "CODE" => trialsFound.OrderBy(t => t.SubTrialBySubBloc[subBloc].InformationsByEvent[@event].Occurences.First().Code).ToList(),
+                    _ => trialsFound
+                };
+
+                orderedTrials.AddRange(trialsNotFound);
             }
-            return ordereredTrials;
+            return orderedTrials.ToArray();
         }
+
         #endregion
 
         #region Structs

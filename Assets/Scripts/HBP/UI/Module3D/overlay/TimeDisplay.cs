@@ -30,7 +30,7 @@ namespace HBP.UI.Module3D
 
             scene.OnUpdateGeneratorState.AddListener((value) =>
             {
-                if (column is Column3DDynamic)
+                if (column is Column3DDynamic or Column3DFMRI)
                 {
                     IsActive = value;
                 }
@@ -44,6 +44,16 @@ namespace HBP.UI.Module3D
                         dynamicColumn.Timeline.CurrentSubtimeline.GetLocalIndex(dynamicColumn.Timeline.CurrentIndex).ToString(),
                         dynamicColumn.Timeline.CurrentSubtimeline.GetLocalTime(dynamicColumn.Timeline.CurrentIndex).ToString("N2"),
                         dynamicColumn.Timeline.Unit);
+                });
+            }
+            else if (column is Column3DFMRI fmriColumn)
+            {
+                fmriColumn.OnUpdateCurrentTimelineID.AddListener(() =>
+                {
+                    m_Text.text = string.Format("{0} ({1}{2})",
+                        fmriColumn.Timeline.CurrentSubtimeline.GetLocalIndex(fmriColumn.Timeline.CurrentIndex).ToString(),
+                        fmriColumn.Timeline.CurrentSubtimeline.GetLocalTime(fmriColumn.Timeline.CurrentIndex).ToString("N2"),
+                        fmriColumn.Timeline.Unit);
                 });
             }
             else

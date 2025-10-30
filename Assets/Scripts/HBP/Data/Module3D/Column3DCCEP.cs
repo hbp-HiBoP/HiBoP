@@ -6,7 +6,7 @@ using UnityEngine.Events;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
-using HBP.Core.Tools;
+using HBP.Data.Preferences;
 
 namespace HBP.Data.Module3D
 {
@@ -311,7 +311,7 @@ namespace HBP.Data.Module3D
                 site.State.IsMasked = true;
             }
 
-            StringTag marsAtlasTag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
+            StringTag marsAtlasTag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
             if (marsAtlasTag == null)
                 throw new System.Exception("MarsAtlas tag has not been found !");
 
@@ -508,7 +508,7 @@ namespace HBP.Data.Module3D
                     siteType = SiteType.Normal;
                 }
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.SiteSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }

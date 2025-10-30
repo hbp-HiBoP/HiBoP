@@ -29,6 +29,8 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
 
                 m_StartWindowText.text = value.Window.Start.ToString() + "ms";
@@ -36,6 +38,8 @@ namespace HBP.UI.Main
 
                 m_OrderText.text = value.Order.ToString();
                 m_TypeText.text = (value.GetType().GetCustomAttributes(typeof(DisplayNameAttribute), false)[0] as DisplayNameAttribute).DisplayName;
+
+                SetNotInteractable();
             }
         }
         #endregion

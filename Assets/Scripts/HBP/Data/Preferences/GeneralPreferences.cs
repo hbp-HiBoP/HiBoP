@@ -1,16 +1,18 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using System;
+using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Preferences
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class GeneralPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public ProjectPreferences Project { get; set; }
-        [DataMember] public ThemePreferences Theme { get; set; }
-        [DataMember] public LocationPreferences Location { get; set; }
-        [DataMember] public SystemPreferences System { get; set; }
+        [JsonProperty] public ProjectPreferences Project { get; set; }
+        [JsonProperty] public ThemePreferences Theme { get; set; }
+        [JsonProperty] public LocationPreferences Location { get; set; }
+        [JsonProperty] public SystemPreferences System { get; set; }
         #endregion
 
         #region Constructors
@@ -35,71 +37,72 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ProjectPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public string DefaultName
-        {
-            get
-            {
-                return Core.Data.ProjectPreferences.DefaultName;
-            }
-            set
-            {
-                Core.Data.ProjectPreferences.DefaultName = value;
-            }
-        }
-        [DataMember] public string DefaultLocation { get; set; }
-        [DataMember] public string DefaultPatientDatabase
-        {
-            get
-            {
-                return Core.Data.ProjectPreferences.DefaultPatientDatabase;
-            }
-            set
-            {
-                Core.Data.ProjectPreferences.DefaultPatientDatabase = value;
-            }
-        }
-        [DataMember] public string DefaultLocalizerDatabase
-        {
-            get
-            {
-                return Core.Data.ProjectPreferences.DefaultLocalizerDatabase;
-            }
-            set
-            {
-                Core.Data.ProjectPreferences.DefaultLocalizerDatabase = value;
-            }
-        }
-        [DataMember] public string DefaultExportLocation { get; set; }
+        [JsonProperty] public string DefaultName { get; set; }
+        [JsonProperty] public string DefaultLocation { get; set; }
+        [JsonProperty] public string DefaultExportLocation { get; set; }
         #endregion
 
         #region Constructors
-        public ProjectPreferences() : this("New Project","","","","")
+        public ProjectPreferences() : this("New Project", "", "")
         {
 
         }
-        public ProjectPreferences(string defaultName, string defaultLocation, string defaultPatientDatabase, string defaultLocalizerDatabase, string defaultExportLocation)
+        public ProjectPreferences(string defaultName, string defaultLocation, string defaultExportLocation)
         {
             DefaultName = defaultName;
-            DefaultLocation = defaultLocation;
-            DefaultPatientDatabase = defaultPatientDatabase;
-            DefaultLocalizerDatabase = defaultLocalizerDatabase;
-            DefaultExportLocation = defaultExportLocation;
+
+            if (string.IsNullOrEmpty(defaultLocation))
+                DefaultLocation = GetDefaultPath("Projects");
+            else
+                DefaultLocation = defaultLocation;
+
+            if (string.IsNullOrEmpty(defaultExportLocation))
+                DefaultExportLocation = GetDefaultPath("Exports");
+            else
+                DefaultExportLocation = defaultExportLocation;
+
+            Directory.CreateDirectory(DefaultLocation);
+            Directory.CreateDirectory(DefaultExportLocation);
         }
+        #endregion
+
+        #region Private Methods
+        private static string GetDefaultPath(string subfolder)
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                string home = Environment.GetEnvironmentVariable("HOME") ?? "";
+
+                string nextcloudPath = Path.Combine(home, "nextcloud");
+                if (Directory.Exists(nextcloudPath))
+                    return Path.Combine(nextcloudPath, "HiBoP", subfolder);
+            }
+
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            if (string.IsNullOrEmpty(documentsPath))
+            {
+                string home = Environment.GetEnvironmentVariable("HOME") ?? "";
+                documentsPath = Path.Combine(home, "Documents");
+            }
+
+            return Path.Combine(documentsPath, "HiBoP", subfolder);
+        }
+
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new ProjectPreferences(DefaultName, DefaultLocation, DefaultPatientDatabase, DefaultLocalizerDatabase, DefaultExportLocation);
+            return new ProjectPreferences(DefaultName, DefaultLocation, DefaultExportLocation);
         }
         #endregion
     }
 
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ThemePreferences : ICloneable
     {
         #region Public Methods
@@ -109,7 +112,8 @@ namespace HBP.Data.Preferences
         }
         #endregion
     }
-    [DataContract]
+
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class LocationPreferences : ICloneable
     {
         #region Public Methods
@@ -119,14 +123,15 @@ namespace HBP.Data.Preferences
         }
         #endregion
     }
-    [DataContract]
+
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class SystemPreferences : ICloneable
     {
         #region Properties
-        [DataMember] public bool MultiThreading { get; set; }
-        [DataMember] public int MemoryCacheLimit { get; set; }
-        [DataMember] public int SleepModeAfter { get; set; }
-        [DataMember] public int TargetFramerate { get; set; }
+        [JsonProperty] public bool MultiThreading { get; set; }
+        [JsonProperty] public int MemoryCacheLimit { get; set; }
+        [JsonProperty] public int SleepModeAfter { get; set; }
+        [JsonProperty] public int TargetFramerate { get; set; }
         #endregion
 
         #region Constructors

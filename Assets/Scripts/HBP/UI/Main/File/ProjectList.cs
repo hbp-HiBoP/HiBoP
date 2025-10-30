@@ -11,13 +11,12 @@ namespace HBP.UI.Main
     public class ProjectList : ActionableList<Core.Data.ProjectInfo>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Protocols, DescendingProtocols, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }
+        enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_PatientSortingDisplayer;
         [SerializeField] SortingDisplayer m_GroupSortingDisplayer;
-        [SerializeField] SortingDisplayer m_ProtocolSortingDisplayer;
         [SerializeField] SortingDisplayer m_DatasetSortingDisplayer;
         [SerializeField] SortingDisplayer m_VisualizationSortingDisplayer;
         #endregion
@@ -32,19 +31,18 @@ namespace HBP.UI.Main
             switch (sorting)
             {
                 case Sorting.Ascending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Settings.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.Name;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
                     break;
                 case Sorting.Descending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Settings.Name).ToList();
+                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Name).ToList();
                     m_OrderBy = OrderBy.DescendingName;
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
@@ -82,7 +80,6 @@ namespace HBP.UI.Main
             }
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
@@ -122,7 +119,6 @@ namespace HBP.UI.Main
             }
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
@@ -137,50 +133,6 @@ namespace HBP.UI.Main
                 case OrderBy.DescendingGroups: SortByGroups(Sorting.Ascending); break;
                 default: SortByGroups(Sorting.Descending); break;
             }
-        }
-
-        /// <summary>
-        /// Sort by protocols.
-        /// </summary>
-        /// <param name="sorting">Sorting</param>
-        public void SortByProtocols(Sorting sorting)
-        {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Protocols).ToList();
-                    m_OrderBy = OrderBy.Protocols;
-                    m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Protocols).ToList();
-                    m_OrderBy = OrderBy.DescendingProtocols;
-                    m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            Refresh();
-        }
-        /// <summary>
-        /// Sort by protocols.
-        /// </summary>
-        public void SortByProtocols()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingProtocols: SortByProtocols(Sorting.Ascending); break;
-                default: SortByProtocols(Sorting.Descending); break;
-            }
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            Refresh();
         }
 
         /// <summary>
@@ -205,7 +157,6 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
@@ -244,7 +195,6 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
@@ -268,7 +218,6 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;

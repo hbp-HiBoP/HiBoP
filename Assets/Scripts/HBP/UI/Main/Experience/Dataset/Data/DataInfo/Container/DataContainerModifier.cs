@@ -6,6 +6,7 @@ using HBP.Core.Data.Container;
 using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
+using HBP.Core.Errors;
 
 namespace HBP.UI.Main
 {
@@ -188,13 +189,13 @@ namespace HBP.UI.Main
         #region Protected Methods
         protected override void SetFields(DataContainer objectToDisplay)
         {
-            m_ElanDataContainerTemp = new Elan("", "", "", objectToDisplay.ID);
-            m_EDFDataContainerTemp = new EDF("", objectToDisplay.ID);
-            m_BrainVisionDataContainerTemp = new BrainVision("", objectToDisplay.ID);
-            m_MicromedDataContainerTemp = new Micromed("", objectToDisplay.ID);
-            m_NiftiDataContainerTemp = new Nifti("", objectToDisplay.ID);
-            m_FIFDataContainerTemp = new FIF("", objectToDisplay.ID);
-            m_CSVDataContainerTemp = new CSV("", objectToDisplay.ID);
+            m_ElanDataContainerTemp = new Elan("", "", "", new Error[0], new Warning[0], objectToDisplay.ID);
+            m_EDFDataContainerTemp = new EDF("", new Error[0], new Warning[0], objectToDisplay.ID);
+            m_BrainVisionDataContainerTemp = new BrainVision("", new Error[0], new Warning[0], objectToDisplay.ID);
+            m_MicromedDataContainerTemp = new Micromed("", new Error[0], new Warning[0], objectToDisplay.ID);
+            m_NiftiDataContainerTemp = new Nifti("", new Error[0], new Warning[0], objectToDisplay.ID);
+            m_FIFDataContainerTemp = new FIF("", new Error[0], new Warning[0], objectToDisplay.ID);
+            m_CSVDataContainerTemp = new CSV("", new Error[0], new Warning[0], objectToDisplay.ID);
 
             if (objectToDisplay is Elan)
             {

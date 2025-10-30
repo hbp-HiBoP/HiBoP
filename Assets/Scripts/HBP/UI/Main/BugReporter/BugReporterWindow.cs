@@ -20,16 +20,18 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
             try
             {
                 if (string.IsNullOrEmpty(m_DescriptionInputField.text))
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to send the bug report without any description ?",
-                        () => { SendMail(); base.OK(); }, "Send",
-                        () => { }, "Cancel"
-                        );
+                    int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to send the bug report without any description ?", "Send", "Cancel");
+                    if (result == 0)
+                    {
+                        SendMail();
+                        base.OK();
+                    }
                 }
                 else
                 {
@@ -42,11 +44,11 @@ namespace HBP.UI.Main
                 Debug.LogException(e);
                 if (e is SmtpException)
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, "The report could not be sent", "Please check your internet connection and try again.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "The report could not be sent", "Please check your internet connection and try again.").Forget();
                 }
                 else
                 {
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Error, e.Source, e.Message);
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, e.Source, e.Message).Forget();
                 }
                 base.OK();
             }
@@ -54,6 +56,11 @@ namespace HBP.UI.Main
         #endregion
 
         #region Private Methods
+        private void Start()
+        {
+            transform.parent = transform.parent.parent;
+            transform.SetAsLastSibling();
+        }
         private void SendMail()
         {
             using (SmtpClient smtpServer = new SmtpClient("smtp-mail.outlook.com")
@@ -131,7 +138,7 @@ namespace HBP.UI.Main
                         smtpServer.Send(mail);
                     }
 
-                    DialogBoxManager.Open(DialogBoxManager.AlertType.Informational, "Bug report successfully sent.", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.");
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Bug report successfully sent.", "The issue will be adressed as soon as possible. If you've entered your contact information, we may contact you for further information concerning the bug you encountered.").Forget();
                 }
             }
         }

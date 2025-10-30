@@ -1,67 +1,45 @@
-﻿using UnityEngine;
-using UnityEngine.Events;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Enums;
+using HBP.Core.Tools;
+using UnityEngine;
 
 namespace HBP.UI.Tools
 {
-    public class DialogBoxManager : MonoBehaviour
+    public class DialogBoxManager : Manager<DialogBoxManager>
     {
         #region Properties
-        private static DialogBoxManager m_Instance;
-
-        [SerializeField] private GameObject m_InformationAlertPrefab;
-        [SerializeField] private GameObject m_WarningAlertPrefab;
-        [SerializeField] private GameObject m_ErrorAlertPrefab;
-        [SerializeField] private GameObject m_WarningAlertMultiOptionsPrefab;
+        [SerializeField] private GameObject m_DialogBoxPrefab;
+        [SerializeField] private GameObject m_ScrollableDialogBoxPrefab;
         [SerializeField] private Canvas m_Canvas;
-
-        public enum AlertType { Informational, Warning, Error, WarningMultiOptions }
-        #endregion
-
-        #region Private Methods
-        private void Awake()
-        {
-            if (m_Instance == null)
-            {
-                m_Instance = this;
-            }
-            else
-            {
-                Destroy(this);
-            }
-        }
         #endregion
 
         #region Public Methods
-        public static void Open(AlertType type, string title, string message, UnityAction button1action = null, string button1name = "", UnityAction button2action = null, string button2name = "")
+        public static async UniTaskVoid Open(DialogBoxType type, string title, string message, params string[] buttons)
         {
-            GameObject dialogBox;
-            switch (type)
-            {
-                case AlertType.Informational:
-                    dialogBox = Instantiate(m_Instance.m_InformationAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                case AlertType.Warning:
-                    dialogBox = Instantiate(m_Instance.m_WarningAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                case AlertType.Error:
-                    dialogBox = Instantiate(m_Instance.m_ErrorAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                case AlertType.WarningMultiOptions:
-                    dialogBox = Instantiate(m_Instance.m_WarningAlertMultiOptionsPrefab, m_Instance.m_Canvas.transform);
-                    break;
-                default:
-                    dialogBox = Instantiate(m_Instance.m_InformationAlertPrefab, m_Instance.m_Canvas.transform);
-                    break;
-            }
+            await OpenAsync(type, title, message, buttons);
+        }
+        public static async UniTaskVoid OpenScrollable(DialogBoxType type, string title, string message, params string[] buttons)
+        {
+            await OpenScrollableAsync(type, title, message, buttons);
+        }
+        public static async UniTask<int> OpenAsync(DialogBoxType type, string title, string message, params string[] buttons)
+        {
+            return await OpenAsync(m_Instance.m_DialogBoxPrefab, type, title, message, buttons);
+        }
+        public static async UniTask<int> OpenScrollableAsync(DialogBoxType type, string title, string message, params string[] buttons)
+        {
+            return await OpenAsync(m_Instance.m_ScrollableDialogBoxPrefab, type, title, message, buttons);
+        }
+        #endregion
+
+        #region Private Methods
+        private static async UniTask<int> OpenAsync(GameObject prefab, DialogBoxType type, string title, string message, params string[] buttons)
+        {
+            await UniTask.SwitchToMainThread();
+            GameObject dialogBox = Instantiate(prefab, m_Instance.m_Canvas.transform);
             dialogBox.transform.SetAsLastSibling();
-            if (type == AlertType.WarningMultiOptions)
-            {
-                dialogBox.GetComponent<MultiOptionsDialogBox>().Open(title, message, button1action, button1name, button2action, button2name);
-            }
-            else
-            {
-                dialogBox.GetComponent<DialogBox>().Open(title, message);
-            }
+            if (buttons.Length == 0) buttons = new string[] { "OK" };
+            return await dialogBox.GetComponent<DialogBox>().OpenAsync(type, title, message, buttons);
         }
         #endregion
     }

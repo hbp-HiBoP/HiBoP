@@ -10,6 +10,7 @@ namespace HBP.Core.Object3D
         public static MNIObjects MNI { get; set; } = new MNIObjects();
         public static DiFuMoObjects DiFuMo { get; set; } = new DiFuMoObjects();
         public static IBCObjects IBC { get; set; } = new IBCObjects();
+        public static LocalizersObjects Localizers { get; set; } = new LocalizersObjects();
         #endregion
 
         #region Public Methods
@@ -18,8 +19,41 @@ namespace HBP.Core.Object3D
             MNI.Clean();
             IBC.Clean();
             DiFuMo.Clean();
+            Localizers.Clean();
             MarsAtlas.Dispose();
             JuBrain.Dispose();
+        }
+        public static void UnloadMarsAtlas()
+        {
+            if (MarsAtlas.Loaded)
+            {
+                MarsAtlas.Dispose();
+                MarsAtlas = new MarsAtlas();
+            }
+        }
+        public static void UnloadJuBrain()
+        {
+            if (JuBrain.Loaded)
+            {
+                JuBrain.Dispose();
+                JuBrain = new JuBrainAtlas();
+            }
+        }
+        public static void UnloadIBC()
+        {
+            if (IBC.Loaded)
+            {
+                IBC.Clean();
+                IBC = new IBCObjects();
+            }
+        }
+        public static void UnloadDiFuMo(string atlas)
+        {
+            DiFuMo.Unload(atlas);
+        }
+        public static void UnloadLocalizer(string protocolName)
+        {
+            Localizers.Unload(protocolName);
         }
         #endregion
     }

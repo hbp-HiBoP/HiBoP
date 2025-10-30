@@ -1,16 +1,17 @@
-﻿using System.Runtime.Serialization;
-using HBP.Core.Interfaces;
+﻿using HBP.Core.Interfaces;
+using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BaseTag : BaseData, INameable
     {
         #region Properties
         /// <summary>
         /// BaseTag Name.
         /// </summary>
-        [DataMember(Order = 0)] public string Name { get; set; }
+        [JsonProperty(Order = 0)] public string Name { get; set; }
         #endregion
 
         #region Constructors
@@ -47,6 +48,13 @@ namespace HBP.Core.Data
             {
                 Name = tag.Name;
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public virtual BaseTagValue CreateValue(string value)
+        {
+            return new BaseTagValue();
         }
         #endregion
     }

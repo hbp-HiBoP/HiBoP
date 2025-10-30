@@ -1,6 +1,7 @@
-﻿using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+﻿using HBP.Data.Preferences;
+using Newtonsoft.Json;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -23,17 +24,17 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BaseTagValue : BaseData
     {
         #region Properties
-        [DataMember(Name = "Tag")] protected string m_TagID;
+        [JsonProperty("Tag")] protected string m_TagID;
         /// <summary>
         /// Tag associated with the value.
         /// </summary>
         public BaseTag Tag { get; set; }
 
-        [DataMember(Name = "Value")] protected object m_Value;
+        [JsonProperty("Value")] protected object m_Value;
         /// <summary>
         /// Value associated with the tag.
         /// </summary>
@@ -123,7 +124,7 @@ namespace HBP.Core.Data
         {
             base.OnDeserialized();
             Value = Value;
-            Tag = ApplicationState.ProjectLoaded.Preferences.Tags.FirstOrDefault(t => t.ID == m_TagID);
+            Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
         }
         protected override void OnSerializing()
         {

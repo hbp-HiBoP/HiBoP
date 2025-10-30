@@ -20,7 +20,7 @@ namespace HBP.UI.Toolbar
         #region Private Methods
         private void Awake()
         {
-            m_ToolbarMenu = FindObjectOfType<ToolbarMenu>();
+            m_ToolbarMenu = FindFirstObjectByType<ToolbarMenu>();
         }
         /// <summary>
         /// Link elements to the toolbar

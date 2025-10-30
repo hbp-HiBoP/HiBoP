@@ -1,9 +1,10 @@
 using UnityEngine;
 using HBP.Data.Preferences;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Tools
 {
-    public class PerformanceManager : MonoBehaviour
+    public class PerformanceManager : Manager<PerformanceManager>
     {
         #region Properties
         [SerializeField] private GameObject m_DarkImage;
@@ -18,14 +19,14 @@ namespace HBP.Data.Tools
             {
                 m_TimeSinceLastAction = 0;
             }
-            if (m_TimeSinceLastAction > PreferencesManager.UserPreferences.General.System.SleepModeAfter * 60)
+            if (m_TimeSinceLastAction > PersistentDataManager.UserPreferences.General.System.SleepModeAfter * 60)
             {
                 Application.targetFrameRate = 1;
                 m_DarkImage.SetActive(true);
             }
             else
             {
-                Application.targetFrameRate = PreferencesManager.UserPreferences.General.System.TargetFramerate;
+                Application.targetFrameRate = PersistentDataManager.UserPreferences.General.System.TargetFramerate;
                 m_DarkImage.SetActive(false);
             }
         }

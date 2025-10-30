@@ -31,26 +31,26 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
             if (new FileInfo(Path.Combine(m_LocationFolderSelector.Folder, string.Format("{0}.hibop", m_NameInputField.text))).Exists)
             {
-                DialogBoxManager.Open(DialogBoxManager.AlertType.WarningMultiOptions, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), () =>
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), "OK", "Cancel");
+                if (result == 0)
                 {
-                    var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
-                    preferences.Name = m_NameInputField.text;
-                    ApplicationState.ProjectLoaded.Preferences = preferences;
-                    FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
+                    var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
+                    ApplicationState.LoadedProject.Name = m_NameInputField.text;
+                    ApplicationState.LoadedProject.Preferences = preferences;
+                    ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder).Forget();
                     base.OK();
-                },
-                "OK");
+                }
             }
             else
             {
-                var preferences = ApplicationState.ProjectLoaded.Preferences.Clone() as ProjectPreferences;
-                preferences.Name = m_NameInputField.text;
-                ApplicationState.ProjectLoaded.Preferences = preferences;
-                FindObjectOfType<ProjectLoaderSaver>().Save(m_LocationFolderSelector.Folder);
+                var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
+                ApplicationState.LoadedProject.Name = m_NameInputField.text;
+                ApplicationState.LoadedProject.Preferences = preferences;
+                ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder).Forget();
                 base.OK();
             }
         }
@@ -59,8 +59,8 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void Initialize()
         {
-            m_NameInputField.text = ApplicationState.ProjectLoaded.Preferences.Name;
-            m_LocationFolderSelector.Folder = ApplicationState.ProjectLoadedLocation;
+            m_NameInputField.text = ApplicationState.LoadedProject.Name;
+            m_LocationFolderSelector.Folder = ApplicationState.LoadedProjectLocation;
         }
         #endregion
     }

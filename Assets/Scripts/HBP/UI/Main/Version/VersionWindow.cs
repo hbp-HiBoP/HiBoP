@@ -1,4 +1,5 @@
 ﻿using HBP.Core.Data;
+using HBP.Core.Tools;
 using System;
 using System.Net;
 using UnityEngine;
@@ -24,7 +25,7 @@ namespace HBP.UI.Main
                 {
                     wc.Headers.Add("User-Agent: Other");
                     string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
-                    var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionInfo>(jsonString);
+                    var versionInfo = ClassLoaderSaver.LoadFromJsonString<GithubVersionInfo>(jsonString);
                     m_LatestText.text = versionInfo.VersionNumber;
                     m_LatestDescription.text = versionInfo.Description;
                     m_GithubButton.onClick.AddListener(() => Application.OpenURL(versionInfo.URL));

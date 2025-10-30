@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using HBP.Core.Interfaces;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -28,10 +29,24 @@ namespace HBP.UI.Tools.Lists
         #endregion
 
         #region Public Methods
-        public override bool UpdateObject(T objectToUpdate)
+        public override void UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
             m_Objects[index] = objectToUpdate;
+            int displayedIndex = m_DisplayedObjects.FindIndex(o => o.Equals(objectToUpdate));
+            m_DisplayedObjects[displayedIndex] = objectToUpdate;
+
+            T oldKey = m_SelectedStateByObject.Keys.FirstOrDefault(k => k.Equals(objectToUpdate) && !ReferenceEquals(k, objectToUpdate));  
+            if (oldKey != null)
+            {
+                bool selected = m_SelectedStateByObject[oldKey];
+                m_SelectedStateByObject.Remove(oldKey);
+                m_SelectedStateByObject[objectToUpdate] = selected;
+
+                bool selectable = m_SelectableStateByObject[oldKey];
+                m_SelectableStateByObject.Remove(oldKey);
+                m_SelectableStateByObject[objectToUpdate] = selectable;
+            }
 
             if (GetItemFromObject(objectToUpdate, out Item<T> item))
             {
@@ -40,13 +55,12 @@ namespace HBP.UI.Tools.Lists
                 actionnableItem.Actionable = Actionable;
                 actionnableItem.OnChangeSelected.RemoveAllListeners();
                 actionnableItem.ChangeSelectionValue(m_SelectedStateByObject[objectToUpdate]);
+                actionnableItem.Interactable = m_SelectableStateByObject[objectToUpdate];
                 actionnableItem.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(objectToUpdate, selected));
                 actionnableItem.OnAction.RemoveAllListeners();
                 actionnableItem.OnAction.AddListener((action) => OnActionHandler(action, objectToUpdate));
                 OnUpdateObject.Invoke(objectToUpdate);
-                return true;
             }
-            return false;
         }
         public override void Refresh()
         {
@@ -60,6 +74,7 @@ namespace HBP.UI.Tools.Lists
                 item.Actionable = Actionable;
                 item.OnChangeSelected.RemoveAllListeners();
                 item.ChangeSelectionValue(m_SelectedStateByObject[obj]);
+                item.Interactable = m_SelectableStateByObject[obj];
                 item.OnChangeSelected.AddListener((selected) => OnChangeSelectionState(obj, selected));
                 item.OnAction.RemoveAllListeners();
                 item.OnAction.AddListener((actionID) => OnAction.Invoke(obj, actionID));

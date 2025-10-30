@@ -1,6 +1,9 @@
-﻿using HBP.Core.Tools;
+﻿using HBP.Core.Data;
+using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace HBP.Dev
@@ -17,19 +20,23 @@ namespace HBP.Dev
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneOSX);
         }
 
-        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target)
+        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, bool connectProfiler = false)
         {
             string os = "";
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
+                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
+                    UnityEditor.WindowsStandalone.UserBuildSettings.architecture = OSArchitecture.x64;
                     os = "win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
+                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
                     os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
-                    UnityEditor.OSXStandalone.UserBuildSettings.architecture = UnityEditor.OSXStandalone.MacOSArchitecture.ARM64;
+                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
+                    UnityEditor.OSXStandalone.UserBuildSettings.architecture = OSArchitecture.ARM64;
                     os = "macos64";
                     break;
             }
@@ -52,6 +59,10 @@ namespace HBP.Dev
             }
 
             BuildOptions buildOptions = development ? BuildOptions.Development : BuildOptions.None;
+            if (connectProfiler)
+            {
+                buildOptions |= BuildOptions.ConnectWithProfiler;
+            }
             BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions
             {
                 locationPathName = buildDirectory + hibopName,
@@ -75,11 +86,24 @@ namespace HBP.Dev
                 file.Delete();
             }
 
-            if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.OSXStandalone.MacOSArchitecture.ARM64)
+            DirectoryInfo doNotShipDirectory = new DirectoryInfo(Path.Join(dataDirectory, "HiBoP_BackUpThisFolder_ButDontShipItWithYourGame"));
+            if (doNotShipDirectory.Exists)
+            {
+                doNotShipDirectory.Delete(true);
+            }
+
+            // Remove Localizer atlas if it exists (we do not ship it with the build)
+            DirectoryInfo localizerDirectory = new DirectoryInfo(Path.Combine(dataDirectory, m_DataBuild, "Atlases", "Localizers"));
+            if (localizerDirectory.Exists)
+            {
+                localizerDirectory.Delete(true);
+            }
+
+            if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.Build.OSArchitecture.ARM64)
             {
                 string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
                 DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
-                DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64"));
+                DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64")); 
                 arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
                 arm64PluginsDirectory.Delete(true);
             }
@@ -95,10 +119,10 @@ namespace HBP.Dev
             }
 
             FileInfo readme = new FileInfo(projectPath + "README.md");
-            readme.CopyTo(buildDirectory + readme.Name);
+            readme.CopyTo(buildDirectory + readme.Name, true);
 
             FileInfo documentation = new FileInfo(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
-            documentation.CopyTo(buildDirectory + documentation.Name);
+            documentation.CopyTo(buildDirectory + documentation.Name, true);
         }
     }
 
@@ -106,6 +130,7 @@ namespace HBP.Dev
     {
         private string m_BuildDirectory = @"C:\HBP\Builds\HiBoP";
         private bool m_DevelopmentBuild = false;
+        private bool m_ConnectProfiler = false;
         private bool m_Windows = true;
         private bool m_Linux = true;
         private bool m_MacOSX = true;
@@ -128,29 +153,43 @@ namespace HBP.Dev
             }
             GUILayout.EndHorizontal();
             m_DevelopmentBuild = GUILayout.Toggle(m_DevelopmentBuild, "Development Build");
+            m_ConnectProfiler = GUILayout.Toggle(m_ConnectProfiler, "Connect Profiler");
             m_Windows = GUILayout.Toggle(m_Windows, "Windows");
             m_Linux = GUILayout.Toggle(m_Linux, "Linux");
             m_MacOSX = GUILayout.Toggle(m_MacOSX, "MacOSX");
             if (GUILayout.Button("Build!"))
             {
+                WriteBuildInfo();
                 if (m_BuildDirectory[m_BuildDirectory.Length - 1] != '/' && m_BuildDirectory[m_BuildDirectory.Length - 1] != '\\')
                 {
                     m_BuildDirectory += '/';
                 }
                 if (m_Windows)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64, m_ConnectProfiler);
                 }
                 if (m_Linux)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneLinux64);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneLinux64, m_ConnectProfiler);
                 }
                 if (m_MacOSX)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX, m_ConnectProfiler);
                 }
                 Close();
             }
+        }
+
+        void WriteBuildInfo()
+        {
+            BuildInfo buildInfo = new BuildInfo()
+            {
+                UnityVersion = Application.unityVersion,
+                Version = Application.version,
+                BuildDate = System.DateTime.Now
+            };
+            File.WriteAllText("Assets/Resources/BuildInfo.json", JsonConvert.SerializeObject(buildInfo));
+            AssetDatabase.Refresh();
         }
     }
 }

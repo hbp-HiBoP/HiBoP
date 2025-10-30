@@ -1,16 +1,17 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using System;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Tools
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct TimeWindow
     {
         #region Properties
-        [DataMember] public int Start { get; set; }
-        [DataMember] public int End { get; set; }
-        [IgnoreDataMember] public int Length
+        [JsonProperty] public int Start { get; set; }
+        [JsonProperty] public int End { get; set; }
+        [JsonIgnore] public int Length
         {
             get
             {

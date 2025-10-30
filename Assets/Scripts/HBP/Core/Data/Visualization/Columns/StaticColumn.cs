@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.Serialization;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract, DisplayName("Static")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Static")]
     public class StaticColumn : Column
     {
         #region Properties
-        [DataMember(Name = "Dataset")] string datasetID;
+        [JsonProperty("Dataset")] string datasetID;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
@@ -18,7 +19,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(p => p.ID == datasetID);
+                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
             }
             set
             {
@@ -36,14 +37,14 @@ namespace HBP.Core.Data
         /// <summary>
         /// Data name of the column.
         /// </summary>
-        [DataMember] public string DataName { get; set; }
+        [JsonProperty] public string DataName { get; set; }
 
-        [DataMember] public StaticConfiguration StaticConfiguration { get; set; }
+        [JsonProperty] public StaticConfiguration StaticConfiguration { get; set; }
         
         /// <summary>
         /// Data of the column.
         /// </summary>
-        [IgnoreDataMember] public Processed.StaticData Data { get; set; } = new Processed.StaticData();
+        [JsonIgnore] public Processed.StaticData Data { get; set; } = new Processed.StaticData();
         #endregion
 
         #region Constructors
@@ -58,6 +59,22 @@ namespace HBP.Core.Data
             StaticConfiguration = staticConfiguration;
             Dataset = dataset;
             DataName = dataName;
+        }
+        public StaticColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
+        {
+            foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
+            {
+                StaticDataInfo[] staticDataInfos = dataset.GetStaticDataInfos();
+                foreach (var dataName in dataset.Data.Select(data => data.Name).Distinct())
+                {
+                    if (patients.All((patient) => staticDataInfos.Any((data) => (data.Patient == patient && data.Name == dataName))))
+                    {
+                        Dataset = dataset;
+                        DataName = dataName;
+                        return;
+                    }
+                }
+            }
         }
         public StaticColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, new StaticConfiguration())
         {
@@ -88,7 +105,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if(copy is StaticColumn staticColumn)
             {
-                StaticConfiguration = staticColumn.StaticConfiguration;
+                StaticConfiguration.Copy(staticColumn.StaticConfiguration);
                 Dataset = staticColumn.Dataset;
                 DataName = staticColumn.DataName;
             }

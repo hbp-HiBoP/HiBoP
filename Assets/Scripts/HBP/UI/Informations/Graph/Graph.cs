@@ -205,7 +205,6 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-
         [SerializeField] private bool m_DisplayCurrentTime;
         public bool DisplayCurrentTime
         {
@@ -217,7 +216,7 @@ namespace HBP.UI.Informations.Graphs
             {
                 if (SetPropertyUtility.SetStruct(ref m_DisplayCurrentTime, value))
                 {
-                    SetCurrentTime();
+                    SetDisplayCurrentTime();
                 }
             }
         }

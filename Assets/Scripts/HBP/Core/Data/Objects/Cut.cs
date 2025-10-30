@@ -1,16 +1,17 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [DataContract]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct Cut
     {
         #region Properties
-        [DataMember] public SerializableVector3 Normal { get; set; }
-        [DataMember] public Enums.CutOrientation Orientation { get; set; }
-        [DataMember] public bool Flip { get; set; }
-        [DataMember] public float Position { get; set; }
+        [JsonProperty] public SerializableVector3 Normal { get; set; }
+        [JsonProperty] public Enums.CutOrientation Orientation { get; set; }
+        [JsonProperty] public bool Flip { get; set; }
+        [JsonProperty] public float Position { get; set; }
         #endregion
 
         #region Constructors

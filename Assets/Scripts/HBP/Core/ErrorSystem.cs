@@ -1,10 +1,16 @@
-﻿namespace HBP.Core.Errors
+﻿using HBP.Core.Data;
+using Newtonsoft.Json;
+using UnityEngine.Scripting;
+
+namespace HBP.Core.Errors
 {
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class Error
     {
         #region Properties
         public virtual string Title { get; }
-        public virtual string Message { get; }
+        [JsonProperty] public virtual string Message { get; }
+        public string FormatedMessage => !string.IsNullOrEmpty(Message) ? $"• {Title} ({Message})" : $"• {Title}";
         #endregion
 
         #region Constructors
@@ -29,14 +35,14 @@
     /// <summary>
     /// Error raised when a required field is empty.
     /// </summary>
-    public class RequieredFieldEmptyError : Error
+    public class RequiredFieldEmptyError : Error
     {
         #region Constructors
-        public RequieredFieldEmptyError() : this("")
+        public RequiredFieldEmptyError() : this("")
         {
 
         }
-        public RequieredFieldEmptyError(string informations) : base("One of the required fields is empty", informations)
+        public RequiredFieldEmptyError(string informations) : base("One of the required fields is empty", informations)
         {
 
         }
@@ -151,11 +157,13 @@
         #endregion
     }
 
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class Warning
     {
         #region Properties
         public virtual string Title { get; }
-        public virtual string Message { get; }
+        [JsonProperty] public virtual string Message { get; }
+        public string FormatedMessage => !string.IsNullOrEmpty(Message) ? $"• {Title} ({Message})" : $"• {Title}";
         #endregion
 
         #region Constructors

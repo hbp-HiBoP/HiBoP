@@ -56,10 +56,10 @@ namespace HBP.UI.Main
         /// <summary>
         /// Save the modifications.
         /// </summary>
-        public override  void OK()
+        public override void OK()
         {
             base.OK();
-            PreferencesManager.UserPreferences.Save();
+            PersistentDataManager.UserPreferences.Save();
         }
         #endregion
 

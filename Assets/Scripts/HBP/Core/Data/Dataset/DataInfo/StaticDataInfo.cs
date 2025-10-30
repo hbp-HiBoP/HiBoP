@@ -1,12 +1,14 @@
-﻿using System;
+﻿using HBP.Core.Errors;
+using HBP.Core.Tools;
+using HBP.Data.Database;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
-using HBP.Core.Errors;
-using HBP.Core.Tools;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -53,33 +55,9 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [DataContract, DisplayName("Static")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Static")]
     public class StaticDataInfo : PatientDataInfo
     {
-        #region Properties
-        protected Error[] m_StaticErrors = new Error[0];
-        public override Error[] Errors
-        {
-            get
-            {
-                List<Error> errors = new List<Error>(base.Errors);
-                errors.AddRange(m_StaticErrors);
-                return errors.Distinct().ToArray();
-            }
-        }
-
-        protected Warning[] m_StaticWarnings = new Warning[0];
-        public override Warning[] Warnings
-        {
-            get
-            {
-                List<Warning> warnings = new List<Warning>(base.Warnings);
-                warnings.AddRange(m_StaticWarnings);
-                return warnings.Distinct().ToArray();
-            }
-        }
-        #endregion
-
         #region Constructors
         /// <summary>
         /// Create a new CCEPDataInfo instance.
@@ -89,7 +67,7 @@ namespace HBP.Core.Data
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
         /// <param name="id">Unique identifier</param>
-        public StaticDataInfo(string name, Container.DataContainer dataContainer, Patient patient, string ID) : base(name, dataContainer, patient, ID)
+        public StaticDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID, ID)
         {
         }
         /// <summary>
@@ -99,13 +77,13 @@ namespace HBP.Core.Data
         /// <param name="dataContainer">Data container of the CCEP dataInfo.</param>
         /// <param name="patient">Patient related to the data.</param>
         /// <param name="channel">Stimulated channel.</param>
-        public StaticDataInfo(string name, Container.DataContainer dataContainer, Patient patient) : base(name, dataContainer, patient)
+        public StaticDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID)
         {
         }
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public StaticDataInfo() : this("Data", new Container.CSV(), ApplicationState.ProjectLoaded.Patients.FirstOrDefault())
+        public StaticDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.CSV(), new Error[0], new Warning[0], null, "")
         {
 
         }
@@ -118,7 +96,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new StaticDataInfo(Name, DataContainer.Clone() as Container.DataContainer, Patient, ID);
+            return new StaticDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, CorrespondingDatabaseID, ID);
         }
         public override void Copy(object copy)
         {
@@ -126,19 +104,19 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Public Methods
-        public override Error[] GetErrors(Protocol protocol)
+        #region Private Methods
+        protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors(protocol));
-            errors.AddRange(GetStaticErrors(protocol));
-            return errors.Distinct().ToArray();
+            List<Error> errors = new List<Error>(base.GetErrors());
+            errors.AddRange(GetStaticErrors());
+            return errors;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Error[] GetStaticErrors(Protocol protocol)
+        private IEnumerable<Error> GetStaticErrors()
         {
             List<Error> errors = new List<Error>();
             if (DataContainer is Container.CSV csvDataContainer)
@@ -174,25 +152,23 @@ namespace HBP.Core.Data
             {
                 throw new Exception("Invalid data container type");
             }
-            m_StaticErrors = errors.ToArray();
-            return m_StaticErrors;
+            return errors;
         }
-        public override Warning[] GetWarnings(Protocol protocol)
+        protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings(protocol));
-            warnings.AddRange(GetStaticWarnings(protocol));
-            return warnings.Distinct().ToArray();
+            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            warnings.AddRange(GetStaticWarnings());
+            return warnings;
         }
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
         /// <param name="protocol"></param>
         /// <returns>CCEP related errors</returns>
-        public virtual Warning[] GetStaticWarnings(Protocol protocol)
+        private IEnumerable<Warning> GetStaticWarnings()
         {
             List<Warning> warnings = new List<Warning>();
-            m_StaticWarnings = warnings.ToArray();
-            return m_StaticWarnings;
+            return warnings;
         }
         #endregion
     }

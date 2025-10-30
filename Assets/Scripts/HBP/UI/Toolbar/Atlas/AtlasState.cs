@@ -22,6 +22,8 @@ namespace HBP.UI.Toolbar
         [SerializeField] private Toggle m_MarsAtlasToggle;
 
         [SerializeField] private Toggle m_DiFuMoToggle;
+
+        [SerializeField] private Toggle m_LocalizersToggle;
         #endregion
 
         #region Public Methods
@@ -54,6 +56,12 @@ namespace HBP.UI.Toolbar
 
                 SelectedScene.FMRIManager.DisplayDiFuMo = isOn;
             });
+            m_LocalizersToggle.onValueChanged.AddListener((isOn) =>
+            {
+                if (ListenerLock) return;
+
+                SelectedScene.FMRIManager.DisplayLocalizers = isOn;
+            });
         }
         /// <summary>
         /// Set the default state of this tool
@@ -68,6 +76,8 @@ namespace HBP.UI.Toolbar
             m_MarsAtlasToggle.interactable = false;
             m_DiFuMoToggle.isOn = false;
             m_DiFuMoToggle.interactable = false;
+            m_LocalizersToggle.isOn = false;
+            m_LocalizersToggle.interactable = false;
         }
         /// <summary>
         /// Update the interactable state of the tool
@@ -78,11 +88,13 @@ namespace HBP.UI.Toolbar
             bool isJuBrainAtlasAvailable = Object3DManager.JuBrain.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
             bool canUseMarsAtlas = Object3DManager.MarsAtlas.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI);
             bool isDiFuMoAvailable = Object3DManager.DiFuMo.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
+            bool isLocalizersAvailable = Object3DManager.Localizers.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;
             m_MarsAtlasToggle.interactable = canUseMarsAtlas;
             m_DiFuMoToggle.interactable = isDiFuMoAvailable;
+            m_LocalizersToggle.interactable = isLocalizersAvailable;
         }
         /// <summary>
         /// Update the status of the tool
@@ -93,6 +105,7 @@ namespace HBP.UI.Toolbar
             m_JubrainToggle.isOn = SelectedScene.AtlasManager.DisplayJuBrainAtlas;
             m_MarsAtlasToggle.isOn = SelectedScene.AtlasManager.DisplayMarsAtlas;
             m_DiFuMoToggle.isOn = SelectedScene.FMRIManager.DisplayDiFuMo;
+            m_LocalizersToggle.isOn = SelectedScene.FMRIManager.DisplayLocalizers;
         }
         #endregion
     }

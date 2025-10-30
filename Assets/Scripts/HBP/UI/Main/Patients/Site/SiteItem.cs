@@ -28,12 +28,16 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
 
                 m_NameText.text = value.Name;
 
                 m_CoordinatesText.SetIEnumerableFieldInItem("Coordinates", m_Object.Coordinates.Select(c => c.ReferenceSystem), m_ErrorState);
                 m_TagsText.SetIEnumerableFieldInItem("Tags", m_Object.Tags.Select(t => t.Tag.Name), m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion

@@ -27,9 +27,13 @@ namespace HBP.UI.Main
             }
             set
             {
+                SetInteractable();
+
                 base.Object = value;
                 m_NameText.text = value.Name;
                 m_BlocsText.SetIEnumerableFieldInItem("Blocs", from bloc in m_Object.Blocs select bloc.Name, m_ErrorState);
+
+                SetNotInteractable();
             }
         }
         #endregion
