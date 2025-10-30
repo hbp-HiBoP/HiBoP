@@ -1,9 +1,10 @@
 ﻿using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public struct Cut
     {
         #region Properties

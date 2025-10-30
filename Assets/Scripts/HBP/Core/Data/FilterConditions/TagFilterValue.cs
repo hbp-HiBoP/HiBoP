@@ -1,17 +1,18 @@
 using HBP.Core.Enums;
 using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class TagFilterValue : BaseData
     {
         public abstract bool Compare(object value);
         public abstract string GetDescription(bool isNot);
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class EmptyTagFilterValue : TagFilterValue
     {
         public override bool Compare(object value)
@@ -31,7 +32,7 @@ namespace HBP.Core.Data
         }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BoolTagFilterValue : TagFilterValue
     {
         [JsonProperty("Value")] public bool Value { get; set; }
@@ -59,7 +60,7 @@ namespace HBP.Core.Data
         }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class StringTagFilterValue : TagFilterValue
     {
         [JsonProperty("Value")] public string Value { get; set; } = "";
@@ -107,7 +108,7 @@ namespace HBP.Core.Data
         }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class NumberTagFilterValue : TagFilterValue
     {
         [JsonProperty("Type")] public NumberComparisonType Type { get; set; }
@@ -237,7 +238,7 @@ namespace HBP.Core.Data
         }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class EnumTagFilterValue : TagFilterValue
     {
         [JsonProperty("Value")] public int Value { get; set; }

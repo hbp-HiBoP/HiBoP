@@ -3,10 +3,11 @@ using Newtonsoft.Json;
 using System;
 using System.ComponentModel;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Data type"), SortingOrder(2), FilterCondition(typeof(DataInfo))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Data type"), SortingOrder(2), FilterCondition(typeof(DataInfo))]
     public class DataTypeFilterCondition : BaseFilterCondition
     {
         #region Properties

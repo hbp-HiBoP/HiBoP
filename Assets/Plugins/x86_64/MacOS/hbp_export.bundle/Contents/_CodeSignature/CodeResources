@@ -429,6 +429,15 @@
 			<key>requirement</key>
 			<string>cdhash H"4be1caaab8cebc040c586a331ad1696806149d12"</string>
 		</dict>
+		<key>MacOS/libomp.dylib</key>
+		<dict>
+			<key>cdhash</key>
+			<data>
+			ssZNugC/RyKYpUAoV9dZTxagCa4=
+			</data>
+			<key>requirement</key>
+			<string>cdhash H"b2c64dba00bf472298a5402857d7594f16a009ae"</string>
+		</dict>
 		<key>MacOS/libopencore-amrnb.0.dylib</key>
 		<dict>
 			<key>cdhash</key>

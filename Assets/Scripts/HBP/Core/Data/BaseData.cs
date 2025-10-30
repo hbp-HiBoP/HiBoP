@@ -1,8 +1,9 @@
-﻿using System;
+﻿using HBP.Core.Interfaces;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HBP.Core.Interfaces;
-using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -21,7 +22,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class BaseData : ICopiable, ICloneable, IIdentifiable
     {
         #region Properties

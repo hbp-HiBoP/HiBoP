@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class StaticConfiguration : BaseData
     {
         #region Properties

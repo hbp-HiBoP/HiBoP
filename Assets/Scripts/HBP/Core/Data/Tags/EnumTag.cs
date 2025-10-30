@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
-using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Enumerable")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Enumerable")]
     public class EnumTag : BaseTag
     {
         #region Properties

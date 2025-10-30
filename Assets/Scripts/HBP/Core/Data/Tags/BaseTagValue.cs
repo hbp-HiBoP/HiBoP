@@ -1,6 +1,7 @@
-﻿using System.Linq;
-using HBP.Data.Preferences;
+﻿using HBP.Data.Preferences;
 using Newtonsoft.Json;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -23,7 +24,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class BaseTagValue : BaseData
     {
         #region Properties

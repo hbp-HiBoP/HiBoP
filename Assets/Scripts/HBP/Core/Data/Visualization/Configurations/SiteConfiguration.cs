@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -21,7 +22,7 @@ namespace HBP.Core.Data
     *   - \a IsMarked
     *   - \a Color.
     */
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class SiteConfiguration : BaseData
     {
         #region Properties

@@ -1,27 +1,28 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Data;
+using HBP.Core.Enums;
+using HBP.Core.Tools;
+using HBP.Data.Module3D;
+using HBP.Data.Preferences;
+using HBP.UI.Tools;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using UnityEngine;
-using UnityEngine.UI;
-using HBP.Core.Data;
-using HBP.Core.Enums;
-using HBP.Core.Tools;
-using HBP.Data.Module3D;
-using HBP.UI.Tools;
-using HBP.Data.Preferences;
-using Cysharp.Threading.Tasks;
-using Newtonsoft.Json;
 using System.Threading;
+using UnityEngine;
+using UnityEngine.Scripting;
+using UnityEngine.UI;
 
 namespace HBP.UI.Toolbar
 {
     public class SiteCorrelations : Tool
     {
         #region Internal Classes
-        [JsonObject(MemberSerialization.OptIn)]
+        [JsonObject(MemberSerialization.OptIn), Preserve]
         public class CorrelationsContainer
         {
             [JsonProperty] public string PatientName { get; set; }
@@ -32,7 +33,7 @@ namespace HBP.UI.Toolbar
             [JsonProperty] public bool UseBonferroniCorrection { get; set; }
         }
 
-        [JsonObject(MemberSerialization.OptIn)]
+        [JsonObject(MemberSerialization.OptIn), Preserve]
         public class ColumnContainer
         {
             [JsonProperty] public string Column { get; set; }

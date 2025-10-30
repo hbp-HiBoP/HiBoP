@@ -6,10 +6,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Xml.Linq;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Attributes"), SortingOrder(2), FilterCondition(typeof(Object3D.Site))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Attributes"), SortingOrder(2), FilterCondition(typeof(Object3D.Site))]
     public class AttributesFilterCondition : BaseFilterCondition
     {
         #region Enums

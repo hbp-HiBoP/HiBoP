@@ -1,4 +1,5 @@
 using HBP.Core.Data;
+using HBP.Core.Tools;
 using System;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -33,12 +34,12 @@ namespace HBP.UI.Main
 
                 if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError || request.result == UnityWebRequest.Result.DataProcessingError)
                 {
-                    Debug.LogError($"Erreur lors de la vérification de version: {request.error}");
+                    Debug.LogError($"Erreur lors de la vï¿½rification de version: {request.error}");
                 }
                 else
                 {
                     string jsonString = request.downloadHandler.text;
-                    var versionInfo = Newtonsoft.Json.JsonConvert.DeserializeObject<GithubVersionInfo>(jsonString);
+                    var versionInfo = ClassLoaderSaver.LoadFromJsonString<GithubVersionInfo>(jsonString);
                     version = versionInfo.VersionNumber;
                 }
             }
@@ -47,7 +48,7 @@ namespace HBP.UI.Main
                 Debug.LogException(e);
             }
 
-            // Vérifier si une nouvelle version est disponible
+            // Vï¿½rifier si une nouvelle version est disponible
             if (string.Compare(version, Application.version) > 0)
             {
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", "Update now", "Remind me later");

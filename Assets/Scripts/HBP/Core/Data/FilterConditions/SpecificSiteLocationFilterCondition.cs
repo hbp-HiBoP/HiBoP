@@ -5,10 +5,11 @@ using HBP.Data.Module3D;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Specific location"), SortingOrder(6), FilterCondition(typeof(Object3D.Site))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Specific location"), SortingOrder(6), FilterCondition(typeof(Object3D.Site))]
     public class SpecificSiteLocationFilterCondition : BaseFilterCondition
     {
         #region Enums

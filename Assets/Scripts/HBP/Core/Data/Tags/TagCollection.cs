@@ -12,10 +12,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class TagCollection : BaseData
     {
         #region Properties
@@ -76,7 +77,11 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    tagsCollection = ClassLoaderSaver.LoadFromJson<TagCollection>(PATH);
+                    var loadedTagsCollection = ClassLoaderSaver.LoadFromJson<TagCollection>(PATH);
+                    if (loadedTagsCollection != null)
+                    {
+                        tagsCollection = loadedTagsCollection;
+                    }
                 }
                 catch (System.Exception e)
                 {

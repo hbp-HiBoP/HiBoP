@@ -4,9 +4,6 @@ using System.IO;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Cysharp.Threading.Tasks;
-using Newtonsoft.Json.Serialization;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace HBP.Core.Tools
 {
@@ -18,12 +15,14 @@ namespace HBP.Core.Tools
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             Formatting = Formatting.Indented,
         };
+
         public static T LoadFromJson<T>(string path) where T : new()
         {
             T result = new T();
             using (StreamReader streamReader = new StreamReader(path))
             {
-                result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), m_Settings);
+                string jsonContent = streamReader.ReadToEnd();
+                result = JsonConvert.DeserializeObject<T>(jsonContent, m_Settings);
             }
             return result;
         }
@@ -68,6 +67,10 @@ namespace HBP.Core.Tools
                 Debug.LogException(e);
                 return false;
             }
+        }
+        public static T LoadFromJsonString<T>(string jsonString) where T : new()
+        {
+            return JsonConvert.DeserializeObject<T>(jsonString, m_Settings);
         }
         public static T LoadFromXML<T>(string path) where T : new()
         {

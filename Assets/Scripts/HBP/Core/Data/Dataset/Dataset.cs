@@ -1,20 +1,21 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.IO;
-using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
+﻿using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
+using HBP.Core.Errors;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Data.Database;
-using UnityEngine;
-using Cysharp.Threading.Tasks;
-using Newtonsoft.Json;
 using HBP.Data.Preferences;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
-using HBP.Core.Errors;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -45,7 +46,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Dataset : BaseData, ILoadable<Dataset>, INameable
     {
         #region Properties

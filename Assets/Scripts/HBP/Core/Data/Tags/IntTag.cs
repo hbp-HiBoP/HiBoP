@@ -3,10 +3,11 @@ using System;
 using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Integer")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Integer")]
     public class IntTag : BaseTag
     {
         #region Properties

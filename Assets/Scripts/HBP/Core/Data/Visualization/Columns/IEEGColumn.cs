@@ -1,8 +1,9 @@
-﻿using System.Linq;
+﻿using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
-using HBP.Core.Tools;
-using Newtonsoft.Json;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -19,7 +20,7 @@ namespace HBP.Core.Data
     *   - \a Protocol.
     *   - \a Bloc.
     */
-    [JsonObject(MemberSerialization.OptIn), DisplayName("iEEG")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("iEEG")]
     public class IEEGColumn : Column
     {
         #region Properties
@@ -128,6 +129,7 @@ namespace HBP.Core.Data
         {
 
         }
+        [JsonConstructor]
         public IEEGColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration())
         {
         }

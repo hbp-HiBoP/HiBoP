@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using HBP.Core.Errors;
-using System.ComponentModel;
+﻿using HBP.Core.Errors;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data.Container
 {
@@ -29,7 +30,7 @@ namespace HBP.Core.Data.Container
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("FIF"), IEEG, CCEP, MEGc]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("FIF"), IEEG, CCEP, MEGc]
     public class FIF : DataContainer
     {
         #region Properties

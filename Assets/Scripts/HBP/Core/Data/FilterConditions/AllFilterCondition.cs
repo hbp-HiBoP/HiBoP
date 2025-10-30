@@ -2,10 +2,11 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("All of"), SortingOrder(100), FilterCondition]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("All of"), SortingOrder(100), FilterCondition]
     public class AllFilterCondition : BaseFilterCondition
     {
         #region Properties

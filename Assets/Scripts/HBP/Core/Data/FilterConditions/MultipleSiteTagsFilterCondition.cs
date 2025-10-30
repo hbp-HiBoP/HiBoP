@@ -4,10 +4,11 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Multiple Site Tags"), SortingOrder(6), FilterCondition(typeof(Patient))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Multiple Site Tags"), SortingOrder(6), FilterCondition(typeof(Patient))]
     public class MultipleSiteTagsFilterCondition : BaseFilterCondition
     {
         #region Properties
@@ -144,7 +145,7 @@ namespace HBP.Core.Data
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class SingleTagFilter : BaseData
     {
         #region Properties

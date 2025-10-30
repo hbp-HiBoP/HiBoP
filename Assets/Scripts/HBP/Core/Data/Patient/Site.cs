@@ -1,13 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using HBP.Core.Interfaces;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Preferences;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -38,7 +39,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Site : BaseData, INameable, ILoadable<Site>
     {
         #region Properties

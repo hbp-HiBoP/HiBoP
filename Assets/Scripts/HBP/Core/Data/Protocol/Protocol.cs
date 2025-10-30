@@ -1,11 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.IO;
-using HBP.Core.Exceptions;
+﻿using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -32,7 +33,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-	[JsonObject(MemberSerialization.OptIn)]
+	[JsonObject(MemberSerialization.OptIn), Preserve]
     public class Protocol : BaseData, ILoadable<Protocol>, INameable
     {
         #region Properties

@@ -1,10 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.IO;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Preferences
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class GeneralPreferences : ICloneable
     {
         #region Properties
@@ -36,7 +37,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ProjectPreferences : ICloneable
     {
         #region Properties
@@ -101,7 +102,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ThemePreferences : ICloneable
     {
         #region Public Methods
@@ -112,7 +113,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class LocationPreferences : ICloneable
     {
         #region Public Methods
@@ -123,7 +124,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class SystemPreferences : ICloneable
     {
         #region Properties

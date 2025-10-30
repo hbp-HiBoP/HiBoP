@@ -1,11 +1,12 @@
-﻿using HBP.Core.Errors;
+﻿using HBP.Core.Enums;
+using HBP.Core.Errors;
+using HBP.Data.Database;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using HBP.Core.Enums;
-using Newtonsoft.Json;
-using HBP.Data.Database;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -52,7 +53,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-    [JsonObject(MemberSerialization.OptIn), DisplayName("iEEG")]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("iEEG")]
     public class IEEGDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties

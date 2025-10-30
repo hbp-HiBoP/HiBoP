@@ -1,9 +1,10 @@
 ﻿using HBP.Core.Data;
 using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Errors
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class Error
     {
         #region Properties
@@ -156,7 +157,7 @@ namespace HBP.Core.Errors
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class Warning
     {
         #region Properties

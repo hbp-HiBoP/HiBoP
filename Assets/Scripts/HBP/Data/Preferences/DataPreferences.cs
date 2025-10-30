@@ -1,11 +1,12 @@
-﻿using System;
-using HBP.Core.Data;
+﻿using HBP.Core.Data;
 using HBP.Core.Enums;
 using Newtonsoft.Json;
+using System;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Preferences
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class DataPreferences : ICloneable
     {
         #region Properties
@@ -88,7 +89,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class ProtocolPreferences : ICloneable
     {
         #region Properties
@@ -130,7 +131,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class AnatomicPreferences : ICloneable
     {
         #region Properties
@@ -174,7 +175,7 @@ namespace HBP.Data.Preferences
         #endregion
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class AtlasesPreferences : ICloneable
     {
         #region Properties

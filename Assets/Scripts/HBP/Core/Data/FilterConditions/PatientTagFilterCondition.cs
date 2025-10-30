@@ -2,10 +2,11 @@ using HBP.Data.Preferences;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Tag"), SortingOrder(5), FilterCondition(typeof(Patient))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Tag"), SortingOrder(5), FilterCondition(typeof(Patient))]
     public class PatientTagFilterCondition : BaseFilterCondition
     {
         #region Properties

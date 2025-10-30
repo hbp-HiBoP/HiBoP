@@ -1,8 +1,9 @@
 ﻿using Newtonsoft.Json;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class GithubVersionInfo
     {
         [JsonProperty("tag_name")]
@@ -13,5 +14,18 @@ namespace HBP.Core.Data
 
         [JsonProperty("body")]
         public string Description { get; set; }
+
+        public GithubVersionInfo()
+        {
+            VersionNumber = string.Empty;
+            URL = string.Empty;
+            Description = string.Empty;
+        }
+        public GithubVersionInfo(string versionNumber, string url, string description)
+        {
+            VersionNumber = versionNumber;
+            URL = url;
+            Description = description;
+        }
     }
 }

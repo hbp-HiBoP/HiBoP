@@ -1,8 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using HBP.Core.Interfaces;
+﻿using HBP.Core.Interfaces;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
@@ -33,7 +34,7 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-	[JsonObject(MemberSerialization.OptIn)]
+	[JsonObject(MemberSerialization.OptIn), Preserve]
     public class Event : BaseData, INameable
 	{
         #region Properties

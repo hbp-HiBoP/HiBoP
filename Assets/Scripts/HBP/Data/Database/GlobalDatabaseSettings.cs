@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.Database
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class GlobalDatabaseSettings : BaseData
     {
         #region Properties

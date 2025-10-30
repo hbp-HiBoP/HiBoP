@@ -2,10 +2,11 @@ using HBP.Data.Preferences;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn), DisplayName("Tag"), SortingOrder(5), FilterCondition(typeof(Object3D.Site))]
+    [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Tag"), SortingOrder(5), FilterCondition(typeof(Object3D.Site))]
     public class SiteTagFilterCondition : BaseFilterCondition
     {
         #region Properties

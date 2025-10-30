@@ -6,10 +6,11 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
-    [JsonObject(MemberSerialization.OptIn)]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class AliasCollection : BaseData
     {
         #region Properties
@@ -45,7 +46,11 @@ namespace HBP.Core.Data
             {
                 try
                 {
-                    aliasCollection = ClassLoaderSaver.LoadFromJson<AliasCollection>(PATH);
+                    var loadedAliasCollection = ClassLoaderSaver.LoadFromJson<AliasCollection>(PATH);
+                    if (loadedAliasCollection != null)
+                    {
+                        aliasCollection = loadedAliasCollection;
+                    }
                 }
                 catch (System.Exception e)
                 {
