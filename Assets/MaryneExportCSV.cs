@@ -1,7 +1,6 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
-using Newtonsoft.Json.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -12,13 +11,12 @@ using System.Text.RegularExpressions;
 using ThirdParty.CielaSpike;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UIElements;
 
 public class MaryneExportCSV : MonoBehaviour
 {
-    readonly string[] m_ProtocolNames = new string[] { "VISU", "LEC1" };
-    readonly string[] m_Areas = new string[] { "CTX_OCCIPITAL", "HIPPOCAMP", "HNP" };
-    readonly string[] m_DataTypes = new string[] { "f50f150sm0" };
+    private string[] m_ProtocolNames = new string[] { "VISU", "LEC1" };
+    private string[] m_Areas = new string[] { "CTX_OCCIPITAL", "HIPPOCAMP", "HNP", "SB", "CTX_PARIETAL", "CTX_TEMPORAL", "CTX_FRONTAL", "CTX_OF", "CTX_MOTEUR" };
+    private string[] m_DataTypes = new string[] { "f50f150sm0" };
 
     public class SiteStruct
     {
@@ -40,9 +38,29 @@ public class MaryneExportCSV : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F3))
         {
-            GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
-            LoadingManager.Load(c_ExportCSV(onChangeProgress), onChangeProgress);
+            OpenConfigurationWindow();
         }
+    }
+
+    private void OpenConfigurationWindow()
+    {
+        var maryneExportConfigWindow = WindowsManager.Open("Maryne export config window") as MaryneExportConfigWindow;
+        maryneExportConfigWindow.SetCurrentConfiguration(m_ProtocolNames, m_Areas, m_DataTypes);
+        maryneExportConfigWindow.OnConfigurationChanged.AddListener(UpdateConfiguration);
+    }
+
+    public void UpdateConfiguration(string[] protocols, string[] areas, string[] dataTypes)
+    {
+        m_ProtocolNames = protocols;
+        m_Areas = areas;
+        m_DataTypes = dataTypes;
+        StartExport();
+    }
+
+    private void StartExport()
+    {
+        GenericEvent<float, float, LoadingText> onChangeProgress = new GenericEvent<float, float, LoadingText>();
+        LoadingManager.Load(c_ExportCSV(onChangeProgress), onChangeProgress);
     }
 
     private IEnumerator c_ExportCSV(GenericEvent<float, float, LoadingText> onChangeProgress)
@@ -98,6 +116,7 @@ public class MaryneExportCSV : MonoBehaviour
         }
         return result;
     }
+
     public void ReadDataInfo(GenericEvent<float, float, LoadingText> onChangeProgress)
     {
         var datainfoToRead = ApplicationState.ProjectLoaded.Datasets.Where(ds => m_ProtocolNames.Any(d => ds.Protocol.Name == d)).SelectMany(ds => ds.Data).Where(di => m_DataTypes.Any(dt => dt == di.Name)).ToList();
@@ -110,11 +129,18 @@ public class MaryneExportCSV : MonoBehaviour
             count++;
         }
     }
+
     public void ExportCSV(string exportDirectory)
     {
         foreach (var protocolName in m_ProtocolNames)
         {
             Protocol protocol = ApplicationState.ProjectLoaded.Protocols.FirstOrDefault(p => p.Name == protocolName);
+            if (protocol == null) 
+            {
+                Debug.LogWarning($"Protocole '{protocolName}' non trouvé, ignoré.");
+                continue; // Ignorer les protocoles qui n'existent pas
+            }
+
             List<float> times = new List<float>();
             int start = protocol.Blocs[0].MainSubBloc.Window.Start;
             int timeLength = protocol.Blocs[0].MainSubBloc.Window.Length;
@@ -123,7 +149,8 @@ public class MaryneExportCSV : MonoBehaviour
             {
                 times.Add((float)i / (numberOfSamples - 1) * timeLength + start);
             }
-            string header = $"Patient,Site,Area,Protocol,Bloc,{string.Join(',', times.Select(t => t.ToString("F2", CultureInfo.InvariantCulture)))}";
+            string header = $"Patient,Site,Area,Protocol,Bloc,{string.Join(",", times.Select(t => t.ToString("F2", CultureInfo.InvariantCulture)))}";
+            
             foreach (var areaName in m_Areas)
             {
                 StringBuilder csvBuilder = new StringBuilder();
@@ -136,8 +163,8 @@ public class MaryneExportCSV : MonoBehaviour
                     {
                         var statistics = DataManager.GetStatistics(ApplicationState.ProjectLoaded.Datasets.FirstOrDefault(ds => ds.Protocol == protocol).Data.FirstOrDefault(di => di is PatientDataInfo patientDataInfo && patientDataInfo.Patient == site.Patient && m_DataTypes.Any(dt => dt == di.Name)), bloc, site.Site);
                         var values = statistics.Trial.ChannelSubTrialBySubBloc[bloc.MainSubBloc].Values;
-                        csvBuilder.AppendLine($"{site.Patient.ID},{site.Site},{areaName},{protocol.Name},{bloc.Name},{string.Join(',', values.Select(v => v.ToString("F2", CultureInfo.InvariantCulture)))}");
-                        //csvBuilder.AppendLine($"{site.Patient.ID},{site.Site},{areaName},{protocol.Name},{bloc.Name},{string.Join(',', Enumerable.Repeat(0, numberOfSamples).Select(v => v.ToString("F2", CultureInfo.InvariantCulture)))}");
+                        csvBuilder.AppendLine($"{site.Patient.ID},{site.Site},{areaName},{protocol.Name},{bloc.Name},{string.Join(",", values.Select(v => v.ToString("F2", CultureInfo.InvariantCulture)))}");
+                        //csvBuilder.AppendLine($"{site.Patient.ID},{site.Site},{areaName},{protocol.Name},{bloc.Name},{string.Join(",", Enumerable.Repeat(0, numberOfSamples).Select(v => v.ToString("F2", CultureInfo.InvariantCulture)))}");
                     }
                 }
                 // Write to file
