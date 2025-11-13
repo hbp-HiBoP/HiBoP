@@ -355,7 +355,7 @@ namespace HBP.Core.Data
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
             if (!directory.Exists) return;
-            
+
             IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
             int length = patientDirectories.Count();
             int progress = 0;
@@ -622,9 +622,10 @@ namespace HBP.Core.Data
             if (!databaseDirectoryInfo.Exists) return;
 
             FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
-            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.AllDirectories);
+            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
+            DirectoryInfo[] patientDirectories = databaseDirectoryInfo.GetDirectories();
             var progress = 0;
-            var length = patientsFiles.Length + 1;
+            var length = patientsFiles.Length + patientDirectories.Length + 1;
             updateProgress?.Invoke(0, 0, new LoadingText("Loading additional tags"));
 
             // Read patients.csv
@@ -655,20 +656,20 @@ namespace HBP.Core.Data
                 }
             }
 
-            // Read all patients csv files
+            // Read all individual patient CSV files in root directory
             foreach (var file in patientsFiles)
             {
                 updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
                 token.ThrowIfCancellationRequested();
                 if (file.Name == "patients.csv") continue;
                 var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(file.FullName);
-                var patient = patients.FirstOrDefault(p => p.ID == Path.GetFileNameWithoutExtension(file.Name));
-                if (patient != null)
+                var patientForFile = patients.FirstOrDefault(p => p.ID == Path.GetFileNameWithoutExtension(file.Name));
+                if (patientForFile != null)
                 {
-                    patient = patient.Clone() as Patient;
+                    patientForFile = patientForFile.Clone() as Patient;
                     foreach (var kv in tagValuesBySite)
                     {
-                        var site = patient.Sites.FirstOrDefault(s => s.Name == kv.Key);
+                        var site = patientForFile.Sites.FirstOrDefault(s => s.Name == kv.Key);
                         if (site != null)
                         {
                             foreach (var tagValue in kv.Value)
@@ -685,7 +686,53 @@ namespace HBP.Core.Data
                             }
                         }
                     }
-                    clonedPatients.Add(patient);
+                    clonedPatients.Add(patientForFile);
+                }
+            }
+
+            // Read all CSV files in patient-specific directories
+            foreach (var directory in patientDirectories)
+            {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from directory ", directory.Name));
+                token.ThrowIfCancellationRequested();
+
+                // Check if directory name matches a patient ID
+                var patientForDirectory = patients.FirstOrDefault(p => p.ID == directory.Name);
+                if (patientForDirectory != null)
+                {
+                    // Get all CSV files in this patient directory
+                    FileInfo[] csvFilesInDirectory = directory.GetFiles("*.csv", SearchOption.AllDirectories);
+
+                    if (csvFilesInDirectory.Length > 0)
+                    {
+                        patientForDirectory = patientForDirectory.Clone() as Patient;
+
+                        foreach (var csvFile in csvFilesInDirectory)
+                        {
+                            var siteTagsFromFile = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(csvFile.FullName);
+                            foreach (var kv in siteTagsFromFile)
+                            {
+                                var site = patientForDirectory.Sites.FirstOrDefault(s => s.Name == kv.Key);
+                                if (site != null)
+                                {
+                                    foreach (var tagValue in kv.Value)
+                                    {
+                                        var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                                        if (existingTagValue != null)
+                                        {
+                                            existingTagValue.Copy(tagValue);
+                                        }
+                                        else
+                                        {
+                                            site.Tags.Add(tagValue);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        clonedPatients.Add(patientForDirectory);
+                    }
                 }
             }
 
@@ -800,12 +847,12 @@ namespace HBP.Core.Data
             public bool Same(BIDSFile file)
             {
                 return file.Name == Name
-                    && file.Subject == Subject
-                    && file.Session == Session
-                    && file.DataAcquisition == DataAcquisition
-                    && file.Contrast == Contrast
-                    && file.Reconstruction == Reconstruction
-                    && file.Run == Run;
+                  && file.Subject == Subject
+                     && file.Session == Session
+                && file.DataAcquisition == DataAcquisition
+                 && file.Contrast == Contrast
+                  && file.Reconstruction == Reconstruction
+                          && file.Run == Run;
             }
         }
         class BIDSMeshFile : BIDSFile
