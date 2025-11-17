@@ -274,6 +274,166 @@ namespace HBP.Core.Data
             }
             return resultTags;
         }
+        public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromExcel(string excelPath)
+        {
+            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            if (!File.Exists(excelPath))
+            {
+                Debug.LogWarning($"Excel file not found: {excelPath}");
+                return resultTags;
+            }
+
+            try
+            {
+                List<ExcelRowData> excelRows = ExcelReader.ReadExcelFileForPatientTags(excelPath);
+                if (excelRows.Count == 0)
+                {
+                    Debug.LogWarning($"No data rows found in Excel file: {excelPath}");
+                    return resultTags;
+                }
+
+                // Get all unique headers from all rows (since filtering may result in different headers per row)
+                var allHeaders = new HashSet<string>();
+                foreach (var row in excelRows)
+                {
+                    foreach (var header in row.GetHeaders())
+                    {
+                        allHeaders.Add(header);
+                    }
+                }
+                string[] headers = allHeaders.ToArray();
+                Dictionary<string, BaseTag> tagsByName = new Dictionary<string, BaseTag>();
+
+                // Create or find tags for each header
+                foreach (string tagName in headers)
+                {
+                    BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
+                    if (tag == null)
+                    {
+                        tag = new StringTag(tagName);
+                        PersistentDataManager.Tags.AddPatientTag(tag);
+                    }
+                    tagsByName[tagName] = tag;
+                }
+
+                // Process each data row
+                foreach (var excelRow in excelRows)
+                {
+                    string name = excelRow.Name;
+                    List<BaseTagValue> tagValues = new List<BaseTagValue>();
+
+                    foreach (var headerName in excelRow.GetHeaders())
+                    {
+                        if (tagsByName.TryGetValue(headerName, out BaseTag tag))
+                        {
+                            if (excelRow.TryGetValue(headerName, out string value))
+                            {
+                                var tagValue = tag.CreateValue(value);
+                                if (tagValue != null)
+                                {
+                                    tagValues.Add(tagValue);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!resultTags.ContainsKey(name))
+                    {
+                        resultTags.Add(name, tagValues);
+                    }
+                    else
+                    {
+                        resultTags[name] = tagValues;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error processing Excel file {excelPath}: {ex.Message}");
+            }
+
+            return resultTags;
+        }
+        public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromExcel(string excelPath)
+        {
+            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            if (!File.Exists(excelPath))
+            {
+                Debug.LogWarning($"Excel file not found: {excelPath}");
+                return resultTags;
+            }
+
+            try
+            {
+                List<ExcelRowData> excelRows = ExcelReader.ReadExcelFileForSiteTags(excelPath);
+                if (excelRows.Count == 0)
+                {
+                    Debug.LogWarning($"No data rows found in Excel file: {excelPath}");
+                    return resultTags;
+                }
+
+                // Get all unique headers from all rows (since filtering may result in different headers per row)
+                var allHeaders = new HashSet<string>();
+                foreach (var row in excelRows)
+                {
+                    foreach (var header in row.GetHeaders())
+                    {
+                        allHeaders.Add(header);
+                    }
+                }
+                string[] headers = allHeaders.ToArray();
+                Dictionary<string, BaseTag> tagsByName = new Dictionary<string, BaseTag>();
+
+                // Create or find tags for each header
+                foreach (string tagName in headers)
+                {
+                    BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
+                    if (tag == null)
+                    {
+                        tag = new StringTag(tagName);
+                        PersistentDataManager.Tags.AddSiteTag(tag);
+                    }
+                    tagsByName[tagName] = tag;
+                }
+
+                // Process each data row
+                foreach (var excelRow in excelRows)
+                {
+                    string name = excelRow.Name;
+                    List<BaseTagValue> tagValues = new List<BaseTagValue>();
+
+                    foreach (var headerName in excelRow.GetHeaders())
+                    {
+                        if (tagsByName.TryGetValue(headerName, out BaseTag tag))
+                        {
+                            if (excelRow.TryGetValue(headerName, out string value))
+                            {
+                                var tagValue = tag.CreateValue(value);
+                                if (tagValue != null)
+                                {
+                                    tagValues.Add(tagValue);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!resultTags.ContainsKey(name))
+                    {
+                        resultTags.Add(name, tagValues);
+                    }
+                    else
+                    {
+                        resultTags[name] = tagValues;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error processing Excel file {excelPath}: {ex.Message}");
+            }
+
+            return resultTags;
+        }
         public async UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
         {
             await UniTask.SwitchToThreadPool();

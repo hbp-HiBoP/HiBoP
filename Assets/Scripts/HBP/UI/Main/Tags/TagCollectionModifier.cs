@@ -57,6 +57,10 @@ namespace HBP.UI.Main
                     if (DatabaseManager.Database.IsLoaded) DatabaseManager.Database.SaveDatabase().Forget();
                 }
             }
+            else
+            {
+                base.OK();
+            }
         }
         #endregion
 
