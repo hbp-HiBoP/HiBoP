@@ -229,6 +229,22 @@ namespace HBP.UI.Tools.Lists
                 }
             }
         }
+        public virtual void SelectFirst(bool scroll = true)
+        {
+            if (m_DisplayedObjects.Count > 0)
+            {
+                Select(m_DisplayedObjects[0]);
+                if (scroll) ScrollToObject(m_DisplayedObjects[0]);
+            }
+        }
+        public virtual void SelectLast(bool scroll = true)
+        {
+            if (m_DisplayedObjects.Count > 0)
+            {
+                Select(m_DisplayedObjects[m_DisplayedObjects.Count - 1]);
+                if (scroll) ScrollToObject(m_DisplayedObjects[m_DisplayedObjects.Count - 1]);
+            }
+        }
         /// <summary>
         /// Deselect a specified object with a specified transition.
         /// </summary>

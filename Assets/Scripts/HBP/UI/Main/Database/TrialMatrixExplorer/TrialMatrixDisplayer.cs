@@ -44,6 +44,8 @@ namespace HBP.UI.Database
         private Protocol m_CurrentProtocol;
 
         public Patient CurrentPatient => m_CurrentPatient;
+        
+        public bool HasMultiplePatients => m_Patients != null && m_Patients.Count > 1;
 
         Data.Informations.TrialMatrix.TrialMatrixGrid m_TrialMatrixGridData;
         Settings m_Settings;
@@ -114,6 +116,8 @@ namespace HBP.UI.Database
             Visible = false;
             PersistentDataManager.UserPreferences.OnSavePreferences.AddSafeListener(Refresh, gameObject);
             m_ChannelList.OnSelect.AddSafeListener(channelStruct => Display(channelStruct, m_CurrentDataInfo), gameObject);
+            m_ChannelList.OnReachEnd.AddSafeListener(NavigateToNextPatient, gameObject);
+            m_ChannelList.OnReachBeginning.AddSafeListener(NavigateToPreviousPatient, gameObject);
             m_PatientDropdown.onValueChanged.AddSafeListener(index => OnChangePatient(m_Patients[index]), gameObject);
             m_ProtocolDropdown.OnValueChanged.AddSafeListener(index => OnChangeProtocol(index), gameObject);
             m_ParentSelector = GetComponentInParent<Selector>();
@@ -293,6 +297,30 @@ namespace HBP.UI.Database
                     data.Limits = m_Settings.Limits;
                 }
             }
+        }
+        private void NavigateToNextPatient()
+        {
+            if (!HasMultiplePatients) return;
+            
+            int currentIndex = m_Patients.IndexOf(m_CurrentPatient);
+            int nextIndex = (currentIndex + 1) % m_Patients.Count;
+            
+            m_PatientDropdown.SetValueWithoutNotify(nextIndex);
+            OnChangePatient(m_Patients[nextIndex]);
+            
+            m_ChannelList.SelectFirst();
+        }
+        private void NavigateToPreviousPatient()
+        {
+            if (!HasMultiplePatients) return;
+            
+            int currentIndex = m_Patients.IndexOf(m_CurrentPatient);
+            int previousIndex = currentIndex == 0 ? m_Patients.Count - 1 : currentIndex - 1;
+            
+            m_PatientDropdown.SetValueWithoutNotify(previousIndex);
+            OnChangePatient(m_Patients[previousIndex]);
+            
+            m_ChannelList.SelectLast();
         }
         #endregion
 

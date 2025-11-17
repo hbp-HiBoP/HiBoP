@@ -6,6 +6,7 @@ using HBP.UI.Tools.Lists;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.UI.Database
 {
@@ -16,6 +17,33 @@ namespace HBP.UI.Database
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+        
+        public bool CanSelectNext
+        {
+            get
+            {
+                var selected = ObjectsSelected;
+                if (selected.Length == 0) return m_DisplayedObjects.Count > 0;
+                int maxIndex = m_DisplayedObjects.Where(o => selected.Contains(o)).Select(o => m_DisplayedObjects.IndexOf(o)).DefaultIfEmpty(-1).Max();
+                return maxIndex < m_DisplayedObjects.Count - 1;
+            }
+        }
+        
+        public bool CanSelectPrevious
+        {
+            get
+            {
+                var selected = ObjectsSelected;
+                if (selected.Length == 0) return false;
+                int minIndex = m_DisplayedObjects.Where(o => selected.Contains(o)).Select(o => m_DisplayedObjects.IndexOf(o)).DefaultIfEmpty(int.MaxValue).Min();
+                return minIndex > 0;
+            }
+        }
+        #endregion
+        
+        #region Events
+        public UnityEvent OnReachEnd = new();
+        public UnityEvent OnReachBeginning = new();
         #endregion
 
         #region Public Methods
@@ -48,6 +76,28 @@ namespace HBP.UI.Database
         {
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
+        }
+        public override void SelectNext(bool scroll = true)
+        {
+            if (CanSelectNext)
+            {
+                base.SelectNext(scroll);
+            }
+            else
+            {
+                OnReachEnd.Invoke();
+            }
+        }
+        public override void SelectPrevious(bool scroll = true)
+        {
+            if (CanSelectPrevious)
+            {
+                base.SelectPrevious(scroll);
+            }
+            else
+            {
+                OnReachBeginning.Invoke();
+            }
         }
         #endregion
 
