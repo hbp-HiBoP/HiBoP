@@ -66,7 +66,61 @@ namespace HBP.Core.Data
         #endregion
 
         #region Private Methods
-        
+        /// <summary>
+        /// Analyzes a collection of values for a given tag name to determine the most appropriate tag type.
+        /// Returns IntTag if all values are integers (and at least one is not 0),
+        /// FloatTag if all values are floats, otherwise StringTag.
+        /// </summary>
+        /// <param name="tagName">The name of the tag</param>
+        /// <param name="values">Collection of string values to analyze</param>
+        /// <returns>The most appropriate tag type</returns>
+        private BaseTag CreateOptimalTag(string tagName, IEnumerable<string> values)
+        {
+            if (values == null || !values.Any())
+                return new StringTag(tagName);
+
+            var nonEmptyValues = values.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
+            if (!nonEmptyValues.Any())
+                return new StringTag(tagName);
+
+            bool allIntegers = true;
+            bool hasNonZeroInteger = false;
+            bool allFloats = true;
+
+            foreach (var value in nonEmptyValues)
+            {
+                // Check for integers first
+                if (int.TryParse(value, out int intValue))
+                {
+                    if (intValue != 0)
+                        hasNonZeroInteger = true;
+                    // Integer is also a valid float, so don't set allFloats to false yet
+                }
+                else
+                {
+                    allIntegers = false;
+                    
+                    // Check for floats
+                    if (!NumberExtension.TryParseFloat(value, out float floatValue))
+                    {
+                        allFloats = false;
+                        break; // If it's not a float, it must be a string
+                    }
+                }
+            }
+
+            // Decision logic:
+            // 1. If all values are integers AND at least one is not zero, use IntTag
+            if (allIntegers && hasNonZeroInteger)
+                return new IntTag(tagName);
+            
+            // 2. If all values are valid floats (including integers), use FloatTag
+            if (allFloats)
+                return new FloatTag(tagName);
+            
+            // 3. Otherwise, use StringTag as fallback
+            return new StringTag(tagName);
+        }
         #endregion
 
         #region Public Methods
@@ -187,7 +241,17 @@ namespace HBP.Core.Data
                         BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
                         if (tag == null)
                         {
-                            tag = new StringTag(tagName);
+                            // Collect all values for this column to determine optimal tag type
+                            var columnValues = new List<string>();
+                            for (int j = 1; j < lines.Length; j++)
+                            {
+                                string[] rowValues = csvParser.Split(lines[j]);
+                                if (i < rowValues.Length)
+                                {
+                                    columnValues.Add(rowValues[i]);
+                                }
+                            }
+                            tag = CreateOptimalTag(tagName, columnValues);
                             PersistentDataManager.Tags.AddPatientTag(tag);
                         }
                         tags[i - 1] = tag;
@@ -239,7 +303,17 @@ namespace HBP.Core.Data
                         BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
                         if (tag == null)
                         {
-                            tag = new StringTag(tagName);
+                            // Collect all values for this column to determine optimal tag type
+                            var columnValues = new List<string>();
+                            for (int j = 1; j < lines.Length; j++)
+                            {
+                                string[] rowValues = csvParser.Split(lines[j]);
+                                if (i < rowValues.Length)
+                                {
+                                    columnValues.Add(rowValues[i]);
+                                }
+                            }
+                            tag = CreateOptimalTag(tagName, columnValues);
                             PersistentDataManager.Tags.AddSiteTag(tag);
                         }
                         tags[i - 1] = tag;
@@ -310,7 +384,16 @@ namespace HBP.Core.Data
                     BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
                     if (tag == null)
                     {
-                        tag = new StringTag(tagName);
+                        // Collect all values for this tag to determine optimal tag type
+                        var tagValues = new List<string>();
+                        foreach (var row in excelRows)
+                        {
+                            if (row.TryGetValue(tagName, out string value))
+                            {
+                                tagValues.Add(value);
+                            }
+                        }
+                        tag = CreateOptimalTag(tagName, tagValues);
                         PersistentDataManager.Tags.AddPatientTag(tag);
                     }
                     tagsByName[tagName] = tag;
@@ -390,7 +473,16 @@ namespace HBP.Core.Data
                     BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
                     if (tag == null)
                     {
-                        tag = new StringTag(tagName);
+                        // Collect all values for this tag to determine optimal tag type
+                        var tagValues = new List<string>();
+                        foreach (var row in excelRows)
+                        {
+                            if (row.TryGetValue(tagName, out string value))
+                            {
+                                tagValues.Add(value);
+                            }
+                        }
+                        tag = CreateOptimalTag(tagName, tagValues);
                         PersistentDataManager.Tags.AddSiteTag(tag);
                     }
                     tagsByName[tagName] = tag;
