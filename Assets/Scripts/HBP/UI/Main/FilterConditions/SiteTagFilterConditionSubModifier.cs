@@ -92,7 +92,9 @@ namespace HBP.UI.Main
                 _ => PersistentDataManager.Tags.GeneralTags.ToList(),
             };
             m_TagDropdown.options = m_Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();
-            m_TagDropdown.SetValue(0);
+
+            var currentTag = m_Tags.FirstOrDefault(t => t == Object.Tag);
+            m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
         }
         void OnChangeTag(int value)
         {

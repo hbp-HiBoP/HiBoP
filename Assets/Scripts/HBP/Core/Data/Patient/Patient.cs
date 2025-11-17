@@ -355,7 +355,7 @@ namespace HBP.Core.Data
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
             if (!directory.Exists) return;
-            
+
             IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
             int length = patientDirectories.Count();
             int progress = 0;
@@ -616,16 +616,59 @@ namespace HBP.Core.Data
         public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Patient[] modifiedPatients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             modifiedPatients = new Patient[0];
-            List<Patient> clonedPatients = new();
+            Dictionary<string, Patient> modifiedPatientsDict = new Dictionary<string, Patient>();
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
-            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.AllDirectories);
+            FileInfo patientsExcelFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.xlsx"));
+            FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
+            FileInfo[] patientsExcelFiles = databaseDirectoryInfo.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
+            DirectoryInfo[] patientDirectories = databaseDirectoryInfo.GetDirectories();
             var progress = 0;
-            var length = patientsFiles.Length + 1;
+            var length = patientsFiles.Length + patientsExcelFiles.Length + patientDirectories.Length + 2;
             updateProgress?.Invoke(0, 0, new LoadingText("Loading additional tags"));
+
+            // Helper method to get or create patient clone
+            Patient GetOrCreatePatientClone(string patientId)
+            {
+                if (modifiedPatientsDict.TryGetValue(patientId, out Patient existingClone))
+                {
+                    return existingClone;
+                }
+                
+                var originalPatient = patients.FirstOrDefault(p => p.ID == patientId);
+                if (originalPatient != null)
+                {
+                    var clonedPatient = originalPatient.Clone() as Patient;
+                    modifiedPatientsDict[patientId] = clonedPatient;
+                    return clonedPatient;
+                }
+                
+                return null;
+            }
+
+            // Helper method to merge patient tags
+            void MergePatientTags(string patientId, List<BaseTagValue> newTags)
+            {
+                var patient = GetOrCreatePatientClone(patientId);
+                if (patient != null)
+                {
+                    foreach (var tagValue in newTags)
+                    {
+                        var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                        if (existingTagValue != null)
+                        {
+                            existingTagValue.Copy(tagValue);
+                        }
+                        else
+                        {
+                            patient.Tags.Add(tagValue);
+                        }
+                    }
+                }
+            }
 
             // Read patients.csv
             updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from patients.csv"));
@@ -634,38 +677,27 @@ namespace HBP.Core.Data
                 var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromCSV(patientsFileInfo.FullName);
                 foreach (var kv in tagValuesByPatient)
                 {
-                    var patient = patients.FirstOrDefault(p => p.ID == kv.Key);
-                    if (patient != null)
-                    {
-                        patient = patient.Clone() as Patient;
-                        foreach (var tagValue in kv.Value)
-                        {
-                            var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
-                            if (existingTagValue != null)
-                            {
-                                existingTagValue.Copy(tagValue);
-                            }
-                            else
-                            {
-                                patient.Tags.Add(tagValue);
-                            }
-                        }
-                        clonedPatients.Add(patient);
-                    }
+                    MergePatientTags(kv.Key, kv.Value);
                 }
             }
 
-            // Read all patients csv files
-            foreach (var file in patientsFiles)
+            // Read patients.xlsx
+            updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from patients.xlsx"));
+            if (patientsExcelFileInfo.Exists)
             {
-                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
-                token.ThrowIfCancellationRequested();
-                if (file.Name == "patients.csv") continue;
-                var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(file.FullName);
-                var patient = patients.FirstOrDefault(p => p.ID == Path.GetFileNameWithoutExtension(file.Name));
+                var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromExcel(patientsExcelFileInfo.FullName);
+                foreach (var kv in tagValuesByPatient)
+                {
+                    MergePatientTags(kv.Key, kv.Value);
+                }
+            }
+
+            // Helper method to merge site tags
+            void MergeSiteTags(string patientId, Dictionary<string, List<BaseTagValue>> tagValuesBySite)
+            {
+                var patient = GetOrCreatePatientClone(patientId);
                 if (patient != null)
                 {
-                    patient = patient.Clone() as Patient;
                     foreach (var kv in tagValuesBySite)
                     {
                         var site = patient.Sites.FirstOrDefault(s => s.Name == kv.Key);
@@ -685,11 +717,59 @@ namespace HBP.Core.Data
                             }
                         }
                     }
-                    clonedPatients.Add(patient);
                 }
             }
 
-            modifiedPatients = clonedPatients.ToArray();
+            // Read all individual patient CSV files in root directory
+            foreach (var file in patientsFiles)
+            {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
+                token.ThrowIfCancellationRequested();
+                if (file.Name == "patients.csv") continue;
+                var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(file.FullName);
+                string patientId = Path.GetFileNameWithoutExtension(file.Name);
+                MergeSiteTags(patientId, tagValuesBySite);
+            }
+
+            // Read all individual patient Excel files in root directory
+            foreach (var file in patientsExcelFiles)
+            {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
+                token.ThrowIfCancellationRequested();
+                if (file.Name == "patients.xlsx") continue;
+                var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromExcel(file.FullName);
+                string patientId = Path.GetFileNameWithoutExtension(file.Name);
+                MergeSiteTags(patientId, tagValuesBySite);
+            }
+
+            // Read all CSV and Excel files in patient-specific directories
+            foreach (var directory in patientDirectories)
+            {
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from directory ", directory.Name));
+                token.ThrowIfCancellationRequested();
+
+                string patientId = directory.Name;
+                
+                // Get all CSV and Excel files in this patient directory
+                FileInfo[] csvFilesInDirectory = directory.GetFiles("*.csv", SearchOption.AllDirectories);
+                FileInfo[] excelFilesInDirectory = directory.GetFiles("*.xlsx", SearchOption.AllDirectories);
+
+                // Process CSV files
+                foreach (var csvFile in csvFilesInDirectory)
+                {
+                    var siteTagsFromFile = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(csvFile.FullName);
+                    MergeSiteTags(patientId, siteTagsFromFile);
+                }
+
+                // Process Excel files
+                foreach (var excelFile in excelFilesInDirectory)
+                {
+                    var siteTagsFromFile = PersistentDataManager.Tags.GenerateSiteTagsFromExcel(excelFile.FullName);
+                    MergeSiteTags(patientId, siteTagsFromFile);
+                }
+            }
+
+            modifiedPatients = modifiedPatientsDict.Values.ToArray();
         }
         /// <summary>
         /// Coroutine to load patients from database. Implementation of ILoadableFromDatabase.
@@ -800,12 +880,12 @@ namespace HBP.Core.Data
             public bool Same(BIDSFile file)
             {
                 return file.Name == Name
-                    && file.Subject == Subject
-                    && file.Session == Session
-                    && file.DataAcquisition == DataAcquisition
-                    && file.Contrast == Contrast
-                    && file.Reconstruction == Reconstruction
-                    && file.Run == Run;
+                  && file.Subject == Subject
+                     && file.Session == Session
+                && file.DataAcquisition == DataAcquisition
+                 && file.Contrast == Contrast
+                  && file.Reconstruction == Reconstruction
+                          && file.Run == Run;
             }
         }
         class BIDSMeshFile : BIDSFile

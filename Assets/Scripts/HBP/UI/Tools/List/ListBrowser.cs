@@ -21,6 +21,8 @@ namespace HBP.UI.Tools.Lists
         #region Events
         public UnityEvent OnSelectNext = new();
         public UnityEvent OnSelectPrevious = new();
+        public UnityEvent OnReachEnd = new();
+        public UnityEvent OnReachBeginning = new();
         #endregion
 
         #region Private Methods

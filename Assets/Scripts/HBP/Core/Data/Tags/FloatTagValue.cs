@@ -1,4 +1,6 @@
-﻿namespace HBP.Core.Data
+﻿using HBP.Core.Tools;
+
+namespace HBP.Core.Data
 {
     /// <summary>
     /// Class which contains all the data about a float value and its associated FloatTag.
@@ -85,7 +87,7 @@
                 }
                 if (baseTagValue.Value is string stringValue)
                 {
-                    if (float.TryParse(stringValue, out float floatValue))
+                    if (NumberExtension.TryParseFloat(stringValue, out float floatValue))
                     {
                         Value = floatValue;
                     }
