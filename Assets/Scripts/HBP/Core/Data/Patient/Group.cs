@@ -49,6 +49,10 @@ namespace HBP.Core.Data
         /// Patients of the group.
         /// </summary>
         public List<Patient> Patients { get; set; }
+        /// <summary>
+        /// IDs of the patients of the group (read-only access).
+        /// </summary>
+        public List<string> PatientsID => m_PatientsID?.ToList() ?? new List<string>();
         #endregion
 
         #region Constructors
@@ -168,7 +172,7 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
+            if (ApplicationState.LoadedProject != null) Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
         }
         #endregion
     }
