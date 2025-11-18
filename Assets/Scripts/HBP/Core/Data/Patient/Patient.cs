@@ -527,14 +527,14 @@ namespace HBP.Core.Data
                             if (meshFile.Hemisphere == "L" || meshFile.Hemisphere == "l" || meshFile.Hemisphere == "left" || meshFile.Hemisphere == "Left")
                             {
                                 var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "R" || f.Hemisphere == "r" || f.Hemisphere == "right" || f.Hemisphere == "Right"));
-                                if (rightMeshFile == null) rightMeshFile = new BIDSMeshFile();
+                                rightMeshFile ??= new BIDSMeshFile();
                                 usedMeshFiles.Add(rightMeshFile);
                                 meshes.Add(new LeftRightMesh(meshFile.Name, "", meshFile.Path, rightMeshFile.Path, "", ""));
                             }
                             else if (meshFile.Hemisphere == "R" || meshFile.Hemisphere == "r" || meshFile.Hemisphere == "right" || meshFile.Hemisphere == "Right")
                             {
                                 var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "L" || f.Hemisphere == "l" || f.Hemisphere == "left" || f.Hemisphere == "Left"));
-                                if (leftMeshFile == null) leftMeshFile = new BIDSMeshFile();
+                                leftMeshFile ??= new BIDSMeshFile();
                                 usedMeshFiles.Add(leftMeshFile);
                                 meshes.Add(new LeftRightMesh(meshFile.Name, "", leftMeshFile.Path, meshFile.Path, "", ""));
                             }
@@ -868,24 +868,18 @@ namespace HBP.Core.Data
 
         class BIDSFile
         {
-            public string Name;
-            public string Subject;
-            public string Session;
-            public string DataAcquisition;
-            public string Contrast;
-            public string Reconstruction;
-            public int Run;
-            public string Path;
+            public string Name = "";
+            public string Subject = "";
+            public string Session = "";
+            public string DataAcquisition = "";
+            public string Contrast = "";
+            public string Reconstruction = "";
+            public int Run = 0;
+            public string Path = "";
 
             public bool Same(BIDSFile file)
             {
-                return file.Name == Name
-                  && file.Subject == Subject
-                     && file.Session == Session
-                && file.DataAcquisition == DataAcquisition
-                 && file.Contrast == Contrast
-                  && file.Reconstruction == Reconstruction
-                          && file.Run == Run;
+                return file.Name == Name && file.Subject == Subject && file.Session == Session && file.DataAcquisition == DataAcquisition && file.Contrast == Contrast && file.Reconstruction == Reconstruction && file.Run == Run;
             }
         }
         class BIDSMeshFile : BIDSFile
