@@ -3,7 +3,7 @@ using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-    public class LocationPreferencesSubModifier : SubModifier<LocationPreferences>
+    public class LocationPreferencesSubModifier : SubModifier<LocalizationPreferences>
     {
     }
 }

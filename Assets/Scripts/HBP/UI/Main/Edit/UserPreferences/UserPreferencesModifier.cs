@@ -14,6 +14,7 @@ namespace HBP.UI.Main
         [SerializeField] ThemePreferencesSubModifier m_ThemePreferencesSubModifier;
         [SerializeField] LocationPreferencesSubModifier m_LocationPreferencesSubModifier;
         [SerializeField] SystemPreferencesSubModifier m_SystemPreferencesSubModifier;
+        [SerializeField] MiscPreferencesSubModifier m_MiscPreferencesSubModifier;
         [SerializeField] EEGPreferencesSubModifier m_EEGPreferencesSubModifier;
         [SerializeField] ProtocolPreferencesSubModifier m_ProtocolPreferencesSubModifier;
         [SerializeField] AnatomyPreferencesSubModifier m_AnatomyPreferencesModifier;
@@ -40,6 +41,7 @@ namespace HBP.UI.Main
                 m_ThemePreferencesSubModifier.Interactable = value;
                 m_LocationPreferencesSubModifier.Interactable = value;
                 m_SystemPreferencesSubModifier.Interactable = value;
+                m_MiscPreferencesSubModifier.Interactable = value;
                 m_EEGPreferencesSubModifier.Interactable = value;
                 m_ProtocolPreferencesSubModifier.Interactable = value;
                 m_AnatomyPreferencesModifier.Interactable = value;
@@ -73,8 +75,9 @@ namespace HBP.UI.Main
             // General
             m_ProjectPreferencesSubModifier.Object = objectToDisplay.General.Project;
             m_ThemePreferencesSubModifier.Object = objectToDisplay.General.Theme;
-            m_LocationPreferencesSubModifier.Object = objectToDisplay.General.Location;
+            m_LocationPreferencesSubModifier.Object = objectToDisplay.General.Localization;
             m_SystemPreferencesSubModifier.Object = objectToDisplay.General.System;
+            m_MiscPreferencesSubModifier.Object = objectToDisplay.General.Misc;
 
             // Data
             m_EEGPreferencesSubModifier.Object = objectToDisplay.Data.EEG;
