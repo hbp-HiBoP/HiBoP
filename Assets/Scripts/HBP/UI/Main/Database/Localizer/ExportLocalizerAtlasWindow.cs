@@ -225,7 +225,10 @@ namespace HBP.UI.Main
         private async UniTask ExportAtlasAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
-            
+
+            // Liste pour tracker les dataInfos qui échouent au chargement
+            var failedDataInfos = new List<(IEEGDataInfo dataInfo, string patientName, string error)>();
+
             try
             {
                 // Initialize the generator
@@ -242,9 +245,33 @@ namespace HBP.UI.Main
                 var selectedDataNames = m_DataNameItems.Where(d => d.IsSelected).Select(d => d.DataName).ToList();
                 var selectedProtocols = m_ProtocolItems.Where(p => p.IsSelected).ToList();
                 
-                // Calcul correct : une opération par combinaison dataName/protocole/bloc (pas par patient)
-                int totalOperations = selectedDataNames.Count * selectedProtocols.Sum(p => p.SelectedBlocs.Count);
-                int currentOperation = 0;
+                // Calcul du nombre total d'opérations pour le progress
+                int totalDataInfosToLoad = 0;
+                int totalProtocolsToProcess = 0;
+                int totalBlocsToProcess = 0;
+                
+                foreach (var dataName in selectedDataNames)
+                {
+                    foreach (var protocolItem in selectedProtocols)
+                    {
+                        // Compter les dataInfos à charger pour ce protocole/dataName
+                        foreach (var patient in m_SelectedPatients)
+                        {
+                            var patientDataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>()
+                                .Where(d => d.Patient == patient && 
+                                           d.Protocol.Name == protocolItem.Name && 
+                                           d.Name == dataName)
+                                .ToList();
+                            totalDataInfosToLoad += patientDataInfos.Count;
+                        }
+                        totalProtocolsToProcess++;
+                        totalBlocsToProcess += protocolItem.SelectedBlocs.Count;
+                    }
+                }
+                
+                int currentDataInfoLoaded = 0;
+                int currentProtocolProcessed = 0;
+                int currentBlocProcessed = 0;
                 
                 // Loop through data names
                 foreach (var dataName in selectedDataNames)
@@ -259,13 +286,13 @@ namespace HBP.UI.Main
                         var selectedBlocNames = protocolItem.SelectedBlocs.Select(b => b.Name).ToList();
                         if (selectedBlocNames.Count == 0) continue;
                         
-                        updateProgress?.Invoke((float)currentOperation / totalOperations, 0, 
-                            new LoadingText($"Loading data for protocol: {protocolItem.Name}, data: {dataName}"));
-                        
                         // 1. CHARGER TOUTES LES DONNÉES de tous les patients sélectionnés pour ce protocole/dataname
                         var allDataInfos = new List<IEEGDataInfo>();
+                        var dataInfosToRemove = new List<IEEGDataInfo>();
+                        
                         foreach (var patient in m_SelectedPatients)
                         {
+                            
                             var patientDataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>()
                                 .Where(d => d.Patient == patient && 
                                            d.Protocol.Name == protocolItem.Name && 
@@ -277,13 +304,46 @@ namespace HBP.UI.Main
                         
                         if (allDataInfos.Count == 0) continue;
                         
-                        // Load all data for all patients
+                        // Load all data for all patients avec gestion des erreurs
                         foreach (var dataInfo in allDataInfos)
                         {
-                            DataManager.Load(dataInfo);
+                            try
+                            {
+                                // Phase 1: Chargement (0% à 50%)
+                                float loadingProgress = (float)currentDataInfoLoaded / totalDataInfosToLoad * 0.5f;
+                                updateProgress?.Invoke(loadingProgress, 0, 
+                                    new LoadingText($"Loading data: {dataInfo.Patient.Name} - {dataInfo.Name}"));
+                                
+                                DataManager.Load(dataInfo);
+                                currentDataInfoLoaded++;
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.LogError($"Failed to load dataInfo for patient {dataInfo.Patient.Name}: {ex.Message}");
+                                failedDataInfos.Add((dataInfo, dataInfo.Patient.Name, ex.Message));
+                                dataInfosToRemove.Add(dataInfo);
+                                currentDataInfoLoaded++; // Compter quand même pour le progress
+                            }
                         }
                         
-                        // 2. CRÉER UNE IMPLANTATION GLOBALE pour tous les patients                        
+                        // Supprimer les dataInfos qui ont échoué au chargement
+                        foreach (var dataInfoToRemove in dataInfosToRemove)
+                        {
+                            allDataInfos.Remove(dataInfoToRemove);
+                        }
+                        
+                        if (allDataInfos.Count == 0)
+                        {
+                            Debug.LogWarning($"No valid data loaded for protocol {protocolItem.Name}, dataName {dataName}");
+                            continue;
+                        }
+                        
+                        // 2. CRÉER UNE IMPLANTATION GLOBALE pour tous les patients
+                        // Phase 2 début: Génération implantation (50% + progression dans les 40%)
+                        float implantationProgress = 0.5f + ((float)currentProtocolProcessed / totalProtocolsToProcess * 0.4f * 0.2f); // 20% des 40% pour implantation
+                        updateProgress?.Invoke(implantationProgress, 0, 
+                            new LoadingText($"Generating global implantation for {protocolItem.Name}"));
+                            
                         var globalImplantation3D = GenerateImplantation3D(m_SelectedPatients);
                         if (globalImplantation3D == null || !globalImplantation3D.IsLoaded)
                         {
@@ -301,21 +361,35 @@ namespace HBP.UI.Main
                         {
                             token.ThrowIfCancellationRequested();
                             
-                            currentOperation++;
-                            updateProgress?.Invoke((float)currentOperation / totalOperations, 0, 
-                                new LoadingText($"Exporting bloc: {blocName} for {protocolItem.Name} - {dataName}"));
+                            // Phase 2: Traitement blocs (50% à 90% - répartition dans les 40%)
+                            float blocBaseProgress = 0.5f + ((float)currentProtocolProcessed / totalProtocolsToProcess * 0.4f * 0.2f); // Base implantation
+                            float blocCalculationProgress = blocBaseProgress + ((float)currentBlocProcessed / totalBlocsToProcess * 0.4f * 0.8f); // 80% des 40% pour calculs blocs
+                            updateProgress?.Invoke(blocCalculationProgress, 0, 
+                                new LoadingText($"Processing bloc: {blocName} ({protocolItem.Name} - {dataName})"));
                             
                             // Find the bloc in the loaded data
                             var bloc = allDataInfos.FirstOrDefault()?.Protocol.Blocs.FirstOrDefault(b => b.Name == blocName);
-                            if (bloc == null) continue;
+                            if (bloc == null) 
+                            {
+                                currentBlocProcessed++;
+                                continue;
+                            }
                             
                             // 4. GÉNÉRER LES DONNÉES IEEG PROCESSÉES pour ce bloc (tous patients)
                             var processedIEEGData = GenerateProcessedIEEGData(allDataInfos, bloc);
-                            if (processedIEEGData == null) continue;
+                            if (processedIEEGData == null) 
+                            {
+                                currentBlocProcessed++;
+                                continue;
+                            }
                             
                             // Extraire les valeurs d'activité
                             var activityValues = ExtractActivityValues(processedIEEGData, globalImplantation3D);
-                            if (activityValues == null) continue;
+                            if (activityValues == null) 
+                            {
+                                currentBlocProcessed++;
+                                continue;
+                            }
                             
                             // Utiliser la timeline de Processed.IEEGData
                             var timeline = processedIEEGData.Timeline;
@@ -333,6 +407,12 @@ namespace HBP.UI.Main
                             
                             // Generate output path (one file per bloc, not per patient)
                             string outputPath = GenerateOutputPath(protocolItem.Name, dataName, blocName);
+                            
+                            // Phase 3: Écriture (90% à 100% - répartition dans les 10%)
+                            float writingProgress = 0.9f + ((float)currentBlocProcessed / totalBlocsToProcess * 0.1f);
+                            updateProgress?.Invoke(writingProgress, 0, 
+                                new LoadingText($"Writing file: {blocName}.nii.gz"));
+                            
                             Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
                             
                             // Save as NIFTI
@@ -352,6 +432,8 @@ namespace HBP.UI.Main
                                 throw new HBPException("Export failed", 
                                     $"Failed to export atlas for {protocolItem.Name} - {dataName} - {blocName}");
                             }
+                            
+                            currentBlocProcessed++;
                         }
                         
                         // Clean implantation3D after protocol is complete
@@ -359,6 +441,9 @@ namespace HBP.UI.Main
                         
                         // Clean DataManager between protocols
                         DataManager.Clear();
+                        
+                        // Incrémenter le compteur de protocoles traités
+                        currentProtocolProcessed++;
                     }
                 }
             }
@@ -367,6 +452,31 @@ namespace HBP.UI.Main
                 m_Generator?.Dispose();
                 m_Generator = null;
             }
+            
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Export completed successfully!"));
+            
+            // Afficher les erreurs de chargement s'il y en a
+            if (failedDataInfos.Count > 0)
+            {
+                await UniTask.SwitchToMainThread();
+                ShowFailedDataInfosDialog(failedDataInfos);
+            }
+        }
+        
+        /// <summary>
+        /// Affiche une dialog box avec les dataInfos qui ont échoué au chargement
+        /// </summary>
+        /// <param name="failedDataInfos">Liste des dataInfos qui ont échoué</param>
+        private void ShowFailedDataInfosDialog(List<(IEEGDataInfo dataInfo, string patientName, string error)> failedDataInfos)
+        {
+            var message = $"{failedDataInfos.Count} data could not be loaded and have been skipped:\n\n";
+            foreach (var (dataInfo, patientName, error) in failedDataInfos)
+            {
+                message += $"• Patient: {patientName}, Protocol: {dataInfo.Protocol.Name}, Data: {dataInfo.Name}\nError: {error}\n\n";
+            }
+            message += "The atlases have been exported only with valid data.";
+
+            DialogBoxManager.OpenScrollable(DialogBoxType.Warning, "Loading Errors", message, "OK").Forget();
         }
         
         private Implantation3D GenerateImplantation3D(List<Patient> patients)
