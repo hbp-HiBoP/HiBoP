@@ -155,6 +155,42 @@ namespace HBP.Core.Tools
             FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
             return participantsFileInfo.Exists;
         }
+        public static string EscapeTsvValue(this string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return "n/a";
+
+            string escaped = value.Replace('\t', ' ').Replace('\n', ' ').Replace('\r', ' ');
+            escaped = Regex.Replace(escaped, @"\s+", " ").Trim();
+            return string.IsNullOrEmpty(escaped) ? "n/a" : escaped;
+        }
+        public static string ToSnakeCase(this string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+
+            // Replace spaces, hyphens, and other separators with underscores
+            string result = input.Trim();
+
+            // Replace common separators with underscores
+            result = Regex.Replace(result, @"[\s\-\.]+", "_");
+
+            // Handle camelCase and PascalCase by adding underscores before uppercase letters
+            // that are followed by lowercase letters or preceded by lowercase letters
+            result = Regex.Replace(result, @"([a-z])([A-Z])", "$1_$2");
+            result = Regex.Replace(result, @"([A-Z])([A-Z][a-z])", "$1_$2");
+
+            // Convert to lowercase
+            result = result.ToLowerInvariant();
+
+            // Remove multiple consecutive underscores
+            result = Regex.Replace(result, @"_{2,}", "_");
+
+            // Remove leading and trailing underscores
+            result = result.Trim('_');
+
+            return result;
+        }
     }
 
     public static class TypeExtension
