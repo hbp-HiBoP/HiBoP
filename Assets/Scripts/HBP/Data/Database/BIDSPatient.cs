@@ -45,7 +45,7 @@ namespace HBP.Data.BIDS
         public static BIDSPatient CreateNonAnonymized(Patient patient, IEnumerable<Protocol> protocols, IEnumerable<string> dataNames)
         {
             // Remove non-alphanumeric characters from patient name
-            string cleanId = Regex.Replace(patient.Name, @"[^a-zA-Z0-9]", "");
+            string cleanId = Regex.Replace(patient.ID, @"[^a-zA-Z0-9]", "");
             
             // Ensure the ID is not empty
             if (string.IsNullOrEmpty(cleanId))

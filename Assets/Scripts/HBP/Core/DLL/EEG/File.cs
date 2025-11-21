@@ -152,6 +152,10 @@ namespace HBP.Core.DLL.EEG
         {
             SaveAs(_handle, directoryPath, baseFileName);
         }
+        public void Convert(string output)
+        {
+            Convert(_handle, output);
+        }
         #endregion
 
         #region Memory Management
@@ -253,6 +257,9 @@ namespace HBP.Core.DLL.EEG
         static private extern void Save(HandleRef file);
         [DllImport("EEGFormat", EntryPoint = "SaveAs", CallingConvention = CallingConvention.Cdecl)]
         static private extern void SaveAs(HandleRef file, string directoryPath, string baseFileName);
+        [DllImport("EEGFormat", EntryPoint = "Convert", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void Convert(HandleRef file, string outputFilepath);
+
         #endregion
     }
 }

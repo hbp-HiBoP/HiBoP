@@ -1,7 +1,9 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Data.Container;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -11,6 +13,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting;
+using static AssetUsageDetectorNamespace.AssetUsageDetector;
 
 namespace HBP.Data.BIDS
 {
@@ -59,7 +62,7 @@ namespace HBP.Data.BIDS
 
             // Create dataset_description.json
             await UniTask.SwitchToMainThread();
-            var datasetDescription = new DatasetDescription(datasetName);
+            var datasetDescription = new DatasetDescriptionFile(datasetName);
             await UniTask.SwitchToThreadPool();
             ClassLoaderSaver.SaveToJSon(datasetDescription, Path.Combine(datasetPath, "dataset_description.json"), true);
 
@@ -87,6 +90,7 @@ namespace HBP.Data.BIDS
 
             // IEEG
             CreateElectrodesFiles(patient, postIeegDirectory.FullName, parameters);
+            CreateFunctionalFiles(patient, postIeegDirectory.FullName);
         }
 
         private static string PatientsToParticipantsTSV(IEnumerable<BIDSPatient> bidsPatients)
@@ -170,7 +174,6 @@ namespace HBP.Data.BIDS
 
             return tsvBuilder.ToString();
         }
-
         private static string SitesToElectrodesTSV(IEnumerable<Site> sites, CoordSystem coordSystem, string coordSystemString)
         {
             if (sites == null || !sites.Any())
@@ -251,8 +254,8 @@ namespace HBP.Data.BIDS
                 // Add material (fixed to "platinum")
                 rowValues.Add("platinum");
 
-                // Add manufacturer (fixed to "DIXI MEDICAL")
-                rowValues.Add("DIXI MEDICAL");
+                // Add manufacturer (fixed to "DIXI")
+                rowValues.Add("DIXI");
 
                 // Parse site name to extract group and hemisphere
                 string group = "";
@@ -318,6 +321,112 @@ namespace HBP.Data.BIDS
             }
 
             return tsvBuilder.ToString();
+        }
+        private static string EEGFileToChannelsTSV(Core.DLL.EEG.File file)
+        {
+            var electrodes = file.Electrodes;
+            if (electrodes == null || !electrodes.Any())
+            {
+                return "name\ttype\tunits\tlow_cutoff\thigh_cutoff\treference\tgroup\tsampling_frequency\n";
+            }
+
+            var siteNameComparer = new SiteNameComparer();
+            electrodes.Sort((a, b) => siteNameComparer.Compare(a.Label, b.Label));
+
+            // Fill data with fixed headers
+            var tsvBuilder = new StringBuilder();
+            tsvBuilder.AppendLine("name\ttype\tunits\tlow_cutoff\thigh_cutoff\treference\tgroup\tsampling_frequency");
+            foreach (var electrode in electrodes)
+            {
+                var label = electrode.Label;
+                string group = "";
+                string type = "";
+                if (!string.IsNullOrEmpty(label))
+                {
+                    // Site name format: letters + optional prime + number
+                    // Group = letters + optional prime
+                    // Hemisphere = L if there's a prime, R if there isn't
+                    var match = Regex.Match(label, @"^([A-Za-z]+)('?)(\d+)$");
+                    if (match.Success)
+                    {
+                        string letters = match.Groups[1].Value;
+                        string prime = match.Groups[2].Value;
+
+                        group = letters + prime;
+                        type = "SEEG";
+                    }
+                    else
+                    {
+                        group = "n/a";
+                        type = "MISC";
+                    }
+                }
+
+                string referenceLabel = electrode.ReferenceLabel;
+                if (string.IsNullOrEmpty(referenceLabel))
+                {
+                    referenceLabel = "intracranial";
+                }
+
+                var rowValues = new List<string>
+                {
+                    electrode.Label,
+                    type, // type
+                    electrode.Unit,   // units
+                    electrode.PrefilteringLowPassLimit.ToString(),  // low_cutoff
+                    electrode.PrefilteringHighPassLimit.ToString(),  // high_cutoff
+                    electrode.ReferenceLabel,  // reference
+                    group,  // group
+                    file.SamplingFrequency.Value.ToString() // sampling_frequency
+                };
+                tsvBuilder.AppendLine(string.Join("\t", rowValues));
+            }
+
+            return tsvBuilder.ToString();
+        }
+        private static TaskFile EEGFileToTaskFile(Core.DLL.EEG.File file, Patient patient, DataInfo dataInfo)
+        {
+            int numberOfSEEGChannels = 0;
+            int numberOfMiscChannels = 0;
+            var electrodes = file.Electrodes;
+            foreach (var electrode in electrodes)
+            {
+                var label = electrode.Label;
+                var match = Regex.Match(label, @"^([A-Za-z]+)('?)(\d+)$");
+                if (match.Success)
+                {
+                    numberOfSEEGChannels++;
+                }
+                else
+                {
+                    numberOfMiscChannels++;
+                }
+            }
+
+            var institutionName = "n/a";
+            var institutionAddress = "n/a";
+            var placeTag = patient.Tags.FirstOrDefault(t => t.Tag.Name == "Place");
+            if (placeTag.DisplayableValue == "GRE")
+            {
+                institutionName = "CHU Grenoble Alpes";
+                institutionAddress = "Boulevard de la Chantourne, 38700 La Tronche, France";
+            }
+            else if (placeTag.DisplayableValue == "LYONNEURO")
+            {
+                institutionName = "Hôpital Pierre Wertheimer";
+                institutionAddress = "59 Boulevard Pinel, 69677 Bron, France";
+            }
+
+            return new TaskFile()
+            {
+                TaskName = dataInfo.Protocol.Name,
+                SamplingFrequency = file.SamplingFrequency.Value,
+                RecordingDuration = file.SamplingFrequency.ConvertNumberOfSamplesToSeconds(file.NumberOfSamples),
+                SEEGChannelCount = numberOfSEEGChannels,
+                MiscChannelCount = numberOfMiscChannels,
+                InstitutionName = institutionName,
+                InstitutionAddress = institutionAddress
+            };
         }
 
         private static void CopyPreAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
@@ -532,11 +641,67 @@ namespace HBP.Data.BIDS
             {
                 string electrodesTsvContent = SitesToElectrodesTSV(sites, CoordSystem.Patient, parameters.PatientCoordSystem);
                 File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_electrodes.tsv"), electrodesTsvContent);
+                ClassLoaderSaver.SaveToJSon(new CoordSystemFile("scanner"), Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_coordsystem.json"));
             }
             if (parameters.IncludeMNICoordSystem)
             {
+                var space = "MNI152Lin";
                 string electrodesTsvContent = SitesToElectrodesTSV(sites, CoordSystem.MNI, parameters.MNICoordSystem);
-                File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_space-MNI152Lin_electrodes.tsv"), electrodesTsvContent);
+                File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_space-{space}_electrodes.tsv"), electrodesTsvContent);
+                ClassLoaderSaver.SaveToJSon(new CoordSystemFile("MNI152Lin"), Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_space-{space}_coordsystem.json"));
+            }
+        }
+        private static void CreateFunctionalFiles(BIDSPatient patient, string ieegFolder)
+        {
+            foreach (var dataInfo in patient.DataInfos)
+            {
+                // Read Data
+                Core.DLL.EEG.File.FileType type;
+                string[] files;
+                if (dataInfo.DataContainer is BrainVision brainVisionDataContainer)
+                {
+                    type = Core.DLL.EEG.File.FileType.BrainVision;
+                    files = new string[] { brainVisionDataContainer.Header };
+                }
+                else if (dataInfo.DataContainer is EDF edfDataContainer)
+                {
+                    type = Core.DLL.EEG.File.FileType.EDF;
+                    files = new string[] { edfDataContainer.File };
+                }
+                else if (dataInfo.DataContainer is Elan elanDataContainer)
+                {
+                    type = Core.DLL.EEG.File.FileType.ELAN;
+                    files = new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes };
+                }
+                else if (dataInfo.DataContainer is Micromed micromedDataContainer)
+                {
+                    type = Core.DLL.EEG.File.FileType.Micromed;
+                    files = new string[] { micromedDataContainer.Path };
+                }
+                else if (dataInfo.DataContainer is FIF fifDataContainer)
+                {
+                    type = Core.DLL.EEG.File.FileType.FIF;
+                    files = new string[] { fifDataContainer.File };
+                }
+                else
+                {
+                    throw new Exception("Invalid data container type");
+                }
+                Core.DLL.EEG.File file = new Core.DLL.EEG.File(type, true, files);
+
+                // Create files
+                if (dataInfo.Name.ToLower() == "raw")
+                {
+                    file.Convert(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_task-{dataInfo.Protocol.Name}_ieeg.edf"));
+                    File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_task-{dataInfo.Protocol.Name}_channels.tsv"), EEGFileToChannelsTSV(file));
+                    ClassLoaderSaver.SaveToJSon(EEGFileToTaskFile(file, patient.Patient, dataInfo), Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_task-{dataInfo.Protocol.Name}_ieeg.json"));
+                }
+                else
+                {
+                    file.Convert(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_task-{dataInfo.Protocol.Name}_acq-{dataInfo.Name}_ieeg.edf"));
+                    File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_task-{dataInfo.Protocol.Name}_acq-{dataInfo.Name}_channels.tsv"), EEGFileToChannelsTSV(file));
+                    ClassLoaderSaver.SaveToJSon(EEGFileToTaskFile(file, patient.Patient, dataInfo), Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_task-{dataInfo.Protocol.Name}_acq-{dataInfo.Name}_ieeg.json"));
+                }
             }
         }
     }
