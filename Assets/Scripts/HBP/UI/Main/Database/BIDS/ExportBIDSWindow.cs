@@ -224,71 +224,31 @@ namespace HBP.UI.Main
             
             m_OKButton.interactable = canExport;
         }
-        private List<BIDSPatient> CreateBIDSPatients()
-        {
-            var bidsPatients = new List<BIDSPatient>();
-
-            if (m_AnonymizeToggle.isOn)
-            {
-                // Anonymized mode: randomize order and assign zero-padded numbers
-                var randomizedPatients = m_SelectedPatients.OrderBy(x => System.Guid.NewGuid()).ToList();
-
-                for (int i = 0; i < randomizedPatients.Count; i++)
-                {
-                    var bidsPatient = BIDSPatient.CreateAnonymized(randomizedPatients[i], i + 1);
-                    bidsPatients.Add(bidsPatient);
-                }
-            }
-            else
-            {
-                // Non-anonymized mode: use alphanumeric-only patient names
-                foreach (var patient in m_SelectedPatients)
-                {
-                    var bidsPatient = BIDSPatient.CreateNonAnonymized(patient);
-                    bidsPatients.Add(bidsPatient);
-                }
-            }
-
-            return bidsPatients;
-        }
         private async UniTask ExportBIDSAsync(System.Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
-            
             try
             {
                 updateProgress?.Invoke(0, 0, new LoadingText("Initializing BIDS export"));
                 
                 // Create BIDS patients list based on anonymization setting
-                var bidsPatients = CreateBIDSPatients();
+                var selectedProtocols = DatabaseManager.Database.Protocols.Where(p => m_ProtocolItems.Any(item => item.IsSelected && item.Name == p.Name)).ToList();
+                var selectedDataNames = m_DataItems.Where(d => d.IsSelected).Select(d => d.DataName).ToList();
+                var bidsPatients = BIDSUtility.CreateBIDSPatients(m_SelectedPatients, selectedProtocols, selectedDataNames, m_AnonymizeToggle.isOn);
                 
-                // Create dataset directory
-                string datasetPath = Path.Combine(m_ExportFolderSelector.Folder, m_DatasetNameInputField.text);
-                if (Directory.Exists(datasetPath))
+                // Create dataset directory and general files
+                string datasetPath = await BIDSUtility.CreateRootDirectoryAndFilesAsync(m_DatasetNameInputField.text, bidsPatients, m_ExportFolderSelector.Folder);
+
+                // Create patient-specific files
+                int count = 0;
+                int totalPatients = bidsPatients.Count;
+                foreach (var patient in bidsPatients)
                 {
-                    Directory.Delete(datasetPath, true);
+                    token.ThrowIfCancellationRequested();
+                    updateProgress?.Invoke((float)count / totalPatients, 0f, new LoadingText($"Exporting ", $"{patient.ParticipantId}", $" ({count + 1}/{totalPatients})"));
+                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, new BIDSParameters()); //FIXME allow user to set parameters
+                    count++;
                 }
-                Directory.CreateDirectory(datasetPath);
-                
-                updateProgress?.Invoke(0.2f, 0, new LoadingText("Creating dataset_description.json"));
-                
-                // Create dataset_description.json
-                await UniTask.SwitchToMainThread();
-                var datasetDescription = new DatasetDescription()
-                {
-                    Name = m_DatasetNameInputField.text
-                };
-                await UniTask.SwitchToThreadPool();
-                ClassLoaderSaver.SaveToJSon(datasetDescription, Path.Combine(datasetPath, "dataset_description.json"), true);
-                
-                updateProgress?.Invoke(0.6f, 0, new LoadingText("Creating participants.tsv"));
-                
-                // Create participants.tsv using BIDS patients
-                string participantsTsv = BIDSUtility.PatientsToParticipantsTSV(bidsPatients);
-                string participantsTsvPath = Path.Combine(datasetPath, "participants.tsv");
-                await File.WriteAllTextAsync(participantsTsvPath, participantsTsv);
-                
-                updateProgress?.Invoke(1.0f, 0, new LoadingText("BIDS export completed"));
             }
             catch (System.Exception ex)
             {

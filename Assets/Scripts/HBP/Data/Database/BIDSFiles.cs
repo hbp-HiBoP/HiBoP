@@ -11,6 +11,12 @@ namespace HBP.Data.BIDS
         public string BIDSVersion = "1.10.1";
         public string DatasetType = "derivative";
         public GeneratedBy[] GeneratedBy = new GeneratedBy[1] { new() };
+
+        public DatasetDescription() { }
+        public DatasetDescription(string name)
+        {
+            Name = name;
+        }
     }
 
     [JsonObject(MemberSerialization.OptOut), Preserve]

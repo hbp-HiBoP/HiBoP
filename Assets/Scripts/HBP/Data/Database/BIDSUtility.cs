@@ -1,21 +1,87 @@
+using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Tools;
+using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace HBP.Data.BIDS
 {
     public static class BIDSUtility
     {
-        /// <summary>
-        /// Converts a collection of BIDS patients to BIDS participants.tsv format.
-        /// </summary>
-        /// <param name="bidsPatients">Collection of BIDS patients to convert</param>
-        /// <returns>TSV content as string</returns>
-        public static string PatientsToParticipantsTSV(IEnumerable<BIDSPatient> bidsPatients)
+        public static List<BIDSPatient> CreateBIDSPatients(IEnumerable<Patient> patients, IEnumerable<Protocol> protocols, IEnumerable<string> dataNames, bool anonymize = false)
+        {
+            var bidsPatients = new List<BIDSPatient>();
+
+            if (anonymize)
+            {
+                // Anonymized mode: randomize order and assign zero-padded numbers
+                var randomizedPatients = patients.OrderBy(x => System.Guid.NewGuid()).ToList();
+
+                for (int i = 0; i < randomizedPatients.Count; i++)
+                {
+                    var bidsPatient = BIDSPatient.CreateAnonymized(randomizedPatients[i], protocols, dataNames, i + 1);
+                    bidsPatients.Add(bidsPatient);
+                }
+            }
+            else
+            {
+                // Non-anonymized mode: use alphanumeric-only patient names
+                foreach (var patient in patients)
+                {
+                    var bidsPatient = BIDSPatient.CreateNonAnonymized(patient, protocols, dataNames);
+                    bidsPatients.Add(bidsPatient);
+                }
+            }
+
+            return bidsPatients;
+        }
+
+        public static async UniTask<string> CreateRootDirectoryAndFilesAsync(string datasetName, IEnumerable<BIDSPatient> patients, string baseFolder)
+        {
+            // Create root directory
+            string datasetPath = Path.Combine(baseFolder, datasetName);
+            if (Directory.Exists(datasetPath)) Directory.Delete(datasetPath, true);
+            Directory.CreateDirectory(datasetPath);
+
+            // Create dataset_description.json
+            await UniTask.SwitchToMainThread();
+            var datasetDescription = new DatasetDescription(datasetName);
+            await UniTask.SwitchToThreadPool();
+            ClassLoaderSaver.SaveToJSon(datasetDescription, Path.Combine(datasetPath, "dataset_description.json"), true);
+
+            // Create participants.tsv
+            string participantsTsv = PatientsToParticipantsTSV(patients);
+            string participantsTsvPath = Path.Combine(datasetPath, "participants.tsv");
+            await File.WriteAllTextAsync(participantsTsvPath, participantsTsv);
+
+            return datasetPath;
+        }
+
+        public static async UniTask ExportPatientAsync(BIDSPatient patient, string datasetFolder, BIDSParameters parameters)
+        {
+            var patientDirectory = Directory.CreateDirectory(Path.Combine(datasetFolder, patient.ParticipantId));
+            var preDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "ses-pre"));
+            var preAnatDirectory = Directory.CreateDirectory(Path.Combine(preDirectory.FullName, "anat"));
+            var postDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "ses-post"));
+            var postAnatDirectory = Directory.CreateDirectory(Path.Combine(postDirectory.FullName, "anat"));
+            var postIeegDirectory = Directory.CreateDirectory(Path.Combine(postDirectory.FullName, "ieeg"));
+
+            // Anatomy
+            CopyPreAnatomy(patient, preAnatDirectory.FullName, parameters);
+            CopyPostAnatomy(patient, postAnatDirectory.FullName, parameters);
+            CopyCTAnatomy(patient, postAnatDirectory.FullName, parameters);
+
+            // IEEG
+        }
+
+        private static string PatientsToParticipantsTSV(IEnumerable<BIDSPatient> bidsPatients)
         {
             if (bidsPatients == null || !bidsPatients.Any())
             {
@@ -28,9 +94,9 @@ namespace HBP.Data.BIDS
             var allTags = new HashSet<BaseTag>();
             foreach (var bidsPatient in bidsPatientsList)
             {
-                if (bidsPatient.OriginalPatient.Tags != null)
+                if (bidsPatient.Patient.Tags != null)
                 {
-                    foreach (var tagValue in bidsPatient.OriginalPatient.Tags)
+                    foreach (var tagValue in bidsPatient.Patient.Tags)
                     {
                         if (tagValue.Tag != null)
                         {
@@ -46,7 +112,7 @@ namespace HBP.Data.BIDS
 
             foreach (var tag in allTags.OrderBy(t => t.Name))
             {
-                string headerName = ToSnakeCase(tag.Name);
+                string headerName = tag.Name.ToSnakeCase();
                 headers.Add(headerName);
                 tagToHeaderMap[tag] = headerName;
             }
@@ -70,13 +136,18 @@ namespace HBP.Data.BIDS
                 {
                     string value = "n/a"; // Default value for missing tags
 
-                    if (bidsPatient.OriginalPatient.Tags != null)
+                    if (bidsPatient.Patient.Tags != null)
                     {
-                        var tagValue = bidsPatient.OriginalPatient.Tags.FirstOrDefault(tv => tv.Tag == tag);
+                        var tagValue = bidsPatient.Patient.Tags.FirstOrDefault(tv => tv.Tag == tag);
                         if (tagValue != null && tagValue.DisplayableValue != null)
                         {
-                            value = EscapeTsvValue(tagValue.DisplayableValue);
+                            value = tagValue.DisplayableValue.DeblankCompletely();
                         }
+                    }
+
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        value = "n/a";
                     }
 
                     rowValues.Add(value);
@@ -88,65 +159,251 @@ namespace HBP.Data.BIDS
             return tsvBuilder.ToString();
         }
 
-        /// <summary>
-        /// Converts a string to snake_case format.
-        /// </summary>
-        /// <param name="input">Input string to convert</param>
-        /// <returns>String in snake_case format</returns>
-        private static string ToSnakeCase(string input)
+        private static string SitesToElectrodesTSV(IEnumerable<Site> sites, string coordSystem)
         {
-            if (string.IsNullOrEmpty(input))
-                return string.Empty;
+            return "";
+        }
 
-            // Replace spaces, hyphens, and other separators with underscores
-            string result = input.Trim();
-            
-            // Replace common separators with underscores
-            result = Regex.Replace(result, @"[\s\-\.]+", "_");
-            
-            // Handle camelCase and PascalCase by adding underscores before uppercase letters
-            // that are followed by lowercase letters or preceded by lowercase letters
-            result = Regex.Replace(result, @"([a-z])([A-Z])", "$1_$2");
-            result = Regex.Replace(result, @"([A-Z])([A-Z][a-z])", "$1_$2");
-            
-            // Convert to lowercase
-            result = result.ToLowerInvariant();
-            
-            // Remove multiple consecutive underscores
-            result = Regex.Replace(result, @"_{2,}", "_");
-            
-            // Remove leading and trailing underscores
-            result = result.Trim('_');
-            
-            // Ensure the result is not empty and starts with a letter or underscore
-            if (string.IsNullOrEmpty(result) || (!char.IsLetter(result[0]) && result[0] != '_'))
+        private static void CopyPreAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
+        {
+            if (parameters.IncludePreMRI)
             {
-                result = "tag_" + result;
+                var preMRI = patient.Patient.MRIs.FirstOrDefault(m => m.Name == parameters.PreMRIName);
+                if (preMRI != null) File.Copy(preMRI.File, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_T1w.nii"), true);
             }
 
-            return result;
-        }
+            if (parameters.IncludePreGreyMatterMesh)
+            {
+                var preGreyMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PreGreyMatterMeshName);
+                if (preGreyMatterMesh != null)
+                {
+                    if (preGreyMatterMesh is SingleMesh singleMesh)
+                    {
+                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_pial.surf.gii"), true);
+                        if (singleMesh.HasMarsAtlas)
+                        {
+                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    else if (preGreyMatterMesh is LeftRightMesh leftRightMesh)
+                    {
+                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_pial.surf.gii"), true);
+                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_pial.surf.gii"), true);
+                        if (leftRightMesh.HasMarsAtlas)
+                        {
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    if (preGreyMatterMesh.HasTransformation)
+                    {
+                        File.Copy(preGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_from-surf_to-T1w.trm"), true);
+                    }
+                }
+            }
 
-        /// <summary>
-        /// Escapes TSV values to handle special characters.
-        /// </summary>
-        /// <param name="value">Value to escape</param>
-        /// <returns>Escaped value suitable for TSV format</returns>
-        private static string EscapeTsvValue(string value)
+            if (parameters.IncludePreWhiteMatterMesh)
+            {
+                var preWhiteMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PreWhiteMatterMeshName);
+                if (preWhiteMatterMesh != null)
+                {
+                    if (preWhiteMatterMesh is SingleMesh singleMesh)
+                    {
+                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_white.surf.gii"), true);
+                        if (singleMesh.HasMarsAtlas)
+                        {
+                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    else if (preWhiteMatterMesh is LeftRightMesh leftRightMesh)
+                    {
+                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_white.surf.gii"), true);
+                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_white.surf.gii"), true);
+                        if (leftRightMesh.HasMarsAtlas)
+                        {
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    if (preWhiteMatterMesh.HasTransformation)
+                    {
+                        File.Copy(preWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_from-surf_to-T1w.trm"), true);
+                    }
+                }
+            }
+        }
+        private static void CopyPostAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
         {
-            if (string.IsNullOrEmpty(value))
-                return "n/a";
+            if (parameters.IncludePostMRI)
+            {
+                var postMRI = patient.Patient.MRIs.FirstOrDefault(m => m.Name == parameters.PostMRIName);
+                if (postMRI != null) File.Copy(postMRI.File, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_T1w.nii"), true);
+            }
 
-            // Replace tabs, newlines, and carriage returns with spaces
-            string escaped = value.Replace('\t', ' ')
-                                  .Replace('\n', ' ')
-                                  .Replace('\r', ' ');
+            if (parameters.IncludePostGreyMatterMesh)
+            {
+                var postGreyMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PostGreyMatterMeshName);
+                if (postGreyMatterMesh != null)
+                {
+                    if (postGreyMatterMesh is SingleMesh singleMesh)
+                    {
+                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_pial.surf.gii"), true);
+                        if (singleMesh.HasMarsAtlas)
+                        {
+                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    else if (postGreyMatterMesh is LeftRightMesh leftRightMesh)
+                    {
+                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_pial.surf.gii"), true);
+                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_pial.surf.gii"), true);
+                        if (leftRightMesh.HasMarsAtlas)
+                        {
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    if (postGreyMatterMesh.HasTransformation)
+                    {
+                        File.Copy(postGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                    }
+                }
+            }
 
-            // Remove extra whitespace
-            escaped = Regex.Replace(escaped, @"\s+", " ").Trim();
-
-            // Return "n/a" if the value becomes empty after cleaning
-            return string.IsNullOrEmpty(escaped) ? "n/a" : escaped;
+            if (parameters.IncludePostWhiteMatterMesh)
+            {
+                var postWhiteMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PostWhiteMatterMeshName);
+                if (postWhiteMatterMesh != null)
+                {
+                    if (postWhiteMatterMesh is SingleMesh singleMesh)
+                    {
+                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_white.surf.gii"), true);
+                        if (singleMesh.HasMarsAtlas)
+                        {
+                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    else if (postWhiteMatterMesh is LeftRightMesh leftRightMesh)
+                    {
+                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_white.surf.gii"), true);
+                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_white.surf.gii"), true);
+                        if (leftRightMesh.HasMarsAtlas)
+                        {
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    if (postWhiteMatterMesh.HasTransformation)
+                    {
+                        File.Copy(postWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                    }
+                }
+            }
         }
+        private static void CopyCTAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
+        {
+            if (parameters.IncludeCTMRI)
+            {
+                var ctMRI = patient.Patient.MRIs.FirstOrDefault(m => m.Name == parameters.CTMRIName);
+                if (ctMRI != null) File.Copy(ctMRI.File, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_CT.nii"), true);
+            }
+
+            if (parameters.IncludeCTGreyMatterMesh)
+            {
+                var ctGreyMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.CTGreyMatterMeshName);
+                if (ctGreyMatterMesh != null)
+                {
+                    if (ctGreyMatterMesh is SingleMesh singleMesh)
+                    {
+                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_pial.surf.gii"), true);
+                        if (singleMesh.HasMarsAtlas)
+                        {
+                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    else if (ctGreyMatterMesh is LeftRightMesh leftRightMesh)
+                    {
+                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_pial.surf.gii"), true);
+                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_pial.surf.gii"), true);
+                        if (leftRightMesh.HasMarsAtlas)
+                        {
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    if (ctGreyMatterMesh.HasTransformation)
+                    {
+                        File.Copy(ctGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                    }
+                }
+            }
+
+            if (parameters.IncludeCTWhiteMatterMesh)
+            {
+                var ctWhiteMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.CTWhiteMatterMeshName);
+                if (ctWhiteMatterMesh != null)
+                {
+                    if (ctWhiteMatterMesh is SingleMesh singleMesh)
+                    {
+                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_white.surf.gii"), true);
+                        if (singleMesh.HasMarsAtlas)
+                        {
+                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    else if (ctWhiteMatterMesh is LeftRightMesh leftRightMesh)
+                    {
+                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_white.surf.gii"), true);
+                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_white.surf.gii"), true);
+                        if (leftRightMesh.HasMarsAtlas)
+                        {
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                        }
+                    }
+                    if (ctWhiteMatterMesh.HasTransformation)
+                    {
+                        File.Copy(ctWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                    }
+                }
+            }
+        }
+    }
+
+    [JsonObject(MemberSerialization.OptOut), Preserve]
+    public class BIDSParameters
+    {
+        public bool IncludePreMRI = true;
+        public string PreMRIName = "Preimplantation";
+
+        public bool IncludePostMRI = true;
+        public string PostMRIName = "Postimplantation";
+
+        public bool IncludeCTMRI = true;
+        public string CTMRIName = "CT";
+
+        public bool IncludePreGreyMatterMesh = true;
+        public string PreGreyMatterMeshName = "Grey matter";
+
+        public bool IncludePreWhiteMatterMesh = true;
+        public string PreWhiteMatterMeshName = "White matter";
+
+        public bool IncludePostGreyMatterMesh = false;
+        public string PostGreyMatterMeshName = "Grey matter post";
+
+        public bool IncludePostWhiteMatterMesh = false;
+        public string PostWhiteMatterMeshName = "White matter post";
+
+        public bool IncludeCTGreyMatterMesh = false;
+        public string CTGreyMatterMeshName = "Grey matter CT";
+
+        public bool IncludeCTWhiteMatterMesh = false;
+        public string CTWhiteMatterMeshName = "White matter CT";
+
+        public bool IncludePatientCoordSystem = true;
+        public string PatientCoordSystem = "Patient";
+
+        public bool IncludeMMNICoordSystem = true;
+        public string MNICoordSystem = "MNI";
     }
 }

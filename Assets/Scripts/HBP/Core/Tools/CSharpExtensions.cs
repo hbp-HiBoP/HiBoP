@@ -155,14 +155,11 @@ namespace HBP.Core.Tools
             FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
             return participantsFileInfo.Exists;
         }
-        public static string EscapeTsvValue(this string value)
+        public static string DeblankCompletely(this string value)
         {
-            if (string.IsNullOrEmpty(value))
-                return "n/a";
-
-            string escaped = value.Replace('\t', ' ').Replace('\n', ' ').Replace('\r', ' ');
-            escaped = Regex.Replace(escaped, @"\s+", " ").Trim();
-            return string.IsNullOrEmpty(escaped) ? "n/a" : escaped;
+            string deblanked = value.Replace('\t', ' ').Replace('\n', ' ').Replace('\r', ' ');
+            deblanked = Regex.Replace(deblanked, @"\s+", " ").Trim();
+            return deblanked;
         }
         public static string ToSnakeCase(this string input)
         {
