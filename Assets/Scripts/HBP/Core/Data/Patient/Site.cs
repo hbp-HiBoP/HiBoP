@@ -553,7 +553,11 @@ namespace HBP.Core.Data
             }
             else if (fileInfo.Extension == ".tsv")
             {
-                string name = path.Split('_').FirstOrDefault(s => s.Contains("space")).Split('-')[1];
+                string name = path.Split('_').FirstOrDefault(s => s.Contains("space"))?.Split('-')[1];
+                if (string.IsNullOrEmpty(name))
+                {
+                    name = "scanner";
+                }
                 result = LoadImplantationFromBIDSFile(name, path).ToArray();
                 return true;
             }

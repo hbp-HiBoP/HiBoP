@@ -406,13 +406,13 @@ namespace HBP.Core.Data
                         {
                             valueByTag.Add(tags[t], values[t]);
                         }
-                        tagValuesBySubjectID.Add(values[0][4..], valueByTag);
+                        tagValuesBySubjectID.Add(values[0], valueByTag);
                     }
                 }
             }
 
             // Find mesh files.
-            Regex meshRegex = new Regex(@"sub-([a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_acq-([a-zA-Z0-9.]+))?(_ce-([a-zA-Z0-9.]+))?(_rec-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?(_[a-zA-Z0-9.-]+)*(_hemi-([a-zA-Z0-9.-]))(_[a-zA-Z0-9.-]+)*_([a-zA-Z0-9.-]+)\.gii$");
+            Regex meshRegex = new Regex(@"(sub-[a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_acq-([a-zA-Z0-9.]+))?(_ce-([a-zA-Z0-9.]+))?(_rec-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?(_desc-([a-zA-Z0-9.]+))?(_[a-zA-Z0-9.-]+)*(_hemi-([a-zA-Z0-9.-]))(_[a-zA-Z0-9.-]+)*_([a-zA-Z0-9.-]+)\.[a-zA-Z0-9]*\.gii$");
             FileInfo[] meshFiles = databaseDirectoryInfo.GetFiles("*.gii", SearchOption.AllDirectories);
             Dictionary<string, List<BIDSMeshFile>> meshesFilesBySubjectID = new Dictionary<string, List<BIDSMeshFile>>();
             foreach (var file in meshFiles)
@@ -429,8 +429,9 @@ namespace HBP.Core.Data
                     meshFile.Contrast = groups[7].Value;
                     meshFile.Reconstruction = groups[9].Value;
                     if (int.TryParse(groups[11].Value, out int run)) meshFile.Run = run;
-                    meshFile.Hemisphere = groups[14].Value;
-                    meshFile.Name = groups[16].Value;
+                    meshFile.Description = groups[13].Value;
+                    meshFile.Hemisphere = groups[16].Value;
+                    meshFile.Name = groups[18].Value;
                     meshFile.Path = file.FullName;
                     if (meshesFilesBySubjectID.TryGetValue(meshFile.Subject, out List<BIDSMeshFile> files))
                     {
@@ -444,7 +445,7 @@ namespace HBP.Core.Data
             }
 
             // Find MRI files.
-            Regex mriRegex = new Regex(@"sub-(\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?_(T1w|T2w|T1rho|T1map|T2map|T2star|FLAIR|FLASH|PD|PDmap|PDT2|inplaneT1|inplaneT2|angio)\.nii(\.gz)?$");
+            Regex mriRegex = new Regex(@"(sub-\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?_(T1w|T2w|T1rho|T1map|T2map|T2star|FLAIR|FLASH|PD|PDmap|PDT2|inplaneT1|inplaneT2|angio)\.nii(\.gz)?$");
             FileInfo[] mriFiles = databaseDirectoryInfo.GetFiles("*.nii", SearchOption.AllDirectories);
             Dictionary<string, List<BIDSMRIFile>> mriFilesBySubjectID = new Dictionary<string, List<BIDSMRIFile>>();
             foreach (var file in mriFiles)
@@ -475,7 +476,7 @@ namespace HBP.Core.Data
             }
 
             // Find Electrodes files.
-            Regex electrodesRegex = new Regex(@"sub-(\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?(_space-(\w+))?_electrodes\.tsv?$");
+            Regex electrodesRegex = new Regex(@"(sub-\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?(_space-(\w+))?_electrodes\.tsv?$");
             FileInfo[] electrodesFiles = databaseDirectoryInfo.GetFiles("*_electrodes.tsv", SearchOption.AllDirectories);
             Dictionary<string, List<BIDSElectrodeFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSElectrodeFile>>();
             foreach (var file in electrodesFiles)
@@ -520,27 +521,76 @@ namespace HBP.Core.Data
                 if (meshesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSMeshFile> subjectMeshFiles))
                 {
                     List<BIDSMeshFile> usedMeshFiles = new List<BIDSMeshFile>(subjectMeshFiles.Count);
+                    
                     foreach (var meshFile in subjectMeshFiles)
                     {
-                        if (!usedMeshFiles.Contains(meshFile))
+                        if (!usedMeshFiles.Contains(meshFile) && !meshFile.IsMarsAtlasMesh)
                         {
-                            if (meshFile.Hemisphere == "L" || meshFile.Hemisphere == "l" || meshFile.Hemisphere == "left" || meshFile.Hemisphere == "Left")
+                            string transformationPath = meshFile.FindTransformationFile();
+                            
+                            if (meshFile.IsLeft)
                             {
-                                var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "R" || f.Hemisphere == "r" || f.Hemisphere == "right" || f.Hemisphere == "Right"));
+                                var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && f.IsRight);
                                 rightMeshFile ??= new BIDSMeshFile();
                                 usedMeshFiles.Add(rightMeshFile);
-                                meshes.Add(new LeftRightMesh(meshFile.Name, "", meshFile.Path, rightMeshFile.Path, "", ""));
+                                
+                                // Find corresponding MarsAtlas files for "white" meshes
+                                string leftMarsAtlas = "";
+                                string rightMarsAtlas = "";
+                                if (meshFile.Name == "white")
+                                {
+                                    var leftMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsLeft);
+                                    var rightMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsRight);
+                                    
+                                    leftMarsAtlas = leftMarsAtlasFile?.Path ?? "";
+                                    rightMarsAtlas = rightMarsAtlasFile?.Path ?? "";
+                                    
+                                    // Mark MarsAtlas files as used
+                                    if (leftMarsAtlasFile != null) usedMeshFiles.Add(leftMarsAtlasFile);
+                                    if (rightMarsAtlasFile != null) usedMeshFiles.Add(rightMarsAtlasFile);
+                                }
+                                
+                                meshes.Add(new LeftRightMesh(meshFile.Name, transformationPath, meshFile.Path, rightMeshFile.Path, leftMarsAtlas, rightMarsAtlas));
                             }
-                            else if (meshFile.Hemisphere == "R" || meshFile.Hemisphere == "r" || meshFile.Hemisphere == "right" || meshFile.Hemisphere == "Right")
+                            else if (meshFile.IsRight)
                             {
-                                var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && (f.Hemisphere == "L" || f.Hemisphere == "l" || f.Hemisphere == "left" || f.Hemisphere == "Left"));
+                                var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && f.IsLeft);
                                 leftMeshFile ??= new BIDSMeshFile();
                                 usedMeshFiles.Add(leftMeshFile);
-                                meshes.Add(new LeftRightMesh(meshFile.Name, "", leftMeshFile.Path, meshFile.Path, "", ""));
+                                
+                                // Find corresponding MarsAtlas files for "white" meshes
+                                string leftMarsAtlas = "";
+                                string rightMarsAtlas = "";
+                                if (meshFile.Name == "white")
+                                {
+                                    var leftMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsLeft);
+                                    var rightMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsRight);
+                                    
+                                    leftMarsAtlas = leftMarsAtlasFile?.Path ?? "";
+                                    rightMarsAtlas = rightMarsAtlasFile?.Path ?? "";
+                                    
+                                    // Mark MarsAtlas files as used
+                                    if (leftMarsAtlasFile != null) usedMeshFiles.Add(leftMarsAtlasFile);
+                                    if (rightMarsAtlasFile != null) usedMeshFiles.Add(rightMarsAtlasFile);
+                                }
+                                
+                                meshes.Add(new LeftRightMesh(meshFile.Name, transformationPath, leftMeshFile.Path, meshFile.Path, leftMarsAtlas, rightMarsAtlas));
                             }
                             else
                             {
-                                meshes.Add(new SingleMesh(meshFile.Name, "", meshFile.Path, ""));
+                                // Single mesh case
+                                string marsAtlas = "";
+                                if (meshFile.Name == "white")
+                                {
+                                    var marsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.Hemisphere == meshFile.Hemisphere);
+                                    
+                                    marsAtlas = marsAtlasFile?.Path ?? "";
+                                    
+                                    // Mark MarsAtlas file as used
+                                    if (marsAtlasFile != null) usedMeshFiles.Add(marsAtlasFile);
+                                }
+                                
+                                meshes.Add(new SingleMesh(meshFile.Name, transformationPath, meshFile.Path, marsAtlas));
                             }
                             usedMeshFiles.Add(meshFile);
                         }
@@ -567,7 +617,15 @@ namespace HBP.Core.Data
                             if (existingSite != null)
                             {
                                 existingSite.Coordinates.AddRange(site.Coordinates);
-                                existingSite.Tags.AddRange(site.Tags);
+                                
+                                // Add tags only if they don't already exist (check by Tag property)
+                                foreach (var newTag in site.Tags)
+                                {
+                                    if (!existingSite.Tags.Any(existingTag => existingTag.Tag == newTag.Tag))
+                                    {
+                                        existingSite.Tags.Add(newTag);
+                                    }
+                                }
                             }
                             else
                             {
@@ -881,10 +939,29 @@ namespace HBP.Core.Data
             {
                 return file.Name == Name && file.Subject == Subject && file.Session == Session && file.DataAcquisition == DataAcquisition && file.Contrast == Contrast && file.Reconstruction == Reconstruction && file.Run == Run;
             }
+            public bool SameFields(BIDSFile file)
+            {
+                return file.Subject == Subject && file.Session == Session && file.DataAcquisition == DataAcquisition && file.Contrast == Contrast && file.Reconstruction == Reconstruction && file.Run == Run;
+            }
         }
         class BIDSMeshFile : BIDSFile
         {
+            public string Description;
             public string Hemisphere;
+
+            public bool IsMarsAtlasMesh => Name == "dseg" && Description.ToLower() == "marsatlas";
+            public bool IsLeft => Hemisphere == "L" || Hemisphere == "l" || Hemisphere == "left" || Hemisphere == "Left";
+            public bool IsRight => Hemisphere == "R" || Hemisphere == "r" || Hemisphere == "right" || Hemisphere == "Right";
+
+            public string FindTransformationFile()
+            {
+                if (string.IsNullOrEmpty(Path)) return "";
+                string directory = System.IO.Path.GetDirectoryName(Path);
+                if (string.IsNullOrEmpty(directory)) return "";
+
+                var trmFiles = Directory.GetFiles(directory, "*.trm", SearchOption.TopDirectoryOnly);
+                return trmFiles.Length > 0 ? trmFiles[0] : "";
+            }
         }
         class BIDSMRIFile : BIDSFile
         {
