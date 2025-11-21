@@ -9,12 +9,19 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Scripting;
 
 namespace HBP.Data.BIDS
 {
     public static class BIDSUtility
     {
+        private enum CoordSystem
+        {
+            Patient,
+            MNI
+        }
+
         public static List<BIDSPatient> CreateBIDSPatients(IEnumerable<Patient> patients, IEnumerable<Protocol> protocols, IEnumerable<string> dataNames, bool anonymize = false)
         {
             var bidsPatients = new List<BIDSPatient>();
@@ -79,6 +86,7 @@ namespace HBP.Data.BIDS
             CopyCTAnatomy(patient, postAnatDirectory.FullName, parameters);
 
             // IEEG
+            CreateElectrodesFiles(patient, postIeegDirectory.FullName, parameters);
         }
 
         private static string PatientsToParticipantsTSV(IEnumerable<BIDSPatient> bidsPatients)
@@ -134,11 +142,164 @@ namespace HBP.Data.BIDS
                 // Add tag values or "n/a" for missing tags
                 foreach (var tag in allTags.OrderBy(t => t.Name))
                 {
-                    string value = "n/a"; // Default value for missing tags
+                    string value = "";
 
                     if (bidsPatient.Patient.Tags != null)
                     {
                         var tagValue = bidsPatient.Patient.Tags.FirstOrDefault(tv => tv.Tag == tag);
+                        if (tagValue != null && tagValue.DisplayableValue != null)
+                        {
+                            value = tagValue.DisplayableValue.DeblankCompletely();
+                        }
+                    }
+
+                    if (string.IsNullOrEmpty(value))
+                    {
+                        // Handle specific cases for empty values
+                        if (tag.Name.ToLower() == "sex")
+                            value = "o";
+                        else
+                            value = "n/a";
+                    }
+
+                    rowValues.Add(value);
+                }
+
+                tsvBuilder.AppendLine(string.Join("\t", rowValues));
+            }
+
+            return tsvBuilder.ToString();
+        }
+
+        private static string SitesToElectrodesTSV(IEnumerable<Site> sites, CoordSystem coordSystem, string coordSystemString)
+        {
+            if (sites == null || !sites.Any())
+            {
+                return "name\tx\ty\tz\tsize\tmaterial\tmanufacturer\tgroup\themisphere\n";
+            }
+
+            var sitesList = sites.ToList();
+
+            // Sort sites using SiteNameComparer
+            var siteNameComparer = new SiteNameComparer();
+            sitesList.Sort((a, b) => siteNameComparer.Compare(a.Name, b.Name));
+
+            // Step 1: Collect all distinct tags from all sites
+            var allTags = new HashSet<BaseTag>();
+            foreach (var site in sitesList)
+            {
+                if (site.Tags != null)
+                {
+                    foreach (var tagValue in site.Tags)
+                    {
+                        if (tagValue.Tag != null)
+                        {
+                            allTags.Add(tagValue.Tag);
+                        }
+                    }
+                }
+            }
+
+            // Step 2: Create headers - fixed fields first, then tag names converted to snake_case
+            var headers = new List<string> { "name", "x", "y", "z", "size", "material", "manufacturer", "group", "hemisphere" };
+            var tagToHeaderMap = new Dictionary<BaseTag, string>();
+
+            foreach (var tag in allTags.OrderBy(t => t.Name))
+            {
+                string headerName = tag.Name.ToSnakeCase();
+                headers.Add(headerName);
+                tagToHeaderMap[tag] = headerName;
+            }
+
+            // Step 3: Build TSV content
+            var tsvBuilder = new StringBuilder();
+
+            // Add header line
+            tsvBuilder.AppendLine(string.Join("\t", headers));
+
+            // Step 4: Add data lines for each site
+            foreach (var site in sitesList)
+            {
+                var rowValues = new List<string>();
+
+                // Fix and add name using SiteTools.FixName if SiteNameCorrection is enabled
+                string siteName = site.Name ?? "";
+                if (!string.IsNullOrEmpty(siteName))
+                {
+                    siteName = SiteTools.FixName(siteName);
+                }
+                rowValues.Add(siteName);
+
+                // Find coordinates for the specified coordinate system
+                var coordinate = site.Coordinates?.FirstOrDefault(c => c.ReferenceSystem == coordSystemString);
+                float x = 0, y = 0, z = 0;
+                if (coordinate != null)
+                {
+                    x = coordinate.Position.x;
+                    y = coordinate.Position.y;
+                    z = coordinate.Position.z;
+                }
+
+                // Add x, y, z coordinates
+                rowValues.Add(x.ToString("F3"));
+                rowValues.Add(y.ToString("F3"));
+                rowValues.Add(z.ToString("F3"));
+
+                // Add size (fixed to 0 for now)
+                rowValues.Add("0");
+
+                // Add material (fixed to "platinum")
+                rowValues.Add("platinum");
+
+                // Add manufacturer (fixed to "DIXI MEDICAL")
+                rowValues.Add("DIXI MEDICAL");
+
+                // Parse site name to extract group and hemisphere
+                string group = "";
+                string hemisphere = "R"; // Default to R if no prime
+
+                if (!string.IsNullOrEmpty(siteName))
+                {
+                    // Site name format: letters + optional prime + number
+                    // Group = letters + optional prime
+                    // Hemisphere = L if there's a prime, R if there isn't
+                    var match = Regex.Match(siteName, @"^([A-Za-z]+)('?)(\d+)$");
+                    if (match.Success)
+                    {
+                        string letters = match.Groups[1].Value;
+                        string prime = match.Groups[2].Value;
+                        
+                        group = letters + prime;
+                        hemisphere = !string.IsNullOrEmpty(prime) ? "L" : "R";
+                    }
+                    else
+                    {
+                        // Fallback: if regex doesn't match, try to extract letters from the beginning
+                        var letterMatch = Regex.Match(siteName, @"^([A-Za-z']+)");
+                        if (letterMatch.Success)
+                        {
+                            group = letterMatch.Groups[1].Value;
+                            hemisphere = group.Contains("'") ? "L" : "R";
+                        }
+                        else
+                        {
+                            group = siteName; // Use full name as fallback
+                        }
+                    }
+                }
+
+                // Add group and hemisphere
+                rowValues.Add(group);
+                rowValues.Add(hemisphere);
+
+                // Add tag values or "n/a" for missing tags
+                foreach (var tag in allTags.OrderBy(t => t.Name))
+                {
+                    string value = "";
+
+                    if (site.Tags != null)
+                    {
+                        var tagValue = site.Tags.FirstOrDefault(tv => tv.Tag == tag);
                         if (tagValue != null && tagValue.DisplayableValue != null)
                         {
                             value = tagValue.DisplayableValue.DeblankCompletely();
@@ -157,11 +318,6 @@ namespace HBP.Data.BIDS
             }
 
             return tsvBuilder.ToString();
-        }
-
-        private static string SitesToElectrodesTSV(IEnumerable<Site> sites, string coordSystem)
-        {
-            return "";
         }
 
         private static void CopyPreAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
@@ -191,13 +347,13 @@ namespace HBP.Data.BIDS
                         File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_pial.surf.gii"), true);
                         if (leftRightMesh.HasMarsAtlas)
                         {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_desc-marsatlas_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-L_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-R_dseg.label.gii"), true);
                         }
                     }
                     if (preGreyMatterMesh.HasTransformation)
                     {
-                        File.Copy(preGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_from-surf_to-T1w.trm"), true);
+                        File.Copy(preGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre.trm"), true);
                     }
                 }
             }
@@ -221,13 +377,13 @@ namespace HBP.Data.BIDS
                         File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_white.surf.gii"), true);
                         if (leftRightMesh.HasMarsAtlas)
                         {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_desc-marsatlas_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-L_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-R_dseg.label.gii"), true);
                         }
                     }
                     if (preWhiteMatterMesh.HasTransformation)
                     {
-                        File.Copy(preWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_from-surf_to-T1w.trm"), true);
+                        File.Copy(preWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre.trm"), true);
                     }
                 }
             }
@@ -259,13 +415,13 @@ namespace HBP.Data.BIDS
                         File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_pial.surf.gii"), true);
                         if (leftRightMesh.HasMarsAtlas)
                         {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
                         }
                     }
                     if (postGreyMatterMesh.HasTransformation)
                     {
-                        File.Copy(postGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                        File.Copy(postGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
                     }
                 }
             }
@@ -289,13 +445,13 @@ namespace HBP.Data.BIDS
                         File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_white.surf.gii"), true);
                         if (leftRightMesh.HasMarsAtlas)
                         {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
                         }
                     }
                     if (postWhiteMatterMesh.HasTransformation)
                     {
-                        File.Copy(postWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                        File.Copy(postWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
                     }
                 }
             }
@@ -327,13 +483,13 @@ namespace HBP.Data.BIDS
                         File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_pial.surf.gii"), true);
                         if (leftRightMesh.HasMarsAtlas)
                         {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
                         }
                     }
                     if (ctGreyMatterMesh.HasTransformation)
                     {
-                        File.Copy(ctGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                        File.Copy(ctGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
                     }
                 }
             }
@@ -357,15 +513,30 @@ namespace HBP.Data.BIDS
                         File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_white.surf.gii"), true);
                         if (leftRightMesh.HasMarsAtlas)
                         {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_desc-marsatlas_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_desc-marsatlas_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
+                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
                         }
                     }
                     if (ctWhiteMatterMesh.HasTransformation)
                     {
-                        File.Copy(ctWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_from-surf_to-T1w.trm"), true);
+                        File.Copy(ctWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
                     }
                 }
+            }
+        }
+
+        private static void CreateElectrodesFiles(BIDSPatient patient, string ieegFolder, BIDSParameters parameters)
+        {
+            var sites = patient.Patient.Sites;
+            if (parameters.IncludePatientCoordSystem)
+            {
+                string electrodesTsvContent = SitesToElectrodesTSV(sites, CoordSystem.Patient, parameters.PatientCoordSystem);
+                File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_electrodes.tsv"), electrodesTsvContent);
+            }
+            if (parameters.IncludeMNICoordSystem)
+            {
+                string electrodesTsvContent = SitesToElectrodesTSV(sites, CoordSystem.MNI, parameters.MNICoordSystem);
+                File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_space-MNI152Lin_electrodes.tsv"), electrodesTsvContent);
             }
         }
     }
@@ -403,7 +574,7 @@ namespace HBP.Data.BIDS
         public bool IncludePatientCoordSystem = true;
         public string PatientCoordSystem = "Patient";
 
-        public bool IncludeMMNICoordSystem = true;
+        public bool IncludeMNICoordSystem = true;
         public string MNICoordSystem = "MNI";
     }
 }
