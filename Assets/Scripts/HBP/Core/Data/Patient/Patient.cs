@@ -260,6 +260,29 @@ namespace HBP.Core.Data
         }
         #endregion
 
+        #region Private Methods
+        /// <summary>
+        /// Checks if a tag value is invalid (n/a, nan, empty, etc.)
+        /// This method provides consistent handling between Intranat and BIDS databases.
+        /// </summary>
+        /// <param name="value">The string value to check</param>
+        /// <returns>True if the value is invalid and should be ignored, false otherwise</returns>
+        private static bool IsInvalidTagValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return true;
+
+            string lowerValue = value.Trim().ToLower();
+            return lowerValue == "n/a" || 
+                   lowerValue == "na" || 
+                   lowerValue == "nan" || 
+                   lowerValue == "null" || 
+                   lowerValue == "none" || 
+                   lowerValue == "" || 
+                   lowerValue == "-";
+        }
+        #endregion
+
         #region Public Static Methods
         /// <summary>
         /// Gets the extension of the patient files.
@@ -648,12 +671,12 @@ namespace HBP.Core.Data
                             PersistentDataManager.Tags.AddPatientTag(new StringTag(tagName));
                         }
                     }
-                    // Add tags to patient
+                    // Add tags to patient with the same invalid value filtering as Intranat
                     projectTags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
                     foreach (var subjectTag in subjectTags)
                     {
                         BaseTag tag = projectTags.FirstOrDefault(t => t.Name == subjectTag.Key);
-                        if (tag != null)
+                        if (tag != null && !IsInvalidTagValue(subjectTag.Value))
                         {
                             var tagValue = tag.CreateValue(subjectTag.Value);
                             if (tagValue != null)
@@ -707,7 +730,7 @@ namespace HBP.Core.Data
                 return null;
             }
 
-            // Helper method to merge patient tags
+            // Helper method to merge patient tags with invalid value filtering
             void MergePatientTags(string patientId, List<BaseTagValue> newTags)
             {
                 var patient = GetOrCreatePatientClone(patientId);
@@ -715,14 +738,18 @@ namespace HBP.Core.Data
                 {
                     foreach (var tagValue in newTags)
                     {
-                        var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
-                        if (existingTagValue != null)
+                        // Apply the same invalid value filtering
+                        if (!IsInvalidTagValue(tagValue.DisplayableValue))
                         {
-                            existingTagValue.Copy(tagValue);
-                        }
-                        else
-                        {
-                            patient.Tags.Add(tagValue);
+                            var existingTagValue = patient.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                            if (existingTagValue != null)
+                            {
+                                existingTagValue.Copy(tagValue);
+                            }
+                            else
+                            {
+                                patient.Tags.Add(tagValue);
+                            }
                         }
                     }
                 }
@@ -750,7 +777,7 @@ namespace HBP.Core.Data
                 }
             }
 
-            // Helper method to merge site tags
+            // Helper method to merge site tags with invalid value filtering
             void MergeSiteTags(string patientId, Dictionary<string, List<BaseTagValue>> tagValuesBySite)
             {
                 var patient = GetOrCreatePatientClone(patientId);
@@ -763,14 +790,18 @@ namespace HBP.Core.Data
                         {
                             foreach (var tagValue in kv.Value)
                             {
-                                var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
-                                if (existingTagValue != null)
+                                // Apply the same invalid value filtering
+                                if (!IsInvalidTagValue(tagValue.DisplayableValue))
                                 {
-                                    existingTagValue.Copy(tagValue);
-                                }
-                                else
-                                {
-                                    site.Tags.Add(tagValue);
+                                    var existingTagValue = site.Tags.FirstOrDefault(t => t.Tag.Name == tagValue.Tag.Name);
+                                    if (existingTagValue != null)
+                                    {
+                                        existingTagValue.Copy(tagValue);
+                                    }
+                                    else
+                                    {
+                                        site.Tags.Add(tagValue);
+                                    }
                                 }
                             }
                         }
