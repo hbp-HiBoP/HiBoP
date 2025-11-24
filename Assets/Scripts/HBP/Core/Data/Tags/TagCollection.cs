@@ -68,7 +68,8 @@ namespace HBP.Core.Data
         #region Private Methods
         /// <summary>
         /// Analyzes a collection of values for a given tag name to determine the most appropriate tag type.
-        /// Returns IntTag if all values are integers (and at least one is not 0),
+        /// Returns BoolTag if all values are booleans,
+        /// IntTag if all values are integers (and at least one is not 0),
         /// FloatTag if all values are floats, otherwise StringTag.
         /// </summary>
         /// <param name="tagName">The name of the tag</param>
@@ -83,42 +84,59 @@ namespace HBP.Core.Data
             if (!nonEmptyValues.Any())
                 return new StringTag(tagName);
 
+            bool allBooleans = true;
             bool allIntegers = true;
             bool hasNonZeroInteger = false;
             bool allFloats = true;
 
             foreach (var value in nonEmptyValues)
             {
-                // Check for integers first
-                if (int.TryParse(value, out int intValue))
+                // Check for booleans first
+                if (bool.TryParse(value, out bool boolValue))
                 {
-                    if (intValue != 0)
-                        hasNonZeroInteger = true;
-                    // Integer is also a valid float, so don't set allFloats to false yet
+                    // Boolean values are also integers (in a sense), so don't break the chain yet
+                    allIntegers = false; // But they're not really integers for tag purposes
+                    allFloats = false;   // And not floats either
                 }
                 else
                 {
-                    allIntegers = false;
-                    
-                    // Check for floats
-                    if (!NumberExtension.TryParseFloat(value, out float floatValue))
+                    allBooleans = false;
+
+                    // Check for integers
+                    if (int.TryParse(value, out int intValue))
                     {
-                        allFloats = false;
-                        break; // If it's not a float, it must be a string
+                        if (intValue != 0)
+                            hasNonZeroInteger = true;
+                        // Integer is also a valid float, so don't set allFloats to false yet
+                    }
+                    else
+                    {
+                        allIntegers = false;
+                        
+                        // Check for floats
+                        if (!NumberExtension.TryParseFloat(value, out float floatValue))
+                        {
+                            allFloats = false;
+                            break; // If it's not a float, it must be a string
+                        }
                     }
                 }
             }
 
             // Decision logic:
-            // 1. If all values are integers AND at least one is not zero, use IntTag
+            // 1. If all values are booleans, use BoolTag
+            if (allBooleans)
+                return new BoolTag(tagName);
+
+            // 2. If all values are integers AND at least one is not zero, use IntTag
             if (allIntegers && hasNonZeroInteger)
                 return new IntTag(tagName);
             
-            // 2. If all values are valid floats (including integers), use FloatTag
+            // 3. If all values are valid floats (including integers), use FloatTag
             if (allFloats)
                 return new FloatTag(tagName);
             
-            // 3. Otherwise, use StringTag as fallback
+            // 4. Otherwise, use StringTag as fallback
             return new StringTag(tagName);
         }
         #endregion

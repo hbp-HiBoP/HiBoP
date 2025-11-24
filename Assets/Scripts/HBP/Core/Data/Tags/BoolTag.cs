@@ -25,7 +25,7 @@ namespace HBP.Core.Data
         #region Public Methods
         public bool Convert(object value)
         {
-            if (value != null && value is bool)
+            if (value is not null and bool)
             {
                 return (bool)value;
             }
