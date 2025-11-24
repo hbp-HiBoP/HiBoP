@@ -13,7 +13,6 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting;
-using static AssetUsageDetectorNamespace.AssetUsageDetector;
 
 namespace HBP.Data.BIDS
 {

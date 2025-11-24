@@ -1,0 +1,6 @@
+<linker>
+  <assembly fullname="AGM.EdgeDetection">
+    <type fullname="EdgeDetectPostProcessingRenderer_AfterStack" preserve="all" />
+    <type fullname="EdgeDetect_AfterStack" preserve="all" />
+  </assembly>
+</linker>
