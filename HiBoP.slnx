@@ -1,33 +1,4 @@
 ﻿<Solution>
-  <Project Path="Unity.Timeline.csproj" />
   <Project Path="Assembly-CSharp.csproj" />
-  <Project Path="Unity.Timeline.Editor.csproj" />
-  <Project Path="Unity.2D.Tilemap.Editor.csproj" />
-  <Project Path="UnityEngine.UI.csproj" />
-  <Project Path="UnityEditor.UI.csproj" />
-  <Project Path="UniTask.Linq.csproj" />
-  <Project Path="UnityEngine.TestRunner.csproj" />
-  <Project Path="Unity.Multiplayer.Center.Editor.csproj" />
-  <Project Path="UniTask.csproj" />
-  <Project Path="UnityEditor.TestRunner.csproj" />
-  <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
-  <Project Path="AssetUsageDetector.Editor.csproj" />
-  <Project Path="Unity.TextMeshPro.Editor.csproj" />
-  <Project Path="Unity.Postprocessing.Runtime.csproj" />
-  <Project Path="Unity.Postprocessing.Editor.csproj" />
-  <Project Path="Unity.TextMeshPro.csproj" />
-  <Project Path="AGM.EdgeDetection.csproj" />
-  <Project Path="Unity.Toolchain.Linux-x86_64.csproj" />
-  <Project Path="Unity.Sysroot.Linux_x86_64.csproj" />
-  <Project Path="Unity.2D.Sprite.Editor.csproj" />
-  <Project Path="Unity.2D.Sprite.AIIntegration.Editor.csproj" />
-  <Project Path="UniTask.Addressables.csproj" />
-  <Project Path="Unity.Multiplayer.Center.Common.csproj" />
-  <Project Path="UniTask.Editor.csproj" />
-  <Project Path="UniTask.TextMeshPro.csproj" />
-  <Project Path="AGM.EdgeDetection.Editor.csproj" />
-  <Project Path="Unity.SysrootPackage.Editor.csproj" />
-  <Project Path="Unity.Toolchain.Win-x86_64-Linux-x86_64.csproj" />
-  <Project Path="UniTask.DOTween.csproj" />
 </Solution>

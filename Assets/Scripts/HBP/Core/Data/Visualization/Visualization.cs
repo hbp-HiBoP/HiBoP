@@ -42,7 +42,16 @@ namespace HBP.Core.Data
         /// <summary>
         /// Patients of the Visualization.
         /// </summary>
-        public List<Patient> Patients { get; set; }
+        private List<Patient> m_Patients = new();
+        public List<Patient> Patients
+        {
+            get => m_Patients;
+            set
+            {
+                m_Patients = value;
+                m_PatientsID = m_Patients.Select(p => p.ID).ToList();
+            }
+        }
 
         /// <summary>
         /// Configuration of the visualization.
@@ -323,6 +332,11 @@ namespace HBP.Core.Data
                 column.Unload();
             }
         }
+        public void UpdatePatients()
+        {
+            if (ApplicationState.LoadedProject != null) Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
+            Patients.RemoveAll(p => p == null);
+        }
         #endregion
 
         #region Operators
@@ -592,13 +606,12 @@ namespace HBP.Core.Data
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_PatientsID = Patients.Select(p => p.ID).ToList();
+            m_PatientsID = m_Patients.Select(p => p.ID).ToList();
         }
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            if (ApplicationState.LoadedProject != null) Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
-            Patients.RemoveAll(p => p == null);
+            UpdatePatients();
         }
         #endregion
     }
