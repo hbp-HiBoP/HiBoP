@@ -147,14 +147,18 @@ namespace HBP.Core.Data
             foreach (Dataset dataset in m_Datasets)
             {
                 dataset.RemoveData(from data in dataset.GetPatientDataInfos() where !m_Patients.Any(p => p == data.Patient) select data);
+                foreach (var patientDataInfo in dataset.Data.OfType<PatientDataInfo>())
+                {
+                    patientDataInfo.UpdatePatient();
+                }
             }
             foreach (Visualization visualization in m_Visualizations)
             {
-                visualization.Patients.RemoveAll(patient => !m_Patients.Contains(patient));
+                visualization.UpdatePatients();
             }
-            foreach (Group _group in m_Groups)
+            foreach (Group group in m_Groups)
             {
-                _group.Patients.RemoveAll(patient => !m_Patients.Contains(patient));
+                group.UpdatePatients();
             }
         }
         public void AddPatient(Patient patient)

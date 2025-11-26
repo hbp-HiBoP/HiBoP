@@ -226,10 +226,11 @@ namespace HBP.UI.Module3D
                     stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
                 }
                 m_PatientTagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
+                m_PatientTags.SetActive(true);
             }
             else
             {
-                m_PatientTagsText.text = string.Empty;
+                m_PatientTags.SetActive(false);
             }
         }
         /// <summary>

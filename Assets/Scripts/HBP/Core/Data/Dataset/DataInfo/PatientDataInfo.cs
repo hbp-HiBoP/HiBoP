@@ -65,10 +65,7 @@ namespace HBP.Core.Data
                 // Utile si le patient ne fait pas parti de la base de données
                 if (m_Patient == null)
                 {
-                    if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
-                        m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-                    else
-                        m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                    UpdatePatient();
                 }
                 return m_Patient; 
             }
@@ -159,14 +156,21 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Serialization
-        protected override void OnDeserialized()
+        #region Public Methods
+        public void UpdatePatient()
         {
-            base.OnDeserialized();
             if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
                 m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
             else
                 m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+        }
+        #endregion
+
+        #region Serialization
+        protected override void OnDeserialized()
+        {
+            base.OnDeserialized();
+            UpdatePatient();
         }
         #endregion
     }

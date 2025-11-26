@@ -232,7 +232,7 @@ namespace HBP.Core.Data
                             else if (loadTags)
                             {
                                 BaseTag tag = projectTags.FirstOrDefault(t => t.Name == column);
-                                if (tag != null)
+                                if (tag != null && !IsInvalidTagValue(value))
                                 {
                                     var tagValue = tag.CreateValue(value);
                                     if (tagValue != null)
@@ -247,6 +247,27 @@ namespace HBP.Core.Data
                 }
             }
             return sites;
+        }
+        
+        /// <summary>
+        /// Checks if a tag value is invalid (n/a, nan, empty, etc.)
+        /// This method provides consistent handling between Intranat and BIDS databases.
+        /// </summary>
+        /// <param name="value">The string value to check</param>
+        /// <returns>True if the value is invalid and should be ignored, false otherwise</returns>
+        private static bool IsInvalidTagValue(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return true;
+
+            string lowerValue = value.Trim().ToLower();
+            return lowerValue == "n/a" || 
+                   lowerValue == "na" || 
+                   lowerValue == "nan" || 
+                   lowerValue == "null" || 
+                   lowerValue == "none" || 
+                   lowerValue == "" || 
+                   lowerValue == "-";
         }
         /// <summary>
         /// Load all sites from a intranat directory.
@@ -458,7 +479,7 @@ namespace HBP.Core.Data
                         {
                             BaseTag tag = tags[i];
                             string value = values[i];
-                            if (tag != null && value.ToLower() != "n/a")
+                            if (tag != null && !IsInvalidTagValue(value))
                             {
                                 var tagValue = tag.CreateValue(value);
                                 if (tagValue != null)
@@ -553,7 +574,11 @@ namespace HBP.Core.Data
             }
             else if (fileInfo.Extension == ".tsv")
             {
-                string name = path.Split('_').FirstOrDefault(s => s.Contains("space")).Split('-')[1];
+                string name = path.Split('_').FirstOrDefault(s => s.Contains("space"))?.Split('-')[1];
+                if (string.IsNullOrEmpty(name))
+                {
+                    name = "scanner";
+                }
                 result = LoadImplantationFromBIDSFile(name, path).ToArray();
                 return true;
             }

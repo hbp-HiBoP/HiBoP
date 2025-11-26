@@ -11,28 +11,30 @@ namespace HBP.Data.Preferences
         #region Properties
         [JsonProperty] public ProjectPreferences Project { get; set; }
         [JsonProperty] public ThemePreferences Theme { get; set; }
-        [JsonProperty] public LocationPreferences Location { get; set; }
+        [JsonProperty] public LocalizationPreferences Localization { get; set; }
         [JsonProperty] public SystemPreferences System { get; set; }
+        [JsonProperty] public MiscPreferences Misc { get; set; }
         #endregion
 
         #region Constructors
-        public GeneralPreferences() : this(new ProjectPreferences(), new ThemePreferences(), new LocationPreferences(), new SystemPreferences())
+        public GeneralPreferences() : this(new ProjectPreferences(), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences())
         {
 
         }
-        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocationPreferences location, SystemPreferences system)
+        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocalizationPreferences localization, SystemPreferences system, MiscPreferences misc)
         {
             Project = project;
             Theme = theme;
-            Location = location;
+            Localization = localization;
             System = system;
+            Misc = misc;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new GeneralPreferences(Project.Clone() as ProjectPreferences, Theme.Clone() as ThemePreferences, Location.Clone() as LocationPreferences, System.Clone() as SystemPreferences);
+            return new GeneralPreferences(Project.Clone() as ProjectPreferences, Theme.Clone() as ThemePreferences, Localization.Clone() as LocalizationPreferences, System.Clone() as SystemPreferences, Misc.Clone() as MiscPreferences);
         }
         #endregion
     }
@@ -114,12 +116,12 @@ namespace HBP.Data.Preferences
     }
 
     [JsonObject(MemberSerialization.OptIn), Preserve]
-    public class LocationPreferences : ICloneable
+    public class LocalizationPreferences : ICloneable
     {
         #region Public Methods
         public object Clone()
         {
-            return new LocationPreferences();
+            return new LocalizationPreferences();
         }
         #endregion
     }
@@ -152,6 +154,31 @@ namespace HBP.Data.Preferences
         public object Clone()
         {
             return new SystemPreferences(MultiThreading, MemoryCacheLimit, SleepModeAfter, TargetFramerate);
+        }
+        #endregion
+    }
+
+    [JsonObject(MemberSerialization.OptIn), Preserve]
+    public class MiscPreferences : ICloneable
+    {
+        #region Properties
+        [JsonProperty] public bool AdvancedFeatures { get; set; }
+        #endregion
+
+        #region Constructors
+        public MiscPreferences() : this(false)
+        {
+        }
+        public MiscPreferences(bool advancedFeatures)
+        {
+            AdvancedFeatures = advancedFeatures;
+        }
+        #endregion
+
+        #region Public Methods
+        public object Clone()
+        {
+            return new MiscPreferences(AdvancedFeatures);
         }
         #endregion
     }

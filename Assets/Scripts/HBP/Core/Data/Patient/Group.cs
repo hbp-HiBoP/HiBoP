@@ -48,7 +48,16 @@ namespace HBP.Core.Data
         /// <summary>
         /// Patients of the group.
         /// </summary>
-        public List<Patient> Patients { get; set; }
+        private List<Patient> m_Patients = new();
+        public List<Patient> Patients
+        {
+            get => m_Patients;
+            set
+            {
+                m_Patients = value;
+                m_PatientsID = m_Patients.Select(p => p.ID).ToList();
+            }
+        }
         /// <summary>
         /// IDs of the patients of the group (read-only access).
         /// </summary>
@@ -140,6 +149,14 @@ namespace HBP.Core.Data
         }
         #endregion
 
+        #region Public Methods
+        public void UpdatePatients()
+        {
+            if (ApplicationState.LoadedProject != null) Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
+            Patients.RemoveAll(p => p == null);
+        }
+        #endregion
+
         #region Interfaces
         /// <summary>
         /// Gets the extension of the group files.
@@ -167,12 +184,12 @@ namespace HBP.Core.Data
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_PatientsID = Patients.Select(p => p.ID).ToList();
+            m_PatientsID = m_Patients.Select(p => p.ID).ToList();
         }
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            if (ApplicationState.LoadedProject != null) Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
+            UpdatePatients();
         }
         #endregion
     }

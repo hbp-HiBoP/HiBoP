@@ -1,9 +1,18 @@
-﻿using HBP.Core.Data;
-using HBP.Data.Module3D;
-using UnityEngine;
-using HBP.UI.Tools;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Data;
+using HBP.Core.Enums;
+using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using Cysharp.Threading.Tasks;
+using HBP.Data.Database;
+using HBP.Data.Module3D;
+using HBP.UI.Tools;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using UnityEditor;
+using UnityEngine;
 
 namespace HBP.UI.Main
 {
@@ -56,6 +65,28 @@ namespace HBP.UI.Main
                 LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Patients, update), false);
             base.Close();
         }
+        public async void UpdateFromDatabase()
+        {
+            var result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Update Patients from Database", "This will overwrite every patients of this project with data from the database. Patients not found within the database will not be changed.\n\nDo you want to proceed ?", "Yes", "No");
+            if (result == 0)
+            {
+                var updatedPatients = await LoadingManager.LoadAsync(UpdateFromDatabaseAsync);
+                StringBuilder stringBuilder = new StringBuilder();
+                if (updatedPatients.Count > 0)
+                {
+                    stringBuilder.AppendLine("<b>Updated patients:</b>");
+                    foreach (var patient in updatedPatients)
+                    {
+                        stringBuilder.AppendLine(patient.ID);
+                    }
+                    stringBuilder.AppendLine();
+                }
+                if (stringBuilder.Length != 0)
+                {
+                    await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "Update Patients from Database", stringBuilder.ToString(), "OK");
+                }
+            }
+        }
         #endregion
 
         #region Private Methods
@@ -63,6 +94,29 @@ namespace HBP.UI.Main
         {
             base.SetFields();
             SetList(ApplicationState.LoadedProject.Patients);
+        }
+        private async UniTask<List<Patient>> UpdateFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            await UniTask.SwitchToThreadPool();
+            var length = m_ListGestion.List.Objects.Count;
+            var progress = 0;
+            var updatedPatients = new List<Patient>();
+            foreach (var patient in m_ListGestion.List.Objects)
+            {
+                token.ThrowIfCancellationRequested();
+                updateProgress.Invoke((float)progress++ / length, 0, new LoadingText($"Importing {progress}/{length}"));
+                Patient databasePatient = (Patient)DatabaseManager.Database.Patients.FirstOrDefault(p => p == patient)?.Clone();
+                if (databasePatient != null)
+                {
+                    updatedPatients.Add(databasePatient);
+                }
+            }
+            await UniTask.SwitchToMainThread();
+            foreach (var patient in updatedPatients)
+            {
+                m_ListGestion.List.UpdateObject(patient);
+            }
+            return updatedPatients;
         }
         #endregion
     }
