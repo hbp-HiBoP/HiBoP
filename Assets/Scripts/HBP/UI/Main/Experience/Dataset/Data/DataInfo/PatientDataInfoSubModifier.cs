@@ -49,7 +49,7 @@ namespace HBP.UI.Main
                 m_Patients = ApplicationState.LoadedProject.Patients;
             else
                 throw new System.Exception("No patients available in the project or database.");
-            m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.CompleteName, null)).ToList();
+            m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.Name, null)).ToList();
             m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
         }
         #endregion

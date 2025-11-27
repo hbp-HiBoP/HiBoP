@@ -118,9 +118,7 @@ namespace HBP.UI.Main
             m_AvailablePatients = DatabaseManager.Database.Patients
                 .Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>()
                 .Any(d => d.Patient == p))
-                .OrderBy(p => p.Place)
-                .ThenBy(p => p.Date)
-                .ThenBy(p => p.Name)
+                .OrderBy(p => p.Name)
                 .ToList();
         }
         private void SetupProtocols()

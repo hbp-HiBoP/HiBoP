@@ -10,8 +10,6 @@ namespace HBP.UI.Database
     {
         #region Properties
         [SerializeField] private InputField m_NameInputField;
-        [SerializeField] private InputField m_PlaceInputField;
-        [SerializeField] private InputField m_DateInputField;
 
         [SerializeField] private AnatomicalDataExplorer m_AnatomicalDataExplorer;
         [SerializeField] private FunctionalDataExplorer m_FunctionalDataExplorer;
@@ -31,8 +29,6 @@ namespace HBP.UI.Database
         public void Set(Patient patient)
         {
             m_NameInputField.text = patient.Name;
-            m_DateInputField.text = patient.Date.ToString();
-            m_PlaceInputField.text = patient.Place;
 
             m_AnatomicalDataExplorer.Set(patient);
             m_FunctionalDataExplorer.Set(patient);

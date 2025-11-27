@@ -9,8 +9,6 @@ namespace HBP.UI.Database
     {
         #region Properties
         [SerializeField] Text m_NameText;
-        [SerializeField] Text m_PlaceText;
-        [SerializeField] Text m_DateText;
 
         public override Patient Object
         {
@@ -24,8 +22,6 @@ namespace HBP.UI.Database
 
                 base.Object = value;
                 m_NameText.text = value.Name;
-                m_PlaceText.text = value.Place;
-                m_DateText.text = value.Date.ToString();
 
                 SetNotInteractable();
             }

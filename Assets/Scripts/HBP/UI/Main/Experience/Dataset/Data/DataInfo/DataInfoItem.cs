@@ -37,7 +37,7 @@ namespace HBP.UI.Main
 
                 base.Object = value;
                 m_NameText.text = value.Name + (value is Core.Data.CCEPDataInfo ccepDataInfo ? " (" + ccepDataInfo.StimulatedChannel + ")" : "");
-                if (value is Core.Data.PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.CompleteName;
+                if (value is Core.Data.PatientDataInfo patientDataInfo) m_PatientText.text = patientDataInfo.Patient.Name;
                 else m_PatientText.text = "None";
                 m_TypeText.text = value.GetType().GetDisplayName();
 

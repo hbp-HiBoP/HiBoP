@@ -32,8 +32,6 @@ namespace HBP.UI.Module3D
         public const string POS_Z = "Z";
         public const string NAME = "NAME";
         public const string PATIENT_NAME = "PAT_NAME";
-        public const string PATIENT_PLACE = "PAT_PLACE";
-        public const string PATIENT_DATE = "PAT_DATE";
         public const string TAG = "TAG";
         public const string MEAN = "MEAN";
         public const string MEDIAN = "MEDIAN";
@@ -108,14 +106,6 @@ namespace HBP.UI.Module3D
                     else if (label == PATIENT_NAME)
                     {
                         return CheckPatientName(site, deblankedValue);
-                    }
-                    else if (label == PATIENT_PLACE)
-                    {
-                        return CheckPatientPlace(site, deblankedValue);
-                    }
-                    else if (label == PATIENT_DATE)
-                    {
-                        return CheckPatientDate(site, deblankedValue);
                     }
                     else if (label == ATLAS_AREA)
                     {

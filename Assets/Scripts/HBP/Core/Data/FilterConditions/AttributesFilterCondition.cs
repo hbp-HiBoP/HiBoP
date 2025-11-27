@@ -53,7 +53,7 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Constructeurs
+        #region Constructors
         public AttributesFilterCondition() : this(AttributeType.Highlighted, "", false, false, SiteState.DefaultColor, false) { }
         public AttributesFilterCondition(AttributeType type, string labelValue, bool exactMatch, bool caseSensitive, Color color, bool isNot) : base(isNot)
         {
@@ -73,7 +73,7 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Opérateurs
+        #region Operators
         public override object Clone()
         {
             return new AttributesFilterCondition(Type, LabelValue, ExactMatch, CaseSensitive, Color, IsNot, ID);
@@ -92,7 +92,7 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        #region Méthodes publiques
+        #region Public Methods
         public override bool Check(object obj)
         {
             if (obj is Object3D.Site site)
@@ -107,11 +107,11 @@ namespace HBP.Core.Data
                         result = site.State.IsBlackListed;
                         break;
                     case AttributeType.Label:
-                        List<string> labels = site.State.Labels;
+                        List<string> labels = site.State.Labels ?? new List<string>();
                         string labelToCompare = LabelValue;
                         if (string.IsNullOrEmpty(labelToCompare))
                         {
-                            result = labels != null && labels.Count > 0;
+                            result = labels.Count > 0;
                         }
                         else
                         {

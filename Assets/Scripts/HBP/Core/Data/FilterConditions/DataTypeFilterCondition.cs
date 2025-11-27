@@ -57,7 +57,7 @@ namespace HBP.Core.Data
                 if (Type == null)
                     return false;
                 else
-                    return dataInfo.GetType() == Type;
+                    return (dataInfo.GetType() == Type) != IsNot;
             }
             return false;
         }

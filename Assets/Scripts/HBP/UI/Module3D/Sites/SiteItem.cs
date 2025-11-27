@@ -16,7 +16,6 @@ namespace HBP.UI.Module3D
         [SerializeField] private Image m_SelectedImage;
         [SerializeField] private SiteLabels m_Labels;
         [SerializeField] private Text m_LabelsText;
-        [SerializeField] private Text m_Patient;
         [SerializeField] private Toggle m_Blacklisted;
         [SerializeField] private Toggle m_Highlighted;
         [SerializeField] private Button m_Color;
@@ -69,11 +68,10 @@ namespace HBP.UI.Module3D
         /// </summary>
         private void UpdateFields()
         {
-            m_Site.GetComponentInChildren<Text>().text = Object.Information.Name;
+            m_Site.GetComponentInChildren<Text>().text = $"{Object.Information.Name} ({Object.Information.Patient.Name})";
             m_SiteItemInfoDisplayer.Initialize(Object);
             m_SelectedImage.gameObject.SetActive(Object.IsSelected);
             m_LabelsText.text = Object.State.Labels.Count.ToString();
-            m_Patient.text = Object.Information.Patient.Name;
             m_Blacklisted.isOn = Object.State.IsBlackListed;
             m_Highlighted.isOn = Object.State.IsHighlighted;
             m_ColorImage.color = Object.State.Color;

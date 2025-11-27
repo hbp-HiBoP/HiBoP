@@ -13,8 +13,6 @@ namespace HBP.UI.Main
     {
         #region Properties
         [SerializeField] Text m_NameText;
-        [SerializeField] Text m_PlaceText;
-        [SerializeField] Text m_DateText;
 
         [SerializeField] Text m_MeshText;
         [SerializeField] Text m_MRIText;
@@ -38,8 +36,6 @@ namespace HBP.UI.Main
 
                 base.Object = value;
                 m_NameText.text = value.Name;
-                m_PlaceText.text = value.Place;
-                m_DateText.text = value.Date.ToString();
 
                 m_MeshText.SetIEnumerableFieldInItem("Meshes", from mesh in value.Meshes where mesh.WasUsable select mesh.Name, m_ErrorState);
                 m_MRIText.SetIEnumerableFieldInItem("MRIs", from MRI in value.MRIs where MRI.WasUsable select MRI.Name, m_ErrorState);

@@ -1,3 +1,4 @@
+using System;
 using HBP.Core.Enums;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -72,19 +73,14 @@ namespace HBP.Core.Data
             if (value is not null and string)
             {
                 string valueString = (string)value;
-                string valueToCompare = Value;
-                if (!CaseSensitive)
-                {
-                    valueString = valueString.ToLower();
-                    valueToCompare = valueToCompare.ToLower();
-                }
+                StringComparison comparison = CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
                 if (ExactMatch)
                 {
-                    return valueString == Value;
+                    return string.Equals(valueString, Value, comparison);
                 }
                 else
                 {
-                    return valueString.Contains(Value);
+                    return valueString.IndexOf(Value, comparison) >= 0;
                 }
             }
             return false;
@@ -111,10 +107,17 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class NumberTagFilterValue : TagFilterValue
     {
+        private const float Epsilon = 1e-6f;
+
         [JsonProperty("Type")] public NumberComparisonType Type { get; set; }
         [JsonProperty("Value")] public float Value { get; set; }
         [JsonProperty("Min")] public float Min { get; set; }
         [JsonProperty("Max")] public float Max { get; set; }
+
+        private static bool ApproximatelyEqual(double a, double b, double epsilon = Epsilon)
+        {
+            return Math.Abs(a - b) < epsilon;
+        }
 
         public override bool Compare(object value)
         {
@@ -124,17 +127,17 @@ namespace HBP.Core.Data
                 switch (Type)
                 {
                     case NumberComparisonType.Equal:
-                        return floatValue == Value;
+                        return ApproximatelyEqual(floatValue, Value);
                     case NumberComparisonType.Greater:
                         return floatValue > Value;
                     case NumberComparisonType.GreaterOrEqual:
-                        return floatValue >= Value;
+                        return floatValue >= Value || ApproximatelyEqual(floatValue, Value);
                     case NumberComparisonType.Lower:
                         return floatValue < Value;
                     case NumberComparisonType.LowerOrEqual:
-                        return floatValue <= Value;
+                        return floatValue <= Value || ApproximatelyEqual(floatValue, Value);
                     case NumberComparisonType.Range:
-                        return floatValue >= Min && floatValue <= Max;
+                        return (floatValue >= Min || ApproximatelyEqual(floatValue, Min)) && (floatValue <= Max || ApproximatelyEqual(floatValue, Max));
                 }
             }
             if (value is not null and double)
@@ -143,17 +146,17 @@ namespace HBP.Core.Data
                 switch (Type)
                 {
                     case NumberComparisonType.Equal:
-                        return doubleValue == Value;
+                        return ApproximatelyEqual(doubleValue, Value);
                     case NumberComparisonType.Greater:
                         return doubleValue > Value;
                     case NumberComparisonType.GreaterOrEqual:
-                        return doubleValue >= Value;
+                        return doubleValue >= Value || ApproximatelyEqual(doubleValue, Value);
                     case NumberComparisonType.Lower:
                         return doubleValue < Value;
                     case NumberComparisonType.LowerOrEqual:
-                        return doubleValue <= Value;
+                        return doubleValue <= Value || ApproximatelyEqual(doubleValue, Value);
                     case NumberComparisonType.Range:
-                        return doubleValue >= Min && doubleValue <= Max;
+                        return (doubleValue >= Min || ApproximatelyEqual(doubleValue, Min)) && (doubleValue <= Max || ApproximatelyEqual(doubleValue, Max));
                 }
             }
             else if (value is not null and int)
@@ -162,7 +165,7 @@ namespace HBP.Core.Data
                 switch (Type)
                 {
                     case NumberComparisonType.Equal:
-                        return intValue == Value;
+                        return ApproximatelyEqual(intValue, Value);
                     case NumberComparisonType.Greater:
                         return intValue > Value;
                     case NumberComparisonType.GreaterOrEqual:
@@ -181,7 +184,7 @@ namespace HBP.Core.Data
                 switch (Type)
                 {
                     case NumberComparisonType.Equal:
-                        return longValue == Value;
+                        return ApproximatelyEqual(longValue, Value);
                     case NumberComparisonType.Greater:
                         return longValue > Value;
                     case NumberComparisonType.GreaterOrEqual:
