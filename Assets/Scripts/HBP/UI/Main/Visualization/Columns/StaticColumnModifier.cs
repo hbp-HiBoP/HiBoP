@@ -158,7 +158,7 @@ namespace HBP.UI.Main
                 if (invalidPatients.Length > 0)
                 {
                     m_InformationImage.gameObject.SetActive(true);
-                    m_InformationImage.GetComponent<Tooltip>().Text = string.Format("Some patients of this visualization have no valid data for the data name \"{0}\"\n{1}", Object.DataName, string.Join("\n", invalidPatients.Select(p => p.CompleteName)));
+                    m_InformationImage.GetComponent<Tooltip>().Text = string.Format("Some patients of this visualization have no valid data for the data name \"{0}\"\n{1}", Object.DataName, string.Join("\n", invalidPatients.Select(p => p.Name)));
                 }
                 else
                 {

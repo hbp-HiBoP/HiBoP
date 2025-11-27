@@ -15,14 +15,12 @@ namespace HBP.UI.Main
 	public class PatientList : ActionableList<Patient>
 	{
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }
+        enum OrderBy { None, Name, DescendingName, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] Button m_ResetFiltersButton;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
-        [SerializeField] SortingDisplayer m_PlaceSortingDisplayer;
-        [SerializeField] SortingDisplayer m_DateSortingDisplayer;
         [SerializeField] SortingDisplayer m_MeshSortingDisplayer;
         [SerializeField] SortingDisplayer m_MRISortingDisplayer;
         [SerializeField] SortingDisplayer m_SiteSortingDisplayer;
@@ -95,8 +93,6 @@ namespace HBP.UI.Main
                     break;
             }
             Refresh();
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -111,84 +107,6 @@ namespace HBP.UI.Main
             {
                 case OrderBy.DescendingName: SortByName(Sorting.Ascending); break;
                 default: SortByName(Sorting.Descending); break;
-            }
-        }
-
-        /// <summary>
-        /// Sort by place.
-        /// </summary>
-        /// <param name="sorting">Sorting</param>
-        public void SortByPlace(Sorting sorting)
-        {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Place).ToList();
-                    m_OrderBy = OrderBy.Place;
-                    m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Place).ToList();
-                    m_OrderBy = OrderBy.DescendingPlace;
-                    m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            Refresh();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        }
-        /// <summary>
-        /// Sort by place.
-        /// </summary>
-        public void SortByPlace()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingPlace: SortByPlace(Sorting.Ascending); break;
-                default: SortByPlace(Sorting.Descending); break;
-            }
-        }
-
-        /// <summary>
-        /// Sort by date.
-        /// </summary>
-        /// <param name="sorting">Sorting</param>
-        public void SortByDate(Sorting sorting)
-        {
-            switch (sorting)
-            {
-                case Sorting.Ascending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderBy((elt) => elt.Date).ToList();
-                    m_OrderBy = OrderBy.Date;
-                    m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Ascending;
-                    break;
-                case Sorting.Descending:
-                    m_DisplayedObjects = m_DisplayedObjects.OrderByDescending((elt) => elt.Date).ToList();
-                    m_OrderBy = OrderBy.DescendingDate;
-                    m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
-                    break;
-            }
-            Refresh();
-            m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-        }
-        /// <summary>
-        /// Sort by date.
-        /// </summary>
-        public void SortByDate()
-        {
-            switch (m_OrderBy)
-            {
-                case OrderBy.DescendingDate: SortByDate(Sorting.Ascending); break;
-                default: SortByDate(Sorting.Descending); break;
             }
         }
 
@@ -213,8 +131,6 @@ namespace HBP.UI.Main
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -254,8 +170,6 @@ namespace HBP.UI.Main
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -293,8 +207,6 @@ namespace HBP.UI.Main
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -332,8 +244,6 @@ namespace HBP.UI.Main
             }
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -356,8 +266,6 @@ namespace HBP.UI.Main
         public void SortByNone()
         {
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_PlaceSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
-            m_DateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -369,7 +277,7 @@ namespace HBP.UI.Main
         #region Protected Methods
         protected override IEnumerable<Patient> DefaultSorting(IEnumerable<Patient> objects)
         {
-            return objects.OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name);
+            return objects.OrderBy(p => p.Name);
         }
         #endregion
     }

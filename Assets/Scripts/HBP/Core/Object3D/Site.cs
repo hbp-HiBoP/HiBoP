@@ -67,7 +67,7 @@ namespace HBP.Core.Object3D
         {
             get
             {
-                return Name + " (" + Patient.Name + " - " + Patient.Place + " - " + Patient.Date + ")";
+                return Name + " (" + Patient.Name + ")";
             }
         }
 

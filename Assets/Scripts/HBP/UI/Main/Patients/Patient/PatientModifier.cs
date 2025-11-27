@@ -14,8 +14,6 @@ namespace HBP.UI.Main
     {
         #region Properties
         [SerializeField] InputField m_NameInputField;
-        [SerializeField] InputField m_PlaceInputField;
-        [SerializeField] InputField m_DateInputField;
 
         [SerializeField] MeshListGestion m_MeshListGestion;
         [SerializeField] MRIListGestion m_MRIListGestion;
@@ -37,8 +35,6 @@ namespace HBP.UI.Main
                 base.Interactable = value;
 
                 m_NameInputField.interactable = value;
-                m_PlaceInputField.interactable = value;
-                m_DateInputField.interactable = value;
 
                 m_MeshListGestion.Interactable = value;
                 m_MeshListGestion.Modifiable = value;
@@ -64,8 +60,6 @@ namespace HBP.UI.Main
             base.Initialize();
 
             m_NameInputField.onEndEdit.AddListener(ChangeName);
-            m_PlaceInputField.onEndEdit.AddListener(ChangePlace);
-            m_DateInputField.onEndEdit.AddListener(ChangeDate);
 
             m_MeshListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
             m_MeshListGestion.List.OnAddObject.AddListener(AddMesh);
@@ -94,8 +88,6 @@ namespace HBP.UI.Main
         protected override void SetFields(Patient objectToDisplay)
         {
             m_NameInputField.text = objectToDisplay.Name;
-            m_PlaceInputField.text = objectToDisplay.Place;
-            m_DateInputField.text = objectToDisplay.Date.ToString();
 
             m_MeshListGestion.List.Set(objectToDisplay.Meshes);
             m_MRIListGestion.List.Set(objectToDisplay.MRIs);
@@ -118,37 +110,8 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
-        /// <summary>
-        /// Change the patient place.
-        /// </summary>
-        /// <param name="place">Patient place</param>
-        protected void ChangePlace(string place)
-        {
-            if(place != "")
-            {
-                ObjectTemp.Place = place;
-            }
-            else
-            {
-                m_PlaceInputField.text = ObjectTemp.Place;
-            }
-        }
-        /// <summary>
-        /// Change the patient date.
-        /// </summary>
-        /// <param name="date">Patient date</param>
-        protected void ChangeDate(string value)
-        {
-            if(int.TryParse(value, out int date))
-            {
-                ObjectTemp.Date = date;
-            }
-            else
-            {
-                m_DateInputField.text = ObjectTemp.Date.ToString();
-            }
-        }
 
+        /// <summary>
         /// <summary>
         /// Add mesh to the patient.
         /// </summary>

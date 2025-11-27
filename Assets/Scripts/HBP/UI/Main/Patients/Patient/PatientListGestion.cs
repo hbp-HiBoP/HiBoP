@@ -23,7 +23,7 @@ namespace HBP.UI.Main
         /// <param name="obj">Object modified</param>
         protected override void OnSaveModifier(Patient obj)
         {
-            if (List.Objects.Any(c => c.Name == obj.Name && c.Place == obj.Place && c.Date == obj.Date && !c.Equals(obj)))
+            if (List.Objects.Any(c => c.Name == obj.Name && !c.Equals(obj)))
             {
                 int count = 1;
                 string name = string.Format("{0}({1})", obj.Name, count);
@@ -55,7 +55,7 @@ namespace HBP.UI.Main
             }
             else
             {
-                if (List.Objects.Any(c => c.Name == obj.Name && c.Place == obj.Place && c.Date == obj.Date && !c.Equals(obj)))
+                if (List.Objects.Any(c => c.Name == obj.Name && !c.Equals(obj)))
                 {
                     int count = 1;
                     string name = string.Format("{0}({1})", obj.Name, count);

@@ -185,7 +185,7 @@ namespace HBP.UI.Module3D
         /// <param name="patient">Patient to display information of</param>
         void SetPatient(Core.Data.Patient patient)
         {
-            m_PatientText.text = patient.CompleteName;
+            m_PatientText.text = patient.Name;
         }
         /// <summary>
         /// Set the states of the site (highlighted, blacklisted)

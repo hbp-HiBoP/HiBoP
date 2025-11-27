@@ -68,14 +68,6 @@ namespace HBP.Core.Data
         /// </summary>
         [JsonProperty] public string Name { get; set; }
         /// <summary>
-        /// Year in which the patient was implanted.
-        /// </summary>
-        [JsonProperty] public int Date { get; set; }
-        /// <summary>
-        /// Place where the patient had the operation.
-        /// </summary>
-        [JsonProperty] public string Place { get; set; }
-        /// <summary>
         /// Meshes of the patient.
         /// </summary>
         [JsonProperty] public List<BaseMesh> Meshes { get; set; }
@@ -92,10 +84,6 @@ namespace HBP.Core.Data
         /// </summary>
         [JsonProperty] public List<BaseTagValue> Tags { get; set; }
         [JsonProperty] public string CorrespondingDatabaseID { get; set; }
-        /// <summary>
-        /// Complete name of the patient. Name (Place-Date).
-        /// </summary>
-        [JsonIgnore] public string CompleteName { get { return Name + " (" + Place + " - " + Date + ")"; } }
         #endregion
 
         #region Constructors
@@ -103,18 +91,14 @@ namespace HBP.Core.Data
         /// Create a new instance of Patient.
         /// </summary>
         /// <param name="name">Name of the patient.</param>
-        /// <param name="place">Place where the  patient had the operation.</param>
-        /// <param name="date">Year in which the patient was implanted.</param>
         /// <param name="meshes">Meshes of the patient.</param>
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
         /// <param name="ID">Unique identifier to identify the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID, string ID) : base(ID)
+        public Patient(string name, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID, string ID) : base(ID)
         {
             Name = name;
-            Place = place;
-            Date = date;
             Meshes = meshes.ToList();
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
@@ -125,17 +109,13 @@ namespace HBP.Core.Data
         /// Create a new instance of Patient.
         /// </summary>
         /// <param name="name">Name of the patient.</param>
-        /// <param name="place">Place where the  patient had the operation.</param>
-        /// <param name="date">Year in which the patient was implanted.</param>
         /// <param name="meshes">Meshes of the patient.</param>
         /// <param name="MRIs">MRI scans of the patient.</param>
         /// <param name="sites">Sites of the patient.</param>
         /// <param name="tags">Tags of the patient.</param>
-        public Patient(string name, string place, int date, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID) : base()
+        public Patient(string name, IEnumerable<BaseMesh> meshes, IEnumerable<MRI> MRIs, IEnumerable<Site> sites, IEnumerable<BaseTagValue> tags, string correspondingDatabaseID) : base()
         {
             Name = name;
-            Place = place;
-            Date = date;
             Meshes = meshes.ToList();
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
@@ -145,7 +125,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new instance of Patient.
         /// </summary>
-        public Patient() : this("Unknown", "Unknown", 0, new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0], "")
+        public Patient() : this("Unknown", new BaseMesh[0], new MRI[0], new Site[0], new BaseTagValue[0], "")
         {
         }
         #endregion
@@ -302,11 +282,33 @@ namespace HBP.Core.Data
             if (string.IsNullOrEmpty(path)) return false;
             DirectoryInfo directory = new DirectoryInfo(path);
             if (!directory.Exists) return false;
-            string[] nameElements = directory.Name.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
-            if (nameElements.Length != 3) return false;
             DirectoryInfo[] directories = directory.GetDirectories();
             if (directories.Any((dir) => dir.Name == "implantation") || directories.Any((dir) => dir.Name == "t1mri")) return true;
             return false;
+        }
+        /// <summary>
+        /// Checks if the directory name follows the Place_Date_Name format.
+        /// </summary>
+        /// <param name="directoryName">Name of the directory.</param>
+        /// <param name="place">Output place if format matches.</param>
+        /// <param name="date">Output date if format matches.</param>
+        /// <param name="name">Output name if format matches.</param>
+        /// <returns><see langword="true"/> if the format matches; otherwise, <see langword="false"/></returns>
+        private static bool TryParsePlaceDateNameFormat(string directoryName, out string place, out int date, out string name)
+        {
+            place = null;
+            date = 0;
+            name = null;
+            
+            string[] nameElements = directoryName.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+            if (nameElements.Length != 3) return false;
+            
+            // Check if the second element is a valid year (integer)
+            if (!int.TryParse(nameElements[1], out date)) return false;
+            
+            place = nameElements[0];
+            name = nameElements[2];
+            return true;
         }
         /// <summary>
         /// Loads patients from a directory
@@ -320,26 +322,39 @@ namespace HBP.Core.Data
             if (IsPatientDirectory(path))
             {
                 DirectoryInfo directory = new DirectoryInfo(path);
-                string[] directoryNameParts = directory.Name.Split(new char[1] { '_' }, StringSplitOptions.RemoveEmptyEntries);
-                int.TryParse(directoryNameParts[1], out int date);
-                string name = directoryNameParts[2];
-                string place = directoryNameParts[0];
-                IEnumerable<BaseTag> tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
-                IntTag dateTag = tags.OfType<IntTag>().FirstOrDefault(t => t.Name == "Date");
-                if (dateTag == null)
+                string patientName;
+                List<BaseTagValue> patientTags = new List<BaseTagValue>();
+                
+                // Check if directory follows Place_Date_Name format
+                if (TryParsePlaceDateNameFormat(directory.Name, out string place, out int date, out string name))
                 {
-                    dateTag = new IntTag("Date");
-                    PersistentDataManager.Tags.AddPatientTag(dateTag);
+                    // Use the full directory name as patient name (Place_Date_Name)
+                    patientName = directory.Name;
+                    
+                    // Create Date and Place tags
+                    IEnumerable<BaseTag> tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
+                    IntTag dateTag = tags.OfType<IntTag>().FirstOrDefault(t => t.Name == "Date");
+                    if (dateTag == null)
+                    {
+                        dateTag = new IntTag("Date");
+                        PersistentDataManager.Tags.AddPatientTag(dateTag);
+                    }
+                    StringTag placeTag = tags.OfType<StringTag>().FirstOrDefault(t => t.Name == "Place");
+                    if (placeTag == null)
+                    {
+                        placeTag = new StringTag("Place");
+                        PersistentDataManager.Tags.AddPatientTag(placeTag);
+                    }
+                    patientTags.Add(new IntTagValue(dateTag, date));
+                    patientTags.Add(new StringTagValue(placeTag, place));
                 }
-                StringTag placeTag = tags.OfType<StringTag>().FirstOrDefault(t => t.Name == "Place");
-                if (placeTag == null)
+                else
                 {
-                    placeTag = new StringTag("Place");
-                    PersistentDataManager.Tags.AddPatientTag(placeTag);
+                    // Use directory name as is
+                    patientName = directory.Name;
                 }
-                IntTagValue dateTagValue = new IntTagValue(dateTag, date);
-                StringTagValue placeTagValue = new StringTagValue(placeTag, place);
-                result = new Patient(name, place, date, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path), new BaseTagValue[] { dateTagValue, placeTagValue }, "", directory.Name);
+                
+                result = new Patient(patientName, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path), patientTags, "", directory.Name);
                 return true;
             }
             return false;
@@ -688,7 +703,7 @@ namespace HBP.Core.Data
                 }
 
                 // Create patient.
-                Patient patient = new Patient(pair.Key, "Unknown", 0, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
+                Patient patient = new Patient(pair.Key, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
                 patientsList.Add(patient);
             }
             patients = patientsList.ToArray();
@@ -911,7 +926,7 @@ namespace HBP.Core.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Patient(Name, Place, Date, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), CorrespondingDatabaseID, ID);
+            return new Patient(Name, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), CorrespondingDatabaseID, ID);
         }
         /// <summary>
         /// Copy the instance.
@@ -923,8 +938,6 @@ namespace HBP.Core.Data
             if (obj is Patient patient)
             {
                 Name = patient.Name;
-                Date = patient.Date;
-                Place = patient.Place;
                 Meshes = patient.Meshes;
                 MRIs = patient.MRIs;
                 Sites = patient.Sites;

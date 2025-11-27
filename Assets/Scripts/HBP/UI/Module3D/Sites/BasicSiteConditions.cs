@@ -46,8 +46,6 @@ namespace HBP.UI.Module3D
         [SerializeField] InputField m_SiteNameFilter;
         [SerializeField] Toggle m_Patient;
         [SerializeField] InputField m_PatientNameFilter;
-        [SerializeField] InputField m_PatientPlaceFilter;
-        [SerializeField] InputField m_PatientDateFilter;
         [SerializeField] Toggle m_Tag;
         [SerializeField] Dropdown m_TagDropdown;
         [SerializeField] InputField m_TagFilter;
@@ -155,14 +153,6 @@ namespace HBP.UI.Module3D
                 if (!string.IsNullOrEmpty(m_PatientNameFilter.text))
                 {
                     result &= CheckPatientName(site, m_PatientNameFilter.text);
-                }
-                if (!string.IsNullOrEmpty(m_PatientPlaceFilter.text))
-                {
-                    result &= CheckPatientPlace(site, m_PatientPlaceFilter.text);
-                }
-                if (!string.IsNullOrEmpty(m_PatientDateFilter.text))
-                {
-                    result &= CheckPatientDate(site, m_PatientDateFilter.text);
                 }
             }
             if (m_Tag.isOn) result &= CheckTag(site, m_SelectedTag, m_TagFilter.text);

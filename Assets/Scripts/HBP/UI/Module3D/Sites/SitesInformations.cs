@@ -24,7 +24,6 @@ namespace HBP.UI.Module3D
         [SerializeField] private GameObject m_MinimizedGameObject;
 
         [SerializeField] private Tooltip m_SiteTooltip;
-        [SerializeField] private Tooltip m_PatientsTooltip;
         [SerializeField] private Tooltip m_LabelsTooltip;
         [SerializeField] private Tooltip m_HighlightedTooltip;
         [SerializeField] private Tooltip m_BlacklistedTooltip;
@@ -88,11 +87,7 @@ namespace HBP.UI.Module3D
 
         private void CountSites()
         {
-            m_SiteTooltip.Text = string.Format("Number of sites: {0}", m_SiteList.Objects.Count);
-        }
-        private void CountPatients()
-        {
-            m_PatientsTooltip.Text = string.Format("Number of distinct patients: {0}", m_SiteList.Objects.Select(s => s.Information.Patient).Distinct().Count());
+            m_SiteTooltip.Text = string.Format("Number of sites: {0}; number of distinct patients: {1}", m_SiteList.Objects.Count, m_SiteList.Objects.Select(s => s.Information.Patient).Distinct().Count());
         }
         private void CountLabels()
         {
@@ -145,7 +140,6 @@ namespace HBP.UI.Module3D
             m_Scene.OnSelectSite.AddListener(OnSelectSite);
 
             m_SiteTooltip.OnBeforeDisplayTooltip.AddListener(CountSites);
-            m_PatientsTooltip.OnBeforeDisplayTooltip.AddListener(CountPatients);
             m_LabelsTooltip.OnBeforeDisplayTooltip.AddListener(CountLabels);
             m_HighlightedTooltip.OnBeforeDisplayTooltip.AddListener(CountHighlighted);
             m_BlacklistedTooltip.OnBeforeDisplayTooltip.AddListener(CountBlacklisted);

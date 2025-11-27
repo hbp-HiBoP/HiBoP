@@ -122,9 +122,9 @@ namespace HBP.Data.Database
             // Gather useful information
 
             // Anatomical
-            List<Patient> missingMeshesPatients = m_Patients.Where(p => p.Meshes.Count == 0).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
-            List<Patient> missingMRIsPatients = m_Patients.Where(p => p.MRIs.Count == 0).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
-            List<Patient> missingSitesPatients = m_Patients.Where(p => p.Sites.Count == 0).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
+            List<Patient> missingMeshesPatients = m_Patients.Where(p => p.Meshes.Count == 0).OrderBy(p => p.Name).ToList();
+            List<Patient> missingMRIsPatients = m_Patients.Where(p => p.MRIs.Count == 0).OrderBy(p => p.Name).ToList();
+            List<Patient> missingSitesPatients = m_Patients.Where(p => p.Sites.Count == 0).OrderBy(p => p.Name).ToList();
 
             // Functional
             Dictionary<string, Dictionary<Type, List<IEEGDataInfo>>> dataInfosByErrorTypeByDataName = new();
@@ -190,7 +190,7 @@ namespace HBP.Data.Database
                 {
                     await writer.WriteLineAsync($"{kv.Key}:");
 
-                    var groupedByPatient = kv.Value.GroupBy(d => d.Patient).Where(g => g.Key != null).OrderBy(g => g.Key.Place).ThenBy(g => g.Key.Date).ThenBy(g => g.Key.Name);
+                    var groupedByPatient = kv.Value.GroupBy(d => d.Patient).Where(g => g.Key != null).OrderBy(g => g.Key.Name);
 
                     foreach (var patientGroup in groupedByPatient)
                     {
@@ -366,7 +366,7 @@ namespace HBP.Data.Database
                 await patient.CheckTagsAsync(PersistentDataManager.Tags.AllTags);
                 return patient;
             }));
-            m_Patients = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).OrderBy(p => p.Place).ThenBy(p => p.Date).ThenBy(p => p.Name).ToList();
+            m_Patients = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).OrderBy(p => p.Name).ToList();
         }
         private async UniTask SavePatientsAsync(Action<float, float, LoadingText> updateProgress)
         {
@@ -519,7 +519,7 @@ namespace HBP.Data.Database
             if (removedPatients.Count > 0)
             {
                 stringBuilder.AppendLine("<b>Removed patients:</b>");
-                foreach (var patient in removedPatients)
+                foreach (var patient in removedPatients.OrderBy(p => p.Name))
                 {
                     stringBuilder.AppendLine(patient.ID);
                 }
@@ -528,7 +528,7 @@ namespace HBP.Data.Database
             if (addedPatients.Count > 0)
             {
                 stringBuilder.AppendLine("<b>Added patients:</b>");
-                foreach (var patient in addedPatients)
+                foreach (var patient in addedPatients.OrderBy(p => p.Name))
                 {
                     stringBuilder.AppendLine(patient.ID);
                 }
@@ -537,7 +537,7 @@ namespace HBP.Data.Database
             if (updatedPatients.Count > 0)
             {
                 stringBuilder.AppendLine("<b>Updated patients:</b>");
-                foreach (var patient in updatedPatients)
+                foreach (var patient in updatedPatients.OrderBy(p => p.Name))
                 {
                     stringBuilder.AppendLine(patient.ID);
                 }

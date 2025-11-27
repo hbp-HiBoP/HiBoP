@@ -165,7 +165,7 @@ namespace HBP.UI.Database
         private void SetupDropdowns()
         {
             // Setup patient dropdown
-            m_PatientDropdown.options = m_Patients.Select(p => new Dropdown.OptionData(p.CompleteName)).ToList();
+            m_PatientDropdown.options = m_Patients.Select(p => new Dropdown.OptionData(p.Name)).ToList();
             if (m_Patients.Count > 0)
             {
                 m_CurrentPatient = m_Patients.First();
@@ -208,7 +208,7 @@ namespace HBP.UI.Database
                     {
                         token.ThrowIfCancellationRequested();
                         float dataProgress = dataCounter / patientDataInfos.Count;
-                        updateProgress(patientProgress + (dataProgress / totalPatients), 0, new LoadingText("Loading data for ", $"{patient.CompleteName} - {dataInfo.Protocol.Name}", $" {currentPatientIndex + 1} / {totalPatients}"));
+                        updateProgress(patientProgress + (dataProgress / totalPatients), 0, new LoadingText("Loading data for ", $"{patient.Name} - {dataInfo.Protocol.Name}", $" {currentPatientIndex + 1} / {totalPatients}"));
                         try
                         {
                             patientLoadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
@@ -217,7 +217,7 @@ namespace HBP.UI.Database
                         {
                             Debug.LogException(e);
                             await UniTask.SwitchToMainThread();
-                            int result = await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Data Loading Error", $"Failed to load data for {patient.CompleteName} - {dataInfo.Protocol.Name} - {dataInfo.Name}:\n\n{e.Title}\n{e.Message}\n\nDo you want to skip this data and continue loading, or cancel the entire operation?", "Skip data", "Cancel");
+                            int result = await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Data Loading Error", $"Failed to load data for {patient.Name} - {dataInfo.Protocol.Name} - {dataInfo.Name}:\n\n{e.Title}\n{e.Message}\n\nDo you want to skip this data and continue loading, or cancel the entire operation?", "Skip data", "Cancel");
                             if (result == 0)
                             {
                                 skippedDataInfos.Add(dataInfo);
@@ -268,13 +268,13 @@ namespace HBP.UI.Database
         {
             m_TrialMatrixGridContainer.SetActive(display);
             m_NoDataContainer.SetActive(!display);
-            m_NoDataText.text = display ? string.Empty : $"No data of {m_CurrentProtocol.Name} available for {m_CurrentPatient.CompleteName}.";
+            m_NoDataText.text = display ? string.Empty : $"No data of {m_CurrentProtocol.Name} available for {m_CurrentPatient.Name}.";
 
             if (display)
             {
                 List<Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new() { new Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData(new Dataset(m_CurrentDataInfo.Protocol.Name, m_CurrentDataInfo.Protocol, new DataInfo[] { m_CurrentDataInfo }), m_CurrentDataInfo.Name, m_CurrentDataInfo.Protocol.OrderedBlocs.ToList()) };
                 m_TrialMatrixGridData = new Data.Informations.TrialMatrix.TrialMatrixGrid(new ChannelStruct[] { m_CurrentChannelStruct }, dataToDisplay.ToArray());
-                m_TrialMatrixGrid.Display(m_TrialMatrixGridData, $"{m_CurrentPatient.CompleteName} - {m_CurrentDataInfo.Protocol.Name} - {m_CurrentDataInfo.Name} - {m_CurrentChannelStruct.Channel}", m_Colormap);
+                m_TrialMatrixGrid.Display(m_TrialMatrixGridData, $"{m_CurrentPatient.Name} - {m_CurrentDataInfo.Protocol.Name} - {m_CurrentDataInfo.Name} - {m_CurrentChannelStruct.Channel}", m_Colormap);
                 m_InformationPanels.Set(m_CurrentChannelStruct);
             }
         }

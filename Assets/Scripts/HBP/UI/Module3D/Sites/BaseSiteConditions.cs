@@ -219,33 +219,6 @@ namespace HBP.UI.Module3D
             return site.Information.Patient.Name.ToUpper().Contains(patientName.ToUpper());
         }
         /// <summary>
-        /// Check if the site patient place contains the input string
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <param name="patientPlace">Place to use for the checking</param>
-        /// <returns>True if the site patient place contains the input string</returns>
-        protected bool CheckPatientPlace(Core.Object3D.Site site, string patientPlace)
-        {
-            return site.Information.Patient.Place.ToUpper().Contains(patientPlace.ToUpper());
-        }
-        /// <summary>
-        /// Check if the site patient date contains the input string
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <param name="patientDateString">Date to use for the checking</param>
-        /// <returns>True if the site patient date contains the input string</returns>
-        protected bool CheckPatientDate(Core.Object3D.Site site, string patientDateString)
-        {
-            if (NumberExtension.TryParseFloat(patientDateString, out float patientDate))
-            {
-                return site.Information.Patient.Date == patientDate;
-            }
-            else
-            {
-                throw new ParsingValueException(patientDateString);
-            }
-        }
-        /// <summary>
         /// Check if the site has the input tag and if the value of this tag contains the input string
         /// </summary>
         /// <param name="site">Site to check</param>

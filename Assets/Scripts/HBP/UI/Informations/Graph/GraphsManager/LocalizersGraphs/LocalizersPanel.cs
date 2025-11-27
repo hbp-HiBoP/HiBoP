@@ -29,7 +29,7 @@ namespace HBP.UI.Informations
         [SerializeField] private GameObject m_LocalizersGraphsVoxelSettingsContainer;
         [SerializeField] private GameObject m_LocalizersGraphsRegionSettingsContainer;
         [SerializeField] private GameObject m_LocalizersGraphsAtlasSettingsContainer;
-        
+
         // Rescaling
         [SerializeField] private Transform m_RescalingContainer;
         [SerializeField] private Toggle m_EnableRescalingToggle;
@@ -42,7 +42,10 @@ namespace HBP.UI.Informations
         [SerializeField] private Dropdown m_DataTypeDropdown;
         [SerializeField] private GameObject m_ProtocolItemPrefab;
         [SerializeField] private Transform m_ProtocolsContainer;
-        
+
+        // Generate
+        [SerializeField] private Button m_GenerateLocalizersGraphsButton;
+
         private List<ProtocolItem> m_ProtocolItems = new List<ProtocolItem>();
         private string m_SelectedDataType;
         
@@ -80,7 +83,9 @@ namespace HBP.UI.Informations
 
             m_DataTypeDropdown.options = Object3DManager.Localizers.AvailableDataNames.Select(name => new Dropdown.OptionData(name)).ToList();
             m_DataTypeDropdown.value = 0;
-            
+
+            m_GenerateLocalizersGraphsButton.interactable = Object3DManager.Localizers.Loaded;
+
             InitializeRescaling();
             InitializeProtocols();
         } 
