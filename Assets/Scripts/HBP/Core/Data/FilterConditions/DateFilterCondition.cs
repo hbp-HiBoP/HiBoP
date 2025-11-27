@@ -89,7 +89,7 @@ namespace HBP.Core.Data
         {
             if (obj is Patient patient)
             {
-                if (Dates != null && Dates.Count == 0)
+                if (Dates == null || Dates.Count == 0)
                     return true;
 
                 return IsNot ? !Dates.Contains(patient.Date) : Dates.Contains(patient.Date);

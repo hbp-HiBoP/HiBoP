@@ -124,7 +124,7 @@ namespace HBP.Core.Data
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_TagID = Tag.ID;
+            m_TagID = Tag?.ID ?? "";
         }
         #endregion
     }
