@@ -3,4 +3,9 @@
     <type fullname="EdgeDetectPostProcessingRenderer_AfterStack" preserve="all" />
     <type fullname="EdgeDetect_AfterStack" preserve="all" />
   </assembly>
+  <assembly fullname="Assembly-CSharp">
+    <type fullname="ThirdParty.SFB.IFileOpenDialog" preserve="all"/>
+    <type fullname="ThirdParty.SFB.IShellItem" preserve="all"/>
+    <type fullname="ThirdParty.SFB.IShellItemArray" preserve="all"/>
+  </assembly>
 </linker>

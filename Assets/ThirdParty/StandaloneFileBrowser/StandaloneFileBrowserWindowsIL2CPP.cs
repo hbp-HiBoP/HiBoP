@@ -1,5 +1,6 @@
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR && ENABLE_IL2CPP
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -47,6 +48,89 @@ namespace ThirdParty.SFB
         public int FlagsEx;
     }
 
+    // IFileDialog COM interface for folder browser
+    [Flags]
+    enum FOS : uint
+    {
+        OVERWRITEPROMPT = 0x00000002,
+        STRICTFILETYPES = 0x00000004,
+        NOCHANGEDIR = 0x00000008,
+        PICKFOLDERS = 0x00000020,
+        FORCEFILESYSTEM = 0x00000040,
+        ALLNONSTORAGEITEMS = 0x00000080,
+        NOVALIDATE = 0x00000100,
+        ALLOWMULTISELECT = 0x00000200,
+        PATHMUSTEXIST = 0x00000800,
+        FILEMUSTEXIST = 0x00001000,
+        CREATEPROMPT = 0x00002000,
+        SHAREAWARE = 0x00004000,
+        NOREADONLYRETURN = 0x00008000,
+        NOTESTFILECREATE = 0x00010000,
+        HIDEMRUPLACES = 0x00020000,
+        HIDEPINNEDPLACES = 0x00040000,
+        NODEREFERENCELINKS = 0x00100000,
+        DONTADDTORECENT = 0x02000000,
+        FORCESHOWHIDDEN = 0x10000000,
+        DEFAULTNOMINIMODE = 0x20000000,
+        FORCEPREVIEWPANEON = 0x40000000,
+    }
+
+    [ComImport, Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IShellItem
+    {
+        void BindToHandler(IntPtr pbc, ref Guid bhid, ref Guid riid, out IntPtr ppv);
+        void GetParent(out IShellItem ppsi);
+        void GetDisplayName(uint sigdnName, out IntPtr ppszName);
+        void GetAttributes(uint sfgaoMask, out uint psfgaoAttribs);
+        void Compare(IShellItem psi, uint hint, out int piOrder);
+    }
+
+    [ComImport, Guid("b63ea76d-1f85-456f-a19c-48159efa858b"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IShellItemArray
+    {
+        void BindToHandler(IntPtr pbc, ref Guid bhid, ref Guid riid, out IntPtr ppvOut);
+        void GetPropertyStore(uint flags, ref Guid riid, out IntPtr ppv);
+        void GetPropertyDescriptionList(IntPtr keyType, ref Guid riid, out IntPtr ppv);
+        void GetAttributes(uint attribFlags, uint sfgaoMask, out uint psfgaoAttribs);
+        void GetCount(out uint pdwNumItems);
+        void GetItemAt(uint dwIndex, out IShellItem ppsi);
+        void EnumItems(out IntPtr ppenumShellItems);
+    }
+
+    [ComImport, Guid("42f85136-db7e-439c-85f1-e4075d135fc8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    interface IFileOpenDialog
+    {
+        // IModalWindow
+        [PreserveSig] int Show(IntPtr hwndOwner);
+        // IFileDialog
+        void SetFileTypes(uint cFileTypes, IntPtr rgFilterSpec);
+        void SetFileTypeIndex(uint iFileType);
+        void GetFileTypeIndex(out uint piFileType);
+        void Advise(IntPtr pfde, out uint pdwCookie);
+        void Unadvise(uint dwCookie);
+        void SetOptions(FOS fos);
+        void GetOptions(out FOS pfos);
+        void SetDefaultFolder(IShellItem psi);
+        void SetFolder(IShellItem psi);
+        void GetFolder(out IShellItem ppsi);
+        void GetCurrentSelection(out IShellItem ppsi);
+        void SetFileName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
+        void GetFileName(out IntPtr pszName);
+        void SetTitle([MarshalAs(UnmanagedType.LPWStr)] string pszTitle);
+        void SetOkButtonLabel([MarshalAs(UnmanagedType.LPWStr)] string pszText);
+        void SetFileNameLabel([MarshalAs(UnmanagedType.LPWStr)] string pszLabel);
+        void GetResult(out IShellItem ppsi);
+        void AddPlace(IShellItem psi, int fdap);
+        void SetDefaultExtension([MarshalAs(UnmanagedType.LPWStr)] string pszDefaultExtension);
+        void Close(int hr);
+        void SetClientGuid(ref Guid guid);
+        void ClearClientData();
+        void SetFilter(IntPtr pFilter);
+        // IFileOpenDialog
+        void GetResults(out IShellItemArray ppenum);
+        void GetSelectedItems(out IShellItemArray ppsai);
+    }
+
     static class Native
     {
         [DllImport("comdlg32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -57,6 +141,29 @@ namespace ThirdParty.SFB
 
         [DllImport("user32.dll")]
         public static extern IntPtr GetActiveWindow();
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern int SHCreateItemFromParsingName(
+            [MarshalAs(UnmanagedType.LPWStr)] string pszPath,
+            IntPtr pbc,
+            ref Guid riid,
+            out IShellItem ppv);
+
+        [DllImport("ole32.dll", CharSet = CharSet.Unicode, ExactSpelling = true, PreserveSig = false)]
+        [return: MarshalAs(UnmanagedType.Interface)]
+        public static extern object CoCreateInstance(
+            [In, MarshalAs(UnmanagedType.LPStruct)] Guid rclsid,
+            IntPtr pUnkOuter,
+            int dwClsContext,
+            [In, MarshalAs(UnmanagedType.LPStruct)] Guid riid);
+
+        // CLSID for FileOpenDialog
+        public static readonly Guid CLSID_FileOpenDialog = new Guid("DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7");
+        public static readonly Guid IID_IFileOpenDialog = new Guid("42f85136-db7e-439c-85f1-e4075d135fc8");
+        public static readonly Guid IID_IShellItem = new Guid("43826D1E-E718-42EE-BC55-A1E261C37BFE");
+
+        public const int CLSCTX_INPROC_SERVER = 1;
+        public const int CLSCTX_ALL = 0x17; // CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER
     }
 
     public class StandaloneFileBrowserWindows : IStandaloneFileBrowser
@@ -91,9 +198,91 @@ namespace ThirdParty.SFB
 
         public string[] OpenFolderPanel(string title, string directory, bool multiselect)
         {
-            // On reste sur OpenFile dialog avec filtre dossiers via PATHMUSTEXIST
-            // Pour un vrai folder picker natif, il faut IFileDialog (COM). Version simple :
-            return OpenFilePanel(title, directory, null, multiselect);
+            IFileOpenDialog dialog = null;
+            try
+            {
+                // Create FileOpenDialog COM object
+                dialog = (IFileOpenDialog)Native.CoCreateInstance(
+                    Native.CLSID_FileOpenDialog,
+                    IntPtr.Zero,
+                    Native.CLSCTX_ALL,
+                    Native.IID_IFileOpenDialog);
+
+                // Set options: pick folders
+                FOS options = FOS.PICKFOLDERS | FOS.FORCEFILESYSTEM | FOS.PATHMUSTEXIST;
+                if (multiselect)
+                    options |= FOS.ALLOWMULTISELECT;
+                dialog.SetOptions(options);
+
+                // Set title
+                if (!string.IsNullOrEmpty(title))
+                    dialog.SetTitle(title);
+
+                // Set initial directory
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    var dirPath = GetDirectoryPath(directory);
+                    if (!string.IsNullOrEmpty(dirPath))
+                    {
+                        Guid iidShellItem = Native.IID_IShellItem;
+                        if (Native.SHCreateItemFromParsingName(dirPath, IntPtr.Zero, ref iidShellItem, out IShellItem folderItem) == 0)
+                        {
+                            dialog.SetFolder(folderItem);
+                            Marshal.ReleaseComObject(folderItem);
+                        }
+                    }
+                }
+
+                // Show dialog
+                int hr = dialog.Show(Native.GetActiveWindow());
+                if (hr != 0) // User cancelled or error
+                {
+                    return Array.Empty<string>();
+                }
+
+                // Get results
+                var results = new List<string>();
+                if (multiselect)
+                {
+                    dialog.GetResults(out IShellItemArray itemArray);
+                    itemArray.GetCount(out uint count);
+                    for (uint i = 0; i < count; i++)
+                    {
+                        itemArray.GetItemAt(i, out IShellItem item);
+                        item.GetDisplayName(0x80058000, out IntPtr pszName); // SIGDN_FILESYSPATH
+                        if (pszName != IntPtr.Zero)
+                        {
+                            results.Add(Marshal.PtrToStringUni(pszName));
+                            Marshal.FreeCoTaskMem(pszName);
+                        }
+                        Marshal.ReleaseComObject(item);
+                    }
+                    Marshal.ReleaseComObject(itemArray);
+                }
+                else
+                {
+                    dialog.GetResult(out IShellItem item);
+                    item.GetDisplayName(0x80058000, out IntPtr pszName); // SIGDN_FILESYSPATH
+                    if (pszName != IntPtr.Zero)
+                    {
+                        results.Add(Marshal.PtrToStringUni(pszName));
+                        Marshal.FreeCoTaskMem(pszName);
+                    }
+                    Marshal.ReleaseComObject(item);
+                }
+
+                return results.ToArray();
+            }
+            catch (Exception)
+            {
+                // Fallback: return empty if COM fails
+                return Array.Empty<string>();
+            }
+            finally
+            {
+                if (dialog != null)
+                    Marshal.ReleaseComObject(dialog);
+            }
         }
 
         public void OpenFolderPanelAsync(string title, string directory, bool multiselect, Action<string[]> cb)
@@ -106,7 +295,7 @@ namespace ThirdParty.SFB
             try
             {
                 ZeroBuffer(buffer, 65536);
-                // Préremplir nom par défaut
+                // Prï¿½remplir nom par dï¿½faut
                 if (!string.IsNullOrEmpty(defaultName))
                 {
                     var preset = Path.Combine(string.IsNullOrEmpty(directory) ? "" : directory, defaultName);
@@ -116,7 +305,7 @@ namespace ThirdParty.SFB
                 var ofn = NewOfn(title, directory, filter, buffer, 65536,
                     OFN.EXPLORER | OFN.OVERWRITEPROMPT | OFN.PATHMUSTEXIST | OFN.NOCHANGEDIR);
 
-                // Défaut d’extension
+                // Dï¿½faut dï¿½extension
                 ofn.lpstrDefExt = FirstExtensionOrEmpty(extensions);
 
                 if (!Native.GetSaveFileName(ref ofn))
