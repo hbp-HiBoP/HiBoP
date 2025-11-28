@@ -118,7 +118,7 @@ namespace HBP.Core.Data.Container
                 }
                 else
                 {
-                    if (EEGFile.Extension != EEG_EXTENSION)
+                    if (!string.Equals(EEGFile.Extension, EEG_EXTENSION, System.StringComparison.OrdinalIgnoreCase))
                     {
                         errors.Add(new WrongExtensionError("EEG file has a wrong extension"));
                     }
@@ -151,7 +151,7 @@ namespace HBP.Core.Data.Container
                 }
                 else
                 {
-                    if (POSFile.Extension != POS_EXTENSION)
+                    if (!string.Equals(POSFile.Extension, POS_EXTENSION, System.StringComparison.OrdinalIgnoreCase))
                     {
                         errors.Add(new WrongExtensionError("POS file has a wrong extension"));
                     }

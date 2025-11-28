@@ -70,28 +70,28 @@ namespace HBP.UI.Main
             FileInfo fileInfo = new FileInfo(filePath);
             Core.DLL.EEG.File.FileType type;
             string[] files;
-            
-            if (fileInfo.Extension == BrainVision.HEADER_EXTENSION)
+
+            if (string.Equals(fileInfo.Extension, BrainVision.HEADER_EXTENSION, StringComparison.OrdinalIgnoreCase))
             {
                 type = Core.DLL.EEG.File.FileType.BrainVision;
                 files = new string[] { filePath };
             }
-            else if (fileInfo.Extension == EDF.EDF_EXTENSION)
+            else if (string.Equals(fileInfo.Extension, EDF.EDF_EXTENSION, StringComparison.OrdinalIgnoreCase))
             {
                 type = Core.DLL.EEG.File.FileType.EDF;
                 files = new string[] { filePath };
             }
-            else if (fileInfo.Extension == Elan.POS_EXTENSION)
+            else if (string.Equals(fileInfo.Extension, Elan.POS_EXTENSION, StringComparison.OrdinalIgnoreCase))
             {
                 type = Core.DLL.EEG.File.FileType.ELAN;
                 files = new string[] { "", filePath, "" };
             }
-            else if (fileInfo.Extension == Micromed.MICROMED_EXTENSION)
+            else if (string.Equals(fileInfo.Extension, Micromed.MICROMED_EXTENSION, StringComparison.OrdinalIgnoreCase))
             {
                 type = Core.DLL.EEG.File.FileType.Micromed;
                 files = new string[] { filePath };
             }
-            else if (fileInfo.Extension == FIF.FIF_EXTENSION)
+            else if (string.Equals(fileInfo.Extension, FIF.FIF_EXTENSION, StringComparison.OrdinalIgnoreCase))
             {
                 type = Core.DLL.EEG.File.FileType.FIF;
                 files = new string[] { filePath };
