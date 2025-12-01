@@ -35,7 +35,7 @@ namespace HBP.Core.Data.Container
     public class Micromed : DataContainer
     {
         #region Properties
-        public const string MICROMED_EXTENSION = ".TRC";
+        public const string MICROMED_EXTENSION = ".trc";
 
         /// <summary>
         /// Path to the EEG file with Alias.
@@ -68,7 +68,7 @@ namespace HBP.Core.Data.Container
                 }
                 else
                 {
-                    if (headerFile.Extension != MICROMED_EXTENSION)
+                    if (!string.Equals(headerFile.Extension, MICROMED_EXTENSION, StringComparison.OrdinalIgnoreCase))
                     {
                         errors.Add(new WrongExtensionError("TRC file has a wrong extension"));
                     }

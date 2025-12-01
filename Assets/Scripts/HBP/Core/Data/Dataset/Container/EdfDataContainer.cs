@@ -70,7 +70,7 @@ namespace HBP.Core.Data.Container
                 }
                 else
                 {
-                    if (headerFile.Extension != EDF_EXTENSION)
+                    if (!string.Equals(headerFile.Extension, EDF_EXTENSION, System.StringComparison.OrdinalIgnoreCase))
                     {
                         errors.Add(new WrongExtensionError("EDF file has a wrong extension"));
                     }

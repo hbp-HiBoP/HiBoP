@@ -116,6 +116,10 @@ namespace HBP.UI.Tools
         {
             await UniTask.SwitchToThreadPool();
 
+            updateProgress.Invoke(0, 0, new LoadingText("Initialization"));
+            foreach (var condition in m_ListGestion.List.ObjectsSelected)
+                condition.BeforeCheck();
+
             bool[] result = new bool[FilteringObjects.Count];
             for (int i = 0; i < result.Length; i++)
             {
@@ -123,7 +127,10 @@ namespace HBP.UI.Tools
                 result[i] = CheckConditions(FilteringObjects[i]);
                 token.ThrowIfCancellationRequested();
             }
-            updateProgress.Invoke(1, 0, new LoadingText("Filtered"));
+
+            updateProgress.Invoke(0, 0, new LoadingText("Finalization"));
+            foreach (var condition in m_ListGestion.List.ObjectsSelected)
+                condition.AfterCheck();
 
             await UniTask.SwitchToMainThread();
 

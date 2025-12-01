@@ -19,25 +19,23 @@ namespace HBP.UI.Main
         {
             base.SetFields();
             m_CurrentText.text = Application.version;
-            using (WebClient wc = new WebClient())
+            using WebClient wc = new WebClient();
+            try
             {
-                try
-                {
-                    wc.Headers.Add("User-Agent: Other");
-                    string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
-                    var versionInfo = ClassLoaderSaver.LoadFromJsonString<GithubVersionInfo>(jsonString);
-                    m_LatestText.text = versionInfo.VersionNumber;
-                    m_LatestDescription.text = versionInfo.Description;
-                    m_GithubButton.onClick.AddListener(() => Application.OpenURL(versionInfo.URL));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    m_LatestText.text = "Unknown";
-                    m_LatestDescription.text = "Unknown";
-                    m_GithubButton.onClick.RemoveAllListeners();
-                    m_GithubButton.onClick.AddListener(() => Application.OpenURL("https://github.com/hbp-HiBoP/HiBoP"));
-                }
+                wc.Headers.Add("User-Agent: Other");
+                string jsonString = wc.DownloadString("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
+                var versionInfo = ClassLoaderSaver.LoadFromJsonString<GithubVersionInfo>(jsonString);
+                m_LatestText.text = versionInfo.VersionNumber;
+                m_LatestDescription.text = versionInfo.Description;
+                m_GithubButton.onClick.AddListener(() => Application.OpenURL(versionInfo.URL));
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                m_LatestText.text = "Unknown";
+                m_LatestDescription.text = "Unknown";
+                m_GithubButton.onClick.RemoveAllListeners();
+                m_GithubButton.onClick.AddListener(() => Application.OpenURL("https://github.com/hbp-HiBoP/HiBoP"));
             }
         }
     }

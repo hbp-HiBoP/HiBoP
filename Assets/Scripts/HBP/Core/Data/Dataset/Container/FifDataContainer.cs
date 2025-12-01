@@ -70,7 +70,7 @@ namespace HBP.Core.Data.Container
                 }
                 else
                 {
-                    if (headerFile.Extension != FIF_EXTENSION)
+                    if (!string.Equals(headerFile.Extension, FIF_EXTENSION, System.StringComparison.OrdinalIgnoreCase))
                     {
                         errors.Add(new WrongExtensionError("FIF file has a wrong extension"));
                     }

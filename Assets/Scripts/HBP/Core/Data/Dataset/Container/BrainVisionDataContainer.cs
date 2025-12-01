@@ -77,7 +77,7 @@ namespace HBP.Core.Data.Container
                 }
                 else
                 {
-                    if (headerFile.Extension != HEADER_EXTENSION)
+                    if (!string.Equals(headerFile.Extension, HEADER_EXTENSION, System.StringComparison.OrdinalIgnoreCase))
                     {
                         errors.Add(new WrongExtensionError("BrainVision header file has a wrong extension"));
                     }
