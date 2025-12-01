@@ -1,9 +1,10 @@
-﻿using HBP.UI.Tools;
+﻿using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
+using HBP.UI.Tools;
 using Newtonsoft.Json;
 using System;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Scripting;
@@ -18,10 +19,8 @@ namespace HBP.UI.Main
         [SerializeField] InputField m_EmailInputField;
         [SerializeField] InputField m_DescriptionInputField;
 
-        // GitHub configuration - Fine-grained token with only Issues:Write permission on hbp-HiBoP/HiBoP-Issues repository
-        private const string GITHUB_TOKEN = "";
-        private const string GITHUB_REPO_OWNER = "hbp-HiBoP";
-        private const string GITHUB_REPO_NAME = "HiBoP-Issues";
+        private const string DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1445005361508647075/DwuGjWbEQPHAAqTOWEx_tist_ZcntvmLLdJSUPTnz8wJQpehSI2-naappwKV-IUlwbnG";
+        private const int MAX_PASTE_SIZE = 400000; // 400 KB limit
         #endregion
 
         #region Public Methods
@@ -34,13 +33,13 @@ namespace HBP.UI.Main
                     int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Empty description", "The description field is empty; we might not be able to help you properly.\nDo you still want to send the bug report without any description ?", "Send", "Cancel");
                     if (result == 0)
                     {
-                        await CreateGitHubIssue();
+                        await LoadingManager.LoadAsync(SendBugReportToDiscord);
                         base.OK();
                     }
                 }
                 else
                 {
-                    await CreateGitHubIssue();
+                    await LoadingManager.LoadAsync(SendBugReportToDiscord);
                     base.OK();
                 }
             }
@@ -59,120 +58,351 @@ namespace HBP.UI.Main
             transform.parent = transform.parent.parent;
             transform.SetAsLastSibling();
         }
-
-        private async Task CreateGitHubIssue()
+        private async UniTask SendBugReportToDiscord(Action<float, float, LoadingText> updateProgress)
         {
-            string issueTitle = $"[Bug Report] {DateTime.Now:yyyy-MM-dd HH:mm}";
-            string issueBody = BuildIssueBody();
+            await UniTask.SwitchToMainThread();
+            // Upload full log to a paste service first
+            updateProgress?.Invoke(0f, 0, new LoadingText("Uploading log file"));
+            string logUrl = await UploadLogToPasteService();
 
-            string url = $"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/issues";
-            
-            var issueData = new GitHubIssueRequest
+            var webhookData = new DiscordWebhookPayload
             {
-                title = issueTitle,
-                body = issueBody,
-                labels = new string[] { "bug", "user-report" }
+                embeds = new DiscordEmbed[]
+                {
+                    new DiscordEmbed
+                    {
+                        title = $"[Bug Report] {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
+                        color = 15158332, // Red color
+                        timestamp = DateTime.UtcNow.ToString("o"),
+                        fields = BuildDiscordFields(logUrl)
+                    }
+                }
             };
 
-            string jsonPayload = JsonConvert.SerializeObject(issueData);
+            string jsonPayload = JsonConvert.SerializeObject(webhookData);
 
-            using UnityWebRequest request = new UnityWebRequest(url, "POST");
+            using UnityWebRequest request = new UnityWebRequest(DISCORD_WEBHOOK_URL, "POST");
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
-
             request.SetRequestHeader("Content-Type", "application/json");
-            request.SetRequestHeader("Authorization", $"Bearer {GITHUB_TOKEN}");
-            request.SetRequestHeader("User-Agent", "HiBoP-BugReporter");
-            request.SetRequestHeader("Accept", "application/vnd.github+json");
-            request.SetRequestHeader("X-GitHub-Api-Version", "2022-11-28");
 
-            var operation = request.SendWebRequest();
+            updateProgress?.Invoke(0.5f, 0, new LoadingText("Sending report"));
+            var operation = await request.SendWebRequest();
+            await UniTask.WaitUntil(() => operation.isDone);
 
-            while (!operation.isDone)
-            {
-                await Task.Yield();
-            }
-
+            updateProgress?.Invoke(1f, 0, new LoadingText("Finalization"));
             if (request.result == UnityWebRequest.Result.Success)
             {
-                var response = JsonConvert.DeserializeObject<GitHubIssueResponse>(request.downloadHandler.text);
-                DialogBoxManager.Open(
-                    Core.Enums.DialogBoxType.Informational,
-                    "Bug report successfully sent",
-                    $"Thank you for your report! The issue has been created and will be addressed as soon as possible."
-                ).Forget();
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Bug report successfully sent", "Thank you for your report! The issue will be addressed as soon as possible. If you've entered your contact information, we may reach out for further details.").Forget();
             }
             else
             {
-                throw new Exception($"GitHub API error: {request.responseCode} - {request.downloadHandler.text}");
+                throw new Exception($"Discord webhook error: {request.responseCode} - {request.downloadHandler.text}");
             }
         }
-
-        private string BuildIssueBody()
+        private DiscordField[] BuildDiscordFields(string logUrl)
         {
-            StringBuilder bodyBuilder = new StringBuilder();
+            var fields = new System.Collections.Generic.List<DiscordField>();
 
-            // Contact information
-            if (!string.IsNullOrEmpty(m_NameInputField.text) || !string.IsNullOrEmpty(m_EmailInputField.text))
+            // Contact Information
+            if (!string.IsNullOrEmpty(m_NameInputField.text))
             {
-                bodyBuilder.AppendLine("## Contact Information");
-                if (!string.IsNullOrEmpty(m_NameInputField.text))
-                    bodyBuilder.AppendLine($"- **Name:** {m_NameInputField.text}");
-                if (!string.IsNullOrEmpty(m_EmailInputField.text))
-                    bodyBuilder.AppendLine($"- **Email:** {m_EmailInputField.text}");
-                bodyBuilder.AppendLine();
+                fields.Add(new DiscordField
+                {
+                    name = "👤 Name",
+                    value = m_NameInputField.text,
+                    inline = true
+                });
+            }
+
+            if (!string.IsNullOrEmpty(m_EmailInputField.text))
+            {
+                fields.Add(new DiscordField
+                {
+                    name = "📧 Email",
+                    value = m_EmailInputField.text,
+                    inline = true
+                });
             }
 
             // Description
-            bodyBuilder.AppendLine("## Description");
-            bodyBuilder.AppendLine(string.IsNullOrEmpty(m_DescriptionInputField.text) ? "_No description provided_" : m_DescriptionInputField.text);
-            bodyBuilder.AppendLine();
+            fields.Add(new DiscordField
+            {
+                name = "📝 Description",
+                value = string.IsNullOrEmpty(m_DescriptionInputField.text) ? "_No description provided_" : TruncateForDiscord(m_DescriptionInputField.text, 1024),
+                inline = false
+            });
 
             // System Information
-            bodyBuilder.AppendLine("## System Information");
-            bodyBuilder.AppendLine("<details>");
-            bodyBuilder.AppendLine("<summary>Click to expand</summary>");
-            bodyBuilder.AppendLine();
-            bodyBuilder.AppendLine("| Property | Value |");
-            bodyBuilder.AppendLine("|----------|-------|");
-            bodyBuilder.AppendLine($"| **HiBoP Version** | {Application.version} |");
-            bodyBuilder.AppendLine($"| **Unity Version** | {Application.unityVersion} |");
-            bodyBuilder.AppendLine($"| **Platform** | {Application.platform} |");
-            bodyBuilder.AppendLine($"| **OS** | {SystemInfo.operatingSystem} |");
-            bodyBuilder.AppendLine($"| **Device Model** | {SystemInfo.deviceModel} |");
-            bodyBuilder.AppendLine($"| **Device Type** | {SystemInfo.deviceType} |");
-            bodyBuilder.AppendLine($"| **Processor** | {SystemInfo.processorType} ({SystemInfo.processorCount} cores) |");
-            bodyBuilder.AppendLine($"| **System Memory** | {SystemInfo.systemMemorySize} MB |");
-            bodyBuilder.AppendLine($"| **Graphics Device** | {SystemInfo.graphicsDeviceName} |");
-            bodyBuilder.AppendLine($"| **Graphics Vendor** | {SystemInfo.graphicsDeviceVendor} |");
-            bodyBuilder.AppendLine($"| **Graphics Memory** | {SystemInfo.graphicsMemorySize} MB |");
-            bodyBuilder.AppendLine($"| **Max Texture Size** | {SystemInfo.maxTextureSize} |");
-            bodyBuilder.AppendLine($"| **Screen Resolution** | {Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.dpi} DPI |");
-            bodyBuilder.AppendLine($"| **Fullscreen** | {Screen.fullScreen} |");
-            bodyBuilder.AppendLine();
-            bodyBuilder.AppendLine("</details>");
-            bodyBuilder.AppendLine();
-
-            // Log file excerpt
-            string logContent = GetRecentLogContent();
-            if (!string.IsNullOrEmpty(logContent))
+            StringBuilder sysInfo = new StringBuilder();
+            sysInfo.AppendLine($"**HiBoP:** {Application.version}");
+            sysInfo.AppendLine($"**Unity:** {Application.unityVersion}");
+            sysInfo.AppendLine($"**Platform:** {Application.platform}");
+            sysInfo.AppendLine($"**OS:** {SystemInfo.operatingSystem}");
+            
+            fields.Add(new DiscordField
             {
-                bodyBuilder.AppendLine("## Recent Log");
-                bodyBuilder.AppendLine("<details>");
-                bodyBuilder.AppendLine("<summary>Click to expand (last 100 lines)</summary>");
-                bodyBuilder.AppendLine();
-                bodyBuilder.AppendLine("```");
-                bodyBuilder.AppendLine(logContent);
-                bodyBuilder.AppendLine("```");
-                bodyBuilder.AppendLine();
-                bodyBuilder.AppendLine("</details>");
+                name = "🖥️ System",
+                value = sysInfo.ToString(),
+                inline = true
+            });
+
+            // Hardware Information
+            StringBuilder hwInfo = new StringBuilder();
+            hwInfo.AppendLine($"**CPU:** {SystemInfo.processorType}");
+            hwInfo.AppendLine($"**Cores:** {SystemInfo.processorCount}");
+            hwInfo.AppendLine($"**RAM:** {SystemInfo.systemMemorySize} MB");
+            hwInfo.AppendLine($"**GPU:** {SystemInfo.graphicsDeviceName}");
+            hwInfo.AppendLine($"**VRAM:** {SystemInfo.graphicsMemorySize} MB");
+            
+            fields.Add(new DiscordField
+            {
+                name = "⚙️ Hardware",
+                value = hwInfo.ToString(),
+                inline = true
+            });
+
+            // Display Information
+            StringBuilder displayInfo = new StringBuilder();
+            displayInfo.AppendLine($"**Resolution:** {Screen.currentResolution.width}x{Screen.currentResolution.height}");
+            displayInfo.AppendLine($"**DPI:** {Screen.dpi}");
+            displayInfo.AppendLine($"**Fullscreen:** {(Screen.fullScreen ? "Yes" : "No")}");
+            
+            fields.Add(new DiscordField
+            {
+                name = "🖼️ Display",
+                value = displayInfo.ToString(),
+                inline = true
+            });
+
+            // Full Log Link
+            if (!string.IsNullOrEmpty(logUrl))
+            {
+                fields.Add(new DiscordField
+                {
+                    name = "📋 Full Log File",
+                    value = $"[Click here to view complete log]({logUrl})",
+                    inline = false
+                });
+            }
+            else
+            {
+                // Fallback: show recent log excerpt if upload failed
+                string logContent = GetRecentLogContent(100);
+                if (!string.IsNullOrEmpty(logContent))
+                {
+                    fields.Add(new DiscordField
+                    {
+                        name = "📋 Recent Log (last 100 lines)",
+                        value = "```\n" + TruncateForDiscord(logContent, 900) + "\n```",
+                        inline = false
+                    });
+                }
             }
 
-            return bodyBuilder.ToString();
+            return fields.ToArray();
         }
+        private string TruncateForDiscord(string text, int maxLength)
+        {
+            if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
+                return text;
 
-        private string GetRecentLogContent()
+            return text[..(maxLength - 3)] + "...";
+        }
+        private async UniTask<string> UploadLogToPasteService()
+        {
+            try
+            {
+                string logFile = GetLogFilePath();
+                
+                if (!File.Exists(logFile))
+                    return null;
+
+                // Copy the file first to avoid file lock issues
+                string copiedLogFile = Path.Combine(Application.persistentDataPath, "error_log_temp.txt");
+                File.Copy(logFile, copiedLogFile, true);
+
+                string logContent = File.ReadAllText(copiedLogFile);
+                
+                // Clean up temp file
+                try { File.Delete(copiedLogFile); } catch { }
+
+                // Check size and truncate if necessary
+                bool wasTruncated = false;
+                if (Encoding.UTF8.GetByteCount(logContent) > MAX_PASTE_SIZE)
+                {
+                    // Get last 2000 lines instead of full file
+                    string[] lines = logContent.Split('\n');
+                    int startIndex = Math.Max(0, lines.Length - 2000);
+                    logContent = string.Join("\n", lines, startIndex, lines.Length - startIndex);
+                    wasTruncated = true;
+                }
+
+                // Add header with system info
+                StringBuilder fullLog = new StringBuilder();
+                fullLog.AppendLine("=" + new string('=', 78));
+                fullLog.AppendLine($"  HiBoP Bug Report - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                fullLog.AppendLine("=" + new string('=', 78));
+                fullLog.AppendLine();
+                fullLog.AppendLine($"HiBoP Version: {Application.version}");
+                fullLog.AppendLine($"Unity Version: {Application.unityVersion}");
+                fullLog.AppendLine($"Platform: {Application.platform}");
+                fullLog.AppendLine($"OS: {SystemInfo.operatingSystem}");
+                fullLog.AppendLine($"Device: {SystemInfo.deviceModel}");
+                fullLog.AppendLine($"Processor: {SystemInfo.processorType} ({SystemInfo.processorCount} cores)");
+                fullLog.AppendLine($"Memory: {SystemInfo.systemMemorySize} MB");
+                fullLog.AppendLine($"GPU: {SystemInfo.graphicsDeviceName} ({SystemInfo.graphicsMemorySize} MB)");
+                fullLog.AppendLine($"Resolution: {Screen.currentResolution.width}x{Screen.currentResolution.height} @ {Screen.dpi} DPI");
+                fullLog.AppendLine();
+                if (wasTruncated)
+                {
+                    fullLog.AppendLine("⚠️  WARNING: Log file was too large. Showing last 2000 lines only.");
+                    fullLog.AppendLine();
+                }
+                fullLog.AppendLine("=" + new string('=', 78));
+                fullLog.AppendLine("  LOG CONTENT");
+                fullLog.AppendLine("=" + new string('=', 78));
+                fullLog.AppendLine();
+                fullLog.Append(logContent);
+
+                string finalContent = fullLog.ToString();
+
+                // Try multiple paste services with fallback
+                string url = await TryUploadToDpaste(finalContent);
+                if (url != null) return url;
+
+                url = await TryUploadToPasteEe(finalContent);
+                if (url != null) return url;
+
+                url = await TryUploadToRentry(finalContent);
+                if (url != null) return url;
+
+                Debug.LogWarning("Failed to upload log to any paste service");
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Error uploading log to paste service: {e.Message}");
+                return null;
+            }
+        }
+        private async UniTask<string> TryUploadToPasteEe(string content)
+        {
+            try
+            {
+                var formData = new WWWForm();
+                formData.AddField("key", "");
+                formData.AddField("description", "HiBoP Bug Report Log");
+                formData.AddField("paste", content);
+                formData.AddField("format", "text");
+                formData.AddField("expiration", "1209600"); // 2 weeks
+                formData.AddField("encrypted", "0");
+
+                using UnityWebRequest request = UnityWebRequest.Post("https://api.paste.ee/v1/pastes", formData);
+                
+                var operation = request.SendWebRequest();
+
+                while (!operation.isDone)
+                {
+                    await UniTask.Yield();
+                }
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    var response = JsonConvert.DeserializeObject<PasteEeResponse>(request.downloadHandler.text);
+                    if (response != null && !string.IsNullOrEmpty(response.link))
+                    {
+                        Debug.Log("Successfully uploaded to Paste.ee");
+                        return response.link;
+                    }
+                }
+
+                Debug.LogWarning($"Paste.ee upload failed: {request.responseCode}");
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Paste.ee error: {e.Message}");
+                return null;
+            }
+        }
+        private async UniTask<string> TryUploadToDpaste(string content)
+        {
+            try
+            {
+                var formData = new WWWForm();
+                formData.AddField("content", content);
+                formData.AddField("title", "HiBoP Bug Report Log");
+                formData.AddField("syntax", "text");
+                formData.AddField("expiry_days", "7");
+
+                using UnityWebRequest request = UnityWebRequest.Post("https://dpaste.com/api/", formData);
+                request.SetRequestHeader("Accept", "application/json");
+                
+                var operation = request.SendWebRequest();
+
+                while (!operation.isDone)
+                {
+                    await UniTask.Yield();
+                }
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    // dpaste returns the URL directly in the response
+                    string url = request.downloadHandler.text.Trim();
+                    if (!string.IsNullOrEmpty(url) && url.StartsWith("http"))
+                    {
+                        Debug.Log("Successfully uploaded to dpaste.com");
+                        return url;
+                    }
+                }
+
+                Debug.LogWarning($"dpaste.com upload failed: {request.responseCode}");
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"dpaste.com error: {e.Message}");
+                return null;
+            }
+        }
+        private async UniTask<string> TryUploadToRentry(string content)
+        {
+            try
+            {
+                var formData = new WWWForm();
+                formData.AddField("text", content);
+
+                using UnityWebRequest request = UnityWebRequest.Post("https://rentry.co/api/new", formData);
+                
+                var operation = request.SendWebRequest();
+
+                while (!operation.isDone)
+                {
+                    await UniTask.Yield();
+                }
+
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    var response = JsonConvert.DeserializeObject<RentryResponse>(request.downloadHandler.text);
+                    if (response != null && !string.IsNullOrEmpty(response.url))
+                    {
+                        Debug.Log("Successfully uploaded to Rentry.co");
+                        return response.url;
+                    }
+                }
+
+                Debug.LogWarning($"Rentry.co upload failed: {request.responseCode}");
+                return null;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"Rentry.co error: {e.Message}");
+                return null;
+            }
+        }
+        private string GetRecentLogContent(int lineCount = 50)
         {
             string logFile = GetLogFilePath();
             
@@ -187,8 +417,8 @@ namespace HBP.UI.Main
 
                 string[] lines = File.ReadAllLines(copiedLogFile);
                 
-                // Get last 1000 lines
-                int startIndex = Math.Max(0, lines.Length - 1000);
+                // Get last N lines
+                int startIndex = Math.Max(0, lines.Length - lineCount);
                 StringBuilder logBuilder = new StringBuilder();
                 
                 for (int i = startIndex; i < lines.Length; i++)
@@ -207,7 +437,6 @@ namespace HBP.UI.Main
                 return null;
             }
         }
-
         private string GetLogFilePath()
         {
             return Application.platform switch
@@ -222,18 +451,42 @@ namespace HBP.UI.Main
 
         #region Helper Classes
         [JsonObject(MemberSerialization.Fields), Preserve]
-        private class GitHubIssueRequest
+        private class DiscordWebhookPayload
         {
-            public string title;
-            public string body;
-            public string[] labels;
+            public string username;
+            public string avatar_url;
+            public DiscordEmbed[] embeds;
         }
 
         [JsonObject(MemberSerialization.Fields), Preserve]
-        private class GitHubIssueResponse
+        private class DiscordEmbed
         {
-            public string html_url;
-            public int number;
+            public string title;
+            public int color;
+            public string timestamp;
+            public DiscordField[] fields;
+        }
+
+        [JsonObject(MemberSerialization.Fields), Preserve]
+        private class DiscordField
+        {
+            public string name;
+            public string value;
+            public bool inline;
+        }
+
+        [JsonObject(MemberSerialization.Fields), Preserve]
+        private class PasteEeResponse
+        {
+            public string id;
+            public string link;
+        }
+
+        [JsonObject(MemberSerialization.Fields), Preserve]
+        private class RentryResponse
+        {
+            public string url;
+            public string edit_code;
         }
         #endregion
     }
