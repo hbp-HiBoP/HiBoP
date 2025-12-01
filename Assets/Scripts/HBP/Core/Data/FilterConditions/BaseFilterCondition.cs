@@ -42,9 +42,15 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        public virtual void BeforeCheck()
+        {
+        }
         public virtual bool Check(object obj)
         {
             return true;
+        }
+        public virtual void AfterCheck()
+        {
         }
         #endregion
     }

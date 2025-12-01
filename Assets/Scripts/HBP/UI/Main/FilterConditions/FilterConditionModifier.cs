@@ -29,6 +29,7 @@ namespace HBP.UI.Main
         [SerializeField] AnyFilterConditionSubModifier m_AnyFilterConditionSubModifier;
         [SerializeField] MultipleSiteTagsFilterConditionSubModifier m_MultipleSiteTagsFilterConditionSubModifier;
         [SerializeField] GroupFilterConditionSubModifier m_GroupFilterConditionSubModifier;
+        [SerializeField] MRIMaskFilterConditionSubModifier m_MRIMaskFilterConditionSubModifier;
 
         [SerializeField] Text m_ResultText;
 
@@ -63,6 +64,7 @@ namespace HBP.UI.Main
                 m_AnyFilterConditionSubModifier.FilteringObjects = value;
                 m_MultipleSiteTagsFilterConditionSubModifier.FilteringObjects = value;
                 m_GroupFilterConditionSubModifier.FilteringObjects = value;
+                m_MRIMaskFilterConditionSubModifier.FilteringObjects = value;
             }
         }
 
@@ -107,6 +109,7 @@ namespace HBP.UI.Main
                 m_AnyFilterConditionSubModifier.Interactable = value;
                 m_MultipleSiteTagsFilterConditionSubModifier.Interactable = value;
                 m_GroupFilterConditionSubModifier.Interactable = value;
+                m_MRIMaskFilterConditionSubModifier.Interactable = value;
             }
         }
         #endregion
@@ -146,6 +149,7 @@ namespace HBP.UI.Main
             m_AnyFilterConditionSubModifier.Initialize();
             m_MultipleSiteTagsFilterConditionSubModifier.Initialize();
             m_GroupFilterConditionSubModifier.Initialize();
+            m_MRIMaskFilterConditionSubModifier.Initialize();
 
             m_SubModifiers = new List<BaseSubModifier>
             {
@@ -163,7 +167,8 @@ namespace HBP.UI.Main
                 m_AllFilterConditionSubModifier,
                 m_AnyFilterConditionSubModifier,
                 m_MultipleSiteTagsFilterConditionSubModifier,
-                m_GroupFilterConditionSubModifier
+                m_GroupFilterConditionSubModifier,
+                m_MRIMaskFilterConditionSubModifier
             };
             m_FilterConditionsTemp = new List<BaseFilterCondition>
             {
@@ -181,7 +186,8 @@ namespace HBP.UI.Main
                 new AllFilterCondition(),
                 new AnyFilterCondition(),
                 new MultipleSiteTagsFilterCondition(),
-                new GroupFilterCondition()
+                new GroupFilterCondition(),
+                new MRIMaskFilterCondition()
             };
         }
         protected override void SetFields(BaseFilterCondition objectToDisplay)
