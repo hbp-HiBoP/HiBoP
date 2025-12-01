@@ -34,7 +34,7 @@ namespace HBP.UI.Main
 
                 if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError || request.result == UnityWebRequest.Result.DataProcessingError)
                 {
-                    Debug.LogError($"Erreur lors de la v�rification de version: {request.error}");
+                    Debug.LogError($"Error getting latest release: {request.error}");
                 }
                 else
                 {
@@ -48,7 +48,6 @@ namespace HBP.UI.Main
                 Debug.LogException(e);
             }
 
-            // V�rifier si une nouvelle version est disponible
             if (string.Compare(version, Application.version) > 0)
             {
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "New version available", "A new version of HiBoP is available. Please update to the latest version.", "Update now", "Remind me later");
