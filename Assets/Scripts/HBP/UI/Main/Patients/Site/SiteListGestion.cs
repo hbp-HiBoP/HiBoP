@@ -23,6 +23,7 @@ namespace HBP.UI.Main
             {
                 existingSite.Coordinates.AddRange(site.Coordinates);
                 existingSite.Tags.AddRange(site.Tags);
+                m_List.UpdateObject(existingSite);
             }
             else
             {
