@@ -2,6 +2,7 @@
 ///Sourced from - http://forum.unity3d.com/threads/color-picker.267043/
 
 using System;
+using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
@@ -175,7 +176,7 @@ namespace UnityEngine.UI.Extensions
 
         public static bool SetStruct<T>(ref T currentValue, T newValue) where T : struct
         {
-            if (currentValue.Equals(newValue))
+            if (EqualityComparer<T>.Default.Equals(currentValue, newValue))
                 return false;
 
             currentValue = newValue;

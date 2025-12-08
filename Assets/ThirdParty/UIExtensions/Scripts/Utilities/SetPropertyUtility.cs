@@ -2,6 +2,8 @@
 /// Tool script taken from the UI source as it's set to Internal for some reason. So to use in the extensions project it is needed here also.
 /// </summary>
 /// 
+using System.Collections.Generic;
+
 namespace UnityEngine.UI.Extensions
 {
     internal static class SetPropertyUtility
@@ -17,7 +19,7 @@ namespace UnityEngine.UI.Extensions
 
         public static bool SetStruct<T>(ref T currentValue, T newValue) where T: struct
         {
-            if (currentValue.Equals(newValue))
+            if (EqualityComparer<T>.Default.Equals(currentValue, newValue))
                 return false;
 
             currentValue = newValue;

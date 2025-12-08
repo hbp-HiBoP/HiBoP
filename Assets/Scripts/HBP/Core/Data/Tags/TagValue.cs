@@ -43,8 +43,7 @@
         {
             get
             {
-                dynamic value = base.Value;
-                return (I)value;
+                return base.Value != null ? (I)base.Value : default;
             }
             set
             {
@@ -65,7 +64,6 @@
         /// <param name="ID">Unique identifier</param>
         public TagValue(T tag, I value, string ID) : base(tag, value, ID)
         {
-            Value = value;
         }
         /// <summary>
         /// Create a new instance of TagValue.
@@ -74,7 +72,6 @@
         /// <param name="value">Value associated with the tag</param>
         public TagValue(T tag, I value) : base(tag, value)
         {
-            Value = value;
         }
         /// <summary>
         /// Create a new instance of TagValue.
