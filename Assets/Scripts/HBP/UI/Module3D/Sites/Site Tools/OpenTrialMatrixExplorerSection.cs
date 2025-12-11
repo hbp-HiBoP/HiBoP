@@ -80,7 +80,8 @@ namespace HBP.UI.Module3D
         public override void StoreSettings()
         {
             m_DataSourceDropdownValue = (DataSource)m_DataSourceDropdown.value;
-            m_DataNameDropdownValue = m_DataNameDropdown.options[m_DataNameDropdown.value].text;
+            int index = m_DataNameDropdown.value >= 0 && m_DataNameDropdown.value < m_DataNameDropdown.options.Count ? m_DataNameDropdown.value : 0;
+            m_DataNameDropdownValue = m_DataNameDropdown.options[index].text;
         }
         public override void LoadSettings()
         {
