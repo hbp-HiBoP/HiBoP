@@ -1034,7 +1034,15 @@ namespace HBP.Core.Data
                 if (string.IsNullOrEmpty(directory)) return "";
 
                 var trmFiles = Directory.GetFiles(directory, "*.trm", SearchOption.TopDirectoryOnly);
-                return trmFiles.Length > 0 ? trmFiles[0] : "";
+                foreach (var trmFile in trmFiles)
+                {
+                    string trmFileName = System.IO.Path.GetFileNameWithoutExtension(trmFile).Split("_").LastOrDefault();
+                    if (trmFileName == Name)
+                    {
+                        return trmFile;
+                    }
+                }
+                return "";
             }
         }
         class BIDSMRIFile : BIDSFile

@@ -21,13 +21,6 @@ namespace HBP.UI.Module3D
         #region Private Methods
         protected override async void Initialize()
         {
-            if (m_FilteringObjects == null || m_FilteringObjects.Count == 0)
-            {
-                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Initialization error", "The Site Filters Window could not be initialized because there is no selected scene or the selected scene contains no unmasked sites.");
-                Close();
-                return;
-            }
-
             base.Initialize();
 
             Data.Module3D.Module3DMain.OnSelectScene.AddSafeListener(s => SetButtonsState(), gameObject);

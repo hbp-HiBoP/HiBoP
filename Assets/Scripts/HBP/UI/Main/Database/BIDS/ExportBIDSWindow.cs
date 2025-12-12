@@ -32,11 +32,14 @@ namespace HBP.UI.Main
         [SerializeField] private GameObject m_DataNameItemPrefab;
         
         [SerializeField] private FolderSelector m_ExportFolderSelector;
+        [SerializeField] private FileSelector m_ConfigurationFileSelector;
         
         private List<Patient> m_AvailablePatients = new List<Patient>();
         private List<Patient> m_SelectedPatients = new List<Patient>();
         private List<BIDSProtocolItem> m_ProtocolItems = new List<BIDSProtocolItem>();
         private List<BIDSDataItem> m_DataItems = new List<BIDSDataItem>();
+        
+        private BIDSExportConfiguration m_Configuration;
         #endregion
         
         #region Public Methods
@@ -99,6 +102,12 @@ namespace HBP.UI.Main
             
             m_SelectPatientsButton.onClick.AddListener(OpenPatientSelector);
             m_DatasetNameInputField.onValueChanged.AddListener((value) => UpdateUI());
+            
+            // Initialize configuration file selector if it exists
+            if (m_ConfigurationFileSelector != null)
+            {
+                m_ConfigurationFileSelector.onValueChanged.AddListener(OnConfigurationFileChanged);
+            }
         }
         protected override void SetFields()
         {
@@ -116,6 +125,9 @@ namespace HBP.UI.Main
             // Set default export folder
             m_ExportFolderSelector.Folder = HBP.Data.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
             
+            // Load configuration
+            LoadConfiguration();
+            
             SetAvailablePatients();
             SetupProtocols();
             SetupDataNames();
@@ -124,6 +136,24 @@ namespace HBP.UI.Main
         #endregion
         
         #region Private Methods
+        private void LoadConfiguration()
+        {
+            // Load default configuration or from file if specified
+            if (m_ConfigurationFileSelector != null && !string.IsNullOrEmpty(m_ConfigurationFileSelector.File))
+            {
+                m_Configuration = BIDSConfigurationManager.LoadConfiguration(m_ConfigurationFileSelector.File);
+            }
+            else
+            {
+                m_Configuration = BIDSConfigurationManager.GetDefaultConfiguration();
+            }
+        }
+        
+        private void OnConfigurationFileChanged(string path)
+        {
+            LoadConfiguration();
+        }
+        
         private void SetAvailablePatients()
         {
             // Get patients that have data in the database
@@ -248,14 +278,14 @@ namespace HBP.UI.Main
                     await BIDSUtility.ExportCorrespondenceTableAsync(bidsPatients, m_SelectedPatients, correspondenceFilePath);
                 }
 
-                // Create patient-specific files
+                // Create patient-specific files using configuration
                 int count = 0;
                 int totalPatients = bidsPatients.Count;
                 foreach (var patient in bidsPatients)
                 {
                     token.ThrowIfCancellationRequested();
                     updateProgress?.Invoke((float)count / totalPatients, 0f, new LoadingText($"Exporting ", $"{patient.ParticipantId}", $" ({count + 1}/{totalPatients})"));
-                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, new BIDSParameters()); //FIXME allow user to set parameters
+                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, m_Configuration);
                     count++;
                 }
             }

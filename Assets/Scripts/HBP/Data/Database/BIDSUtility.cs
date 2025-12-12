@@ -18,12 +18,6 @@ namespace HBP.Data.BIDS
 {
     public static class BIDSUtility
     {
-        private enum CoordSystem
-        {
-            Patient,
-            MNI
-        }
-
         public static List<BIDSPatient> CreateBIDSPatients(IEnumerable<Patient> patients, IEnumerable<Protocol> protocols, IEnumerable<string> dataNames, bool anonymize = false)
         {
             var bidsPatients = new List<BIDSPatient>();
@@ -91,22 +85,24 @@ namespace HBP.Data.BIDS
             return datasetPath;
         }
 
-        public static async UniTask ExportPatientAsync(BIDSPatient patient, string datasetFolder, BIDSParameters parameters)
+        public static async UniTask ExportPatientAsync(BIDSPatient patient, string datasetFolder, BIDSExportConfiguration config)
         {
-            var patientDirectory = Directory.CreateDirectory(Path.Combine(datasetFolder, patient.ParticipantId));
-            var preDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "ses-pre"));
-            var preAnatDirectory = Directory.CreateDirectory(Path.Combine(preDirectory.FullName, "anat"));
-            var postDirectory = Directory.CreateDirectory(Path.Combine(patientDirectory.FullName, "ses-post"));
-            var postAnatDirectory = Directory.CreateDirectory(Path.Combine(postDirectory.FullName, "anat"));
-            var postIeegDirectory = Directory.CreateDirectory(Path.Combine(postDirectory.FullName, "ieeg"));
-
-            // Anatomy
-            CopyPreAnatomy(patient, preAnatDirectory.FullName, parameters);
-            CopyPostAnatomy(patient, postAnatDirectory.FullName, parameters);
-            CopyCTAnatomy(patient, postAnatDirectory.FullName, parameters);
-
-            // IEEG
-            CreateElectrodesFiles(patient, postIeegDirectory.FullName, parameters);
+            // Create directories based on rules (dynamically determined from config)
+            var sessionsNeeded = config.AnatomicalRules.Select(r => r.BIDSSession).Distinct();
+            
+            foreach (var session in sessionsNeeded)
+            {
+                var sessionDir = Directory.CreateDirectory(Path.Combine(datasetFolder, patient.ParticipantId, $"ses-{session}"));
+                var anatDir = Directory.CreateDirectory(Path.Combine(sessionDir.FullName, "anat"));
+            }
+            
+            // Hardcoded post session for IEEG (as per requirements)
+            var postIeegDirectory = Directory.CreateDirectory(
+                Path.Combine(datasetFolder, patient.ParticipantId, "ses-post", "ieeg"));
+            
+            // Export using rules
+            ExportAnatomicalData(patient, datasetFolder, config);
+            CreateElectrodesFiles(patient, postIeegDirectory.FullName, config);
             CreateFunctionalFiles(patient, postIeegDirectory.FullName);
         }
 
@@ -191,7 +187,81 @@ namespace HBP.Data.BIDS
 
             return tsvBuilder.ToString();
         }
-        private static string SitesToElectrodesTSV(IEnumerable<Site> sites, CoordSystem coordSystem, string coordSystemString)
+        
+        private static void ExportAnatomicalData(BIDSPatient patient, string datasetFolder, BIDSExportConfiguration config)
+        {
+            // Group rules by session
+            var rulesBySession = config.AnatomicalRules.GroupBy(r => r.BIDSSession);
+            
+            foreach (var sessionGroup in rulesBySession)
+            {
+                string sessionName = sessionGroup.Key;
+                var anatDir = Path.Combine(datasetFolder, patient.ParticipantId, $"ses-{sessionName}", "anat");
+                
+                foreach (var rule in sessionGroup)
+                {
+                    if (rule.DataType == "MRI")
+                    {
+                        ExportMRI(patient, anatDir, rule);
+                    }
+                    else if (rule.DataType == "Mesh")
+                    {
+                        ExportMesh(patient, anatDir, rule);
+                    }
+                }
+            }
+        }
+        
+        private static void ExportMRI(BIDSPatient patient, string destinationFolder, AnatomicalDataRule rule)
+        {
+            var mri = patient.Patient.MRIs.FirstOrDefault(m => m.Name == rule.SourceName);
+            if (mri == null) return;
+            
+            string filename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_{rule.BIDSSuffix}.nii";
+            File.Copy(mri.File, Path.Combine(destinationFolder, filename), true);
+        }
+        
+        private static void ExportMesh(BIDSPatient patient, string destinationFolder, AnatomicalDataRule rule)
+        {
+            var mesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == rule.SourceName);
+            if (mesh == null) return;
+            
+            if (mesh is SingleMesh singleMesh)
+            {
+                string meshFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_{rule.BIDSSuffix}.surf.gii";
+                File.Copy(singleMesh.Path, Path.Combine(destinationFolder, meshFilename), true);
+                
+                if (singleMesh.HasMarsAtlas)
+                {
+                    string atlasFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_desc-marsatlas_dseg.label.gii";
+                    File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, atlasFilename), true);
+                }
+            }
+            else if (mesh is LeftRightMesh leftRightMesh)
+            {
+                string leftFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_hemi-L_{rule.BIDSSuffix}.surf.gii";
+                string rightFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_hemi-R_{rule.BIDSSuffix}.surf.gii";
+                File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, leftFilename), true);
+                File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, rightFilename), true);
+                
+                if (leftRightMesh.HasMarsAtlas)
+                {
+                    string leftAtlasFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_desc-marsatlas_hemi-L_dseg.label.gii";
+                    string rightAtlasFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_desc-marsatlas_hemi-R_dseg.label.gii";
+                    File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, leftAtlasFilename), true);
+                    File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, rightAtlasFilename), true);
+                }
+            }
+            
+            // Export transformation if exists
+            if (mesh.HasTransformation)
+            {
+                string trmFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_{rule.BIDSSuffix}.trm";
+                File.Copy(mesh.Transformation, Path.Combine(destinationFolder, trmFilename), true);
+            }
+        }
+        
+        private static string SitesToElectrodesTSV(IEnumerable<Site> sites, string coordSystemString)
         {
             if (sites == null || !sites.Any())
             {
@@ -339,6 +409,7 @@ namespace HBP.Data.BIDS
 
             return tsvBuilder.ToString();
         }
+        
         private static string EEGFileToChannelsTSV(Core.DLL.EEG.File file)
         {
             var electrodes = file.Electrodes;
@@ -401,6 +472,7 @@ namespace HBP.Data.BIDS
 
             return tsvBuilder.ToString();
         }
+        
         private static TaskFile EEGFileToTaskFile(Core.DLL.EEG.File file, Patient patient, DataInfo dataInfo)
         {
             int numberOfSEEGChannels = 0;
@@ -432,7 +504,7 @@ namespace HBP.Data.BIDS
                 }
                 else if (placeTag.DisplayableValue == "LYONNEURO")
                 {
-                    institutionName = "H�pital Pierre Wertheimer";
+                    institutionName = "Hôpital Pierre Wertheimer";
                     institutionAddress = "59 Boulevard Pinel, 69677 Bron, France";
                 }
             }
@@ -449,228 +521,25 @@ namespace HBP.Data.BIDS
             };
         }
 
-        private static void CopyPreAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
-        {
-            if (parameters.IncludePreMRI)
-            {
-                var preMRI = patient.Patient.MRIs.FirstOrDefault(m => m.Name == parameters.PreMRIName);
-                if (preMRI != null) File.Copy(preMRI.File, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_T1w.nii"), true);
-            }
-
-            if (parameters.IncludePreGreyMatterMesh)
-            {
-                var preGreyMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PreGreyMatterMeshName);
-                if (preGreyMatterMesh != null)
-                {
-                    if (preGreyMatterMesh is SingleMesh singleMesh)
-                    {
-                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_pial.surf.gii"), true);
-                        if (singleMesh.HasMarsAtlas)
-                        {
-                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_dseg.label.gii"), true);
-                        }
-                    }
-                    else if (preGreyMatterMesh is LeftRightMesh leftRightMesh)
-                    {
-                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_pial.surf.gii"), true);
-                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_pial.surf.gii"), true);
-                        if (leftRightMesh.HasMarsAtlas)
-                        {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-L_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-R_dseg.label.gii"), true);
-                        }
-                    }
-                    if (preGreyMatterMesh.HasTransformation)
-                    {
-                        File.Copy(preGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre.trm"), true);
-                    }
-                }
-            }
-
-            if (parameters.IncludePreWhiteMatterMesh)
-            {
-                var preWhiteMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PreWhiteMatterMeshName);
-                if (preWhiteMatterMesh != null)
-                {
-                    if (preWhiteMatterMesh is SingleMesh singleMesh)
-                    {
-                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_white.surf.gii"), true);
-                        if (singleMesh.HasMarsAtlas)
-                        {
-                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_dseg.label.gii"), true);
-                        }
-                    }
-                    else if (preWhiteMatterMesh is LeftRightMesh leftRightMesh)
-                    {
-                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-L_white.surf.gii"), true);
-                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_hemi-R_white.surf.gii"), true);
-                        if (leftRightMesh.HasMarsAtlas)
-                        {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-L_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre_desc-marsatlas_hemi-R_dseg.label.gii"), true);
-                        }
-                    }
-                    if (preWhiteMatterMesh.HasTransformation)
-                    {
-                        File.Copy(preWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-pre.trm"), true);
-                    }
-                }
-            }
-        }
-        private static void CopyPostAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
-        {
-            if (parameters.IncludePostMRI)
-            {
-                var postMRI = patient.Patient.MRIs.FirstOrDefault(m => m.Name == parameters.PostMRIName);
-                if (postMRI != null) File.Copy(postMRI.File, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_T1w.nii"), true);
-            }
-
-            if (parameters.IncludePostGreyMatterMesh)
-            {
-                var postGreyMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PostGreyMatterMeshName);
-                if (postGreyMatterMesh != null)
-                {
-                    if (postGreyMatterMesh is SingleMesh singleMesh)
-                    {
-                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_pial.surf.gii"), true);
-                        if (singleMesh.HasMarsAtlas)
-                        {
-                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
-                        }
-                    }
-                    else if (postGreyMatterMesh is LeftRightMesh leftRightMesh)
-                    {
-                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_pial.surf.gii"), true);
-                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_pial.surf.gii"), true);
-                        if (leftRightMesh.HasMarsAtlas)
-                        {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
-                        }
-                    }
-                    if (postGreyMatterMesh.HasTransformation)
-                    {
-                        File.Copy(postGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
-                    }
-                }
-            }
-
-            if (parameters.IncludePostWhiteMatterMesh)
-            {
-                var postWhiteMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.PostWhiteMatterMeshName);
-                if (postWhiteMatterMesh != null)
-                {
-                    if (postWhiteMatterMesh is SingleMesh singleMesh)
-                    {
-                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_white.surf.gii"), true);
-                        if (singleMesh.HasMarsAtlas)
-                        {
-                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
-                        }
-                    }
-                    else if (postWhiteMatterMesh is LeftRightMesh leftRightMesh)
-                    {
-                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_white.surf.gii"), true);
-                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_white.surf.gii"), true);
-                        if (leftRightMesh.HasMarsAtlas)
-                        {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
-                        }
-                    }
-                    if (postWhiteMatterMesh.HasTransformation)
-                    {
-                        File.Copy(postWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
-                    }
-                }
-            }
-        }
-        private static void CopyCTAnatomy(BIDSPatient patient, string destinationFolder, BIDSParameters parameters)
-        {
-            if (parameters.IncludeCTMRI)
-            {
-                var ctMRI = patient.Patient.MRIs.FirstOrDefault(m => m.Name == parameters.CTMRIName);
-                if (ctMRI != null) File.Copy(ctMRI.File, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_CT.nii"), true);
-            }
-
-            if (parameters.IncludeCTGreyMatterMesh)
-            {
-                var ctGreyMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.CTGreyMatterMeshName);
-                if (ctGreyMatterMesh != null)
-                {
-                    if (ctGreyMatterMesh is SingleMesh singleMesh)
-                    {
-                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_pial.surf.gii"), true);
-                        if (singleMesh.HasMarsAtlas)
-                        {
-                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
-                        }
-                    }
-                    else if (ctGreyMatterMesh is LeftRightMesh leftRightMesh)
-                    {
-                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_pial.surf.gii"), true);
-                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_pial.surf.gii"), true);
-                        if (leftRightMesh.HasMarsAtlas)
-                        {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
-                        }
-                    }
-                    if (ctGreyMatterMesh.HasTransformation)
-                    {
-                        File.Copy(ctGreyMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
-                    }
-                }
-            }
-
-            if (parameters.IncludeCTWhiteMatterMesh)
-            {
-                var ctWhiteMatterMesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == parameters.CTWhiteMatterMeshName);
-                if (ctWhiteMatterMesh != null)
-                {
-                    if (ctWhiteMatterMesh is SingleMesh singleMesh)
-                    {
-                        File.Copy(singleMesh.Path, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_white.surf.gii"), true);
-                        if (singleMesh.HasMarsAtlas)
-                        {
-                            File.Copy(singleMesh.MarsAtlasPath, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_dseg.label.gii"), true);
-                        }
-                    }
-                    else if (ctWhiteMatterMesh is LeftRightMesh leftRightMesh)
-                    {
-                        File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-L_white.surf.gii"), true);
-                        File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_hemi-R_white.surf.gii"), true);
-                        if (leftRightMesh.HasMarsAtlas)
-                        {
-                            File.Copy(leftRightMesh.LeftMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-L_dseg.label.gii"), true);
-                            File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post_desc-marsatlas_hemi-R_dseg.label.gii"), true);
-                        }
-                    }
-                    if (ctWhiteMatterMesh.HasTransformation)
-                    {
-                        File.Copy(ctWhiteMatterMesh.Transformation, Path.Combine(destinationFolder, $"{patient.ParticipantId}_ses-post.trm"), true);
-                    }
-                }
-            }
-        }
-
-        private static void CreateElectrodesFiles(BIDSPatient patient, string ieegFolder, BIDSParameters parameters)
+        private static void CreateElectrodesFiles(BIDSPatient patient, string ieegFolder, BIDSExportConfiguration config)
         {
             var sites = patient.Patient.Sites;
-            if (parameters.IncludePatientCoordSystem)
+            
+            foreach (var coordRule in config.CoordinateSystemRules)
             {
-                string electrodesTsvContent = SitesToElectrodesTSV(sites, CoordSystem.Patient, parameters.PatientCoordSystem);
-                File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_electrodes.tsv"), electrodesTsvContent);
-                ClassLoaderSaver.SaveToJSon(new CoordSystemFile("scanner"), Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_coordsystem.json"));
-            }
-            if (parameters.IncludeMNICoordSystem)
-            {
-                var space = "MNI152Lin";
-                string electrodesTsvContent = SitesToElectrodesTSV(sites, CoordSystem.MNI, parameters.MNICoordSystem);
-                File.WriteAllText(Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_space-{space}_electrodes.tsv"), electrodesTsvContent);
-                ClassLoaderSaver.SaveToJSon(new CoordSystemFile("MNI152Lin"), Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post_space-{space}_coordsystem.json"));
+                string electrodesTsvContent = SitesToElectrodesTSV(sites, coordRule.CoordinateSystemName);
+                
+                string spaceEntity = string.IsNullOrEmpty(coordRule.BIDSSpace) ? "" : $"_space-{coordRule.BIDSSpace}";
+                string electrodesTsvPath = Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post{spaceEntity}_electrodes.tsv");
+                File.WriteAllText(electrodesTsvPath, electrodesTsvContent);
+                
+                // Create coordsystem.json
+                string coordSystemValue = string.IsNullOrEmpty(coordRule.BIDSSpace) ? "scanner" : coordRule.BIDSSpace;
+                string coordSystemPath = Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post{spaceEntity}_coordsystem.json");
+                ClassLoaderSaver.SaveToJSon(new CoordSystemFile(coordSystemValue), coordSystemPath);
             }
         }
+        
         private static void CreateFunctionalFiles(BIDSPatient patient, string ieegFolder)
         {
             foreach (var dataInfo in patient.DataInfos)
@@ -724,42 +593,5 @@ namespace HBP.Data.BIDS
                 }
             }
         }
-    }
-
-    [JsonObject(MemberSerialization.OptOut), Preserve]
-    public class BIDSParameters
-    {
-        public bool IncludePreMRI = true;
-        public string PreMRIName = "Preimplantation";
-
-        public bool IncludePostMRI = true;
-        public string PostMRIName = "Postimplantation";
-
-        public bool IncludeCTMRI = true;
-        public string CTMRIName = "CT";
-
-        public bool IncludePreGreyMatterMesh = true;
-        public string PreGreyMatterMeshName = "Grey matter";
-
-        public bool IncludePreWhiteMatterMesh = true;
-        public string PreWhiteMatterMeshName = "White matter";
-
-        public bool IncludePostGreyMatterMesh = false;
-        public string PostGreyMatterMeshName = "Grey matter post";
-
-        public bool IncludePostWhiteMatterMesh = false;
-        public string PostWhiteMatterMeshName = "White matter post";
-
-        public bool IncludeCTGreyMatterMesh = false;
-        public string CTGreyMatterMeshName = "Grey matter CT";
-
-        public bool IncludeCTWhiteMatterMesh = false;
-        public string CTWhiteMatterMeshName = "White matter CT";
-
-        public bool IncludePatientCoordSystem = true;
-        public string PatientCoordSystem = "Patient";
-
-        public bool IncludeMNICoordSystem = true;
-        public string MNICoordSystem = "MNI";
     }
 }
