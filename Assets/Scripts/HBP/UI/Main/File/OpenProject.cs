@@ -35,14 +35,8 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public void Load(ProjectInfo info)
+        public async UniTaskVoid Load(ProjectInfo info)
         {
-            ProjectLoaderSaver.Load(info).Forget();
-            base.Close();
-            WindowsManager.CloseAll();
-        }
-        public override async void OK()
-		{
             if (ApplicationState.LoadedProject != null)
             {
                 if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
@@ -51,18 +45,28 @@ namespace HBP.UI.Main
                     if (result == 0)
                     {
                         Module3DMain.RemoveAllScenes();
-                        Load(m_ProjectList.ObjectsSelected[0]);
+                        base.Close();
+                        WindowsManager.CloseAll();
+                        await ProjectLoaderSaver.LoadAsync(info);
                     }
                 }
                 else
                 {
-                    Load(m_ProjectList.ObjectsSelected[0]);
+                    base.Close();
+                    WindowsManager.CloseAll();
+                    await ProjectLoaderSaver.LoadAsync(info);
                 }
             }
             else
             {
-                Load(m_ProjectList.ObjectsSelected[0]);
+                base.Close();
+                WindowsManager.CloseAll();
+                await ProjectLoaderSaver.LoadAsync(info);
             }
+        }
+        public override void OK()
+		{
+            Load(m_ProjectList.ObjectsSelected[0]).Forget();
 		}
         #endregion
 
@@ -72,7 +76,7 @@ namespace HBP.UI.Main
             // Initialize project list.
             m_ProjectList.OnSelect.AddListener((project) => SetLoadButton());
             m_ProjectList.OnDeselect.AddListener((project) => SetLoadButton());
-            m_ProjectList.OnAction.AddListener((info, i) => Load(info));
+            m_ProjectList.OnAction.AddListener((info, i) => Load(info).Forget());
 
             // Initialise location folder selector.
             m_LocationFolderSelector.onValueChanged.AddListener((value) => DisplayProjects(value).Forget());
