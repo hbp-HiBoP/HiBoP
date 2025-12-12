@@ -23,6 +23,7 @@ namespace HBP.UI.Main
         [SerializeField] private Text m_PatientsSelectedText;
 
         [SerializeField] private Toggle m_AnonymizeToggle;
+        [SerializeField] private Toggle m_ExportCorrespondenceTableToggle;
 
         [SerializeField] private Transform m_ProtocolsContainer;
         [SerializeField] private GameObject m_ProtocolItemPrefab;
@@ -108,6 +109,9 @@ namespace HBP.UI.Main
             
             // Set default anonymization to off
             m_AnonymizeToggle.isOn = false;
+            
+            // Set default correspondence table export to off
+            m_ExportCorrespondenceTableToggle.isOn = false;
             
             // Set default export folder
             m_ExportFolderSelector.Folder = HBP.Data.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
@@ -236,6 +240,13 @@ namespace HBP.UI.Main
                 
                 // Create dataset directory and general files
                 string datasetPath = await BIDSUtility.CreateRootDirectoryAndFilesAsync(m_DatasetNameInputField.text, bidsPatients, m_ExportFolderSelector.Folder);
+
+                // Export correspondence table if enabled
+                if (m_ExportCorrespondenceTableToggle.isOn)
+                {
+                    string correspondenceFilePath = Path.Combine(m_ExportFolderSelector.Folder, $"{m_DatasetNameInputField.text}_correspondence.csv");
+                    await BIDSUtility.ExportCorrespondenceTableAsync(bidsPatients, m_SelectedPatients, correspondenceFilePath);
+                }
 
                 // Create patient-specific files
                 int count = 0;

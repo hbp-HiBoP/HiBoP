@@ -52,6 +52,24 @@ namespace HBP.Data.BIDS
             return bidsPatients;
         }
 
+        public static async UniTask ExportCorrespondenceTableAsync(List<BIDSPatient> bidsPatients, List<Patient> originalPatients, string filePath)
+        {
+            var lines = new List<string>
+            {
+                "BIDS_ID,Original_Patient_ID"
+            };
+            
+            foreach (var bidsPatient in bidsPatients)
+            {
+                if (bidsPatient.Patient != null)
+                {
+                    lines.Add($"{bidsPatient.ParticipantId},{bidsPatient.Patient.ID}");
+                }
+            }
+            
+            await File.WriteAllLinesAsync(filePath, lines);
+        }
+
         public static async UniTask<string> CreateRootDirectoryAndFilesAsync(string datasetName, IEnumerable<BIDSPatient> patients, string baseFolder)
         {
             // Create root directory
@@ -405,15 +423,18 @@ namespace HBP.Data.BIDS
             var institutionName = "n/a";
             var institutionAddress = "n/a";
             var placeTag = patient.Tags.FirstOrDefault(t => t.Tag.Name == "Place");
-            if (placeTag.DisplayableValue == "GRE")
+            if (placeTag != null)
             {
-                institutionName = "CHU Grenoble Alpes";
-                institutionAddress = "Boulevard de la Chantourne, 38700 La Tronche, France";
-            }
-            else if (placeTag.DisplayableValue == "LYONNEURO")
-            {
-                institutionName = "Hôpital Pierre Wertheimer";
-                institutionAddress = "59 Boulevard Pinel, 69677 Bron, France";
+                if (placeTag.DisplayableValue == "GRE")
+                {
+                    institutionName = "CHU Grenoble Alpes";
+                    institutionAddress = "Boulevard de la Chantourne, 38700 La Tronche, France";
+                }
+                else if (placeTag.DisplayableValue == "LYONNEURO")
+                {
+                    institutionName = "Hï¿½pital Pierre Wertheimer";
+                    institutionAddress = "59 Boulevard Pinel, 69677 Bron, France";
+                }
             }
 
             return new TaskFile()
