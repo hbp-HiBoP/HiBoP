@@ -103,11 +103,13 @@ namespace HBP.Core.Data
 
         #region Public Methods
         /// <summary>
-        /// Update the value.
+        /// Update the value - ensures the value is properly set when Tag changes.
         /// </summary>
         public void UpdateValue()
         {
-            Value = Value;
+            var currentValue = m_Value;
+            m_Value = null;
+            Value = currentValue;
         }
         /// <summary>
         /// Clone the instance.
@@ -123,7 +125,6 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            Value = Value;
             Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
         }
         protected override void OnSerializing()

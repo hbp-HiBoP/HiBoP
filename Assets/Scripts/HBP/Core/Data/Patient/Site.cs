@@ -270,76 +270,6 @@ namespace HBP.Core.Data
                    lowerValue == "-";
         }
         /// <summary>
-        /// Load all sites from a intranat directory.
-        /// </summary>
-        /// <param name="path">Path to intranat directory</param>
-        /// <returns>Sites in the directory</returns>
-        public static List<Site> LoadImplantationFromIntrAnatFile(string referenceSystem, string ptsFile, string csvFile)
-        {
-            List<Site> result = new List<Site>();
-            if (!string.IsNullOrEmpty(ptsFile))
-            {
-                using (StreamReader ptssr = new StreamReader(ptsFile))
-                {
-                    string line;
-                    line = ptssr.ReadLine();
-                    if (!line.Contains("ptsfile")) return result;
-                    while ((line = ptssr.ReadLine()) != null)
-                    {
-                        Site site = new Site();
-                        string[] splits = Regex.Split(line, "[\\s\t]+");
-                        if (splits.Length < 4) continue;
-                        site.Name = SiteNameCorrection ? SiteTools.FixName(splits[0]) : splits[0];
-                        if (!NumberExtension.TryParseFloat(splits[1], out float x)) continue;
-                        if (!NumberExtension.TryParseFloat(splits[2], out float y)) continue;
-                        if (!NumberExtension.TryParseFloat(splits[3], out float z)) continue;
-                        site.Coordinates.Add(new Coordinate(referenceSystem, new UnityEngine.Vector3(x, y, z)));
-                        result.Add(site);
-                    }
-                }
-                if (!string.IsNullOrEmpty(csvFile))
-                {
-                    using (StreamReader csvsr = new StreamReader(csvFile))
-                    {
-                        csvsr.ReadLine();
-                        csvsr.ReadLine();
-                        // Find which column of the tsv corresponds to which mandatory argument
-                        string firstLine = csvsr.ReadLine();
-                        string[] firstLineSplits = firstLine.Split('\t');
-                        int[] indices = new int[2]
-                        {
-                            Array.IndexOf(firstLineSplits, "contact"),
-                            Array.IndexOf(firstLineSplits, "MNI")
-                        };
-                        Dictionary<int, BaseTag> tagByColumnIndex = new Dictionary<int, BaseTag>();
-                        for (int i = 0; i < firstLineSplits.Length; i++)
-                        {
-                            if (indices.Contains(i)) continue;
-                            BaseTag associatedTag = PersistentDataManager.Tags.SitesTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                            if (associatedTag == null) associatedTag = PersistentDataManager.Tags.GeneralTags.FirstOrDefault(t => t.Name == firstLineSplits[i]);
-                            tagByColumnIndex.Add(i, associatedTag);
-                        }
-                        // Fill tags
-                        string line;
-                        while ((line = csvsr.ReadLine()) != null)
-                        {
-                            string[] args = line.Split('\t');
-                            string siteName = SiteNameCorrection ? SiteTools.FixName(args[indices[0]]) : args[indices[0]];
-                            Site site = result.FirstOrDefault(s => s.Name == siteName);
-                            if (site != null)
-                            {
-                                foreach (var kvTag in tagByColumnIndex)
-                                {
-                                    site.Tags.Add(new BaseTagValue(kvTag.Value, args[kvTag.Key]));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-        /// <summary>
         /// Load all sites from PTS file.
         /// </summary>
         /// <param name="referenceSystem">reference system</param>
@@ -569,7 +499,7 @@ namespace HBP.Core.Data
                 {
                     referenceSystem = splits[3].Replace(fileInfo.Extension, "");
                 }
-                result = LoadImplantationFromIntrAnatFile(referenceSystem, path, "").ToArray();
+                result = LoadSitesFromPTSFile(referenceSystem, path).ToArray();
                 return true;
             }
             else if (fileInfo.Extension == ".tsv")

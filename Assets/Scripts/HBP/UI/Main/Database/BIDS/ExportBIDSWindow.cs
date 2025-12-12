@@ -23,6 +23,7 @@ namespace HBP.UI.Main
         [SerializeField] private Text m_PatientsSelectedText;
 
         [SerializeField] private Toggle m_AnonymizeToggle;
+        [SerializeField] private Toggle m_ExportCorrespondenceTableToggle;
 
         [SerializeField] private Transform m_ProtocolsContainer;
         [SerializeField] private GameObject m_ProtocolItemPrefab;
@@ -31,11 +32,14 @@ namespace HBP.UI.Main
         [SerializeField] private GameObject m_DataNameItemPrefab;
         
         [SerializeField] private FolderSelector m_ExportFolderSelector;
+        [SerializeField] private FileSelector m_ConfigurationFileSelector;
         
         private List<Patient> m_AvailablePatients = new List<Patient>();
         private List<Patient> m_SelectedPatients = new List<Patient>();
         private List<BIDSProtocolItem> m_ProtocolItems = new List<BIDSProtocolItem>();
         private List<BIDSDataItem> m_DataItems = new List<BIDSDataItem>();
+        
+        private BIDSExportConfiguration m_Configuration;
         #endregion
         
         #region Public Methods
@@ -98,6 +102,12 @@ namespace HBP.UI.Main
             
             m_SelectPatientsButton.onClick.AddListener(OpenPatientSelector);
             m_DatasetNameInputField.onValueChanged.AddListener((value) => UpdateUI());
+            
+            // Initialize configuration file selector if it exists
+            if (m_ConfigurationFileSelector != null)
+            {
+                m_ConfigurationFileSelector.onValueChanged.AddListener(OnConfigurationFileChanged);
+            }
         }
         protected override void SetFields()
         {
@@ -109,8 +119,14 @@ namespace HBP.UI.Main
             // Set default anonymization to off
             m_AnonymizeToggle.isOn = false;
             
+            // Set default correspondence table export to off
+            m_ExportCorrespondenceTableToggle.isOn = false;
+            
             // Set default export folder
             m_ExportFolderSelector.Folder = HBP.Data.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
+            
+            // Load configuration
+            LoadConfiguration();
             
             SetAvailablePatients();
             SetupProtocols();
@@ -120,6 +136,24 @@ namespace HBP.UI.Main
         #endregion
         
         #region Private Methods
+        private void LoadConfiguration()
+        {
+            // Load default configuration or from file if specified
+            if (m_ConfigurationFileSelector != null && !string.IsNullOrEmpty(m_ConfigurationFileSelector.File))
+            {
+                m_Configuration = BIDSConfigurationManager.LoadConfiguration(m_ConfigurationFileSelector.File);
+            }
+            else
+            {
+                m_Configuration = BIDSConfigurationManager.GetDefaultConfiguration();
+            }
+        }
+        
+        private void OnConfigurationFileChanged(string path)
+        {
+            LoadConfiguration();
+        }
+        
         private void SetAvailablePatients()
         {
             // Get patients that have data in the database
@@ -237,14 +271,21 @@ namespace HBP.UI.Main
                 // Create dataset directory and general files
                 string datasetPath = await BIDSUtility.CreateRootDirectoryAndFilesAsync(m_DatasetNameInputField.text, bidsPatients, m_ExportFolderSelector.Folder);
 
-                // Create patient-specific files
+                // Export correspondence table if enabled
+                if (m_ExportCorrespondenceTableToggle.isOn)
+                {
+                    string correspondenceFilePath = Path.Combine(m_ExportFolderSelector.Folder, $"{m_DatasetNameInputField.text}_correspondence.csv");
+                    await BIDSUtility.ExportCorrespondenceTableAsync(bidsPatients, m_SelectedPatients, correspondenceFilePath);
+                }
+
+                // Create patient-specific files using configuration
                 int count = 0;
                 int totalPatients = bidsPatients.Count;
                 foreach (var patient in bidsPatients)
                 {
                     token.ThrowIfCancellationRequested();
                     updateProgress?.Invoke((float)count / totalPatients, 0f, new LoadingText($"Exporting ", $"{patient.ParticipantId}", $" ({count + 1}/{totalPatients})"));
-                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, new BIDSParameters()); //FIXME allow user to set parameters
+                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, m_Configuration);
                     count++;
                 }
             }

@@ -1,0 +1,33 @@
+{
+  "Version": "1.0",
+  "AnatomicalRules": [
+    {
+      "DataType": "MRI",
+      "SourceName": "Preimplantation",
+      "BIDSSuffix": "T1w",
+      "BIDSSession": "pre"
+    },
+    {
+      "DataType": "Mesh",
+      "SourceName": "Grey matter",
+      "BIDSSuffix": "pial",
+      "BIDSSession": "pre"
+    },
+    {
+      "DataType": "Mesh",
+      "SourceName": "White matter",
+      "BIDSSuffix": "white",
+      "BIDSSession": "pre"
+    }
+  ],
+  "CoordinateSystemRules": [
+    {
+      "CoordinateSystemName": "Patient",
+      "BIDSSpace": ""
+    },
+    {
+      "CoordinateSystemName": "MNI",
+      "BIDSSpace": "MNI152Lin"
+    }
+  ]
+}

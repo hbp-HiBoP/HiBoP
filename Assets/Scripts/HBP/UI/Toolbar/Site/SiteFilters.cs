@@ -27,8 +27,16 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
+                var sites = SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).Select(s => (object)s).ToList();
+
+                if (sites.Count == 0)
+                {
+                    DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No sites", "There are no unmasked sites in the current scene to filter.").Forget();
+                    return;
+                }
+
                 var siteFilters = WindowsManager.Open("Site Filters window", null).GetComponent<SiteFiltersWindow>();
-                siteFilters.FilteringObjects = SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).Select(s => (object)s).ToList();
+                siteFilters.FilteringObjects = sites;
                 siteFilters.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(typeof(Site)));
                 siteFilters.OnApplyFilters.AddListener(mask =>
                 {

@@ -719,11 +719,12 @@ namespace HBP.Core.Data
 
             FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
             FileInfo patientsExcelFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.xlsx"));
+            DirectoryInfo patientsDirectoryInfo = new DirectoryInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients"));
             FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
             FileInfo[] patientsExcelFiles = databaseDirectoryInfo.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
             DirectoryInfo[] patientDirectories = databaseDirectoryInfo.GetDirectories();
             var progress = 0;
-            var length = patientsFiles.Length + patientsExcelFiles.Length + patientDirectories.Length + 2;
+            var length = patientsFiles.Length + patientsExcelFiles.Length + patientDirectories.Length + 3;
             updateProgress?.Invoke(0, 0, new LoadingText("Loading additional tags"));
 
             // Helper method to get or create patient clone
@@ -789,6 +790,35 @@ namespace HBP.Core.Data
                 foreach (var kv in tagValuesByPatient)
                 {
                     MergePatientTags(kv.Key, kv.Value);
+                }
+            }
+
+            // Read patients folder
+            updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from patients folder"));
+            if (patientsDirectoryInfo.Exists)
+            {
+                // Get all CSV and Excel files in the patients directory
+                FileInfo[] patientsCsvFiles = patientsDirectoryInfo.GetFiles("*.csv", SearchOption.AllDirectories);
+                FileInfo[] patientsExcelFilesInDir = patientsDirectoryInfo.GetFiles("*.xlsx", SearchOption.AllDirectories);
+
+                // Process CSV files
+                foreach (var csvFile in patientsCsvFiles)
+                {
+                    var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromCSV(csvFile.FullName);
+                    foreach (var kv in tagValuesByPatient)
+                    {
+                        MergePatientTags(kv.Key, kv.Value);
+                    }
+                }
+
+                // Process Excel files
+                foreach (var excelFile in patientsExcelFilesInDir)
+                {
+                    var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromExcel(excelFile.FullName);
+                    foreach (var kv in tagValuesByPatient)
+                    {
+                        MergePatientTags(kv.Key, kv.Value);
+                    }
                 }
             }
 
@@ -1004,7 +1034,15 @@ namespace HBP.Core.Data
                 if (string.IsNullOrEmpty(directory)) return "";
 
                 var trmFiles = Directory.GetFiles(directory, "*.trm", SearchOption.TopDirectoryOnly);
-                return trmFiles.Length > 0 ? trmFiles[0] : "";
+                foreach (var trmFile in trmFiles)
+                {
+                    string trmFileName = System.IO.Path.GetFileNameWithoutExtension(trmFile).Split("_").LastOrDefault();
+                    if (trmFileName == Name)
+                    {
+                        return trmFile;
+                    }
+                }
+                return "";
             }
         }
         class BIDSMRIFile : BIDSFile

@@ -20,7 +20,7 @@ namespace HBP.UI.Tools
         [SerializeField] protected Button m_ApplyButton;
         [SerializeField] protected Button m_ResetButton;
 
-        protected List<object> m_FilteringObjects;
+        protected List<object> m_FilteringObjects = new();
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;

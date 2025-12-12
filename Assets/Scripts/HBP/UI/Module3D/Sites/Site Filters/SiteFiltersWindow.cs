@@ -19,7 +19,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
-        protected override void Initialize()
+        protected override async void Initialize()
         {
             base.Initialize();
 
