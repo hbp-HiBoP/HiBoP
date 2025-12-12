@@ -16,6 +16,7 @@ namespace HBP.UI.Database
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] Button m_ResetFiltersButton;
+        [SerializeField] Toggle m_ShowFilteredObjectsToggle;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         #endregion
@@ -43,7 +44,7 @@ namespace HBP.UI.Database
             filterWindow.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(filteringObjects[0].GetType()));
             filterWindow.OnApplyFilters.AddListener(mask =>
             {
-                MaskList(mask, false);
+                MaskList(mask, !m_ShowFilteredObjectsToggle.isOn);
                 SortByNone();
             });
 
@@ -52,13 +53,21 @@ namespace HBP.UI.Database
         }
         public void ResetFilters()
         {
-            MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), false);
+            MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), !m_ShowFilteredObjectsToggle.isOn);
             SortByNone();
         }
         public override bool MaskList(bool[] mask, bool hide = true)
         {
-            m_ResetFiltersButton.interactable = mask.Any(m => !m);
+            bool hasFilteredObjects = mask.Any(m => !m);
+            m_ResetFiltersButton.interactable = hasFilteredObjects;
+            m_ShowFilteredObjectsToggle.interactable = hasFilteredObjects;
+            if (hasFilteredObjects) m_ShowFilteredObjectsToggle.isOn = !hide;
+            
             return base.MaskList(mask, hide);
+        }
+        public void OnShowFilteredObjectsToggleChanged(bool showFiltered)
+        {
+            HideMaskedObjects = !showFiltered;
         }
 
         public void SortByName(Sorting sorting)

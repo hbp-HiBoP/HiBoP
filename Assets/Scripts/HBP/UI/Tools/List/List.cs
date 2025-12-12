@@ -35,6 +35,34 @@ namespace HBP.UI.Tools.Lists
         /// List of the displayed objects.
         /// </summary>
         protected System.Collections.Generic.List<T> m_DisplayedObjects = new System.Collections.Generic.List<T>();
+        /// <summary>
+        /// Current mask applied to the list.
+        /// </summary>
+        protected bool[] m_CurrentMask = null;
+        /// <summary>
+        /// Whether masked objects are currently hidden.
+        /// </summary>
+        protected bool m_HideMaskedObjects = true;
+
+        /// <summary>
+        /// Gets or sets whether masked objects should be hidden.
+        /// When set, re-applies the current mask with the new visibility setting.
+        /// </summary>
+        public bool HideMaskedObjects
+        {
+            get => m_HideMaskedObjects;
+            set
+            {
+                if (m_HideMaskedObjects != value)
+                {
+                    m_HideMaskedObjects = value;
+                    if (m_CurrentMask != null)
+                    {
+                        ApplyMask();
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Callback executed when a object is added.
@@ -188,15 +216,26 @@ namespace HBP.UI.Tools.Lists
         {
             if (mask.Length != m_Objects.Count) return false;
 
+            m_CurrentMask = mask;
+            m_HideMaskedObjects = hide;
+            ApplyMask();
+
+            return true;
+        }
+        /// <summary>
+        /// Apply the current mask with the current hide setting.
+        /// </summary>
+        protected virtual void ApplyMask()
+        {
+            if (m_CurrentMask == null) return;
+
             m_DisplayedObjects.Clear();
-            for (int i = 0; i < mask.Length; i++)
+            for (int i = 0; i < m_CurrentMask.Length; i++)
             {
-                if (mask[i] || !hide) m_DisplayedObjects.Add(m_Objects[i]);
+                if (m_CurrentMask[i] || !m_HideMaskedObjects) m_DisplayedObjects.Add(m_Objects[i]);
             }
             ScrollRect.content.sizeDelta = new Vector2(0, m_ItemHeight * m_DisplayedObjects.Count);
             ScrollRect.content.hasChanged = true;
-
-            return true;
         }
         #endregion
 
