@@ -395,8 +395,8 @@ namespace HBP.Core.Data
                         Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
                         if (protocol != null)
                         {
-                            string acq = string.IsNullOrEmpty(match.Groups[4].Value) ? "raw" : match.Groups[4].Value;
-                            string run = string.IsNullOrEmpty(match.Groups[5].Value) ? "" : "-" + match.Groups[5].Value;
+                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
+                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
                             var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
                             dataInfo.CheckErrorsAndWarnings(true);
                             dataInfoList.Add(dataInfo);
