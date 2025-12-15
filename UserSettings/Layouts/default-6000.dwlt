@@ -19,7 +19,7 @@ MonoBehaviour:
     width: 2560
     height: 1357
   m_ShowMode: 4
-  m_Title: Console
+  m_Title: Hierarchy
   m_RootView: {fileID: 2}
   m_MinSize: {x: 875, y: 300}
   m_MaxSize: {x: 10000, y: 10000}
@@ -119,7 +119,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 100}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 62
+  controlID: 194
   draggingID: 0
 --- !u!114 &6
 MonoBehaviour:
@@ -252,7 +252,7 @@ MonoBehaviour:
   m_MinSize: {x: 300, y: 50}
   m_MaxSize: {x: 24288, y: 8096}
   vertical: 0
-  controlID: 124
+  controlID: 114
   draggingID: 0
 --- !u!114 &11
 MonoBehaviour:
@@ -380,8 +380,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Console\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 623
-    y: 24
+    x: 622
+    y: 1068
     width: 753
     height: 286
   m_SerializedDataModeController:
@@ -418,7 +418,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 24
+    y: 79
     width: 308
     height: 963
   m_SerializedDataModeController:
@@ -437,7 +437,7 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: f2fcfeff0afdfeff3e33ffffd245ffffea45ffff1e7cffffb48effffcc8effff2cc5ffffe2faffff
+      m_ExpandedIDs: b28bffffca8bffff2ac2ffffe2faffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -484,8 +484,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Scene\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 310
-    y: 24
+    x: 309
+    y: 79
     width: 1777
     height: 963
   m_SerializedDataModeController:
@@ -1141,7 +1141,7 @@ MonoBehaviour:
     x: 309
     y: 79
     width: 1777
-    height: 957
+    height: 963
   m_SerializedDataModeController:
     m_DataMode: 0
     m_PreferredDataMode: 0
@@ -1159,7 +1159,7 @@ MonoBehaviour:
   m_ShowGizmos: 0
   m_TargetDisplay: 0
   m_ClearColor: {r: 0, g: 0, b: 0, a: 0}
-  m_TargetSize: {x: 1777, y: 936}
+  m_TargetSize: {x: 1777, y: 942}
   m_TextureFilterMode: 0
   m_TextureHideFlags: 61
   m_RenderIMGUI: 1
@@ -1176,8 +1176,8 @@ MonoBehaviour:
     vZoomLockedByDefault: 0
     m_HBaseRangeMin: -888.5
     m_HBaseRangeMax: 888.5
-    m_VBaseRangeMin: -468
-    m_VBaseRangeMax: 468
+    m_VBaseRangeMin: -471
+    m_VBaseRangeMax: 471
     m_HAllowExceedBaseRangeMin: 1
     m_HAllowExceedBaseRangeMax: 1
     m_VAllowExceedBaseRangeMin: 1
@@ -1196,9 +1196,9 @@ MonoBehaviour:
       x: 0
       y: 21
       width: 1777
-      height: 936
+      height: 942
     m_Scale: {x: 1, y: 1}
-    m_Translation: {x: 888.5, y: 468}
+    m_Translation: {x: 888.5, y: 471}
     m_MarginLeft: 0
     m_MarginRight: 0
     m_MarginTop: 0
@@ -1206,12 +1206,12 @@ MonoBehaviour:
     m_LastShownAreaInsideMargins:
       serializedVersion: 2
       x: -888.5
-      y: -468
+      y: -471
       width: 1777
-      height: 936
+      height: 942
     m_MinimalGUI: 1
   m_defaultScale: 1
-  m_LastWindowPixelSize: {x: 1777, y: 957}
+  m_LastWindowPixelSize: {x: 1777, y: 963}
   m_ClearInEditMode: 1
   m_NoCameraWarning: 1
   m_LowResolutionForAspectRatios: 01000000000000000000
@@ -1316,7 +1316,7 @@ MonoBehaviour:
   m_Pos:
     serializedVersion: 2
     x: 0
-    y: 24
+    y: 1068
     width: 621
     height: 286
   m_SerializedDataModeController:
@@ -1353,14 +1353,14 @@ MonoBehaviour:
   m_LastFolders:
   - Assets
   m_LastFoldersGridSize: 16
-  m_LastProjectPath: C:\HBP\Software\HiBoP
+  m_LastProjectPath: C:\Users\Zigaroula\Documents\HBP\Software\HiBoP
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 40dd0000
-    m_LastClickedID: 56640
-    m_ExpandedIDs: 0000000096d7000098d700009ad700009cd700009ed70000a0d70000a2d70000a4d70000a6d70000a8d70000aad70000acd70000aed70000
+    m_SelectedIDs: a2da0000
+    m_LastClickedID: 55970
+    m_ExpandedIDs: 0000000096d7000098d700009ad700009cd700009ed70000a0d70000a2d70000a4d70000a6d70000a8d70000aad70000acd70000aed7000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -1469,8 +1469,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Profiler\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 1378
-    y: 24
+    x: 1377
+    y: 1068
     width: 709
     height: 286
   m_SerializedDataModeController:
@@ -2551,8 +2551,8 @@ MonoBehaviour:
     m_TextWithWhitespace: "Inspector\u200B"
   m_Pos:
     serializedVersion: 2
-    x: 2089
-    y: 24
+    x: 2088
+    y: 79
     width: 471
     height: 1275
   m_SerializedDataModeController:
