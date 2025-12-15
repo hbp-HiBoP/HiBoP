@@ -1,4 +1,6 @@
-﻿namespace HBP.Core.Data
+﻿using System;
+
+namespace HBP.Core.Data
 {
     /// <summary>
     /// A base abstract generic class which contains all the data about a value and its associated tag.
@@ -43,7 +45,29 @@
         {
             get
             {
-                return base.Value != null ? (I)base.Value : default;
+                if (base.Value == null)
+                {
+                    return default;
+                }
+                
+                // Handle the case where JSON deserialization creates a type mismatch
+                // (e.g., Int64 instead of Int32)
+                try
+                {
+                    if (base.Value is I typedValue)
+                    {
+                        return typedValue;
+                    }
+                    else
+                    {
+                        // Use Convert.ChangeType for numeric conversions
+                        return (I)Convert.ChangeType(base.Value, typeof(I));
+                    }
+                }
+                catch
+                {
+                    return default;
+                }
             }
             set
             {
