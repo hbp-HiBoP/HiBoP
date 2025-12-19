@@ -13,18 +13,17 @@ namespace HBP.Core.DLL
     /// </summary>
     public class JuBrainAtlas : BrainAtlas
     {
+        #region Properties
+        private readonly string m_LeftNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz");
+        private readonly string m_RightNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz");
+        private readonly string m_JsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels_3.1.json");
+        #endregion
+
         #region Constructors
         public JuBrainAtlas() : base() { }
         #endregion
 
         #region Public Methods
-        public override void Load()
-        {
-            string leftNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.0_areas_MPM_l_N10_nlin2StdColin27_public_103b99ab1e99961eeffe414978ffb415.nii.gz");
-            string rightNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.0_areas_MPM_r_N10_nlin2StdColin27_public_ff55a994bb8c9e5dace0c93b6fa3e2a7.nii.gz");
-            string jsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels.json");
-            Load(leftNIIPath, rightNIIPath, jsonPath);
-        }
         /// <summary>
         /// Load the JuBrain atlas DLL object
         /// </summary>
@@ -32,12 +31,11 @@ namespace HBP.Core.DLL
         /// <param name="rightNIIPath">Path of the NIFTI file for the right side of the atlas</param>
         /// <param name="jsonPath">Path to the json containing information about the areas of the atlas</param>
         /// <returns></returns>
-        public bool Load(string leftNIIPath, string rightNIIPath, string jsonPath)
+        public override void Load()
         {
             Loading = true;
-            Loaded = load_JuBrainAtlas(_handle, leftNIIPath, rightNIIPath, jsonPath) == 1;
+            Loaded = load_JuBrainAtlas(_handle, m_LeftNIIPath, m_RightNIIPath, m_JsonPath) == 1;
             Loading = false;
-            return Loaded;
         }
         public override string GetAreaName(int index)
         {
@@ -53,11 +51,9 @@ namespace HBP.Core.DLL
         {
             var names = new List<string>();
 
-            string jsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels.json");
+            if (!File.Exists(m_JsonPath)) return;
 
-            if (!File.Exists(jsonPath)) return;
-
-            string json = File.ReadAllText(jsonPath);
+            string json = File.ReadAllText(m_JsonPath);
             JObject root = JObject.Parse(json);
 
             var structures = root["JulichBrainAtlas"]?["Structures"]?["Structure"];
