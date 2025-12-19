@@ -81,7 +81,7 @@ namespace HBP.UI.Module3D
         {
             m_DataSourceDropdownValue = (DataSource)m_DataSourceDropdown.value;
             int index = m_DataNameDropdown.value >= 0 && m_DataNameDropdown.value < m_DataNameDropdown.options.Count ? m_DataNameDropdown.value : 0;
-            m_DataNameDropdownValue = m_DataNameDropdown.options[index].text;
+            if (m_DataNameDropdown.options.Count > 0) m_DataNameDropdownValue = m_DataNameDropdown.options[index].text;
         }
         public override void LoadSettings()
         {
