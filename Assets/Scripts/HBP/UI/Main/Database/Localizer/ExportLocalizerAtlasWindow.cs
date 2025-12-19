@@ -267,6 +267,7 @@ namespace HBP.UI.Main
                     var dataInfosToRemove = new List<IEEGDataInfo>();
                     foreach (var dataInfo in allDataInfos)
                     {
+                        token.ThrowIfCancellationRequested();
                         try
                         {
                             progress += dataInfoLoadProgress;

@@ -64,7 +64,7 @@ namespace HBP.Data.BIDS
             await File.WriteAllLinesAsync(filePath, lines);
         }
 
-        public static async UniTask<string> CreateRootDirectoryAndFilesAsync(string datasetName, IEnumerable<BIDSPatient> patients, string baseFolder)
+        public static async UniTask<string> CreateRootDirectoryAndFilesAsync(string datasetName, IEnumerable<BIDSPatient> patients, string baseFolder, IEnumerable<BaseTag> selectedPatientTags)
         {
             // Create root directory
             string datasetPath = Path.Combine(baseFolder, datasetName);
@@ -78,14 +78,14 @@ namespace HBP.Data.BIDS
             ClassLoaderSaver.SaveToJSon(datasetDescription, Path.Combine(datasetPath, "dataset_description.json"), true);
 
             // Create participants.tsv
-            string participantsTsv = PatientsToParticipantsTSV(patients);
+            string participantsTsv = PatientsToParticipantsTSV(patients, selectedPatientTags);
             string participantsTsvPath = Path.Combine(datasetPath, "participants.tsv");
             await File.WriteAllTextAsync(participantsTsvPath, participantsTsv);
 
             return datasetPath;
         }
 
-        public static async UniTask ExportPatientAsync(BIDSPatient patient, string datasetFolder, BIDSExportConfiguration config)
+        public static async UniTask ExportPatientAsync(BIDSPatient patient, string datasetFolder, BIDSExportConfiguration config, IEnumerable<BaseTag> selectedSiteTags)
         {
             // Create directories based on rules (dynamically determined from config)
             var sessionsNeeded = config.AnatomicalRules.Select(r => r.BIDSSession).Distinct();
@@ -102,11 +102,11 @@ namespace HBP.Data.BIDS
             
             // Export using rules
             ExportAnatomicalData(patient, datasetFolder, config);
-            CreateElectrodesFiles(patient, postIeegDirectory.FullName, config);
+            CreateElectrodesFiles(patient, postIeegDirectory.FullName, config, selectedSiteTags);
             CreateFunctionalFiles(patient, postIeegDirectory.FullName);
         }
 
-        private static string PatientsToParticipantsTSV(IEnumerable<BIDSPatient> bidsPatients)
+        private static string PatientsToParticipantsTSV(IEnumerable<BIDSPatient> bidsPatients, IEnumerable<BaseTag> selectedPatientTags)
         {
             if (bidsPatients == null || !bidsPatients.Any())
             {
@@ -114,8 +114,9 @@ namespace HBP.Data.BIDS
             }
 
             var bidsPatientsList = bidsPatients.ToList();
+            var selectedTagsList = selectedPatientTags?.ToList() ?? new List<BaseTag>();
 
-            // Step 1: Collect all distinct tags from all patients
+            // Step 1: Collect all distinct tags from all patients that are in the selected tags list
             var allTags = new HashSet<BaseTag>();
             foreach (var bidsPatient in bidsPatientsList)
             {
@@ -123,7 +124,7 @@ namespace HBP.Data.BIDS
                 {
                     foreach (var tagValue in bidsPatient.Patient.Tags)
                     {
-                        if (tagValue.Tag != null)
+                        if (tagValue.Tag != null && selectedTagsList.Contains(tagValue.Tag))
                         {
                             allTags.Add(tagValue.Tag);
                         }
@@ -261,7 +262,7 @@ namespace HBP.Data.BIDS
             }
         }
         
-        private static string SitesToElectrodesTSV(IEnumerable<Site> sites, string coordSystemString)
+        private static string SitesToElectrodesTSV(IEnumerable<Site> sites, string coordSystemString, IEnumerable<BaseTag> selectedSiteTags)
         {
             if (sites == null || !sites.Any())
             {
@@ -269,12 +270,13 @@ namespace HBP.Data.BIDS
             }
 
             var sitesList = sites.ToList();
+            var selectedTagsList = selectedSiteTags?.ToList() ?? new List<BaseTag>();
 
             // Sort sites using SiteNameComparer
             var siteNameComparer = new SiteNameComparer();
             sitesList.Sort((a, b) => siteNameComparer.Compare(a.Name, b.Name));
 
-            // Step 1: Collect all distinct tags from all sites
+            // Step 1: Collect all distinct tags from all sites that are in the selected tags list
             var allTags = new HashSet<BaseTag>();
             foreach (var site in sitesList)
             {
@@ -282,7 +284,7 @@ namespace HBP.Data.BIDS
                 {
                     foreach (var tagValue in site.Tags)
                     {
-                        if (tagValue.Tag != null)
+                        if (tagValue.Tag != null && selectedTagsList.Contains(tagValue.Tag))
                         {
                             allTags.Add(tagValue.Tag);
                         }
@@ -521,13 +523,13 @@ namespace HBP.Data.BIDS
             };
         }
 
-        private static void CreateElectrodesFiles(BIDSPatient patient, string ieegFolder, BIDSExportConfiguration config)
+        private static void CreateElectrodesFiles(BIDSPatient patient, string ieegFolder, BIDSExportConfiguration config, IEnumerable<BaseTag> selectedSiteTags)
         {
             var sites = patient.Patient.Sites;
             
             foreach (var coordRule in config.CoordinateSystemRules)
             {
-                string electrodesTsvContent = SitesToElectrodesTSV(sites, coordRule.CoordinateSystemName);
+                string electrodesTsvContent = SitesToElectrodesTSV(sites, coordRule.CoordinateSystemName, selectedSiteTags);
                 
                 string spaceEntity = string.IsNullOrEmpty(coordRule.BIDSSpace) ? "" : $"_space-{coordRule.BIDSSpace}";
                 string electrodesTsvPath = Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post{spaceEntity}_electrodes.tsv");

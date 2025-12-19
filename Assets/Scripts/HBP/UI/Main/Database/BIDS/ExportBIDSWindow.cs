@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
+using HBP.Data.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -21,6 +22,12 @@ namespace HBP.UI.Main
         
         [SerializeField] private Button m_SelectPatientsButton;
         [SerializeField] private Text m_PatientsSelectedText;
+
+        [SerializeField] private Button m_SelectPatientTagsButton;
+        [SerializeField] private Text m_PatientTagsSelectedText;
+
+        [SerializeField] private Button m_SelectSiteTagsButton;
+        [SerializeField] private Text m_SiteTagsSelectedText;
 
         [SerializeField] private Toggle m_AnonymizeToggle;
         [SerializeField] private Toggle m_ExportCorrespondenceTableToggle;
@@ -38,6 +45,12 @@ namespace HBP.UI.Main
         private List<Patient> m_SelectedPatients = new List<Patient>();
         private List<BIDSProtocolItem> m_ProtocolItems = new List<BIDSProtocolItem>();
         private List<BIDSDataItem> m_DataItems = new List<BIDSDataItem>();
+        
+        private List<BaseTag> m_AvailablePatientTags = new List<BaseTag>();
+        private List<BaseTag> m_SelectedPatientTags = new List<BaseTag>();
+        
+        private List<BaseTag> m_AvailableSiteTags = new List<BaseTag>();
+        private List<BaseTag> m_SelectedSiteTags = new List<BaseTag>();
         
         private BIDSExportConfiguration m_Configuration;
         #endregion
@@ -101,6 +114,8 @@ namespace HBP.UI.Main
             base.Initialize();
             
             m_SelectPatientsButton.onClick.AddListener(OpenPatientSelector);
+            m_SelectPatientTagsButton.onClick.AddListener(OpenPatientTagSelector);
+            m_SelectSiteTagsButton.onClick.AddListener(OpenSiteTagSelector);
             m_DatasetNameInputField.onValueChanged.AddListener((value) => UpdateUI());
             
             // Initialize configuration file selector if it exists
@@ -129,6 +144,7 @@ namespace HBP.UI.Main
             LoadConfiguration();
             
             SetAvailablePatients();
+            SetAvailableTags();
             SetupProtocols();
             SetupDataNames();
             UpdateUI();
@@ -162,6 +178,20 @@ namespace HBP.UI.Main
                     .Any(d => d.Patient == p))
                 .OrderBy(p => p.Name)
                 .ToList();
+        }
+        private void SetAvailableTags()
+        {
+            // Get all distinct patient tags
+            m_AvailablePatientTags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.PatientsTags).ToList();
+            
+            // By default, all patient tags are selected
+            m_SelectedPatientTags = m_AvailablePatientTags.ToList();
+            
+            // Get all distinct site tags
+            m_AvailableSiteTags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList();
+
+            // By default, all site tags are selected
+            m_SelectedSiteTags = m_AvailableSiteTags.ToList();
         }
         private void SetupProtocols()
         {
@@ -231,6 +261,30 @@ namespace HBP.UI.Main
             m_SelectedPatients = selectedPatients.ToList();
             UpdateUI();
         }
+        private void OpenPatientTagSelector()
+        {
+            ObjectSelector<BaseTag> selector = WindowsManager.OpenSelector(m_AvailablePatientTags, this);
+            selector.ObjectsSelected = m_SelectedPatientTags.ToArray();
+            selector.OnOk.AddListener(() => OnPatientTagsSelected(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
+        }
+        private void OnPatientTagsSelected(BaseTag[] selectedTags)
+        {
+            m_SelectedPatientTags = selectedTags.ToList();
+            UpdateUI();
+        }
+        private void OpenSiteTagSelector()
+        {
+            ObjectSelector<BaseTag> selector = WindowsManager.OpenSelector(m_AvailableSiteTags, this);
+            selector.ObjectsSelected = m_SelectedSiteTags.ToArray();
+            selector.OnOk.AddListener(() => OnSiteTagsSelected(selector.ObjectsSelected));
+            WindowsReferencer.Add(selector);
+        }
+        private void OnSiteTagsSelected(BaseTag[] selectedTags)
+        {
+            m_SelectedSiteTags = selectedTags.ToList();
+            UpdateUI();
+        }
         private void UpdateUI()
         {
             // Update patients text
@@ -245,6 +299,34 @@ namespace HBP.UI.Main
             else
             {
                 m_PatientsSelectedText.text = $"{m_SelectedPatients.Count} patients selected";
+            }
+            
+            // Update patient tags text
+            if (m_SelectedPatientTags.Count == 0)
+            {
+                m_PatientTagsSelectedText.text = "No patient tags selected";
+            }
+            else if (m_SelectedPatientTags.Count == 1)
+            {
+                m_PatientTagsSelectedText.text = "1 patient tag selected";
+            }
+            else
+            {
+                m_PatientTagsSelectedText.text = $"{m_SelectedPatientTags.Count} patient tags selected";
+            }
+            
+            // Update site tags text
+            if (m_SelectedSiteTags.Count == 0)
+            {
+                m_SiteTagsSelectedText.text = "No site tags selected";
+            }
+            else if (m_SelectedSiteTags.Count == 1)
+            {
+                m_SiteTagsSelectedText.text = "1 site tag selected";
+            }
+            else
+            {
+                m_SiteTagsSelectedText.text = $"{m_SelectedSiteTags.Count} site tags selected";
             }
             
             // Enable/disable export button
@@ -269,7 +351,7 @@ namespace HBP.UI.Main
                 var bidsPatients = BIDSUtility.CreateBIDSPatients(m_SelectedPatients, selectedProtocols, selectedDataNames, m_AnonymizeToggle.isOn);
                 
                 // Create dataset directory and general files
-                string datasetPath = await BIDSUtility.CreateRootDirectoryAndFilesAsync(m_DatasetNameInputField.text, bidsPatients, m_ExportFolderSelector.Folder);
+                string datasetPath = await BIDSUtility.CreateRootDirectoryAndFilesAsync(m_DatasetNameInputField.text, bidsPatients, m_ExportFolderSelector.Folder, m_SelectedPatientTags);
 
                 // Export correspondence table if enabled
                 if (m_ExportCorrespondenceTableToggle.isOn)
@@ -285,7 +367,7 @@ namespace HBP.UI.Main
                 {
                     token.ThrowIfCancellationRequested();
                     updateProgress?.Invoke((float)count / totalPatients, 0f, new LoadingText($"Exporting ", $"{patient.ParticipantId}", $" ({count + 1}/{totalPatients})"));
-                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, m_Configuration);
+                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, m_Configuration, m_SelectedSiteTags);
                     count++;
                 }
             }
