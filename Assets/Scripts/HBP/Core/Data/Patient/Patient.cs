@@ -514,7 +514,7 @@ namespace HBP.Core.Data
             }
 
             // Find Electrodes files.
-            Regex electrodesRegex = new Regex(@"(sub-\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?(_space-(\w+))?_electrodes\.tsv?$");
+            Regex electrodesRegex = new Regex(@"(sub-\w+)(_ses-(\w+))?(_task-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?(_space-(\w+))?_electrodes\.tsv$");
             FileInfo[] electrodesFiles = databaseDirectoryInfo.GetFiles("*_electrodes.tsv", SearchOption.AllDirectories);
             Dictionary<string, List<BIDSElectrodeFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSElectrodeFile>>();
             foreach (var file in electrodesFiles)
@@ -527,12 +527,13 @@ namespace HBP.Core.Data
                     GroupCollection groups = match.Groups;
                     electrodeFile.Subject = groups[1].Value;
                     electrodeFile.Session = groups[3].Value;
-                    electrodeFile.DataAcquisition = groups[5].Value;
-                    electrodeFile.Contrast = groups[7].Value;
-                    electrodeFile.Reconstruction = groups[9].Value;
-                    if (int.TryParse(groups[11].Value, out int run)) electrodeFile.Run = run;
-                    electrodeFile.Space = groups[12].Value;
-                    electrodeFile.Name = groups[12].Value;
+                    electrodeFile.Task = groups[5].Value;
+                    electrodeFile.DataAcquisition = groups[7].Value;
+                    electrodeFile.Contrast = groups[9].Value;
+                    electrodeFile.Reconstruction = groups[11].Value;
+                    if (int.TryParse(groups[12].Value, out int run)) electrodeFile.Run = run;
+                    electrodeFile.Space = groups[13].Value;
+                    electrodeFile.Name = groups[13].Value;
                     electrodeFile.Path = file.FullName;
                     if (electrodesFilesBySubjectID.TryGetValue(electrodeFile.Subject, out List<BIDSElectrodeFile> files))
                     {
@@ -1002,6 +1003,7 @@ namespace HBP.Core.Data
         {
             public string Name = "";
             public string Subject = "";
+            public string Task = "";
             public string Session = "";
             public string DataAcquisition = "";
             public string Contrast = "";
