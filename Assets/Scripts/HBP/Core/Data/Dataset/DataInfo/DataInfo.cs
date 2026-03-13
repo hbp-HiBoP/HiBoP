@@ -350,57 +350,54 @@ namespace HBP.Core.Data
             List<DataInfo> dataInfoList = new();
 
             // Find all dataInfo files
-            Regex brainvisionHeaderRegex = new Regex(@"(sub-[a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.vhdr$");
-            FileInfo[] brainvisionHeaderFiles = databaseDirectoryInfo.GetFiles("*.vhdr", SearchOption.AllDirectories);
-            Regex edfRegex = new Regex(@"(sub-[a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.edf$");
-            FileInfo[] edfFiles = databaseDirectoryInfo.GetFiles("*.edf", SearchOption.AllDirectories);
+            var allIeegFiles = BIDSParser.FindFiles(databaseDirectoryInfo.FullName, new[] { "ieeg" }, new[] { ".vhdr", ".edf" });
+            var brainvisionFiles = allIeegFiles.Where(f => f.Extension.EndsWith(".vhdr", StringComparison.OrdinalIgnoreCase)).ToList();
+            var edfFiles = allIeegFiles.Where(f => f.Extension.EndsWith(".edf", StringComparison.OrdinalIgnoreCase)).ToList();
             int progress = 0;
-            int length = brainvisionHeaderFiles.Length + edfFiles.Length;
+            int length = brainvisionFiles.Count + edfFiles.Count;
 
             // Brainvision
-            foreach (var file in brainvisionHeaderFiles)
+            foreach (var bidsFile in brainvisionFiles)
             {
-                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", file.Name, " [" + progress + "/" + length + "]"));
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", System.IO.Path.GetFileName(bidsFile.Path), " [" + progress + "/" + length + "]"));
                 token.ThrowIfCancellationRequested();
-                Match match = brainvisionHeaderRegex.Match(file.FullName);
-                if (match.Success)
+                Patient patient = patients.FirstOrDefault(p => p.Name.CompareTo("sub-" + bidsFile.Entities["sub"]) == 0);
+                if (patient != null)
                 {
-                    Patient patient = patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
-                    if (patient != null)
+                    bidsFile.Entities.TryGetValue("task", out string task);
+                    Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == task);
+                    if (protocol != null)
                     {
-                        Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
-                        if (protocol != null)
-                        {
-                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
-                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
-                            dataInfo.CheckErrorsAndWarnings(true);
-                            dataInfoList.Add(dataInfo);
-                        }
+                        bidsFile.Entities.TryGetValue("acq", out string acq);
+                        bidsFile.Entities.TryGetValue("run", out string run);
+                        bidsFile.Entities.TryGetValue("desc", out string desc);
+                        string dataName = string.Format("{0}{1}{2}", string.IsNullOrEmpty(acq) ? "raw" : acq, string.IsNullOrEmpty(run) ? "" : "-" + run, string.IsNullOrEmpty(desc) ? "" : "-" + desc);
+                        var dataInfo = new IEEGDataInfo(dataName, protocol, new Container.BrainVision(bidsFile.Path, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
+                        dataInfo.CheckErrorsAndWarnings(true);
+                        dataInfoList.Add(dataInfo);
                     }
                 }
             }
 
             // EDF
-            foreach (var file in edfFiles)
+            foreach (var bidsFile in edfFiles)
             {
-                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", file.Name, " [" + progress + "/" + length + "]"));
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", System.IO.Path.GetFileName(bidsFile.Path), " [" + progress + "/" + length + "]"));
                 token.ThrowIfCancellationRequested();
-                Match match = edfRegex.Match(file.FullName);
-                if (match.Success)
+                Patient patient = patients.FirstOrDefault(p => p.Name.ToUpper().CompareTo(("sub-" + bidsFile.Entities["sub"]).ToUpper()) == 0);
+                if (patient != null)
                 {
-                    Patient patient = patients.FirstOrDefault(p => p.Name.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
-                    if (patient != null)
+                    bidsFile.Entities.TryGetValue("task", out string task);
+                    Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == task);
+                    if (protocol != null)
                     {
-                        Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
-                        if (protocol != null)
-                        {
-                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
-                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
-                            dataInfo.CheckErrorsAndWarnings(true);
-                            dataInfoList.Add(dataInfo);
-                        }
+                        bidsFile.Entities.TryGetValue("acq", out string acq);
+                        bidsFile.Entities.TryGetValue("run", out string run);
+                        bidsFile.Entities.TryGetValue("desc", out string desc);
+                        string dataName = string.Format("{0}{1}{2}", string.IsNullOrEmpty(acq) ? "raw" : acq, string.IsNullOrEmpty(run) ? "" : "-" + run, string.IsNullOrEmpty(desc) ? "" : "-" + desc);
+                        var dataInfo = new IEEGDataInfo(dataName, protocol, new Container.EDF(bidsFile.Path, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
+                        dataInfo.CheckErrorsAndWarnings(true);
+                        dataInfoList.Add(dataInfo);
                     }
                 }
             }
