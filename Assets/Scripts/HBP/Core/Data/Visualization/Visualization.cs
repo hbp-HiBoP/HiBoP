@@ -48,8 +48,8 @@ namespace HBP.Core.Data
             get => m_Patients;
             set
             {
-                m_Patients = value;
-                m_PatientsID = m_Patients.Select(p => p.ID).ToList();
+                m_Patients = value?.Where(p => p != null).ToList() ?? new List<Patient>();
+                m_PatientsID = m_Patients.Where(p => !string.IsNullOrEmpty(p.ID)).Select(p => p.ID).ToList();
             }
         }
 
@@ -334,8 +334,17 @@ namespace HBP.Core.Data
         }
         public void UpdatePatients()
         {
-            if (ApplicationState.LoadedProject != null) Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
-            Patients.RemoveAll(p => p == null);
+            if (ApplicationState.LoadedProject != null)
+            {
+                m_Patients = (m_PatientsID ?? new List<string>())
+                    .Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id))
+                    .Where(p => p != null)
+                    .ToList();
+            }
+            else
+            {
+                m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
+            }
         }
         #endregion
 
@@ -606,7 +615,8 @@ namespace HBP.Core.Data
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_PatientsID = m_Patients.Select(p => p.ID).ToList();
+            m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
+            m_PatientsID = m_Patients.Where(p => !string.IsNullOrEmpty(p.ID)).Select(p => p.ID).ToList();
         }
         protected override void OnDeserialized()
         {
