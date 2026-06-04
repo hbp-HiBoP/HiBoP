@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace HBP.UI.Tools
 {
-    public class ProjectLoaderSaver
+    public static class ProjectLoaderSaver
     {
         #region Public Methods  
         public async static UniTaskVoid Load(ProjectInfo projectInfo)

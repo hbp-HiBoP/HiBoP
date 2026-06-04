@@ -2,7 +2,6 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.Data.Database;
 using HBP.Data.Preferences;
-using HBP.UI.Tools;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

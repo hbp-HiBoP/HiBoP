@@ -2,7 +2,6 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
-using HBP.UI.Tools;
 using UnityEngine;
 
 namespace HBP.Core.Tools

@@ -1,9 +1,23 @@
 ﻿<Solution>
   <Project Path="Unity.Timeline.csproj" />
-  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="HBP.Core.Runtime.csproj" />
   <Project Path="Unity.Timeline.Editor.csproj" />
+  <Project Path="HBP.UI.Runtime.csproj" />
+  <Project Path="ThirdParty.UIExtensions.Runtime.csproj" />
+  <Project Path="HBP.Theme.Runtime.csproj" />
   <Project Path="Unity.VisualStudio.Editor.csproj" />
-  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="HBP.Theme.Editor.csproj" />
   <Project Path="Unity.Postprocessing.Runtime.csproj" />
   <Project Path="Unity.Postprocessing.Editor.csproj" />
+  <Project Path="HBP.Dev.Runtime.csproj" />
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="HBP.Data.Runtime.csproj" />
+  <Project Path="HBP.Dev.Editor.csproj" />
+  <Project Path="HBP.UI.Tools.Editor.csproj" />
+  <Project Path="ThirdParty.SFB.Runtime.csproj" />
+  <Project Path="HBP.UI.Graph.Editor.csproj" />
+  <Project Path="ThirdParty.UIExtensions.Editor.csproj" />
+  <Project Path="HBP.Core.Editor.csproj" />
+  <Project Path="HBP.UI.Window.Editor.csproj" />
+  <Project Path="HBP.UI.LoadingCircle.Editor.csproj" />
 </Solution>

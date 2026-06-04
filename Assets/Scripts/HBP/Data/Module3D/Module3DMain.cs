@@ -4,11 +4,11 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Linq;
+using HBP.Core.DLL;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
-using HBP.UI.Tools;
 using HBP.Data.Preferences;
 using Cysharp.Threading.Tasks;
 using System.Threading;
@@ -174,7 +174,34 @@ namespace HBP.Data.Module3D
         #region Private Methods
         protected override void Initialization()
         {
+            SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
+            ProjectLifecycle.OnBeforeSave.RemoveListener(SaveConfigurations);
+            ProjectLifecycle.OnBeforeSave.AddListener(SaveConfigurations);
             Preload3D();
+        }
+
+        private static bool? CheckSpecificSiteLocation(SpecificSiteLocationFilterCondition condition, Core.Object3D.Site site)
+        {
+            Base3DScene selectedScene = SelectedScene;
+            if (selectedScene == null) return false;
+
+            switch (condition.LocationType)
+            {
+                case SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh:
+                    Surface mesh = condition.MeshPart switch
+                    {
+                        MeshPart.Both => selectedScene.MeshManager.SelectedMesh.SimplifiedBoth,
+                        MeshPart.Left => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedLeft : null,
+                        MeshPart.Right => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedRight : null,
+                        _ => null
+                    };
+                    return mesh != null && mesh.IsPointInside(site.Information.DefaultPosition);
+                case SpecificSiteLocationFilterCondition.SpecificLocationType.CutPlane:
+                    var planes = selectedScene.Cuts.Select(c => (Core.Object3D.Plane)c).ToList();
+                    return selectedScene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, planes, 1.0f);
+                default:
+                    return null;
+            }
         }
         void OnDestroy()
         {

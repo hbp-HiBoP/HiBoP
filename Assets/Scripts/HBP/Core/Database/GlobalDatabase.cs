@@ -1,6 +1,5 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
-using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

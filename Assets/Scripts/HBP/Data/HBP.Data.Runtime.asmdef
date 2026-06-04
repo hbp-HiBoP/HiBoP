@@ -1,0 +1,19 @@
+{
+    "name": "HBP.Data.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "HBP.Core.Runtime",
+        "UniTask",
+        "ThirdParty.UIExtensions.Runtime",
+        "Unity.Postprocessing.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

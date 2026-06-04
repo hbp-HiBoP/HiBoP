@@ -3,9 +3,11 @@
     <type fullname="EdgeDetectPostProcessingRenderer_AfterStack" preserve="all" />
     <type fullname="EdgeDetect_AfterStack" preserve="all" />
   </assembly>
-  <assembly fullname="Assembly-CSharp">
+  <assembly fullname="ThirdParty.SFB.Runtime">
     <type fullname="ThirdParty.SFB.IFileOpenDialog" preserve="all"/>
     <type fullname="ThirdParty.SFB.IShellItem" preserve="all"/>
     <type fullname="ThirdParty.SFB.IShellItemArray" preserve="all"/>
   </assembly>
+  <assembly fullname="HBP.Core.Runtime" preserve="all" />
+  <assembly fullname="HBP.Data.Runtime" preserve="all" />
 </linker>
