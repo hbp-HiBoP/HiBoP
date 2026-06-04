@@ -181,7 +181,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Vertices of the plane cut circle
         /// </summary>
-        private List<Vector3[]> m_PlanesCutsCirclesVertices = new List<Vector3[]>();
+        private List<Vector3[]> m_PlanesCutsCirclesVertices = new();
         
         /// <summary>
         /// Material of the cuts
@@ -226,7 +226,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Ambient light color
         /// </summary>
-        public Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1);
+        public Color AmbientLight = new(0.2f, 0.2f, 0.2f, 1);
 
         /// <summary>
         /// State for the selected view

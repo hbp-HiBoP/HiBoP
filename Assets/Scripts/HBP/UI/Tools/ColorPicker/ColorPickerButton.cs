@@ -12,7 +12,7 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Events
-        public GenericEvent<Color> OnColorPicked = new GenericEvent<Color>();
+        public GenericEvent<Color> OnColorPicked = new();
         #endregion
 
         #region Public Methods

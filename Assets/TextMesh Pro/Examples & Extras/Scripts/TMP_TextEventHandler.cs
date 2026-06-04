@@ -34,7 +34,7 @@ namespace TMPro
             set { m_OnCharacterSelection = value; }
         }
         [SerializeField]
-        private CharacterSelectionEvent m_OnCharacterSelection = new CharacterSelectionEvent();
+        private CharacterSelectionEvent m_OnCharacterSelection = new();
 
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace TMPro
             set { m_OnSpriteSelection = value; }
         }
         [SerializeField]
-        private SpriteSelectionEvent m_OnSpriteSelection = new SpriteSelectionEvent();
+        private SpriteSelectionEvent m_OnSpriteSelection = new();
 
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace TMPro
             set { m_OnWordSelection = value; }
         }
         [SerializeField]
-        private WordSelectionEvent m_OnWordSelection = new WordSelectionEvent();
+        private WordSelectionEvent m_OnWordSelection = new();
 
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace TMPro
             set { m_OnLineSelection = value; }
         }
         [SerializeField]
-        private LineSelectionEvent m_OnLineSelection = new LineSelectionEvent();
+        private LineSelectionEvent m_OnLineSelection = new();
 
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace TMPro
             set { m_OnLinkSelection = value; }
         }
         [SerializeField]
-        private LinkSelectionEvent m_OnLinkSelection = new LinkSelectionEvent();
+        private LinkSelectionEvent m_OnLinkSelection = new();
 
 
 
@@ -183,7 +183,7 @@ namespace TMPro
                         buffer[i] = m_TextComponent.textInfo.characterInfo[i + lineInfo.firstCharacterIndex].character;
                     }
 
-                    string lineText = new string(buffer);
+                    string lineText = new(buffer);
                     SendOnLineSelection(lineText, lineInfo.firstCharacterIndex, lineInfo.characterCount);
                 }
                 #endregion

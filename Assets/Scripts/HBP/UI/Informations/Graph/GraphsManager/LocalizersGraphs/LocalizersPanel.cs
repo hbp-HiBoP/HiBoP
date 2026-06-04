@@ -46,7 +46,7 @@ namespace HBP.UI.Informations
         // Generate
         [SerializeField] private Button m_GenerateLocalizersGraphsButton;
 
-        private List<ProtocolItem> m_ProtocolItems = new List<ProtocolItem>();
+        private List<ProtocolItem> m_ProtocolItems = new();
         private string m_SelectedDataType;
         
         // Rescaling parameters
@@ -68,7 +68,7 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Events
-        public GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>> OnGenerateLocalizersGraphs = new GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>>();
+        public GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>> OnGenerateLocalizersGraphs = new();
         #endregion
 
         #region Public Methods
@@ -181,7 +181,7 @@ namespace HBP.UI.Informations
                 {
                     // Format the formula with current values
                     string formula = string.Format(CultureInfo.InvariantCulture, 
-                        "newValue = (oldValue - {0}) × {1} + {0} + {2}",
+                        "newValue = (oldValue - {0}) ï¿½ {1} + {0} + {2}",
                         m_BaselineValue.ToString("0.##"),
                         m_GainFactor.ToString("0.##"),
                         m_Offset.ToString("0.##"));

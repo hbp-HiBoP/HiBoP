@@ -13,7 +13,7 @@ namespace HBP.UI.Module3D
         {
             await UniTask.SwitchToMainThread();
             var patients = Sites.Select(s => s.Information.Patient).Distinct();
-            Group group = new Group("New group", patients);
+            Group group = new("New group", patients);
             ObjectModifier<Group> modifier = WindowsManager.OpenModifier(group, null);
             modifier.OnOk.AddListener(() =>
             {

@@ -44,7 +44,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// IDs of the patients of the group.
         /// </summary>
-        [JsonProperty("Patients", Order = 3)] List<string> m_PatientsID = new List<string>();
+        [JsonProperty("Patients", Order = 3)] List<string> m_PatientsID = new();
         /// <summary>
         /// Patients of the group.
         /// </summary>

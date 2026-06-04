@@ -271,7 +271,7 @@ namespace HBP.Core.DLL
         }
         public object Clone()
         {
-            Texture clone = new Texture(this);
+            Texture clone = new(this);
             return clone;
         }
         #endregion

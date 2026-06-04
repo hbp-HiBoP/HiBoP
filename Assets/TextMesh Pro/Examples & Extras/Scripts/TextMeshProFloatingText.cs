@@ -25,13 +25,13 @@ namespace TMPro.Examples
 
         //private int m_frame = 0;
 
-        static WaitForEndOfFrame k_WaitForEndOfFrame = new WaitForEndOfFrame();
+        static WaitForEndOfFrame k_WaitForEndOfFrame = new();
         static WaitForSeconds[] k_WaitForSecondsRandom = new WaitForSeconds[]
         {
-            new WaitForSeconds(0.05f), new WaitForSeconds(0.1f), new WaitForSeconds(0.15f), new WaitForSeconds(0.2f), new WaitForSeconds(0.25f),
-            new WaitForSeconds(0.3f), new WaitForSeconds(0.35f), new WaitForSeconds(0.4f), new WaitForSeconds(0.45f), new WaitForSeconds(0.5f),
-            new WaitForSeconds(0.55f), new WaitForSeconds(0.6f), new WaitForSeconds(0.65f), new WaitForSeconds(0.7f), new WaitForSeconds(0.75f),
-            new WaitForSeconds(0.8f), new WaitForSeconds(0.85f), new WaitForSeconds(0.9f), new WaitForSeconds(0.95f), new WaitForSeconds(1.0f),
+            new(0.05f), new(0.1f), new(0.15f), new(0.2f), new(0.25f),
+            new(0.3f), new(0.35f), new(0.4f), new(0.45f), new(0.5f),
+            new(0.55f), new(0.6f), new(0.65f), new(0.7f), new(0.75f),
+            new(0.8f), new(0.85f), new(0.9f), new(0.95f), new(1.0f),
         };
 
         void Awake()

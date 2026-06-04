@@ -36,7 +36,7 @@ namespace HBP.UI.Tools
         /// <summary>
         /// Event called when applying a filter to the corresponding list
         /// </summary>
-        public GenericEvent<bool[]> OnApplyFilters = new GenericEvent<bool[]>();
+        public GenericEvent<bool[]> OnApplyFilters = new();
         #endregion
 
         #region Public Methods

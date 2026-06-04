@@ -25,7 +25,7 @@ namespace HBP.Data.Tools
             }
         }
         public bool EnoughAvailableMemory { get { return AvailableMemory > MEMORY_LIMIT; } }
-        public static UnityEvent OnNotEnoughAvailableMemory = new UnityEvent();
+        public static UnityEvent OnNotEnoughAvailableMemory = new();
         #endregion
 
         #region Private Methods
@@ -70,7 +70,7 @@ namespace HBP.Data.Tools
 
             public static Int64 GetPhysicalAvailableMemoryInMiB()
             {
-                PerformanceInformation pi = new PerformanceInformation();
+                PerformanceInformation pi = new();
                 if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
                 {
                     return Convert.ToInt64((pi.PhysicalAvailable.ToInt64() * pi.PageSize.ToInt64() / 1048576));
@@ -84,7 +84,7 @@ namespace HBP.Data.Tools
 
             public static Int64 GetTotalMemoryInMiB()
             {
-                PerformanceInformation pi = new PerformanceInformation();
+                PerformanceInformation pi = new();
                 if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
                 {
                     return Convert.ToInt64((pi.PhysicalTotal.ToInt64() * pi.PageSize.ToInt64() / 1048576));

@@ -17,11 +17,11 @@ namespace HBP.UI.Main
         public int ResponseCode { get; private set; }
         public int Occurrences { get; private set; }
         
-        private List<BlocToggleItem> m_BlocToggles = new List<BlocToggleItem>();
+        private List<BlocToggleItem> m_BlocToggles = new();
         #endregion
 
         #region Events
-        [HideInInspector] public UnityEvent OnAssignmentChanged = new UnityEvent();
+        [HideInInspector] public UnityEvent OnAssignmentChanged = new();
         #endregion
 
         #region Public Methods

@@ -54,22 +54,19 @@ namespace HBP.Data.BIDS
                 AnatomicalRules = new List<AnatomicalDataRule>
                 {
                     // Pre-implantation session
-                    new AnatomicalDataRule 
-                    { 
+                    new() { 
                         DataType = "MRI", 
                         SourceName = "Preimplantation", 
                         BIDSSuffix = "T1w", 
                         BIDSSession = "pre" 
                     },
-                    new AnatomicalDataRule 
-                    { 
+                    new() { 
                         DataType = "Mesh", 
                         SourceName = "Grey matter", 
                         BIDSSuffix = "pial", 
                         BIDSSession = "pre" 
                     },
-                    new AnatomicalDataRule 
-                    { 
+                    new() { 
                         DataType = "Mesh", 
                         SourceName = "White matter", 
                         BIDSSuffix = "white", 
@@ -77,15 +74,13 @@ namespace HBP.Data.BIDS
                     },
                     
                     // Post-implantation session
-                    new AnatomicalDataRule 
-                    { 
+                    new() { 
                         DataType = "MRI", 
                         SourceName = "Postimplantation", 
                         BIDSSuffix = "T1w", 
                         BIDSSession = "post" 
                     },
-                    new AnatomicalDataRule 
-                    { 
+                    new() { 
                         DataType = "MRI", 
                         SourceName = "CT", 
                         BIDSSuffix = "CT", 
@@ -94,13 +89,11 @@ namespace HBP.Data.BIDS
                 },
                 CoordinateSystemRules = new List<CoordinateSystemRule>
                 {
-                    new CoordinateSystemRule 
-                    { 
+                    new() { 
                         CoordinateSystemName = "Patient", 
                         BIDSSpace = "" 
                     },
-                    new CoordinateSystemRule 
-                    { 
+                    new() { 
                         CoordinateSystemName = "MNI", 
                         BIDSSpace = "MNI152Lin" 
                     }

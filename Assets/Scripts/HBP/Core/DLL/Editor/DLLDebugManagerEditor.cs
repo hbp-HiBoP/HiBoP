@@ -17,10 +17,10 @@ namespace HBP.Core.DLL
             {
                 DLLDebugManager manager = (DLLDebugManager)target;
                 var list = manager.DLLObjects.OrderBy(t => t.Type).ThenBy(t => t.CleanedBy).ToList();
-                GUIStyle normalStyle = new GUIStyle(EditorStyles.textField);
-                GUIStyle cleanedByGCStyle = new GUIStyle(EditorStyles.textField);
+                GUIStyle normalStyle = new(EditorStyles.textField);
+                GUIStyle cleanedByGCStyle = new(EditorStyles.textField);
                 cleanedByGCStyle.normal.textColor = new Color(1, 0, 0);
-                GUIStyle cleanedByDisposeStyle = new GUIStyle(EditorStyles.textField);
+                GUIStyle cleanedByDisposeStyle = new(EditorStyles.textField);
                 cleanedByDisposeStyle.normal.textColor = new Color(0, 0, 1);
                 EditorGUILayout.BeginVertical();
                 foreach (var item in list)

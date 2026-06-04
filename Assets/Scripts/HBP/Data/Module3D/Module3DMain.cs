@@ -76,7 +76,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public static int NumberOfScenesLoadedSinceStart { get; set; }
 
-        private List<Base3DScene> m_Scenes = new List<Base3DScene>();
+        private List<Base3DScene> m_Scenes = new();
         /// <summary>
         /// List of open scenes
         /// </summary>
@@ -126,49 +126,49 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
-        [HideInInspector] public static GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
+        [HideInInspector] public static GenericEvent<SiteInfo> OnDisplaySiteInformation = new();
         /// <summary>
         /// Event called when hovering a atlas area to display its information
         /// </summary>
-        [HideInInspector] public static GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new GenericEvent<AtlasInfo>();
+        [HideInInspector] public static GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnAddScene = new();
         /// <summary>
         /// Event called when a scene is removed
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnRemoveScene = new();
         /// <summary>
         /// Event called after all new scenes have been opened and initialized
         /// </summary>
-        [HideInInspector] public static UnityEvent OnFinishedAddingNewScenes = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnFinishedAddingNewScenes = new();
         /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
-        [HideInInspector] public static GenericEvent<Base3DScene> OnDeselectScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnSelectScene = new();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnDeselectScene = new();
         /// <summary>
         /// Event called when minimizing a scene
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnMinimizeScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnMinimizeScene = new();
         /// <summary>
         /// Event called when changing the selected column
         /// </summary>
-        [HideInInspector] public static GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public static GenericEvent<Column3D> OnSelectColumn = new();
         /// <summary>
         /// Event called when changing the selected view
         /// </summary>
-        [HideInInspector] public static GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        [HideInInspector] public static GenericEvent<View3D> OnSelectView = new();
         /// <summary>
         /// Event called when changing the index of the timeline of the selected column
         /// </summary>
-        [HideInInspector] public static UnityEvent OnUpdateSelectedColumnTimeLineIndex = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnUpdateSelectedColumnTimeLineIndex = new();
         /// <summary>
         /// Event called when requesting an update in the toolbar
         /// </summary>
-        [HideInInspector] public static UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
-        [HideInInspector] public static UnityEvent OnRequestUpdateInSiteList = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnRequestUpdateInToolbar = new();
+        [HideInInspector] public static UnityEvent OnRequestUpdateInSiteList = new();
         #endregion
 
         #region Private Methods

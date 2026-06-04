@@ -19,7 +19,7 @@ namespace HBP.UI.Informations
         #region Public Methods
         public void Display(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
         {
-            List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new List<data.TrialMatrixGrid.TrialMatrixData>();
+            List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new();
             if (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
                 foreach (var data in dataStructs)

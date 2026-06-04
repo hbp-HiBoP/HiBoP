@@ -20,11 +20,11 @@ namespace HBP.UI.Informations.Graphs
         
         [SerializeField] Column[] m_Columns;
         [SerializeField] ChannelStruct[] m_Channels;
-        Color m_DefaultColor = new Color(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
+        Color m_DefaultColor = new(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
 
         public List<SimpleGraph> Graphs { get; private set; } = new List<SimpleGraph>();
-        private List<GraphsGridContainer> m_Containers = new List<GraphsGridContainer>();
-        private Dictionary<SimpleGraph, ChannelStruct> m_ChannelByGraph = new Dictionary<SimpleGraph, ChannelStruct>();
+        private List<GraphsGridContainer> m_Containers = new();
+        private Dictionary<SimpleGraph, ChannelStruct> m_ChannelByGraph = new();
 
         [SerializeField] private bool m_UseDefaultOrdinateRange;
         public bool UseDefaultOrdinateRange
@@ -42,7 +42,7 @@ namespace HBP.UI.Informations.Graphs
                     {
                         foreach (var graph in Graphs)
                         {
-                            List<float> values = new List<float>();
+                            List<float> values = new();
                             foreach (var curve in graph.Curves)
                             {
                                 values.AddRange(GetValues(curve));
@@ -223,12 +223,12 @@ namespace HBP.UI.Informations.Graphs
 
             Graph.Curve[][] curveByColumnByChannel = GenerateDataCurve(m_Columns, m_Channels);
 
-            List<Vector2> ordinateDisplayRangeByChannel = new List<Vector2>();
+            List<Vector2> ordinateDisplayRangeByChannel = new();
             foreach (var curveByColumn in curveByColumnByChannel)
             {
                 if (m_UseDefaultOrdinateRange)
                 {
-                    List<float> values = new List<float>();
+                    List<float> values = new();
                     foreach (var curve in curveByColumn)
                     {
                         values.AddRange(GetValues(curve));
@@ -287,7 +287,7 @@ namespace HBP.UI.Informations.Graphs
         }
         Graph.Curve[][] GenerateDataCurve(Column[] columns, ChannelStruct[] channels)
         {
-            List<Graph.Curve[]> result = new List<Graph.Curve[]>();
+            List<Graph.Curve[]> result = new();
 
             // Find all visualized blocs and sort by column.
             IEnumerable<Column> epochedDataColumns = columns.Where(c => c.Data is IEEGData || c.Data is CCEPData);
@@ -296,7 +296,7 @@ namespace HBP.UI.Informations.Graphs
 
             foreach (var channel in channels)
             {
-                List<Graph.Curve> curves = new List<Graph.Curve>();
+                List<Graph.Curve> curves = new();
                 foreach (var column in epochedDataColumns)
                 {
                     Graph.Curve curve = GenerateChannelCurve(column, channel, column.Data.Bloc.MainSubBloc);
@@ -316,14 +316,14 @@ namespace HBP.UI.Informations.Graphs
         {
             string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Bloc.Name + "_" + column.Data.Dataset.Name;
             CurveData curveData = GetCurveData(column, subBloc, channel);
-            Graph.Curve result = new Graph.Curve(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            Graph.Curve result = new(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return result;
         }
         Graph.Curve GenerateNonEpochedChannelCurve(Column column, ChannelStruct channel)
         {
             string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Dataset.Name;
             CurveData curveData = GetNonEpochedCurveData(column, channel);
-            Graph.Curve result = new Graph.Curve(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
+            Graph.Curve result = new(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return result;
         }
 
@@ -359,7 +359,7 @@ namespace HBP.UI.Informations.Graphs
                     case Core.Enums.AveragingType.Mean:
                         for (int i = 0; i < values.Length; i++)
                         {
-                            List<float> sum = new List<float>();
+                            List<float> sum = new();
                             for (int l = 0; l < trials.Length; l++)
                             {
                                 sum.Add(channelSubTrials[l].Values[i]);
@@ -371,7 +371,7 @@ namespace HBP.UI.Informations.Graphs
                     case Core.Enums.AveragingType.Median:
                         for (int i = 0; i < values.Length; i++)
                         {
-                            List<float> sum = new List<float>();
+                            List<float> sum = new();
                             for (int l = 0; l < trials.Length; l++)
                             {
                                 sum.Add(channelSubTrials[l].Values[i]);
@@ -445,7 +445,7 @@ namespace HBP.UI.Informations.Graphs
 
         List<float> GetValues(Graph.Curve curve)
         {
-            List<float> result = new List<float>();
+            List<float> result = new();
             if (curve.Data != null)
             {
                 int length = curve.Data.Points.Length;

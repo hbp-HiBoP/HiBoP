@@ -103,7 +103,7 @@ namespace HBP.Core.Data
         #region Public Methods
         protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetMEGErrors());
             return errors;
         }
@@ -114,12 +114,12 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Error> GetMEGErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             return errors;
         }
         protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetMEGWarnings());
             return warnings.Distinct().ToArray();
         }
@@ -130,7 +130,7 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Warning> GetMEGWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             return warnings;
         }
         #endregion

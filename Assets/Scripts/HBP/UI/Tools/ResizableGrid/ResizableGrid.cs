@@ -25,7 +25,7 @@ namespace HBP.UI.Tools.ResizableGrids
             }
         }
 
-        private List<Column> m_Columns = new List<Column>();
+        private List<Column> m_Columns = new();
         /// <summary>
         /// Columns of the layout
         /// </summary>
@@ -37,7 +37,7 @@ namespace HBP.UI.Tools.ResizableGrids
             }
         }
 
-        private List<VerticalHandler> m_VerticalHandlers = new List<VerticalHandler>();
+        private List<VerticalHandler> m_VerticalHandlers = new();
         /// <summary>
         /// Vertical handlers of the layout (to resize the columns)
         /// </summary>
@@ -49,7 +49,7 @@ namespace HBP.UI.Tools.ResizableGrids
             }
         }
         
-        private List<HorizontalHandler> m_HorizontalHandlers = new List<HorizontalHandler>();
+        private List<HorizontalHandler> m_HorizontalHandlers = new();
         /// <summary>
         /// Horizontal handlers of the layout (to resize the views)
         /// </summary>
@@ -64,7 +64,7 @@ namespace HBP.UI.Tools.ResizableGrids
         /// <summary>
         /// Corner handlers of the layout (to resize both the views and the columns)
         /// </summary>
-        private List<List<CornerHandler>> m_CornerHandlers = new List<List<CornerHandler>>();
+        private List<List<CornerHandler>> m_CornerHandlers = new();
 
         /// <summary>
         /// Threshold for the magntic attraction of the handlers
@@ -543,7 +543,7 @@ namespace HBP.UI.Tools.ResizableGrids
             int minID = Mathf.Min(id1, id2);
             int maxID = Mathf.Max(id1, id2);
             
-            List<float> widths = new List<float>();
+            List<float> widths = new();
             for (int i = minID; i <= maxID; i++)
             {
                 if (i == 0)

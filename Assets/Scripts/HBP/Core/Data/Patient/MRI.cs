@@ -138,9 +138,9 @@ namespace HBP.Core.Data
         /// <returns>All MRI in the directory</returns>
         public static MRI[] LoadFromDirectory(string path)
         {
-            List<MRI> MRIs = new List<MRI>();
+            List<MRI> MRIs = new();
             if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return MRIs.ToArray();
-            DirectoryInfo directoryInfo = new DirectoryInfo(path);
+            DirectoryInfo directoryInfo = new(path);
             DirectoryInfo t1mriDirectoy = directoryInfo.GetDirectories("t1mri", SearchOption.TopDirectoryOnly).FirstOrDefault();
             DirectoryInfo ct = directoryInfo.GetDirectories("ct", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
@@ -198,7 +198,7 @@ namespace HBP.Core.Data
             foreach (string extension in EXTENSIONS)
             {
                 string fileName = baseName + extension;
-                FileInfo file = new FileInfo(Path.Combine(directory.FullName, fileName));
+                FileInfo file = new(Path.Combine(directory.FullName, fileName));
                 if (file.Exists)
                 {
                     return file;

@@ -71,7 +71,7 @@ namespace HBP.UI.Main
             if (result == 0)
             {
                 var updatedPatients = await LoadingManager.LoadAsync(UpdateFromDatabaseAsync);
-                StringBuilder stringBuilder = new StringBuilder();
+                StringBuilder stringBuilder = new();
                 if (updatedPatients.Count > 0)
                 {
                     stringBuilder.AppendLine("<b>Updated patients:</b>");

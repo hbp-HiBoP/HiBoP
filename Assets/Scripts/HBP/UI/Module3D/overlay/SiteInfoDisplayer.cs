@@ -220,7 +220,7 @@ namespace HBP.UI.Module3D
         {
             if (siteInfo.Site && siteInfo.Site.Information.Patient.Tags.Count > 0)
             {
-                System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
+                System.Text.StringBuilder stringBuilder = new();
                 foreach (var tag in siteInfo.Site.Information.Patient.Tags)
                 {
                     stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
@@ -241,7 +241,7 @@ namespace HBP.UI.Module3D
         {
             if (siteInfo.Site && siteInfo.Site.Information.SiteData.Tags.Count > 0)
             {
-                System.Text.StringBuilder stringBuilder = new System.Text.StringBuilder();
+                System.Text.StringBuilder stringBuilder = new();
                 foreach (var tag in siteInfo.Site.Information.SiteData.Tags)
                 {
                     stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));

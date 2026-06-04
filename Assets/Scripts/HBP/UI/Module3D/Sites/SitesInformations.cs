@@ -92,7 +92,7 @@ namespace HBP.UI.Module3D
         private void CountLabels()
         {
             string labelsTooltip = "Number of sites with";
-            Dictionary<int, int> countByNumberOfLabels = new Dictionary<int, int>();
+            Dictionary<int, int> countByNumberOfLabels = new();
             foreach (var site in m_SiteList.Objects)
             {
                 if (!countByNumberOfLabels.ContainsKey(site.State.Labels.Count))

@@ -18,8 +18,8 @@ namespace HBP.Core.Tools
 
         public static T LoadFromJson<T>(string path) where T : new()
         {
-            T result = new T();
-            using (StreamReader streamReader = new StreamReader(path))
+            T result = new();
+            using (StreamReader streamReader = new(path))
             {
                 string jsonContent = streamReader.ReadToEnd();
                 result = JsonConvert.DeserializeObject<T>(jsonContent, m_Settings);
@@ -38,7 +38,7 @@ namespace HBP.Core.Tools
             try
             {
                 if (!overwrite) path = path.GenerateUniqueFilePath();
-                using StreamWriter streamWriter = new StreamWriter(path);
+                using StreamWriter streamWriter = new(path);
                 string json = JsonConvert.SerializeObject(instance, m_Settings);
                 streamWriter.Write(json);
                 streamWriter.Close();
@@ -74,10 +74,10 @@ namespace HBP.Core.Tools
         }
         public static T LoadFromXML<T>(string path) where T : new()
         {
-            T result = new T();
-            using (StreamReader streamReader = new StreamReader(path))
+            T result = new();
+            using (StreamReader streamReader = new(path))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                XmlSerializer serializer = new(typeof(T));
                 result = (T)serializer.Deserialize(streamReader.BaseStream);
                 streamReader.Close();
             }
@@ -88,9 +88,9 @@ namespace HBP.Core.Tools
             try
             {
                 if (!overwrite) path = path.GenerateUniqueFilePath();
-                using (StreamWriter streamWriter = new StreamWriter(path))
+                using (StreamWriter streamWriter = new(path))
                 {
-                    XmlSerializer serializer = new XmlSerializer(typeof(T));
+                    XmlSerializer serializer = new(typeof(T));
                     serializer.Serialize(streamWriter, instance);
                     streamWriter.Close();
                 }

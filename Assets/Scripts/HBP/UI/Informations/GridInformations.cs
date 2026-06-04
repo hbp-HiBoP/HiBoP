@@ -26,7 +26,7 @@ namespace HBP.UI.Informations
         public void SetColumns(Column[] columns)
         {
             m_Columns = columns;
-            Vector2 abscissaDisplayRange = new Vector2(float.MaxValue, float.MinValue);
+            Vector2 abscissaDisplayRange = new(float.MaxValue, float.MinValue);
             foreach (var column in m_Columns)
             {
                 if (column.Data is IEEGData || column.Data is CCEPData)

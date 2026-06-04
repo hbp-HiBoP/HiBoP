@@ -133,17 +133,17 @@ namespace HBP.Data.Module3D
             int siteIndex = 0;
             foreach (var patient in m_Scene.Visualization.Patients)
             {
-                GameObject sitePatient = new GameObject(patient.ID);
+                GameObject sitePatient = new(patient.ID);
                 sitePatient.transform.SetParent(m_SitesMeshesParent);
                 sitePatient.transform.localPosition = Vector3.zero;
                 SitesPatientParent.Add(sitePatient);
                 var siteInfos = implantation.GetSitesOfPatient(patient);
                 // Instantiate electrodes containers
-                Dictionary<string, Transform> electrodeTransforms = new Dictionary<string, Transform>();
+                Dictionary<string, Transform> electrodeTransforms = new();
                 var electrodes = siteInfos.Select(s => s.Electrode).Distinct();
                 foreach (var electrode in electrodes)
                 {
-                    GameObject electrodeGameObject = new GameObject(electrode);
+                    GameObject electrodeGameObject = new(electrode);
                     electrodeGameObject.transform.SetParent(sitePatient.transform);
                     electrodeGameObject.transform.localPosition = Vector3.zero;
                     electrodeTransforms.Add(electrode, electrodeGameObject.transform);

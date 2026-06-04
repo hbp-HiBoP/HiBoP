@@ -38,7 +38,7 @@ namespace HBP.UI.Tools
             }
         }
 
-        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new();
         /// <summary>
         /// Children windows referencer.
         /// </summary>

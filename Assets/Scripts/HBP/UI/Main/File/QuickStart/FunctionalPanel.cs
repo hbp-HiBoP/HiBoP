@@ -66,7 +66,7 @@ namespace HBP.UI.Main.QuickStart
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No valid data", "At least one data must be valid in order to continue.").Forget();
                 return false;
             }
-            Dataset dataset = new Dataset("QuickStart", DatabaseManager.Database.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
+            Dataset dataset = new("QuickStart", DatabaseManager.Database.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
             ApplicationState.LoadedProject.SetDatasets(new Dataset[] { dataset });
             return base.OpenNextPanel();
         }

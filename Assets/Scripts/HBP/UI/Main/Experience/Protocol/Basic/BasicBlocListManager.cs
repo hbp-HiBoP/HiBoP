@@ -17,7 +17,7 @@ namespace HBP.UI.Main
         [SerializeField] private GameObject m_BlocItemPrefab;
         [SerializeField] private GameObject m_DropIndicatorPrefab;
 
-        private List<BasicBlocItem> m_BlocItems = new List<BasicBlocItem>();
+        private List<BasicBlocItem> m_BlocItems = new();
         private GameObject m_CurrentDropIndicator;
         private int m_CurrentDropIndex = -1;
         private DraggableItem m_CurrentDraggedItem;
@@ -33,7 +33,7 @@ namespace HBP.UI.Main
         #endregion
 
         #region Events
-        public GenericEvent<Bloc> OnAddBloc = new GenericEvent<Bloc>();
+        public GenericEvent<Bloc> OnAddBloc = new();
         UnityEvent ISelectionCountable.OnSelectionChanged { get; } = new UnityEvent();
         #endregion
 
@@ -212,14 +212,14 @@ namespace HBP.UI.Main
                 Order = m_BlocItems.Count,
                 SubBlocs = new List<SubBloc>()
                 {
-                    new SubBloc()
+                    new()
                     {
                         Name = "Main",
                         Order = 0,
                         Type = Core.Enums.MainSecondaryEnum.Main,
                         Events = new List<Core.Data.Event>()
                         {
-                            new Core.Data.Event(Core.Enums.MainSecondaryEnum.Main)
+                            new(Core.Enums.MainSecondaryEnum.Main)
                             {
                                 Name = "",
                                 CodesString = ""

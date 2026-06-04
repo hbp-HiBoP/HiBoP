@@ -38,8 +38,8 @@ namespace HBP.Data.Tools
         }
         private static List<Token> StringToTokens(string expression)
         {
-            List<Token> tokens = new List<Token>();
-            StringReader stringReader = new StringReader(expression);
+            List<Token> tokens = new();
+            StringReader stringReader = new(expression);
 
             Token token;
             do
@@ -51,7 +51,7 @@ namespace HBP.Data.Tools
                 }
             } while (token.Type != TokenType.EndOfExpression);
 
-            List<Token> tokensWithSafeParentheses = new List<Token>();
+            List<Token> tokensWithSafeParentheses = new();
             bool notWithoutParentheses = false;
             for (int i = 0; i < tokens.Count; ++i)
             {
@@ -158,8 +158,8 @@ namespace HBP.Data.Tools
         }
         private static List<Token> TransformToPolishNotation(List<Token> tokens)
         {
-            Queue<Token> outputQueue = new Queue<Token>();
-            Stack<Token> stack = new Stack<Token>();
+            Queue<Token> outputQueue = new();
+            Stack<Token> stack = new();
 
             foreach (var token in tokens)
             {

@@ -46,7 +46,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Event called when requesting an update in the sites list
         /// </summary>
-        public UnityEvent OnToolApplied = new UnityEvent();
+        public UnityEvent OnToolApplied = new();
         #endregion
 
         #region Public Methods

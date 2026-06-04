@@ -30,7 +30,7 @@ namespace HBP.UI.Toolbar
             string savePath = await FileBrowser.GetSavedFileNameAsync(new string[] { "roi" }, "Save ROI to");
             if (!string.IsNullOrEmpty(savePath))
             {
-                Core.Data.RegionOfInterest ROI = new Core.Data.RegionOfInterest(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
+                Core.Data.RegionOfInterest ROI = new(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
                 ClassLoaderSaver.SaveToJSon(ROI, savePath, true);
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>").Forget();
             }

@@ -152,22 +152,22 @@ namespace HBP.UI.Tools
                 }
                 eventTrigger.hideFlags = HideFlags.HideInInspector;
 
-                EventTrigger.Entry pointerEnter = new EventTrigger.Entry();
+                EventTrigger.Entry pointerEnter = new();
                 pointerEnter.eventID = EventTriggerType.PointerEnter;
                 pointerEnter.callback.AddListener((data) => OnPointerEnterDelegate((PointerEventData)data));
                 eventTrigger.triggers.Add(pointerEnter);
 
-                EventTrigger.Entry pointerExit = new EventTrigger.Entry();
+                EventTrigger.Entry pointerExit = new();
                 pointerExit.eventID = EventTriggerType.PointerExit;
                 pointerExit.callback.AddListener((data) => OnPointerExitDelegate((PointerEventData)data));
                 eventTrigger.triggers.Add(pointerExit);
 
-                EventTrigger.Entry drag = new EventTrigger.Entry();
+                EventTrigger.Entry drag = new();
                 drag.eventID = EventTriggerType.Drag;
                 drag.callback.AddListener((data) => OnDragDelegate((PointerEventData)data));
                 eventTrigger.triggers.Add(drag);
 
-                EventTrigger.Entry endDrag = new EventTrigger.Entry();
+                EventTrigger.Entry endDrag = new();
                 endDrag.eventID = EventTriggerType.EndDrag;
                 endDrag.callback.AddListener((data) => OnEndDragDelegate((PointerEventData)data));
                 eventTrigger.triggers.Add(endDrag);
@@ -206,11 +206,11 @@ namespace HBP.UI.Tools
         void OnDragDelegate(PointerEventData data)
         {
             float scale = m_CanvasScalerHandler.Scale;
-            Vector2 scaledDataPosition = new Vector2(scale * data.position.x, scale * data.position.y);
+            Vector2 scaledDataPosition = new(scale * data.position.x, scale * data.position.y);
             RectTransform rectTransform = (RectTransform)transform;
-            Vector2 scaledRectTransformPosition = new Vector2(scale * rectTransform.position.x, scale * rectTransform.position.y);
+            Vector2 scaledRectTransformPosition = new(scale * rectTransform.position.x, scale * rectTransform.position.y);
             Vector2 localMousePosition = scaledDataPosition - (scaledRectTransformPosition - Vector2.Scale(rectTransform.pivot, rectTransform.rect.size));
-            Vector2 ratio = new Vector2(localMousePosition.x / rectTransform.rect.width, localMousePosition.y / rectTransform.rect.height);
+            Vector2 ratio = new(localMousePosition.x / rectTransform.rect.width, localMousePosition.y / rectTransform.rect.height);
             switch (Direction)
             {
                 case DirectionType.BottomToTop: Ratio = ratio.y; break;

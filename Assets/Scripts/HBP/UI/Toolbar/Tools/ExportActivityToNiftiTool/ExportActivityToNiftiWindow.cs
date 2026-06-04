@@ -19,7 +19,7 @@ namespace HBP.UI.Toolbar
         #region Properties
         [SerializeField] private GameObject m_ColumnItemPrefab;
         [SerializeField] private Transform m_ColumnItemContainer;
-        private List<ExportActivityColumnItem> m_ColumnItems = new List<ExportActivityColumnItem>();
+        private List<ExportActivityColumnItem> m_ColumnItems = new();
 
         [SerializeField] private Toggle m_NiiToggle;
         [SerializeField] private Toggle m_NiiGzToggle;

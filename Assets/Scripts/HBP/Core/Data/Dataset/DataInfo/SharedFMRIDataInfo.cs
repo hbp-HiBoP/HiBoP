@@ -129,13 +129,13 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Error> GetFMRIErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (!string.IsNullOrEmpty(MaskDataContainer.File)) errors.AddRange(MaskDataContainer.GetErrors());
             return errors;
         }
         protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetFMRIWarnings());
             return warnings;
         }
@@ -146,7 +146,7 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Warning> GetFMRIWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             if (!string.IsNullOrEmpty(MaskDataContainer.File)) warnings.AddRange(MaskDataContainer.GetWarnings());
             return warnings;
         }

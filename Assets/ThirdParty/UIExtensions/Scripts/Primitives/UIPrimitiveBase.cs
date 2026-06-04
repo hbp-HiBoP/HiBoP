@@ -262,7 +262,7 @@ namespace UnityEngine.UI.Extensions
 
             // Normalize local coordinates.
             Rect spriteRect = sprite.textureRect;
-            Vector2 normalized = new Vector2(local.x / spriteRect.width, local.y / spriteRect.height);
+            Vector2 normalized = new(local.x / spriteRect.width, local.y / spriteRect.height);
 
             // Convert to texture space.
             float x = Mathf.Lerp(spriteRect.x, spriteRect.xMax, normalized.x) / sprite.texture.width;

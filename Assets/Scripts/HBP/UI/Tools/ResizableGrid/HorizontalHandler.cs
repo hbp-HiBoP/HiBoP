@@ -84,7 +84,7 @@ namespace HBP.UI.Tools.ResizableGrids
         /// <param name="data">Data of the pointer when the event occurs</param>
         public override void OnDrag(PointerEventData data)
         {
-            Vector2 localPosition = new Vector2(0, 0);
+            Vector2 localPosition = new(0, 0);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_ResizableGrid.RectTransform, data.position, null, out localPosition);
             Position = (localPosition.y / m_ResizableGrid.RectTransform.rect.height) + 0.5f;
             OnChangePosition.Invoke();

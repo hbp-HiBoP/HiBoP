@@ -57,8 +57,8 @@ namespace HBP.UI.Tools
         {
             if(isActiveAndEnabled)
             {
-                Vector2 resize = new Vector2(GetLimits().xMin - Input.mousePosition.x,0);
-                Vector2 sides = new Vector2(-1, 0);
+                Vector2 resize = new(GetLimits().xMin - Input.mousePosition.x,0);
+                Vector2 sides = new(-1, 0);
                 Resize(resize,sides);
             }
         }
@@ -66,8 +66,8 @@ namespace HBP.UI.Tools
         {
             if (isActiveAndEnabled)
             {
-                Vector2 resize = new Vector2(Input.mousePosition.x - GetLimits().xMax, 0);
-                Vector2 sides = new Vector2(1, 0);
+                Vector2 resize = new(Input.mousePosition.x - GetLimits().xMax, 0);
+                Vector2 sides = new(1, 0);
                 Resize(resize, sides);
             }
         }
@@ -75,8 +75,8 @@ namespace HBP.UI.Tools
         {
             if (isActiveAndEnabled)
             {
-                Vector2 resize = new Vector2(0, Input.mousePosition.y - GetLimits().yMax);
-                Vector2 sides = new Vector2(0, 1);
+                Vector2 resize = new(0, Input.mousePosition.y - GetLimits().yMax);
+                Vector2 sides = new(0, 1);
                 Resize(resize, sides);
             }
         }
@@ -84,8 +84,8 @@ namespace HBP.UI.Tools
         {
             if (isActiveAndEnabled)
             {
-                Vector2 resize = new Vector2(0, GetLimits().yMin - Input.mousePosition.y);
-                Vector2 sides = new Vector2(0, -1);
+                Vector2 resize = new(0, GetLimits().yMin - Input.mousePosition.y);
+                Vector2 sides = new(0, -1);
                 Resize(resize, sides);
             }
         }
@@ -95,8 +95,8 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new Vector2(limits.xMin - Input.mousePosition.x, limits.yMin - Input.mousePosition.y);
-                Vector2 sides = new Vector2(-1, -1);
+                Vector2 resize = new(limits.xMin - Input.mousePosition.x, limits.yMin - Input.mousePosition.y);
+                Vector2 sides = new(-1, -1);
                 Resize(resize, sides);
             }
         }
@@ -105,8 +105,8 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new Vector2(Input.mousePosition.x - limits.xMax, Input.mousePosition.y - limits.yMax);
-                Vector2 sides = new Vector2(1, 1);
+                Vector2 resize = new(Input.mousePosition.x - limits.xMax, Input.mousePosition.y - limits.yMax);
+                Vector2 sides = new(1, 1);
                 Resize(resize, sides);
             }
         }
@@ -115,8 +115,8 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new Vector2(limits.xMin - Input.mousePosition.x, Input.mousePosition.y - limits.yMax);
-                Vector2 sides = new Vector2(-1, 1);
+                Vector2 resize = new(limits.xMin - Input.mousePosition.x, Input.mousePosition.y - limits.yMax);
+                Vector2 sides = new(-1, 1);
                 Resize(resize, sides);
             }
         }
@@ -125,8 +125,8 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new Vector2(Input.mousePosition.x - limits.xMax, limits.yMin - Input.mousePosition.y);
-                Vector2 sides = new Vector2(1, -1);
+                Vector2 resize = new(Input.mousePosition.x - limits.xMax, limits.yMin - Input.mousePosition.y);
+                Vector2 sides = new(1, -1);
                 Resize(resize, sides);
             }
         }
@@ -143,7 +143,7 @@ namespace HBP.UI.Tools
 
             if(resize.x <= 0) w = Mathf.Sign(resize.x) * Mathf.Min(m_RectTransform.rect.width - m_LayoutElement.minWidth, -resize.x);
             if (resize.y <= 0) h = Mathf.Sign(resize.y) * Mathf.Min(m_RectTransform.rect.height - m_LayoutElement.minHeight, -resize.y);
-            Vector2 realResize = new Vector2(w,h);
+            Vector2 realResize = new(w,h);
             m_RectTransform.sizeDelta += realResize;
             float xPivot = 0, yPivot = 0;
             if (sides.x == 1) xPivot = m_RectTransform.pivot.x;

@@ -67,5 +67,8 @@
         "*.sln": "*.csproj"
     },
     "dotnet.defaultSolution": "HiBoP.slnx",
-    "dotnet.codeLens.enableReferencesCodeLens": false
+    "dotnet.codeLens.enableReferencesCodeLens": false,
+    "gitlens.codeLens.enabled": false,
+    "gitlens.codeLens.authors.enabled": true,
+    "vstuc.enableCodeModel": false
 }

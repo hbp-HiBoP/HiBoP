@@ -109,7 +109,7 @@ namespace HBP.Core.Object3D
             m_TransparentBrain.SetInt("_CutCount", cuts.Count);
             if (cuts.Count > 0)
             {
-                List<Vector4> cutPoints = new List<Vector4>(20);
+                List<Vector4> cutPoints = new(20);
                 for (int i = 0; i < 20; ++i)
                 {
                     if (i < cuts.Count)
@@ -124,7 +124,7 @@ namespace HBP.Core.Object3D
                 }
                 m_Brain.SetVectorArray("_CutPoints", cutPoints);
                 m_TransparentBrain.SetVectorArray("_CutPoints", cutPoints);
-                List<Vector4> cutNormals = new List<Vector4>(20);
+                List<Vector4> cutNormals = new(20);
                 for (int i = 0; i < 20; ++i)
                 {
                     if (i < cuts.Count)
@@ -171,7 +171,7 @@ namespace HBP.Core.Object3D
         public void SetAlpha(float alpha)
         {
             Alpha = alpha;
-            Color color = new Color(1, 1, 1, alpha);
+            Color color = new(1, 1, 1, alpha);
             m_TransparentBrain.SetColor("_Color", color);
             m_TransparentCut.SetColor("_Color", color);
         }

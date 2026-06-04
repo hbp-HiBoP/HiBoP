@@ -20,7 +20,7 @@ namespace HBP.UI.Tools
                 if (value) transform.SetAsLastSibling();
             }
         }
-        public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
+        public GenericEvent<bool> OnChangeValue = new();
 
         [SerializeField]
         private Graphic m_TargetGraphic;

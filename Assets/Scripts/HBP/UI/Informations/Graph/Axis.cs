@@ -167,8 +167,8 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] float[] m_Values;
-        Dictionary<float, MajorTickMark> m_TickMarkByValue = new Dictionary<float, MajorTickMark>();
-        [SerializeField] List<MajorTickMark> m_TickMarks = new List<MajorTickMark>();
+        Dictionary<float, MajorTickMark> m_TickMarkByValue = new();
+        [SerializeField] List<MajorTickMark> m_TickMarks = new();
         [SerializeField] MajorTickMark m_IndependantTickMark;
         #endregion
 
@@ -281,7 +281,7 @@ namespace HBP.UI.Informations.Graphs
                 }
                 float step = normalizedStep * coef;
 
-                List<float> values = new List<float>();
+                List<float> values = new();
                 int division = Mathf.FloorToInt(m_DisplayRange.x / step);
                 float rest = m_DisplayRange.x % step;
                 if (rest != 0) division++;

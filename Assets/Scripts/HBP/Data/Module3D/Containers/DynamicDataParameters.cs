@@ -66,11 +66,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when updating the span values (min, mid or max)
         /// </summary>
-        public UnityEvent OnUpdateSpanValues = new UnityEvent();
+        public UnityEvent OnUpdateSpanValues = new();
         /// <summary>
         /// Event called when updating the maximum influence
         /// </summary>
-        public UnityEvent OnUpdateInfluenceDistance = new UnityEvent();
+        public UnityEvent OnUpdateInfluenceDistance = new();
         #endregion
 
         #region Public Methods

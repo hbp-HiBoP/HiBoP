@@ -22,7 +22,7 @@ namespace HBP.UI.Main
             }
         }
 
-        private List<FilterToggle> m_Toggles = new List<FilterToggle>();
+        private List<FilterToggle> m_Toggles = new();
 
         [SerializeField] Dropdown m_LogicDropdown;
         [SerializeField] GameObject m_ProtocolFilterTogglePrefab;

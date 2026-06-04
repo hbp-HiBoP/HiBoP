@@ -28,7 +28,7 @@ namespace HBP.Core.Data
             EventOccurence[] MainSubBlocMainEventOccurences = occurencesByEvent[bloc.MainSubBloc.MainEvent].GetOccurences();
 
             // Initialize loop.
-            List<Trial> trials = new List<Trial>(MainSubBlocMainEventOccurences.Length);
+            List<Trial> trials = new(MainSubBlocMainEventOccurences.Length);
             int startIndex, endIndex;
 
             // All main event position but the last one.

@@ -242,11 +242,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when selecting this view
         /// </summary>
-        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelect = new();
         /// <summary>
         /// Event called when the camera is moved (rotation, strafe, zoom)
         /// </summary>
-        [HideInInspector] public UnityEvent OnMoveView = new UnityEvent();
+        [HideInInspector] public UnityEvent OnMoveView = new();
         #endregion
 
         #region Public Methods
@@ -374,7 +374,7 @@ namespace HBP.Data.Module3D
             float currentAspect = m_Camera3D.Camera.aspect;
             Color currentBackground = m_Camera3D.Camera.backgroundColor;
             // Get texture
-            RenderTexture screenshotRenderTexture = new RenderTexture(width, height, 24);
+            RenderTexture screenshotRenderTexture = new(width, height, 24);
             screenshotRenderTexture.antiAliasing = 1;
             m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
             m_Camera3D.Camera.aspect = (float)width / height;

@@ -255,14 +255,14 @@ namespace HBP.Core.Data
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
             dataInfos = new DataInfo[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo directory = new(databaseReference.Path);
             if (!directory.Exists) return;
             LocalizerDatabaseParameters parameters = databaseReference.Parameters as LocalizerDatabaseParameters;
             if (parameters == null) return;
 
             static string GetDownsamplingString(DirectoryInfo dir)
             {
-                Regex posRegex = new Regex(dir.Name + @"_(ds[0-9]+)?\.pos$");
+                Regex posRegex = new(dir.Name + @"_(ds[0-9]+)?\.pos$");
                 FileInfo[] posFiles = dir.GetFiles("*.pos", SearchOption.AllDirectories);
                 string ds = "";
                 foreach (var file in posFiles)
@@ -299,8 +299,8 @@ namespace HBP.Core.Data
                             {
                                 if (parameters.IncludeRaw)
                                 {
-                                    FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
-                                    FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
+                                    FileInfo rawEEG = new(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
+                                    FileInfo rawPos = new(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                     if (rawEEG.Exists && rawPos.Exists)
                                     {
                                         var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
@@ -312,14 +312,14 @@ namespace HBP.Core.Data
                                 string ds = GetDownsamplingString(subdir);
                                 if (!string.IsNullOrEmpty(ds))
                                 {
-                                    FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
+                                    FileInfo posDS = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
                                     if (posDS.Exists)
                                     {
                                         foreach (var freq in parameters.Frequencies)
                                         {
                                             foreach (var ts in parameters.TemporalSmoothings)
                                             {
-                                                FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
+                                                FileInfo eeg = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
                                                     var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
@@ -344,7 +344,7 @@ namespace HBP.Core.Data
 
             dataInfos = new DataInfo[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo databaseDirectoryInfo = new(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             List<DataInfo> dataInfoList = new();

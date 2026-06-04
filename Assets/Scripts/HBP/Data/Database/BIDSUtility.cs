@@ -578,7 +578,7 @@ namespace HBP.Data.BIDS
                 {
                     throw new Exception("Invalid data container type");
                 }
-                Core.DLL.EEG.File file = new Core.DLL.EEG.File(type, true, files);
+                Core.DLL.EEG.File file = new(type, true, files);
 
                 // Create files
                 if (dataInfo.Name.ToLower() == "raw")

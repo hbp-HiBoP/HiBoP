@@ -50,7 +50,7 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Events
-        public UnityEvent OnBeforeDisplayTooltip = new UnityEvent();
+        public UnityEvent OnBeforeDisplayTooltip = new();
         #endregion
 
         #region Private Methods

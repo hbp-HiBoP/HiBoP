@@ -41,7 +41,7 @@ namespace HBP.Data.Informations.TrialMatrix
         #region Private Methods
         Vector2 CalculateLimits(IEnumerable<Bloc> blocs)
         {
-            List<float> values = new List<float>();
+            List<float> values = new();
             foreach (var bloc in blocs)
             {
                 foreach(var channelBloc in bloc.ChannelBlocs)

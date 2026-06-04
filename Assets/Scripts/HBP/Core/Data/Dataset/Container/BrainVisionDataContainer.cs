@@ -63,14 +63,14 @@ namespace HBP.Core.Data.Container
         #region Public Methods
         public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (string.IsNullOrEmpty(Header))
             {
                 errors.Add(new RequiredFieldEmptyError("BrainVision header file path is empty"));
             }
             else
             {
-                FileInfo headerFile = new FileInfo(Header);
+                FileInfo headerFile = new(Header);
                 if (!headerFile.Exists)
                 {
                     errors.Add(new FileDoesNotExistError("BrainVision header file does not exist"));
@@ -88,7 +88,7 @@ namespace HBP.Core.Data.Container
         }
         public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }

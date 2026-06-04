@@ -126,7 +126,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 return Blocs.FirstOrDefault(b => b.IsHovered);
             }
         }
-        List<Bloc> m_Blocs = new List<Bloc>();
+        List<Bloc> m_Blocs = new();
         public ReadOnlyCollection<Bloc> Blocs
         {
             get
@@ -147,7 +147,7 @@ namespace HBP.UI.Informations.TrialMatrix
         [SerializeField] GameObject m_BlocPrefab;
         [SerializeField] RectTransform m_BlocContainer;
 
-        List<TimeLegend> m_TimeLegends = new List<TimeLegend>();
+        List<TimeLegend> m_TimeLegends = new();
         [SerializeField] GameObject m_TimeLegendPrefab;
         [SerializeField] RectTransform m_TimeLegendContainer;
 
@@ -166,7 +166,7 @@ namespace HBP.UI.Informations.TrialMatrix
 
             foreach (var channel in data.ChannelStructs)
             {
-                List< Core.Tools.TimeWindow > limits = new List<Core.Tools.TimeWindow>();
+                List< Core.Tools.TimeWindow > limits = new();
                 foreach (var tuple in data.SubBlocsAndWindowByColumn)
                 {
                     limits.Add(tuple.Item2);

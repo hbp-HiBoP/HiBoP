@@ -30,7 +30,7 @@ namespace HBP.UI.Informations.Graphs
         }
         public void OnEndDrag(PointerEventData eventData)
         {
-            System.Collections.Generic.List<RaycastResult> results = new System.Collections.Generic.List<RaycastResult>();
+            System.Collections.Generic.List<RaycastResult> results = new();
             EventSystem.current.RaycastAll(eventData, results);
             bool foundContainer = false;
             foreach (RaycastResult result in results)

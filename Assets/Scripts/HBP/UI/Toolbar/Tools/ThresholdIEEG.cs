@@ -48,9 +48,9 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Textures of the histograms (iEEG: one per column; CCEP: one per column per selected source))
         /// </summary>
-        private Dictionary<string, Texture2D> m_Histograms = new Dictionary<string, Texture2D>();
+        private Dictionary<string, Texture2D> m_Histograms = new();
 
-        private Queue<string> m_HistogramsToBeDestroyed = new Queue<string>();
+        private Queue<string> m_HistogramsToBeDestroyed = new();
 
         /// <summary>
         /// Used to display the current histogram
@@ -106,7 +106,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Event called when changing at least one of the three threshold values
         /// </summary>
-        public GenericEvent<float, float, float> OnChangeValues = new GenericEvent<float, float, float>();
+        public GenericEvent<float, float, float> OnChangeValues = new();
         #endregion
 
         #region Private Methods

@@ -74,7 +74,7 @@ namespace HBP.UI.Tools.Lists
         [SerializeField] protected Toggle m_SelectAllToggle;
         private bool m_RequestSelectAllUpdate = false;
 
-        protected Dictionary<T, bool> m_SelectedStateByObject = new Dictionary<T, bool>();
+        protected Dictionary<T, bool> m_SelectedStateByObject = new();
         /// <summary>
         /// Objects selected in the list.
         /// </summary>

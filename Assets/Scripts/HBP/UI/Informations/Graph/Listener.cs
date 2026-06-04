@@ -88,7 +88,7 @@ namespace HBP.UI.Informations.Graphs
         {
             Vector2 mouseActualPosition = Input.mousePosition;
             Vector2 displacement = mouseActualPosition - m_MouseLastPosition;
-            Vector2 proportionnalDisplacement = new Vector2(displacement.x / m_RectTransform.rect.width, displacement.y / m_RectTransform.rect.height);
+            Vector2 proportionnalDisplacement = new(displacement.x / m_RectTransform.rect.width, displacement.y / m_RectTransform.rect.height);
             Move(proportionnalDisplacement);
             m_MouseLastPosition = mouseActualPosition;
         }

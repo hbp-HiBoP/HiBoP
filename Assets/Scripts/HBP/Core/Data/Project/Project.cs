@@ -55,7 +55,7 @@ namespace HBP.Core.Data
         /// </summary>
         public ProjectPreferences Preferences { get; set; }
 
-        List<Patient> m_Patients = new List<Patient>();
+        List<Patient> m_Patients = new();
         /// <summary>
         /// Patients of the project.
         /// </summary>
@@ -64,7 +64,7 @@ namespace HBP.Core.Data
             get { return new ReadOnlyCollection<Patient>(m_Patients); }
         }
 
-        List<Group> m_Groups = new List<Group>();
+        List<Group> m_Groups = new();
         /// <summary>
         /// Patient groups of the project.
         /// </summary>
@@ -73,7 +73,7 @@ namespace HBP.Core.Data
             get { return new ReadOnlyCollection<Group>(m_Groups); }
         }
 
-        List<Dataset> m_Datasets = new List<Dataset>();
+        List<Dataset> m_Datasets = new();
         /// <summary>
         /// Datasets of the project.
         /// </summary>
@@ -82,7 +82,7 @@ namespace HBP.Core.Data
             get { return new ReadOnlyCollection<Dataset>(m_Datasets); }
         }
 
-        List<Visualization> m_Visualizations = new List<Visualization>();
+        List<Visualization> m_Visualizations = new();
         /// <summary>
         /// Visualizations of the project.
         /// </summary>
@@ -336,7 +336,7 @@ namespace HBP.Core.Data
         {
             if (!string.IsNullOrEmpty(path))
             {
-                DirectoryInfo directory = new DirectoryInfo(path);
+                DirectoryInfo directory = new(path);
                 if (directory.Exists)
                 {
                     FileInfo[] files = directory.GetFiles("*" + EXTENSION);
@@ -350,7 +350,7 @@ namespace HBP.Core.Data
             IEnumerable<string> projectsDirectories = GetProject(path);
             foreach (var directoryPaths in projectsDirectories)
             {
-                ProjectInfo projectInfo = new ProjectInfo(directoryPaths);
+                ProjectInfo projectInfo = new(directoryPaths);
             }
             return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
         }
@@ -358,11 +358,11 @@ namespace HBP.Core.Data
         {
             return await UniTask.RunOnThreadPool(() =>
             {
-                Dictionary<string, List<Tuple<BaseData, string>>> dataByID = new Dictionary<string, List<Tuple<BaseData, string>>>();
+                Dictionary<string, List<Tuple<BaseData, string>>> dataByID = new();
                 void addToDict(BaseData data, string name)
                 {
                     if (dataByID.ContainsKey(data.ID)) dataByID[data.ID].Add(new Tuple<BaseData, string>(data, name));
-                    else dataByID.Add(data.ID, new List<Tuple<BaseData, string>>(new Tuple<BaseData, string>[] { new Tuple<BaseData, string>(data, name) }));
+                    else dataByID.Add(data.ID, new List<Tuple<BaseData, string>>(new Tuple<BaseData, string>[] { new(data, name) }));
                 }
                 string getName(INameable data)
                 {
@@ -417,7 +417,7 @@ namespace HBP.Core.Data
                     foreach (var megColumn in visualization.MEGColumns) addToDict(megColumn.MEGConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(megColumn), getType(megColumn.MEGConfiguration)));
                 }
                 // Check unicity and return error string
-                Dictionary<string, List<Tuple<BaseData, string>>> problematicData = new Dictionary<string, List<Tuple<BaseData, string>>>();
+                Dictionary<string, List<Tuple<BaseData, string>>> problematicData = new();
                 foreach (var kv in dataByID) if (kv.Value.Count > 1) problematicData.Add(kv.Key, kv.Value);
                 return problematicData;
             });
@@ -450,7 +450,7 @@ namespace HBP.Core.Data
                 zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
                 if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
                 if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
-                DirectoryInfo projectDirectory = new DirectoryInfo(ApplicationState.ExtractProjectFolder);
+                DirectoryInfo projectDirectory = new(ApplicationState.ExtractProjectFolder);
 
                 Name = projectInfo.Name;
 
@@ -588,7 +588,7 @@ namespace HBP.Core.Data
         }
         private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            List<Patient> patients = new List<Patient>();
+            List<Patient> patients = new();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
@@ -611,7 +611,7 @@ namespace HBP.Core.Data
         }
         private async UniTask LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            List<Group> groups = new List<Group>();
+            List<Group> groups = new();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = groupFiles.Select(file => (Func<UniTask<Group>>)(async () =>
@@ -632,7 +632,7 @@ namespace HBP.Core.Data
         }
         private async UniTask LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            List<Dataset> datasets = new List<Dataset>();
+            List<Dataset> datasets = new();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = datasetFiles.Select(file => (Func<UniTask<Dataset>>)(async () =>
@@ -654,7 +654,7 @@ namespace HBP.Core.Data
         private async UniTask LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
-            List<Visualization> visualizations = new List<Visualization>();
+            List<Visualization> visualizations = new();
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = visualizationFiles.Select(file => (Func<UniTask<Visualization>>)(async () =>
             {
@@ -831,7 +831,7 @@ namespace HBP.Core.Data
                         DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(localizersDirectory.FullName, dataset.Name));
                         foreach (var data in dataset.Data)
                         {
-                            DirectoryInfo dataInfoDirectory = new DirectoryInfo(Path.Combine(datasetDirectory.FullName, data.Name));
+                            DirectoryInfo dataInfoDirectory = new(Path.Combine(datasetDirectory.FullName, data.Name));
                             if (!dataInfoDirectory.Exists) dataInfoDirectory = Directory.CreateDirectory(dataInfoDirectory.FullName);
                             data.DataContainer.CopyDataToDirectory(dataInfoDirectory, projectDirectory.FullName, oldProjectDirectory);
                         }

@@ -134,8 +134,8 @@ namespace HBP.Core.Tools
         public static Type[] Set(this Dropdown dropdown, Type parentType)
         {
             Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).ToArray();
-            List<Type> displayedType = new List<Type>();
-            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+            List<Type> displayedType = new();
+            List<Dropdown.OptionData> options = new();
             foreach (var type in types)
             {
                 object[] displayNameAttributes = type.GetCustomAttributes(typeof(DisplayNameAttribute), false);
@@ -164,7 +164,7 @@ namespace HBP.Core.Tools
                 .OrderBy(orderMethod)
                 .ToArray();
 
-            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+            List<Dropdown.OptionData> options = new();
             foreach (var type in types)
             {
                 object[] displayNameAttributes = type.GetCustomAttributes(typeof(DisplayNameAttribute), false);
@@ -201,7 +201,7 @@ namespace HBP.Core.Tools
                 .OrderBy(orderMethod)
                 .ToArray();
 
-            List<Dropdown.OptionData> options = new List<Dropdown.OptionData>();
+            List<Dropdown.OptionData> options = new();
             foreach (var type in types)
             {
                 object[] displayNameAttributes = type.GetCustomAttributes(typeof(DisplayNameAttribute), false);
@@ -250,8 +250,8 @@ namespace HBP.Core.Tools
     {
         public static string GetFullName(this Transform transform)
         {
-            StringBuilder stringBuilder = new StringBuilder();
-            List<string> names = new List<string>();
+            StringBuilder stringBuilder = new();
+            List<string> names = new();
             Transform tr = transform;
             while (tr != null)
             {
@@ -273,7 +273,7 @@ namespace HBP.Core.Tools
         public static Rect ToScreenSpace(this RectTransform rectTransform)
         {
             Vector2 size = Vector2.Scale(rectTransform.rect.size, rectTransform.lossyScale);
-            Rect rect = new Rect(rectTransform.position.x, rectTransform.position.y, size.x, size.y);
+            Rect rect = new(rectTransform.position.x, rectTransform.position.y, size.x, size.y);
             rect.x -= (rectTransform.pivot.x * size.x);
             rect.y -= (rectTransform.pivot.y * size.y);
             return rect;
@@ -319,7 +319,7 @@ namespace HBP.Core.Tools
             RenderTexture.active = renderTexture;
 
             // Create a new Texture2D and read the RenderTexture image into it
-            Texture2D texture = new Texture2D(renderTexture.width, renderTexture.height);
+            Texture2D texture = new(renderTexture.width, renderTexture.height);
             texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
 
             // Restores previously active render texture
@@ -355,7 +355,7 @@ namespace HBP.Core.Tools
             texture = new Texture2D(0, 0);
             if (!string.IsNullOrEmpty(path))
             {
-                FileInfo fileInfo = new FileInfo(path);
+                FileInfo fileInfo = new(path);
                 if (fileInfo.Exists && EXTENSIONS.Contains(fileInfo.Extension[1..]))
                 {
                     byte[] bytes = File.ReadAllBytes(path);
@@ -382,7 +382,7 @@ namespace HBP.Core.Tools
         {
             if (filePath != string.Empty)
             {
-                FileInfo l_fileInfo = new FileInfo(filePath);
+                FileInfo l_fileInfo = new(filePath);
                 if (l_fileInfo.Exists && (l_fileInfo.Extension == ".png" || l_fileInfo.Extension == ".jpg"))
                 {
                     return texture.LoadImage(File.ReadAllBytes(filePath));
@@ -399,7 +399,7 @@ namespace HBP.Core.Tools
         }
         public static void Rotate(ref Texture2D textureToRotate)
         {
-            Texture2D l_texture = new Texture2D(textureToRotate.height, textureToRotate.width);
+            Texture2D l_texture = new(textureToRotate.height, textureToRotate.width);
             for (int y = 0; y < l_texture.height; y++)
             {
                 for (int x = 0; x < l_texture.width; x++)
@@ -412,7 +412,7 @@ namespace HBP.Core.Tools
         }
         public static Texture2D RotateTexture(this Texture2D textureToRotate)
         {
-            Texture2D l_texture = new Texture2D(textureToRotate.height, textureToRotate.width);
+            Texture2D l_texture = new(textureToRotate.height, textureToRotate.width);
             for (int y = 0; y < l_texture.height; y++)
             {
                 for (int x = 0; x < l_texture.width; x++)
@@ -425,7 +425,7 @@ namespace HBP.Core.Tools
         }
         public static Texture2D ScreenRectToTexture(Rect rect)
         {
-            Texture2D texture = new Texture2D((int)rect.width, (int)rect.height, TextureFormat.RGB24, false);
+            Texture2D texture = new((int)rect.width, (int)rect.height, TextureFormat.RGB24, false);
             texture.ReadPixels(rect, 0, 0);
             texture.Apply();
             return texture;
@@ -437,7 +437,7 @@ namespace HBP.Core.Tools
         }
         public static Texture2D Generate(int width = 1, int height = 1, float mipMapBias = -10f, int anisoLvl = 9, FilterMode filter = FilterMode.Trilinear, TextureWrapMode wrap = TextureWrapMode.Clamp)
         {
-            Texture2D tex = new Texture2D(width, height)
+            Texture2D tex = new(width, height)
             {
                 wrapMode = wrap,
                 filterMode = filter
@@ -457,7 +457,7 @@ namespace HBP.Core.Tools
         public static Texture2D ToTexture2D(string base64)
         {
             byte[] bytes = Convert.FromBase64String(base64);
-            Texture2D texture = new Texture2D(1, 1);
+            Texture2D texture = new(1, 1);
             texture.LoadImage(bytes);
             return texture;
         }
@@ -471,7 +471,7 @@ namespace HBP.Core.Tools
             int newWidth = (srcWidth - 1) * factor + 1;
             int newHeight = (srcHeight - 1) * factor + 1;
 
-            Texture2D result = new Texture2D(newWidth, newHeight, source.format, false);
+            Texture2D result = new(newWidth, newHeight, source.format, false);
 
             Color[,] srcColors = new Color[srcWidth, srcHeight];
             for (int y = 0; y < srcHeight; y++)

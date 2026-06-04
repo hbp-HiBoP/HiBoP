@@ -90,7 +90,7 @@ namespace HBP.UI.Informations.Graphs
             Vector2 ordinateDisplayRange = Graph.OrdinateDisplayRange;
             Vector2 abscissaDisplayRange = Graph.AbscissaDisplayRange;
 
-            Vector2 values = new Vector2(abscissaDisplayRange.x + ratioPosition.x * (abscissaDisplayRange.y - abscissaDisplayRange.x), ordinateDisplayRange.x + ratioPosition.y * (ordinateDisplayRange.y - ordinateDisplayRange.x));
+            Vector2 values = new(abscissaDisplayRange.x + ratioPosition.x * (abscissaDisplayRange.y - abscissaDisplayRange.x), ordinateDisplayRange.x + ratioPosition.y * (ordinateDisplayRange.y - ordinateDisplayRange.x));
             m_Text.text = "(" + values.x.ToString("F2") + ", " + values.y.ToString("F2") + ")";
         }
         #endregion

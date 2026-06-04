@@ -22,7 +22,7 @@ namespace HBP.UI.Database
         [SerializeField] private Transform m_ConfigurationContainer;
 
         List<Patient> m_AvailablePatients;
-        List<Patient> m_SelectedPatients = new List<Patient>();
+        List<Patient> m_SelectedPatients = new();
         
         List<string> m_AvailableDataNames;
         string m_SelectedDataName;

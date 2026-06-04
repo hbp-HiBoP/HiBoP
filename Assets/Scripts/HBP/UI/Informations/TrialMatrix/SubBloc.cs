@@ -182,7 +182,7 @@ namespace HBP.UI.Informations.TrialMatrix
             int height = trials.Length;
             if (height == 0) return new Texture2D(0,0);
             int width = trials[0].Length;
-            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Texture2D texture = new(width, height, TextureFormat.RGBA32, false);
             Color[] pixels = new Color[width * height];
 
             // Set pixels
@@ -245,7 +245,7 @@ namespace HBP.UI.Informations.TrialMatrix
         {
             foreach (var _event in subBloc.SubBlocProtocol.Events)
             {
-                GameObject eventGameobject = new GameObject(_event.Name, typeof(RectTransform));
+                GameObject eventGameobject = new(_event.Name, typeof(RectTransform));
                 RectTransform rectTransform = eventGameobject.transform as RectTransform;
                 rectTransform.SetParent(m_EventContainer);
                 rectTransform.anchorMin = new Vector2(0, 0);

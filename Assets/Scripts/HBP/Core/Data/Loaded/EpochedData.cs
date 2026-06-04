@@ -13,7 +13,7 @@ namespace HBP.Core.Data
         #region Constructors
         public EpochedData(DataInfo dataInfo)
         {
-            DynamicData rawData = new DynamicData(dataInfo);
+            DynamicData rawData = new(dataInfo);
 
             // Get UnitByChannel.
             UnitByChannel = rawData.UnitByChannel;

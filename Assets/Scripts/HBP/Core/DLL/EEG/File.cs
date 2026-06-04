@@ -37,7 +37,7 @@ namespace HBP.Core.DLL.EEG
         {
             get
             {
-                List<Electrode> electrodes = new List<Electrode>(ElectrodeCount);
+                List<Electrode> electrodes = new(ElectrodeCount);
                 for (int i = 0; i < ElectrodeCount; i++)
                 {
                     float[] data = null;
@@ -68,7 +68,7 @@ namespace HBP.Core.DLL.EEG
         {
             get
             {
-                List<Trigger> triggers = new List<Trigger>(TriggerCount);
+                List<Trigger> triggers = new(TriggerCount);
                 for (int i = 0; i < TriggerCount; i++)
                 {
                     triggers.Add(new Trigger(GetTrigger(_handle, i)));
@@ -93,7 +93,7 @@ namespace HBP.Core.DLL.EEG
         {
             get
             {
-                List<Note> notes = new List<Note>(NoteCount);
+                List<Note> notes = new(NoteCount);
                 for (int i = 0; i < NoteCount; i++)
                 {
                     notes.Add(new Note(GetNote(_handle, i)));

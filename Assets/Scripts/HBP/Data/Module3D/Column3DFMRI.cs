@@ -60,11 +60,11 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Events
-        [HideInInspector] public UnityEvent OnChangeSelectedFMRI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeSelectedFMRI = new();
         /// <summary>
         /// Event called when updating the current timeline ID
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new();
         #endregion
 
         #region Private Methods

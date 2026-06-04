@@ -156,7 +156,7 @@ namespace HBP.UI.Toolbar
         #region
         private void SaveCorrelations()
         {
-            CorrelationsContainer container = new CorrelationsContainer()
+            CorrelationsContainer container = new()
             {
                 PatientName = SelectedScene.Visualization.Patients[0].Name,
                 PatientID = SelectedScene.Visualization.Patients[0].ID,
@@ -208,9 +208,9 @@ namespace HBP.UI.Toolbar
 
             foreach (var column in SelectedScene.ColumnsIEEG)
             {
-                StringBuilder csvText = new StringBuilder();
-                StringBuilder csvBinaryText = new StringBuilder();
-                StringBuilder csvMeanText = new StringBuilder();
+                StringBuilder csvText = new();
+                StringBuilder csvBinaryText = new();
+                StringBuilder csvMeanText = new();
                 var sites = column.CorrelationBySitePair.Keys.OrderBy(s => siteWeight(s.Information.Name));
                 int siteCount = sites.Count();
                 csvText.AppendLine(string.Format("{0},{1}", "Channel", string.Join(",", sites.Select(c => c.Information.Name))));
@@ -262,15 +262,15 @@ namespace HBP.UI.Toolbar
                 }
                 try
                 {
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_correlations.csv", container.PatientID, column.Name))))
+                    using (StreamWriter sw = new(Path.Combine(saveDirectory, string.Format("{0}_{1}_correlations.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvText.ToString());
                     }
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_significant.csv", container.PatientID, column.Name))))
+                    using (StreamWriter sw = new(Path.Combine(saveDirectory, string.Format("{0}_{1}_significant.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvBinaryText.ToString());
                     }
-                    using (StreamWriter sw = new StreamWriter(Path.Combine(saveDirectory, string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name))))
+                    using (StreamWriter sw = new(Path.Combine(saveDirectory, string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvMeanText.ToString());
                     }
@@ -312,12 +312,12 @@ namespace HBP.UI.Toolbar
                     {
                         ColumnContainer columnContainer = container.Columns.FirstOrDefault(c => c.Column == column.Name);
                         string csvFilePath = Path.Combine(directory, columnContainer.CorrelationsFile);
-                        using (StreamReader sr = new StreamReader(csvFilePath))
+                        using (StreamReader sr = new(csvFilePath))
                         {
                             string firstLine = sr.ReadLine();
                             string[] siteNames = firstLine.Split(',');
                             string line;
-                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> correlationsBySitePair = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
+                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> correlationsBySitePair = new();
                             while ((line = sr.ReadLine()) != null)
                             {
                                 string[] values = line.Split(',');
@@ -325,7 +325,7 @@ namespace HBP.UI.Toolbar
                                 Core.Object3D.Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
                                 if (site)
                                 {
-                                    Dictionary<Core.Object3D.Site, float> valueBySite = new Dictionary<Core.Object3D.Site, float>();
+                                    Dictionary<Core.Object3D.Site, float> valueBySite = new();
                                     for (int i = 1; i < values.Length; ++i)
                                     {
                                         Core.Object3D.Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
@@ -343,12 +343,12 @@ namespace HBP.UI.Toolbar
                             column.CorrelationBySitePair = correlationsBySitePair;
                         }
                         string csvMeanFilePath = Path.Combine(directory, columnContainer.CorrelationsMeanFile);
-                        using (StreamReader sr = new StreamReader(csvMeanFilePath))
+                        using (StreamReader sr = new(csvMeanFilePath))
                         {
                             string firstLine = sr.ReadLine();
                             string[] siteNames = firstLine.Split(',');
                             string line;
-                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> meanByPair = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
+                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> meanByPair = new();
                             while ((line = sr.ReadLine()) != null)
                             {
                                 string[] values = line.Split(',');
@@ -356,7 +356,7 @@ namespace HBP.UI.Toolbar
                                 Core.Object3D.Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
                                 if (site)
                                 {
-                                    Dictionary<Core.Object3D.Site, float> valueBySite = new Dictionary<Core.Object3D.Site, float>();
+                                    Dictionary<Core.Object3D.Site, float> valueBySite = new();
                                     for (int i = 1; i < values.Length; ++i)
                                     {
                                         Core.Object3D.Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);

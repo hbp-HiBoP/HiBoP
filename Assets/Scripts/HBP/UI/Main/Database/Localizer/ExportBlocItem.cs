@@ -15,7 +15,7 @@ namespace HBP.UI.Main
         #endregion
         
         #region Events
-        [HideInInspector] public UnityEvent OnToggleChanged = new UnityEvent();
+        [HideInInspector] public UnityEvent OnToggleChanged = new();
         #endregion
         
         #region Private Methods

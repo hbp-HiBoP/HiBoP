@@ -105,7 +105,7 @@ namespace UnityEngine.UI.Extensions
 
         // Allow for delegate-based subscriptions for faster events than 'eventReceiver', and allowing for multiple receivers.
         [SerializeField]
-        private BoxSliderEvent m_OnValueChanged = new BoxSliderEvent();
+        private BoxSliderEvent m_OnValueChanged = new();
         public BoxSliderEvent OnValueChanged { get { return m_OnValueChanged; } set { m_OnValueChanged = value; } }
 
         // Private fields

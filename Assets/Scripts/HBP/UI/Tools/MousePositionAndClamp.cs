@@ -60,8 +60,8 @@ namespace HBP.UI.Tools
             }
             
             float scale = m_CanvasScalerHandler.Scale;
-            Vector2 scaledMousePosition = new Vector2(scale * mousePosition.x, scale * mousePosition.y);
-            Vector2 containerScaledPosition = new Vector2(scale * containerRectTransform.position.x, scale * containerRectTransform.position.y);
+            Vector2 scaledMousePosition = new(scale * mousePosition.x, scale * mousePosition.y);
+            Vector2 containerScaledPosition = new(scale * containerRectTransform.position.x, scale * containerRectTransform.position.y);
 
             Rect containerRectPadded = Padding.Remove(containerRectTransform.rect);
             Vector2 containerMinPosition = containerScaledPosition + containerRectPadded.min;

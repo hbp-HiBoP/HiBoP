@@ -91,7 +91,7 @@ namespace HBP.UI.Toolbar
         #endregion
 
         #region Events
-        public GenericEvent<float, float, float, float> OnChangeValues = new GenericEvent<float, float, float, float>();
+        public GenericEvent<float, float, float, float> OnChangeValues = new();
         #endregion
 
         #region Private Methods

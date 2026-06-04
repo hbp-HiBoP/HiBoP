@@ -37,8 +37,8 @@ namespace HBP.UI.Tools
         {
             if (args.Length != 0)
             {
-                List<string> actions = new List<string>();
-                List<List<string>> arguments = new List<List<string>>();
+                List<string> actions = new();
+                List<List<string>> arguments = new();
                 for (int i = 1; i < args.Length; ++i)
                 {
                     string arg = args[i];

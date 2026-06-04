@@ -153,7 +153,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when selecting a source for this column
         /// </summary>
-        public UnityEvent OnSelectSource = new UnityEvent();
+        public UnityEvent OnSelectSource = new();
         #endregion
         
         #region Private Methods
@@ -275,7 +275,7 @@ namespace HBP.Data.Module3D
 
             int length = timelineLength * sitesCount;
             ActivityValues = new float[length];
-            List<float> iEEGNotMasked = new List<float>();
+            List<float> iEEGNotMasked = new();
             for (int s = 0; s < sitesCount; ++s)
             {
                 for (int t = 0; t < timelineLength; ++t)
@@ -318,12 +318,12 @@ namespace HBP.Data.Module3D
             int[] marsAtlasLabels = Object3DManager.MarsAtlas.Labels();
 
             // Sort sites by mars atlas label
-            Dictionary<int, List<Core.Object3D.Site>> sitesByMarsAtlasLabel = new Dictionary<int, List<Core.Object3D.Site>>();
+            Dictionary<int, List<Core.Object3D.Site>> sitesByMarsAtlasLabel = new();
             List<StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as StringTagValue).ToList(); // FIXME: try perf with linq
             foreach (var label in marsAtlasLabels)
             {
                 string labelName = string.Format("{0}_{1}", Object3DManager.MarsAtlas.Hemisphere(label), Object3DManager.MarsAtlas.Name(label));
-                List<Core.Object3D.Site> sitesOfLabel = new List<Core.Object3D.Site>();
+                List<Core.Object3D.Site> sitesOfLabel = new();
                 for (int i = 0; i < sitesCount; i++)
                 {
                     StringTagValue marsAtlasTagValue = marsAtlasTagValues[i];
@@ -342,8 +342,8 @@ namespace HBP.Data.Module3D
                 sitesMask[i] = true;
             }
             List<Core.Object3D.Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[m_SelectedSourceMarsAtlasLabel];
-            Dictionary<int, List<float[]>> valuesByMarsAtlasArea = new Dictionary<int, List<float[]>>();
-            Dictionary<int, bool> maskByMarsAtlasArea = new Dictionary<int, bool>();
+            Dictionary<int, List<float[]>> valuesByMarsAtlasArea = new();
+            Dictionary<int, bool> maskByMarsAtlasArea = new();
             foreach (var label in marsAtlasLabels)
             {
                 valuesByMarsAtlasArea.Add(label, new List<float[]>());
@@ -355,7 +355,7 @@ namespace HBP.Data.Module3D
 
                 foreach (var label in marsAtlasLabels)
                 {
-                    List<float[]> valuesOfMarsAtlasArea = new List<float[]>();
+                    List<float[]> valuesOfMarsAtlasArea = new();
                     if (label != m_SelectedSourceMarsAtlasLabel)
                     {
                         foreach (var site in sitesByMarsAtlasLabel[label])
@@ -379,7 +379,7 @@ namespace HBP.Data.Module3D
             }
 
             // Compute means, construct array of values and set mask
-            Dictionary<int, float[]> activityByMarsAtlasArea = new Dictionary<int, float[]>();
+            Dictionary<int, float[]> activityByMarsAtlasArea = new();
             foreach (var label in marsAtlasLabels)
             {
                 float[] result = new float[timelineLength];
@@ -401,7 +401,7 @@ namespace HBP.Data.Module3D
             int highestLabel = marsAtlasLabels.Max();
             ActivityValues = new float[timelineLength * (highestLabel + 1)];
             AreaMask = new int[highestLabel + 1];
-            List<float> unmaskedActivity = new List<float>();
+            List<float> unmaskedActivity = new();
             foreach(var label in marsAtlasLabels)
             {
                 float[] activityOfArea = activityByMarsAtlasArea[label];

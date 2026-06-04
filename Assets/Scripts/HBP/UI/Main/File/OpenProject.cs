@@ -105,7 +105,7 @@ namespace HBP.UI.Main
                 foreach (string projectPath in paths)
                 {
                     await UniTask.SwitchToThreadPool();
-                    ProjectInfo project = new ProjectInfo(projectPath);
+                    ProjectInfo project = new(projectPath);
                     await UniTask.SwitchToMainThread();
                     m_ProjectList.Add(project);
                 }

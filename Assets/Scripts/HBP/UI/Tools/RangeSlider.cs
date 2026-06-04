@@ -175,7 +175,7 @@ namespace HBP.UI.Tools
             }
         }
 
-        [SerializeField] RangeSliderEvent m_OnValueChanged = new RangeSliderEvent();
+        [SerializeField] RangeSliderEvent m_OnValueChanged = new();
         public RangeSliderEvent onValueChanged { get { return m_OnValueChanged; } set { m_OnValueChanged = value; } }
 
         Axis axis { get { return (m_Direction == Direction.LeftToRight || m_Direction == Direction.RightToLeft) ? Axis.Horizontal : Axis.Vertical; } }

@@ -89,7 +89,7 @@ namespace HBP.Core.Object3D
         /// <returns>The corresponding material</returns>
         private Material GetMaterial(Color baseColor, bool highlighted)
         {
-            Color color = new Color(baseColor.r, baseColor.g, baseColor.b, highlighted ? 1 : 0.5f);
+            Color color = new(baseColor.r, baseColor.g, baseColor.b, highlighted ? 1 : 0.5f);
             if (!m_MaterialByColor.TryGetValue(color, out Material material))
             {
                 material = Object.Instantiate(Basic);

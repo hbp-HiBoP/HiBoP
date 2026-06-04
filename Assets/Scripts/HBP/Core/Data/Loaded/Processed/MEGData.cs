@@ -62,7 +62,7 @@ namespace HBP.Core.Data.Processed
                     {
                         var fmri = new Object3D.FMRI(data.FMRI, data.Mask, false);
                         await fmri.LoadAsync();
-                        MEGItem newItem = new MEGItem()
+                        MEGItem newItem = new()
                         {
                             Label = vDataInfo.Name,
                             Patient = vDataInfo.Patient,
@@ -83,7 +83,7 @@ namespace HBP.Core.Data.Processed
                     }
                     else
                     {
-                        MEGItem newItem = new MEGItem()
+                        MEGItem newItem = new()
                         {
                             Label = cDataInfo.Name,
                             Patient = cDataInfo.Patient,

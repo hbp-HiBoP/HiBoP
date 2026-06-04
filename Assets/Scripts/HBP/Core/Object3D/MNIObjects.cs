@@ -43,12 +43,12 @@ namespace HBP.Core.Object3D
         private async UniTask LoadDataAsync(string mniMRIDir, string mniMeshDir)
         {
             await UniTask.SwitchToThreadPool();
-            DLL.Volume volume = new DLL.Volume();
+            DLL.Volume volume = new();
             volume.LoadNIFTIFile(Path.Combine(mniMRIDir, "MNI.nii"));
             MRI = new MRI3D("MNI", volume);
 
-            DLL.Surface leftHemi = new DLL.Surface();
-            DLL.Surface rightHemi = new DLL.Surface();
+            DLL.Surface leftHemi = new();
+            DLL.Surface rightHemi = new();
             DLL.Surface bothHemi;
             leftHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm")); leftHemi.FlipTriangles();
             rightHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm")); rightHemi.FlipTriangles();
@@ -59,8 +59,8 @@ namespace HBP.Core.Object3D
             bothHemi.ComputeNormals();
             GreyMatter = new LeftRightMesh3D("MNI Grey matter", leftHemi, rightHemi, bothHemi, MeshType.MNI);
 
-            DLL.Surface leftWhite = new DLL.Surface();
-            DLL.Surface rightWhite = new DLL.Surface();
+            DLL.Surface leftWhite = new();
+            DLL.Surface rightWhite = new();
             DLL.Surface bothWhite;
             leftWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm")); leftWhite.FlipTriangles();
             rightWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm")); rightWhite.FlipTriangles();
@@ -71,8 +71,8 @@ namespace HBP.Core.Object3D
             bothWhite.ComputeNormals();
             WhiteMatter = new LeftRightMesh3D("MNI White matter", leftWhite, rightWhite, bothWhite, MeshType.MNI);
 
-            DLL.Surface leftWhiteInflated = new DLL.Surface();
-            DLL.Surface rightWhiteInflated = new DLL.Surface();
+            DLL.Surface leftWhiteInflated = new();
+            DLL.Surface rightWhiteInflated = new();
             DLL.Surface bothWhiteInflated;
             leftWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm")); leftWhiteInflated.FlipTriangles();
             rightWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm")); rightWhiteInflated.FlipTriangles();

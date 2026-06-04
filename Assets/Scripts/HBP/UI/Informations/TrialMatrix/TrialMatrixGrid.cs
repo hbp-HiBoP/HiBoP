@@ -49,7 +49,7 @@ namespace HBP.UI.Informations.TrialMatrix
         [SerializeField] RectTransform m_ChannelHeaderContainer;
         [SerializeField] GameObject m_ChannelHeaderPrefab;
 
-        List<Data> m_Data = new List<Data>();
+        List<Data> m_Data = new();
         public ReadOnlyCollection<Data> Data
         {
             get

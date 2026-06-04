@@ -17,7 +17,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Event called when changing the MRI
         /// </summary>
-        public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
+        public GenericEvent<int> OnChangeValue = new();
         #endregion
 
         #region Public Methods

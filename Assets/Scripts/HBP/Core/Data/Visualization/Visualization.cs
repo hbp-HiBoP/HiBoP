@@ -379,7 +379,7 @@ namespace HBP.Core.Data
         private async UniTask<Dictionary<Column, IEnumerable<DataInfo>>> FindDataInfoToReadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
-            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
+            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new();
             int count = 0;
             int length = Columns.Count;
             foreach (var column in Columns)
@@ -484,7 +484,7 @@ namespace HBP.Core.Data
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
                     iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<IEEGDataInfo>(), iEEGColumn.Bloc);
                 }
-                Frequency maxiEEGFrequency = new Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
+                Frequency maxiEEGFrequency = new(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     token.ThrowIfCancellationRequested();
@@ -509,7 +509,7 @@ namespace HBP.Core.Data
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[ccepColumn].Count(), new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
                     ccepColumn.Data.Load(dataInfoByColumn[ccepColumn].OfType<CCEPDataInfo>(), ccepColumn.Bloc);
                 }
-                Frequency maxCCEPFrequency = new Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                Frequency maxCCEPFrequency = new(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < nbCCEPColumns; ++i)
                 {
                     token.ThrowIfCancellationRequested();

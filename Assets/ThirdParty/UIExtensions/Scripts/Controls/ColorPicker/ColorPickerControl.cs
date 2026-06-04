@@ -17,8 +17,8 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
     private float _alpha = 1;
 
-    public ColorEvent onValueChanged = new ColorEvent();
-    public HSVChangedEvent onHSVChanged = new HSVChangedEvent();
+    public ColorEvent onValueChanged = new();
+    public HSVChangedEvent onHSVChanged = new();
 
     public Color CurrentColor
     {

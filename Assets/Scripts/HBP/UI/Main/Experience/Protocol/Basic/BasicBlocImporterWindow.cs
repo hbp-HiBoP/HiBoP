@@ -67,7 +67,7 @@ namespace HBP.UI.Main
         }
         private void LoadEvents(string filePath)
         {
-            FileInfo fileInfo = new FileInfo(filePath);
+            FileInfo fileInfo = new(filePath);
             Core.DLL.EEG.File.FileType type;
             string[] files;
 
@@ -101,7 +101,7 @@ namespace HBP.UI.Main
                 throw new Exception("Invalid data container type");
             }
             
-            Core.DLL.EEG.File file = new Core.DLL.EEG.File(type, false, files);
+            Core.DLL.EEG.File file = new(type, false, files);
             List<Core.DLL.EEG.Trigger> triggers = file.Triggers;
 
             if (triggers.Count == 0)
@@ -228,7 +228,7 @@ namespace HBP.UI.Main
         }
         private List<Bloc> CreateBlocsFromData()
         {
-            List<Bloc> blocs = new List<Bloc>();
+            List<Bloc> blocs = new();
             
             for (int i = 0; i < Data.CreatedBlocs.Count; i++)
             {

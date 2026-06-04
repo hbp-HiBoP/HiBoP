@@ -69,7 +69,7 @@ namespace HBP.Core.Data
             {
                 throw new Exception("Invalid data container type");
             }
-            DLL.EEG.File file = new DLL.EEG.File(type, true, files);
+            DLL.EEG.File file = new(type, true, files);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");

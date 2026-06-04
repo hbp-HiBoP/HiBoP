@@ -13,9 +13,9 @@ namespace HBP.Dev
         [SerializeField]
         private bool _displayWireframe = false;
         [SerializeField]
-        private NormalsDrawData _faceNormals = new NormalsDrawData(new Color32(34, 221, 221, 155), true);
+        private NormalsDrawData _faceNormals = new(new Color32(34, 221, 221, 155), true);
         [SerializeField]
-        private NormalsDrawData _vertexNormals = new NormalsDrawData(new Color32(200, 255, 195, 127), false);
+        private NormalsDrawData _vertexNormals = new(new Color32(200, 255, 195, 127), false);
 
         [System.Serializable]
         private class NormalsDrawData
@@ -57,7 +57,7 @@ namespace HBP.Dev
 
         void OnDrawGizmosSelected()
         {
-            EditorUtility.SetSelectedWireframeHidden(GetComponent<Renderer>(), !_displayWireframe);
+            EditorUtility.SetSelectedRenderState(GetComponent<Renderer>(), _displayWireframe ? EditorSelectedRenderState.Wireframe : EditorSelectedRenderState.Highlight);
             OnDrawNormals(true);
         }
 

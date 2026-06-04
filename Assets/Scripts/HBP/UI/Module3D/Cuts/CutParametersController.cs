@@ -156,11 +156,11 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Event called when opening the UI elements allowing to modify the cut
         /// </summary>
-        public UnityEvent OnOpenControls = new UnityEvent();
+        public UnityEvent OnOpenControls = new();
         /// <summary>
         /// Event called when closing the UI elements allowing to modify the cut
         /// </summary>
-        public UnityEvent OnCloseControls = new UnityEvent();
+        public UnityEvent OnCloseControls = new();
         #endregion
 
         #region Private Methods
@@ -430,7 +430,7 @@ namespace HBP.UI.Module3D
             foreach (Transform child in m_SitesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == CutOrientation.Custom) return;
             
-            List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
+            List<Core.Object3D.Site> sites = new();
             m_Scene.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
             foreach (var site in m_Scene.SelectedColumn.Sites)
             {
@@ -515,7 +515,7 @@ namespace HBP.UI.Module3D
                     if (cut == Cut || cut.Orientation == CutOrientation.Custom) continue;
 
                     Core.Object3D.Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
-                    List<Vector2> linePoints = new List<Vector2>();
+                    List<Vector2> linePoints = new();
                     if (segment != null)
                     {
                         void addRatioOfPoint(Vector3 point)

@@ -24,9 +24,9 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Textures of the histograms (one per MRI)
         /// </summary>
-        private Dictionary<Core.Object3D.MRI3D, Texture2D> m_HistogramByMRI = new Dictionary<Core.Object3D.MRI3D, Texture2D>();
+        private Dictionary<Core.Object3D.MRI3D, Texture2D> m_HistogramByMRI = new();
 
-        private Queue<Core.Object3D.MRI3D> m_HistogramsToBeDestroyed = new Queue<Core.Object3D.MRI3D>();
+        private Queue<Core.Object3D.MRI3D> m_HistogramsToBeDestroyed = new();
 
         /// <summary>
         /// Used to display the current histogram
@@ -52,7 +52,7 @@ namespace HBP.UI.Toolbar
         #endregion
 
         #region Events
-        public GenericEvent<float, float> OnChangeValues = new GenericEvent<float, float>();
+        public GenericEvent<float, float> OnChangeValues = new();
         #endregion
 
         #region Private Methods

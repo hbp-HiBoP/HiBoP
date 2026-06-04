@@ -14,7 +14,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
-        protected List<Tool> m_Tools = new List<Tool>();
+        protected List<Tool> m_Tools = new();
         #endregion
 
         #region Private Methods

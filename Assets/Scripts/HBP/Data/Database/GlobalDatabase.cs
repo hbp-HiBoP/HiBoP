@@ -154,7 +154,7 @@ namespace HBP.Data.Database
             }
 
             // Write report
-            using StreamWriter writer = new StreamWriter(path);
+            using StreamWriter writer = new(path);
             await writer.WriteLineAsync("=== Anatomical Data Check ===\n");
             if (missingMeshesPatients.Any())
             {
@@ -214,7 +214,7 @@ namespace HBP.Data.Database
         #region Private Methods
         private void ConfigureDefault()
         {
-            DirectoryInfo defaultDatabaseDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
+            DirectoryInfo defaultDatabaseDirectory = new(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
             defaultDatabaseDirectory.CopyFilesRecursively(new DirectoryInfo(ApplicationState.DatabasePath));
         }
 
@@ -281,7 +281,7 @@ namespace HBP.Data.Database
 
         private async UniTask LoadProtocolsAsync()
         {
-            DirectoryInfo protocolDirectory = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
+            DirectoryInfo protocolDirectory = new(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             if (!protocolDirectory.Exists) protocolDirectory.Create();
             FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
             m_Protocols = (await UniTask.WhenAll(protocolFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Protocol>(pf.FullName)))).ToList();
@@ -354,7 +354,7 @@ namespace HBP.Data.Database
 
         private FileInfo[] GetPatientFiles()
         {
-            DirectoryInfo patientsDirectory = new DirectoryInfo(Path.Combine(Settings.SelectedWorkspace.Path, "Patients"));
+            DirectoryInfo patientsDirectory = new(Path.Combine(Settings.SelectedWorkspace.Path, "Patients"));
             if (!patientsDirectory.Exists) patientsDirectory.Create();
             return patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
         }
@@ -383,7 +383,7 @@ namespace HBP.Data.Database
 
         private FileInfo[] GetDataInfoFiles()
         {
-            DirectoryInfo dataInfosDirectory = new DirectoryInfo(Path.Combine(Settings.SelectedWorkspace.Path, "DataInfos"));
+            DirectoryInfo dataInfosDirectory = new(Path.Combine(Settings.SelectedWorkspace.Path, "DataInfos"));
             if (!dataInfosDirectory.Exists) dataInfosDirectory.Create();
             return dataInfosDirectory.GetFiles("*" + DataInfo.EXTENSION, SearchOption.TopDirectoryOnly);
         }
@@ -404,7 +404,7 @@ namespace HBP.Data.Database
             {
                 patientDataInfos.Add(patient, new List<PatientDataInfo>());
             }
-            List<DataInfo> otherDataInfos = new List<DataInfo>();
+            List<DataInfo> otherDataInfos = new();
             foreach (var dataInfo in m_DataInfos)
             {
                 if (dataInfo is PatientDataInfo patientDataInfo) patientDataInfos[patientDataInfo.Patient].Add(patientDataInfo);
@@ -515,7 +515,7 @@ namespace HBP.Data.Database
             var addedPatients = newPatients.Except(oldPatients).ToList();
             updatedPatients = updatedPatients.Distinct().Except(addedPatients).Except(removedPatients).ToList();
 
-            StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new();
             if (removedPatients.Count > 0)
             {
                 stringBuilder.AppendLine("<b>Removed patients:</b>");

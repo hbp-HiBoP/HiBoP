@@ -7,7 +7,7 @@ namespace HBP.UI.Tools
     public class TooltipManager : Manager<TooltipManager>
     {
         #region Properties
-        private static Vector3 m_Offset = new Vector3(0, -20, 0);
+        private static Vector3 m_Offset = new(0, -20, 0);
         public const float TIME_TO_DISPLAY = 0.7f;
 
         public static bool IsTooltipDisplayed { get; private set; } = false;

@@ -134,7 +134,7 @@ namespace UnityEngine.UI.Extensions
                 return;
             }
 
-            Stack<Vector2> samplePoints = new Stack<Vector2>();
+            Stack<Vector2> samplePoints = new();
 
             samplePoints.Push(sourcePoints[0]);
 
@@ -196,7 +196,7 @@ namespace UnityEngine.UI.Extensions
         */
         public List<Vector2> GetDrawingPoints0()
         {
-            List<Vector2> drawingPoints = new List<Vector2>();
+            List<Vector2> drawingPoints = new();
 
             for (int curveIndex = 0; curveIndex < curveCount; curveIndex++)
             {
@@ -225,7 +225,7 @@ namespace UnityEngine.UI.Extensions
         */
         public List<Vector2> GetDrawingPoints1()
         {
-            List<Vector2> drawingPoints = new List<Vector2>();
+            List<Vector2> drawingPoints = new();
 
             for (int i = 0; i < controlPoints.Count - 3; i += 3)
             {
@@ -255,7 +255,7 @@ namespace UnityEngine.UI.Extensions
         */
         public List<Vector2> GetDrawingPoints2()
         {
-            List<Vector2> drawingPoints = new List<Vector2>();
+            List<Vector2> drawingPoints = new();
 
             for (int curveIndex = 0; curveIndex < curveCount; curveIndex++)
             {
@@ -275,7 +275,7 @@ namespace UnityEngine.UI.Extensions
 
         List<Vector2> FindDrawingPoints(int curveIndex)
         {
-            List<Vector2> pointList = new List<Vector2>();
+            List<Vector2> pointList = new();
 
             Vector2 left = CalculateBezierPoint(curveIndex, 0);
             Vector2 right = CalculateBezierPoint(curveIndex, 1);

@@ -41,7 +41,7 @@ namespace HBP.UI.Main
                 m_Tags = value;
                 if(m_Tags.Length == 0)
                 {
-                    m_TagDropdown.options = new List<Dropdown.OptionData> { new Dropdown.OptionData("None") };
+                    m_TagDropdown.options = new List<Dropdown.OptionData> { new("None") };
                     m_TagDropdown.interactable = false;
                     m_OKButton.interactable = false;
                 }

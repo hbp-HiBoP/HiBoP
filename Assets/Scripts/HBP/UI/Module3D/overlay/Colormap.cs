@@ -34,7 +34,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Links between the type of a color and its sprite
         /// </summary>
-        private Dictionary<ColorType, Sprite> m_SpriteByColorType = new Dictionary<ColorType, Sprite>();
+        private Dictionary<ColorType, Sprite> m_SpriteByColorType = new();
         #endregion
 
         #region Private Methods

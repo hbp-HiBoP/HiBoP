@@ -133,7 +133,7 @@ namespace UnityEngine.UI.Extensions
 			//If Bezier is desired, pick the implementation
             if (BezierMode != BezierType.None && BezierMode != BezierType.Catenary && m_points.Length > 3)
 			{
-				BezierPath bezierPath = new BezierPath();
+				BezierPath bezierPath = new();
 
 				bezierPath.SetControlPoints(pointsToDraw);
 				bezierPath.SegmentsPerCurve = bezierSegmentsPerCurve;
@@ -155,7 +155,7 @@ namespace UnityEngine.UI.Extensions
 			}
             if (BezierMode == BezierType.Catenary && m_points.Length == 2)
             {
-                CableCurve cable = new CableCurve(pointsToDraw);
+                CableCurve cable = new(pointsToDraw);
                 cable.slack = Resoloution;
                 cable.steps = BezierSegmentsPerCurve;
                 pointsToDraw = cable.Points();

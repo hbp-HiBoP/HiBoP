@@ -25,7 +25,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
-        public Vector2Event OnChangePosition = new Vector2Event();
+        public Vector2Event OnChangePosition = new();
         #endregion
 
         #region Private Methods

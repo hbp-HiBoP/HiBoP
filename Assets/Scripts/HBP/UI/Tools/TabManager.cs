@@ -33,7 +33,7 @@ namespace HBP.UI.Tools
 
         public GenericEvent<int, int> OnSwapColumns { get; } = new GenericEvent<int, int>();
 
-        List<Tab> m_Tabs = new List<Tab>();
+        List<Tab> m_Tabs = new();
         //Transform m_TabToMove;
         ToggleGroup m_ToggleGroup;
         #endregion

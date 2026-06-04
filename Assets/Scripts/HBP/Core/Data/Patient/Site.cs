@@ -160,15 +160,15 @@ namespace HBP.Core.Data
         /// <returns>Sites in the directory</returns>
         public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile, bool loadTags = true)
         {
-            List<Site> sites = new List<Site>();
+            List<Site> sites = new();
             if (!string.IsNullOrEmpty(tsvFile))
             {
-                using (StreamReader streamReader = new StreamReader(tsvFile))
+                using (StreamReader streamReader = new(tsvFile))
                 {
                     string file = streamReader.ReadToEnd();
                     string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                     // Split the lines before handling them
-                    List<List<string>> splittedLines = new List<List<string>>(lines.Length);
+                    List<List<string>> splittedLines = new(lines.Length);
                     splittedLines.Add(lines[0].Split('\t').ToList());
                     for (int i = 1; i < lines.Length; ++i)
                     {
@@ -219,7 +219,7 @@ namespace HBP.Core.Data
                     IEnumerable<BaseTag> projectTags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags);
                     for (int l = 1; l < splittedLines.Count; l++)
                     {
-                        Site site = new Site("", new Coordinate[] { new Coordinate(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
+                        Site site = new("", new Coordinate[] { new(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
                         List<string> values = splittedLines[l];
                         for (int v = 0; v < values.Count && v < columns.Count; v++)
                         {
@@ -280,13 +280,13 @@ namespace HBP.Core.Data
             var sites = new List<Site>();
             if (!string.IsNullOrEmpty(ptsFile))
             {
-                using (StreamReader streamReader = new StreamReader(ptsFile))
+                using (StreamReader streamReader = new(ptsFile))
                 {
                     string line = streamReader.ReadLine();
                     if (!line.Contains("ptsfile")) return sites;
                     while ((line = streamReader.ReadLine()) != null)
                     {
-                        Site site = new Site();
+                        Site site = new();
                         string[] splits = Regex.Split(line, "[\\s\t]+");
                         if (splits.Length < 4) continue;
                         site.Name = SiteNameCorrection ? SiteTools.FixName(splits[0]) : splits[0];
@@ -310,14 +310,14 @@ namespace HBP.Core.Data
             var sites = new List<Site>();
             if (!string.IsNullOrEmpty(csvFile))
             {
-                using StreamReader streamReader = new StreamReader(csvFile);
+                using StreamReader streamReader = new(csvFile);
                 string file = streamReader.ReadToEnd();
                 string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 int titleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
                 if (titleLine > -1)
                 {
                     // Split the lines before handling them
-                    List<List<string>> splittedLines = new List<List<string>>(lines.Length - titleLine)
+                    List<List<string>> splittedLines = new(lines.Length - titleLine)
                     {
                         lines[titleLine].Split('\t').ToList()
                     };
@@ -404,7 +404,7 @@ namespace HBP.Core.Data
                     {
                         List<string> values = splittedLines[l];
                         string name = SiteNameCorrection ? SiteTools.FixName(values[0]) : values[0];
-                        List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                        List<BaseTagValue> tagValues = new();
                         for (int i = 1; i < values.Count; i++)
                         {
                             BaseTag tag = tags[i];
@@ -486,7 +486,7 @@ namespace HBP.Core.Data
         bool ILoadable<Site>.LoadFromFile(string path, out Site[] result)
         {
             result = new Site[0];
-            FileInfo fileInfo = new FileInfo(path);
+            FileInfo fileInfo = new(path);
             if (fileInfo.Extension == ".pts")
             {
                 string referenceSystem = "Unknown";

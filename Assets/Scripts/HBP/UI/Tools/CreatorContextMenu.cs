@@ -87,7 +87,7 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Events
-        public GenericEvent<CreationType> OnSelectType = new GenericEvent<CreationType>();
+        public GenericEvent<CreationType> OnSelectType = new();
         #endregion
 
         #region Private Methods

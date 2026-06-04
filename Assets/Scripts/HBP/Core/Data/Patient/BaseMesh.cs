@@ -146,10 +146,10 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static BaseMesh[] LoadFromDirectory(string path)
         {
-            List<BaseMesh> meshes = new List<BaseMesh>();
-            DirectoryInfo parent = new DirectoryInfo(path);
-            DirectoryInfo t1mri = new DirectoryInfo(Path.Combine(path, "t1mri"));
-            DirectoryInfo ct = new DirectoryInfo(Path.Combine(path, "ct"));
+            List<BaseMesh> meshes = new();
+            DirectoryInfo parent = new(path);
+            DirectoryInfo t1mri = new(Path.Combine(path, "t1mri"));
+            DirectoryInfo ct = new(Path.Combine(path, "ct"));
 
             DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
             FileInfo preTransformation = null;
@@ -195,11 +195,11 @@ namespace HBP.Core.Data
             // Mesh
             if (preimplantationDirectory != null)
             {
-                DirectoryInfo meshDirectory = new DirectoryInfo(Path.Combine(preimplantationDirectory.FullName, "default_analysis", "segmentation", "mesh"));
+                DirectoryInfo meshDirectory = new(Path.Combine(preimplantationDirectory.FullName, "default_analysis", "segmentation", "mesh"));
                 if (meshDirectory.Exists)
                 {
-                    FileInfo greyMatterLeftHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Lhemi" + MESH_EXTENSION));
-                    FileInfo greyMatterRightHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Rhemi" + MESH_EXTENSION));
+                    FileInfo greyMatterLeftHemisphere = new(Path.Combine(meshDirectory.FullName, parent.Name + "_Lhemi" + MESH_EXTENSION));
+                    FileInfo greyMatterRightHemisphere = new(Path.Combine(meshDirectory.FullName, parent.Name + "_Rhemi" + MESH_EXTENSION));
                     if (greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists)
                     {
                         meshes.Add(new LeftRightMesh("Grey matter", preTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
@@ -213,11 +213,11 @@ namespace HBP.Core.Data
                         }
                     }
 
-                    FileInfo whiteMatterLeftHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Lwhite" + MESH_EXTENSION));
-                    FileInfo whiteMatterRightHemisphere = new FileInfo(Path.Combine(meshDirectory.FullName, parent.Name + "_Rwhite" + MESH_EXTENSION));
-                    DirectoryInfo SurfaceAnalysisDirectory = new DirectoryInfo(Path.Combine(meshDirectory.FullName, "surface_analysis"));
-                    FileInfo marsAtlasLeftHemisphere = new FileInfo(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Lwhite_parcels_marsAtlas" + MESH_EXTENSION));
-                    FileInfo marsAtlasRightHemisphere = new FileInfo(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Rwhite_parcels_marsAtlas" + MESH_EXTENSION));
+                    FileInfo whiteMatterLeftHemisphere = new(Path.Combine(meshDirectory.FullName, parent.Name + "_Lwhite" + MESH_EXTENSION));
+                    FileInfo whiteMatterRightHemisphere = new(Path.Combine(meshDirectory.FullName, parent.Name + "_Rwhite" + MESH_EXTENSION));
+                    DirectoryInfo SurfaceAnalysisDirectory = new(Path.Combine(meshDirectory.FullName, "surface_analysis"));
+                    FileInfo marsAtlasLeftHemisphere = new(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Lwhite_parcels_marsAtlas" + MESH_EXTENSION));
+                    FileInfo marsAtlasRightHemisphere = new(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Rwhite_parcels_marsAtlas" + MESH_EXTENSION));
                     string marsAtlasLeftHemispherePath = marsAtlasLeftHemisphere.Exists ? marsAtlasLeftHemisphere.FullName : string.Empty;
                     string marsAtlasRightHemispherePath = marsAtlasRightHemisphere.Exists ? marsAtlasRightHemisphere.FullName : string.Empty;
                     if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists)

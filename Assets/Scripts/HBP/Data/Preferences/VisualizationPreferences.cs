@@ -225,7 +225,7 @@ namespace HBP.Data.Preferences
             if (maxSites > MaxSites || maxColumns > MaxColumns)
             {
                 // Redimensionner la grille des sites si nécessaire
-                ColorGrid newSiteColors = new ColorGrid(maxSites, maxColumns, ColorGrid.ColorGridType.Site);
+                ColorGrid newSiteColors = new(maxSites, maxColumns, ColorGrid.ColorGridType.Site);
                 for (int r = 0; r < Math.Min(MaxSites, maxSites); r++)
                 {
                     for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
@@ -239,7 +239,7 @@ namespace HBP.Data.Preferences
             if (maxColumns > MaxColumns)
             {
                 // Redimensionner la grille des ROI si nécessaire
-                ColorGrid newROIColors = new ColorGrid(1, maxColumns, ColorGrid.ColorGridType.ROI);
+                ColorGrid newROIColors = new(1, maxColumns, ColorGrid.ColorGridType.ROI);
                 for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
                 {
                     newROIColors.SetColor(0, c, ROIColors.GetColor(0, c));
@@ -250,7 +250,7 @@ namespace HBP.Data.Preferences
             if (maxGroups > MaxGroups || maxColumns > MaxColumns)
             {
                 // Redimensionner la grille des groupes si nécessaire
-                ColorGrid newGroupColors = new ColorGrid(maxGroups, maxColumns, ColorGrid.ColorGridType.Group);
+                ColorGrid newGroupColors = new(maxGroups, maxColumns, ColorGrid.ColorGridType.Group);
                 for (int r = 0; r < Math.Min(MaxGroups, maxGroups); r++)
                 {
                     for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
@@ -264,7 +264,7 @@ namespace HBP.Data.Preferences
             if (maxColumns > MaxColumns)
             {
                 // Redimensionner la grille des localizers si nécessaire
-                ColorGrid newLocalizersColors = new ColorGrid(1, maxColumns, ColorGrid.ColorGridType.Localizers);
+                ColorGrid newLocalizersColors = new(1, maxColumns, ColorGrid.ColorGridType.Localizers);
                 if (LocalizersColors != null)
                 {
                     for (int c = 0; c < Math.Min(MaxColumns, maxColumns); c++)
@@ -281,7 +281,7 @@ namespace HBP.Data.Preferences
         }
         public object Clone()
         {
-            GraphPreferences clone = new GraphPreferences(ShowCurvesOfMinimizedColumns, ShowSEM);
+            GraphPreferences clone = new(ShowCurvesOfMinimizedColumns, ShowSEM);
             clone.MaxSites = MaxSites;
             clone.MaxColumns = MaxColumns;
             clone.MaxGroups = MaxGroups;
@@ -303,55 +303,55 @@ namespace HBP.Data.Preferences
 
             SiteColors.InitializeWithColors(new Color[]
             {
-                new Color(171f / 255f, 61f / 255f, 58f / 255f),
-                new Color(171f / 255f, 152f / 255f, 58f / 255f),
-                new Color(46f / 255f, 135f / 255f, 52f / 255f),
-                new Color(66f / 255f, 49f / 255f, 118f / 255f),
-                new Color(171f / 255f, 109f / 255f, 58f / 255f),
-                new Color(171f / 255f, 171f / 255f, 58f / 255f),
-                new Color(35f / 255f, 103f / 255f, 103f / 255f),
-                new Color(89f / 255f, 43f / 255f, 114f / 255f),
-                new Color(171f / 255f, 133f / 255f, 58f / 255f),
-                new Color(123f / 255f, 160f / 255f, 54f / 255f),
-                new Color(47f / 255f, 66f / 255f, 115f / 255f),
-                new Color(137f / 255f, 47f / 255f, 98f / 255f),
-                new Color(129f / 255f, 22f / 255f, 22f / 255f),
-                new Color(129f / 255f, 111f / 255f, 22f / 255f),
-                new Color(18f / 255f, 103f / 255f, 18f / 255f),
-                new Color(39f / 255f, 24f / 255f, 89f / 255f),
+                new(171f / 255f, 61f / 255f, 58f / 255f),
+                new(171f / 255f, 152f / 255f, 58f / 255f),
+                new(46f / 255f, 135f / 255f, 52f / 255f),
+                new(66f / 255f, 49f / 255f, 118f / 255f),
+                new(171f / 255f, 109f / 255f, 58f / 255f),
+                new(171f / 255f, 171f / 255f, 58f / 255f),
+                new(35f / 255f, 103f / 255f, 103f / 255f),
+                new(89f / 255f, 43f / 255f, 114f / 255f),
+                new(171f / 255f, 133f / 255f, 58f / 255f),
+                new(123f / 255f, 160f / 255f, 54f / 255f),
+                new(47f / 255f, 66f / 255f, 115f / 255f),
+                new(137f / 255f, 47f / 255f, 98f / 255f),
+                new(129f / 255f, 22f / 255f, 22f / 255f),
+                new(129f / 255f, 111f / 255f, 22f / 255f),
+                new(18f / 255f, 103f / 255f, 18f / 255f),
+                new(39f / 255f, 24f / 255f, 89f / 255f),
             });
             ROIColors.InitializeWithColors(new Color[]
             {
-                new Color(129f / 255f, 71f / 255f, 22f / 255f),
-                new Color(129f / 255f, 129f / 255f, 22f / 255f),
-                new Color(13f / 255f, 77f / 255f, 77f / 255f),
-                new Color(62f / 255f, 19f / 255f, 86f / 255f),
-                new Color(129f / 255f, 93f / 255f, 22f / 255f),
-                new Color(87f / 255f, 120f / 255f, 21f / 255f),
-                new Color(23f / 255f, 42f / 255f, 86f / 255f),
-                new Color(103f / 255f, 18f / 255f, 66f / 255f)
+                new(129f / 255f, 71f / 255f, 22f / 255f),
+                new(129f / 255f, 129f / 255f, 22f / 255f),
+                new(13f / 255f, 77f / 255f, 77f / 255f),
+                new(62f / 255f, 19f / 255f, 86f / 255f),
+                new(129f / 255f, 93f / 255f, 22f / 255f),
+                new(87f / 255f, 120f / 255f, 21f / 255f),
+                new(23f / 255f, 42f / 255f, 86f / 255f),
+                new(103f / 255f, 18f / 255f, 66f / 255f)
             });
             GroupColors.InitializeWithColors(new Color[]
             {
-                new Color(180f / 255f, 100f / 255f, 100f / 255f),
-                new Color(100f / 255f, 180f / 255f, 120f / 255f),
-                new Color(120f / 255f, 140f / 255f, 180f / 255f),
-                new Color(180f / 255f, 160f / 255f, 100f / 255f),
-                new Color(160f / 255f, 100f / 255f, 180f / 255f),
-                new Color(100f / 255f, 160f / 255f, 160f / 255f),
-                new Color(180f / 255f, 130f / 255f, 80f / 255f),
-                new Color(140f / 255f, 140f / 255f, 140f / 255f)
+                new(180f / 255f, 100f / 255f, 100f / 255f),
+                new(100f / 255f, 180f / 255f, 120f / 255f),
+                new(120f / 255f, 140f / 255f, 180f / 255f),
+                new(180f / 255f, 160f / 255f, 100f / 255f),
+                new(160f / 255f, 100f / 255f, 180f / 255f),
+                new(100f / 255f, 160f / 255f, 160f / 255f),
+                new(180f / 255f, 130f / 255f, 80f / 255f),
+                new(140f / 255f, 140f / 255f, 140f / 255f)
             });
             LocalizersColors.InitializeWithColors(new Color[]
             {
-                new Color(255f / 255f, 140f / 255f, 0f / 255f),
-                new Color(0f / 255f, 191f / 255f, 255f / 255f),
-                new Color(255f / 255f, 20f / 255f, 147f / 255f),
-                new Color(50f / 255f, 205f / 255f, 50f / 255f),
-                new Color(138f / 255f, 43f / 255f, 226f / 255f),
-                new Color(255f / 255f, 215f / 255f, 0f / 255f),
-                new Color(220f / 255f, 20f / 255f, 60f / 255f),
-                new Color(64f / 255f, 224f / 255f, 208f / 255f)
+                new(255f / 255f, 140f / 255f, 0f / 255f),
+                new(0f / 255f, 191f / 255f, 255f / 255f),
+                new(255f / 255f, 20f / 255f, 147f / 255f),
+                new(50f / 255f, 205f / 255f, 50f / 255f),
+                new(138f / 255f, 43f / 255f, 226f / 255f),
+                new(255f / 255f, 215f / 255f, 0f / 255f),
+                new(220f / 255f, 20f / 255f, 60f / 255f),
+                new(64f / 255f, 224f / 255f, 208f / 255f)
             });
         }
         #endregion
@@ -441,7 +441,7 @@ namespace HBP.Data.Preferences
         }
         public object Clone()
         {
-            ColorGrid clone = new ColorGrid(Rows, Columns, m_Type);
+            ColorGrid clone = new(Rows, Columns, m_Type);
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Columns; c++)
@@ -500,7 +500,7 @@ namespace HBP.Data.Preferences
             int seed = baseSeed + (row * 1000) + column;
             UnityEngine.Random.State oldState = UnityEngine.Random.state;
             UnityEngine.Random.InitState(seed);
-            Color randomColor = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
+            Color randomColor = new(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
             UnityEngine.Random.state = oldState;
             return randomColor;
         }

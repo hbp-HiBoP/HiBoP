@@ -56,7 +56,7 @@ namespace HBP.Core.Data
                     }
                     else if (entry.FileName.EndsWith(ProjectPreferences.EXTENSION))
                     {
-                        FileInfo settingsFile = new FileInfo(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
+                        FileInfo settingsFile = new(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
                         if (settingsFile.Exists) settingsFile.Delete();
                         entry.Extract(ApplicationState.TMPFolder);
                         try

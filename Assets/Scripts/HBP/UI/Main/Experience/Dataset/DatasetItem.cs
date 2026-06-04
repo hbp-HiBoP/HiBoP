@@ -36,7 +36,7 @@ namespace HBP.UI.Main
 
                 m_NameText.text = value.Name;
                 m_ProtocolText.text = value.Protocol.Name;
-                StringBuilder stringBuilder = new StringBuilder();
+                StringBuilder stringBuilder = new();
                 stringBuilder.AppendLine("Data : ");
                 Core.Data.DataInfo[] data = value.Data.Where(s => s.IsOk).ToArray();
                 string[] names = data.Select(d => d.Name).Distinct().ToArray();

@@ -13,8 +13,8 @@ namespace HBP.UI.Tools
         [SerializeField] private RectTransform m_ParentContainer;
         private List<RectTransform> m_Containers = new();
         [SerializeField] private GameObject m_ContainerPrefab;
-        public static WindowsReferencer WindowsReferencer = new WindowsReferencer();
-        public Dictionary<Type, Vector2> SizeDeltaByWindow = new Dictionary<Type, Vector2>();
+        public static WindowsReferencer WindowsReferencer = new();
+        public Dictionary<Type, Vector2> SizeDeltaByWindow = new();
         public Vector2 Offset;
         #endregion
 

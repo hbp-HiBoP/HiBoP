@@ -19,7 +19,7 @@ namespace HBP.UI.Tools.ResizableGrids
 
         [SerializeField] protected ThemeElement m_ThemeElement;
 
-        public UnityEvent OnChangePosition = new UnityEvent();
+        public UnityEvent OnChangePosition = new();
         #endregion
 
         #region Private Methods

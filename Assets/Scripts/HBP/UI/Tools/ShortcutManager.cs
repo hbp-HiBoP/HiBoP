@@ -62,7 +62,7 @@ namespace HBP.UI.Tools
                 return Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow);
             }
         }
-        private List<KeyCode> m_ChangeColorActions = new List<KeyCode> { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9, KeyCode.Alpha0 };
+        private List<KeyCode> m_ChangeColorActions = new() { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9, KeyCode.Alpha0 };
         private List<KeyCode> ChangeSiteStateActions
         {
             get
@@ -378,7 +378,7 @@ namespace HBP.UI.Tools
                     Site selectedSite = column.SelectedSite;
                     if (selectedSite)
                     {
-                        List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
+                        List<Core.Object3D.Site> sites = new();
                         if (IsShiftPressed)
                         {
                             foreach (Transform siteTransform in selectedSite.transform.parent)

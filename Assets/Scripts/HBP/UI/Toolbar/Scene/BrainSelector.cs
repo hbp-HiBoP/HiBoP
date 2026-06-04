@@ -17,7 +17,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Event called when the value of the dropdown has been changed
         /// </summary>
-        public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
+        public GenericEvent<int> OnChangeValue = new();
         #endregion
 
         #region Public Methods

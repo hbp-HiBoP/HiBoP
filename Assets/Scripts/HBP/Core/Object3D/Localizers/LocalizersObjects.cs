@@ -93,7 +93,7 @@ namespace HBP.Core.Object3D
             
             if (Directory.Exists(protocolDirectory))
             {
-                LocalizerProtocol localizerProtocol = new LocalizerProtocol(protocol, protocolDirectory);
+                LocalizerProtocol localizerProtocol = new(protocol, protocolDirectory);
                 Protocols.Add(localizerProtocol);
             }
             else if (displayErrors)
@@ -290,7 +290,7 @@ namespace HBP.Core.Object3D
             foreach (string dataDirectory in dataDirectories)
             {
                 string dataName = Path.GetFileName(dataDirectory);
-                LocalizerData data = new LocalizerData(dataName, dataDirectory);
+                LocalizerData data = new(dataName, dataDirectory);
                 if (data.Blocs.Count > 0)
                 {
                     Datas.Add(data);
@@ -345,7 +345,7 @@ namespace HBP.Core.Object3D
             {
                 string blocName = LocalizersHelpers.GetBlocNameFromFile(niftiFile);
                 string maskFile = FindMaskFileForBloc(directory, blocName, niftiExtensions);
-                LocalizerBloc bloc = new LocalizerBloc(blocName, niftiFile, maskFile);
+                LocalizerBloc bloc = new(blocName, niftiFile, maskFile);
                 Blocs.Add(bloc);
             }
         }

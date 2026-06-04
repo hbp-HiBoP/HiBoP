@@ -18,7 +18,7 @@ public class DatabaseDebugger : MonoBehaviour
 [CustomEditor(typeof(DatabaseDebugger))]
 public class DatabaseDebuggerEditor : Editor
 {
-    private Dictionary<string, bool> foldouts = new Dictionary<string, bool>();
+    private Dictionary<string, bool> foldouts = new();
 
     public override void OnInspectorGUI()
     {

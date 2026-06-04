@@ -58,7 +58,7 @@ namespace HBP.UI.Module3D
         /// <remarks>
         /// There is one CutParametersController for each cut in the scene
         /// </remarks>
-        private List<CutParametersController> m_CutParametersControllers = new List<CutParametersController>();
+        private List<CutParametersController> m_CutParametersControllers = new();
         /// <summary>
         /// Array of Tuples containing the orientation of each cut and its respective generated texture
         /// </summary>

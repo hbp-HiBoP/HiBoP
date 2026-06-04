@@ -75,7 +75,7 @@ namespace HBP.Data.Database
         {
             if (m_Workspaces.Count > 0 && SelectedWorkspace != null) return;
 
-            Workspace workspace = new Workspace("Default");
+            Workspace workspace = new("Default");
             m_Workspaces.Add(workspace);
             SelectedWorkspace = workspace;
         }

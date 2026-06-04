@@ -32,7 +32,7 @@ namespace HBP.Data.Preferences
         #endregion
 
         #region Events
-        public UnityEvent OnSavePreferences = new UnityEvent();
+        public UnityEvent OnSavePreferences = new();
         #endregion
 
         #region Constructors
@@ -56,7 +56,7 @@ namespace HBP.Data.Preferences
         #region Public Methods
         public static UserPreferences Initialize()
         {
-            UserPreferences userPreferences = new UserPreferences();
+            UserPreferences userPreferences = new();
             if (new FileInfo(PATH).Exists)
             {
                 try

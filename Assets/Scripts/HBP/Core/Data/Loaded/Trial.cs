@@ -29,7 +29,7 @@ namespace HBP.Core.Data
             int mainSubBlocIndex = orderedSubBlocs.IndexOf(bloc.MainSubBloc); // Find main sub bloc index.
 
             // Generate main Sub Trial
-            SubTrial mainSubTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurence, bloc.MainSubBloc, occurencesByEvent, frequency);
+            SubTrial mainSubTrial = new(valuesByChannel, unitByChannel, mainEventOccurence, bloc.MainSubBloc, occurencesByEvent, frequency);
             SubTrialBySubBloc.Add(bloc.MainSubBloc, mainSubTrial);
 
             // Research before.

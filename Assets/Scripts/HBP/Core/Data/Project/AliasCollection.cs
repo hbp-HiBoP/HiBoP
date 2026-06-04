@@ -16,8 +16,8 @@ namespace HBP.Core.Data
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "Aliases.json");
 
-        [JsonProperty] private List<Alias> m_Aliases = new List<Alias>();
-        public ReadOnlyCollection<Alias> Aliases => new ReadOnlyCollection<Alias>(m_Aliases);
+        [JsonProperty] private List<Alias> m_Aliases = new();
+        public ReadOnlyCollection<Alias> Aliases => new(m_Aliases);
         #endregion
 
         #region Constructors
@@ -35,13 +35,13 @@ namespace HBP.Core.Data
         #endregion
 
         #region Events
-        public UnityEvent OnSaveAliases = new UnityEvent();
+        public UnityEvent OnSaveAliases = new();
         #endregion
 
         #region Public Methods
         public static AliasCollection Initialize()
         {
-            AliasCollection aliasCollection = new AliasCollection();
+            AliasCollection aliasCollection = new();
             if (new FileInfo(PATH).Exists)
             {
                 try

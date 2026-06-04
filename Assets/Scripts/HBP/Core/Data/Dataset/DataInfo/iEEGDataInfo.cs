@@ -118,7 +118,7 @@ namespace HBP.Core.Data
         #region Private Methods
         protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetiEEGErrors());
             return errors;
         }
@@ -129,18 +129,18 @@ namespace HBP.Core.Data
         /// <returns>iEEG related errors</returns>
         private IEnumerable<Error> GetiEEGErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             return errors;
         }
         protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetiEEGWarnings());
             return warnings;
         }
         private IEnumerable<Warning> GetiEEGWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             if (m_DataContainer.IsOk)
             {
                 DLL.EEG.File.FileType type;
@@ -174,7 +174,7 @@ namespace HBP.Core.Data
                 {
                     throw new Exception("Invalid data container type");
                 }
-                DLL.EEG.File file = new DLL.EEG.File(type, false, files);
+                DLL.EEG.File file = new(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
                 if (Protocol.IsVisualizable && !Protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {

@@ -31,7 +31,7 @@ namespace HBP.UI.Main
         {
             get
             {
-                List<Core.Data.BaseTag> tags = new List<Core.Data.BaseTag>();
+                List<Core.Data.BaseTag> tags = new();
                 tags.AddRange(m_GeneralSubModifiers.ModifiedTags);
                 tags.AddRange(m_PatientsSubModifiers.ModifiedTags);
                 tags.AddRange(m_SitesSubModifiers.ModifiedTags);

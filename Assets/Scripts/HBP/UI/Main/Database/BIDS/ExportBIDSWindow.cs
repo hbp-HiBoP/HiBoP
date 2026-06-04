@@ -41,16 +41,16 @@ namespace HBP.UI.Main
         [SerializeField] private FolderSelector m_ExportFolderSelector;
         [SerializeField] private FileSelector m_ConfigurationFileSelector;
         
-        private List<Patient> m_AvailablePatients = new List<Patient>();
-        private List<Patient> m_SelectedPatients = new List<Patient>();
-        private List<BIDSProtocolItem> m_ProtocolItems = new List<BIDSProtocolItem>();
-        private List<BIDSDataItem> m_DataItems = new List<BIDSDataItem>();
+        private List<Patient> m_AvailablePatients = new();
+        private List<Patient> m_SelectedPatients = new();
+        private List<BIDSProtocolItem> m_ProtocolItems = new();
+        private List<BIDSDataItem> m_DataItems = new();
         
-        private List<BaseTag> m_AvailablePatientTags = new List<BaseTag>();
-        private List<BaseTag> m_SelectedPatientTags = new List<BaseTag>();
+        private List<BaseTag> m_AvailablePatientTags = new();
+        private List<BaseTag> m_SelectedPatientTags = new();
         
-        private List<BaseTag> m_AvailableSiteTags = new List<BaseTag>();
-        private List<BaseTag> m_SelectedSiteTags = new List<BaseTag>();
+        private List<BaseTag> m_AvailableSiteTags = new();
+        private List<BaseTag> m_SelectedSiteTags = new();
         
         private BIDSExportConfiguration m_Configuration;
         #endregion

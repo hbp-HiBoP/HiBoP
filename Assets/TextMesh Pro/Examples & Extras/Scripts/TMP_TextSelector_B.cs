@@ -134,7 +134,7 @@ namespace TMPro.Examples
                     vertices[vertexIndex + 3] = vertices[vertexIndex + 3] + offset;
 
                     // Change Vertex Colors of the highlighted character
-                    Color32 c = new Color32(255, 255, 192, 255);
+                    Color32 c = new(255, 255, 192, 255);
 
                     // Get a reference to the vertex color
                     Color32[] vertexColors = m_TextMeshPro.textInfo.meshInfo[materialIndex].colors32;

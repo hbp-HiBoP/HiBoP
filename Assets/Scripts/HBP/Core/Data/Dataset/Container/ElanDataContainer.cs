@@ -104,14 +104,14 @@ namespace HBP.Core.Data.Container
         #region Public Methods
         public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (string.IsNullOrEmpty(EEG))
             {
                 errors.Add(new RequiredFieldEmptyError("EEG file path is empty"));
             }
             else
             {
-                FileInfo EEGFile = new FileInfo(EEG);
+                FileInfo EEGFile = new(EEG);
                 if (!EEGFile.Exists)
                 {
                     errors.Add(new FileDoesNotExistError("EEG file does not exist"));
@@ -144,7 +144,7 @@ namespace HBP.Core.Data.Container
             }
             else
             {
-                FileInfo POSFile = new FileInfo(POS);
+                FileInfo POSFile = new(POS);
                 if (!POSFile.Exists)
                 {
                     errors.Add(new FileDoesNotExistError("POS file does not exist"));
@@ -162,7 +162,7 @@ namespace HBP.Core.Data.Container
         }
         public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }

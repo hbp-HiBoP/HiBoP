@@ -12,11 +12,11 @@ namespace UnityEngine.UI.Extensions
         /// <summary>
         /// Event called when pressing the button
         /// </summary>
-        public UnityEvent onPress = new UnityEvent();
+        public UnityEvent onPress = new();
         /// <summary>
         /// Event called when releasing the button
         /// </summary>
-        public UnityEvent onRelease = new UnityEvent();
+        public UnityEvent onRelease = new();
         #endregion
 
         #region Public Methods

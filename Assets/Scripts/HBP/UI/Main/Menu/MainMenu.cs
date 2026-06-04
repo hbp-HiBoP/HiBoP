@@ -44,11 +44,11 @@ namespace HBP.UI.Main
         {
             if (Input.GetMouseButtonUp(0))
             {
-                PointerEventData pointer = new PointerEventData(EventSystem.current)
+                PointerEventData pointer = new(EventSystem.current)
                 {
                     position = Input.mousePosition
                 };
-                List<RaycastResult> raycastResults = new List<RaycastResult>();
+                List<RaycastResult> raycastResults = new();
                 EventSystem.current.RaycastAll(pointer, raycastResults);
                 if (raycastResults.Count > 0)
                 {

@@ -77,7 +77,7 @@ namespace HBP.Data.Module3D
         {
             if (mri.IsUsable)
             {
-                Core.Object3D.MRI3D mri3D = new Core.Object3D.MRI3D(mri, PersistentDataManager.UserPreferences.Data.Anatomic.MRIPreloading);
+                Core.Object3D.MRI3D mri3D = new(mri, PersistentDataManager.UserPreferences.Data.Anatomic.MRIPreloading);
                 if (PersistentDataManager.UserPreferences.Data.Anatomic.MRIPreloading)
                 {
                     if (mri3D.IsLoaded)

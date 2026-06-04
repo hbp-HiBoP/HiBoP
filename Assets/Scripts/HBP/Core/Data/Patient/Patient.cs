@@ -156,7 +156,7 @@ namespace HBP.Core.Data
         public void CleanInvalidData()
         {
             // Patient tags
-            List<BaseTagValue> patientTagsToRemove = new List<BaseTagValue>();
+            List<BaseTagValue> patientTagsToRemove = new();
             foreach (var tag in Tags)
                 if (tag.Tag == null)
                     patientTagsToRemove.Add(tag);
@@ -166,7 +166,7 @@ namespace HBP.Core.Data
             // Site tags
             foreach (var site in Sites)
             {
-                List<BaseTagValue> siteTagsToRemove = new List<BaseTagValue>();
+                List<BaseTagValue> siteTagsToRemove = new();
                 foreach (var tag in site.Tags)
                     if (tag.Tag == null)
                         siteTagsToRemove.Add(tag);
@@ -279,7 +279,7 @@ namespace HBP.Core.Data
         public static bool IsPatientDirectory(string path)
         {
             if (string.IsNullOrEmpty(path)) return false;
-            DirectoryInfo directory = new DirectoryInfo(path);
+            DirectoryInfo directory = new(path);
             if (!directory.Exists) return false;
             DirectoryInfo[] directories = directory.GetDirectories();
             if (directories.Any((dir) => dir.Name == "implantation") || directories.Any((dir) => dir.Name == "t1mri")) return true;
@@ -320,9 +320,9 @@ namespace HBP.Core.Data
             result = null;
             if (IsPatientDirectory(path))
             {
-                DirectoryInfo directory = new DirectoryInfo(path);
+                DirectoryInfo directory = new(path);
                 string patientName;
-                List<BaseTagValue> patientTags = new List<BaseTagValue>();
+                List<BaseTagValue> patientTags = new();
                 
                 // Check if directory follows Place_Date_Name format
                 if (TryParsePlaceDateNameFormat(directory.Name, out string place, out int date, out string name))
@@ -390,13 +390,13 @@ namespace HBP.Core.Data
             updateProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo directory = new(databaseReference.Path);
             if (!directory.Exists) return;
 
             IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
             int length = patientDirectories.Count();
             int progress = 0;
-            List<Patient> patientsList = new List<Patient>(length);
+            List<Patient> patientsList = new(length);
             foreach (var dir in patientDirectories)
             {
                 token.ThrowIfCancellationRequested();
@@ -420,15 +420,15 @@ namespace HBP.Core.Data
         {
             patients = new Patient[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo databaseDirectoryInfo = new(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             // Read participants.tsv.
             updateProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
-            FileInfo participantsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
+            FileInfo participantsFileInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
             if (!participantsFileInfo.Exists) throw new HBPException("Missing file", "The mandatory file 'participants.tsv' is missing in the BIDS database directory.");
-            Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new Dictionary<string, Dictionary<string, string>>();
-            using (StreamReader streamReader = new StreamReader(participantsFileInfo.FullName))
+            Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new();
+            using (StreamReader streamReader = new(participantsFileInfo.FullName))
             {
                 string[] lines = streamReader.ReadToEnd().Split(new string[] { Environment.NewLine, "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 if (lines.Length == 0) return;
@@ -438,7 +438,7 @@ namespace HBP.Core.Data
                     string[] values = lines[l].Split(new char[] { '\t' });
                     if (values.Length == tags.Length)
                     {
-                        Dictionary<string, string> valueByTag = new Dictionary<string, string>();
+                        Dictionary<string, string> valueByTag = new();
                         for (int t = 1; t < tags.Length; t++)
                         {
                             valueByTag.Add(tags[t], values[t]);
@@ -449,7 +449,7 @@ namespace HBP.Core.Data
             }
 
             // Find mesh files.
-            Dictionary<string, List<BIDSFile>> meshesFilesBySubjectID = new Dictionary<string, List<BIDSFile>>();
+            Dictionary<string, List<BIDSFile>> meshesFilesBySubjectID = new();
             foreach (var meshFile in BIDSParser.FindFiles(databaseDirectoryInfo.FullName, null, new[] { ".gii" }))
             {
                 token.ThrowIfCancellationRequested();
@@ -462,7 +462,7 @@ namespace HBP.Core.Data
 
             // Find MRI files.
             string[] mriSuffixes = { "T1w", "T2w", "T1rho", "T1map", "T2map", "T2star", "FLAIR", "FLASH", "PD", "PDmap", "PDT2", "inplaneT1", "inplaneT2", "angio" };
-            Dictionary<string, List<BIDSFile>> mriFilesBySubjectID = new Dictionary<string, List<BIDSFile>>();
+            Dictionary<string, List<BIDSFile>> mriFilesBySubjectID = new();
             foreach (var mriFile in BIDSParser.FindFiles(databaseDirectoryInfo.FullName, mriSuffixes, new[] { ".nii", ".nii.gz" }))
             {
                 token.ThrowIfCancellationRequested();
@@ -474,7 +474,7 @@ namespace HBP.Core.Data
             }
 
             // Find Electrodes files.
-            Dictionary<string, List<BIDSFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSFile>>();
+            Dictionary<string, List<BIDSFile>> electrodesFilesBySubjectID = new();
             foreach (var electrodeFile in BIDSParser.FindFiles(databaseDirectoryInfo.FullName, new[] { "electrodes" }, new[] { ".tsv" }))
             {
                 token.ThrowIfCancellationRequested();
@@ -488,14 +488,14 @@ namespace HBP.Core.Data
             // Create patients.
             int length = tagValuesBySubjectID.Count;
             int progress = 0;
-            List<Patient> patientsList = new List<Patient>(tagValuesBySubjectID.Count);
+            List<Patient> patientsList = new(tagValuesBySubjectID.Count);
             foreach (var pair in tagValuesBySubjectID)
             {
                 token.ThrowIfCancellationRequested();
                 updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
 
                 // Meshes.
-                List<BaseMesh> meshes = new List<BaseMesh>();
+                List<BaseMesh> meshes = new();
                 if (meshesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSFile> subjectMeshFiles))
                 {
                     static bool IsMarsAtlasMesh(BIDSFile f)
@@ -532,7 +532,7 @@ namespace HBP.Core.Data
 
                     string[] sameEntityKeys = { "sub", "ses", "acq", "ce", "rec", "run" };
 
-                    List<BIDSFile> usedMeshFiles = new List<BIDSFile>(subjectMeshFiles.Count);
+                    List<BIDSFile> usedMeshFiles = new(subjectMeshFiles.Count);
 
                     foreach (var meshFile in subjectMeshFiles)
                     {
@@ -607,7 +607,7 @@ namespace HBP.Core.Data
                 }
 
                 // MRIs.
-                List<MRI> mris = new List<MRI>();
+                List<MRI> mris = new();
                 if (mriFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSFile> subjectMRIFiles))
                 {
                     mris = subjectMRIFiles.Select(f =>
@@ -619,7 +619,7 @@ namespace HBP.Core.Data
                 }
 
                 // Sites.
-                List<Site> sites = new List<Site>();
+                List<Site> sites = new();
                 if (electrodesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSFile> subjectElectrodesFiles))
                 {
                     foreach (var electrodeFile in subjectElectrodesFiles)
@@ -650,7 +650,7 @@ namespace HBP.Core.Data
                 }
 
                 // Tags.
-                List<BaseTagValue> tags = new List<BaseTagValue>();
+                List<BaseTagValue> tags = new();
                 if (tagValuesBySubjectID.TryGetValue(pair.Key, out Dictionary<string, string> subjectTags))
                 {
                     // Add tags to project.
@@ -679,7 +679,7 @@ namespace HBP.Core.Data
                 }
 
                 // Create patient.
-                Patient patient = new Patient(pair.Key, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
+                Patient patient = new(pair.Key, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
                 patientsList.Add(patient);
             }
             patients = patientsList.ToArray();
@@ -688,14 +688,14 @@ namespace HBP.Core.Data
         public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Patient[] modifiedPatients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             modifiedPatients = new Patient[0];
-            Dictionary<string, Patient> modifiedPatientsDict = new Dictionary<string, Patient>();
+            Dictionary<string, Patient> modifiedPatientsDict = new();
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo databaseDirectoryInfo = new(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
-            FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
-            FileInfo patientsExcelFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.xlsx"));
-            DirectoryInfo patientsDirectoryInfo = new DirectoryInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients"));
+            FileInfo patientsFileInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
+            FileInfo patientsExcelFileInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "patients.xlsx"));
+            DirectoryInfo patientsDirectoryInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "patients"));
             FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
             FileInfo[] patientsExcelFiles = databaseDirectoryInfo.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
             DirectoryInfo[] patientDirectories = databaseDirectoryInfo.GetDirectories();
@@ -912,7 +912,7 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static async UniTask<IEnumerable<Patient>> LoadFromDirectoryAsync(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
-            List<Patient> patients = new List<Patient>(paths.Length);
+            List<Patient> patients = new(paths.Length);
             await UniTask.SwitchToThreadPool();
             foreach (var path in paths)
             {

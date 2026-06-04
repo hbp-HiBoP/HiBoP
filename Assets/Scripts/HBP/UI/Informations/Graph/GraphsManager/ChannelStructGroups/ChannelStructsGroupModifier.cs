@@ -18,7 +18,7 @@ namespace HBP.UI.Informations
         [SerializeField] Button m_AddChannelButton;
         [SerializeField] Button m_RemoveChannelButton;
 
-        private List<ChannelStruct> m_ChannelStructs = new List<ChannelStruct>();
+        private List<ChannelStruct> m_ChannelStructs = new();
 
         public override bool Interactable
         {

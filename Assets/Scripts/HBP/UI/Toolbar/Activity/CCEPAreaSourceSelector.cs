@@ -36,7 +36,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// List of all MarsAtlas areas
         /// </summary>
-        private List<MarsAtlasArea> m_MarsAtlasAreas = new List<MarsAtlasArea>();
+        private List<MarsAtlasArea> m_MarsAtlasAreas = new();
         /// <summary>
         /// Dropdown to select the MarsAtlas area to consider as source
         /// </summary>

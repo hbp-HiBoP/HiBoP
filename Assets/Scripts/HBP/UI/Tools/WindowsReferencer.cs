@@ -13,7 +13,7 @@ namespace HBP.UI.Tools
         public UnityEvent<Window> OnOpenWindow { get; protected set; } = new GenericEvent<Window>();
         public UnityEvent<Window> OnCloseWindow { get; protected set; } = new GenericEvent<Window>();
 
-        [SerializeField] protected List<Window> m_Windows = new List<Window>();
+        [SerializeField] protected List<Window> m_Windows = new();
         public ReadOnlyCollection<Window> Windows
         {
             get

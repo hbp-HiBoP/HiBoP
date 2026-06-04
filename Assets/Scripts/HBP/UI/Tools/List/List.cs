@@ -17,10 +17,10 @@ namespace HBP.UI.Tools.Lists
         /// <summary>
         /// UI items displayed by the list.
         /// </summary>
-        protected System.Collections.Generic.List<Item<T>> m_Items = new System.Collections.Generic.List<Item<T>>();
-        public virtual ReadOnlyCollection<Item<T>> Items => new ReadOnlyCollection<Item<T>>(m_Items);
+        protected System.Collections.Generic.List<Item<T>> m_Items = new();
+        public virtual ReadOnlyCollection<Item<T>> Items => new(m_Items);
 
-        protected System.Collections.Generic.List<T> m_Objects = new System.Collections.Generic.List<T>();
+        protected System.Collections.Generic.List<T> m_Objects = new();
         /// <summary>
         /// Objects of the list.
         /// </summary>
@@ -34,7 +34,7 @@ namespace HBP.UI.Tools.Lists
         /// <summary>
         /// List of the displayed objects.
         /// </summary>
-        protected System.Collections.Generic.List<T> m_DisplayedObjects = new System.Collections.Generic.List<T>();
+        protected System.Collections.Generic.List<T> m_DisplayedObjects = new();
         /// <summary>
         /// Current mask applied to the list.
         /// </summary>

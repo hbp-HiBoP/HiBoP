@@ -115,7 +115,7 @@ namespace HBP.Core.Data
         Dictionary<string, float[]> EpochValues(Dictionary<string, float[]> valuesByChannel, int startIndex, int endIndex)
         {
             // Initialize
-            Dictionary<string, float[]> result = new Dictionary<string, float[]>(valuesByChannel.Count);
+            Dictionary<string, float[]> result = new(valuesByChannel.Count);
 
             // GetValues.
             int length = endIndex - startIndex + 1;
@@ -137,24 +137,24 @@ namespace HBP.Core.Data
         Dictionary<Event,EventInformation> FindEvents(EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.Frequency frequency)
         {
             // Initialize
-            Dictionary<Event, EventInformation> result = new Dictionary<Event, EventInformation>(subBloc.Events.Count);
+            Dictionary<Event, EventInformation> result = new(subBloc.Events.Count);
 
             // Calculate start and end indexes of the window.
             int startIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start);
             int endIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End);
 
-            EventInformation.EventOccurence mainOccurence = new EventInformation.EventOccurence(mainEventOccurence.Code, mainEventOccurence.Index, mainEventOccurence.Index - startIndex, 0, mainEventOccurence.Time, -subBloc.Window.Start, 0f); // Generate main event occurence.
+            EventInformation.EventOccurence mainOccurence = new(mainEventOccurence.Code, mainEventOccurence.Index, mainEventOccurence.Index - startIndex, 0, mainEventOccurence.Time, -subBloc.Window.Start, 0f); // Generate main event occurence.
             result.Add(subBloc.MainEvent, new EventInformation(new EventInformation.EventOccurence[] { mainOccurence }));
 
             foreach (var _event in subBloc.SecondaryEvents)
             {
                 EventOccurence[] occurences = occurencesByEvent[_event].GetOccurences(startIndex, endIndex);
-                List<EventInformation.EventOccurence> eventOccurences = new List<EventInformation.EventOccurence>(occurences.Length);
+                List<EventInformation.EventOccurence> eventOccurences = new(occurences.Length);
                 foreach (var occurence in occurences)
                 {
                     eventOccurences.Add(new EventInformation.EventOccurence(occurence.Code, occurence.Index, occurence.Index - startIndex, occurence.Index - mainOccurence.Index, occurence.Time, occurence.Time - mainOccurence.Time + mainOccurence.TimeFromStart, occurence.Time - mainOccurence.Time));
                 }
-                EventInformation eventInformation = new EventInformation(eventOccurences.ToArray());
+                EventInformation eventInformation = new(eventOccurences.ToArray());
                 result.Add(_event, eventInformation);
             }
             return result;

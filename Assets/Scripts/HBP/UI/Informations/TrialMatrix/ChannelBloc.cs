@@ -99,7 +99,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 return SubBlocs.FirstOrDefault(c => c.Hovered);
             }
         }
-        List<SubBloc> m_SubBlocs = new List<SubBloc>();
+        List<SubBloc> m_SubBlocs = new();
         public ReadOnlyCollection<SubBloc> SubBlocs { get { return new ReadOnlyCollection<SubBloc>(m_SubBlocs); } }
         public SubBloc MainSubBloc
         {
@@ -114,7 +114,7 @@ namespace HBP.UI.Informations.TrialMatrix
 
         [SerializeField] GameObject m_SelectionPrefab;
         [SerializeField] RectTransform m_SelectionContainer;
-        List<GameObject> m_SelectionMasks = new List<GameObject>();
+        List<GameObject> m_SelectionMasks = new();
 
         RectTransform m_RectTransform;
         int m_OnPointerDownTrial;
@@ -367,27 +367,27 @@ namespace HBP.UI.Informations.TrialMatrix
 
             EventTrigger eventTrigger = subBloc.GetComponent<EventTrigger>();
 
-            EventTrigger.Entry pointerDownEntry = new EventTrigger.Entry();
+            EventTrigger.Entry pointerDownEntry = new();
             pointerDownEntry.eventID = EventTriggerType.PointerDown;
             pointerDownEntry.callback.AddListener(OnPointerDown);
             eventTrigger.triggers.Add(pointerDownEntry);
 
-            EventTrigger.Entry beginDragEntry = new EventTrigger.Entry();
+            EventTrigger.Entry beginDragEntry = new();
             beginDragEntry.eventID = EventTriggerType.BeginDrag;
             beginDragEntry.callback.AddListener(OnBeginDrag);
             eventTrigger.triggers.Add(beginDragEntry);
 
-            EventTrigger.Entry dragEntry = new EventTrigger.Entry();
+            EventTrigger.Entry dragEntry = new();
             dragEntry.eventID = EventTriggerType.Drag;
             dragEntry.callback.AddListener(OnDrag);
             eventTrigger.triggers.Add(dragEntry);
 
-            EventTrigger.Entry endDragEntry = new EventTrigger.Entry();
+            EventTrigger.Entry endDragEntry = new();
             endDragEntry.eventID = EventTriggerType.EndDrag;
             endDragEntry.callback.AddListener(OnDrag);
             eventTrigger.triggers.Add(endDragEntry);
 
-            EventTrigger.Entry scrollEntry = new EventTrigger.Entry();
+            EventTrigger.Entry scrollEntry = new();
             scrollEntry.eventID = EventTriggerType.Scroll;
             scrollEntry.callback.AddListener(OnScroll);
             eventTrigger.triggers.Add(scrollEntry);
@@ -463,7 +463,7 @@ namespace HBP.UI.Informations.TrialMatrix
         }
         void SetSelections()
         {
-            List<Tuple<int, int>> masks = new List<Tuple<int, int>>();
+            List<Tuple<int, int>> masks = new();
             bool inside = false;
             int startIndex = -1;
             for (int i = 0; i < m_TrialIsSelected.Length; i++)

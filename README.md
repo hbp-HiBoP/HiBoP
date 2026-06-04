@@ -77,6 +77,10 @@ This work is licensed under a [CC Attribution-NonCommercial 4.0 International](h
 
 This open source software code was developed in part or in whole in the [Human Brain Project](https://www.humanbrainproject.eu/en/), funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation under the Specific Grant Agreement No. 785907 (Human Brain Project SGA2).
 
+### EBRAINS 2.0
+
+This project has received funding from the European Union's Research and Innovation Program Horizon Europe under Grant Agreement [No. 101147319](https://doi.org/10.3030/101147319) (EBRAINS 2.0).
+
 ### Used third-party resources
 
 #### Unity / C\#

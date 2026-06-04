@@ -25,7 +25,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                List<BaseTag> tags = new List<BaseTag>();
+                List<BaseTag> tags = new();
                 tags.AddRange(PatientsTags);
                 tags.AddRange(SitesTags);
                 tags.AddRange(GeneralTags);
@@ -34,13 +34,13 @@ namespace HBP.Core.Data
         }
 
         [JsonProperty] private List<BaseTag> m_GeneralTags;
-        public ReadOnlyCollection<BaseTag> GeneralTags => new ReadOnlyCollection<BaseTag>(m_GeneralTags);
+        public ReadOnlyCollection<BaseTag> GeneralTags => new(m_GeneralTags);
 
         [JsonProperty] private List<BaseTag> m_PatientsTags;
-        public ReadOnlyCollection<BaseTag> PatientsTags => new ReadOnlyCollection<BaseTag>(m_PatientsTags);
+        public ReadOnlyCollection<BaseTag> PatientsTags => new(m_PatientsTags);
 
         [JsonProperty] private List<BaseTag> m_SitesTags;
-        public ReadOnlyCollection<BaseTag> SitesTags => new ReadOnlyCollection<BaseTag>(m_SitesTags);
+        public ReadOnlyCollection<BaseTag> SitesTags => new(m_SitesTags);
         #endregion
 
         #region Constructors
@@ -62,7 +62,7 @@ namespace HBP.Core.Data
         #endregion
 
         #region Events
-        public UnityEvent OnSaveTags = new UnityEvent();
+        public UnityEvent OnSaveTags = new();
         #endregion
 
         #region Private Methods
@@ -144,7 +144,7 @@ namespace HBP.Core.Data
         #region Public Methods
         public static TagCollection Initialize()
         {
-            TagCollection tagsCollection = new TagCollection();
+            TagCollection tagsCollection = new();
             if (new FileInfo(PATH).Exists)
             {
                 try
@@ -245,7 +245,7 @@ namespace HBP.Core.Data
         public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromCSV(string csvPath)
         {
             Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
-            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (File.Exists(csvPath))
             {
                 string[] lines = File.ReadAllLines(csvPath);
@@ -278,7 +278,7 @@ namespace HBP.Core.Data
                     {
                         string[] values = csvParser.Split(lines[i]);
                         string name = values.Length > 0 ? values[0] : "";
-                        List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                        List<BaseTagValue> tagValues = new();
                         for (int j = 1; j < values.Length; j++)
                         {
                             BaseTag tag = tags[j - 1];
@@ -307,7 +307,7 @@ namespace HBP.Core.Data
         public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromCSV(string csvPath)
         {
             Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
-            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (File.Exists(csvPath))
             {
                 string[] lines = File.ReadAllLines(csvPath);
@@ -340,7 +340,7 @@ namespace HBP.Core.Data
                     {
                         string[] values = csvParser.Split(lines[i]);
                         string name = values.Length > 0 ? values[0] : "";
-                        List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                        List<BaseTagValue> tagValues = new();
                         for (int j = 1; j < values.Length; j++)
                         {
                             BaseTag tag = tags[j - 1];
@@ -368,7 +368,7 @@ namespace HBP.Core.Data
         }
         public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromExcel(string excelPath)
         {
-            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (!File.Exists(excelPath))
             {
                 Debug.LogWarning($"Excel file not found: {excelPath}");
@@ -394,7 +394,7 @@ namespace HBP.Core.Data
                     }
                 }
                 string[] headers = allHeaders.ToArray();
-                Dictionary<string, BaseTag> tagsByName = new Dictionary<string, BaseTag>();
+                Dictionary<string, BaseTag> tagsByName = new();
 
                 // Create or find tags for each header
                 foreach (string tagName in headers)
@@ -421,7 +421,7 @@ namespace HBP.Core.Data
                 foreach (var excelRow in excelRows)
                 {
                     string name = excelRow.Name;
-                    List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                    List<BaseTagValue> tagValues = new();
 
                     foreach (var headerName in excelRow.GetHeaders())
                     {
@@ -457,7 +457,7 @@ namespace HBP.Core.Data
         }
         public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromExcel(string excelPath)
         {
-            Dictionary<string, List<BaseTagValue>> resultTags = new Dictionary<string, List<BaseTagValue>>();
+            Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (!File.Exists(excelPath))
             {
                 Debug.LogWarning($"Excel file not found: {excelPath}");
@@ -483,7 +483,7 @@ namespace HBP.Core.Data
                     }
                 }
                 string[] headers = allHeaders.ToArray();
-                Dictionary<string, BaseTag> tagsByName = new Dictionary<string, BaseTag>();
+                Dictionary<string, BaseTag> tagsByName = new();
 
                 // Create or find tags for each header
                 foreach (string tagName in headers)
@@ -510,7 +510,7 @@ namespace HBP.Core.Data
                 foreach (var excelRow in excelRows)
                 {
                     string name = excelRow.Name;
-                    List<BaseTagValue> tagValues = new List<BaseTagValue>();
+                    List<BaseTagValue> tagValues = new();
 
                     foreach (var headerName in excelRow.GetHeaders())
                     {
@@ -547,7 +547,7 @@ namespace HBP.Core.Data
         public async UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
         {
             await UniTask.SwitchToThreadPool();
-            List<Patient> patients = new List<Patient>();
+            List<Patient> patients = new();
             if (ApplicationState.LoadedProject != null) patients.AddRange(ApplicationState.LoadedProject.Patients);
             if (DatabaseManager.Database.IsLoaded) patients.AddRange(DatabaseManager.Database.Patients);
 

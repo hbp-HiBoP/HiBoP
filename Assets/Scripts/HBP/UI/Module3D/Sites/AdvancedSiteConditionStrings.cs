@@ -11,12 +11,12 @@ namespace HBP.UI.Module3D
         #region Properties
         public static string PATH = Path.Combine(Application.persistentDataPath, "AdvancedConditions.txt");
         public static string SEPARATOR = "//.//";
-        private static List<string> m_Conditions = new List<string>();
+        private static List<string> m_Conditions = new();
         public static ReadOnlyCollection<string> Conditions { get { return new ReadOnlyCollection<string>(m_Conditions); } }
         #endregion
 
         #region Events
-        public static UnityEvent OnChangeConditions = new UnityEvent();
+        public static UnityEvent OnChangeConditions = new();
         #endregion
 
         #region Public Methods
@@ -24,7 +24,7 @@ namespace HBP.UI.Module3D
         {
             if (new FileInfo(PATH).Exists)
             {
-                using (StreamReader sr = new StreamReader(PATH))
+                using (StreamReader sr = new(PATH))
                 {
                     m_Conditions.Clear();
                     string file = sr.ReadToEnd();
@@ -54,7 +54,7 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private static void SaveConditions()
         {
-            using (StreamWriter sw = new StreamWriter(PATH))
+            using (StreamWriter sw = new(PATH))
             {
                 foreach (var condition in m_Conditions)
                 {

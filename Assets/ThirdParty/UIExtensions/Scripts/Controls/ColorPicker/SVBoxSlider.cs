@@ -101,7 +101,7 @@ namespace UnityEngine.UI.Extensions.ColorPicker
             if (image.texture != null)
                 DestroyImmediate(image.texture);
 
-            Texture2D texture = new Texture2D(100, 100)
+            Texture2D texture = new(100, 100)
             {
                 hideFlags = HideFlags.DontSave
             };
