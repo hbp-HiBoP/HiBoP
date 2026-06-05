@@ -9,16 +9,26 @@ using UnityEngine;
 using UnityEngine.Events;
 using Cysharp.Threading.Tasks;
 using System.Threading;
-using System.Diagnostics;
-using HBP.Core.Exceptions;
 using HBP.Data.Preferences;
-using UnityEngine.PlayerLoop;
-using System.Text;
-using HBP.Core.Enums;
 using HBP.Core.Errors;
 
 namespace HBP.Data.Database
 {
+    public class DatabaseUpdateReport
+    {
+        public ReadOnlyCollection<Patient> RemovedPatients { get; }
+        public ReadOnlyCollection<Patient> AddedPatients { get; }
+        public ReadOnlyCollection<Patient> UpdatedPatients { get; }
+        public bool HasChanges => RemovedPatients.Count > 0 || AddedPatients.Count > 0 || UpdatedPatients.Count > 0;
+
+        public DatabaseUpdateReport(IEnumerable<Patient> removedPatients, IEnumerable<Patient> addedPatients, IEnumerable<Patient> updatedPatients)
+        {
+            RemovedPatients = new ReadOnlyCollection<Patient>(removedPatients.ToList());
+            AddedPatients = new ReadOnlyCollection<Patient>(addedPatients.ToList());
+            UpdatedPatients = new ReadOnlyCollection<Patient>(updatedPatients.ToList());
+        }
+    }
+
     public class GlobalDatabase
     {
         #region Properties
@@ -56,62 +66,16 @@ namespace HBP.Data.Database
         #endregion
 
         #region Public Methods
-        public async UniTaskVoid Initialize()
+        public async UniTask InitializeAsync()
         {
             await UniTask.SwitchToThreadPool();
             if (!new DirectoryInfo(ApplicationState.DatabasePath).Exists) Directory.CreateDirectory(ApplicationState.DatabasePath);
             LoadSettings();
-            if (m_Settings.IsFirstUse)
-            {
-                var result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Default Protocols", "The default protocols have not yet been imported. Do you want to import them?", "Yes", "Later", "Never");
-                if (result == 0) // Yes
-                {
-                    ConfigureDefault();
-                    await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Default Protocols", "The default protocols have been imported.", "OK");
-                    m_Settings.IsFirstUse = false;
-                }
-                else if (result == 2) // Never
-                {
-                    m_Settings.IsFirstUse = false;
-                }
-                SaveSettings();
-            }
-            await LoadProtocolsAsync();
-            LoadDatabase().Forget();
         }
         public void SaveSettings()
         {
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
-        public async UniTaskVoid SaveProtocols()
-        {
-            await SaveProtocolsAsync();
-        } 
-        public async UniTaskVoid SaveDatabaseReferences()
-        {
-            await SaveDatabaseReferencesAsync();
-            SaveDatabase().Forget();
-        }
-
-        public async UniTaskVoid LoadDatabase()
-        {
-            await UniTask.SwitchToThreadPool();
-            await LoadDatabaseReferencesAsync();
-            await LoadingManager.LoadAsync(update => LoadDatabaseAsync(update));
-        }
-        public async UniTaskVoid SaveDatabase()
-        {
-            await UniTask.SwitchToThreadPool();
-            await LoadingManager.LoadAsync(update => SaveDatabaseAsync(update));
-        }
-        public async UniTask UpdateDatabases(IEnumerable<DatabaseReference> databaseReferences)
-        {
-            await LoadingManager.LoadAsync((update, token) => UpdateDatabasesAsync(databaseReferences, update, token));
-            await LoadingManager.LoadAsync(update => SaveDatabaseAsync(update));
-            await UniTask.SwitchToMainThread();
-            OnUpdateDatabases.Invoke();
-        }
-
         public async UniTask CheckIntegrityAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await Dataset.CheckDatasetsAsync(Protocols, true, updateProgress, token);
@@ -211,7 +175,7 @@ namespace HBP.Data.Database
         #endregion
 
         #region Private Methods
-        private void ConfigureDefault()
+        public void ConfigureDefault()
         {
             DirectoryInfo defaultDatabaseDirectory = new(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
             defaultDatabaseDirectory.CopyFilesRecursively(new DirectoryInfo(ApplicationState.DatabasePath));
@@ -246,10 +210,19 @@ namespace HBP.Data.Database
             }
         }
 
-        private async UniTask LoadDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        public async UniTask LoadDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
             var patientFiles = GetPatientFiles();
             var dataInfoFiles = GetDataInfoFiles();
+            if (patientFiles.Length == 0 && dataInfoFiles.Length == 0)
+            {
+                m_Patients.Clear();
+                m_DataInfos.Clear();
+                updateProgress(1, 0, new LoadingText("Finalizing"));
+                IsLoaded = true;
+                return;
+            }
+
             float patientProgress = patientFiles.Length;
             float dataInfoProgress = dataInfoFiles.Length;
             float steps = patientProgress + dataInfoProgress;
@@ -263,10 +236,18 @@ namespace HBP.Data.Database
             updateProgress(1, 0, new LoadingText("Finalizing"));
             IsLoaded = true;
         }
-        private async UniTask SaveDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        public async UniTask SaveDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
+            if (m_Patients.Count == 0 && m_DataInfos.Count == 0)
+            {
+                await SavePatientsAsync(updateProgress);
+                await SaveDataInfosAsync(updateProgress);
+                updateProgress(1, 0, new LoadingText("Finalizing"));
+                return;
+            }
+
             float patientProgress = m_Patients.Count;
-            float dataInfoProgress = (float)m_DataInfos.Count / m_Patients.Count;
+            float dataInfoProgress = m_Patients.Count > 0 ? (float)m_DataInfos.Count / m_Patients.Count : m_DataInfos.Count;
             float steps = patientProgress + dataInfoProgress;
             patientProgress /= steps;
             dataInfoProgress /= steps;
@@ -278,14 +259,14 @@ namespace HBP.Data.Database
             updateProgress(1, 0, new LoadingText("Finalizing"));
         }
 
-        private async UniTask LoadProtocolsAsync()
+        public async UniTask LoadProtocolsAsync()
         {
             DirectoryInfo protocolDirectory = new(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             if (!protocolDirectory.Exists) protocolDirectory.Create();
             FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
             m_Protocols = (await UniTask.WhenAll(protocolFiles.Select(pf => ClassLoaderSaver.LoadFromJsonAsync<Protocol>(pf.FullName)))).ToList();
         }
-        private async UniTask SaveProtocolsAsync()
+        public async UniTask SaveProtocolsAsync()
         {
             CopyProtocolsImages();
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
@@ -333,14 +314,14 @@ namespace HBP.Data.Database
             imagesTempDirectory.MoveTo(imagesDirectory.FullName);
         }
 
-        private async UniTask LoadDatabaseReferencesAsync()
+        public async UniTask LoadDatabaseReferencesAsync()
         {
             DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "References"));
             if (!referencesDirectory.Exists) referencesDirectory.Create();
             FileInfo[] referenceFiles = referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
             m_DatabaseReferences = (await UniTask.WhenAll(referenceFiles.Select(rf => ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(rf.FullName)))).ToList();
         }
-        private async UniTask SaveDatabaseReferencesAsync()
+        public async UniTask SaveDatabaseReferencesAsync()
         {
             DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "References"));
             DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "ReferencesTemp"));
@@ -419,7 +400,7 @@ namespace HBP.Data.Database
             dataInfosTempDirectory.MoveTo(dataInfosDirectory.FullName);
         }
         
-        private async UniTask UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public async UniTask<DatabaseUpdateReport> UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             updateProgress(0, 1, new LoadingText("Initialization"));
             await UniTask.SwitchToThreadPool();
@@ -490,11 +471,12 @@ namespace HBP.Data.Database
                 databaseReference.LastUpdated = DateTime.Now;
             }
             updateProgress(1, 0, new LoadingText("Finalizing"));
-            await FindAndDisplayChanges(m_Patients, patientsTemp, updatedPatients);
+            var report = FindChanges(m_Patients, patientsTemp, updatedPatients);
             // Set new lists
             m_Patients = patientsTemp;
             m_DataInfos = dataInfosTemp;
             await SaveDatabaseReferencesAsync();
+            return report;
         }
 
         private void FixDatasets()
@@ -508,44 +490,12 @@ namespace HBP.Data.Database
                 }
             }
         }
-        private async UniTask FindAndDisplayChanges(List<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients)
+        private DatabaseUpdateReport FindChanges(List<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients)
         {
             var removedPatients = oldPatients.Except(newPatients).ToList();
             var addedPatients = newPatients.Except(oldPatients).ToList();
             updatedPatients = updatedPatients.Distinct().Except(addedPatients).Except(removedPatients).ToList();
-
-            StringBuilder stringBuilder = new();
-            if (removedPatients.Count > 0)
-            {
-                stringBuilder.AppendLine("<b>Removed patients:</b>");
-                foreach (var patient in removedPatients.OrderBy(p => p.Name))
-                {
-                    stringBuilder.AppendLine(patient.ID);
-                }
-                stringBuilder.AppendLine();
-            }
-            if (addedPatients.Count > 0)
-            {
-                stringBuilder.AppendLine("<b>Added patients:</b>");
-                foreach (var patient in addedPatients.OrderBy(p => p.Name))
-                {
-                    stringBuilder.AppendLine(patient.ID);
-                }
-                stringBuilder.AppendLine();
-            }
-            if (updatedPatients.Count > 0)
-            {
-                stringBuilder.AppendLine("<b>Updated patients:</b>");
-                foreach (var patient in updatedPatients.OrderBy(p => p.Name))
-                {
-                    stringBuilder.AppendLine(patient.ID);
-                }
-                stringBuilder.AppendLine();
-            }
-            if (stringBuilder.Length != 0)
-            {
-                await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "Databases updated", stringBuilder.ToString(), "OK");
-            }
+            return new DatabaseUpdateReport(removedPatients, addedPatients, updatedPatients);
         }
         #endregion
     }

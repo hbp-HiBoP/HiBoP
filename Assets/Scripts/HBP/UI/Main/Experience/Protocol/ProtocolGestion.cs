@@ -4,6 +4,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Data.Database;
+using HBP.UI.Database;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
@@ -55,7 +56,7 @@ namespace HBP.UI.Main
 
             base.OK();
             DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
-            DatabaseManager.Database.SaveProtocols().Forget();
+            await DatabaseWorkflow.SaveProtocolsAsync();
             InteractableStateManager.SetInteractables();
             if (requiresCheck)
             {

@@ -248,115 +248,35 @@ namespace HBP.UI.Main
             });
             m_LoadAUDI.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "AUDI");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("AUDI");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("AUDI");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "AUDI" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("AUDI");
             });
             m_LoadLEC1.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "LEC1");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("LEC1");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("LEC1");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "LEC1" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("LEC1");
             });
             m_LoadLEC2.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "LEC2");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("LEC2");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("LEC2");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "LEC2" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("LEC2");
             });
             m_LoadMCSE.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "MCSE");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("MCSE");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("MCSE");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "MCSE" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("MCSE");
             });
             m_LoadMOTO.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "MOTO");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("MOTO");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("MOTO");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "MOTO" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("MOTO");
             });
             m_LoadMVEB.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "MVEB");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("MVEB");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("MVEB");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "MVEB" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("MVEB");
             });
             m_LoadMVIS.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "MVIS");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("MVIS");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("MVIS");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "MVIS" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("MVIS");
             });
             m_LoadVISU.onClick.AddListener(async () =>
             {
-                var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == "VISU");
-                if (protocol != null)
-                {
-                    Object3DManager.UnloadLocalizer("VISU");
-                }
-                else
-                {
-                    Object3DManager.Localizers.Load("VISU");
-                }
-                await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == "VISU" && p.Loaded));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                await ToggleLocalizerAsync("VISU");
             });
 
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
@@ -409,6 +329,25 @@ namespace HBP.UI.Main
             m_MVEB.isOn = objectToDisplay.PreloadLocalizerMVEB;
             m_MVIS.isOn = objectToDisplay.PreloadLocalizerMVIS;
             m_VISU.isOn = objectToDisplay.PreloadLocalizerVISU;
+        }
+        private async UniTask ToggleLocalizerAsync(string protocolName)
+        {
+            var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
+            if (protocol != null)
+            {
+                Object3DManager.UnloadLocalizer(protocolName);
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                return;
+            }
+
+            if (!Object3DManager.Localizers.TryLoad(protocolName))
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not load localizer", $"The localizer {protocolName} could not be loaded. Please make sure you downloaded it and put it in the right folder.").Forget();
+                return;
+            }
+
+            await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == protocolName && p.Loaded));
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
         private void UpdateButtonStatus(bool loaded, bool loading, Button button, Theme.ThemeElement element)
         {

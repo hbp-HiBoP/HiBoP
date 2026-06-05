@@ -14,7 +14,6 @@ namespace HBP.Data.Database
         {
             base.Initialization();
             m_Database = new GlobalDatabase();
-            m_Database.Initialize().Forget();
         }
         #endregion
     }

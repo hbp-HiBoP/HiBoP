@@ -2,9 +2,11 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
+using HBP.Core.Tools;
+using HBP.UI.Database;
 using UnityEngine;
 
-namespace HBP.Core.Tools
+namespace HBP.UI.Tools
 {
     public class ApplicationManager : Manager<ApplicationManager>
     {
@@ -16,6 +18,10 @@ namespace HBP.Core.Tools
         private void Awake()
         {
             Application.wantsToQuit += OnQuit;
+        }
+        private void Start()
+        {
+            DatabaseWorkflow.InitializeAsync().Forget();
         }
         private void OnDestroy()
         {

@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "HBP.Core.Runtime",
+        "HBP.Theme.Runtime",
         "UniTask",
         "ThirdParty.UIExtensions.Runtime",
         "Unity.Postprocessing.Runtime"

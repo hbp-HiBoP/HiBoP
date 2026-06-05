@@ -30,14 +30,14 @@ namespace HBP.UI.Database
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
             bool switchedWorkspace = ObjectTemp.SelectedWorkspace != Object.SelectedWorkspace;
             base.OK();
             DatabaseManager.Database.SaveSettings();
 
             if (switchedWorkspace)
-                DatabaseManager.Database.LoadDatabase().Forget();
+                await DatabaseWorkflow.LoadDatabaseAsync();
         }
         public void SwitchWorkspace()
         {

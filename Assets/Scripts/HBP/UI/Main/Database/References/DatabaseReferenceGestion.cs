@@ -40,7 +40,7 @@ namespace HBP.UI.Database
                 {
                     base.OK();
                     DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
-                    DatabaseManager.Database.SaveDatabaseReferences().Forget();
+                    await DatabaseWorkflow.SaveDatabaseReferencesAsync();
                     InteractableStateManager.SetInteractables();
                 }
             }
@@ -58,7 +58,7 @@ namespace HBP.UI.Database
                 try
                 {
                     DatabaseManager.Database.SetDatabaseReferences(m_ListGestion.List.Objects);
-                    await DatabaseManager.Database.UpdateDatabases(m_ListGestion.List.ObjectsSelected);
+                    await DatabaseWorkflow.UpdateDatabasesAsync(m_ListGestion.List.ObjectsSelected);
                     m_ListGestion.HasBeenModified = true;
                     base.OK();
                 }

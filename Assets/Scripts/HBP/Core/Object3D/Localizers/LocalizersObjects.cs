@@ -86,7 +86,7 @@ namespace HBP.Core.Object3D
             string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
             return Directory.Exists(protocolDirectory);
         }
-        public void Load(string protocol, bool displayErrors = true)
+        public bool TryLoad(string protocol)
         {
             string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
             
@@ -94,11 +94,10 @@ namespace HBP.Core.Object3D
             {
                 LocalizerProtocol localizerProtocol = new(protocol, protocolDirectory);
                 Protocols.Add(localizerProtocol);
+                return true;
             }
-            else if (displayErrors)
-            {
-                DialogBoxManager.Open(Enums.DialogBoxType.Error, "Can not load localizer", $"The localizer {protocol} could not be loaded. Please make sure you downloaded it and put it in the right folder.").Forget();
-            }
+
+            return false;
         }
         public void Unload(string protocolName)
         {
