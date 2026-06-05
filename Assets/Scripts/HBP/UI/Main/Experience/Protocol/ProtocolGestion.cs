@@ -69,7 +69,8 @@ namespace HBP.UI.Main
             }
             if (ApplicationState.LoadedProject != null)
             {
-                Module3DMain.ReloadScenes();
+                var visualizations = Module3DMain.PrepareReloadScenes();
+                await LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
         }

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using HBP.Core.Tools;
 
-namespace HBP.Data.Tools
+namespace HBP.UI.Tools
 {
     public class GlobalExceptionManager : Manager<GlobalExceptionManager>
     {

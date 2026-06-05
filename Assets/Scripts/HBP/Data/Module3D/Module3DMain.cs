@@ -8,6 +8,7 @@ using HBP.Core.DLL;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Data;
+using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using HBP.Data.Preferences;
 using Cysharp.Threading.Tasks;
@@ -175,8 +176,6 @@ namespace HBP.Data.Module3D
         protected override void Initialization()
         {
             SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
-            ProjectLifecycle.OnBeforeSave.RemoveListener(SaveConfigurations);
-            ProjectLifecycle.OnBeforeSave.AddListener(SaveConfigurations);
             Preload3D();
         }
 
@@ -211,14 +210,6 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
         /// <summary>
-        /// Load a list of visualizations into 3D scenes
-        /// </summary>
-        /// <param name="visualizations">Visualizations to be loaded</param>
-        public static void LoadScenes(IEnumerable<Visualization> visualizations)
-        {
-            LoadingManager.Load((update, token) => LoadAsync(visualizations, update, token));
-        }
-        /// <summary>
         /// Remove every scenes corresponding to a visualization
         /// </summary>
         /// <param name="visualization">Visualization corresponding to the scenes to be removed</param>
@@ -245,7 +236,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="visualization">Visualization from which the new visualization will be extracted</param>
         /// <param name="patient">Patient of the new visualization</param>
-        public static void LoadSinglePatientSceneFromMultiPatientScene(Visualization visualization, Patient patient)
+        public static Visualization PrepareSinglePatientVisualizationFromMultiPatientScene(Visualization visualization, Patient patient)
         {
             Base3DScene scene = Scenes.FirstOrDefault(s => s.Visualization == visualization);
             scene.SaveConfiguration();
@@ -258,7 +249,7 @@ namespace HBP.Data.Module3D
             if (scene.SelectedColumn.SelectedSite)
             {
                 visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;
-                visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c = scene.SelectedColumn);
+                visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c == scene.SelectedColumn);
             }
             if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
@@ -266,7 +257,7 @@ namespace HBP.Data.Module3D
                 visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
             }
             visualizationToLoad.GenerateID();
-            LoadScenes(new Visualization[] { visualizationToLoad });
+            return visualizationToLoad;
         }
         /// <summary>
         /// Save all the configurations of the scenes
@@ -281,7 +272,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Reload all scenes
         /// </summary>
-        public static void ReloadScenes()
+        public static List<Visualization> PrepareReloadScenes()
         {
             SaveConfigurations();
             List<Base3DScene> scenes = Scenes.ToList();
@@ -290,7 +281,7 @@ namespace HBP.Data.Module3D
                 RemoveScene(scene);
             }
             IEnumerable<string> visualizationIDs = (from scene in scenes select scene.Visualization.ID);
-            LoadScenes(from visualization in ApplicationState.LoadedProject.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization);
+            return (from visualization in ApplicationState.LoadedProject.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization).ToList();
         }
         /// <summary>
         /// Remove all scenes
@@ -380,9 +371,6 @@ namespace HBP.Data.Module3D
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.Enable;
             QualitySettings.antiAliasing = 8;
             QualitySettings.vSyncCount = 0;
-
-            // Advanced Conditions
-            UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();
 
             // Objects 3D
             Object3DManager.MNI.Load().Forget();

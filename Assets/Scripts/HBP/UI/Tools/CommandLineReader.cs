@@ -122,7 +122,7 @@ namespace HBP.UI.Tools
                 {
                     visualizations = ApplicationState.LoadedProject.Visualizations;
                 }
-                Module3DMain.LoadScenes(visualizations);
+                LoadingManager.Load((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
             }
         }
         #endregion

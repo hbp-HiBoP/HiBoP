@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace UnityEngine.UI.Extensions
 {
-    internal static class SetPropertyUtility
+    public static class SetPropertyUtility
     {
         public static bool SetColor(ref Color currentValue, Color newValue)
         {

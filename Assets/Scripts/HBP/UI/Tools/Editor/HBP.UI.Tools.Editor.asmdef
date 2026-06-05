@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "HBP.UI.Runtime",
+        "HBP.Theme.Runtime",
         "ThirdParty.UIExtensions.Runtime"
     ],
     "includePlatforms": [

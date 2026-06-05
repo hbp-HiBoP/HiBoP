@@ -59,7 +59,7 @@ namespace HBP.UI.Main
                     if (result == 1) return;
                 }
             }
-            Module3DMain.LoadScenes(m_ListGestion.List.ObjectsSelected);
+            LoadingManager.Load((update, token) => Module3DMain.LoadAsync(m_ListGestion.List.ObjectsSelected, update, token));
             OK();
         }
         public override void Close()
