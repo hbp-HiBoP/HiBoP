@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,7 +10,7 @@ using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 

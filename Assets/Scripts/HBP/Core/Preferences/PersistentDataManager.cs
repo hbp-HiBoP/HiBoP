@@ -1,7 +1,7 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
 
-namespace HBP.Data.Preferences
+namespace HBP.Core.Preferences
 {
     public class PersistentDataManager : Manager<PersistentDataManager>
     {

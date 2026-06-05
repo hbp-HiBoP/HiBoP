@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using System.Linq;
 using System;

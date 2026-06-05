@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using HBP.Core.Enums;
 using Newtonsoft.Json;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace HBP.Data.Preferences
+namespace HBP.Core.Preferences
 {
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class VisualizationPreferences : ICloneable

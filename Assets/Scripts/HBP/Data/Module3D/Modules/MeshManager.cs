@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.Data.Module3D
 {

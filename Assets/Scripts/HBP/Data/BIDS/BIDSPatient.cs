@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HBP.Core.Data;
-using HBP.Data.Database;
+using HBP.Core.Database;
 
 namespace HBP.Data.BIDS
 {

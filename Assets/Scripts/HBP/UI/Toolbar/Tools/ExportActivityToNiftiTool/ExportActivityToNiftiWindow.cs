@@ -2,7 +2,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;

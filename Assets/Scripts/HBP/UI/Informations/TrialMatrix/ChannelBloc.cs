@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,7 +11,7 @@ using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Informations.TrialMatrix
 {

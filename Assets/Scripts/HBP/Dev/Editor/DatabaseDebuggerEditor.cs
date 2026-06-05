@@ -1,92 +1,95 @@
 using HBP.Core.Data;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
-[CustomEditor(typeof(DatabaseDebugger))]
-public class DatabaseDebuggerEditor : Editor
+namespace HBP.Dev
 {
-    private readonly Dictionary<string, bool> m_Foldouts = new();
-
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(DatabaseDebugger))]
+    public class DatabaseDebuggerEditor : Editor
     {
-        DrawDefaultInspector();
+        private readonly Dictionary<string, bool> m_Foldouts = new();
 
-        if (!DatabaseManager.IsInitialized)
+        public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("Database is not initialized.", MessageType.Warning);
-            return;
-        }
+            DrawDefaultInspector();
 
-        GlobalDatabase database = DatabaseManager.Database;
-
-        EditorGUILayout.LabelField("Database Contents", EditorStyles.boldLabel);
-        EditorGUILayout.LabelField("Is Loaded", database.IsLoaded.ToString());
-
-        DrawFoldoutList("Patients", "Patients", database.Patients.ToList());
-        DrawFoldoutList("Data", "Data", database.DataInfos.ToList());
-    }
-
-    private void DrawFoldoutList(string label, string foldoutID, IEnumerable<BaseData> enumerable)
-    {
-        var list = enumerable.ToList();
-
-        if (!m_Foldouts.ContainsKey(foldoutID))
-        {
-            m_Foldouts[foldoutID] = false;
-        }
-
-        m_Foldouts[foldoutID] = EditorGUILayout.Foldout(m_Foldouts[foldoutID], label, true);
-        if (!m_Foldouts[foldoutID]) return;
-
-        EditorGUI.indentLevel++;
-        if (list.Count == 0)
-        {
-            EditorGUILayout.LabelField("None");
-        }
-        else
-        {
-            foreach (var data in list)
+            if (!DatabaseManager.IsInitialized)
             {
-                DrawFoldoutRecursive(data.ID, foldoutID + data.ID, data);
+                EditorGUILayout.HelpBox("Database is not initialized.", MessageType.Warning);
+                return;
             }
-        }
-        EditorGUI.indentLevel--;
-    }
 
-    private void DrawFoldoutRecursive(string label, string foldoutID, BaseData obj)
-    {
-        if (obj == null) return;
+            GlobalDatabase database = DatabaseManager.Database;
 
-        if (!m_Foldouts.ContainsKey(foldoutID))
-        {
-            m_Foldouts[foldoutID] = false;
+            EditorGUILayout.LabelField("Database Contents", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Is Loaded", database.IsLoaded.ToString());
+
+            DrawFoldoutList("Patients", "Patients", database.Patients.ToList());
+            DrawFoldoutList("Data", "Data", database.DataInfos.ToList());
         }
 
-        m_Foldouts[foldoutID] = EditorGUILayout.Foldout(m_Foldouts[foldoutID], label, true);
-        if (!m_Foldouts[foldoutID]) return;
-
-        EditorGUI.indentLevel++;
-        Type objType = obj.GetType();
-        foreach (PropertyInfo property in objType.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
+        private void DrawFoldoutList(string label, string foldoutID, IEnumerable<BaseData> enumerable)
         {
-            object fieldValue = property.GetValue(obj);
-            if (fieldValue is IEnumerable<BaseData> enumerable)
+            var list = enumerable.ToList();
+
+            if (!m_Foldouts.ContainsKey(foldoutID))
             {
-                DrawFoldoutList(property.Name, foldoutID + property.Name, enumerable);
+                m_Foldouts[foldoutID] = false;
             }
-            else if (fieldValue is BaseData data)
+
+            m_Foldouts[foldoutID] = EditorGUILayout.Foldout(m_Foldouts[foldoutID], label, true);
+            if (!m_Foldouts[foldoutID]) return;
+
+            EditorGUI.indentLevel++;
+            if (list.Count == 0)
             {
-                DrawFoldoutRecursive(data.ID, foldoutID + data.ID, data);
+                EditorGUILayout.LabelField("None");
             }
             else
             {
-                EditorGUILayout.LabelField(property.Name, fieldValue?.ToString() ?? "null");
+                foreach (var data in list)
+                {
+                    DrawFoldoutRecursive(data.ID, foldoutID + data.ID, data);
+                }
             }
+            EditorGUI.indentLevel--;
         }
-        EditorGUI.indentLevel--;
+
+        private void DrawFoldoutRecursive(string label, string foldoutID, BaseData obj)
+        {
+            if (obj == null) return;
+
+            if (!m_Foldouts.ContainsKey(foldoutID))
+            {
+                m_Foldouts[foldoutID] = false;
+            }
+
+            m_Foldouts[foldoutID] = EditorGUILayout.Foldout(m_Foldouts[foldoutID], label, true);
+            if (!m_Foldouts[foldoutID]) return;
+
+            EditorGUI.indentLevel++;
+            Type objType = obj.GetType();
+            foreach (PropertyInfo property in objType.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance))
+            {
+                object fieldValue = property.GetValue(obj);
+                if (fieldValue is IEnumerable<BaseData> enumerable)
+                {
+                    DrawFoldoutList(property.Name, foldoutID + property.Name, enumerable);
+                }
+                else if (fieldValue is BaseData data)
+                {
+                    DrawFoldoutRecursive(data.ID, foldoutID + data.ID, data);
+                }
+                else
+                {
+                    EditorGUILayout.LabelField(property.Name, fieldValue?.ToString() ?? "null");
+                }
+            }
+            EditorGUI.indentLevel--;
+        }
     }
 }

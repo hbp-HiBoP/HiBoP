@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {

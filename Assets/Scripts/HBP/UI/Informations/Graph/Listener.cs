@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
 using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations.Graphs
 {

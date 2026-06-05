@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;

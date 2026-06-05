@@ -1,7 +1,8 @@
-﻿using HBP.Theme;
+using HBP.Theme;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Toolbar
 {

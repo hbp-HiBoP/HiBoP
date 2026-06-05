@@ -1,8 +1,8 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

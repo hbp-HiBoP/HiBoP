@@ -9,10 +9,10 @@ using UnityEngine;
 using UnityEngine.Events;
 using Cysharp.Threading.Tasks;
 using System.Threading;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.Errors;
 
-namespace HBP.Data.Database
+namespace HBP.Core.Database
 {
     public class DatabaseUpdateReport
     {

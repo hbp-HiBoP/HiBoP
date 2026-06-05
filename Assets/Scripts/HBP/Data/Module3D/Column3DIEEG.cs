@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.DLL;
 using Cysharp.Threading.Tasks;
 using System.Threading;

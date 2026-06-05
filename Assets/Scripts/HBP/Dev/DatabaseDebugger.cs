@@ -1,5 +1,8 @@
 using UnityEngine;
 
-public class DatabaseDebugger : MonoBehaviour
+namespace HBP.Dev
 {
+    public class DatabaseDebugger : MonoBehaviour
+    {
+    }
 }

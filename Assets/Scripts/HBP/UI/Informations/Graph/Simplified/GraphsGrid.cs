@@ -1,4 +1,4 @@
-﻿using HBP.Data.Informations;
+using HBP.Data.Informations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +7,9 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 using HBP.Data.Informations.Graphs;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.DLL;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations.Graphs
 {

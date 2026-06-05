@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using System;
 using UnityEngine.Scripting;
 
-namespace HBP.Data.Database
+namespace HBP.Core.Database
 {
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class DatabaseReference : BaseData

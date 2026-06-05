@@ -1,5 +1,5 @@
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;

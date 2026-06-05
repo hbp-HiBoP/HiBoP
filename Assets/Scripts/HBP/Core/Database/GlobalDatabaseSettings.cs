@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine.Scripting;
 
-namespace HBP.Data.Database
+namespace HBP.Core.Database
 {
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class GlobalDatabaseSettings : BaseData

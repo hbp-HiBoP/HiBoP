@@ -1,6 +1,6 @@
 using HBP.Core.Tools;
 
-namespace HBP.Data.Database
+namespace HBP.Core.Database
 {
     public class DatabaseManager : Manager<DatabaseManager>
     {

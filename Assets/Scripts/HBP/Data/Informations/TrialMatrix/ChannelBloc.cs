@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Informations.TrialMatrix
 {

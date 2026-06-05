@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using data = HBP.Data.Informations.TrialMatrix;
 using UnityEngine.Events;
@@ -6,7 +6,7 @@ using UnityEngine.UI.Extensions;
 using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.DLL;
 using HBP.Core.Tools;
 

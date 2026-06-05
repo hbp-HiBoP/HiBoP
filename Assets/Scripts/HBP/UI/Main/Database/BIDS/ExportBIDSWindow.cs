@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.Data.BIDS;
 using HBP.UI.Tools;
 using Newtonsoft.Json;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -138,7 +138,7 @@ namespace HBP.UI.Main
             m_ExportCorrespondenceTableToggle.isOn = false;
             
             // Set default export folder
-            m_ExportFolderSelector.Folder = HBP.Data.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
+            m_ExportFolderSelector.Folder = HBP.Core.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
             
             // Load configuration
             LoadConfiguration();

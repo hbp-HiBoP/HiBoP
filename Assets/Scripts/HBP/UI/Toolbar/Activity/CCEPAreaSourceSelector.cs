@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Toolbar
 {

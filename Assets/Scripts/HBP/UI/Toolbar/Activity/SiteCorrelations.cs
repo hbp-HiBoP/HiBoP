@@ -1,9 +1,9 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using Newtonsoft.Json;
 using System;

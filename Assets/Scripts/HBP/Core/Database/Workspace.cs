@@ -4,7 +4,7 @@ using HBP.Core.Tools;
 using Newtonsoft.Json;
 using UnityEngine.Scripting;
 
-namespace HBP.Data.Database
+namespace HBP.Core.Database
 {
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Workspace : BaseData, INameable

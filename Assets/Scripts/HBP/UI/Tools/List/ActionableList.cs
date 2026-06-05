@@ -1,7 +1,8 @@
-﻿using HBP.Core.Interfaces;
+using HBP.Core.Interfaces;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools.Lists
 {

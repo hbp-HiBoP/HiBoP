@@ -1,4 +1,4 @@
-﻿using HBP.Data.Informations;
+using HBP.Data.Informations;
 using HBP.UI.Informations.TrialMatrix;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.UI.Informations.Graphs;
 using HBP.Data.Informations.Graphs;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.DLL;
 using HBP.Core.Tools;
 

@@ -1,5 +1,5 @@
 using HBP.Core.Data;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.UI.Main;
 using HBP.UI.Tools;
 using NUnit.Framework;

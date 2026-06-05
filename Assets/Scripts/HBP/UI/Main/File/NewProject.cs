@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using System.IO;
@@ -6,7 +6,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -74,7 +74,7 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void SetFields()
 		{
-            Data.Preferences.ProjectPreferences preferences = PersistentDataManager.UserPreferences.General.Project;
+            Core.Preferences.ProjectPreferences preferences = PersistentDataManager.UserPreferences.General.Project;
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;

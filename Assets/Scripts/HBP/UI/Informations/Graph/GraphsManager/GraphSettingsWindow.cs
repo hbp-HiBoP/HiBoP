@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.Data.Informations;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using System.Collections.Generic;
 using System.Linq;

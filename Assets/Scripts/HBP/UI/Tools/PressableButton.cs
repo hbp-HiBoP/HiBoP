@@ -1,7 +1,8 @@
-﻿using UnityEngine.Events;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-namespace UnityEngine.UI.Extensions
+namespace HBP.UI.Tools
 {
     /// <summary>
     /// Class extending the Button class to add onPress and onRelease events

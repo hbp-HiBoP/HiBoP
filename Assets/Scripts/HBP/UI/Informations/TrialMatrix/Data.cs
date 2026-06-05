@@ -1,5 +1,5 @@
-﻿using HBP.Core.Enums;
-using HBP.Data.Preferences;
+using HBP.Core.Enums;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,6 +9,7 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 using d = HBP.Data.Informations.TrialMatrix;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations.TrialMatrix
 {

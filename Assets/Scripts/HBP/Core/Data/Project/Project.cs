@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
@@ -8,8 +8,8 @@ using UnityEngine;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Interfaces;
-using HBP.Data.Preferences;
-using HBP.Data.Database;
+using HBP.Core.Preferences;
+using HBP.Core.Database;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 

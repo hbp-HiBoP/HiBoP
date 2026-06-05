@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.UI.Tools;
-using HBP.Data.Preferences;
-using HBP.Data.Database;
+using HBP.Core.Preferences;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main.QuickStart
 {

@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main
 {

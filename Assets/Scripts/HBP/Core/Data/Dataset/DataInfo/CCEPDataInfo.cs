@@ -1,5 +1,5 @@
-﻿using HBP.Core.Errors;
-using HBP.Data.Database;
+using HBP.Core.Errors;
+using HBP.Core.Database;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

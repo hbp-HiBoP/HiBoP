@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,8 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
-using HBP.Data.Database;
+using HBP.Core.Preferences;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main.QuickStart
 {

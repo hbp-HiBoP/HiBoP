@@ -1,10 +1,10 @@
-﻿using HBP.UI.Tools.Lists;
+using HBP.UI.Tools.Lists;
 using System.Linq;
 using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Data;
 using System.Collections.Generic;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using UnityEngine.UI;
 
 namespace HBP.UI.Main

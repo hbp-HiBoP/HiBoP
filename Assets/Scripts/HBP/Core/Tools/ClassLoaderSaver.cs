@@ -111,6 +111,12 @@ namespace HBP.Core.Tools
 
         private sealed class LegacyAssemblySerializationBinder : ISerializationBinder
         {
+            private static readonly Dictionary<string, string> s_LegacyNamespacePrefixes = new()
+            {
+                { "HBP.Data.Database.", "HBP.Core.Database." },
+                { "HBP.Data.Preferences.", "HBP.Core.Preferences." },
+            };
+
             private static readonly HashSet<string> s_LegacyAssemblyNames = new()
             {
                 "Assembly-CSharp",
@@ -122,12 +128,24 @@ namespace HBP.Core.Tools
 
             public Type BindToType(string assemblyName, string typeName)
             {
-                if (!string.IsNullOrEmpty(typeName) && m_TypesByFullName.TryGetValue(typeName, out Type registeredType))
+                if (!string.IsNullOrEmpty(typeName) && TryGetRegisteredType(typeName, out Type registeredType))
                 {
                     return registeredType;
                 }
 
-                Type resolvedType = Type.GetType($"{typeName}, {assemblyName}");
+                string migratedTypeName = GetMigratedTypeName(typeName);
+                if (!string.IsNullOrEmpty(migratedTypeName) && TryGetRegisteredType(migratedTypeName, out registeredType))
+                {
+                    return registeredType;
+                }
+
+                Type resolvedType = ResolveType(typeName, assemblyName);
+                if (resolvedType != null)
+                {
+                    return resolvedType;
+                }
+
+                resolvedType = ResolveType(migratedTypeName, assemblyName);
                 if (resolvedType != null)
                 {
                     return resolvedType;
@@ -144,6 +162,32 @@ namespace HBP.Core.Tools
             {
                 assemblyName = serializedType.Assembly.GetName().Name;
                 typeName = serializedType.FullName;
+            }
+
+            private bool TryGetRegisteredType(string typeName, out Type type)
+            {
+                type = null;
+                return !string.IsNullOrEmpty(typeName) && m_TypesByFullName.TryGetValue(typeName, out type);
+            }
+
+            private static string GetMigratedTypeName(string typeName)
+            {
+                if (string.IsNullOrEmpty(typeName)) return typeName;
+
+                foreach (var legacyNamespacePrefix in s_LegacyNamespacePrefixes)
+                {
+                    if (typeName.StartsWith(legacyNamespacePrefix.Key, StringComparison.Ordinal))
+                    {
+                        return legacyNamespacePrefix.Value + typeName[legacyNamespacePrefix.Key.Length..];
+                    }
+                }
+                return typeName;
+            }
+
+            private static Type ResolveType(string typeName, string assemblyName)
+            {
+                if (string.IsNullOrEmpty(typeName) || string.IsNullOrEmpty(assemblyName)) return null;
+                return Type.GetType($"{typeName}, {assemblyName}");
             }
 
             private static Dictionary<string, Type> BuildTypeRegistry()

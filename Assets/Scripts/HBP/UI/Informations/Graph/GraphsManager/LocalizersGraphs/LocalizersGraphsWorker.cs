@@ -6,7 +6,7 @@ using HBP.Core.Tools;
 using HBP.Data.Informations;
 using HBP.Data.Informations.Graphs;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System;
 using System.Collections.Generic;
 using System.Linq;

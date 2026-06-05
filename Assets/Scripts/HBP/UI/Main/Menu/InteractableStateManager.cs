@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main
 {

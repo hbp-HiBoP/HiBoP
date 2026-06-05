@@ -1,4 +1,4 @@
-﻿using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

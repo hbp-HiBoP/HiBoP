@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Data.Informations;
@@ -6,8 +6,9 @@ using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations
 {

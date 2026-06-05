@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations.Graphs
 {

@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System;
@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Scripting;
 
-namespace HBP.Data.Preferences
+namespace HBP.Core.Preferences
 {
     /**
     * \class UserPreferences

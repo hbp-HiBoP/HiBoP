@@ -1,4 +1,6 @@
-﻿namespace UnityEngine.Events
+using UnityEngine.Events;
+
+namespace HBP.Core.Tools
 {
     public class GenericEvent<T1> : UnityEvent<T1> { };
     public class GenericEvent<T1, T2> : UnityEvent<T1, T2> { };

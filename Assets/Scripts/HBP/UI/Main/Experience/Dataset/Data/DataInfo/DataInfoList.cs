@@ -1,4 +1,4 @@
-﻿using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using HBP.UI.Tools.Lists;
 using System.Collections.Generic;
