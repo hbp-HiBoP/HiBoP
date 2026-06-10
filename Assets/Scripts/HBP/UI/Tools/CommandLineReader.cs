@@ -13,9 +13,11 @@ namespace HBP.UI.Tools
     public class CommandLineReader : MonoBehaviour
     {
         #region Properties
+#if UNITY_EDITOR
         [SerializeField] private bool m_AutoLoad = false;
         [SerializeField] private string m_ProjectName;
         [SerializeField] private string m_VisualizationName;
+#endif
         #endregion
 
         #region Private Methods

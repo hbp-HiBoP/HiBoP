@@ -310,9 +310,9 @@ namespace HBP.UI.Tools
         }
         protected virtual void RegisterStaticOnSceneGUI()
         {
-            SceneView.onSceneGUIDelegate -= StaticOnSceneGUI;
+            SceneView.duringSceneGui -= StaticOnSceneGUI;
             if (s_Editors.Count > 0)
-                SceneView.onSceneGUIDelegate += StaticOnSceneGUI;
+                SceneView.duringSceneGui += StaticOnSceneGUI;
         }
         protected static Selectable.Transition GetTransition(SerializedProperty transition)
         {

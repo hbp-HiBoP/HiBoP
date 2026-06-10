@@ -881,7 +881,7 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
 
-            [SerializeField] List<Curve> m_SubCurves;
+            [NonSerialized] List<Curve> m_SubCurves = new();
             public ReadOnlyCollection<Curve> SubCurves
             {
                 get

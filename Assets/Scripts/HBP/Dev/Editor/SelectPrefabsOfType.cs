@@ -77,7 +77,7 @@ namespace HBP.Dev
         void ShowItemsOfTypeInProjectHierarchy(Type type)
         {
             var guids = AssetDatabase.FindAssets("t:Prefab");
-            var toSelect = new List<int>();
+            var toSelect = new List<GameObject>();
             foreach (var guid in guids)
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
@@ -93,25 +93,25 @@ namespace HBP.Dev
                     var comp = go.GetComponent(type);
                     if (comp != null)
                     {
-                        toSelect.Add(go.GetInstanceID());
+                        toSelect.Add(go);
                     }
                     else
                     {
                         var comps = go.GetComponentsInChildren(type);
                         if (comps.Length > 0)
                         {
-                            toSelect.Add(go.GetInstanceID());
+                            toSelect.Add(go);
                         }
                     }
                 }
             }
 
             // clear the current selection
-            Selection.instanceIDs = new int[0];
+            Selection.objects = Array.Empty<UnityEngine.Object>();
             ShowSelectionInProjectHierarchy();
 
             // show the prefabs we found
-            Selection.instanceIDs = toSelect.ToArray();
+            Selection.objects = toSelect.ToArray();
             ShowSelectionInProjectHierarchy();
         }
 

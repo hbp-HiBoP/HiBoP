@@ -67,8 +67,10 @@
         "*.sln": "*.csproj"
     },
     "dotnet.defaultSolution": "HiBoP.slnx",
+    "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
+    "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "fullSolution",
     "dotnet.codeLens.enableReferencesCodeLens": false,
     "gitlens.codeLens.enabled": false,
     "gitlens.codeLens.authors.enabled": true,
-    "vstuc.enableCodeModel": false
+    "vstuc.enableCodeModel": true
 }

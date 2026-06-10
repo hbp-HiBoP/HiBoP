@@ -55,7 +55,7 @@ namespace HBP.UI.Tools
                 Selector selector = null;
                 PointerEventData pointerEventData = new(EventSystem.current);
                 pointerEventData.position = Input.mousePosition;
-                var results = FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None).SelectMany(r => { List<RaycastResult> res = new(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
+                var results = FindObjectsByType<GraphicRaycaster>(FindObjectsInactive.Exclude).SelectMany(r => { List<RaycastResult> res = new(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
                 foreach (var result in results)
                 {
                     selector = result.gameObject.GetComponentInParent<Selector>();

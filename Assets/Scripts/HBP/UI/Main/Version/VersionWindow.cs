@@ -28,7 +28,8 @@ namespace HBP.UI.Main
             using UnityWebRequest request = UnityWebRequest.Get("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
             request.SetRequestHeader("User-Agent", "Other");
             
-            await request.SendWebRequest();
+            var operation = request.SendWebRequest();
+            await UniTask.WaitUntil(() => operation.isDone);
 
             try
             {
@@ -47,12 +48,19 @@ namespace HBP.UI.Main
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                LogVersionFetchFailure(e.ToString());
                 m_LatestText.text = "Unknown";
                 m_LatestDescription.text = "Unknown";
                 m_GithubButton.onClick.RemoveAllListeners();
                 m_GithubButton.onClick.AddListener(() => Application.OpenURL("https://github.com/hbp-HiBoP/HiBoP"));
             }
+        }
+
+        private static void LogVersionFetchFailure(string message)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.LogWarning($"Latest version fetch failed: {message}");
+#endif
         }
     }
 }

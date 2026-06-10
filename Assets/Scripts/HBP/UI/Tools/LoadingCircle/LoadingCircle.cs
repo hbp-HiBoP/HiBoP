@@ -65,6 +65,8 @@ namespace HBP.UI.Tools
         public async void Open(bool showInformations = true, bool cancelable = false)
         {
             await UniTask.SwitchToMainThread();
+            if (this == null) return;
+
             gameObject.SetActive(true);
             m_CancelButtonContainer.SetActive(cancelable);
             m_IsCancelling = false;
@@ -74,6 +76,8 @@ namespace HBP.UI.Tools
         public async void Close()
         {
             await UniTask.SwitchToMainThread();
+            if (this == null) return;
+
             gameObject.SetActive(false);
             Reset();
         }
@@ -92,17 +96,31 @@ namespace HBP.UI.Tools
         #region Coroutines
         private async UniTaskVoid TextLoadingEffect(CancellationToken token)
         {
-            while (!token.IsCancellationRequested)
+            try
             {
-                await UniTask.WaitUntil(() => gameObject.activeSelf);
-                m_LoadingEffectText.text = "";
-                await UniTask.WaitForSeconds(0.25f);
-                m_LoadingEffectText.text = ".";
-                await UniTask.WaitForSeconds(0.25f);
-                m_LoadingEffectText.text = "..";
-                await UniTask.WaitForSeconds(0.25f);
-                m_LoadingEffectText.text = "...";
-                await UniTask.WaitForSeconds(0.25f);
+                while (!token.IsCancellationRequested)
+                {
+                    await UniTask.WaitUntil(() => token.IsCancellationRequested || (this != null && gameObject.activeSelf), cancellationToken: token);
+                    if (token.IsCancellationRequested || this == null) return;
+
+                    m_LoadingEffectText.text = "";
+                    await UniTask.WaitForSeconds(0.25f, cancellationToken: token);
+                    if (token.IsCancellationRequested || this == null) return;
+
+                    m_LoadingEffectText.text = ".";
+                    await UniTask.WaitForSeconds(0.25f, cancellationToken: token);
+                    if (token.IsCancellationRequested || this == null) return;
+
+                    m_LoadingEffectText.text = "..";
+                    await UniTask.WaitForSeconds(0.25f, cancellationToken: token);
+                    if (token.IsCancellationRequested || this == null) return;
+
+                    m_LoadingEffectText.text = "...";
+                    await UniTask.WaitForSeconds(0.25f, cancellationToken: token);
+                }
+            }
+            catch (System.OperationCanceledException)
+            {
             }
         }
         #endregion
@@ -147,6 +165,7 @@ namespace HBP.UI.Tools
         private void OnDestroy()
         {
             m_TextAnimationCancellationTokenSource.Cancel();
+            m_TextAnimationCancellationTokenSource.Dispose();
         }
         private void Cancel()
         {

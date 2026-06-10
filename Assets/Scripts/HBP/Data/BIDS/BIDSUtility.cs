@@ -85,7 +85,7 @@ namespace HBP.Data.BIDS
             return datasetPath;
         }
 
-        public static async UniTask ExportPatientAsync(BIDSPatient patient, string datasetFolder, BIDSExportConfiguration config, IEnumerable<BaseTag> selectedSiteTags)
+        public static void ExportPatient(BIDSPatient patient, string datasetFolder, BIDSExportConfiguration config, IEnumerable<BaseTag> selectedSiteTags)
         {
             // Create directories based on rules (dynamically determined from config)
             var sessionsNeeded = config.AnatomicalRules.Select(r => r.BIDSSession).Distinct();

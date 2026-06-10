@@ -9,7 +9,6 @@ namespace HBP.UI.Informations.Graphs
         #region Properties
         bool m_ShowTickMarks = false;
         bool m_ShowGraphics = false;
-        bool m_ShowEvents = false;
         SerializedProperty m_Direction;
         SerializedProperty m_Label;
         SerializedProperty m_Unit;

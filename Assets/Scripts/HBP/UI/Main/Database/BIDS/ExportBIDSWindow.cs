@@ -367,7 +367,7 @@ namespace HBP.UI.Main
                 {
                     token.ThrowIfCancellationRequested();
                     updateProgress?.Invoke((float)count / totalPatients, 0f, new LoadingText($"Exporting ", $"{patient.ParticipantId}", $" ({count + 1}/{totalPatients})"));
-                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, m_Configuration, m_SelectedSiteTags);
+                    BIDSUtility.ExportPatient(patient, datasetPath, m_Configuration, m_SelectedSiteTags);
                     count++;
                 }
             }

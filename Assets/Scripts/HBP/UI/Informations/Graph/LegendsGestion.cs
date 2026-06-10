@@ -228,10 +228,7 @@ namespace HBP.UI.Informations.Graphs
                     }
                 }
             }
-#if UNITY_EDITOR
-            [SerializeField]
-#endif
-            List<Legend> m_SubLegends = new();
+            [NonSerialized] List<Legend> m_SubLegends = new();
             public ReadOnlyCollection<Legend> SubLegends
             {
                 get

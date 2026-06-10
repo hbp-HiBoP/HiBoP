@@ -25,21 +25,21 @@ namespace UnityEngine.UI.Extensions
 
         [SerializeField]
         private RectTransform m_HandleRect;
-        public RectTransform HandleRect { get { return m_HandleRect; } set { if (SetClass(ref m_HandleRect, value)) { UpdateCachedReferences(); UpdateVisuals(); } } }
+        public RectTransform HandleRect { get { return m_HandleRect; } set { if (SetClass(ref m_HandleRect, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
 
         [Space(6)]
 
         [SerializeField]
         private float m_MinValue = 0;
-        public float MinValue { get { return m_MinValue; } set { if (SetStruct(ref m_MinValue, value)) { SetX(m_ValueX); SetY(m_ValueY); UpdateVisuals(); } } }
+        public float MinValue { get { return m_MinValue; } set { if (SetStruct(ref m_MinValue, value)) { SetX(m_ValueX); SetY(m_ValueY); RequestVisualUpdate(); } } }
 
         [SerializeField]
         private float m_MaxValue = 1;
-        public float MaxValue { get { return m_MaxValue; } set { if (SetStruct(ref m_MaxValue, value)) { SetX(m_ValueX); SetY(m_ValueY); UpdateVisuals(); } } }
+        public float MaxValue { get { return m_MaxValue; } set { if (SetStruct(ref m_MaxValue, value)) { SetX(m_ValueX); SetY(m_ValueY); RequestVisualUpdate(); } } }
 
         [SerializeField]
         private bool m_WholeNumbers = false;
-        public bool WholeNumbers { get { return m_WholeNumbers; } set { if (SetStruct(ref m_WholeNumbers, value)) { SetX(m_ValueX); SetY(m_ValueY); UpdateVisuals(); } } }
+        public bool WholeNumbers { get { return m_WholeNumbers; } set { if (SetStruct(ref m_WholeNumbers, value)) { SetX(m_ValueX); SetY(m_ValueY); RequestVisualUpdate(); } } }
 
         [SerializeField]
         private float m_ValueX = 1f;
@@ -117,6 +117,10 @@ namespace UnityEngine.UI.Extensions
         private Vector2 m_Offset = Vector2.zero;
 
         private DrivenRectTransformTracker m_Tracker;
+#if UNITY_EDITOR
+        private bool m_VisualUpdateScheduled;
+        private bool m_IsValidating;
+#endif
 
         // Size of each step.
         float StepSize { get { return WholeNumbers ? 1 : (MaxValue - MinValue) * 0.1f; } }
@@ -129,19 +133,25 @@ namespace UnityEngine.UI.Extensions
         {
             base.OnValidate();
 
-            if (WholeNumbers)
+            m_IsValidating = true;
+            try
             {
-                m_MinValue = Mathf.Round(m_MinValue);
-                m_MaxValue = Mathf.Round(m_MaxValue);
+                if (WholeNumbers)
+                {
+                    m_MinValue = Mathf.Round(m_MinValue);
+                    m_MaxValue = Mathf.Round(m_MaxValue);
+                }
+                UpdateCachedReferences();
+                SetX(m_ValueX, false);
+                SetY(m_ValueY, false);
+                // Update rects since other things might affect them even if value didn't change.
+                RequestVisualUpdate();
             }
-            UpdateCachedReferences();
-            SetX(m_ValueX, false);
-            SetY(m_ValueY, false);
-            // Update rects since other things might affect them even if value didn't change.
-            UpdateVisuals();
+            finally
+            {
+                m_IsValidating = false;
+            }
 
-            if (!UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this) && !Application.isPlaying)
-                CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
         }
 
 #endif // if UNITY_EDITOR
@@ -189,11 +199,15 @@ namespace UnityEngine.UI.Extensions
             SetX(m_ValueX, false);
             SetY(m_ValueY, false);
             // Update rects since they need to be initialized correctly.
-            UpdateVisuals();
+            RequestVisualUpdate();
         }
 
         protected override void OnDisable()
         {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.delayCall -= DelayedVisualUpdate;
+            m_VisualUpdateScheduled = false;
+#endif
             m_Tracker.Clear();
             base.OnDisable();
         }
@@ -231,7 +245,7 @@ namespace UnityEngine.UI.Extensions
                 return;
 
             m_ValueX = newValue;
-            UpdateVisuals();
+            RequestVisualUpdate();
             if (sendCallback)
                 m_OnValueChanged.Invoke(newValue, ValueY);
         }
@@ -253,7 +267,7 @@ namespace UnityEngine.UI.Extensions
                 return;
 
             m_ValueY = newValue;
-            UpdateVisuals();
+            RequestVisualUpdate();
             if (sendCallback)
                 m_OnValueChanged.Invoke(ValueX, newValue);
         }
@@ -262,7 +276,7 @@ namespace UnityEngine.UI.Extensions
         protected override void OnRectTransformDimensionsChange()
         {
             base.OnRectTransformDimensionsChange();
-            UpdateVisuals();
+            RequestVisualUpdate();
         }
 
         enum Axis
@@ -271,6 +285,40 @@ namespace UnityEngine.UI.Extensions
             Vertical = 1
         }
 
+        private void RequestVisualUpdate()
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying || m_IsValidating)
+            {
+                if (m_VisualUpdateScheduled)
+                    return;
+
+                m_VisualUpdateScheduled = true;
+                UnityEditor.EditorApplication.delayCall += DelayedVisualUpdate;
+                return;
+            }
+#endif
+            UpdateVisuals();
+        }
+
+#if UNITY_EDITOR
+        private void RequestLayoutRebuild()
+        {
+            if (!Application.isPlaying && !UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this))
+                CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
+        }
+
+        private void DelayedVisualUpdate()
+        {
+            m_VisualUpdateScheduled = false;
+            if (this == null)
+                return;
+
+            UpdateCachedReferences();
+            UpdateVisuals();
+            RequestLayoutRebuild();
+        }
+#endif
 
         // Force-update the slider. Useful if you've changed the properties and want it to update visually.
         private void UpdateVisuals()
@@ -292,8 +340,10 @@ namespace UnityEngine.UI.Extensions
                 anchorMin[0] = anchorMax[0] = (NormalizedValueX);
                 anchorMin[1] = anchorMax[1] = (NormalizedValueY);
 
-                m_HandleRect.anchorMin = anchorMin;
-                m_HandleRect.anchorMax = anchorMax;
+                if (m_HandleRect.anchorMin != anchorMin)
+                    m_HandleRect.anchorMin = anchorMin;
+                if (m_HandleRect.anchorMax != anchorMax)
+                    m_HandleRect.anchorMax = anchorMax;
             }
         }
 

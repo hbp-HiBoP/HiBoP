@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace HBP.Dev
@@ -22,6 +24,8 @@ namespace HBP.Dev
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, bool connectProfiler = false)
         {
+            PrepareBuildTarget(target);
+
             string os = "";
             switch (target)
             {
@@ -70,7 +74,11 @@ namespace HBP.Dev
                 scenes = new string[] { "Assets/_Scenes/HiBoP.unity" },
                 options = buildOptions
             };
-            BuildPipeline.BuildPlayer(buildPlayerOptions);
+            BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
+            if (report.summary.result != BuildResult.Succeeded)
+            {
+                throw new BuildFailedException($"Build failed for {target}: {report.summary.result}");
+            }
 
             string projectPath = Application.dataPath;
             projectPath = projectPath.Remove(projectPath.Length - 6);
@@ -123,6 +131,46 @@ namespace HBP.Dev
 
             FileInfo documentation = new(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
             documentation.CopyTo(buildDirectory + documentation.Name, true);
+        }
+
+        private static void PrepareBuildTarget(BuildTarget target)
+        {
+            if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, target))
+            {
+                throw new BuildFailedException($"Build target {target} is not installed or not supported by this Unity Editor.");
+            }
+
+            if (target == BuildTarget.StandaloneLinux64)
+            {
+                EnsureLinuxIl2CppPackagesResolved();
+            }
+
+            if (EditorUserBuildSettings.activeBuildTarget != target)
+            {
+                AssetDatabase.SaveAssets();
+                if (!EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, target))
+                {
+                    throw new BuildFailedException($"Could not switch the active build target to {target}.");
+                }
+            }
+        }
+
+        private static void EnsureLinuxIl2CppPackagesResolved()
+        {
+            EnsurePackageResolved("com.unity.sdk.linux-x86_64");
+
+            if (Application.platform == RuntimePlatform.WindowsEditor)
+            {
+                EnsurePackageResolved("com.unity.toolchain.win-x86_64-linux");
+            }
+        }
+
+        private static void EnsurePackageResolved(string packageName)
+        {
+            if (UnityEditor.PackageManager.PackageInfo.FindForPackageName(packageName) == null)
+            {
+                throw new BuildFailedException($"Package {packageName} is required to build the Linux IL2CPP player. Add it to Packages/manifest.json and let Unity resolve packages before building.");
+            }
         }
     }
 
