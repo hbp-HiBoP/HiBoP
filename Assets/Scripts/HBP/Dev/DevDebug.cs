@@ -29,11 +29,12 @@ namespace HBP.Dev
             Destroy(this);
         }
 #endif
-        private List<Vector3> m_InitialPositions = new();
-        private List<Vector3> m_FinalPositions = new();
-        private float m_Percent;
-        private bool m_Initialized = false;
-        private float m_TimeSinceLastAction = 0;
+        // Used by the commented debug block in Update.
+        // private List<Vector3> m_InitialPositions = new();
+        // private List<Vector3> m_FinalPositions = new();
+        // private float m_Percent;
+        // private bool m_Initialized = false;
+        // private float m_TimeSinceLastAction = 0;
         /*        private void OnApplicationQuit()
                 {
                     Debug.Log("quitting");
@@ -62,7 +63,7 @@ namespace HBP.Dev
             source.Cancel();
         }
         [SerializeField] private GameObject m_CubePrefab;
-        private async void Update()
+        private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {

@@ -32,7 +32,7 @@ namespace HBP.Dev
 
             foreach (Graphic graphic in Resources.FindObjectsOfTypeAll(typeof(Graphic)) as Graphic[])
             {
-                if (PrefabUtility.GetCorrespondingObjectFromSource(graphic.gameObject) == null && PrefabUtility.GetPrefabObject(graphic.gameObject) != null)
+                if (PrefabUtility.IsPartOfPrefabAsset(graphic.gameObject))
                     continue;
 
                 if (graphic.GetComponent<Mask>())
@@ -45,7 +45,7 @@ namespace HBP.Dev
             }
             foreach (UnityEngine.UI.Selectable selectable in Resources.FindObjectsOfTypeAll(typeof(UnityEngine.UI.Selectable)) as UnityEngine.UI.Selectable[])
             {
-                if (PrefabUtility.GetCorrespondingObjectFromSource(selectable.gameObject) == null && PrefabUtility.GetPrefabObject(selectable.gameObject) != null)
+                if (PrefabUtility.IsPartOfPrefabAsset(selectable.gameObject))
                     continue;
 
                 elements.Add(selectable);

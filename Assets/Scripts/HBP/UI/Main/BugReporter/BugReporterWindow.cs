@@ -55,7 +55,7 @@ namespace HBP.UI.Main
         #region Private Methods
         private void Start()
         {
-            transform.parent = transform.parent.parent;
+            transform.SetParent(transform.parent.parent, false);
             transform.SetAsLastSibling();
         }
         private async UniTask SendBugReportToDiscord(Action<float, float, LoadingText> updateProgress)

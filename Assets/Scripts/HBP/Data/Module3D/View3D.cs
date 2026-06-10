@@ -232,10 +232,6 @@ namespace HBP.Data.Module3D
         /// </summary>
         private int m_RegularCullingMask;
 
-        /// <summary>
-        /// Is the scene initialized ?
-        /// </summary>
-        private bool m_Initialized = false;
         #endregion
 
         #region Events
@@ -337,7 +333,6 @@ namespace HBP.Data.Module3D
             m_Camera3D.transform.localPosition = position;
             m_Camera3D.transform.localRotation = rotation;
             m_Camera3D.Target = target;
-            m_Initialized = true;
         }
         /// <summary>
         /// Set the default state of the view

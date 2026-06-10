@@ -24,7 +24,7 @@ namespace HBP.UI.Main
         protected override void Initialization()
         {
             base.Initialization();
-            m_Interactables = FindObjectsByType<InteractableConditions>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            m_Interactables = FindObjectsByType<InteractableConditions>(FindObjectsInactive.Include);
         }
         void Start()
         {

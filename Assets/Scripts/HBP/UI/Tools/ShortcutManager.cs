@@ -21,7 +21,7 @@ namespace HBP.UI.Tools
             get
             {
                 if (m_MainMenu == null)
-                    m_MainMenu = FindFirstObjectByType<MainMenu>();
+                    m_MainMenu = FindAnyObjectByType<MainMenu>();
                 return m_MainMenu;
             }
         }

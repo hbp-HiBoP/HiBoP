@@ -35,7 +35,7 @@
   "relatedLink": [
     "https://github.com/hbp-HiBoP/HiBoP/blob/master/Docs/LaTeX/HiBoP_user_manual.pdf"
   ],
-  "releaseNotes": "- Updated to Unity 6.4\n- Cleaned project architecture\n- Fixed an issue regarding brainvision data on MacOS\n- Fixed an issue with BIDS file discovery\n- Fixed a bug with group file filter",
+  "releaseNotes": "- Updated to Unity 6.4\n- Cleaned project architecture\n- Fixed an issue regarding brainvision data on MacOS\n- Fixed an issue with BIDS file discovery\n- Fixed a bug with group file filter\n- Fixed lots of warnings",
   "referencePublication": "https://doi.org/10.1016/j.jneumeth.2024.110179",
   "programmingLanguage": [
     "C#",
