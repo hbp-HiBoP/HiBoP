@@ -70,7 +70,7 @@ namespace HBP.UI.Toolbar
         /// <returns>List containing the selected column or all columns</returns>
         protected List<Column3D> GetColumnsDependingOnTypeAndGlobal(bool isGlobal)
         {
-            List<Column3D> columns = new List<Column3D>();
+            List<Column3D> columns = new();
             if (isGlobal)
             {
                 if (SelectedColumn is Column3DAnatomy)

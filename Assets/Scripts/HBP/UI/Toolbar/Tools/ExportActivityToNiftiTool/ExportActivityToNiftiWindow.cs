@@ -2,7 +2,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace HBP.UI.Toolbar
         #region Properties
         [SerializeField] private GameObject m_ColumnItemPrefab;
         [SerializeField] private Transform m_ColumnItemContainer;
-        private List<ExportActivityColumnItem> m_ColumnItems = new List<ExportActivityColumnItem>();
+        private List<ExportActivityColumnItem> m_ColumnItems = new();
 
         [SerializeField] private Toggle m_NiiToggle;
         [SerializeField] private Toggle m_NiiGzToggle;

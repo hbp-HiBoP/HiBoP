@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.DLL;
 using Cysharp.Threading.Tasks;
 using System.Threading;
@@ -107,7 +107,7 @@ namespace HBP.Data.Module3D
 
             int length = timelineLength * sitesCount;
             ActivityValues = new float[length];
-            List<float> iEEGNotMasked = new List<float>();
+            List<float> iEEGNotMasked = new();
             for (int s = 0; s < sitesCount; ++s)
             {
                 for (int t = 0; t < timelineLength; ++t)
@@ -160,13 +160,13 @@ namespace HBP.Data.Module3D
                 CorrelationBySitePair.Clear();
                 CorrelationMeanBySitePair.Clear();
                 updateProgress.Invoke(0, 0, new LoadingText("Computing correlations"));
-                Dictionary<Core.Object3D.Site, List<double[]>> valuesByChannel = new Dictionary<Core.Object3D.Site, List<double[]>>();
+                Dictionary<Core.Object3D.Site, List<double[]>> valuesByChannel = new();
                 foreach (var site in Sites)
                 {
                     token.ThrowIfCancellationRequested();
                     if (site.Data != null && !site.State.IsBlackListed)
                     {
-                        List<double[]> values = new List<double[]>();
+                        List<double[]> values = new();
                         for (int i = 0; i < site.Data.Trials.Length; ++i)
                         {
                             double[] arrayValues = new double[site.Data.Trials[i].Values.Length];
@@ -184,8 +184,8 @@ namespace HBP.Data.Module3D
                 foreach (var kv1 in valuesByChannel)
                 {
                     updateProgress.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", kv1.Key.Information.Name, Name)));
-                    Dictionary<Core.Object3D.Site, float> correlation = new Dictionary<Core.Object3D.Site, float>();
-                    Dictionary<Core.Object3D.Site, float> mean = new Dictionary<Core.Object3D.Site, float>();
+                    Dictionary<Core.Object3D.Site, float> correlation = new();
+                    Dictionary<Core.Object3D.Site, float> mean = new();
                     int numberOfTrials = kv1.Value.Count;
 
                     foreach (var kv2 in valuesByChannel)
@@ -234,7 +234,7 @@ namespace HBP.Data.Module3D
         public List<Core.Object3D.Site> CorrelatedSites(Core.Object3D.Site site)
         {
             int siteCount = CorrelationBySitePair.Count;
-            List<Core.Object3D.Site> result = new List<Core.Object3D.Site>();
+            List<Core.Object3D.Site> result = new();
             if (AreCorrelationsComputed)
             {
                 if (CorrelationBySitePair.TryGetValue(site, out Dictionary<Core.Object3D.Site, float> correlationBySite))

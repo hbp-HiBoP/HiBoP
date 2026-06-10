@@ -61,11 +61,11 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Events
-        [HideInInspector] public UnityEvent OnChangeSelectedMEG = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeSelectedMEG = new();
         /// <summary>
         /// Event called when updating the current timeline ID
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new();
         #endregion
 
         #region Private Methods

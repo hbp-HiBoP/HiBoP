@@ -1,15 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 using UnityEngine.Events;
 using System.Linq;
+using HBP.Core.DLL;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Core.Data;
+using HBP.Core.Enums;
 using HBP.Core.Object3D;
-using HBP.UI.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
@@ -76,7 +77,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public static int NumberOfScenesLoadedSinceStart { get; set; }
 
-        private List<Base3DScene> m_Scenes = new List<Base3DScene>();
+        private List<Base3DScene> m_Scenes = new();
         /// <summary>
         /// List of open scenes
         /// </summary>
@@ -126,55 +127,80 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
-        [HideInInspector] public static GenericEvent<SiteInfo> OnDisplaySiteInformation = new GenericEvent<SiteInfo>();
+        [HideInInspector] public static GenericEvent<SiteInfo> OnDisplaySiteInformation = new();
         /// <summary>
         /// Event called when hovering a atlas area to display its information
         /// </summary>
-        [HideInInspector] public static GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new GenericEvent<AtlasInfo>();
+        [HideInInspector] public static GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new();
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnAddScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnAddScene = new();
         /// <summary>
         /// Event called when a scene is removed
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnRemoveScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnRemoveScene = new();
         /// <summary>
         /// Event called after all new scenes have been opened and initialized
         /// </summary>
-        [HideInInspector] public static UnityEvent OnFinishedAddingNewScenes = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnFinishedAddingNewScenes = new();
         /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnSelectScene = new GenericEvent<Base3DScene>();
-        [HideInInspector] public static GenericEvent<Base3DScene> OnDeselectScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnSelectScene = new();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnDeselectScene = new();
         /// <summary>
         /// Event called when minimizing a scene
         /// </summary>
-        [HideInInspector] public static GenericEvent<Base3DScene> OnMinimizeScene = new GenericEvent<Base3DScene>();
+        [HideInInspector] public static GenericEvent<Base3DScene> OnMinimizeScene = new();
         /// <summary>
         /// Event called when changing the selected column
         /// </summary>
-        [HideInInspector] public static GenericEvent<Column3D> OnSelectColumn = new GenericEvent<Column3D>();
+        [HideInInspector] public static GenericEvent<Column3D> OnSelectColumn = new();
         /// <summary>
         /// Event called when changing the selected view
         /// </summary>
-        [HideInInspector] public static GenericEvent<View3D> OnSelectView = new GenericEvent<View3D>();
+        [HideInInspector] public static GenericEvent<View3D> OnSelectView = new();
         /// <summary>
         /// Event called when changing the index of the timeline of the selected column
         /// </summary>
-        [HideInInspector] public static UnityEvent OnUpdateSelectedColumnTimeLineIndex = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnUpdateSelectedColumnTimeLineIndex = new();
         /// <summary>
         /// Event called when requesting an update in the toolbar
         /// </summary>
-        [HideInInspector] public static UnityEvent OnRequestUpdateInToolbar = new UnityEvent();
-        [HideInInspector] public static UnityEvent OnRequestUpdateInSiteList = new UnityEvent();
+        [HideInInspector] public static UnityEvent OnRequestUpdateInToolbar = new();
+        [HideInInspector] public static UnityEvent OnRequestUpdateInSiteList = new();
         #endregion
 
         #region Private Methods
         protected override void Initialization()
         {
+            SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
             Preload3D();
+        }
+
+        private static bool? CheckSpecificSiteLocation(SpecificSiteLocationFilterCondition condition, Core.Object3D.Site site)
+        {
+            Base3DScene selectedScene = SelectedScene;
+            if (selectedScene == null) return false;
+
+            switch (condition.LocationType)
+            {
+                case SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh:
+                    Surface mesh = condition.MeshPart switch
+                    {
+                        MeshPart.Both => selectedScene.MeshManager.SelectedMesh.SimplifiedBoth,
+                        MeshPart.Left => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedLeft : null,
+                        MeshPart.Right => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedRight : null,
+                        _ => null
+                    };
+                    return mesh != null && mesh.IsPointInside(site.Information.DefaultPosition);
+                case SpecificSiteLocationFilterCondition.SpecificLocationType.CutPlane:
+                    var planes = selectedScene.Cuts.Select(c => (Core.Object3D.Plane)c).ToList();
+                    return selectedScene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, planes, 1.0f);
+                default:
+                    return null;
+            }
         }
         void OnDestroy()
         {
@@ -183,14 +209,6 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Load a list of visualizations into 3D scenes
-        /// </summary>
-        /// <param name="visualizations">Visualizations to be loaded</param>
-        public static void LoadScenes(IEnumerable<Visualization> visualizations)
-        {
-            LoadingManager.Load((update, token) => LoadAsync(visualizations, update, token));
-        }
         /// <summary>
         /// Remove every scenes corresponding to a visualization
         /// </summary>
@@ -218,7 +236,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="visualization">Visualization from which the new visualization will be extracted</param>
         /// <param name="patient">Patient of the new visualization</param>
-        public static void LoadSinglePatientSceneFromMultiPatientScene(Visualization visualization, Patient patient)
+        public static Visualization PrepareSinglePatientVisualizationFromMultiPatientScene(Visualization visualization, Patient patient)
         {
             Base3DScene scene = Scenes.FirstOrDefault(s => s.Visualization == visualization);
             scene.SaveConfiguration();
@@ -231,7 +249,7 @@ namespace HBP.Data.Module3D
             if (scene.SelectedColumn.SelectedSite)
             {
                 visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;
-                visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c = scene.SelectedColumn);
+                visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c == scene.SelectedColumn);
             }
             if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
@@ -239,7 +257,7 @@ namespace HBP.Data.Module3D
                 visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
             }
             visualizationToLoad.GenerateID();
-            LoadScenes(new Visualization[] { visualizationToLoad });
+            return visualizationToLoad;
         }
         /// <summary>
         /// Save all the configurations of the scenes
@@ -254,7 +272,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Reload all scenes
         /// </summary>
-        public static void ReloadScenes()
+        public static List<Visualization> PrepareReloadScenes()
         {
             SaveConfigurations();
             List<Base3DScene> scenes = Scenes.ToList();
@@ -263,7 +281,7 @@ namespace HBP.Data.Module3D
                 RemoveScene(scene);
             }
             IEnumerable<string> visualizationIDs = (from scene in scenes select scene.Visualization.ID);
-            LoadScenes(from visualization in ApplicationState.LoadedProject.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization);
+            return (from visualization in ApplicationState.LoadedProject.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization).ToList();
         }
         /// <summary>
         /// Remove all scenes
@@ -354,9 +372,6 @@ namespace HBP.Data.Module3D
             QualitySettings.antiAliasing = 8;
             QualitySettings.vSyncCount = 0;
 
-            // Advanced Conditions
-            UI.Module3D.AdvancedSiteConditionStrings.LoadConditions();
-
             // Objects 3D
             Object3DManager.MNI.Load().Forget();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
@@ -367,14 +382,14 @@ namespace HBP.Data.Module3D
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerAUDI) Object3DManager.Localizers.Load("AUDI", false);
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC1) Object3DManager.Localizers.Load("LEC1", false);
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC2) Object3DManager.Localizers.Load("LEC2", false);
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMCSE) Object3DManager.Localizers.Load("MCSE", false);
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMOTO) Object3DManager.Localizers.Load("MOTO", false);
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVEB) Object3DManager.Localizers.Load("MVEB", false);
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVIS) Object3DManager.Localizers.Load("MVIS", false);
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.Load("VISU", false);
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerAUDI) Object3DManager.Localizers.TryLoad("AUDI");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC1) Object3DManager.Localizers.TryLoad("LEC1");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC2) Object3DManager.Localizers.TryLoad("LEC2");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMCSE) Object3DManager.Localizers.TryLoad("MCSE");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMOTO) Object3DManager.Localizers.TryLoad("MOTO");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVEB) Object3DManager.Localizers.TryLoad("MVEB");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVIS) Object3DManager.Localizers.TryLoad("MVIS");
+            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.TryLoad("VISU");
 
         }
         #endregion

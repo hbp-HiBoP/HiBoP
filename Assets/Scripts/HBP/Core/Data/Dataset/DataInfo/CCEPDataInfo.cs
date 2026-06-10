@@ -1,5 +1,5 @@
-﻿using HBP.Core.Errors;
-using HBP.Data.Database;
+using HBP.Core.Errors;
+using HBP.Core.Database;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -117,7 +117,7 @@ namespace HBP.Core.Data
         #region Private Methods
         protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetCCEPErrors());
             return errors;
         }
@@ -128,7 +128,7 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Error> GetCCEPErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (m_DataContainer.IsOk)
             {
                 DLL.EEG.File.FileType type;
@@ -162,7 +162,7 @@ namespace HBP.Core.Data
                 {
                     throw new Exception("Invalid data container type");
                 }
-                DLL.EEG.File file = new DLL.EEG.File(type, false, files);
+                DLL.EEG.File file = new(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
                 if (Protocol.IsVisualizable && !Protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
@@ -177,7 +177,7 @@ namespace HBP.Core.Data
         }
         protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetCCEPWarnings());
             return warnings;
         }
@@ -188,7 +188,7 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Warning> GetCCEPWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             return warnings;
         }
         #endregion

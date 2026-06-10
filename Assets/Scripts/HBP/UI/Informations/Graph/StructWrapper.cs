@@ -29,7 +29,7 @@ namespace HBP.UI.Informations.Graphs
         public void Set(Graph.Curve[] curves)
         {
             LegendsGestion.Legend[] legends = new LegendsGestion.Legend[curves.Length];
-            List<CurveData> curveDatas = new List<CurveData>();
+            List<CurveData> curveDatas = new();
             for (int i = 0; i < legends.Length; i++)
             {
                 legends[i] = GraphCurveToLegend(curves[i]);
@@ -43,7 +43,7 @@ namespace HBP.UI.Informations.Graphs
         #region Private Methods
         LegendsGestion.Legend GraphCurveToLegend(Graph.Curve curve)
         {
-            LegendsGestion.Legend legend = new LegendsGestion.Legend();
+            LegendsGestion.Legend legend = new();
             legend.ID = curve.ID;
             legend.Label = curve.Name;
             legend.Color = curve.Color;
@@ -57,7 +57,7 @@ namespace HBP.UI.Informations.Graphs
         }
         CurveData[] GraphCurveToCurveData(Graph.Curve curve)
         {
-            List<CurveData> curveDatas = new List<CurveData>();
+            List<CurveData> curveDatas = new();
             if(curve.Enabled)
             {
                 if(curve.Data != null) curveDatas.Add(curve.Data);

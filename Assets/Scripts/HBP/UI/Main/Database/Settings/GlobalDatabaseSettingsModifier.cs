@@ -1,5 +1,5 @@
 using HBP.Core.Data;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.UI.Main;
 using HBP.UI.Tools;
 using System.Linq;
@@ -30,14 +30,14 @@ namespace HBP.UI.Database
         #endregion
 
         #region Public Methods
-        public override void OK()
+        public override async void OK()
         {
             bool switchedWorkspace = ObjectTemp.SelectedWorkspace != Object.SelectedWorkspace;
             base.OK();
             DatabaseManager.Database.SaveSettings();
 
             if (switchedWorkspace)
-                DatabaseManager.Database.LoadDatabase().Forget();
+                await DatabaseWorkflow.LoadDatabaseAsync();
         }
         public void SwitchWorkspace()
         {

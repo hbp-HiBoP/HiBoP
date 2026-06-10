@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
@@ -75,7 +76,7 @@ namespace HBP.UI.Tools
 
             }
         }
-        public BoolEvent OnChangeResult = new BoolEvent();
+        public BoolEvent OnChangeResult = new();
         #endregion
 
         #region Public Methods

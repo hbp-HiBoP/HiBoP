@@ -13,7 +13,7 @@ namespace HBP.Core.Object3D
         /// </summary>
         public string Name { get; set; }
 
-        private DLL.Volume m_Volume = new DLL.Volume();
+        private DLL.Volume m_Volume = new();
         /// <summary>
         /// Volume of this MRI
         /// </summary>
@@ -91,7 +91,7 @@ namespace HBP.Core.Object3D
         }
         public object Clone()
         {
-            MRI3D mri = new MRI3D
+            MRI3D mri = new()
             {
                 Name = Name,
                 Volume = Volume,

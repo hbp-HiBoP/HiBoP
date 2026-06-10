@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.Data.Informations;
 using HBP.UI.Database;
 using HBP.UI.Tools;

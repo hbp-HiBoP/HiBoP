@@ -1,7 +1,8 @@
-﻿using System.CodeDom;
+using System.CodeDom;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations.Graphs
 {

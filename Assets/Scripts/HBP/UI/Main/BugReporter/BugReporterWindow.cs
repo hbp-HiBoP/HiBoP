@@ -55,7 +55,7 @@ namespace HBP.UI.Main
         #region Private Methods
         private void Start()
         {
-            transform.parent = transform.parent.parent;
+            transform.SetParent(transform.parent.parent, false);
             transform.SetAsLastSibling();
         }
         private async UniTask SendBugReportToDiscord(Action<float, float, LoadingText> updateProgress)
@@ -69,8 +69,7 @@ namespace HBP.UI.Main
             {
                 embeds = new DiscordEmbed[]
                 {
-                    new DiscordEmbed
-                    {
+                    new() {
                         title = $"[Bug Report] {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
                         color = 15158332, // Red color
                         timestamp = DateTime.UtcNow.ToString("o"),
@@ -81,7 +80,7 @@ namespace HBP.UI.Main
 
             string jsonPayload = JsonConvert.SerializeObject(webhookData);
 
-            using UnityWebRequest request = new UnityWebRequest(DISCORD_WEBHOOK_URL, "POST");
+            using UnityWebRequest request = new(DISCORD_WEBHOOK_URL, "POST");
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
@@ -135,7 +134,7 @@ namespace HBP.UI.Main
             });
 
             // System Information
-            StringBuilder sysInfo = new StringBuilder();
+            StringBuilder sysInfo = new();
             sysInfo.AppendLine($"**HiBoP:** {Application.version}");
             sysInfo.AppendLine($"**Unity:** {Application.unityVersion}");
             sysInfo.AppendLine($"**Platform:** {Application.platform}");
@@ -149,7 +148,7 @@ namespace HBP.UI.Main
             });
 
             // Hardware Information
-            StringBuilder hwInfo = new StringBuilder();
+            StringBuilder hwInfo = new();
             hwInfo.AppendLine($"**CPU:** {SystemInfo.processorType}");
             hwInfo.AppendLine($"**Cores:** {SystemInfo.processorCount}");
             hwInfo.AppendLine($"**RAM:** {SystemInfo.systemMemorySize} MB");
@@ -164,7 +163,7 @@ namespace HBP.UI.Main
             });
 
             // Display Information
-            StringBuilder displayInfo = new StringBuilder();
+            StringBuilder displayInfo = new();
             displayInfo.AppendLine($"**Resolution:** {Screen.currentResolution.width}x{Screen.currentResolution.height}");
             displayInfo.AppendLine($"**DPI:** {Screen.dpi}");
             displayInfo.AppendLine($"**Fullscreen:** {(Screen.fullScreen ? "Yes" : "No")}");
@@ -240,7 +239,7 @@ namespace HBP.UI.Main
                 }
 
                 // Add header with system info
-                StringBuilder fullLog = new StringBuilder();
+                StringBuilder fullLog = new();
                 fullLog.AppendLine("=" + new string('=', 78));
                 fullLog.AppendLine($"  HiBoP Bug Report - {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
                 fullLog.AppendLine("=" + new string('=', 78));
@@ -419,7 +418,7 @@ namespace HBP.UI.Main
                 
                 // Get last N lines
                 int startIndex = Math.Max(0, lines.Length - lineCount);
-                StringBuilder logBuilder = new StringBuilder();
+                StringBuilder logBuilder = new();
                 
                 for (int i = startIndex; i < lines.Length; i++)
                 {

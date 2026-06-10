@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using System.Collections.Generic;
 using HBP.UI.Main;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System.Linq;
 using UnityEngine.UI;
 using Cysharp.Threading.Tasks;
@@ -36,7 +36,7 @@ namespace HBP.UI.Tools
         /// <summary>
         /// Event called when applying a filter to the corresponding list
         /// </summary>
-        public GenericEvent<bool[]> OnApplyFilters = new GenericEvent<bool[]>();
+        public GenericEvent<bool[]> OnApplyFilters = new();
         #endregion
 
         #region Public Methods

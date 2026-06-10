@@ -67,7 +67,7 @@ namespace HBP.UI.Tools
                 done = true;
             });
 #else
-            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, false);
+            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new("Files", filtersArray) }, false);
             if (paths.Length > 0 && !string.IsNullOrEmpty(paths[0]))
             {
                 m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
@@ -94,7 +94,7 @@ namespace HBP.UI.Tools
                 done = true;
             });
 #else
-            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) }, true);
+            string[] paths = StandaloneFileBrowser.OpenFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, new ExtensionFilter[] { new("Files", filtersArray) }, true);
             if (paths.Length > 0 && !string.IsNullOrEmpty(paths[0]))
             {
                 m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
@@ -121,7 +121,7 @@ namespace HBP.UI.Tools
                 done = true;
             });
 #else
-            string path = StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new ExtensionFilter("Files", filtersArray) });
+            string path = StandaloneFileBrowser.SaveFilePanel(message, string.IsNullOrEmpty(filePath) ? m_LastSelectedDirectory : new FileInfo(filePath).DirectoryName, defaultName, filtersArray == null ? null : new ExtensionFilter[] { new("Files", filtersArray) });
             if (!string.IsNullOrEmpty(path))
             {
                 m_LastSelectedDirectory = new FileInfo(path).DirectoryName;

@@ -1,6 +1,6 @@
-﻿using HBP.Core.Errors;
+using HBP.Core.Errors;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -107,7 +107,7 @@ namespace HBP.Core.Data
         #region Private Methods
         protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetStaticErrors());
             return errors;
         }
@@ -118,13 +118,13 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Error> GetStaticErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (DataContainer is Container.CSV csvDataContainer)
             {
-                Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+                Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
                 if (new FileInfo(csvDataContainer.SavedFile).Exists)
                 {
-                    using (StreamReader sr = new StreamReader(csvDataContainer.SavedFile))
+                    using (StreamReader sr = new(csvDataContainer.SavedFile))
                     {
                         string line = sr.ReadLine();
                         int length = csvParser.Split(line).Length;
@@ -156,7 +156,7 @@ namespace HBP.Core.Data
         }
         protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetStaticWarnings());
             return warnings;
         }
@@ -167,7 +167,7 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Warning> GetStaticWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             return warnings;
         }
         #endregion

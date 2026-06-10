@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.Data.Module3D
 {
@@ -84,7 +84,7 @@ namespace HBP.Data.Module3D
             {
                 if (mesh is LeftRightMesh)
                 {
-                    Core.Object3D.LeftRightMesh3D mesh3D = new Core.Object3D.LeftRightMesh3D((LeftRightMesh)mesh, MeshType.Patient, PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.LeftRightMesh3D mesh3D = new((LeftRightMesh)mesh, MeshType.Patient, PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading)
                     {
@@ -106,7 +106,7 @@ namespace HBP.Data.Module3D
                 }
                 else if (mesh is SingleMesh)
                 {
-                    Core.Object3D.SingleMesh3D mesh3D = new Core.Object3D.SingleMesh3D((SingleMesh)mesh, MeshType.Patient, PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading);
+                    Core.Object3D.SingleMesh3D mesh3D = new((SingleMesh)mesh, MeshType.Patient, PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading);
 
                     if (PersistentDataManager.UserPreferences.Data.Anatomic.MeshPreloading)
                     {

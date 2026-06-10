@@ -21,18 +21,18 @@ namespace HBP.Dev
         }
         public static List<MonoBehaviour> GetAllGraphicsAndSelectables()
         {
-            List<MonoBehaviour> elements = new List<MonoBehaviour>();
+            List<MonoBehaviour> elements = new();
             elements.AddRange(Resources.FindObjectsOfTypeAll<Graphic>());
             elements.AddRange(Resources.FindObjectsOfTypeAll<UnityEngine.UI.Selectable>());
             return elements;
         }
         public static List<MonoBehaviour> GetSceneGraphicsAndSelectables()
         {
-            List<MonoBehaviour> elements = new List<MonoBehaviour>();
+            List<MonoBehaviour> elements = new();
 
             foreach (Graphic graphic in Resources.FindObjectsOfTypeAll(typeof(Graphic)) as Graphic[])
             {
-                if (PrefabUtility.GetCorrespondingObjectFromSource(graphic.gameObject) == null && PrefabUtility.GetPrefabObject(graphic.gameObject) != null)
+                if (PrefabUtility.IsPartOfPrefabAsset(graphic.gameObject))
                     continue;
 
                 if (graphic.GetComponent<Mask>())
@@ -45,7 +45,7 @@ namespace HBP.Dev
             }
             foreach (UnityEngine.UI.Selectable selectable in Resources.FindObjectsOfTypeAll(typeof(UnityEngine.UI.Selectable)) as UnityEngine.UI.Selectable[])
             {
-                if (PrefabUtility.GetCorrespondingObjectFromSource(selectable.gameObject) == null && PrefabUtility.GetPrefabObject(selectable.gameObject) != null)
+                if (PrefabUtility.IsPartOfPrefabAsset(selectable.gameObject))
                     continue;
 
                 elements.Add(selectable);
@@ -56,7 +56,7 @@ namespace HBP.Dev
 
         public static void CheckTheme(List<MonoBehaviour> list)
         {
-            List<string> fullNames = new List<string>();
+            List<string> fullNames = new();
             foreach (var element in list)
             {
                 if (!element.GetComponent<ThemeElement>())

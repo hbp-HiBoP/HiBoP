@@ -26,7 +26,7 @@ namespace HBP.UI.Toolbar
         {
             // TODO : replace by correct values
             Vector3 sitePosition = SelectedColumn.SelectedSite.transform.localPosition;
-            Quaternion quaternion = new Quaternion(-0.3f, 0.7f, -0.5f, 0.2f);
+            Quaternion quaternion = new(-0.3f, 0.7f, -0.5f, 0.2f);
             View3D view = SelectedView;
             if (view)
             {

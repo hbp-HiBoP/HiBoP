@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,8 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
-using HBP.Data.Database;
+using HBP.Core.Preferences;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -34,12 +34,12 @@ namespace HBP.UI.Main.QuickStart
             // Add visualization
             if (DatabaseManager.Database.Protocols.Count == 0) // Anatomical
             {
-                Visualization visualization = new Visualization("QuickStart Anatomy", ApplicationState.LoadedProject.Patients, new Column[] { new AnatomicColumn("Anatomy", new BaseConfiguration()) });
+                Visualization visualization = new("QuickStart Anatomy", ApplicationState.LoadedProject.Patients, new Column[] { new AnatomicColumn("Anatomy", new BaseConfiguration()) });
                 ApplicationState.LoadedProject.SetVisualizations(new Visualization[] { visualization });
             }
             else // Functional
             {
-                List<Patient> patients = new List<Patient>();
+                List<Patient> patients = new();
                 foreach (var patient in ApplicationState.LoadedProject.Patients)
                 {
                     if (ApplicationState.LoadedProject.Datasets[0].Data.First(d => (d as IEEGDataInfo).Patient == patient).IsOk)
@@ -47,14 +47,14 @@ namespace HBP.UI.Main.QuickStart
                         patients.Add(patient);
                     }
                 }
-                List<IEEGColumn> columns = new List<IEEGColumn>();
+                List<IEEGColumn> columns = new();
                 Protocol protocol = DatabaseManager.Database.Protocols[0];
                 foreach (var bloc in protocol.Blocs)
                 {
-                    IEEGColumn column = new IEEGColumn(string.Format("Code {0}", bloc.MainSubBloc.MainEvent.Codes[0]), new BaseConfiguration(), ApplicationState.LoadedProject.Datasets[0], "Data", bloc, new DynamicConfiguration());
+                    IEEGColumn column = new(string.Format("Code {0}", bloc.MainSubBloc.MainEvent.Codes[0]), new BaseConfiguration(), ApplicationState.LoadedProject.Datasets[0], "Data", bloc, new DynamicConfiguration());
                     columns.Add(column);
                 }
-                Visualization visualization = new Visualization("QuickStart", patients, columns, new VisualizationConfiguration());
+                Visualization visualization = new("QuickStart", patients, columns, new VisualizationConfiguration());
                 ApplicationState.LoadedProject.SetVisualizations(new Visualization[] { visualization });
             }
             ApplicationState.LoadedProject.Name = m_ProjectName.text;

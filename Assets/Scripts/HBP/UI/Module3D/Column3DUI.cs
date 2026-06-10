@@ -157,7 +157,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Event called when changing the size of the column (on the update after the change)
         /// </summary>
-        public UnityEvent OnChangeColumnSize = new UnityEvent();
+        public UnityEvent OnChangeColumnSize = new();
         #endregion
 
         #region Private Methods
@@ -288,7 +288,7 @@ namespace HBP.UI.Module3D
             float minimizedWidth = (ParentGrid.MinimumViewWidth / ParentGrid.RectTransform.rect.width);
 
             float totalWidth = 0.0f, availableWidth = 1.0f;
-            List<float> widths = new List<float>();
+            List<float> widths = new();
             for (int i = 0; i < ParentGrid.Columns.Count; i++)
             {
                 Column3DUI col = ParentGrid.Columns[i].GetComponent<Column3DUI>();

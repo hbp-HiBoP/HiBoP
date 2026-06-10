@@ -6,7 +6,7 @@ using HBP.Core.Tools;
 using HBP.Data.Informations;
 using HBP.Data.Informations.Graphs;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,7 +54,7 @@ namespace HBP.UI.Informations
         #region Public Methods
         public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsVoxelAsync(string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
-            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
+            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new();
             var sites = GetSceneSites();
             
             // Calculate total work units for progress tracking
@@ -166,7 +166,7 @@ namespace HBP.UI.Informations
         }
         public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsRegionAsync(int precision, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
-            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
+            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new();
             var sites = GetSceneSites();
 
             // Calculate total work units for progress tracking
@@ -280,7 +280,7 @@ namespace HBP.UI.Informations
         }
         public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsAtlasAsync(LocalizersGraphsAtlas atlas, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
-            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new Dictionary<ChannelStruct, List<LocalizerCurveData>>();
+            Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new();
             BrainAtlas selectedAtlas = atlas switch
             {
                 LocalizersGraphsAtlas.MarsAtlas => Object3DManager.MarsAtlas,

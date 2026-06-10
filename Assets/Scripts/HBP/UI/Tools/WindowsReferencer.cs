@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
@@ -13,7 +14,7 @@ namespace HBP.UI.Tools
         public UnityEvent<Window> OnOpenWindow { get; protected set; } = new GenericEvent<Window>();
         public UnityEvent<Window> OnCloseWindow { get; protected set; } = new GenericEvent<Window>();
 
-        [SerializeField] protected List<Window> m_Windows = new List<Window>();
+        [SerializeField] protected List<Window> m_Windows = new();
         public ReadOnlyCollection<Window> Windows
         {
             get

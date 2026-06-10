@@ -38,7 +38,7 @@ namespace HBP.UI.Main
 
                 m_NameText.text = m_Object.Name;
 
-                StringBuilder stringBuilder = new StringBuilder();
+                StringBuilder stringBuilder = new();
                 stringBuilder.AppendLine("Codes: ");
                 int[] codes = value.Codes.ToArray();
                 for (int i = 0; i < codes.Length; i++)

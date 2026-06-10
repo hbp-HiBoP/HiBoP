@@ -15,13 +15,13 @@ namespace HBP.UI.Main
         [SerializeField] private GameObject m_BlocItemPrefab;
         
         public string Name => m_ProtocolNameText.text;
-        private List<ExportBlocItem> m_BlocItems = new List<ExportBlocItem>();
+        private List<ExportBlocItem> m_BlocItems = new();
         public List<ExportBlocItem> SelectedBlocs => m_BlocItems.Where(b => b.IsSelected).ToList();
         public bool IsSelected => SelectedBlocs.Count > 0;
         #endregion
         
         #region Events
-        [HideInInspector] public UnityEvent OnToggleChanged = new UnityEvent();
+        [HideInInspector] public UnityEvent OnToggleChanged = new();
         #endregion
         
         #region Public Methods

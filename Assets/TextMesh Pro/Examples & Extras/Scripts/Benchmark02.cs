@@ -24,7 +24,7 @@ namespace TMPro.Examples
                 if (SpawnType == 0)
                 {
                     // TextMesh Pro Implementation
-                    GameObject go = new GameObject();
+                    GameObject go = new();
                     go.transform.position = new Vector3(Random.Range(-95f, 95f), 0.25f, Random.Range(-95f, 95f));
 
                     TextMeshPro textMeshPro = go.AddComponent<TextMeshPro>();
@@ -48,7 +48,7 @@ namespace TMPro.Examples
                 else if (SpawnType == 1)
                 {
                     // TextMesh Implementation
-                    GameObject go = new GameObject();
+                    GameObject go = new();
                     go.transform.position = new Vector3(Random.Range(-95f, 95f), 0.25f, Random.Range(-95f, 95f));
 
                     TextMesh textMesh = go.AddComponent<TextMesh>();
@@ -68,7 +68,7 @@ namespace TMPro.Examples
                 else if (SpawnType == 2)
                 {
                     // Canvas WorldSpace Camera
-                    GameObject go = new GameObject();
+                    GameObject go = new();
                     Canvas canvas = go.AddComponent<Canvas>();
                     canvas.worldCamera = Camera.main;
 

@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.Data.Module3D
 {
@@ -23,23 +23,23 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Generator for the MRI textures of the cuts
         /// </summary>
-        public List<Core.DLL.CutGenerator> CutGenerators = new List<Core.DLL.CutGenerator>();
+        public List<Core.DLL.CutGenerator> CutGenerators = new();
         /// <summary>
         /// DLL textures for the cuts for the 3D
         /// </summary>
-        public List<Core.DLL.Texture> DLLBrainCutTextures = new List<Core.DLL.Texture>();
+        public List<Core.DLL.Texture> DLLBrainCutTextures = new();
         /// <summary>
         /// DLL textures for the cuts for the GUI
         /// </summary>
-        public List<Core.DLL.Texture> DLLGUIBrainCutTextures = new List<Core.DLL.Texture>();
+        public List<Core.DLL.Texture> DLLGUIBrainCutTextures = new();
         /// <summary>
         /// Unity textures for the cuts for the 3D
         /// </summary>
-        public List<Texture2D> BrainCutTextures = new List<Texture2D>();
+        public List<Texture2D> BrainCutTextures = new();
         /// <summary>
         /// Unity textures for the cuts for the GUI
         /// </summary>
-        public List<Texture2D> GUIBrainCutTextures = new List<Texture2D>();
+        public List<Texture2D> GUIBrainCutTextures = new();
         /// <summary>
         /// Size of the cuts arrays
         /// </summary>

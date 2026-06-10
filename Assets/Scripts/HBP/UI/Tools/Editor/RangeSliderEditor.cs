@@ -43,17 +43,17 @@ namespace HBP.UI.Tools
 
         SerializedProperty m_OnValueChangedProperty;
 
-        GUIContent m_VisualizeNavigation = new GUIContent("Visualize", "Show navigation flows between selectable UI elements.");
+        GUIContent m_VisualizeNavigation = new("Visualize", "Show navigation flows between selectable UI elements.");
 
-        AnimBool m_HandleShowColorTint = new AnimBool();
-        AnimBool m_HandleShowSpriteTrasition = new AnimBool();
-        AnimBool m_HandleShowAnimTransition = new AnimBool();
+        AnimBool m_HandleShowColorTint = new();
+        AnimBool m_HandleShowSpriteTrasition = new();
+        AnimBool m_HandleShowAnimTransition = new();
 
-        AnimBool m_FillShowColorTint = new AnimBool();
-        AnimBool m_FillShowSpriteTrasition = new AnimBool();
-        AnimBool m_FillShowAnimTransition = new AnimBool();
+        AnimBool m_FillShowColorTint = new();
+        AnimBool m_FillShowSpriteTrasition = new();
+        AnimBool m_FillShowAnimTransition = new();
 
-        static List<RangeSliderEditor> s_Editors = new List<RangeSliderEditor>();
+        static List<RangeSliderEditor> s_Editors = new();
         static bool s_ShowNavigation = false;
         static string s_ShowNavigationKey = "SelectableEditor.ShowNavigation";
         const float kArrowThickness = 2.5f;
@@ -310,9 +310,9 @@ namespace HBP.UI.Tools
         }
         protected virtual void RegisterStaticOnSceneGUI()
         {
-            SceneView.onSceneGUIDelegate -= StaticOnSceneGUI;
+            SceneView.duringSceneGui -= StaticOnSceneGUI;
             if (s_Editors.Count > 0)
-                SceneView.onSceneGUIDelegate += StaticOnSceneGUI;
+                SceneView.duringSceneGui += StaticOnSceneGUI;
         }
         protected static Selectable.Transition GetTransition(SerializedProperty transition)
         {
@@ -424,7 +424,7 @@ namespace HBP.UI.Tools
             Transform fromTransform = fromObj.transform;
             Transform toTransform = toObj.transform;
 
-            Vector2 sideDir = new Vector2(direction.y, -direction.x);
+            Vector2 sideDir = new(direction.y, -direction.x);
             Vector3 fromPoint = fromTransform.TransformPoint(GetPointOnRectEdge(fromTransform as RectTransform, direction));
             Vector3 toPoint = toTransform.TransformPoint(GetPointOnRectEdge(toTransform as RectTransform, -direction));
             float fromSize = HandleUtility.GetHandleSize(fromPoint) * 0.05f;

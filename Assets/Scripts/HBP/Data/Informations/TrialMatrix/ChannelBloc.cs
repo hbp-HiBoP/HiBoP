@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Informations.TrialMatrix
 {
@@ -50,22 +51,22 @@ namespace HBP.Data.Informations.TrialMatrix
             Channel = channel;
             if (IsFound)
             {
-                List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
+                List<SubBloc> subBlocs = new(bloc.SubBlocs.Count);
                 IEnumerable<Core.Data.ChannelTrial> orderedTrials = blocChannelData.Trials.Where(t => t.IsValid); // FIXME : Ajouter la gestion des trials non complets.
                 foreach (var subBloc in bloc.OrderedSubBlocs)
                 {
                     IEnumerable<SubTrial> subTrials = orderedTrials.Select(trial => new SubTrial(trial.ChannelSubTrialBySubBloc[subBloc]));
-                    SubBloc dataSubBloc = new SubBloc(subBloc, subTrials.ToArray());
+                    SubBloc dataSubBloc = new(subBloc, subTrials.ToArray());
                     subBlocs.Add(dataSubBloc);
                 }
                 SubBlocs = subBlocs.ToArray();
             }
             else
             {
-                List<SubBloc> subBlocs = new List<SubBloc>(bloc.SubBlocs.Count);
+                List<SubBloc> subBlocs = new(bloc.SubBlocs.Count);
                 foreach (var subBloc in bloc.OrderedSubBlocs)
                 {
-                    SubBloc dataSubBloc = new SubBloc(subBloc, new SubTrial[0]);
+                    SubBloc dataSubBloc = new(subBloc, new SubTrial[0]);
                     subBlocs.Add(dataSubBloc);
                 }
                 SubBlocs = subBlocs.ToArray();

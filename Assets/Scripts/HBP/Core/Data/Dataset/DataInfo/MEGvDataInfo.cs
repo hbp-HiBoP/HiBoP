@@ -1,5 +1,5 @@
-﻿using HBP.Core.Errors;
-using HBP.Data.Database;
+using HBP.Core.Errors;
+using HBP.Core.Database;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -118,7 +118,7 @@ namespace HBP.Core.Data
         #region Private Methods
         protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetMEGErrors());
             return errors;
         }
@@ -129,13 +129,13 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Error> GetMEGErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (!string.IsNullOrEmpty(MaskDataContainer.File)) errors.AddRange(MaskDataContainer.GetErrors());
             return errors;
         }
         protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetMEGWarnings());
             return warnings.Distinct().ToArray();
         }
@@ -146,7 +146,7 @@ namespace HBP.Core.Data
         /// <returns>CCEP related errors</returns>
         private IEnumerable<Warning> GetMEGWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             if (!string.IsNullOrEmpty(MaskDataContainer.File)) warnings.AddRange(MaskDataContainer.GetWarnings());
             return warnings;
         }

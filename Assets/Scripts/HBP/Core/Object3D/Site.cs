@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Object3D
 {
@@ -91,7 +92,7 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Default color of any site
         /// </summary>
-        public static Color DefaultColor = new Color(0.53f, 0.15f, 0.15f);
+        public static Color DefaultColor = new(0.53f, 0.15f, 0.15f);
 
         /// <summary>
         /// Is the site completely masked ?
@@ -184,7 +185,7 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Event called when changing any parameter of this class
         /// </summary>
-        public UnityEvent OnChangeState = new UnityEvent();
+        public UnityEvent OnChangeState = new();
         #endregion
 
         #region Public Methods
@@ -355,11 +356,11 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Event called when selecting or unselecting this site
         /// </summary>
-        public GenericEvent<bool> OnSelectSite = new GenericEvent<bool>();
+        public GenericEvent<bool> OnSelectSite = new();
         /// <summary>
         /// Event called when loading or reseting the configuration of this site
         /// </summary>
-        public UnityEvent OnChangeConfiguration = new UnityEvent();
+        public UnityEvent OnChangeConfiguration = new();
         #endregion
 
         #region Private Methods

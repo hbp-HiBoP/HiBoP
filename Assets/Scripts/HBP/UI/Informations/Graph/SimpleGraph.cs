@@ -111,7 +111,7 @@ namespace HBP.UI.Informations.Graphs
 
         public ChannelStruct ChannelStruct { get; set; }
 
-        [SerializeField] List<Graph.Curve> m_Curves = new List<Graph.Curve>();
+        [SerializeField] List<Graph.Curve> m_Curves = new();
         public ReadOnlyCollection<Graph.Curve> Curves
         {
             get
@@ -229,16 +229,16 @@ namespace HBP.UI.Informations.Graphs
         {
             System.Globalization.CultureInfo oldCulture = System.Globalization.CultureInfo.CurrentCulture;
             System.Globalization.CultureInfo.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
-            System.Text.StringBuilder svgBuilder = new System.Text.StringBuilder();
-            Rect curveViewport = new Rect(130, 60, 1600, 900);
-            Limits limits = new Limits(m_AbscissaDisplayRange.x, m_AbscissaDisplayRange.y, m_OrdinateDisplayRange.x, m_OrdinateDisplayRange.y);
+            System.Text.StringBuilder svgBuilder = new();
+            Rect curveViewport = new(130, 60, 1600, 900);
+            Limits limits = new(m_AbscissaDisplayRange.x, m_AbscissaDisplayRange.y, m_OrdinateDisplayRange.x, m_OrdinateDisplayRange.y);
             Vector2 ratio = curveViewport.GetRatio(limits);
             svgBuilder.AppendLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
             svgBuilder.AppendLine("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"" + (curveViewport.x + curveViewport.width + 700.0f).ToString() + "\" height=\"" + (curveViewport.y + curveViewport.height + 150.0f).ToString() + "\">");
             foreach (var curve in m_Curves.Where(c => c.Data != null).Select(c => c.Data))
             {
                 svgBuilder.AppendLine("<g>");
-                System.Text.StringBuilder builder = new System.Text.StringBuilder();
+                System.Text.StringBuilder builder = new();
 
                 // Write shape
                 if (curve is ShapedCurveData shapedCurve)
@@ -276,7 +276,7 @@ namespace HBP.UI.Informations.Graphs
             // Write axis
             List<float> GetAxisValues(float min, float max)
             {
-                List<float> values = new List<float>();
+                List<float> values = new();
                 float range = max - min;
                 if (range > 0)
                 {
@@ -449,7 +449,7 @@ namespace HBP.UI.Informations.Graphs
         {
             if (curves.Count() == 0) return new List<Graph.Curve>();
 
-            List<Graph.Curve> result = new List<Graph.Curve>();
+            List<Graph.Curve> result = new();
             foreach (var curve in curves)
             {
                 result.Add(curve);

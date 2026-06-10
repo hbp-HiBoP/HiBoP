@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using System.IO;
@@ -6,7 +6,7 @@ using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -74,7 +74,7 @@ namespace HBP.UI.Main
         #region Private Methods
         protected override void SetFields()
 		{
-            Data.Preferences.ProjectPreferences preferences = PersistentDataManager.UserPreferences.General.Project;
+            Core.Preferences.ProjectPreferences preferences = PersistentDataManager.UserPreferences.General.Project;
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
@@ -86,7 +86,7 @@ namespace HBP.UI.Main
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), "OK", "Cancel");
                 if (result == 0)
                 {
-                    Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences();
+                    Core.Data.ProjectPreferences preferences = new();
                     ApplicationState.LoadedProject = new Project(m_NameInputField.text, preferences);
                     ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
                     ProjectLoaderSaver.SaveAndReload().Forget();
@@ -95,7 +95,7 @@ namespace HBP.UI.Main
             }
             else
             {
-                Core.Data.ProjectPreferences preferences = new Core.Data.ProjectPreferences();
+                Core.Data.ProjectPreferences preferences = new();
                 ApplicationState.LoadedProject = new Project(m_NameInputField.text, preferences);
                 ApplicationState.LoadedProjectLocation = m_ProjectLocationFolderSelector.Folder;
                 ProjectLoaderSaver.SaveAndReload().Forget();

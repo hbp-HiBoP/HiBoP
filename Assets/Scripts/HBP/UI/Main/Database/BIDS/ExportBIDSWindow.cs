@@ -1,7 +1,7 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.Data.BIDS;
 using HBP.UI.Tools;
 using Newtonsoft.Json;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -41,16 +41,16 @@ namespace HBP.UI.Main
         [SerializeField] private FolderSelector m_ExportFolderSelector;
         [SerializeField] private FileSelector m_ConfigurationFileSelector;
         
-        private List<Patient> m_AvailablePatients = new List<Patient>();
-        private List<Patient> m_SelectedPatients = new List<Patient>();
-        private List<BIDSProtocolItem> m_ProtocolItems = new List<BIDSProtocolItem>();
-        private List<BIDSDataItem> m_DataItems = new List<BIDSDataItem>();
+        private List<Patient> m_AvailablePatients = new();
+        private List<Patient> m_SelectedPatients = new();
+        private List<BIDSProtocolItem> m_ProtocolItems = new();
+        private List<BIDSDataItem> m_DataItems = new();
         
-        private List<BaseTag> m_AvailablePatientTags = new List<BaseTag>();
-        private List<BaseTag> m_SelectedPatientTags = new List<BaseTag>();
+        private List<BaseTag> m_AvailablePatientTags = new();
+        private List<BaseTag> m_SelectedPatientTags = new();
         
-        private List<BaseTag> m_AvailableSiteTags = new List<BaseTag>();
-        private List<BaseTag> m_SelectedSiteTags = new List<BaseTag>();
+        private List<BaseTag> m_AvailableSiteTags = new();
+        private List<BaseTag> m_SelectedSiteTags = new();
         
         private BIDSExportConfiguration m_Configuration;
         #endregion
@@ -138,7 +138,7 @@ namespace HBP.UI.Main
             m_ExportCorrespondenceTableToggle.isOn = false;
             
             // Set default export folder
-            m_ExportFolderSelector.Folder = HBP.Data.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
+            m_ExportFolderSelector.Folder = HBP.Core.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
             
             // Load configuration
             LoadConfiguration();
@@ -367,7 +367,7 @@ namespace HBP.UI.Main
                 {
                     token.ThrowIfCancellationRequested();
                     updateProgress?.Invoke((float)count / totalPatients, 0f, new LoadingText($"Exporting ", $"{patient.ParticipantId}", $" ({count + 1}/{totalPatients})"));
-                    await BIDSUtility.ExportPatientAsync(patient, datasetPath, m_Configuration, m_SelectedSiteTags);
+                    BIDSUtility.ExportPatient(patient, datasetPath, m_Configuration, m_SelectedSiteTags);
                     count++;
                 }
             }

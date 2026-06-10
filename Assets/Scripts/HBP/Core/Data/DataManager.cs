@@ -11,28 +11,28 @@ namespace HBP.Core.Data
     {
         #region Properties
         // Thread-safe access using ReaderWriterLockSlim for better performance than ConcurrentDictionary
-        private static readonly ReaderWriterLockSlim m_DataLock = new ReaderWriterLockSlim();
+        private static readonly ReaderWriterLockSlim m_DataLock = new();
         
         // General.
-        static Dictionary<Request, Data> m_DataByRequest = new Dictionary<Request, Data>();
+        static Dictionary<Request, Data> m_DataByRequest = new();
 
         // iEEG
-        static Dictionary<BlocRequest, BlocData> m_BlocDataByRequest = new Dictionary<BlocRequest, BlocData>();
+        static Dictionary<BlocRequest, BlocData> m_BlocDataByRequest = new();
 
-        static Dictionary<ChannelRequest, ChannelData> m_ChannelDataByRequest = new Dictionary<ChannelRequest, ChannelData>();
-        static Dictionary<BlocChannelRequest, BlocChannelData> m_BlocChannelDataByRequest = new Dictionary<BlocChannelRequest, BlocChannelData>();
+        static Dictionary<ChannelRequest, ChannelData> m_ChannelDataByRequest = new();
+        static Dictionary<BlocChannelRequest, BlocChannelData> m_BlocChannelDataByRequest = new();
 
         // Statistics.
-        static Dictionary<ChannelRequest, ChannelStatistics> m_ChannelStatisticsByRequest = new Dictionary<ChannelRequest, ChannelStatistics>();
-        static Dictionary<BlocChannelRequest, BlocChannelStatistics> m_BlocChannelStatisticsByRequest = new Dictionary<BlocChannelRequest, BlocChannelStatistics>();
+        static Dictionary<ChannelRequest, ChannelStatistics> m_ChannelStatisticsByRequest = new();
+        static Dictionary<BlocChannelRequest, BlocChannelStatistics> m_BlocChannelStatisticsByRequest = new();
 
-        static Dictionary<Request, EventsStatistics> m_EventsStatisticsByRequest = new Dictionary<Request, EventsStatistics>();
-        static Dictionary<BlocRequest, BlocEventsStatistics> m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
+        static Dictionary<Request, EventsStatistics> m_EventsStatisticsByRequest = new();
+        static Dictionary<BlocRequest, BlocEventsStatistics> m_BlocEventsStatisticsByRequest = new();
 
-        static Stack<BlocRequest> m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>();
+        static Stack<BlocRequest> m_BlocRequestsRequiringStatisticsReset = new();
 
         // Normalize
-        static Dictionary<BlocRequest, NormalizationType> m_NormalizeByRequest = new Dictionary<BlocRequest, NormalizationType>();
+        static Dictionary<BlocRequest, NormalizationType> m_NormalizeByRequest = new();
 
         // Default values
         public static NormalizationType DefaultNormalization = NormalizationType.None;
@@ -468,7 +468,7 @@ namespace HBP.Core.Data
 
                 if (request.DataInfo is IEEGDataInfo iEEGDataInfo)
                 {
-                    IEEGData data = new IEEGData(iEEGDataInfo);
+                    IEEGData data = new(iEEGDataInfo);
                     m_DataByRequest.Add(request, data);
 
                     foreach (var bloc in request.DataInfo.Protocol.Blocs)
@@ -479,7 +479,7 @@ namespace HBP.Core.Data
                 }
                 else if (request.DataInfo is CCEPDataInfo CCEPDataInfo)
                 {
-                    CCEPData data = new CCEPData(CCEPDataInfo);
+                    CCEPData data = new(CCEPDataInfo);
                     m_DataByRequest.Add(request, data);
 
                     foreach (var bloc in request.DataInfo.Protocol.Blocs)
@@ -490,27 +490,27 @@ namespace HBP.Core.Data
                 }
                 else if (request.DataInfo is FMRIDataInfo FMRIDataInfo)
                 {
-                    FMRIData data = new FMRIData(FMRIDataInfo);
+                    FMRIData data = new(FMRIDataInfo);
                     m_DataByRequest.Add(request, data);
                 }
                 else if (request.DataInfo is StaticDataInfo staticDataInfo)
                 {
-                    StaticData data = new StaticData(staticDataInfo);
+                    StaticData data = new(staticDataInfo);
                     m_DataByRequest.Add(request, data);
                 }
                 else if (request.DataInfo is SharedFMRIDataInfo sharedFMRIDataInfo)
                 {
-                    FMRIData data = new FMRIData(sharedFMRIDataInfo);
+                    FMRIData data = new(sharedFMRIDataInfo);
                     m_DataByRequest.Add(request, data);
                 }
                 else if (request.DataInfo is MEGvDataInfo MEGvDataInfo)
                 {
-                    MEGvData data = new MEGvData(MEGvDataInfo);
+                    MEGvData data = new(MEGvDataInfo);
                     m_DataByRequest.Add(request, data);
                 }
                 else if (request.DataInfo is MEGcDataInfo MEGcDataInfo)
                 {
-                    MEGcData data = new MEGcData(MEGcDataInfo);
+                    MEGcData data = new(MEGcDataInfo);
                     m_DataByRequest.Add(request, data);
                 }
             }
@@ -687,7 +687,7 @@ namespace HBP.Core.Data
             }
 
             // Channel data not found, create it
-            Request dataRequest = new Request(request.DataInfo);
+            Request dataRequest = new(request.DataInfo);
             
             m_DataLock.EnterReadLock();
             bool dataExists;
@@ -717,7 +717,7 @@ namespace HBP.Core.Data
 
             if (data is EpochedData epochedData)
             {
-                ChannelData channelData = new ChannelData(epochedData, request.Channel);
+                ChannelData channelData = new(epochedData, request.Channel);
                 
                 m_DataLock.EnterWriteLock();
                 try
@@ -756,14 +756,14 @@ namespace HBP.Core.Data
             }
 
             // BlocChannel data not found, create it
-            Request dataRequest = new Request(request.DataInfo);
+            Request dataRequest = new(request.DataInfo);
             EpochedData data = GetData(dataRequest) as EpochedData;
             
             if (data != null)
             {
                 if (data.UnitByChannel.ContainsKey(request.Channel))
                 {
-                    BlocRequest blocDataRequest = new BlocRequest(request.DataInfo, request.Bloc);
+                    BlocRequest blocDataRequest = new(request.DataInfo, request.Bloc);
                     
                     m_DataLock.EnterReadLock();
                     BlocData blocData;
@@ -778,7 +778,7 @@ namespace HBP.Core.Data
 
                     if (blocData != null)
                     {
-                        BlocChannelData blocChannelData = new BlocChannelData(blocData, request.Channel);
+                        BlocChannelData blocChannelData = new(blocData, request.Channel);
                         
                         m_DataLock.EnterWriteLock();
                         try
@@ -824,7 +824,7 @@ namespace HBP.Core.Data
             ChannelData channelData = GetData(request);
             if (channelData != null)
             {
-                ChannelStatistics channelStatistics = new ChannelStatistics(channelData, DefaultAveraging);
+                ChannelStatistics channelStatistics = new(channelData, DefaultAveraging);
                 
                 m_DataLock.EnterWriteLock();
                 try
@@ -866,7 +866,7 @@ namespace HBP.Core.Data
             BlocChannelData blocChannelData = GetData(request);
             if (blocChannelData != null)
             {
-                BlocChannelStatistics blocChannelStatistics = new BlocChannelStatistics(blocChannelData, DefaultAveraging);
+                BlocChannelStatistics blocChannelStatistics = new(blocChannelData, DefaultAveraging);
                 
                 m_DataLock.EnterWriteLock();
                 try
@@ -905,7 +905,7 @@ namespace HBP.Core.Data
             }
 
             // Statistics not found, create them
-            EventsStatistics eventsStatistics = new EventsStatistics(request.DataInfo);
+            EventsStatistics eventsStatistics = new(request.DataInfo);
             
             m_DataLock.EnterWriteLock();
             try
@@ -949,7 +949,7 @@ namespace HBP.Core.Data
             }
 
             // Statistics not found, create them
-            BlocEventsStatistics blocEventsStatistics = new BlocEventsStatistics(request.DataInfo, request.Bloc, DefaultPositionAveraging);
+            BlocEventsStatistics blocEventsStatistics = new(request.DataInfo, request.Bloc, DefaultPositionAveraging);
             
             m_DataLock.EnterWriteLock();
             try
@@ -1027,7 +1027,7 @@ namespace HBP.Core.Data
             {
                 foreach (var trial in epochedData.Trials)
                 {
-                    Dictionary<string, List<float>> baselineByChannel = new Dictionary<string, List<float>>();
+                    Dictionary<string, List<float>> baselineByChannel = new();
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
                         foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
@@ -1107,7 +1107,7 @@ namespace HBP.Core.Data
         }
         static void NormalizeByBloc(BlocRequest request)
         {
-            Dictionary<string, List<float>> baselineByChannel = new Dictionary<string, List<float>>();
+            Dictionary<string, List<float>> baselineByChannel = new();
             
             m_DataLock.EnterReadLock();
             BlocData epochedData;
@@ -1162,7 +1162,7 @@ namespace HBP.Core.Data
         }
         static void NormalizeByProtocol(IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize)
         {
-            Dictionary<string, List<float>> baselineByChannel = new Dictionary<string, List<float>>();
+            Dictionary<string, List<float>> baselineByChannel = new();
 
             m_DataLock.EnterReadLock();
             var epochedDataList = new List<BlocData>();

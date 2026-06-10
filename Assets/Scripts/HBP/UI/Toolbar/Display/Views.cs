@@ -22,7 +22,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Event called when either button has been pressed
         /// </summary>
-        public UnityEvent OnClick = new UnityEvent();
+        public UnityEvent OnClick = new();
         #endregion
 
         #region Public Methods

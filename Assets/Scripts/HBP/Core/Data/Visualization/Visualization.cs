@@ -1,8 +1,8 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -48,8 +48,8 @@ namespace HBP.Core.Data
             get => m_Patients;
             set
             {
-                m_Patients = value;
-                m_PatientsID = m_Patients.Select(p => p.ID).ToList();
+                m_Patients = value?.Where(p => p != null).ToList() ?? new List<Patient>();
+                m_PatientsID = m_Patients.Where(p => !string.IsNullOrEmpty(p.ID)).Select(p => p.ID).ToList();
             }
         }
 
@@ -334,8 +334,17 @@ namespace HBP.Core.Data
         }
         public void UpdatePatients()
         {
-            if (ApplicationState.LoadedProject != null) Patients = m_PatientsID.Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id)).ToList();
-            Patients.RemoveAll(p => p == null);
+            if (ApplicationState.LoadedProject != null)
+            {
+                m_Patients = (m_PatientsID ?? new List<string>())
+                    .Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id))
+                    .Where(p => p != null)
+                    .ToList();
+            }
+            else
+            {
+                m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
+            }
         }
         #endregion
 
@@ -370,7 +379,7 @@ namespace HBP.Core.Data
         private async UniTask<Dictionary<Column, IEnumerable<DataInfo>>> FindDataInfoToReadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
-            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new Dictionary<Column, IEnumerable<DataInfo>>();
+            Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn = new();
             int count = 0;
             int length = Columns.Count;
             foreach (var column in Columns)
@@ -475,7 +484,7 @@ namespace HBP.Core.Data
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
                     iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<IEEGDataInfo>(), iEEGColumn.Bloc);
                 }
-                Frequency maxiEEGFrequency = new Frequency(iEEGColumns.Max(column => column.Data.MaxFrequency));
+                Frequency maxiEEGFrequency = new(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
                     token.ThrowIfCancellationRequested();
@@ -500,7 +509,7 @@ namespace HBP.Core.Data
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[ccepColumn].Count(), new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
                     ccepColumn.Data.Load(dataInfoByColumn[ccepColumn].OfType<CCEPDataInfo>(), ccepColumn.Bloc);
                 }
-                Frequency maxCCEPFrequency = new Frequency(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
+                Frequency maxCCEPFrequency = new(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < nbCCEPColumns; ++i)
                 {
                     token.ThrowIfCancellationRequested();
@@ -606,7 +615,8 @@ namespace HBP.Core.Data
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_PatientsID = m_Patients.Select(p => p.ID).ToList();
+            m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
+            m_PatientsID = m_Patients.Where(p => !string.IsNullOrEmpty(p.ID)).Select(p => p.ID).ToList();
         }
         protected override void OnDeserialized()
         {

@@ -93,8 +93,8 @@ namespace HBP.UI.Informations.Graphs
                 if(m_Data is ShapedCurveData)
                 {
                     ShapedCurveData shapedData = m_Data as ShapedCurveData;
-                    List<Vector2> points = new List<Vector2>(shapedData.Points.Length);
-                    List<float> shapes = new List<float>(shapedData.Shapes.Length);
+                    List<Vector2> points = new(shapedData.Points.Length);
+                    List<float> shapes = new(shapedData.Shapes.Length);
                     bool first = true;
                     float x, y;
                     for (int i = 0; i < shapedData.Points.Length; i++)
@@ -126,8 +126,8 @@ namespace HBP.UI.Informations.Graphs
                     int downSampling = Mathf.CeilToInt(pointsByPixel);
                     if (downSampling > 1)
                     {
-                        List<Vector2> newPoints = new List<Vector2>(points.Count / downSampling);
-                        List<float> newShapes = new List<float>(points.Count / downSampling);
+                        List<Vector2> newPoints = new(points.Count / downSampling);
+                        List<float> newShapes = new(points.Count / downSampling);
                         for (int i = 0; i < (points.Count / downSampling); i++)
                         {
                             int d = i * downSampling;

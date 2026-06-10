@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using System.Linq;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Module3D
 {
@@ -121,7 +122,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Site state by site ID (used when changing the implantation to keep the state of sites common to both implantations)
         /// </summary>
-        public Dictionary<string, Core.Object3D.SiteState> SiteStateBySiteID = new Dictionary<string, Core.Object3D.SiteState>();
+        public Dictionary<string, Core.Object3D.SiteState> SiteStateBySiteID = new();
         
         public virtual Core.DLL.ActivityGenerator ActivityGenerator { get; protected set; }
         /// <summary>
@@ -175,27 +176,27 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
-        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelect = new();
         /// <summary>
         /// Event called when a view is moved
         /// </summary>
-        [HideInInspector] public GenericEvent<View3D> OnMoveView = new GenericEvent<View3D>();
+        [HideInInspector] public GenericEvent<View3D> OnMoveView = new();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
-        [HideInInspector] public UnityEvent OnChangeMinimizedState = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeMinimizedState = new();
         /// <summary>
         /// Event called when selecting a site
         /// </summary>
-        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnSelectSite = new GenericEvent<Core.Object3D.Site>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnSelectSite = new();
         /// <summary>
         /// Event called each time we change the state of a site
         /// </summary>
-        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnChangeSiteState = new GenericEvent<Core.Object3D.Site>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnChangeSiteState = new();
         /// <summary>
         /// Event called when updating the alpha values
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateActivityAlpha = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateActivityAlpha = new();
         #endregion
 
         #region Private Methods

@@ -8,7 +8,7 @@ namespace HBP.UI.Tools
     {
         #region Properties
         [SerializeField, HideInInspector]
-        DrivenRectTransformTracker m_tracker = new DrivenRectTransformTracker();
+        DrivenRectTransformTracker m_tracker = new();
         [SerializeField, HideInInspector]
         RectTransform m_rectTransform;
         [SerializeField, HideInInspector]

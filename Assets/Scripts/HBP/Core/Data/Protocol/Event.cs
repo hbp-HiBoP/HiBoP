@@ -143,7 +143,7 @@ namespace HBP.Core.Data
 		public static int[] GetCodesFromString(string codesString)
 		{
 			string[] codes = codesString.Split(new char[] { SEPARATOR },StringSplitOptions.RemoveEmptyEntries);
-			List<int> result = new List<int>();
+			List<int> result = new();
 			for(int i=0;i<codes.Length;i++)
 			{
                 int code;

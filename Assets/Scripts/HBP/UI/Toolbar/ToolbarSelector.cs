@@ -54,7 +54,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Link toggle to its respective toolbar
         /// </summary>
-        private Dictionary<Toggle, Toolbar> m_Toolbars = new Dictionary<Toggle, Toolbar>();
+        private Dictionary<Toggle, Toolbar> m_Toolbars = new();
         #endregion
 
         #region Private Methods

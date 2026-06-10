@@ -9,8 +9,8 @@ namespace HBP.Core.DLL
         #region Public Methods
         public void ComputeActivity(IEnumerable<(Volume, Volume)> volumesAndMasks)
         {
-            MultiVolume multiVolume = new MultiVolume();
-            MultiVolume maskMultiVolume = new MultiVolume();
+            MultiVolume multiVolume = new();
+            MultiVolume maskMultiVolume = new();
             foreach (var volumeAndMask in volumesAndMasks)
             {
                 multiVolume.AddVolume(volumeAndMask.Item1);

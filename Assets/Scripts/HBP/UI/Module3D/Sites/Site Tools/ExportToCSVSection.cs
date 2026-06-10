@@ -3,7 +3,7 @@ using HBP.Core.Data;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
@@ -107,7 +107,7 @@ namespace HBP.UI.Module3D
 
             // Prepare DataInfo by Patient for performance increase
             await UniTask.SwitchToThreadPool();
-            Dictionary<Patient, DataInfo> dataInfoByPatient = new Dictionary<Patient, DataInfo>();
+            Dictionary<Patient, DataInfo> dataInfoByPatient = new();
 
             if (m_ExportData.isOn)
             {
@@ -140,10 +140,10 @@ namespace HBP.UI.Module3D
 
             // Create string builder
             token.ThrowIfCancellationRequested();
-            System.Text.StringBuilder csvBuilder = new System.Text.StringBuilder();
+            System.Text.StringBuilder csvBuilder = new();
 
             // Generate header
-            System.Text.StringBuilder headerBuilder = new System.Text.StringBuilder("Site");
+            System.Text.StringBuilder headerBuilder = new("Site");
             if (m_ExportHighlighted.isOn) headerBuilder.Append(",Highlighted");
             if (m_ExportBlacklisted.isOn) headerBuilder.Append(",Blacklisted");
             if (m_ExportColor.isOn) headerBuilder.Append(",Color");
@@ -176,7 +176,7 @@ namespace HBP.UI.Module3D
                 Vector3 sitePosition = m_ExportPosition.isOn ? sitePositions[i] : Vector3.zero;
 
                 // Build row
-                System.Text.StringBuilder rowBuilder = new System.Text.StringBuilder();
+                System.Text.StringBuilder rowBuilder = new();
                 rowBuilder.Append(site.Information.FullID);
 
                 // Append site state data based on export flags
@@ -270,13 +270,13 @@ namespace HBP.UI.Module3D
             updateProgress(0.1f, 0, new LoadingText("Loading existing CSV file..."));
 
             // Reading the existing CSV file
-            Dictionary<string, Dictionary<string, string>> existingData = new Dictionary<string, Dictionary<string, string>>();
-            List<string> headers = new List<string>();
+            Dictionary<string, Dictionary<string, string>> existingData = new();
+            List<string> headers = new();
 
             // Regex for parsing CSV correctly (respecting quotes)
-            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
 
-            using (StreamReader sr = new StreamReader(csvPath))
+            using (StreamReader sr = new(csvPath))
             {
                 // Read header
                 string headerLine = sr.ReadLine();
@@ -297,7 +297,7 @@ namespace HBP.UI.Module3D
 
                     // Using SiteID as key for the dictionary
                     string siteId = values[0].Trim('"');
-                    Dictionary<string, string> rowData = new Dictionary<string, string>();
+                    Dictionary<string, string> rowData = new();
 
                     // Store all columns for this site
                     for (int i = 0; i < values.Length && i < headers.Count; i++)
@@ -326,7 +326,7 @@ namespace HBP.UI.Module3D
             List<string> newHeaders = csvParser.Split(newHeaderLine).ToList();
 
             // Merge headers
-            List<string> mergedHeaders = new List<string> { "Site" }; // Always start with the site identifier
+            List<string> mergedHeaders = new() { "Site" }; // Always start with the site identifier
             // Add all unique existing headers
             foreach (string header in headers)
             {
@@ -347,7 +347,7 @@ namespace HBP.UI.Module3D
             updateProgress(0.8f, 0, new LoadingText("Merging data..."));
 
             // Create a dictionary with the new data
-            Dictionary<string, Dictionary<string, string>> newData = new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, Dictionary<string, string>> newData = new();
             for (int i = 1; i < newLines.Length; i++)
             {
                 if (string.IsNullOrWhiteSpace(newLines[i])) continue;
@@ -356,7 +356,7 @@ namespace HBP.UI.Module3D
                 if (values.Length == 0 || string.IsNullOrEmpty(values[0])) continue;
 
                 string siteId = values[0].Trim('"');
-                Dictionary<string, string> rowData = new Dictionary<string, string>();
+                Dictionary<string, string> rowData = new();
 
                 for (int j = 0; j < values.Length && j < newHeaders.Count; j++)
                 {
@@ -367,12 +367,12 @@ namespace HBP.UI.Module3D
             }
 
             // Merge the data
-            System.Text.StringBuilder mergedCsvContent = new System.Text.StringBuilder();
+            System.Text.StringBuilder mergedCsvContent = new();
             // Merged headers
             mergedCsvContent.AppendLine(string.Join(",", mergedHeaders));
 
             // Merge all existing and new entries
-            HashSet<string> processedSites = new HashSet<string>();
+            HashSet<string> processedSites = new();
 
             // First process existing sites
             foreach (var siteEntry in existingData)
@@ -380,7 +380,7 @@ namespace HBP.UI.Module3D
                 string siteId = siteEntry.Key;
                 var existingRow = siteEntry.Value;
 
-                System.Text.StringBuilder rowBuilder = new System.Text.StringBuilder();
+                System.Text.StringBuilder rowBuilder = new();
                 rowBuilder.Append(siteId); // Site identifier
 
                 // For each header in the merged list (except the first which is the ID)
@@ -406,7 +406,7 @@ namespace HBP.UI.Module3D
                             .ToList();
 
                         // Merge labels ensuring uniqueness
-                        HashSet<string> mergedLabels = new HashSet<string>(existingLabelsList);
+                        HashSet<string> mergedLabels = new(existingLabelsList);
                         foreach (var label in newLabelsList)
                         {
                             mergedLabels.Add(label);
@@ -438,7 +438,7 @@ namespace HBP.UI.Module3D
                 if (processedSites.Contains(siteId)) continue;
 
                 var newRow = siteEntry.Value;
-                System.Text.StringBuilder rowBuilder = new System.Text.StringBuilder();
+                System.Text.StringBuilder rowBuilder = new();
                 rowBuilder.Append(siteId); // Site identifier
 
                 // For each header in the merged list (except the first which is the ID)
@@ -460,7 +460,7 @@ namespace HBP.UI.Module3D
             updateProgress(0.95f, 0, new LoadingText("Writing merged file..."));
 
             // Write the merged file
-            using StreamWriter sw = new StreamWriter(csvPath);
+            using StreamWriter sw = new(csvPath);
             sw.Write(mergedCsvContent.ToString());
         }
         #endregion

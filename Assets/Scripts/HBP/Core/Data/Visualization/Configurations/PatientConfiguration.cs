@@ -57,7 +57,7 @@ namespace HBP.Core.Data
         #region Public Methods
         public object Clone()
         {
-            Dictionary<string, ElectrodeConfiguration> configurationByElectrodeClone = new Dictionary<string, ElectrodeConfiguration>();
+            Dictionary<string, ElectrodeConfiguration> configurationByElectrodeClone = new();
             foreach (var item in ConfigurationByElectrode)
             {
                 configurationByElectrodeClone.Add(item.Key, item.Value.Clone() as ElectrodeConfiguration);

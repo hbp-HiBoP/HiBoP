@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations
 {
@@ -20,7 +21,7 @@ namespace HBP.UI.Informations
         #endregion
 
         #region Events
-        public GenericEvent<List<ChannelStructsGroup>> OnDisplayChannelStructsGroupsGraphs = new GenericEvent<List<ChannelStructsGroup>>();
+        public GenericEvent<List<ChannelStructsGroup>> OnDisplayChannelStructsGroupsGraphs = new();
         #endregion
 
         #region Public Methods

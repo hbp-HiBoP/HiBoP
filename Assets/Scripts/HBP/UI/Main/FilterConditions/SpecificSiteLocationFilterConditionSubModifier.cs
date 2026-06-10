@@ -21,7 +21,7 @@ namespace HBP.UI.Main
         [SerializeField] GameObject m_AtlasArea;
         [SerializeField] Dropdown m_AtlasAreaDropdown;
 
-        private List<string> m_CurrentAtlasAreas = new List<string>();
+        private List<string> m_CurrentAtlasAreas = new();
         private bool m_UpdatingAtlasAreaDropdown = false;
 
         protected List<object> m_FilteringObjects;

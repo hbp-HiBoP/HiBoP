@@ -1,6 +1,8 @@
-﻿using System;
+using System;
+using UnityEngine;
+using UnityEngine.Events;
 
-namespace UnityEngine.Events
+namespace HBP.Core.Tools
 {
     [Serializable] public class BoolEvent : UnityEvent<bool> { }
     [Serializable] public class FloatEvent : UnityEvent<float> { }
@@ -8,7 +10,7 @@ namespace UnityEngine.Events
     [Serializable] public class ColorEvent : UnityEvent<Color> { }
     [Serializable] public class Vector2Event : UnityEvent<Vector2> { }
     [Serializable] public class Vector2ArrayEvent : UnityEvent<Vector2[]> { }
-    [Serializable] public class WindowArrayEvent : UnityEvent<HBP.Core.Tools.TimeWindow[]> { }
+    [Serializable] public class WindowArrayEvent : UnityEvent<TimeWindow[]> { }
     [Serializable] public class StringEvent : UnityEvent<string> { }
     [Serializable] public class Texture2DEvent : UnityEvent<Texture2D> { }
     [Serializable] public class SpriteEvent : UnityEvent<Sprite> { }

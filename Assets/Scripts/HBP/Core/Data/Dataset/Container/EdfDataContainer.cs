@@ -56,14 +56,14 @@ namespace HBP.Core.Data.Container
         #region Public Methods
         public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (string.IsNullOrEmpty(File))
             {
                 errors.Add(new RequiredFieldEmptyError("EDF file path is empty"));
             }
             else
             {
-                FileInfo headerFile = new FileInfo(File);
+                FileInfo headerFile = new(File);
                 if (!headerFile.Exists)
                 {
                     errors.Add(new FileDoesNotExistError("EDF file does not exist"));
@@ -81,7 +81,7 @@ namespace HBP.Core.Data.Container
         }
         public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }

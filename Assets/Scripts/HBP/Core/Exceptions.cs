@@ -1,5 +1,7 @@
 ﻿using HBP.Core.Data;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.Core.Exceptions
 {
@@ -48,6 +50,20 @@ namespace HBP.Core.Exceptions
         }
         public CannotLoadDataInfoException(string message, Exception inner) : base(message, inner) { }
         protected CannotLoadDataInfoException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    [Serializable]
+    public class DataFileNotFoundException : HBPException
+    {
+        public DataFileNotFoundException() { }
+        public DataFileNotFoundException(IEnumerable<string> paths) : base($"The following data file(s) could not be found:\n{string.Join("\n", paths.Select(path => $"<color=red>{path}</color>"))}\n\nPlease verify your dataset paths.")
+        {
+            Title = "Data file not found";
+        }
+        public DataFileNotFoundException(string message, Exception inner) : base(message, inner) { }
+        protected DataFileNotFoundException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }

@@ -23,7 +23,7 @@ namespace HBP.Core.Data
         #region Public Methods
         public static FilterConditionsPresetCollection Initialize()
         {
-            FilterConditionsPresetCollection presetsCollection = new FilterConditionsPresetCollection();
+            FilterConditionsPresetCollection presetsCollection = new();
             if (new FileInfo(PATH).Exists)
             {
                 try

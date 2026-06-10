@@ -1,4 +1,4 @@
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Linq;

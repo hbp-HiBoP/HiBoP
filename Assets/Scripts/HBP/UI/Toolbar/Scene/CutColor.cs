@@ -15,7 +15,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Correspondance between cut color dropdown options indices and color type
         /// </summary>
-        private List<ColorType> m_CutColorIndices = new List<ColorType>() { ColorType.Default, ColorType.Grayscale };
+        private List<ColorType> m_CutColorIndices = new() { ColorType.Default, ColorType.Grayscale };
         #endregion
 
         #region Public Methods

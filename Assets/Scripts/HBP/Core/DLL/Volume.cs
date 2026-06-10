@@ -67,7 +67,7 @@ namespace HBP.Core.DLL
             {
                 float[] points = new float[3 * 8];
                 getPoints_BBox(_handle, points);
-                List<Vector3> pointsV = new List<Vector3>(8);
+                List<Vector3> pointsV = new(8);
 
                 for (int ii = 0; ii < 8; ii++)
                 {
@@ -86,7 +86,7 @@ namespace HBP.Core.DLL
             {
                 float[] points = new float[3 * 2 * 12];
                 getLinesPairPoints_BBox(_handle, points);
-                List<Object3D.Segment3> linesPoints = new List<Object3D.Segment3>(12);
+                List<Object3D.Segment3> linesPoints = new(12);
 
                 for (int ii = 0; ii < 12; ii++)
                 {
@@ -108,11 +108,11 @@ namespace HBP.Core.DLL
         {
             float[] points = new float[8 * 3];
             getIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
-            List<Vector3> intersecPoints = new List<Vector3>(4);
+            List<Vector3> intersecPoints = new(4);
 
             for (int ii = 0; ii < 8; ++ii)
             {
-                Vector3 point = new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]);
+                Vector3 point = new(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]);
                 if (point.x == 0 && point.y == 0 && point.z == 0)
                     continue;
                 intersecPoints.Add(point);
@@ -129,7 +129,7 @@ namespace HBP.Core.DLL
         {
             float[] points = new float[4 * 2 * 3];
             getLinesIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
-            List<Object3D.Segment3> intersecLines = new List<Object3D.Segment3>(4);
+            List<Object3D.Segment3> intersecLines = new(4);
 
             for (int ii = 0; ii < 4; ++ii)
             {
@@ -192,7 +192,7 @@ namespace HBP.Core.DLL
         }
         public static BBox Merge(BBox bbox1, BBox bbox2)
         {
-            BBox bbox = new BBox();
+            BBox bbox = new();
             bbox.Update(bbox1);
             bbox.Update(bbox2);
             return bbox;
@@ -282,7 +282,7 @@ namespace HBP.Core.DLL
         {
             get
             {
-                Tools.MRICalValues values = new Tools.MRICalValues();
+                Tools.MRICalValues values = new();
 
                 float[] valuesF = new float[6];
                 retrieveExtremeValues_Volume(_handle, valuesF);

@@ -1,11 +1,11 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using System;
 
 namespace HBP.UI.Main

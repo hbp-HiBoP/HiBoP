@@ -1,16 +1,15 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using HBP.Data.Database;
-using HBP.Data.Preferences;
+using HBP.Core.Database;
+using HBP.Core.Preferences;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEngine.Scripting;
 
@@ -157,7 +156,7 @@ namespace HBP.Core.Data
         public void CleanInvalidData()
         {
             // Patient tags
-            List<BaseTagValue> patientTagsToRemove = new List<BaseTagValue>();
+            List<BaseTagValue> patientTagsToRemove = new();
             foreach (var tag in Tags)
                 if (tag.Tag == null)
                     patientTagsToRemove.Add(tag);
@@ -167,7 +166,7 @@ namespace HBP.Core.Data
             // Site tags
             foreach (var site in Sites)
             {
-                List<BaseTagValue> siteTagsToRemove = new List<BaseTagValue>();
+                List<BaseTagValue> siteTagsToRemove = new();
                 foreach (var tag in site.Tags)
                     if (tag.Tag == null)
                         siteTagsToRemove.Add(tag);
@@ -280,7 +279,7 @@ namespace HBP.Core.Data
         public static bool IsPatientDirectory(string path)
         {
             if (string.IsNullOrEmpty(path)) return false;
-            DirectoryInfo directory = new DirectoryInfo(path);
+            DirectoryInfo directory = new(path);
             if (!directory.Exists) return false;
             DirectoryInfo[] directories = directory.GetDirectories();
             if (directories.Any((dir) => dir.Name == "implantation") || directories.Any((dir) => dir.Name == "t1mri")) return true;
@@ -321,9 +320,9 @@ namespace HBP.Core.Data
             result = null;
             if (IsPatientDirectory(path))
             {
-                DirectoryInfo directory = new DirectoryInfo(path);
+                DirectoryInfo directory = new(path);
                 string patientName;
-                List<BaseTagValue> patientTags = new List<BaseTagValue>();
+                List<BaseTagValue> patientTags = new();
                 
                 // Check if directory follows Place_Date_Name format
                 if (TryParsePlaceDateNameFormat(directory.Name, out string place, out int date, out string name))
@@ -391,13 +390,13 @@ namespace HBP.Core.Data
             updateProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo directory = new(databaseReference.Path);
             if (!directory.Exists) return;
 
             IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
             int length = patientDirectories.Count();
             int progress = 0;
-            List<Patient> patientsList = new List<Patient>(length);
+            List<Patient> patientsList = new(length);
             foreach (var dir in patientDirectories)
             {
                 token.ThrowIfCancellationRequested();
@@ -421,15 +420,15 @@ namespace HBP.Core.Data
         {
             patients = new Patient[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo databaseDirectoryInfo = new(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             // Read participants.tsv.
             updateProgress?.Invoke(0, 0, new LoadingText("Reading participants.tsv file"));
-            FileInfo participantsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
+            FileInfo participantsFileInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "participants.tsv"));
             if (!participantsFileInfo.Exists) throw new HBPException("Missing file", "The mandatory file 'participants.tsv' is missing in the BIDS database directory.");
-            Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new Dictionary<string, Dictionary<string, string>>();
-            using (StreamReader streamReader = new StreamReader(participantsFileInfo.FullName))
+            Dictionary<string, Dictionary<string, string>> tagValuesBySubjectID = new();
+            using (StreamReader streamReader = new(participantsFileInfo.FullName))
             {
                 string[] lines = streamReader.ReadToEnd().Split(new string[] { Environment.NewLine, "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 if (lines.Length == 0) return;
@@ -439,7 +438,7 @@ namespace HBP.Core.Data
                     string[] values = lines[l].Split(new char[] { '\t' });
                     if (values.Length == tags.Length)
                     {
-                        Dictionary<string, string> valueByTag = new Dictionary<string, string>();
+                        Dictionary<string, string> valueByTag = new();
                         for (int t = 1; t < tags.Length; t++)
                         {
                             valueByTag.Add(tags[t], values[t]);
@@ -450,186 +449,157 @@ namespace HBP.Core.Data
             }
 
             // Find mesh files.
-            Regex meshRegex = new Regex(@"(sub-[a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_acq-([a-zA-Z0-9.]+))?(_ce-([a-zA-Z0-9.]+))?(_rec-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?(_desc-([a-zA-Z0-9.]+))?(_[a-zA-Z0-9.-]+)*(_hemi-([a-zA-Z0-9.-]))(_[a-zA-Z0-9.-]+)*_([a-zA-Z0-9.-]+)\.[a-zA-Z0-9]*\.gii$");
-            FileInfo[] meshFiles = databaseDirectoryInfo.GetFiles("*.gii", SearchOption.AllDirectories);
-            Dictionary<string, List<BIDSMeshFile>> meshesFilesBySubjectID = new Dictionary<string, List<BIDSMeshFile>>();
-            foreach (var file in meshFiles)
+            Dictionary<string, List<BIDSFile>> meshesFilesBySubjectID = new();
+            foreach (var meshFile in BIDSParser.FindFiles(databaseDirectoryInfo.FullName, null, new[] { ".gii" }))
             {
                 token.ThrowIfCancellationRequested();
-                Match match = meshRegex.Match(file.FullName);
-                if (match.Success)
-                {
-                    BIDSMeshFile meshFile = new BIDSMeshFile();
-                    GroupCollection groups = match.Groups;
-                    meshFile.Subject = groups[1].Value;
-                    meshFile.Session = groups[3].Value;
-                    meshFile.DataAcquisition = groups[5].Value;
-                    meshFile.Contrast = groups[7].Value;
-                    meshFile.Reconstruction = groups[9].Value;
-                    if (int.TryParse(groups[11].Value, out int run)) meshFile.Run = run;
-                    meshFile.Description = groups[13].Value;
-                    meshFile.Hemisphere = groups[16].Value;
-                    meshFile.Name = groups[18].Value;
-                    meshFile.Path = file.FullName;
-                    if (meshesFilesBySubjectID.TryGetValue(meshFile.Subject, out List<BIDSMeshFile> files))
-                    {
-                        files.Add(meshFile);
-                    }
-                    else
-                    {
-                        meshesFilesBySubjectID[meshFile.Subject] = new List<BIDSMeshFile>() { meshFile };
-                    }
-                }
+                string meshSubjectId = "sub-" + meshFile.Entities["sub"];
+                if (meshesFilesBySubjectID.TryGetValue(meshSubjectId, out List<BIDSFile> meshList))
+                    meshList.Add(meshFile);
+                else
+                    meshesFilesBySubjectID[meshSubjectId] = new List<BIDSFile>() { meshFile };
             }
 
             // Find MRI files.
-            Regex mriRegex = new Regex(@"(sub-\w+)(_ses-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?_(T1w|T2w|T1rho|T1map|T2map|T2star|FLAIR|FLASH|PD|PDmap|PDT2|inplaneT1|inplaneT2|angio)\.nii(\.gz)?$");
-            FileInfo[] mriFiles = databaseDirectoryInfo.GetFiles("*.nii", SearchOption.AllDirectories);
-            Dictionary<string, List<BIDSMRIFile>> mriFilesBySubjectID = new Dictionary<string, List<BIDSMRIFile>>();
-            foreach (var file in mriFiles)
+            string[] mriSuffixes = { "T1w", "T2w", "T1rho", "T1map", "T2map", "T2star", "FLAIR", "FLASH", "PD", "PDmap", "PDT2", "inplaneT1", "inplaneT2", "angio" };
+            Dictionary<string, List<BIDSFile>> mriFilesBySubjectID = new();
+            foreach (var mriFile in BIDSParser.FindFiles(databaseDirectoryInfo.FullName, mriSuffixes, new[] { ".nii", ".nii.gz" }))
             {
                 token.ThrowIfCancellationRequested();
-                Match match = mriRegex.Match(file.FullName);
-                if (match.Success)
-                {
-                    BIDSMRIFile mriFile = new BIDSMRIFile();
-                    GroupCollection groups = match.Groups;
-                    mriFile.Subject = groups[1].Value;
-                    mriFile.Session = groups[3].Value;
-                    mriFile.DataAcquisition = groups[5].Value;
-                    mriFile.Contrast = groups[7].Value;
-                    mriFile.Reconstruction = groups[9].Value;
-                    if (int.TryParse(groups[11].Value, out int run)) mriFile.Run = run;
-                    mriFile.Name = groups[12].Value;
-                    mriFile.Path = file.FullName;
-                    if (mriFilesBySubjectID.TryGetValue(mriFile.Subject, out List<BIDSMRIFile> files))
-                    {
-                        files.Add(mriFile);
-                    }
-                    else
-                    {
-                        mriFilesBySubjectID[mriFile.Subject] = new List<BIDSMRIFile>() { mriFile };
-                    }
-                }
+                string mriSubjectId = "sub-" + mriFile.Entities["sub"];
+                if (mriFilesBySubjectID.TryGetValue(mriSubjectId, out List<BIDSFile> mriList))
+                    mriList.Add(mriFile);
+                else
+                    mriFilesBySubjectID[mriSubjectId] = new List<BIDSFile>() { mriFile };
             }
 
             // Find Electrodes files.
-            Regex electrodesRegex = new Regex(@"(sub-\w+)(_ses-(\w+))?(_task-(\w+))?(_acq-(\w+))?(_ce-(\w+))?(_rec-(\w+))?(_run-(\w+))?(_space-(\w+))?_electrodes\.tsv$");
-            FileInfo[] electrodesFiles = databaseDirectoryInfo.GetFiles("*_electrodes.tsv", SearchOption.AllDirectories);
-            Dictionary<string, List<BIDSElectrodeFile>> electrodesFilesBySubjectID = new Dictionary<string, List<BIDSElectrodeFile>>();
-            foreach (var file in electrodesFiles)
+            Dictionary<string, List<BIDSFile>> electrodesFilesBySubjectID = new();
+            foreach (var electrodeFile in BIDSParser.FindFiles(databaseDirectoryInfo.FullName, new[] { "electrodes" }, new[] { ".tsv" }))
             {
                 token.ThrowIfCancellationRequested();
-                Match match = electrodesRegex.Match(file.FullName);
-                if (match.Success)
-                {
-                    BIDSElectrodeFile electrodeFile = new BIDSElectrodeFile();
-                    GroupCollection groups = match.Groups;
-                    electrodeFile.Subject = groups[1].Value;
-                    electrodeFile.Session = groups[3].Value;
-                    electrodeFile.Task = groups[5].Value;
-                    electrodeFile.DataAcquisition = groups[7].Value;
-                    electrodeFile.Contrast = groups[9].Value;
-                    electrodeFile.Reconstruction = groups[11].Value;
-                    if (int.TryParse(groups[12].Value, out int run)) electrodeFile.Run = run;
-                    electrodeFile.Space = groups[13].Value;
-                    electrodeFile.Name = groups[13].Value;
-                    electrodeFile.Path = file.FullName;
-                    if (electrodesFilesBySubjectID.TryGetValue(electrodeFile.Subject, out List<BIDSElectrodeFile> files))
-                    {
-                        files.Add(electrodeFile);
-                    }
-                    else
-                    {
-                        electrodesFilesBySubjectID[electrodeFile.Subject] = new List<BIDSElectrodeFile>() { electrodeFile };
-                    }
-                }
+                string electrodeSubjectId = "sub-" + electrodeFile.Entities["sub"];
+                if (electrodesFilesBySubjectID.TryGetValue(electrodeSubjectId, out List<BIDSFile> electrodeList))
+                    electrodeList.Add(electrodeFile);
+                else
+                    electrodesFilesBySubjectID[electrodeSubjectId] = new List<BIDSFile>() { electrodeFile };
             }
 
             // Create patients.
             int length = tagValuesBySubjectID.Count;
             int progress = 0;
-            List<Patient> patientsList = new List<Patient>(tagValuesBySubjectID.Count);
+            List<Patient> patientsList = new(tagValuesBySubjectID.Count);
             foreach (var pair in tagValuesBySubjectID)
             {
                 token.ThrowIfCancellationRequested();
                 updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", pair.Key, " [" + (progress + 1) + "/" + length + "]"));
 
                 // Meshes.
-                List<BaseMesh> meshes = new List<BaseMesh>();
-                if (meshesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSMeshFile> subjectMeshFiles))
+                List<BaseMesh> meshes = new();
+                if (meshesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSFile> subjectMeshFiles))
                 {
-                    List<BIDSMeshFile> usedMeshFiles = new List<BIDSMeshFile>(subjectMeshFiles.Count);
-                    
+                    static bool IsMarsAtlasMesh(BIDSFile f)
+                    {
+                        if (f.Suffix != "dseg") return false;
+                        f.Entities.TryGetValue("desc", out string d);
+                        return d != null && d.Equals("marsatlas", StringComparison.OrdinalIgnoreCase);
+                    }
+
+                    static bool IsLeft(BIDSFile f)
+                    {
+                        f.Entities.TryGetValue("hemi", out string h);
+                        return h == "L" || h == "l" || h == "left" || h == "Left";
+                    }
+
+                    static bool IsRight(BIDSFile f)
+                    {
+                        f.Entities.TryGetValue("hemi", out string h);
+                        return h == "R" || h == "r" || h == "right" || h == "Right";
+                    }
+
+                    static string FindTransformationFile(BIDSFile f)
+                    {
+                        if (string.IsNullOrEmpty(f.Path)) return "";
+                        string directory = System.IO.Path.GetDirectoryName(f.Path);
+                        if (string.IsNullOrEmpty(directory)) return "";
+                        foreach (var trmFile in Directory.GetFiles(directory, "*.trm", SearchOption.TopDirectoryOnly))
+                        {
+                            string trmSuffix = System.IO.Path.GetFileNameWithoutExtension(trmFile).Split('_').LastOrDefault();
+                            if (trmSuffix == f.Suffix) return trmFile;
+                        }
+                        return "";
+                    }
+
+                    string[] sameEntityKeys = { "sub", "ses", "acq", "ce", "rec", "run" };
+
+                    List<BIDSFile> usedMeshFiles = new(subjectMeshFiles.Count);
+
                     foreach (var meshFile in subjectMeshFiles)
                     {
-                        if (!usedMeshFiles.Contains(meshFile) && !meshFile.IsMarsAtlasMesh)
+                        if (!usedMeshFiles.Contains(meshFile) && !IsMarsAtlasMesh(meshFile))
                         {
-                            string transformationPath = meshFile.FindTransformationFile();
-                            
-                            if (meshFile.IsLeft)
+                            string transformationPath = FindTransformationFile(meshFile);
+
+                            if (IsLeft(meshFile))
                             {
-                                var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && f.IsRight);
-                                rightMeshFile ??= new BIDSMeshFile();
-                                usedMeshFiles.Add(rightMeshFile);
-                                
+                                var rightMeshFile = subjectMeshFiles.FirstOrDefault(f => f.HasSameEntities(meshFile, sameEntityKeys, includeSuffix: true) && IsRight(f));
+                                string rightPath = rightMeshFile?.Path ?? "";
+                                if (rightMeshFile != null) usedMeshFiles.Add(rightMeshFile);
+
                                 // Find corresponding MarsAtlas files for "white" meshes
                                 string leftMarsAtlas = "";
                                 string rightMarsAtlas = "";
-                                if (meshFile.Name == "white")
+                                if (meshFile.Suffix == "white")
                                 {
-                                    var leftMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsLeft);
-                                    var rightMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsRight);
-                                    
+                                    var leftMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.HasSameEntities(meshFile, sameEntityKeys) && IsMarsAtlasMesh(f) && IsLeft(f));
+                                    var rightMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.HasSameEntities(meshFile, sameEntityKeys) && IsMarsAtlasMesh(f) && IsRight(f));
                                     leftMarsAtlas = leftMarsAtlasFile?.Path ?? "";
                                     rightMarsAtlas = rightMarsAtlasFile?.Path ?? "";
-                                    
-                                    // Mark MarsAtlas files as used
                                     if (leftMarsAtlasFile != null) usedMeshFiles.Add(leftMarsAtlasFile);
                                     if (rightMarsAtlasFile != null) usedMeshFiles.Add(rightMarsAtlasFile);
                                 }
-                                
-                                meshes.Add(new LeftRightMesh(meshFile.Name, transformationPath, meshFile.Path, rightMeshFile.Path, leftMarsAtlas, rightMarsAtlas));
+
+                                meshes.Add(new LeftRightMesh(meshFile.Suffix, transformationPath, meshFile.Path, rightPath, leftMarsAtlas, rightMarsAtlas));
                             }
-                            else if (meshFile.IsRight)
+                            else if (IsRight(meshFile))
                             {
-                                var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.Same(meshFile) && f.IsLeft);
-                                leftMeshFile ??= new BIDSMeshFile();
-                                usedMeshFiles.Add(leftMeshFile);
-                                
+                                var leftMeshFile = subjectMeshFiles.FirstOrDefault(f => f.HasSameEntities(meshFile, sameEntityKeys, includeSuffix: true) && IsLeft(f));
+                                string leftPath = leftMeshFile?.Path ?? "";
+                                if (leftMeshFile != null) usedMeshFiles.Add(leftMeshFile);
+
                                 // Find corresponding MarsAtlas files for "white" meshes
                                 string leftMarsAtlas = "";
                                 string rightMarsAtlas = "";
-                                if (meshFile.Name == "white")
+                                if (meshFile.Suffix == "white")
                                 {
-                                    var leftMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsLeft);
-                                    var rightMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.IsRight);
-                                    
+                                    var leftMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.HasSameEntities(meshFile, sameEntityKeys) && IsMarsAtlasMesh(f) && IsLeft(f));
+                                    var rightMarsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.HasSameEntities(meshFile, sameEntityKeys) && IsMarsAtlasMesh(f) && IsRight(f));
                                     leftMarsAtlas = leftMarsAtlasFile?.Path ?? "";
                                     rightMarsAtlas = rightMarsAtlasFile?.Path ?? "";
-                                    
-                                    // Mark MarsAtlas files as used
                                     if (leftMarsAtlasFile != null) usedMeshFiles.Add(leftMarsAtlasFile);
                                     if (rightMarsAtlasFile != null) usedMeshFiles.Add(rightMarsAtlasFile);
                                 }
-                                
-                                meshes.Add(new LeftRightMesh(meshFile.Name, transformationPath, leftMeshFile.Path, meshFile.Path, leftMarsAtlas, rightMarsAtlas));
+
+                                meshes.Add(new LeftRightMesh(meshFile.Suffix, transformationPath, leftPath, meshFile.Path, leftMarsAtlas, rightMarsAtlas));
                             }
                             else
                             {
                                 // Single mesh case
                                 string marsAtlas = "";
-                                if (meshFile.Name == "white")
+                                if (meshFile.Suffix == "white")
                                 {
-                                    var marsAtlasFile = subjectMeshFiles.FirstOrDefault(f => f.SameFields(meshFile) && f.IsMarsAtlasMesh && f.Hemisphere == meshFile.Hemisphere);
-                                    
+                                    meshFile.Entities.TryGetValue("hemi", out string meshHemi);
+                                    var marsAtlasFile = subjectMeshFiles.FirstOrDefault(f =>
+                                    {
+                                        if (!f.HasSameEntities(meshFile, sameEntityKeys) || !IsMarsAtlasMesh(f)) return false;
+                                        f.Entities.TryGetValue("hemi", out string h);
+                                        return h == meshHemi;
+                                    });
                                     marsAtlas = marsAtlasFile?.Path ?? "";
-                                    
-                                    // Mark MarsAtlas file as used
                                     if (marsAtlasFile != null) usedMeshFiles.Add(marsAtlasFile);
                                 }
-                                
-                                meshes.Add(new SingleMesh(meshFile.Name, transformationPath, meshFile.Path, marsAtlas));
+
+                                meshes.Add(new SingleMesh(meshFile.Suffix, transformationPath, meshFile.Path, marsAtlas));
                             }
                             usedMeshFiles.Add(meshFile);
                         }
@@ -637,15 +607,20 @@ namespace HBP.Core.Data
                 }
 
                 // MRIs.
-                List<MRI> mris = new List<MRI>();
-                if (mriFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSMRIFile> subjectMRIFiles))
+                List<MRI> mris = new();
+                if (mriFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSFile> subjectMRIFiles))
                 {
-                    mris = subjectMRIFiles.Select(f => new MRI(string.Format("{0}{1}", f.Name, !string.IsNullOrEmpty(f.Session) ? string.Format(" ({0})", f.Session) : ""), f.Path)).ToList();
+                    mris = subjectMRIFiles.Select(f =>
+                    {
+                        f.Entities.TryGetValue("ses", out string ses);
+                        string mriName = string.Format("{0}{1}", f.Suffix, !string.IsNullOrEmpty(ses) ? string.Format(" ({0})", ses) : "");
+                        return new MRI(mriName, f.Path);
+                    }).ToList();
                 }
 
                 // Sites.
-                List<Site> sites = new List<Site>();
-                if (electrodesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSElectrodeFile> subjectElectrodesFiles))
+                List<Site> sites = new();
+                if (electrodesFilesBySubjectID.TryGetValue(pair.Key, out List<BIDSFile> subjectElectrodesFiles))
                 {
                     foreach (var electrodeFile in subjectElectrodesFiles)
                     {
@@ -675,7 +650,7 @@ namespace HBP.Core.Data
                 }
 
                 // Tags.
-                List<BaseTagValue> tags = new List<BaseTagValue>();
+                List<BaseTagValue> tags = new();
                 if (tagValuesBySubjectID.TryGetValue(pair.Key, out Dictionary<string, string> subjectTags))
                 {
                     // Add tags to project.
@@ -704,7 +679,7 @@ namespace HBP.Core.Data
                 }
 
                 // Create patient.
-                Patient patient = new Patient(pair.Key, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
+                Patient patient = new(pair.Key, meshes, mris, sites, tags, databaseReference.ID, pair.Key);
                 patientsList.Add(patient);
             }
             patients = patientsList.ToArray();
@@ -713,14 +688,14 @@ namespace HBP.Core.Data
         public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Patient[] modifiedPatients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             modifiedPatients = new Patient[0];
-            Dictionary<string, Patient> modifiedPatientsDict = new Dictionary<string, Patient>();
+            Dictionary<string, Patient> modifiedPatientsDict = new();
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo databaseDirectoryInfo = new(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
-            FileInfo patientsFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
-            FileInfo patientsExcelFileInfo = new FileInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients.xlsx"));
-            DirectoryInfo patientsDirectoryInfo = new DirectoryInfo(Path.Combine(databaseDirectoryInfo.FullName, "patients"));
+            FileInfo patientsFileInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "patients.csv"));
+            FileInfo patientsExcelFileInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "patients.xlsx"));
+            DirectoryInfo patientsDirectoryInfo = new(Path.Combine(databaseDirectoryInfo.FullName, "patients"));
             FileInfo[] patientsFiles = databaseDirectoryInfo.GetFiles("*.csv", SearchOption.TopDirectoryOnly);
             FileInfo[] patientsExcelFiles = databaseDirectoryInfo.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly);
             DirectoryInfo[] patientDirectories = databaseDirectoryInfo.GetDirectories();
@@ -937,7 +912,7 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static async UniTask<IEnumerable<Patient>> LoadFromDirectoryAsync(string[] paths, Action<float, float, LoadingText> updateProgress)
         {
-            List<Patient> patients = new List<Patient>(paths.Length);
+            List<Patient> patients = new(paths.Length);
             await UniTask.SwitchToThreadPool();
             foreach (var path in paths)
             {
@@ -999,61 +974,5 @@ namespace HBP.Core.Data
         }
         #endregion
 
-        class BIDSFile
-        {
-            public string Name = "";
-            public string Subject = "";
-            public string Task = "";
-            public string Session = "";
-            public string DataAcquisition = "";
-            public string Contrast = "";
-            public string Reconstruction = "";
-            public int Run = 0;
-            public string Path = "";
-
-            public bool Same(BIDSFile file)
-            {
-                return file.Name == Name && file.Subject == Subject && file.Session == Session && file.DataAcquisition == DataAcquisition && file.Contrast == Contrast && file.Reconstruction == Reconstruction && file.Run == Run;
-            }
-            public bool SameFields(BIDSFile file)
-            {
-                return file.Subject == Subject && file.Session == Session && file.DataAcquisition == DataAcquisition && file.Contrast == Contrast && file.Reconstruction == Reconstruction && file.Run == Run;
-            }
-        }
-        class BIDSMeshFile : BIDSFile
-        {
-            public string Description;
-            public string Hemisphere;
-
-            public bool IsMarsAtlasMesh => Name == "dseg" && Description.ToLower() == "marsatlas";
-            public bool IsLeft => Hemisphere == "L" || Hemisphere == "l" || Hemisphere == "left" || Hemisphere == "Left";
-            public bool IsRight => Hemisphere == "R" || Hemisphere == "r" || Hemisphere == "right" || Hemisphere == "Right";
-
-            public string FindTransformationFile()
-            {
-                if (string.IsNullOrEmpty(Path)) return "";
-                string directory = System.IO.Path.GetDirectoryName(Path);
-                if (string.IsNullOrEmpty(directory)) return "";
-
-                var trmFiles = Directory.GetFiles(directory, "*.trm", SearchOption.TopDirectoryOnly);
-                foreach (var trmFile in trmFiles)
-                {
-                    string trmFileName = System.IO.Path.GetFileNameWithoutExtension(trmFile).Split("_").LastOrDefault();
-                    if (trmFileName == Name)
-                    {
-                        return trmFile;
-                    }
-                }
-                return "";
-            }
-        }
-        class BIDSMRIFile : BIDSFile
-        {
-
-        }
-        class BIDSElectrodeFile : BIDSFile
-        {
-            public string Space;
-        }
     }
 }

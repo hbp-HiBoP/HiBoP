@@ -10,7 +10,7 @@ namespace HBP.UI.Main
         #endregion
 
         #region Events
-        [HideInInspector] public UnityEvent OnUpdateNavigation = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateNavigation = new();
         #endregion
 
         #region Public Methods

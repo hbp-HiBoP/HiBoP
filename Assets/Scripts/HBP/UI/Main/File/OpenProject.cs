@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
@@ -105,7 +105,7 @@ namespace HBP.UI.Main
                 foreach (string projectPath in paths)
                 {
                     await UniTask.SwitchToThreadPool();
-                    ProjectInfo project = new ProjectInfo(projectPath);
+                    ProjectInfo project = new(projectPath);
                     await UniTask.SwitchToMainThread();
                     m_ProjectList.Add(project);
                 }

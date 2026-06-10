@@ -84,7 +84,7 @@ namespace HBP.UI.Main.QuickStart
             base.Close();
             await LoadingManager.LoadAsync((update, token) => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update, token));
             InteractableStateManager.SetInteractables();
-            Module3DMain.LoadScenes(ApplicationState.LoadedProject.Visualizations);
+            LoadingManager.Load((update, token) => Module3DMain.LoadAsync(ApplicationState.LoadedProject.Visualizations, update, token));
         }
         #endregion
 

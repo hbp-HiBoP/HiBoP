@@ -43,11 +43,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when updating the span values (negative and positive min or max)
         /// </summary>
-        public UnityEvent OnUpdateCalValues = new UnityEvent();
+        public UnityEvent OnUpdateCalValues = new();
         /// <summary>
         /// Event called when updating which extreme values to hide (lower, middle or higher)
         /// </summary>
-        public UnityEvent OnUpdateHideValues = new UnityEvent();
+        public UnityEvent OnUpdateHideValues = new();
         #endregion
 
         #region Public Methods

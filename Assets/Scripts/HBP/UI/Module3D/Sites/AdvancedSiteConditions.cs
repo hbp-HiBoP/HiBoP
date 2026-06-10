@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,7 +6,7 @@ using HBP.Core.Exceptions;
 using HBP.Data.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Module3D
 {
@@ -215,7 +215,7 @@ namespace HBP.UI.Module3D
                     }
                     else if (label.StartsWith(MEAN) || label.StartsWith(MEDIAN) || label.StartsWith(MAX) || label.StartsWith(MIN) || label.StartsWith(STANDARD_DEVIATION))
                     {
-                        Regex regex = new Regex("(\\w+){(\\d+):(\\d+)}");
+                        Regex regex = new("(\\w+){(\\d+):(\\d+)}");
                         Match match = regex.Match(label);
                         if (match.Success)
                         {

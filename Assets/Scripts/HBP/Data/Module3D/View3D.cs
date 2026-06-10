@@ -232,21 +232,17 @@ namespace HBP.Data.Module3D
         /// </summary>
         private int m_RegularCullingMask;
 
-        /// <summary>
-        /// Is the scene initialized ?
-        /// </summary>
-        private bool m_Initialized = false;
         #endregion
 
         #region Events
         /// <summary>
         /// Event called when selecting this view
         /// </summary>
-        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelect = new();
         /// <summary>
         /// Event called when the camera is moved (rotation, strafe, zoom)
         /// </summary>
-        [HideInInspector] public UnityEvent OnMoveView = new UnityEvent();
+        [HideInInspector] public UnityEvent OnMoveView = new();
         #endregion
 
         #region Public Methods
@@ -337,7 +333,6 @@ namespace HBP.Data.Module3D
             m_Camera3D.transform.localPosition = position;
             m_Camera3D.transform.localRotation = rotation;
             m_Camera3D.Target = target;
-            m_Initialized = true;
         }
         /// <summary>
         /// Set the default state of the view
@@ -374,7 +369,7 @@ namespace HBP.Data.Module3D
             float currentAspect = m_Camera3D.Camera.aspect;
             Color currentBackground = m_Camera3D.Camera.backgroundColor;
             // Get texture
-            RenderTexture screenshotRenderTexture = new RenderTexture(width, height, 24);
+            RenderTexture screenshotRenderTexture = new(width, height, 24);
             screenshotRenderTexture.antiAliasing = 1;
             m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
             m_Camera3D.Camera.aspect = (float)width / height;

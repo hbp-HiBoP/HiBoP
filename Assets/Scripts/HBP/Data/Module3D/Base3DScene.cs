@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,7 +10,7 @@ using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
@@ -638,99 +638,99 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when this scene is selected
         /// </summary>
-        [HideInInspector] public UnityEvent OnSelect = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelect = new();
         /// <summary>
         /// Event called when showing or hiding the scene in the UI
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeVisibleState = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnChangeVisibleState = new();
         /// <summary>
         /// Event called when reseting the view positions in the UI
         /// </summary>
-        [HideInInspector] public UnityEvent OnResetViewPositions = new UnityEvent();
+        [HideInInspector] public UnityEvent OnResetViewPositions = new();
         /// <summary>
         /// Event called when progressing in updating generator
         /// </summary>
-        [HideInInspector] public GenericEvent<float, string> OnProgressUpdateGenerator = new GenericEvent<float, string>();
+        [HideInInspector] public GenericEvent<float, string> OnProgressUpdateGenerator = new();
         /// <summary>
         /// Event for updating the planes cuts display in the cameras
         /// </summary>
-        [HideInInspector] public UnityEvent OnModifyPlanesCuts = new UnityEvent();
+        [HideInInspector] public UnityEvent OnModifyPlanesCuts = new();
         /// <summary>
         /// Event called when adding a cut to the scene
         /// </summary>
-        [HideInInspector] public GenericEvent<Core.Object3D.Cut> OnAddCut = new GenericEvent<Core.Object3D.Cut>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Cut> OnAddCut = new();
         /// <summary>
         /// Event called when cuts are updated
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateCuts = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateCuts = new();
         /// <summary>
         /// Event called when updating the sites rendering
         /// </summary>
-        [HideInInspector] public UnityEvent OnSitesRenderingUpdated = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSitesRenderingUpdated = new();
         /// <summary>
         /// Event called when changing the colors of the colormap
         /// </summary>
-        [HideInInspector] public GenericEvent<ColorType> OnChangeColormap = new GenericEvent<ColorType>();
+        [HideInInspector] public GenericEvent<ColorType> OnChangeColormap = new();
         /// <summary>
         /// Ask the camera manager to update the target for this scene
         /// </summary>
-        [HideInInspector] public GenericEvent<Vector3> OnUpdateCameraTarget = new GenericEvent<Vector3>();
+        [HideInInspector] public GenericEvent<Vector3> OnUpdateCameraTarget = new();
         /// <summary>
         /// Event called when site is clicked to dipslay additionnal infomation
         /// </summary>
-        [HideInInspector] public GenericEvent<IEnumerable<Core.Object3D.Site>> OnRequestSiteInformation = new GenericEvent<IEnumerable<Core.Object3D.Site>>();
+        [HideInInspector] public GenericEvent<IEnumerable<Core.Object3D.Site>> OnRequestSiteInformation = new();
         /// <summary>
         /// Event called when requesting a graph from the filtered sites in the siteactions panel
         /// </summary>
-        [HideInInspector] public GenericEvent<string, IEnumerable<Core.Object3D.Site>> OnRequestFilteredSitesGraph = new GenericEvent<string, IEnumerable<Core.Object3D.Site>>();
+        [HideInInspector] public GenericEvent<string, IEnumerable<Core.Object3D.Site>> OnRequestFilteredSitesGraph = new();
         /// <summary>
         /// Event called when ieeg are outdated or not anymore
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnIEEGOutdated = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnIEEGOutdated = new();
         /// <summary>
         /// Event called when updating the ROI mask for this column
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateROI = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateROI = new();
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
-        [HideInInspector] public UnityEvent OnChangeColumnMinimizedState = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeColumnMinimizedState = new();
         /// <summary>
         /// Event called when selecting a source when viewing a CCEP column
         /// </summary>
-        [HideInInspector] public UnityEvent OnSelectCCEPSource = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSelectCCEPSource = new();
         /// <summary>
         /// Event called when adding a line of views
         /// </summary>
-        [HideInInspector] public UnityEvent OnAddViewLine = new UnityEvent();
+        [HideInInspector] public UnityEvent OnAddViewLine = new();
         /// <summary>
         /// Event called when removing a line of views
         /// </summary>
-        [HideInInspector] public GenericEvent<int> OnRemoveViewLine = new GenericEvent<int>();
+        [HideInInspector] public GenericEvent<int> OnRemoveViewLine = new();
         /// <summary>
         /// Event called when the generator is updated or not up to date
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnUpdateGeneratorState = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnUpdateGeneratorState = new();
         /// <summary>
         /// Event called when selecting a site on a column
         /// </summary>
-        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnSelectSite = new GenericEvent<Core.Object3D.Site>();
+        [HideInInspector] public GenericEvent<Core.Object3D.Site> OnSelectSite = new();
         /// <summary>
         /// Event called when displaying the correlations
         /// </summary>
-        [HideInInspector] public UnityEvent OnChangeDisplayCorrelations = new UnityEvent();
+        [HideInInspector] public UnityEvent OnChangeDisplayCorrelations = new();
         /// <summary>
         /// Event called when changing the automatic cut around selected site toggle state
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnChangeAutomaticCutAroundSelectedSite = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnChangeAutomaticCutAroundSelectedSite = new();
         /// <summary>
         /// Event called when finished loading the scene completely
         /// </summary>
-        [HideInInspector] public UnityEvent OnSceneCompletelyLoaded = new UnityEvent();
+        [HideInInspector] public UnityEvent OnSceneCompletelyLoaded = new();
         /// <summary>
         /// Event called when starting or ending the update of the generators
         /// </summary>
-        [HideInInspector] public GenericEvent<bool> OnUpdatingGenerators = new GenericEvent<bool>();
+        [HideInInspector] public GenericEvent<bool> OnUpdatingGenerators = new();
         #endregion
 
         #region Private Methods
@@ -882,7 +882,7 @@ namespace HBP.Data.Module3D
         {
             if (site)
             {
-                List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
+                List<Core.Object3D.Site> sites = new();
                 if (ImplantationManager.SiteToCompare) sites.Add(ImplantationManager.SiteToCompare);
                 sites.Add(site);
                 OnRequestSiteInformation.Invoke(sites);
@@ -899,7 +899,7 @@ namespace HBP.Data.Module3D
 
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
-            List<Core.DLL.Surface> generatedCutMeshes = new List<Core.DLL.Surface>(Cuts.Count);
+            List<Core.DLL.Surface> generatedCutMeshes = new(Cuts.Count);
             if (Cuts.Count > 0)
             {
                 if (PersistentDataManager.UserPreferences.Visualization._3D.RawCuts)
@@ -1325,7 +1325,7 @@ namespace HBP.Data.Module3D
         public Core.Object3D.Cut AddCutPlane()
         {
             // Add new cut
-            Core.Object3D.Cut cut = new Core.Object3D.Cut(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+            Core.Object3D.Cut cut = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
             switch (Cuts.Count)
             {
                 case 0:
@@ -1406,7 +1406,7 @@ namespace HBP.Data.Module3D
             }
             else
             {
-                Core.Object3D.Plane plane = new Core.Object3D.Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                Core.Object3D.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, cut.Flip);
                 cut.Normal = plane.Normal;
             }
@@ -1414,11 +1414,11 @@ namespace HBP.Data.Module3D
             if (changedByUser) LastPlaneModifiedIndex = cut.ID;
 
             // Cuts base on the mesh
-            Core.DLL.BBox bbox = new Core.DLL.BBox();
+            Core.DLL.BBox bbox = new();
             float offset;
             if (MeshManager.BrainSurface != null)
             {
-                Core.Object3D.Plane plane = new Core.Object3D.Plane(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                Core.Object3D.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
                 bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
                 offset = bbox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
@@ -1460,7 +1460,7 @@ namespace HBP.Data.Module3D
             Core.Object3D.Site site = SelectedColumn.SelectedSite;
             if (!site) return;
             
-            Vector3 sitePosition = new Vector3(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
+            Vector3 sitePosition = new(-site.transform.localPosition.x, site.transform.localPosition.y, site.transform.localPosition.z);
 
             Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
             Vector3 center = bbox.Center;
@@ -1611,14 +1611,14 @@ namespace HBP.Data.Module3D
             Visualization.Configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
             Visualization.Configuration.CameraType = CameraType;
 
-            List<Core.Data.Cut> cuts = new List<Core.Data.Cut>();
+            List<Core.Data.Cut> cuts = new();
             foreach (Core.Object3D.Cut cut in Cuts)
             {
                 cuts.Add(new Core.Data.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
             Visualization.Configuration.Cuts = cuts;
 
-            List<View> views = new List<View>();
+            List<View> views = new();
             if (Columns.Count > 0)
             {
                 foreach (var view in Columns[0].Views)
@@ -1628,7 +1628,7 @@ namespace HBP.Data.Module3D
             }
             Visualization.Configuration.Views = views;
 
-            List<RegionOfInterest> rois = new List<RegionOfInterest>();
+            List<RegionOfInterest> rois = new();
             foreach (ROI roi in ROIManager.ROIs)
             {
                 rois.Add(new RegionOfInterest(roi.name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList()));
@@ -1885,7 +1885,7 @@ namespace HBP.Data.Module3D
             // Checking MNI
             token.ThrowIfCancellationRequested();
             onChangeProgress(progress, 0.0f, new LoadingText("Loading MNI"));
-            System.Diagnostics.Stopwatch watch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch watch = new();
             watch.Start();
             await new WaitUntil(() => Object3DManager.MNI.IsLoaded || watch.ElapsedMilliseconds > 5000);
             watch.Stop();

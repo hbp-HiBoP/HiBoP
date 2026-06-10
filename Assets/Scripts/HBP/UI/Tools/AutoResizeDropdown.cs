@@ -8,7 +8,7 @@ namespace HBP.UI.Tools
     {
         private float m_Width = 0;
         private RectTransform m_ListRectTransform = null;
-        private List<DropdownItem> m_ItemsList = new List<DropdownItem>();
+        private List<DropdownItem> m_ItemsList = new();
 
         protected override GameObject CreateDropdownList(GameObject template)
         {

@@ -6,7 +6,7 @@ namespace UnityEngine.UI.Extensions
 {
     public class TiltWindow : MonoBehaviour
 {
-	public Vector2 range = new Vector2(5f, 3f);
+	public Vector2 range = new(5f, 3f);
 
 	Transform mTrans;
 	Quaternion mStart;

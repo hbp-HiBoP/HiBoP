@@ -92,7 +92,7 @@ namespace HBP.Data.Module3D
         /// <param name="patientIDs">List of patients IDs</param>
         public void Add(string name, List<Core.Object3D.Implantation3D.SiteInfo> siteInfos, IEnumerable<Core.Data.Patient> patients)
         {
-            Core.Object3D.Implantation3D implantation3D = new Core.Object3D.Implantation3D(name, siteInfos, patients);
+            Core.Object3D.Implantation3D implantation3D = new(name, siteInfos, patients);
             if (implantation3D.IsLoaded)
             {
                 Implantations.Add(implantation3D);

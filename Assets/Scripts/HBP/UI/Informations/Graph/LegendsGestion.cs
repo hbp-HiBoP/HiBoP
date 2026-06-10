@@ -1,18 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations.Graphs
 {
     public class LegendsGestion : MonoBehaviour
     {
         #region Properties
-        [SerializeField] List<Legend> m_Data = new List<Legend>();
-        [SerializeField] List<Graphs.Legend> m_Legends = new List<Graphs.Legend>();
+        [SerializeField] List<Legend> m_Data = new();
+        [SerializeField] List<Graphs.Legend> m_Legends = new();
 
         [SerializeField] GameObject m_LegendPrefab;
         [SerializeField] RectTransform m_Container;
@@ -227,10 +228,7 @@ namespace HBP.UI.Informations.Graphs
                     }
                 }
             }
-#if UNITY_EDITOR
-            [SerializeField]
-#endif
-            List<Legend> m_SubLegends = new List<Legend>();
+            [NonSerialized] List<Legend> m_SubLegends = new();
             public ReadOnlyCollection<Legend> SubLegends
             {
                 get

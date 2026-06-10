@@ -88,8 +88,8 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
 
         #region Events
-        public UnityEvent OnUpdateCurrentIndex = new UnityEvent();
-        public UnityEvent OnStopTimelinePlay = new UnityEvent();
+        public UnityEvent OnUpdateCurrentIndex = new();
+        public UnityEvent OnStopTimelinePlay = new();
         #endregion
 
         #region Public Methods
@@ -147,7 +147,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                 IEnumerable<SubBloc> subBlocs = indexBySubBloc.Where(kv => kv.Value == indexBySubBloc[subBloc]).Select(kv => kv.Key);
                 int before = subBlocs.Max(s => -frequency.ConvertToCeiledNumberOfSamples(s.Window.Start));
                 int after = subBlocs.Max(s => frequency.ConvertToFlooredNumberOfSamples(s.Window.End));
-                SubTimeline subTimeline = new SubTimeline(subBloc, startIndex, eventStatisticsBySubBloc[subBloc], before, after, frequency);
+                SubTimeline subTimeline = new(subBloc, startIndex, eventStatisticsBySubBloc[subBloc], before, after, frequency);
                 startIndex += subTimeline.Length + subTimeline.Before + subTimeline.After;
                 SubTimelinesBySubBloc.Add(subBloc, subTimeline);
             }

@@ -64,7 +64,7 @@ namespace HBP.Core.Tools
         /// </summary>
         private static List<ExcelRowData> ReadExcelFileInternal(string filePath, int sheetIndex, TagType tagType)
         {
-            List<ExcelRowData> result = new List<ExcelRowData>();
+            List<ExcelRowData> result = new();
             
             if (!File.Exists(filePath))
             {
@@ -117,7 +117,7 @@ namespace HBP.Core.Tools
                             string name = GetCellValue(row, 0);
                             
                             // Extract data for each header column
-                            Dictionary<string, string> rowData = new Dictionary<string, string>();
+                            Dictionary<string, string> rowData = new();
                             for (int colIndex = 0; colIndex < reconstructedHeaders.Length; colIndex++)
                             {
                                 string headerName = reconstructedHeaders[colIndex];
@@ -125,7 +125,7 @@ namespace HBP.Core.Tools
                                 rowData[headerName] = cellValue;
                             }
 
-                            ExcelRowData excelRowData = new ExcelRowData(name, reconstructedHeaders, rowData);
+                            ExcelRowData excelRowData = new(name, reconstructedHeaders, rowData);
                             
                             // Only add rows that have meaningful data
                             if (excelRowData.HasData())
@@ -167,7 +167,7 @@ namespace HBP.Core.Tools
             DataRow firstRow = table.Rows[0];
             DataRow secondRow = table.Rows[1];
             
-            List<string> headers = new List<string>();
+            List<string> headers = new();
             string lastFirstRowValue = "";
 
             // Start from column 1 (skip name column at index 0)
@@ -406,7 +406,7 @@ namespace HBP.Core.Tools
         /// </summary>
         private static List<ExcelRowData> ProcessPatientTagMerging(List<ExcelRowData> rows)
         {
-            List<ExcelRowData> processedRows = new List<ExcelRowData>();
+            List<ExcelRowData> processedRows = new();
 
             foreach (var row in rows)
             {
@@ -476,7 +476,7 @@ namespace HBP.Core.Tools
         /// </summary>
         private static List<ExcelRowData> ProcessSiteTagFiltering(List<ExcelRowData> rows)
         {
-            List<ExcelRowData> processedRows = new List<ExcelRowData>();
+            List<ExcelRowData> processedRows = new();
 
             foreach (var row in rows)
             {

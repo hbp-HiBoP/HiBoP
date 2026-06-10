@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Toolbar
 {
@@ -17,7 +18,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Event called when the value of the dropdown has been changed
         /// </summary>
-        public GenericEvent<int> OnChangeValue = new GenericEvent<int>();
+        public GenericEvent<int> OnChangeValue = new();
         #endregion
 
         #region Public Methods

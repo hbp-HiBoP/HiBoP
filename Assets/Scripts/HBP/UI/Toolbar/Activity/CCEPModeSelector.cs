@@ -1,9 +1,9 @@
-﻿using HBP.Core.Object3D;
+using HBP.Core.Object3D;
 using HBP.Data.Module3D;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Toolbar
 {

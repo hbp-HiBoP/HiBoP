@@ -117,7 +117,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 return ChannelBlocs.FirstOrDefault(c => c.Hovered);
             }
         }
-        List<ChannelBloc> m_ChannelBlocs = new List<ChannelBloc>();
+        List<ChannelBloc> m_ChannelBlocs = new();
         public ReadOnlyCollection<ChannelBloc> ChannelBlocs
         {
             get

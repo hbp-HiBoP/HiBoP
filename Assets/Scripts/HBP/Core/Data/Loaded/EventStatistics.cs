@@ -19,9 +19,9 @@ namespace HBP.Core.Data
         {
             if (eventInformation.Any(e => e.IsFound))
             {
-                List<int> indexes = new List<int>();
-                List<float> times = new List<float>();
-                List<int> numberOfOccurence = new List<int>();
+                List<int> indexes = new();
+                List<float> times = new();
+                List<int> numberOfOccurence = new();
                 foreach (var eventInfo in eventInformation)
                 {
                     numberOfOccurence.Add(eventInfo.Occurences.Length);
@@ -54,7 +54,7 @@ namespace HBP.Core.Data
         #region Public Methods
         public static EventStatistics Average(IEnumerable<EventStatistics> eventStatistics)
         {
-            EventStatistics result = new EventStatistics();
+            EventStatistics result = new();
             foreach (var eventStat in eventStatistics)
             {
                 result.TimeFromStart += eventStat.TimeFromStart * eventStat.NumberOfOccurences;

@@ -60,15 +60,15 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Size of each site depending on its activity
         /// </summary>
-        protected List<Vector3> m_ElectrodesSizeScale = new List<Vector3>();
+        protected List<Vector3> m_ElectrodesSizeScale = new();
         /// <summary>
         /// Does the site have a positive activity value ?
         /// </summary>
-        protected List<bool> m_ElectrodesPositiveColor = new List<bool>();
+        protected List<bool> m_ElectrodesPositiveColor = new();
         #endregion
 
         #region Events
-        public UnityEvent OnUpdateSelectedLabel = new UnityEvent();
+        public UnityEvent OnUpdateSelectedLabel = new();
         #endregion
 
         #region Private Methods
@@ -112,7 +112,7 @@ namespace HBP.Data.Module3D
 
             int length = labelsLength * sitesCount;
             ActivityValues = new float[length];
-            List<float> iEEGNotMasked = new List<float>();
+            List<float> iEEGNotMasked = new();
             for (int s = 0; s < sitesCount; ++s)
             {
                 for (int t = 0; t < labelsLength; ++t)

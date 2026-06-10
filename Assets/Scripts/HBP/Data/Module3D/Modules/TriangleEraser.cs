@@ -129,11 +129,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Stack containing the mask data for every triangles of the whole mesh
         /// </summary>
-        private LimitedSizeStack<int[]> m_MasksStack = new LimitedSizeStack<int[]>(MAX_STACK_SIZE);
+        private LimitedSizeStack<int[]> m_MasksStack = new(MAX_STACK_SIZE);
         /// <summary>
         /// Stack containing the mask data for every triangles of the simplified mesh
         /// </summary>
-        private LimitedSizeStack<int[]> m_SimplifiedMasksStack = new LimitedSizeStack<int[]>(MAX_STACK_SIZE);
+        private LimitedSizeStack<int[]> m_SimplifiedMasksStack = new(MAX_STACK_SIZE);
         /// <summary>
         /// Currently used masks: the first array is the currently used mask for the whole mesh, the second array is the currently used mask for the simplified mesh (if using simplified mesh for better colliders)
         /// </summary>

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
+using HBP.UI.Tools;
 
 namespace HBP.UI.Toolbar
 {
@@ -22,7 +23,8 @@ namespace HBP.UI.Toolbar
         {
             m_Button.onClick.AddListener(() =>
             {
-                Module3DMain.LoadSinglePatientSceneFromMultiPatientScene(SelectedScene.Visualization, SelectedColumn.SelectedSite.Information.Patient);
+                var visualization = Module3DMain.PrepareSinglePatientVisualizationFromMultiPatientScene(SelectedScene.Visualization, SelectedColumn.SelectedSite.Information.Patient);
+                LoadingManager.Load((update, token) => Module3DMain.LoadAsync(new[] { visualization }, update, token));
             });
         }
         /// <summary>

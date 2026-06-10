@@ -1,10 +1,9 @@
-using HBP.Core.DLL;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
-using HBP.Data.Module3D;
+using HBP.Core.DLL;
 using Newtonsoft.Json;
+using System;
 using System.ComponentModel;
-using System.Linq;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -12,6 +11,8 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Specific location"), SortingOrder(6), FilterCondition(typeof(Object3D.Site))]
     public class SpecificSiteLocationFilterCondition : BaseFilterCondition
     {
+        public static Func<SpecificSiteLocationFilterCondition, Object3D.Site, bool?> SceneLocationEvaluator { get; set; }
+
         #region Enums
         public enum SpecificLocationType { BrainMesh, Atlas, RegionOfInterest, CutPlane  }
         public enum Atlas { MarsAtlas, Jubrain }
@@ -93,22 +94,10 @@ namespace HBP.Core.Data
             if (obj is Object3D.Site site)
             {
                 bool result = false;
-                var selectedScene = Module3DMain.SelectedScene;
                 switch (LocationType)
                 {
                     case SpecificLocationType.BrainMesh:
-                        Surface mesh = MeshPart switch
-                        {
-                            MeshPart.Both => selectedScene.MeshManager.SelectedMesh.SimplifiedBoth,
-                            MeshPart.Left => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedLeft : null,
-                            MeshPart.Right => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedRight : null,
-                            _ => null
-                        };
-
-                        if (mesh == null)
-                            return false;
-
-                        result = mesh.IsPointInside(site.Information.DefaultPosition);
+                        result = SceneLocationEvaluator?.Invoke(this, site) ?? false;
                         break;
                     case SpecificLocationType.Atlas:
                         BrainAtlas atlas = AtlasType switch
@@ -135,8 +124,7 @@ namespace HBP.Core.Data
                         result = !site.State.IsOutOfROI;
                         break;
                     case SpecificLocationType.CutPlane:
-                        var planes = selectedScene.Cuts.Select(c => (Plane)c).ToList();
-                        result = selectedScene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, planes, 1.0f);
+                        result = SceneLocationEvaluator?.Invoke(this, site) ?? false;
                         break;
                 }
                 return result != IsNot;

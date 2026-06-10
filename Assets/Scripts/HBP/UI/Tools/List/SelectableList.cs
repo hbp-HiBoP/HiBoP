@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools.Lists
 {
@@ -74,7 +75,7 @@ namespace HBP.UI.Tools.Lists
         [SerializeField] protected Toggle m_SelectAllToggle;
         private bool m_RequestSelectAllUpdate = false;
 
-        protected Dictionary<T, bool> m_SelectedStateByObject = new Dictionary<T, bool>();
+        protected Dictionary<T, bool> m_SelectedStateByObject = new();
         /// <summary>
         /// Objects selected in the list.
         /// </summary>

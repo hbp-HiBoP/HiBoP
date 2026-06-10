@@ -1,9 +1,9 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using HBP.Data.Module3D;
 using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
@@ -39,7 +39,8 @@ namespace HBP.UI.Main
                     await UniTask.SwitchToMainThread();
                     ApplicationState.LoadedProject.SetDatasets(m_ListGestion.List.Objects);
                     DataManager.Clear();
-                    Module3DMain.ReloadScenes();
+                    var visualizations = Module3DMain.PrepareReloadScenes();
+                    await LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
                     UITools.CheckProjectIDAndAskForRegeneration().Forget();
                 }
             }

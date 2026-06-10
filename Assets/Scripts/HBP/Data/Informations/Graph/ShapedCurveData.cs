@@ -1,4 +1,4 @@
-﻿using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI.Extensions;

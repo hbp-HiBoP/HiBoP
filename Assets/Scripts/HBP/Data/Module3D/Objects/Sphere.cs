@@ -103,7 +103,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when changing the radius of the sphere
         /// </summary>
-        public UnityEvent OnChangeRadius = new UnityEvent();
+        public UnityEvent OnChangeRadius = new();
         #endregion
 
         #region Private Methods

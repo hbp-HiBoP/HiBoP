@@ -1,9 +1,9 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main
 {

@@ -41,7 +41,7 @@ namespace HBP.Core.Data.Processed
                 foreach (var subBlocIcon in subBloc.Icons)
                 {
                     int mainEventIndex = subTimeline.Frequency.ConvertToFlooredNumberOfSamples(subTimeline.StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart);
-                    Icon icon = new Icon(subBlocIcon, frequency, mainEventIndex + subTimeline.GlobalMinIndex, timeline.Length);
+                    Icon icon = new(subBlocIcon, frequency, mainEventIndex + subTimeline.GlobalMinIndex, timeline.Length);
                     m_Icons.Add(icon);
                 }
             }

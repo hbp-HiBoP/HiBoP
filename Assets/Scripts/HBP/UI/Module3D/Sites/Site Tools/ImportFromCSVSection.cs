@@ -100,9 +100,9 @@ namespace HBP.UI.Module3D
             bool mergeLabels = m_LabelsImportModeDropdown.value == 1;
 
             // Regex pattern to parse CSV correctly (respecting quotes)
-            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
 
-            using StreamReader sr = new StreamReader(csvPath);
+            using StreamReader sr = new(csvPath);
             // Parse header
             string headerLine = sr.ReadLine() ?? throw new Core.Exceptions.HBPException("Import error", "The CSV file is empty");
             string[] headers = csvParser.Split(headerLine);
@@ -141,7 +141,7 @@ namespace HBP.UI.Module3D
                 siteID = siteID.Trim(' ', '"');
 
                 // Process attributes to import
-                SiteState state = new SiteState();
+                SiteState state = new();
 
                 // Get highlighted state
                 if (m_ImportHighlighted.isOn && highlightedIndex != -1 && values.Length > highlightedIndex)

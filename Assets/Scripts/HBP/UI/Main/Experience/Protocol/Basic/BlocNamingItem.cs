@@ -17,7 +17,7 @@ namespace HBP.UI.Main
         #endregion
 
         #region Events
-        [HideInInspector] public UnityEvent OnNameChanged = new UnityEvent();
+        [HideInInspector] public UnityEvent OnNameChanged = new();
         #endregion
 
         #region Private Methods

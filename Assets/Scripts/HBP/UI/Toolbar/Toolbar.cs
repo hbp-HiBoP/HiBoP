@@ -14,13 +14,13 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
-        protected List<Tool> m_Tools = new List<Tool>();
+        protected List<Tool> m_Tools = new();
         #endregion
 
         #region Private Methods
         private void Awake()
         {
-            m_ToolbarMenu = FindFirstObjectByType<ToolbarMenu>();
+            m_ToolbarMenu = FindAnyObjectByType<ToolbarMenu>();
         }
         /// <summary>
         /// Link elements to the toolbar

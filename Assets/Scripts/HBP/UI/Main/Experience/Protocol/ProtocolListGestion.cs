@@ -8,7 +8,7 @@ namespace HBP.UI.Main
     public class ProtocolListGestion : ListGestion<Core.Data.Protocol>
     {
         #region Properties
-        [SerializeField] System.Collections.Generic.List<Core.Data.Protocol> m_ModifiedProtocols = new System.Collections.Generic.List<Core.Data.Protocol>();
+        [SerializeField] System.Collections.Generic.List<Core.Data.Protocol> m_ModifiedProtocols = new();
         public ReadOnlyCollection<Core.Data.Protocol> ModifiedProtocols
         {
             get

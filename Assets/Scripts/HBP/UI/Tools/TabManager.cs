@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using System.Collections.Generic;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
@@ -33,7 +34,7 @@ namespace HBP.UI.Tools
 
         public GenericEvent<int, int> OnSwapColumns { get; } = new GenericEvent<int, int>();
 
-        List<Tab> m_Tabs = new List<Tab>();
+        List<Tab> m_Tabs = new();
         //Transform m_TabToMove;
         ToggleGroup m_ToggleGroup;
         #endregion

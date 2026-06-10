@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Toolbar
 {
@@ -36,7 +36,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// List of all MarsAtlas areas
         /// </summary>
-        private List<MarsAtlasArea> m_MarsAtlasAreas = new List<MarsAtlasArea>();
+        private List<MarsAtlasArea> m_MarsAtlasAreas = new();
         /// <summary>
         /// Dropdown to select the MarsAtlas area to consider as source
         /// </summary>

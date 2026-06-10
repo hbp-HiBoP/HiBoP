@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.UI.Tools;
-using HBP.Data.Preferences;
-using HBP.Data.Database;
+using HBP.Core.Preferences;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -34,20 +34,20 @@ namespace HBP.UI.Main.QuickStart
         #region Public Methods
         public override bool OpenNextPanel()
         {
-            Core.Tools.TimeWindow window = new Core.Tools.TimeWindow((int)m_Window.Values.x, (int)m_Window.Values.y);
+            Core.Tools.TimeWindow window = new((int)m_Window.Values.x, (int)m_Window.Values.y);
             if (window.Length == 0)
             {
                 DialogBoxManager.Open(DialogBoxType.Error, "Window length is zero", "The length of the window needs to be strictly above zero in order to continue.").Forget();
                 return false;
             }
-            List<Bloc> blocs = new List<Bloc>();
+            List<Bloc> blocs = new();
             foreach (var codeString in m_Codes.text.Split(','))
             {
                 if (int.TryParse(codeString, out int code))
                 {
-                    Core.Data.Event ev = new Core.Data.Event(string.Format("QS{0}", code), new int[] { code }, MainSecondaryEnum.Main );
-                    SubBloc subBloc = new SubBloc(string.Format("QS{0}", code), 0, MainSecondaryEnum.Main, window, new Core.Tools.TimeWindow(0, 0), new Core.Data.Event[] { ev }, new Icon[0], new Treatment[0]);
-                    Bloc bloc = new Bloc(string.Format("QS{0}", code), 0, "", "", new SubBloc[] { subBloc });
+                    Core.Data.Event ev = new(string.Format("QS{0}", code), new int[] { code }, MainSecondaryEnum.Main );
+                    SubBloc subBloc = new(string.Format("QS{0}", code), 0, MainSecondaryEnum.Main, window, new Core.Tools.TimeWindow(0, 0), new Core.Data.Event[] { ev }, new Icon[0], new Treatment[0]);
+                    Bloc bloc = new(string.Format("QS{0}", code), 0, "", "", new SubBloc[] { subBloc });
                     blocs.Add(bloc);
                 }
                 if (blocs.Count == 0)
@@ -56,7 +56,7 @@ namespace HBP.UI.Main.QuickStart
                     return false;
                 }
             }
-            Protocol protocol = new Protocol("QuickStart", blocs);
+            Protocol protocol = new("QuickStart", blocs);
             DatabaseManager.Database.SetProtocols(new Protocol[] { protocol });
             return base.OpenNextPanel();
         }

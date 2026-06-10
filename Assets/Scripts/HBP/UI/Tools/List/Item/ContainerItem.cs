@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools.Lists
 {
@@ -8,7 +9,7 @@ namespace HBP.UI.Tools.Lists
 	public class ContainerItem : MonoBehaviour
 	{
 		#region Attributs
-        protected GenericEvent<int,int> m_OnAction = new GenericEvent<int,int>();
+        protected GenericEvent<int,int> m_OnAction = new();
         public GenericEvent<int,int> OnAction { get { return m_OnAction; } }
 
         public bool insteractable

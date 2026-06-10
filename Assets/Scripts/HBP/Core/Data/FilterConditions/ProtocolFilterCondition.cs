@@ -1,5 +1,5 @@
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -29,7 +29,7 @@ namespace HBP.Core.Data
 
                 string typeText = Logic == CheckLogic.All ? "and" : IsNot ? "nor" : "or";
 
-                List<string> protocolNames = new List<string>();
+                List<string> protocolNames = new();
                 if (Protocols.Count > 5)
                 {
                     protocolNames.AddRange(Protocols.Take(4).Select(p => p.Name));

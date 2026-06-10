@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using HBP.Core.Exceptions;
 using UnityEngine;
 
 namespace HBP.Core.Data
@@ -69,7 +71,12 @@ namespace HBP.Core.Data
             {
                 throw new Exception("Invalid data container type");
             }
-            DLL.EEG.File file = new DLL.EEG.File(type, true, files);
+            string[] missingFiles = files.Where(filePath => !string.IsNullOrWhiteSpace(filePath) && !File.Exists(filePath)).ToArray();
+            if (missingFiles.Length > 0)
+            {
+                throw new DataFileNotFoundException(missingFiles);
+            }
+            DLL.EEG.File file = new(type, true, files);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");

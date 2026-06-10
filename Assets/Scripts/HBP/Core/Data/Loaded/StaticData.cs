@@ -27,10 +27,10 @@ namespace HBP.Core.Data
         {
             if (dataInfo.DataContainer is Container.CSV csvDataContainer)
             {
-                Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+                Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
                 if (new FileInfo(csvDataContainer.SavedFile).Exists)
                 {
-                    using (StreamReader sr = new StreamReader(csvDataContainer.SavedFile))
+                    using (StreamReader sr = new(csvDataContainer.SavedFile))
                     {
                         string line = sr.ReadLine();
                         Labels = csvParser.Split(line).Skip(1).ToArray();

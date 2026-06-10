@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using data = HBP.Data.Informations.TrialMatrix;
 using UnityEngine.Events;
@@ -6,7 +6,7 @@ using UnityEngine.UI.Extensions;
 using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.DLL;
 using HBP.Core.Tools;
 
@@ -182,7 +182,7 @@ namespace HBP.UI.Informations.TrialMatrix
             int height = trials.Length;
             if (height == 0) return new Texture2D(0,0);
             int width = trials[0].Length;
-            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Texture2D texture = new(width, height, TextureFormat.RGBA32, false);
             Color[] pixels = new Color[width * height];
 
             // Set pixels
@@ -245,7 +245,7 @@ namespace HBP.UI.Informations.TrialMatrix
         {
             foreach (var _event in subBloc.SubBlocProtocol.Events)
             {
-                GameObject eventGameobject = new GameObject(_event.Name, typeof(RectTransform));
+                GameObject eventGameobject = new(_event.Name, typeof(RectTransform));
                 RectTransform rectTransform = eventGameobject.transform as RectTransform;
                 rectTransform.SetParent(m_EventContainer);
                 rectTransform.anchorMin = new Vector2(0, 0);

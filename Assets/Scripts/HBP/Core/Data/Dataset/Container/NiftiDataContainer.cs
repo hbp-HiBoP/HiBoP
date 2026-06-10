@@ -95,14 +95,14 @@ namespace HBP.Core.Data.Container
         #region Public Methods
         public override Error[] GetErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (string.IsNullOrEmpty(File))
             {
                 errors.Add(new RequiredFieldEmptyError("Nifti file path is empty"));
             }
             else
             {
-                FileInfo file = new FileInfo(File);
+                FileInfo file = new(File);
                 if (!file.Exists)
                 {
                     errors.Add(new FileDoesNotExistError("Nifti file does not exist"));
@@ -120,7 +120,7 @@ namespace HBP.Core.Data.Container
         }
         public override Warning[] GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }

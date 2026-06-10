@@ -13,8 +13,8 @@ namespace HBP.Core.Data.Processed
         public Dictionary<string, Dictionary<string, float[]>> ProcessedValuesByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, float[]>>();
         public Dictionary<string, Dictionary<string, string>> UnityByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, string>>();
 
-        private Dictionary<string, Dictionary<string, Tools.Frequency>> m_FrequencyByChannelIDByStimulatedChannelID = new Dictionary<string, Dictionary<string, Tools.Frequency>>();
-        public List<Tools.Frequency> Frequencies = new List<Tools.Frequency>();
+        private Dictionary<string, Dictionary<string, Tools.Frequency>> m_FrequencyByChannelIDByStimulatedChannelID = new();
+        public List<Tools.Frequency> Frequencies = new();
         #endregion
 
         #region Public Methods
@@ -26,10 +26,10 @@ namespace HBP.Core.Data.Processed
                 string stimulatedChannelID = dataInfo.Patient.ID + "_" + data.StimulatedChannel;
 
                 // Values
-                Dictionary<string, BlocChannelData> dataByChannelID = new Dictionary<string, BlocChannelData>();
-                Dictionary<string, BlocChannelStatistics> statisticsByChannelID = new Dictionary<string, BlocChannelStatistics>();
-                Dictionary<string, Tools.Frequency> frequencyByChannelID = new Dictionary<string, Tools.Frequency>();
-                Dictionary<string, string> unitByChannelID = new Dictionary<string, string>();
+                Dictionary<string, BlocChannelData> dataByChannelID = new();
+                Dictionary<string, BlocChannelStatistics> statisticsByChannelID = new();
+                Dictionary<string, Tools.Frequency> frequencyByChannelID = new();
+                Dictionary<string, string> unitByChannelID = new();
                 foreach (var channel in data.UnitByChannel.Keys)
                 {
                     string channelID = dataInfo.Patient.ID + "_" + channel;
@@ -66,7 +66,7 @@ namespace HBP.Core.Data.Processed
             Frequencies = Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
 
             // Get index of each subBloc
-            Dictionary<SubBloc, int> indexBySubBloc = new Dictionary<SubBloc, int>();
+            Dictionary<SubBloc, int> indexBySubBloc = new();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
@@ -78,7 +78,7 @@ namespace HBP.Core.Data.Processed
             }
 
             // Get all eventStatistics for each SubBloc of the column
-            Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<SubBloc, List<SubBlocEventsStatistics>>();
+            Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new();
             foreach (var subBloc in columnBloc.SubBlocs)
             {
                 eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
@@ -98,10 +98,10 @@ namespace HBP.Core.Data.Processed
             // Standardize values
             foreach (var dataByChannelIDByStimulatedChannelID in DataByChannelIDByStimulatedChannelID)
             {
-                Dictionary<string, float[]> processedValuesByChannelID = new Dictionary<string, float[]>();
+                Dictionary<string, float[]> processedValuesByChannelID = new();
                 foreach (var channelID in dataByChannelIDByStimulatedChannelID.Value.Keys)
                 {
-                    List<float> values = new List<float>();
+                    List<float> values = new();
                     Tools.Frequency frequency = m_FrequencyByChannelIDByStimulatedChannelID[dataByChannelIDByStimulatedChannelID.Key][channelID];
                     BlocChannelStatistics statistics = StatisticsByChannelIDByStimulatedChannelID[dataByChannelIDByStimulatedChannelID.Key][channelID];
                     foreach (var subBloc in columnBloc.OrderedSubBlocs)

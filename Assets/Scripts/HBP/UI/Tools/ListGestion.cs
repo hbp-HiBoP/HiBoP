@@ -58,7 +58,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public abstract ObjectCreator<T> ObjectCreator { get; }
 
-        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new();
         /// <summary>
         /// Children windows referencer.
         /// </summary>

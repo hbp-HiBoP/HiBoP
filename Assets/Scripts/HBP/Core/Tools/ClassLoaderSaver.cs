@@ -1,25 +1,31 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.Core.Tools
 {
     public static class ClassLoaderSaver
     {
+        private static readonly LegacyAssemblySerializationBinder m_Binder = new();
+
         private static readonly JsonSerializerSettings m_Settings = new()
         {
             TypeNameHandling = TypeNameHandling.Auto,
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             Formatting = Formatting.Indented,
+            SerializationBinder = m_Binder,
         };
 
         public static T LoadFromJson<T>(string path) where T : new()
         {
-            T result = new T();
-            using (StreamReader streamReader = new StreamReader(path))
+            T result = new();
+            using (StreamReader streamReader = new(path))
             {
                 string jsonContent = streamReader.ReadToEnd();
                 result = JsonConvert.DeserializeObject<T>(jsonContent, m_Settings);
@@ -38,7 +44,7 @@ namespace HBP.Core.Tools
             try
             {
                 if (!overwrite) path = path.GenerateUniqueFilePath();
-                using StreamWriter streamWriter = new StreamWriter(path);
+                using StreamWriter streamWriter = new(path);
                 string json = JsonConvert.SerializeObject(instance, m_Settings);
                 streamWriter.Write(json);
                 streamWriter.Close();
@@ -74,10 +80,10 @@ namespace HBP.Core.Tools
         }
         public static T LoadFromXML<T>(string path) where T : new()
         {
-            T result = new T();
-            using (StreamReader streamReader = new StreamReader(path))
+            T result = new();
+            using (StreamReader streamReader = new(path))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                XmlSerializer serializer = new(typeof(T));
                 result = (T)serializer.Deserialize(streamReader.BaseStream);
                 streamReader.Close();
             }
@@ -88,9 +94,9 @@ namespace HBP.Core.Tools
             try
             {
                 if (!overwrite) path = path.GenerateUniqueFilePath();
-                using (StreamWriter streamWriter = new StreamWriter(path))
+                using (StreamWriter streamWriter = new(path))
                 {
-                    XmlSerializer serializer = new XmlSerializer(typeof(T));
+                    XmlSerializer serializer = new(typeof(T));
                     serializer.Serialize(streamWriter, instance);
                     streamWriter.Close();
                 }
@@ -100,6 +106,122 @@ namespace HBP.Core.Tools
             {
                 Debug.LogException(e);
                 return false;
+            }
+        }
+
+        private sealed class LegacyAssemblySerializationBinder : ISerializationBinder
+        {
+            private static readonly Dictionary<string, string> s_LegacyNamespacePrefixes = new()
+            {
+                { "HBP.Data.Database.", "HBP.Core.Database." },
+                { "HBP.Data.Preferences.", "HBP.Core.Preferences." },
+            };
+
+            private static readonly HashSet<string> s_LegacyAssemblyNames = new()
+            {
+                "Assembly-CSharp",
+                "Assembly-CSharp-firstpass",
+                "Assembly-CSharp-Editor"
+            };
+
+            private readonly Dictionary<string, Type> m_TypesByFullName = BuildTypeRegistry();
+
+            public Type BindToType(string assemblyName, string typeName)
+            {
+                if (!string.IsNullOrEmpty(typeName) && TryGetRegisteredType(typeName, out Type registeredType))
+                {
+                    return registeredType;
+                }
+
+                string migratedTypeName = GetMigratedTypeName(typeName);
+                if (!string.IsNullOrEmpty(migratedTypeName) && TryGetRegisteredType(migratedTypeName, out registeredType))
+                {
+                    return registeredType;
+                }
+
+                Type resolvedType = ResolveType(typeName, assemblyName);
+                if (resolvedType != null)
+                {
+                    return resolvedType;
+                }
+
+                resolvedType = ResolveType(migratedTypeName, assemblyName);
+                if (resolvedType != null)
+                {
+                    return resolvedType;
+                }
+
+                if (s_LegacyAssemblyNames.Contains(assemblyName) && !string.IsNullOrEmpty(typeName))
+                {
+                    Debug.LogWarning($"Could not resolve legacy JSON type '{typeName}, {assemblyName}'.");
+                }
+                return null;
+            }
+
+            public void BindToName(Type serializedType, out string assemblyName, out string typeName)
+            {
+                assemblyName = serializedType.Assembly.GetName().Name;
+                typeName = serializedType.FullName;
+            }
+
+            private bool TryGetRegisteredType(string typeName, out Type type)
+            {
+                type = null;
+                return !string.IsNullOrEmpty(typeName) && m_TypesByFullName.TryGetValue(typeName, out type);
+            }
+
+            private static string GetMigratedTypeName(string typeName)
+            {
+                if (string.IsNullOrEmpty(typeName)) return typeName;
+
+                foreach (var legacyNamespacePrefix in s_LegacyNamespacePrefixes)
+                {
+                    if (typeName.StartsWith(legacyNamespacePrefix.Key, StringComparison.Ordinal))
+                    {
+                        return legacyNamespacePrefix.Value + typeName[legacyNamespacePrefix.Key.Length..];
+                    }
+                }
+                return typeName;
+            }
+
+            private static Type ResolveType(string typeName, string assemblyName)
+            {
+                if (string.IsNullOrEmpty(typeName) || string.IsNullOrEmpty(assemblyName)) return null;
+                return Type.GetType($"{typeName}, {assemblyName}");
+            }
+
+            private static Dictionary<string, Type> BuildTypeRegistry()
+            {
+                string[] supportedAssemblyNames =
+                {
+                    "HBP.Core.Runtime",
+                    "HBP.Data.Runtime",
+                    "Assembly-CSharp",
+                    "Assembly-CSharp-firstpass"
+                };
+
+                return AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(assembly => supportedAssemblyNames.Contains(assembly.GetName().Name))
+                    .SelectMany(GetSerializableTypes)
+                    .GroupBy(type => type.FullName)
+                    .Where(group => !string.IsNullOrEmpty(group.Key))
+                    .ToDictionary(group => group.Key, group => group.First());
+            }
+
+            private static IEnumerable<Type> GetSerializableTypes(System.Reflection.Assembly assembly)
+            {
+                try
+                {
+                    return assembly.GetTypes()
+                        .Where(type => type.IsClass && !type.IsAbstract)
+                        .Where(type => type.GetCustomAttributes(typeof(JsonObjectAttribute), true).Length > 0);
+                }
+                catch (System.Reflection.ReflectionTypeLoadException e)
+                {
+                    return e.Types
+                        .Where(type => type != null && type.IsClass && !type.IsAbstract)
+                        .Where(type => type.GetCustomAttributes(typeof(JsonObjectAttribute), true).Length > 0);
+                }
             }
         }
     }

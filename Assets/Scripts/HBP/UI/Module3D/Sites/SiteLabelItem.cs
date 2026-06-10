@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
 {
@@ -13,7 +14,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Events
-        public GenericEvent<string> OnRemoveLabel = new GenericEvent<string>();
+        public GenericEvent<string> OnRemoveLabel = new();
         #endregion
 
         #region Public Methods

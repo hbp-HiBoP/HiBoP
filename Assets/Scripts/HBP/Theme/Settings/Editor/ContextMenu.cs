@@ -30,7 +30,7 @@ namespace HBP.Theme
             ScriptableObject scriptableObject = (Selection.activeObject as ScriptableObject);
             string path = Application.dataPath + "/Data/" + scriptableObject.name + ".json";
             Debug.Log(scriptableObject.GetType());
-            using (StreamReader sr = new StreamReader(path))
+            using (StreamReader sr = new(path))
             {
                 string json = sr.ReadToEnd();
                 JsonUtility.FromJsonOverwrite(json, scriptableObject);

@@ -1,9 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
+using HBP.UI.Database;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
@@ -55,7 +56,7 @@ namespace HBP.UI.Main
 
             base.OK();
             DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
-            DatabaseManager.Database.SaveProtocols().Forget();
+            await DatabaseWorkflow.SaveProtocolsAsync();
             InteractableStateManager.SetInteractables();
             if (requiresCheck)
             {
@@ -68,7 +69,8 @@ namespace HBP.UI.Main
             }
             if (ApplicationState.LoadedProject != null)
             {
-                Module3DMain.ReloadScenes();
+                var visualizations = Module3DMain.PrepareReloadScenes();
+                await LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
         }

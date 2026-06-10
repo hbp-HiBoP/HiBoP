@@ -14,7 +14,7 @@ namespace HBP.UI.Informations
         [SerializeField] private Transform m_BlocsContainer;
         
         public string Name => m_ProtocolNameText.text;
-        private List<BlocItem> m_Blocs = new List<BlocItem>();
+        private List<BlocItem> m_Blocs = new();
         public List<BlocItem> SelectedBlocs => m_Blocs.Where(b => b.IsSelected).ToList();
         public bool IsSelected => SelectedBlocs.Count > 0;
         #endregion

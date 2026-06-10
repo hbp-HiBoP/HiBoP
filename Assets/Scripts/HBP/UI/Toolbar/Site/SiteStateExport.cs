@@ -78,7 +78,7 @@ namespace HBP.UI.Toolbar
         {
             try
             {
-                using (StreamWriter sw = new StreamWriter(path))
+                using (StreamWriter sw = new(path))
                 {
                     sw.WriteLine("ID,Blacklisted,Highlighted,Color,Labels");
                     foreach (var site in SelectedColumn.SiteStateBySiteID)

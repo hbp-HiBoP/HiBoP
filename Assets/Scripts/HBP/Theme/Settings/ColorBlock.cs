@@ -15,7 +15,7 @@ namespace HBP.Theme
         {
             get
             {
-                UnityEngine.UI.ColorBlock result = new UnityEngine.UI.ColorBlock();
+                UnityEngine.UI.ColorBlock result = new();
                 result.normalColor = NormalColor;
                 result.highlightedColor = HighlightedColor;
                 result.selectedColor = HighlightedColor;

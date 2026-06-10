@@ -49,7 +49,7 @@ namespace HBP.UI.Database
         [SerializeField] RectTransform m_TitleHeaderContainer;
         [SerializeField] GameObject m_TitleHeaderPrefab;
 
-        List<Informations.TrialMatrix.Data> m_Data = new List<Informations.TrialMatrix.Data>();
+        List<Informations.TrialMatrix.Data> m_Data = new();
         public ReadOnlyCollection<Informations.TrialMatrix.Data> Data
         {
             get

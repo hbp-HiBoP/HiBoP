@@ -1,0 +1,22 @@
+{
+    "name": "HBP.UI.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Theme.Runtime",
+        "UniTask",
+        "ThirdParty.UIExtensions.Runtime",
+        "ThirdParty.SFB.Runtime",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

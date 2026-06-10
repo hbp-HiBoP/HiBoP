@@ -152,12 +152,12 @@ namespace TMPro.Examples
 
                 // Draw Cap Height & Mean line
                 float capline = characterInfo.fontAsset == null ? 0 : baseline + characterInfo.fontAsset.faceInfo.capLine * characterInfo.scale;
-                Vector3 capHeightStart = new Vector3(topLeft.x, m_Transform.TransformPoint(new Vector3(0, capline, 0)).y, 0);
-                Vector3 capHeightEnd = new Vector3(topRight.x, m_Transform.TransformPoint(new Vector3(0, capline, 0)).y, 0);
+                Vector3 capHeightStart = new(topLeft.x, m_Transform.TransformPoint(new Vector3(0, capline, 0)).y, 0);
+                Vector3 capHeightEnd = new(topRight.x, m_Transform.TransformPoint(new Vector3(0, capline, 0)).y, 0);
 
                 float meanline = characterInfo.fontAsset == null ? 0 : baseline + characterInfo.fontAsset.faceInfo.meanLine * characterInfo.scale;
-                Vector3 meanlineStart = new Vector3(topLeft.x, m_Transform.TransformPoint(new Vector3(0, meanline, 0)).y, 0);
-                Vector3 meanlineEnd = new Vector3(topRight.x, m_Transform.TransformPoint(new Vector3(0, meanline, 0)).y, 0);
+                Vector3 meanlineStart = new(topLeft.x, m_Transform.TransformPoint(new Vector3(0, meanline, 0)).y, 0);
+                Vector3 meanlineEnd = new(topRight.x, m_Transform.TransformPoint(new Vector3(0, meanline, 0)).y, 0);
 
                 if (characterInfo.isVisible)
                 {
@@ -196,7 +196,7 @@ namespace TMPro.Examples
                 // Draw text labels for metrics
                if (m_HandleSize < 0.5f)
                {
-                   GUIStyle style = new GUIStyle(GUI.skin.GetStyle("Label"));
+                   GUIStyle style = new(GUI.skin.GetStyle("Label"));
                    style.normal.textColor = new Color(0.6f, 0.6f, 0.6f, 1.0f);
                    style.fontSize = 12;
                    style.fixedWidth = 200;
@@ -520,7 +520,7 @@ namespace TMPro.Examples
                 // Draw text labels for metrics
                 if (m_HandleSize < 1.0f)
                 {
-                    GUIStyle style = new GUIStyle();
+                    GUIStyle style = new();
                     style.normal.textColor = new Color(0.8f, 0.8f, 0.8f, 1.0f);
                     style.fontSize = 12;
                     style.fixedWidth = 200;
@@ -594,17 +594,17 @@ namespace TMPro.Examples
         void DrawSolidRectangle(Vector3 bottomLeft, Vector3 topRight, Color color, float size = 5.0f)
         {
             Handles.color = color;
-            Rect rect = new Rect(bottomLeft, topRight - bottomLeft);
+            Rect rect = new(bottomLeft, topRight - bottomLeft);
             Handles.DrawSolidRectangleWithOutline(rect, color, Color.black);
         }
 
         void DrawSquare(Vector3 position, float size, Color color)
         {
             Handles.color = color;
-            Vector3 bottomLeft = new Vector3(position.x - size, position.y - size, position.z);
-            Vector3 topLeft = new Vector3(position.x - size, position.y + size, position.z);
-            Vector3 topRight = new Vector3(position.x + size, position.y + size, position.z);
-            Vector3 bottomRight = new Vector3(position.x + size, position.y - size, position.z);
+            Vector3 bottomLeft = new(position.x - size, position.y - size, position.z);
+            Vector3 topLeft = new(position.x - size, position.y + size, position.z);
+            Vector3 topRight = new(position.x + size, position.y + size, position.z);
+            Vector3 bottomRight = new(position.x + size, position.y - size, position.z);
 
             Handles.DrawLine(bottomLeft, topLeft);
             Handles.DrawLine(topLeft, topRight);

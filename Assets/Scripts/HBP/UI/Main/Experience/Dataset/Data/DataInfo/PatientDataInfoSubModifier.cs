@@ -1,11 +1,11 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.ObjectModel;
 using HBP.Core.Data;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main
 {

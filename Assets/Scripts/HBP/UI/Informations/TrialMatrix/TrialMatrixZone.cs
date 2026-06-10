@@ -1,9 +1,9 @@
-﻿using HBP.Data.Informations;
+using HBP.Data.Informations;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using data = HBP.Data.Informations.TrialMatrix;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.Tools;
 
 namespace HBP.UI.Informations
@@ -19,7 +19,7 @@ namespace HBP.UI.Informations
         #region Public Methods
         public void Display(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
         {
-            List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new List<data.TrialMatrixGrid.TrialMatrixData>();
+            List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new();
             if (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
                 foreach (var data in dataStructs)

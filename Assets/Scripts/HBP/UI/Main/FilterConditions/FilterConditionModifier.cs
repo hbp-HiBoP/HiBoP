@@ -68,7 +68,7 @@ namespace HBP.UI.Main
             }
         }
 
-        FilterConditionAttribute m_FilterConditionAttribute = new FilterConditionAttribute(null);
+        FilterConditionAttribute m_FilterConditionAttribute = new(null);
         public FilterConditionAttribute FilterConditionAttribute
         {
             get

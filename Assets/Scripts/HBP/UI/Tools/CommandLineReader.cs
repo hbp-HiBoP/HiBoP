@@ -1,11 +1,11 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using HBP.Data.Module3D;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools
@@ -13,9 +13,11 @@ namespace HBP.UI.Tools
     public class CommandLineReader : MonoBehaviour
     {
         #region Properties
+#if UNITY_EDITOR
         [SerializeField] private bool m_AutoLoad = false;
         [SerializeField] private string m_ProjectName;
         [SerializeField] private string m_VisualizationName;
+#endif
         #endregion
 
         #region Private Methods
@@ -37,8 +39,8 @@ namespace HBP.UI.Tools
         {
             if (args.Length != 0)
             {
-                List<string> actions = new List<string>();
-                List<List<string>> arguments = new List<List<string>>();
+                List<string> actions = new();
+                List<List<string>> arguments = new();
                 for (int i = 1; i < args.Length; ++i)
                 {
                     string arg = args[i];
@@ -122,7 +124,7 @@ namespace HBP.UI.Tools
                 {
                     visualizations = ApplicationState.LoadedProject.Visualizations;
                 }
-                Module3DMain.LoadScenes(visualizations);
+                LoadingManager.Load((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
             }
         }
         #endregion

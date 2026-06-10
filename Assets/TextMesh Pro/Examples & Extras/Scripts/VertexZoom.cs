@@ -63,8 +63,8 @@ namespace TMPro.Examples
             TMP_MeshInfo[] cachedMeshInfoVertexData = textInfo.CopyMeshInfoVertexData();
 
             // Allocations for sorting of the modified scales
-            List<float> modifiedCharScale = new List<float>();
-            List<int> scaleSortingOrder = new List<int>();
+            List<float> modifiedCharScale = new();
+            List<int> scaleSortingOrder = new();
 
             hasTextChanged = true;
 

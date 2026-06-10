@@ -58,7 +58,7 @@ namespace HBP.UI.Tools
                         displayedString += "\n";
                     }
                     displayedString += "[...]\n";
-                    using (StreamWriter sw = new StreamWriter(duplicateFilePath))
+                    using (StreamWriter sw = new(duplicateFilePath))
                     {
                         for (int i = 0; i < lines.Length; ++i)
                         {

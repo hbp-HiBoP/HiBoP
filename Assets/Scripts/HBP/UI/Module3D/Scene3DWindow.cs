@@ -75,12 +75,12 @@ namespace HBP.UI.Module3D
                 Vector3 mousePosition = Input.mousePosition;
                 if (mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height)
                 {
-                    PointerEventData pointerData = new PointerEventData(EventSystem.current)
+                    PointerEventData pointerData = new(EventSystem.current)
                     {
                         pointerId = -1,
                         position = Input.mousePosition
                     };
-                    List<RaycastResult> raycastResults = new List<RaycastResult>();
+                    List<RaycastResult> raycastResults = new();
                     EventSystem.current.RaycastAll(pointerData, raycastResults);
                     if (raycastResults.Count > 0)
                     {
@@ -278,7 +278,7 @@ namespace HBP.UI.Module3D
                             {
                                 trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
                             }
-                            List<string> names = new List<string>();
+                            List<string> names = new();
                             Patient currentPatient = null;
                             foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
                             {
@@ -299,7 +299,7 @@ namespace HBP.UI.Module3D
                         foreach (var graph in gridInformations.Grid.Graphs.Where(g => g.IsSelected))
                         {
                             string graphFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Format("{0}-{1}", graph.ChannelStruct.Patient.Name, graph.ChannelStruct.Channel))).GenerateUniqueFilePath();
-                            using StreamWriter sw = new StreamWriter(graphFilePath);
+                            using StreamWriter sw = new(graphFilePath);
                             sw.Write(graph.ToSVG());
                         }
                     }
@@ -339,11 +339,11 @@ namespace HBP.UI.Module3D
 
             string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.LoadedProject.Name, m_Scene.Name).GenerateUniqueFilePath();
 
-            Core.DLL.VideoStream videoStream = new Core.DLL.VideoStream();
+            Core.DLL.VideoStream videoStream = new();
             videoStream.Open(videoPath, totalWidth, totalHeight, fps);
 
-            Core.DLL.Texture texture = new Core.DLL.Texture();
-            Texture2D texture2D = new Texture2D(totalWidth, totalHeight);
+            Core.DLL.Texture texture = new();
+            Texture2D texture2D = new(totalWidth, totalHeight);
             texture.Reset(totalWidth, totalHeight);
             
             Color[] timelineColors = Enumerable.Repeat(new Color((float)220 / 255, (float)220 / 255, (float)220 / 255, 1.0f), timelineSize * totalWidth).ToArray();

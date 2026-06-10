@@ -241,10 +241,10 @@ namespace HBP.UI.Main
                 }
 
                 // Try to load the file
-                Core.DLL.EEG.File file = new Core.DLL.EEG.File(type, false, files);
+                Core.DLL.EEG.File file = new(type, false, files);
 
                 // Format header information
-                System.Text.StringBuilder headerInfo = new System.Text.StringBuilder();
+                System.Text.StringBuilder headerInfo = new();
                 headerInfo.AppendLine("<b>=== FILE HEADER INFORMATION ===</b>");
                 headerInfo.AppendLine();
 

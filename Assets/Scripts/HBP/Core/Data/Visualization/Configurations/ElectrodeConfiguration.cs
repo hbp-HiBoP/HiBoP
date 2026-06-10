@@ -47,7 +47,7 @@ namespace HBP.Core.Data
         #region Public Methods
         public object Clone()
         {
-            Dictionary<string, SiteConfiguration> configurationBySiteClone = new Dictionary<string, SiteConfiguration>();
+            Dictionary<string, SiteConfiguration> configurationBySiteClone = new();
             foreach (var item in ConfigurationBySite)
             {
                 configurationBySiteClone.Add(item.Key, item.Value.Clone() as SiteConfiguration);

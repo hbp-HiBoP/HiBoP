@@ -13,7 +13,7 @@ namespace HBP.Core.DLL
         {
             get
             {
-                Tools.MRICalValues values = new Tools.MRICalValues();
+                Tools.MRICalValues values = new();
 
                 float[] valuesF = new float[6];
                 retrieveExtremeValues_NIFTI(_handle, valuesF);
@@ -71,7 +71,7 @@ namespace HBP.Core.DLL
         }
         public Volume ExtractVolume(int t)
         {
-            Volume volume = new Volume();
+            Volume volume = new();
             convertToVolume_NIFTI(_handle, volume.getHandle(), t);
             return volume;
         }

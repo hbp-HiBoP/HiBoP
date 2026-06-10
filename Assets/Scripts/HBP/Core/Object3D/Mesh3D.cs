@@ -149,7 +149,7 @@ namespace HBP.Core.Object3D
         }
         public override object Clone()
         {
-            SingleMesh3D mesh = new SingleMesh3D
+            SingleMesh3D mesh = new()
             {
                 Name = Name,
                 Type = Type,
@@ -308,7 +308,7 @@ namespace HBP.Core.Object3D
         }
         public override object Clone()
         {
-            LeftRightMesh3D mesh = new LeftRightMesh3D
+            LeftRightMesh3D mesh = new()
             {
                 Name = Name,
                 Type = Type,

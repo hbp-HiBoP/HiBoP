@@ -98,7 +98,7 @@ namespace HBP.UI.Tools
             }
         }
 
-        [SerializeField] List<T> m_ExistingObjects = new List<T>();
+        [SerializeField] List<T> m_ExistingObjects = new();
         /// <summary>
         /// Existing objects to create a new object if is creatable from existing objects.
         /// </summary>
@@ -116,7 +116,7 @@ namespace HBP.UI.Tools
 
         public Func<T, bool> DatabaseFilterMethod { get; set; } = o => true;
 
-        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        [SerializeField] protected WindowsReferencer m_WindowsReferencer = new();
         /// <summary>
         /// Windows references used to manage sub windows opened by the object creator.
         /// </summary>
@@ -317,7 +317,7 @@ namespace HBP.UI.Tools
         /// <returns>True if the method end without errors, False otherwise.</returns>
         protected virtual async void LoadFromFile()
         {
-            List<T> items = new List<T>();
+            List<T> items = new();
             ILoadable<T> loadable = new T() as ILoadable<T>;
             string[] paths = await FileBrowser.GetExistingFileNamesAsync(loadable.GetExtensions());
             foreach (var rawPath in paths)

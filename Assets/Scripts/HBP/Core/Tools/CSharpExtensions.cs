@@ -16,7 +16,7 @@ namespace HBP.Core.Tools
     {
         public static string ToDisplay<T>(this IEnumerable<T> IEnumerable)
         {
-            StringBuilder stringBuilder = new StringBuilder("(");
+            StringBuilder stringBuilder = new("(");
             foreach (var item in IEnumerable)
             {
                 stringBuilder.Append(item.ToString() + ",");
@@ -87,7 +87,7 @@ namespace HBP.Core.Tools
         }
         public static string SplitPascalCase(this string pascalCase)
         {
-            Regex r = new Regex("([A-Z]+[a-z]+)");
+            Regex r = new("([A-Z]+[a-z]+)");
             string result = r.Replace(pascalCase, m => m.Value.ToLower() + " ").Trim();
             result = char.ToUpper(result[0]) + result.Substring(1);
             return result;
@@ -99,7 +99,7 @@ namespace HBP.Core.Tools
         public static string ToTooltip(this IEnumerable<string> values, int max)
         {
             string[] array = values.ToArray();
-            StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new();
             if(array.Length > 0)
             {
                 if (array.Length > max)
@@ -152,7 +152,7 @@ namespace HBP.Core.Tools
         }
         public static bool IsBIDS(this string path)
         {
-            FileInfo participantsFileInfo = new FileInfo(Path.Combine(path, "participants.tsv"));
+            FileInfo participantsFileInfo = new(Path.Combine(path, "participants.tsv"));
             return participantsFileInfo.Exists;
         }
         public static string DeblankCompletely(this string value)
@@ -314,7 +314,7 @@ namespace HBP.Core.Tools
         {
             if (string.IsNullOrEmpty(path)) return "";
 
-            FileInfo file = new FileInfo(path);
+            FileInfo file = new(path);
 
             if (!file.Exists) return path;
             if (!targetDirectory.Exists) return path;
@@ -455,7 +455,7 @@ namespace HBP.Core.Tools
             }
             else
             {
-                List<T> result = new List<T>();
+                List<T> result = new();
                 foreach (var task in taskList)
                 {
                     if (token.IsCancellationRequested) break;

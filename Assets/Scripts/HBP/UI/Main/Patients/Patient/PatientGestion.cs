@@ -1,9 +1,9 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using System;
@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using UnityEditor;
 using UnityEngine;
 
 namespace HBP.UI.Main
@@ -47,7 +46,8 @@ namespace HBP.UI.Main
                     await UniTask.SwitchToMainThread();
                     ApplicationState.LoadedProject.SetPatients(ListGestion.List.Objects);
                     DataManager.Clear();
-                    Module3DMain.ReloadScenes();
+                    var visualizations = Module3DMain.PrepareReloadScenes();
+                    await LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
                     UITools.CheckProjectIDAndAskForRegeneration().Forget();
                 }
             }
@@ -71,7 +71,7 @@ namespace HBP.UI.Main
             if (result == 0)
             {
                 var updatedPatients = await LoadingManager.LoadAsync(UpdateFromDatabaseAsync);
-                StringBuilder stringBuilder = new StringBuilder();
+                StringBuilder stringBuilder = new();
                 if (updatedPatients.Count > 0)
                 {
                     stringBuilder.AppendLine("<b>Updated patients:</b>");

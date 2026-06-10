@@ -2,7 +2,6 @@ using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using HBP.UI.Tools;
 using System;
 using Cysharp.Threading.Tasks;
 
@@ -87,19 +86,18 @@ namespace HBP.Core.Object3D
             string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
             return Directory.Exists(protocolDirectory);
         }
-        public void Load(string protocol, bool displayErrors = true)
+        public bool TryLoad(string protocol)
         {
             string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
             
             if (Directory.Exists(protocolDirectory))
             {
-                LocalizerProtocol localizerProtocol = new LocalizerProtocol(protocol, protocolDirectory);
+                LocalizerProtocol localizerProtocol = new(protocol, protocolDirectory);
                 Protocols.Add(localizerProtocol);
+                return true;
             }
-            else if (displayErrors)
-            {
-                DialogBoxManager.Open(Enums.DialogBoxType.Error, "Can not load localizer", $"The localizer {protocol} could not be loaded. Please make sure you downloaded it and put it in the right folder.").Forget();
-            }
+
+            return false;
         }
         public void Unload(string protocolName)
         {
@@ -290,7 +288,7 @@ namespace HBP.Core.Object3D
             foreach (string dataDirectory in dataDirectories)
             {
                 string dataName = Path.GetFileName(dataDirectory);
-                LocalizerData data = new LocalizerData(dataName, dataDirectory);
+                LocalizerData data = new(dataName, dataDirectory);
                 if (data.Blocs.Count > 0)
                 {
                     Datas.Add(data);
@@ -345,7 +343,7 @@ namespace HBP.Core.Object3D
             {
                 string blocName = LocalizersHelpers.GetBlocNameFromFile(niftiFile);
                 string maskFile = FindMaskFileForBloc(directory, blocName, niftiExtensions);
-                LocalizerBloc bloc = new LocalizerBloc(blocName, niftiFile, maskFile);
+                LocalizerBloc bloc = new(blocName, niftiFile, maskFile);
                 Blocs.Add(bloc);
             }
         }

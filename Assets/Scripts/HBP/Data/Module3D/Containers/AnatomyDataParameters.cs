@@ -43,7 +43,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when updating the maximum influence
         /// </summary>
-        public UnityEvent OnUpdateInfluenceDistance = new UnityEvent();
+        public UnityEvent OnUpdateInfluenceDistance = new();
         #endregion
     }
 }

@@ -1,5 +1,5 @@
 using UnityEngine;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.Tools;
 
 namespace HBP.Data.Tools

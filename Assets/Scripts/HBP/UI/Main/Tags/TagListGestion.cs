@@ -14,7 +14,7 @@ namespace HBP.UI.Main
         [SerializeField] TagCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.BaseTag> ObjectCreator => m_ObjectCreator;
 
-        [SerializeField] System.Collections.Generic.List<Core.Data.BaseTag> m_ModifiedTags = new System.Collections.Generic.List<Core.Data.BaseTag>();
+        [SerializeField] System.Collections.Generic.List<Core.Data.BaseTag> m_ModifiedTags = new();
         public ReadOnlyCollection<Core.Data.BaseTag> ModifiedTags
         {
             get

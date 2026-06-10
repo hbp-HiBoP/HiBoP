@@ -19,7 +19,7 @@ namespace HBP.Data.Tools
         public const string NOT_STRING = "NOT";
         public const string AND_STRING = "AND";
         public const string OR_STRING = "OR";
-        private static Dictionary<char, Tuple<TokenType, string>> m_SymbolToOperator = new Dictionary<char, Tuple<TokenType, string>>()
+        private static Dictionary<char, Tuple<TokenType, string>> m_SymbolToOperator = new()
         {
             { OPEN_PARENTHESIS_CHAR, new Tuple<TokenType, string>(TokenType.OpenParenthesis, OPEN_PARENTHESIS_STRING) },
             { CLOSE_PARENTHESIS_CHAR, new Tuple<TokenType, string>(TokenType.CloseParenthesis, CLOSE_PARENTHESIS_STRING) },

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Data.Informations;
@@ -6,8 +6,9 @@ using UnityEngine.UI.Extensions;
 using UnityEngine.Events;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Informations
 {
@@ -30,7 +31,7 @@ namespace HBP.UI.Informations
             }
         }
 
-        [SerializeField] Dictionary<Column3D, Column> m_ColumnDataBy3DColumn = new Dictionary<Column3D, Column>();
+        [SerializeField] Dictionary<Column3D, Column> m_ColumnDataBy3DColumn = new();
 
         [SerializeField] Texture2D m_ColorMap;
         public Texture2D ColorMap
@@ -119,7 +120,7 @@ namespace HBP.UI.Informations
         }
         private const int CHANNEL_WARNING_THRESHOLD = 50;
 
-        private WindowsReferencer m_WindowsReferencer = new WindowsReferencer();
+        private WindowsReferencer m_WindowsReferencer = new();
         #endregion
 
         #region Public Methods
@@ -229,13 +230,13 @@ namespace HBP.UI.Informations
         void GenerateSceneData()
         {
             if (!m_Scene.SceneInformation.CompletelyLoaded) return;
-            List<Column> columns = new List<Column>();
+            List<Column> columns = new();
             m_ColumnDataBy3DColumn = new Dictionary<Column3D, Column>();
             foreach (var column in m_Scene.Columns)
             {
                 if (!column.IsMinimized || PersistentDataManager.UserPreferences.Visualization.Graph.ShowCurvesOfMinimizedColumns)
                 {
-                    List<ChannelStructsGroup> groups = new List<ChannelStructsGroup>();
+                    List<ChannelStructsGroup> groups = new();
                     if (m_Scene.ROIManager.SelectedROI != null)
                     {
                         IEnumerable<ChannelStruct> channels = column.Sites.Where(site => !site.State.IsOutOfROI && !site.State.IsMasked && !site.State.IsBlackListed).Select(site => new ChannelStruct(site));
@@ -245,22 +246,22 @@ namespace HBP.UI.Informations
                     groups.AddRange(m_ChannelStructsGroups);
                     if (column is Column3DIEEG ieegColumn)
                     {
-                        IEEGData data = new IEEGData(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
-                        Column columnData = new Column(column.Name, data, groups);
+                        IEEGData data = new(ieegColumn.ColumnIEEGData.Dataset, ieegColumn.ColumnIEEGData.DataName, ieegColumn.ColumnIEEGData.Bloc);
+                        Column columnData = new(column.Name, data, groups);
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
                     else if (column is Column3DCCEP ccepColumn && ccepColumn.IsSourceSiteSelected)
                     {
-                        CCEPData data = new CCEPData(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
-                        Column columnData = new Column(column.Name, data, groups);
+                        CCEPData data = new(ccepColumn.ColumnCCEPData.Dataset, ccepColumn.ColumnCCEPData.DataName, new ChannelStruct(ccepColumn.SelectedSourceSite), ccepColumn.ColumnCCEPData.Bloc);
+                        Column columnData = new(column.Name, data, groups);
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
                     else if (column is Column3DMEG megColumn)
                     {
-                        MEGData data = new MEGData(megColumn.ColumnMEGData.Dataset, megColumn.SelectedMEGItem.Label, megColumn.SelectedMEGItem.Window);
-                        Column columnData = new Column(column.Name, data, groups);
+                        MEGData data = new(megColumn.ColumnMEGData.Dataset, megColumn.SelectedMEGItem.Label, megColumn.SelectedMEGItem.Window);
+                        Column columnData = new(column.Name, data, groups);
                         m_ColumnDataBy3DColumn.Add(column, columnData);
                         columns.Add(columnData);
                     }
@@ -275,7 +276,7 @@ namespace HBP.UI.Informations
         }
         void GenerateFilteredChannelStructs(string name, IEnumerable<Core.Object3D.Site> sites)
         {
-            ChannelStructsGroup group = new ChannelStructsGroup(name, sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)), ChannelStructsGroup.GroupType.Custom);
+            ChannelStructsGroup group = new(name, sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)), ChannelStructsGroup.GroupType.Custom);
             m_ChannelStructsGroups.RemoveAll(g => g.Name == name);
             m_ChannelStructsGroups.Add(group);
         }

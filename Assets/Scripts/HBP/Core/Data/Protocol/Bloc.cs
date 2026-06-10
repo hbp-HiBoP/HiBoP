@@ -312,7 +312,7 @@ namespace HBP.Core.Data
         /// <returns>Tuple containing a array of tuple of bloc and subbloc</returns>
         public static Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
         {
-            List<Tuple<int, List<Tuple<Bloc, SubBloc>>>> subBlocsByColumns = new List<Tuple<int, List<Tuple<Bloc, SubBloc>>>>();
+            List<Tuple<int, List<Tuple<Bloc, SubBloc>>>> subBlocsByColumns = new();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
@@ -326,10 +326,10 @@ namespace HBP.Core.Data
             }
             subBlocsByColumns = subBlocsByColumns.OrderBy(t => t.Item1).ToList();
 
-            List<Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>> timeLimitsByColumns = new List<Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>>();
+            List<Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>> timeLimitsByColumns = new();
             foreach (var tuple in subBlocsByColumns)
             {
-                TimeWindow window = new TimeWindow(tuple.Item2.Min(s => s.Item2.Window.Start), tuple.Item2.Max(s => s.Item2.Window.End));
+                TimeWindow window = new(tuple.Item2.Min(s => s.Item2.Window.Start), tuple.Item2.Max(s => s.Item2.Window.End));
                 timeLimitsByColumns.Add(new Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>(tuple.Item2.ToArray(), window));
             }
             return timeLimitsByColumns.ToArray();

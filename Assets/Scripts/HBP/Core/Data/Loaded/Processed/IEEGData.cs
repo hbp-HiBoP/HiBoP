@@ -13,8 +13,8 @@ namespace HBP.Core.Data.Processed
         public Dictionary<string, float[]> ProcessedValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannelID { get; set; } = new Dictionary<string, string>();
 
-        private Dictionary<string, Tools.Frequency> m_FrequencyByChannelID = new Dictionary<string, Tools.Frequency>();
-        private List<Tools.Frequency> m_Frequencies = new List<Tools.Frequency>();
+        private Dictionary<string, Tools.Frequency> m_FrequencyByChannelID = new();
+        private List<Tools.Frequency> m_Frequencies = new();
         public float MaxFrequency { get { return m_Frequencies.Count > 0 ? m_Frequencies.Max(f => f.RawValue) : 0; } }
         #endregion
 
@@ -56,7 +56,7 @@ namespace HBP.Core.Data.Processed
             m_Frequencies = m_Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
 
             // Get index of each subBloc
-            Dictionary<SubBloc, int> indexBySubBloc = new Dictionary<SubBloc, int>();
+            Dictionary<SubBloc, int> indexBySubBloc = new();
             foreach (var bloc in blocs)
             {
                 int mainSubBlocPosition = bloc.MainSubBlocPosition;
@@ -68,7 +68,7 @@ namespace HBP.Core.Data.Processed
             }
 
             // Get all eventStatistics for each SubBloc of the column
-            Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new Dictionary<SubBloc, List<SubBlocEventsStatistics>>();
+            Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc = new();
             foreach (var subBloc in columnBloc.SubBlocs)
             {
                 eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
@@ -88,7 +88,7 @@ namespace HBP.Core.Data.Processed
             // Standardize values
             foreach (var channelID in DataByChannelID.Keys)
             {
-                List<float> values = new List<float>();
+                List<float> values = new();
                 Tools.Frequency frequency = m_FrequencyByChannelID[channelID];
                 BlocChannelStatistics statistics = StatisticsByChannelID[channelID];
                 foreach (var subBloc in columnBloc.OrderedSubBlocs)

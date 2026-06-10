@@ -9,7 +9,7 @@ namespace HBP.UI.Tools
     public class ImageSelector : MonoBehaviour
     {
         #region Properties
-        [HideInInspector] public GenericEvent<string> onValueChanged = new GenericEvent<string>();
+        [HideInInspector] public GenericEvent<string> onValueChanged = new();
         public bool interactable
         {
             get

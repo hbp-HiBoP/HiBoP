@@ -26,18 +26,18 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Current queue of all sites that match the conditions (used to smooth the checking)
         /// </summary>
-        private Queue<Core.Object3D.Site> m_MatchingSites = new Queue<Core.Object3D.Site>();
+        private Queue<Core.Object3D.Site> m_MatchingSites = new();
         #endregion
 
         #region Events
         /// <summary>
         /// Event called when updating the filtering progress
         /// </summary>
-        public GenericEvent<float> OnFilter = new GenericEvent<float>();
+        public GenericEvent<float> OnFilter = new();
         /// <summary>
         /// Event called when the filtering is finished
         /// </summary>
-        public GenericEvent<bool> OnEndFilter = new GenericEvent<bool>();
+        public GenericEvent<bool> OnEndFilter = new();
         #endregion
 
         #region Private Methods

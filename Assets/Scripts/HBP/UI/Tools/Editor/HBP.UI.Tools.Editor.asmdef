@@ -1,0 +1,20 @@
+{
+    "name": "HBP.UI.Tools.Editor",
+    "rootNamespace": "",
+    "references": [
+        "HBP.UI.Runtime",
+        "HBP.Theme.Runtime",
+        "ThirdParty.UIExtensions.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

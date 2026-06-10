@@ -31,7 +31,7 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Events
-        public UnityEvent OnRequestListUpdate = new UnityEvent();
+        public UnityEvent OnRequestListUpdate = new();
         #endregion
 
         #region Public Methods
@@ -55,7 +55,7 @@ namespace HBP.UI.Module3D
                 }
             }
 
-            List<Core.Object3D.Site> sites = new List<Core.Object3D.Site>();
+            List<Core.Object3D.Site> sites = new();
             foreach (var column in m_Scene.Columns)
             {
                 sites.AddRange(column.Sites);

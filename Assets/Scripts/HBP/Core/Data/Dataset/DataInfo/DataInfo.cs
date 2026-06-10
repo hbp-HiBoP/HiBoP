@@ -1,10 +1,9 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.Errors;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
-using HBP.Data.Database;
-using HBP.UI.Main;
+using HBP.Core.Database;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,7 +14,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using UnityEditor;
 using UnityEngine.Events;
 using UnityEngine.Scripting;
 using UnityEngine.UIElements;
@@ -255,14 +253,14 @@ namespace HBP.Core.Data
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
             dataInfos = new DataInfo[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo directory = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo directory = new(databaseReference.Path);
             if (!directory.Exists) return;
             LocalizerDatabaseParameters parameters = databaseReference.Parameters as LocalizerDatabaseParameters;
             if (parameters == null) return;
 
             static string GetDownsamplingString(DirectoryInfo dir)
             {
-                Regex posRegex = new Regex(dir.Name + @"_(ds[0-9]+)?\.pos$");
+                Regex posRegex = new(dir.Name + @"_(ds[0-9]+)?\.pos$");
                 FileInfo[] posFiles = dir.GetFiles("*.pos", SearchOption.AllDirectories);
                 string ds = "";
                 foreach (var file in posFiles)
@@ -299,8 +297,8 @@ namespace HBP.Core.Data
                             {
                                 if (parameters.IncludeRaw)
                                 {
-                                    FileInfo rawEEG = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
-                                    FileInfo rawPos = new FileInfo(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
+                                    FileInfo rawEEG = new(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
+                                    FileInfo rawPos = new(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
                                     if (rawEEG.Exists && rawPos.Exists)
                                     {
                                         var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
@@ -312,14 +310,14 @@ namespace HBP.Core.Data
                                 string ds = GetDownsamplingString(subdir);
                                 if (!string.IsNullOrEmpty(ds))
                                 {
-                                    FileInfo posDS = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
+                                    FileInfo posDS = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
                                     if (posDS.Exists)
                                     {
                                         foreach (var freq in parameters.Frequencies)
                                         {
                                             foreach (var ts in parameters.TemporalSmoothings)
                                             {
-                                                FileInfo eeg = new FileInfo(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
+                                                FileInfo eeg = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
                                                 if (eeg.Exists)
                                                 {
                                                     var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
@@ -344,63 +342,60 @@ namespace HBP.Core.Data
 
             dataInfos = new DataInfo[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
-            DirectoryInfo databaseDirectoryInfo = new DirectoryInfo(databaseReference.Path);
+            DirectoryInfo databaseDirectoryInfo = new(databaseReference.Path);
             if (!databaseDirectoryInfo.Exists) return;
 
             List<DataInfo> dataInfoList = new();
 
             // Find all dataInfo files
-            Regex brainvisionHeaderRegex = new Regex(@"(sub-[a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.vhdr$");
-            FileInfo[] brainvisionHeaderFiles = databaseDirectoryInfo.GetFiles("*.vhdr", SearchOption.AllDirectories);
-            Regex edfRegex = new Regex(@"(sub-[a-zA-Z0-9.]+)(_ses-([a-zA-Z0-9.]+))?(_task-([a-zA-Z0-9.]+))(_acq-([a-zA-Z0-9.]+))?(_run-([a-zA-Z0-9.]+))?_ieeg\.edf$");
-            FileInfo[] edfFiles = databaseDirectoryInfo.GetFiles("*.edf", SearchOption.AllDirectories);
+            var allIeegFiles = BIDSParser.FindFiles(databaseDirectoryInfo.FullName, new[] { "ieeg" }, new[] { ".vhdr", ".edf" });
+            var brainvisionFiles = allIeegFiles.Where(f => f.Extension.EndsWith(".vhdr", StringComparison.OrdinalIgnoreCase)).ToList();
+            var edfFiles = allIeegFiles.Where(f => f.Extension.EndsWith(".edf", StringComparison.OrdinalIgnoreCase)).ToList();
             int progress = 0;
-            int length = brainvisionHeaderFiles.Length + edfFiles.Length;
+            int length = brainvisionFiles.Count + edfFiles.Count;
 
             // Brainvision
-            foreach (var file in brainvisionHeaderFiles)
+            foreach (var bidsFile in brainvisionFiles)
             {
-                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", file.Name, " [" + progress + "/" + length + "]"));
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", System.IO.Path.GetFileName(bidsFile.Path), " [" + progress + "/" + length + "]"));
                 token.ThrowIfCancellationRequested();
-                Match match = brainvisionHeaderRegex.Match(file.FullName);
-                if (match.Success)
+                Patient patient = patients.FirstOrDefault(p => p.Name.CompareTo("sub-" + bidsFile.Entities["sub"]) == 0);
+                if (patient != null)
                 {
-                    Patient patient = patients.FirstOrDefault(p => p.Name.CompareTo(match.Groups[1].Value) == 0);
-                    if (patient != null)
+                    bidsFile.Entities.TryGetValue("task", out string task);
+                    Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == task);
+                    if (protocol != null)
                     {
-                        Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
-                        if (protocol != null)
-                        {
-                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
-                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.BrainVision(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
-                            dataInfo.CheckErrorsAndWarnings(true);
-                            dataInfoList.Add(dataInfo);
-                        }
+                        bidsFile.Entities.TryGetValue("acq", out string acq);
+                        bidsFile.Entities.TryGetValue("run", out string run);
+                        bidsFile.Entities.TryGetValue("desc", out string desc);
+                        string dataName = string.Format("{0}{1}{2}", string.IsNullOrEmpty(acq) ? "raw" : acq, string.IsNullOrEmpty(run) ? "" : "-" + run, string.IsNullOrEmpty(desc) ? "" : "-" + desc);
+                        var dataInfo = new IEEGDataInfo(dataName, protocol, new Container.BrainVision(bidsFile.Path, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
+                        dataInfo.CheckErrorsAndWarnings(true);
+                        dataInfoList.Add(dataInfo);
                     }
                 }
             }
 
             // EDF
-            foreach (var file in edfFiles)
+            foreach (var bidsFile in edfFiles)
             {
-                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", file.Name, " [" + progress + "/" + length + "]"));
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading file ", System.IO.Path.GetFileName(bidsFile.Path), " [" + progress + "/" + length + "]"));
                 token.ThrowIfCancellationRequested();
-                Match match = edfRegex.Match(file.FullName);
-                if (match.Success)
+                Patient patient = patients.FirstOrDefault(p => p.Name.ToUpper().CompareTo(("sub-" + bidsFile.Entities["sub"]).ToUpper()) == 0);
+                if (patient != null)
                 {
-                    Patient patient = patients.FirstOrDefault(p => p.Name.ToUpper().CompareTo(match.Groups[1].Value.ToUpper()) == 0);
-                    if (patient != null)
+                    bidsFile.Entities.TryGetValue("task", out string task);
+                    Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == task);
+                    if (protocol != null)
                     {
-                        Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == match.Groups[5].Value);
-                        if (protocol != null)
-                        {
-                            string acq = string.IsNullOrEmpty(match.Groups[7].Value) ? "raw" : match.Groups[7].Value;
-                            string run = string.IsNullOrEmpty(match.Groups[9].Value) ? "" : "-" + match.Groups[9].Value;
-                            var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", acq, run), protocol, new Container.EDF(file.FullName, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
-                            dataInfo.CheckErrorsAndWarnings(true);
-                            dataInfoList.Add(dataInfo);
-                        }
+                        bidsFile.Entities.TryGetValue("acq", out string acq);
+                        bidsFile.Entities.TryGetValue("run", out string run);
+                        bidsFile.Entities.TryGetValue("desc", out string desc);
+                        string dataName = string.Format("{0}{1}{2}", string.IsNullOrEmpty(acq) ? "raw" : acq, string.IsNullOrEmpty(run) ? "" : "-" + run, string.IsNullOrEmpty(desc) ? "" : "-" + desc);
+                        var dataInfo = new IEEGDataInfo(dataName, protocol, new Container.EDF(bidsFile.Path, new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
+                        dataInfo.CheckErrorsAndWarnings(true);
+                        dataInfoList.Add(dataInfo);
                     }
                 }
             }

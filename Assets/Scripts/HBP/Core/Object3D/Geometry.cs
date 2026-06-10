@@ -114,7 +114,7 @@ namespace HBP.Core.Object3D
         /// <returns>The resulting mesh</returns>
         public static Mesh CreateSphereMesh(float radius, int nbLong = 24, int nbLat = 16)
         {
-            Mesh mesh = new Mesh();
+            Mesh mesh = new();
 
             #region Vertices
             Vector3[] vertices = new Vector3[(nbLong + 1) * nbLat + 2];
@@ -246,7 +246,7 @@ namespace HBP.Core.Object3D
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset, Color color, float duration = 50)
         {
             List<Segment3> rawSegments = bbox.Segments;
-            List<Segment3> segments = new List<Segment3>(rawSegments.Count);
+            List<Segment3> segments = new(rawSegments.Count);
             foreach (var s in rawSegments)
             {
                 segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
@@ -266,7 +266,7 @@ namespace HBP.Core.Object3D
         public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, Plane plane, Vector3 offset)
         {
             List<Segment3> rawSegments = bbox.IntersectionLinesWithPlane(plane);
-            List<Segment3> segments = new List<Segment3>(rawSegments.Count);
+            List<Segment3> segments = new(rawSegments.Count);
             foreach (var s in rawSegments)
             {
                 segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
@@ -318,12 +318,12 @@ namespace HBP.Core.Object3D
         /// <returns>The resulting mesh</returns>
         public static Mesh CreateTetrahedronMesh(float height)
         {
-            Mesh mesh = new Mesh();
+            Mesh mesh = new();
 
-            Vector3 p0 = new Vector3(0, 0, 0);
-            Vector3 p1 = new Vector3(height, 0, 0);
-            Vector3 p2 = new Vector3(height * 0.5f, 0, Mathf.Sqrt(height * 0.75f));
-            Vector3 p3 = new Vector3(height * 0.5f, Mathf.Sqrt(height * 0.75f), Mathf.Sqrt(height * 0.75f) / 3);
+            Vector3 p0 = new(0, 0, 0);
+            Vector3 p1 = new(height, 0, 0);
+            Vector3 p2 = new(height * 0.5f, 0, Mathf.Sqrt(height * 0.75f));
+            Vector3 p3 = new(height * 0.5f, Mathf.Sqrt(height * 0.75f), Mathf.Sqrt(height * 0.75f) / 3);
 
             mesh.vertices = new Vector3[]{
             p0,p1,p2,
@@ -353,7 +353,7 @@ namespace HBP.Core.Object3D
         /// <returns>The resulting mesh</returns>
         public static Mesh CreateTube(float outerRadius = 1.7f, float innerRadius = 0.15f, float height = 0.1f, int nbSides = 60)
         {
-            Mesh mesh = new Mesh();
+            Mesh mesh = new();
 
             //float height = 0.2f;
             //int nbSides = 24;

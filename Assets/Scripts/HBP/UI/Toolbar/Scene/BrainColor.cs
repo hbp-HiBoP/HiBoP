@@ -15,7 +15,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Correspondance between brain color dropdown options indices and color type
         /// </summary>
-        private List<ColorType> m_BrainColorIndices = new List<ColorType>() { ColorType.BrainColor, ColorType.Default, ColorType.White, ColorType.Grayscale, ColorType.SoftGrayscale };
+        private List<ColorType> m_BrainColorIndices = new() { ColorType.BrainColor, ColorType.Default, ColorType.White, ColorType.Grayscale, ColorType.SoftGrayscale };
         #endregion
 
         #region Public Methods

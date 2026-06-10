@@ -1,6 +1,6 @@
 ﻿namespace HBP.Core.Interfaces
 {
-    interface INameable
+    public interface INameable
     {
         string Name { get; set; }
     }

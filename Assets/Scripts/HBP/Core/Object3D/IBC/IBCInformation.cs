@@ -57,10 +57,10 @@ namespace HBP.Core.Object3D
         {
             await UniTask.SwitchToThreadPool();
             Loading = true;
-            Regex csvParser = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+            Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
             if (new FileInfo(csvFile).Exists)
             {
-                using (StreamReader sr = new StreamReader(csvFile))
+                using (StreamReader sr = new(csvFile))
                 {
                     string line = sr.ReadLine();
                     while (!string.IsNullOrEmpty(line = sr.ReadLine()))

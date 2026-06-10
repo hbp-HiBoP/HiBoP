@@ -36,11 +36,11 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Event called when the GUI textures are computed
         /// </summary>
-        public UnityEvent OnUpdateGUITextures = new UnityEvent();
+        public UnityEvent OnUpdateGUITextures = new();
         /// <summary>
         /// Event called when a cut is removed
         /// </summary>
-        public UnityEvent OnRemoveCut = new UnityEvent();
+        public UnityEvent OnRemoveCut = new();
         #endregion
 
         #region Constructors

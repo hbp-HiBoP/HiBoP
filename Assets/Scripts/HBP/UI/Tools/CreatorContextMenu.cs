@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using UnityEngine.Events;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
@@ -87,7 +88,7 @@ namespace HBP.UI.Tools
         #endregion
 
         #region Events
-        public GenericEvent<CreationType> OnSelectType = new GenericEvent<CreationType>();
+        public GenericEvent<CreationType> OnSelectType = new();
         #endregion
 
         #region Private Methods

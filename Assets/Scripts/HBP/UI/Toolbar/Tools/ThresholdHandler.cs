@@ -1,7 +1,8 @@
-﻿using HBP.Theme;
+using HBP.Theme;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Toolbar
 {
@@ -54,14 +55,14 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Event called when changing the position of the handler
         /// </summary>
-        public GenericEvent<float> OnChangePosition = new GenericEvent<float>();
+        public GenericEvent<float> OnChangePosition = new();
         #endregion
 
         #region Public Methods
         public void OnDrag(PointerEventData data)
         {
             float currentPosition = Position;
-            Vector2 localPosition = new Vector2(0, 0);
+            Vector2 localPosition = new(0, 0);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_ParentRectTransform, data.position, null, out localPosition);
             Position = (localPosition.x / m_ParentRectTransform.rect.width) + 0.5f;
             OnChangePosition.Invoke(Position - currentPosition);

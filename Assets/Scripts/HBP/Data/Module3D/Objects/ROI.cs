@@ -65,19 +65,19 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Event called when updating the name of the ROI
         /// </summary>
-        public UnityEvent OnUpdateROIName = new UnityEvent();
+        public UnityEvent OnUpdateROIName = new();
         /// <summary>
         /// Event called when adding of removing a sphere in this ROI
         /// </summary>
-        public UnityEvent OnChangeNumberOfSpheres = new UnityEvent();
+        public UnityEvent OnChangeNumberOfSpheres = new();
         /// <summary>
         /// Event called when modifying a sphere of this ROI
         /// </summary>
-        public UnityEvent OnChangeSphereParameters = new UnityEvent();
+        public UnityEvent OnChangeSphereParameters = new();
         /// <summary>
         /// Event called when selecting or deselecting a sphere
         /// </summary>
-        public UnityEvent OnChangeSphereSelectionState = new UnityEvent();
+        public UnityEvent OnChangeSphereSelectionState = new();
         #endregion
 
         #region Private Methods
@@ -157,7 +157,7 @@ namespace HBP.Data.Module3D
                 {
                     Vector3 p1 = hitInfo.point;
                     Vector3 p2 = ray.origin;
-                    Vector3 vec = new Vector3(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
+                    Vector3 vec = new(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
                     float squareDist = vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2];
 
                     if (squareDist < minDist)

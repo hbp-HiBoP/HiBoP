@@ -1,5 +1,5 @@
 using HBP.Core.Enums;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using UnityEngine;
 using UnityEngine.UI;

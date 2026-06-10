@@ -69,7 +69,7 @@ namespace HBP.Data.Tools
         }
         public List<BooleanExpression> GetAllBooleanValuesUnderThisOne()
         {
-            List<BooleanExpression> list = new List<BooleanExpression>();
+            List<BooleanExpression> list = new();
             switch (Type)
             {
                 case BooleanExpressionType.Value:

@@ -42,18 +42,18 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Size of each site depending on its activity
         /// </summary>
-        protected List<Vector3> m_ElectrodesSizeScale = new List<Vector3>();
+        protected List<Vector3> m_ElectrodesSizeScale = new();
         /// <summary>
         /// Does the site have a positive activity value ?
         /// </summary>
-        protected List<bool> m_ElectrodesPositiveColor = new List<bool>();
+        protected List<bool> m_ElectrodesPositiveColor = new();
         #endregion
 
         #region Events
         /// <summary>
         /// Event called when updating the current timeline ID
         /// </summary>
-        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new UnityEvent();
+        [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new();
         #endregion
 
         #region Private Methods

@@ -6,9 +6,9 @@ using HBP.Core.Enums;
 using HBP.Core.Exceptions;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using System;
 using System.Collections.Generic;
@@ -35,10 +35,10 @@ namespace HBP.UI.Main
         
         [SerializeField] private FolderSelector m_ExportFolderSelector;
         
-        private List<Patient> m_AvailablePatients = new List<Patient>();
-        private List<Patient> m_SelectedPatients = new List<Patient>();
-        private List<ExportProtocolItem> m_ProtocolItems = new List<ExportProtocolItem>();
-        private List<ExportDataNameItem> m_DataNameItems = new List<ExportDataNameItem>();
+        private List<Patient> m_AvailablePatients = new();
+        private List<Patient> m_SelectedPatients = new();
+        private List<ExportProtocolItem> m_ProtocolItems = new();
+        private List<ExportDataNameItem> m_DataNameItems = new();
         #endregion
         
         #region Public Methods
@@ -217,9 +217,9 @@ namespace HBP.UI.Main
             var failedDataInfos = new List<(IEEGDataInfo dataInfo, string patientName, string error)>();
 
             // Initialize generator
-            GeneratorSurface generatorSurface = new GeneratorSurface();
+            GeneratorSurface generatorSurface = new();
             generatorSurface.Initialize(Object3DManager.MNI.GreyMatter.Both, Object3DManager.MNI.MRI.Volume, 120);
-            IEEGGenerator generator = new IEEGGenerator();
+            IEEGGenerator generator = new();
             generator.Initialize(generatorSurface);
 
             var selectedDataNames = m_DataNameItems.Where(d => d.IsSelected).Select(d => d.DataName).ToList();

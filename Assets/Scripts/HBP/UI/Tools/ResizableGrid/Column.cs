@@ -7,7 +7,7 @@ namespace HBP.UI.Tools.ResizableGrids
     public class Column : MonoBehaviour
     {
         #region Properties
-        List<View> m_Views = new List<View>();
+        List<View> m_Views = new();
         /// <summary>
         /// Views of this column
         /// </summary>

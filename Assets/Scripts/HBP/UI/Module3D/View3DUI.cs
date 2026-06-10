@@ -145,7 +145,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Event called when changing the size of the view
         /// </summary>
-        public UnityEvent OnChangeViewSize = new UnityEvent();
+        public UnityEvent OnChangeViewSize = new();
         #endregion
 
         #region Private Methods
@@ -169,7 +169,7 @@ namespace HBP.UI.Module3D
                     UnityEngine.Profiling.Profiler.BeginSample("RenderTexture");
                     if (m_RectTransform.rect.width > 0 && m_RectTransform.rect.height > 0)
                     {
-                        RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
+                        RenderTexture renderTexture = new((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
                         renderTexture.antiAliasing = 1;
                         m_View.TargetTexture = renderTexture;
                         m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
@@ -265,7 +265,7 @@ namespace HBP.UI.Module3D
             if (IsMinimized) return;
 
             float scale = m_CanvasScalerHandler.Scale;
-            Vector2 delta = new Vector2(data.delta.x * scale, data.delta.y * scale);
+            Vector2 delta = new(data.delta.x * scale, data.delta.y * scale);
             switch (data.button)
             {
                 case PointerEventData.InputButton.Left:
@@ -353,7 +353,7 @@ namespace HBP.UI.Module3D
             {
                 if (m_RectTransform.rect.width > 0 && m_RectTransform.rect.height > 0)
                 {
-                    RenderTexture renderTexture = new RenderTexture((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
+                    RenderTexture renderTexture = new((int)m_RectTransform.rect.width, (int)m_RectTransform.rect.height, 24);
                     renderTexture.antiAliasing = 1;
                     m_View.TargetTexture = renderTexture;
                     m_View.Aspect = m_RectTransform.rect.width / m_RectTransform.rect.height;
@@ -384,8 +384,8 @@ namespace HBP.UI.Module3D
                 return false;
             }
 
-            Vector2 localPosition = new Vector2();
-            Vector2 position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+            Vector2 localPosition = new();
+            Vector2 position = new(Input.mousePosition.x, Input.mousePosition.y);
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, position, null, out localPosition);
             localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
             ray = m_View.Camera.ViewportPointToRay(localPosition);

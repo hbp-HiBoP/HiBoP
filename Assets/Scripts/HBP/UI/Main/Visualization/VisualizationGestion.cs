@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 
 namespace HBP.UI.Main
 {
@@ -59,7 +59,7 @@ namespace HBP.UI.Main
                     if (result == 1) return;
                 }
             }
-            Module3DMain.LoadScenes(m_ListGestion.List.ObjectsSelected);
+            LoadingManager.Load((update, token) => Module3DMain.LoadAsync(m_ListGestion.List.ObjectsSelected, update, token));
             OK();
         }
         public override void Close()

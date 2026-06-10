@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Tools
 {
@@ -20,7 +21,7 @@ namespace HBP.UI.Tools
                 if (value) transform.SetAsLastSibling();
             }
         }
-        public GenericEvent<bool> OnChangeValue = new GenericEvent<bool>();
+        public GenericEvent<bool> OnChangeValue = new();
 
         [SerializeField]
         private Graphic m_TargetGraphic;

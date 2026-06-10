@@ -1,6 +1,6 @@
 using HBP.Core.Data;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using HBP.UI.Tools;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +22,7 @@ namespace HBP.UI.Main
             }
         }
 
-        private List<FilterToggle> m_Toggles = new List<FilterToggle>();
+        private List<FilterToggle> m_Toggles = new();
 
         [SerializeField] Dropdown m_LogicDropdown;
         [SerializeField] GameObject m_ProtocolFilterTogglePrefab;

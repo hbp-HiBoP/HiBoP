@@ -3,6 +3,7 @@ using HBP.Theme;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using HBP.Core.Tools;
 
 namespace HBP.UI.Database
 {

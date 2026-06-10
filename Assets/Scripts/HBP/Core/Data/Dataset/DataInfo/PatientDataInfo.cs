@@ -1,6 +1,6 @@
-﻿using HBP.Core.Errors;
+using HBP.Core.Errors;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
@@ -129,7 +129,7 @@ namespace HBP.Core.Data
         #region Private Methods
         protected override IEnumerable<Error> GetErrors()
         {
-            List<Error> errors = new List<Error>(base.GetErrors());
+            List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetPatientErrors());
             return errors;
         }
@@ -139,19 +139,19 @@ namespace HBP.Core.Data
         /// <returns></returns>
         private IEnumerable<Error> GetPatientErrors()
         {
-            List<Error> errors = new List<Error>();
+            List<Error> errors = new();
             if (m_Patient == null) errors.Add(new PatientEmptyError());
             return errors;
         }
         protected override IEnumerable<Warning> GetWarnings()
         {
-            List<Warning> warnings = new List<Warning>(base.GetWarnings());
+            List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetPatientWarnings());
             return warnings;
         }
         private IEnumerable<Warning> GetPatientWarnings()
         {
-            List<Warning> warnings = new List<Warning>();
+            List<Warning> warnings = new();
             return warnings;
         }
         #endregion

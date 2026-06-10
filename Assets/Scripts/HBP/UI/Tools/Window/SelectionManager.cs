@@ -11,7 +11,7 @@ namespace HBP.UI.Tools
     {
         #region Properties
         [SerializeField] private Selector m_Selection;
-        List<Selector> m_Selectors = new List<Selector>();
+        List<Selector> m_Selectors = new();
 
         [SerializeField] private RectTransform m_ParentContainer;
         private List<RectTransform> m_Containers = new();
@@ -53,9 +53,9 @@ namespace HBP.UI.Tools
             if (Input.GetMouseButtonDown(0))
             {
                 Selector selector = null;
-                PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
+                PointerEventData pointerEventData = new(EventSystem.current);
                 pointerEventData.position = Input.mousePosition;
-                var results = FindObjectsByType<GraphicRaycaster>(FindObjectsSortMode.None).SelectMany(r => { List<RaycastResult> res = new List<RaycastResult>(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
+                var results = FindObjectsByType<GraphicRaycaster>(FindObjectsInactive.Exclude).SelectMany(r => { List<RaycastResult> res = new(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
                 foreach (var result in results)
                 {
                     selector = result.gameObject.GetComponentInParent<Selector>();

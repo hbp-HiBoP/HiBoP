@@ -56,7 +56,7 @@ namespace HBP.Core.DLL
         {
             get
             {
-                BBox bbox = new BBox(bounding_box_Surface(_handle));
+                BBox bbox = new(bounding_box_Surface(_handle));
                 Vector3 center = bbox.Center;
                 bbox.Dispose();
                 return center;
@@ -233,7 +233,7 @@ namespace HBP.Core.DLL
         /// <returns>New surface made with invisible triangles</returns>
         public Surface UpdateVisibilityMask(int[] visibilityMask)
         {
-            Surface invisiblePartMesh = new Surface();
+            Surface invisiblePartMesh = new();
             update_visiblity_mask_Surface(_handle, invisiblePartMesh.getHandle(), visibilityMask);
             return invisiblePartMesh;
         }
@@ -255,7 +255,7 @@ namespace HBP.Core.DLL
             rayDirectionArray[1] = rayDirection.y;
             rayDirectionArray[2] = rayDirection.z;
 
-            Surface invisiblePartMesh = new Surface();
+            Surface invisiblePartMesh = new();
             update_visiblity_mask_with_ray(_handle, invisiblePartMesh.getHandle(), rayDirectionArray, hitPointArray, (int) mode, degrees);
             return invisiblePartMesh;
         }
@@ -288,7 +288,7 @@ namespace HBP.Core.DLL
             }
 
             // do the cut            
-            HandleRef pCutMultiSurface = new HandleRef(this, cut_Surface(_handle, planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
+            HandleRef pCutMultiSurface = new(this, cut_Surface(_handle, planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
 
             // move data            
             int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
@@ -313,7 +313,7 @@ namespace HBP.Core.DLL
             if (cutPlanes.Count <= 0)
             {
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
-                List<Surface> returnError = new List<Surface>();
+                List<Surface> returnError = new();
                 return returnError;
             }
 
@@ -329,11 +329,11 @@ namespace HBP.Core.DLL
             }
 
             // do the cut            
-            HandleRef pCutMultiSurface = new HandleRef(this, generate_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
+            HandleRef pCutMultiSurface = new(this, generate_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
 
             // move data            
             int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
-            List<Surface> cuts = new List<Surface>();
+            List<Surface> cuts = new();
             for (int ii = 0; ii < nbMultiSurface; ++ii)
                 cuts.Add(new Surface(move_MultiSurface(pCutMultiSurface, ii)));
 
@@ -354,7 +354,7 @@ namespace HBP.Core.DLL
             if (cutPlanes.Count <= 0)
             {
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
-                List<Surface> returnError = new List<Surface>();
+                List<Surface> returnError = new();
                 return returnError;
             }
 
@@ -370,11 +370,11 @@ namespace HBP.Core.DLL
             }
 
             // do the cut            
-            HandleRef pCutMultiSurface = new HandleRef(this, generate_raw_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
+            HandleRef pCutMultiSurface = new(this, generate_raw_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
 
             // move data            
             int nbMultiSurface = nb_MultiSurface(pCutMultiSurface);
-            List<Surface> cuts = new List<Surface>();
+            List<Surface> cuts = new();
             for (int ii = 0; ii < nbMultiSurface; ++ii)
                 cuts.Add(new Surface(move_MultiSurface(pCutMultiSurface, ii)));
 
@@ -524,7 +524,7 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public Surface Simplify(int numberOfTriangles = 10000, int agressiveness = 7)
         {
-            Surface surface = new Surface(this);
+            Surface surface = new(this);
             simplify_mesh_Surface(surface.getHandle(), numberOfTriangles, agressiveness);
             return surface;
         }
@@ -599,7 +599,7 @@ namespace HBP.Core.DLL
         }
         public object Clone()
         {
-            Surface clonedSurface = new Surface(this);
+            Surface clonedSurface = new(this);
             clonedSurface.IsLoaded = IsLoaded;
             clonedSurface.IsMarsAtlasLoaded = IsMarsAtlasLoaded;
             return clonedSurface;

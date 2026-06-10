@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace HBP.Dev
@@ -22,6 +24,8 @@ namespace HBP.Dev
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, bool connectProfiler = false)
         {
+            PrepareBuildTarget(target);
+
             string os = "";
             switch (target)
             {
@@ -63,19 +67,23 @@ namespace HBP.Dev
             {
                 buildOptions |= BuildOptions.ConnectWithProfiler;
             }
-            BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions
+            BuildPlayerOptions buildPlayerOptions = new()
             {
                 locationPathName = buildDirectory + hibopName,
                 target = target,
                 scenes = new string[] { "Assets/_Scenes/HiBoP.unity" },
                 options = buildOptions
             };
-            BuildPipeline.BuildPlayer(buildPlayerOptions);
+            BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
+            if (report.summary.result != BuildResult.Succeeded)
+            {
+                throw new BuildFailedException($"Build failed for {target}: {report.summary.result}");
+            }
 
             string projectPath = Application.dataPath;
             projectPath = projectPath.Remove(projectPath.Length - 6);
 
-            DirectoryInfo dataDirectoryInfo = new DirectoryInfo(dataDirectory + m_DataBuild);
+            DirectoryInfo dataDirectoryInfo = new(dataDirectory + m_DataBuild);
             new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(dataDirectoryInfo);
             foreach (var file in dataDirectoryInfo.GetFiles("*.meta", SearchOption.AllDirectories))
             {
@@ -86,14 +94,14 @@ namespace HBP.Dev
                 file.Delete();
             }
 
-            DirectoryInfo doNotShipDirectory = new DirectoryInfo(Path.Join(dataDirectory, "HiBoP_BackUpThisFolder_ButDontShipItWithYourGame"));
+            DirectoryInfo doNotShipDirectory = new(Path.Join(dataDirectory, "HiBoP_BackUpThisFolder_ButDontShipItWithYourGame"));
             if (doNotShipDirectory.Exists)
             {
                 doNotShipDirectory.Delete(true);
             }
 
             // Remove Localizer atlas if it exists (we do not ship it with the build)
-            DirectoryInfo localizerDirectory = new DirectoryInfo(Path.Combine(dataDirectory, m_DataBuild, "Atlases", "Localizers"));
+            DirectoryInfo localizerDirectory = new(Path.Combine(dataDirectory, m_DataBuild, "Atlases", "Localizers"));
             if (localizerDirectory.Exists)
             {
                 localizerDirectory.Delete(true);
@@ -102,15 +110,15 @@ namespace HBP.Dev
             if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.Build.OSArchitecture.ARM64)
             {
                 string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
-                DirectoryInfo pluginsDirectory = new DirectoryInfo(pluginsPath);
-                DirectoryInfo arm64PluginsDirectory = new DirectoryInfo(Path.Join(pluginsPath, "ARM64")); 
+                DirectoryInfo pluginsDirectory = new(pluginsPath);
+                DirectoryInfo arm64PluginsDirectory = new(Path.Join(pluginsPath, "ARM64")); 
                 arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
                 arm64PluginsDirectory.Delete(true);
             }
             if (target == BuildTarget.StandaloneLinux64)
             {
-                DirectoryInfo pluginsDirectory = new DirectoryInfo(Application.dataPath + "/Plugins/x86_64/Linux");
-                DirectoryInfo newPluginsDirectory = new DirectoryInfo(dataDirectory + "HiBoP_Data/Plugins");
+                DirectoryInfo pluginsDirectory = new(Application.dataPath + "/Plugins/x86_64/Linux");
+                DirectoryInfo newPluginsDirectory = new(dataDirectory + "HiBoP_Data/Plugins");
                 pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
                 foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
                 {
@@ -118,11 +126,51 @@ namespace HBP.Dev
                 }
             }
 
-            FileInfo readme = new FileInfo(projectPath + "README.md");
+            FileInfo readme = new(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name, true);
 
-            FileInfo documentation = new FileInfo(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
+            FileInfo documentation = new(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
             documentation.CopyTo(buildDirectory + documentation.Name, true);
+        }
+
+        private static void PrepareBuildTarget(BuildTarget target)
+        {
+            if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, target))
+            {
+                throw new BuildFailedException($"Build target {target} is not installed or not supported by this Unity Editor.");
+            }
+
+            if (target == BuildTarget.StandaloneLinux64)
+            {
+                EnsureLinuxIl2CppPackagesResolved();
+            }
+
+            if (EditorUserBuildSettings.activeBuildTarget != target)
+            {
+                AssetDatabase.SaveAssets();
+                if (!EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, target))
+                {
+                    throw new BuildFailedException($"Could not switch the active build target to {target}.");
+                }
+            }
+        }
+
+        private static void EnsureLinuxIl2CppPackagesResolved()
+        {
+            EnsurePackageResolved("com.unity.sdk.linux-x86_64");
+
+            if (Application.platform == RuntimePlatform.WindowsEditor)
+            {
+                EnsurePackageResolved("com.unity.toolchain.win-x86_64-linux");
+            }
+        }
+
+        private static void EnsurePackageResolved(string packageName)
+        {
+            if (UnityEditor.PackageManager.PackageInfo.FindForPackageName(packageName) == null)
+            {
+                throw new BuildFailedException($"Package {packageName} is required to build the Linux IL2CPP player. Add it to Packages/manifest.json and let Unity resolve packages before building.");
+            }
         }
     }
 
@@ -182,7 +230,7 @@ namespace HBP.Dev
 
         void WriteBuildInfo()
         {
-            BuildInfo buildInfo = new BuildInfo()
+            BuildInfo buildInfo = new()
             {
                 UnityVersion = Application.unityVersion,
                 Version = Application.version,

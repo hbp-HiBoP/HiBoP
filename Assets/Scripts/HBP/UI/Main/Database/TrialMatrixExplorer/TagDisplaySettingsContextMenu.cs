@@ -1,5 +1,5 @@
 using HBP.Core.Data;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -18,7 +18,7 @@ namespace HBP.UI.Database
         [SerializeField] private Transform m_TagSelectionItemParent;
         [SerializeField] private TagsType m_TagsType = TagsType.Patient;
 
-        private Dictionary<BaseTag, TagSelectionItem> m_TagSelectionItems = new Dictionary<BaseTag, TagSelectionItem>();
+        private Dictionary<BaseTag, TagSelectionItem> m_TagSelectionItems = new();
         private bool m_SelectionChanged = false;
         private bool m_Initialized = false;
         #endregion

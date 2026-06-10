@@ -10,7 +10,7 @@ namespace TMPro.Examples
         public enum MotionType { Rotation, SearchLight, Translation };
         public MotionType Motion;
 
-        public Vector3 TranslationDistance = new Vector3(5, 0, 0);
+        public Vector3 TranslationDistance = new(5, 0, 0);
         public float TranslationSpeed = 1.0f;
         public float SpinSpeed = 5;
         public int RotationRange = 15;

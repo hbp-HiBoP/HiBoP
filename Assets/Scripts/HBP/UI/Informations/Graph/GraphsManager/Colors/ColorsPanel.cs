@@ -1,5 +1,5 @@
 using Cysharp.Threading.Tasks;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using UnityEngine;
 

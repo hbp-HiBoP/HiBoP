@@ -1,7 +1,7 @@
-﻿using HBP.Core.Object3D;
+using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using HBP.UI.Tools.ResizableGrids;
 using System.Collections.Generic;
@@ -92,7 +92,7 @@ namespace HBP.UI.Module3D
         private void CountLabels()
         {
             string labelsTooltip = "Number of sites with";
-            Dictionary<int, int> countByNumberOfLabels = new Dictionary<int, int>();
+            Dictionary<int, int> countByNumberOfLabels = new();
             foreach (var site in m_SiteList.Objects)
             {
                 if (!countByNumberOfLabels.ContainsKey(site.State.Labels.Count))

@@ -30,11 +30,12 @@ namespace HBP.UI.Main
             {
                 using UnityWebRequest request = UnityWebRequest.Get("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
                 request.SetRequestHeader("User-Agent", "HiBoP-VersionCheck");
-                await request.SendWebRequest();
+                var operation = request.SendWebRequest();
+                await UniTask.WaitUntil(() => operation.isDone);
 
                 if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError || request.result == UnityWebRequest.Result.DataProcessingError)
                 {
-                    Debug.LogError($"Error getting latest release: {request.error}");
+                    Debug.LogError(new Exception($"Error getting latest release: {request.error}"));
                 }
                 else
                 {
@@ -45,7 +46,7 @@ namespace HBP.UI.Main
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                Debug.LogError(e.ToString());
             }
 
             if (string.Compare(version, Application.version) > 0)

@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using HBP.Core.Tools;
-using HBP.Data.Database;
+using HBP.Core.Database;
 
 namespace HBP.UI.Main
 {
@@ -24,7 +24,7 @@ namespace HBP.UI.Main
         protected override void Initialization()
         {
             base.Initialization();
-            m_Interactables = FindObjectsByType<InteractableConditions>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            m_Interactables = FindObjectsByType<InteractableConditions>(FindObjectsInactive.Include);
         }
         void Start()
         {

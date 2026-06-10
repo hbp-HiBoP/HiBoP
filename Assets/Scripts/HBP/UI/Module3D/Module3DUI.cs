@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
-using HBP.Data.Preferences;
+using HBP.Core.Preferences;
 using HBP.Core.Tools;
 
 namespace HBP.UI.Module3D
@@ -26,7 +26,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Dictionary containing all scene windows by 3D scene
         /// </summary>
-        private Dictionary<Base3DScene, Scene3DWindow> m_Scenes = new Dictionary<Base3DScene, Scene3DWindow>();
+        private Dictionary<Base3DScene, Scene3DWindow> m_Scenes = new();
         public static Dictionary<Base3DScene, Scene3DWindow> Scenes { get { return m_Instance.m_Scenes; } }
 
         /// <summary>
