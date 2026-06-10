@@ -1,0 +1,105 @@
+{
+  "@context": "https://w3id.org/codemeta/3.0",
+  "@type": "SoftwareSourceCode",
+  "name": "HiBoP",
+  "author": [
+    {
+      "givenName": "Benjamin",
+      "familyName": "Bontemps",
+      "type": "Person"
+    },
+    {
+      "givenName": "Adrien",
+      "familyName": "Gannerie",
+      "type": "Person"
+    },
+    {
+      "givenName": "Florian",
+      "familyName": "Lance",
+      "type": "Person"
+    },
+    {
+      "givenName": "Jean Philippe",
+      "familyName": "Lachaux",
+      "type": "Person"
+    }
+  ],
+  "description": "`HiBoP` is an interactive application for visualizing human intracranial brain data, including iEEG, CCEP, fMRI, electrodes, anatomical MRI, and 3D brain meshes. It is designed for researchers who need to explore multimodal brain recordings in an intuitive 3D environment, linking signals, anatomy, and electrode localizations in a consistent and visual way.",
+  "license": [
+    "https://spdx.org/licenses/BSD-3-Clause"
+  ],
+  "version": "5.0.9",
+  "dateModified": "2026-06-10",
+  "codeRepository": "https://github.com/hbp-HiBoP/HiBoP",
+  "downloadUrl": "https://github.com/hbp-HiBoP/HiBoP/releases/tag/5.0.9",
+  "relatedLink": [
+    "https://github.com/hbp-HiBoP/HiBoP/blob/master/Docs/LaTeX/HiBoP_user_manual.pdf"
+  ],
+  "releaseNotes": "- Updated to Unity 6.4\n- Cleaned project architecture\n- Fixed an issue regarding brainvision data on MacOS\n- Fixed an issue with BIDS file discovery\n- Fixed a bug with group file filter",
+  "referencePublication": "https://doi.org/10.1016/j.jneumeth.2024.110179",
+  "programmingLanguage": [
+    "C#",
+    "C++"
+  ],
+  "operatingSystem": [
+    "Windows",
+    "macOS",
+    "Linux"
+  ],
+  "availableOnDevice": [
+    "desktop"
+  ],
+  "developmentStatus": "active",
+  "keywords": [
+    "neuroscience",
+    "brain visualization",
+    "intracranial recordings",
+    "iEEG",
+    "intracranial EEG",
+    "CCEP",
+    "cortico-cortical evoked potentials",
+    "fMRI",
+    "neuroimaging",
+    "electrode localization",
+    "brain mapping",
+    "human brain",
+    "3D visualization",
+    "brain mesh",
+    "MRI",
+    "NIfTI",
+    "BIDS",
+    "GIFTI",
+    "multimodal data",
+    "Unity"
+  ],
+  "applicationCategory": "Scientific/Engineering",
+  "maintainer": [
+    {
+      "givenName": "Benjamin",
+      "familyName": "Bontemps",
+      "type": "Person"
+    }
+  ],
+  "funder": {
+    "type": "Organization",
+    "name": "Human Brain Project SGA2 - EBRAINS 2.0"
+  },
+  "funding": "785907 - 101147319",
+  "contributor": [
+    {
+      "givenName": "Adrien",
+      "familyName": "Gannerie",
+      "type": "Person"
+    },
+    {
+      "givenName": "Florian",
+      "familyName": "Lance",
+      "type": "Person"
+    },
+    {
+      "givenName": "Florian",
+      "familyName": "Sipp",
+      "type": "Person"
+    }
+  ]
+}

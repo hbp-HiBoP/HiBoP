@@ -69,7 +69,12 @@ xattr -rc HiBoP.app
 
 ## License
 
-This work is licensed under a [CC Attribution-NonCommercial 4.0 International](http://creativecommons.org/licenses/by-nc/4.0/) License.
+**HiBoP** is released under the **BSD-3-Clause License**.
+
+Copyright © 2026  
+Benjamin BONTEMPS, Adrien GANNERIE, Florian LANCE
+
+This license allows unrestricted use, modification, and redistribution of the software, while prohibiting the use of the author's name for endorsement without permission. See the [`LICENSE`](LICENSE) file for details.
 
 ## Acknowledgements
 
