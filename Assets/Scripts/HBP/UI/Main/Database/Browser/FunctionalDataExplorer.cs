@@ -2,7 +2,6 @@ using HBP.Core.Data;
 using HBP.Core.Database;
 using HBP.UI.Main;
 using HBP.UI.Tools;
-using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;

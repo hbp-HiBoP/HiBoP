@@ -1,0 +1,23 @@
+{
+    "name": "HBP.Serialization.Tests",
+    "rootNamespace": "HBP.Tests.Serialization",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "UniTask"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

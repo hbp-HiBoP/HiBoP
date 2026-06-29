@@ -1,0 +1,5 @@
+{
+  "$type": "HBP.Core.Data.BoolTag, Assembly-CSharp",
+  "ID": "legacy-bool-tag-001",
+  "Name": "legacy-bool-alpha"
+}
