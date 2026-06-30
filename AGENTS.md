@@ -65,6 +65,86 @@ get_test_job(
 )
 ```
 
+### Async Test Safety
+
+In Unity tests, be extremely suspicious of anything that turns async work into a
+synchronous wait. UniTask operations such as `Yield`, `NextFrame`, `Delay`,
+`DelayFrame`, `WaitUntil`, `SwitchToMainThread`, `SwitchToSynchronizationContext`,
+`ToUniTask`, and UnityWebRequest async flows often need the Unity PlayerLoop to
+continue running. If the test blocks the main thread, those continuations may
+never resume and the Unity Editor can freeze.
+
+Never wrap UniTask or Unity async code in blocking NUnit async assertions:
+
+```csharp
+Assert.ThrowsAsync<T>(...);
+Assert.CatchAsync<T>(...);
+Assert.DoesNotThrowAsync(...);
+```
+
+Also avoid sync assertions with async lambdas, which can create false positives,
+miss exceptions, or let exceptions escape after the test has already completed:
+
+```csharp
+Assert.Throws<T>(async () => await SomeUniTask());
+Assert.Catch(async () => await SomeUniTask());
+Assert.DoesNotThrow(async () => await SomeUniTask());
+Assert.That(async () => await SomeUniTask(), Throws.TypeOf<T>());
+```
+
+Do not block on `Task` or `UniTask` from Unity tests:
+
+```csharp
+task.Wait();
+task.Result;
+task.GetAwaiter().GetResult();
+uniTask.AsTask().Wait();
+uniTask.AsTask().Result;
+uniTask.GetAwaiter().GetResult();
+Task.WaitAll(...);
+Task.WaitAny(...);
+Task.Run(...).Wait();
+```
+
+Do not busy-wait or sleep the main thread while async Unity work is expected to
+progress:
+
+```csharp
+while (!done) { }
+Thread.Sleep(...);
+manualResetEvent.WaitOne();
+```
+
+Avoid fire-and-forget async in tests:
+
+```csharp
+async void SomeTestOrHelper() { ... }
+async UniTaskVoid SomeTestOrHelper() { ... }
+SomeUniTask().Forget();
+```
+
+All tests that touch UniTask or Unity async APIs should be `async Task` tests and
+should `await` the code directly. For expected exceptions, use an explicitly
+awaited `try/catch` helper instead of NUnit async exception assertions:
+
+```csharp
+private static async Task<Exception> CaptureExceptionAsync(Func<Task> action)
+{
+    try
+    {
+        await action();
+        return null;
+    }
+    catch (Exception exception)
+    {
+        return exception;
+    }
+}
+```
+
+Use timeouts only as guardrails around already non-blocking tests, not as a way
+to make blocking patterns acceptable.
+
 Before and after the run, check the console:
 
 ```text

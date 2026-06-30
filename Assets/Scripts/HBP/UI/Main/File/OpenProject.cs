@@ -37,32 +37,17 @@ namespace HBP.UI.Main
         #region Public Methods
         public async UniTaskVoid Load(ProjectInfo info)
         {
+            bool openedScenesConfirmed = true;
             if (ApplicationState.LoadedProject != null)
             {
                 if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
                 {
                     int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Opened visualizations", "Some visualizations of the currently loaded project are opened. Loading another project will close any opened visualization.\n\nWould you like to load another project ?", "Load project", "Cancel");
-                    if (result == 0)
-                    {
-                        Module3DMain.RemoveAllScenes();
-                        base.Close();
-                        WindowsManager.CloseAll();
-                        await ProjectLoaderSaver.LoadAsync(info);
-                    }
-                }
-                else
-                {
-                    base.Close();
-                    WindowsManager.CloseAll();
-                    await ProjectLoaderSaver.LoadAsync(info);
+                    openedScenesConfirmed = result == 0;
                 }
             }
-            else
-            {
-                base.Close();
-                WindowsManager.CloseAll();
-                await ProjectLoaderSaver.LoadAsync(info);
-            }
+
+            await ProjectWorkflowService.Default.OpenProjectAsync(info, openedScenesConfirmed);
         }
         public override void OK()
 		{
@@ -107,6 +92,10 @@ namespace HBP.UI.Main
                     await UniTask.SwitchToThreadPool();
                     ProjectInfo project = new(projectPath);
                     await UniTask.SwitchToMainThread();
+                    if (project.SettingsLoadException != null)
+                    {
+                        Debug.LogException(project.SettingsLoadException);
+                    }
                     m_ProjectList.Add(project);
                 }
                 m_ProjectList.SortByName(BaseList.Sorting.Descending);

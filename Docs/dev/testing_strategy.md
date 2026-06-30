@@ -245,8 +245,19 @@ Goal: every persisted object can round-trip and legacy files remain readable.
 
 Current status:
 
-- `HBP.Serialization.Tests` passes in EditMode through Unity MCP: 30/30 tests
-  passing.
+- Manual EditMode validation from
+  `C:/Users/Benjamin BONTEMPS/Desktop/TestResults_20260630_163656.xml`:
+  `HBP.Serialization.Tests` passed 40/40 with 0 failed, 0 skipped and 0
+  inconclusive tests. Current local changes remove low-level background
+  `Debug.LogException` calls from project loading and preserve the original
+  JSON exception as `InnerException` on controlled `CanNotRead*FileException`
+  errors. `Project.LoadAsync` tests must capture expected exceptions with an
+  explicitly awaited `try/catch`, not `Assert.ThrowsAsync` or
+  `Assert.CatchAsync`, because NUnit's synchronous async-assert wrappers can
+  block Unity's main-thread continuation while `UniTask` is switching
+  schedulers. Direct corrupted
+  patient/group/dataset/visualization `LoadAsync` tests remain quarantined
+  from the automatic EditMode suite until a non-blocking harness exists.
 - `PersistentDataTestScope` initializes `PersistentDataManager` and
   `DatabaseManager` without invoking PlayMode-only `DontDestroyOnLoad`.
 - Synthetic serialization fixtures use stable IDs and controlled
@@ -302,23 +313,149 @@ Later tests:
 
 Goal: `.hibop` projects remain loadable, saveable and internally consistent.
 
+Current status:
+
+- `ProjectArchiveTests` covers generated `.hibop` save/load for minimal and
+  complete synthetic projects.
+- Phase 2 expansion covers project constructor defaults, `ProjectInfo` archive
+  summaries, expected ZIP folders and persisted entry names,
+  load/save/re-save validity, duplicate ID reporting, cancellation cleanup,
+  missing ID reporting, corrupted settings JSON errors and accidental leakage
+  of temporary absolute paths.
+- Manual EditMode validation from
+  `C:/Users/Benjamin BONTEMPS/Desktop/TestResults_20260630_163656.xml`:
+  `HBP.Tests.Serialization.ProjectArchiveTests` passed 14/14, including
+  `LoadAsync_WhenCancelled_CleansExtractedProjectFolder` and
+  `LoadAsync_CorruptedSettingsJson_ThrowsControlledException`, and the full
+  `HBP.Serialization.Tests` assembly passed 40/40. After discovering that
+  `Debug.LogException` from project-data load failures could leave the Unity
+  Test Runner/MCP bridge waiting indefinitely, project loading was changed to
+  throw only the controlled `CanNotRead*FileException` errors for corrupted
+  project entries while keeping the original JSON exception as
+  `InnerException`. The `LoadAsync` cancellation and corrupted-settings tests
+  avoid NUnit's `Assert.ThrowsAsync` and `Assert.CatchAsync`; they use an
+  awaited local capture helper so Unity's main-thread continuation can run.
+  Direct patient/group/dataset/visualization corruption tests through
+  `Project.LoadAsync` are explicitly not part of the automatic suite for now:
+  even with test timeouts, this scenario can block the editor on unfinished
+  UniTask work.
+- Current Unity MCP validation on 2026-06-30: targeted EditMode run of
+  `HBP.Serialization.Tests` and `HBP.ProjectWorkflow.Tests` passed 93/93 with
+  0 failed and 0 skipped. `ProjectArchiveTests` now covers project mutation
+  invariants, project discovery, direct corrupted project-data entries through
+  an awaited non-blocking harness, `ProjectInfo` fallback behavior, malformed
+  archives, save/load cancellation at multiple phases, save progress, archive
+  overwrite cleanup, duplicate and invalid persisted entry file names, alias and
+  project-token path conversion, and saved settings version.
+- `ProjectInfo` preserves unreadable settings diagnostics in
+  `SettingsLoadException` without logging from its constructor. The Unity log is
+  produced at UI/loader boundaries (`OpenProject` discovery and
+  `ProjectLoaderSaver.LoadAsync`) where the error is actionable, which keeps
+  low-level project scans and tests quiet while retaining the original failure
+  details.
+- Coverage verdict as of 2026-06-30: the EditMode portion of phase 2 is now
+  complete for core archive behavior and the extracted project workflow
+  service. The current tests intentionally do not boot the full project-window
+  prefabs; remaining PlayMode work is limited to smoke coverage that verifies
+  prefab fields and service wiring rather than duplicating business logic.
+- The current "complete synthetic project" fixture is representative, not
+  exhaustive. It contains one patient, one group, one dataset, one visualization
+  and one site with representative data/column variants. Additional tests must
+  intentionally cover multi-entity edge cases, reference cleanup and invalid
+  names/IDs rather than relying on this single fixture as proof of full
+  lifecycle coverage.
+
 Initial tests:
 
-- minimal project save/load preserves archive structure.
-- complete synthetic project save/load preserves references and IDs.
-- invalid extension, missing settings and malformed archive are rejected.
-- re-saving a loaded project produces a valid archive.
+- [x] minimal project save/load preserves archive structure.
+- [x] complete synthetic project save/load preserves references and IDs.
+- [x] invalid extension and missing settings are rejected.
+- [x] malformed archive construction is rejected.
+- [x] re-saving a loaded project produces a valid archive.
 
 Add tests for:
 
-- project creation defaults;
-- project preferences, aliases and extraction paths;
-- patients, groups, protocols, datasets and visualizations stored in the
-  expected archive folders;
-- duplicate or missing IDs reported by `CheckProjectIDsAsync`;
-- load cancellation and partial extraction cleanup;
-- corrupted JSON entry reports a controlled error;
-- archive does not leak absolute machine paths unless intentionally persisted.
+- [x] project creation defaults;
+- [x] project preferences and archive summary counts through `ProjectInfo`;
+- [x] patients, groups, datasets and visualizations stored in the expected
+  archive folders and file names;
+- [x] duplicate IDs reported by `CheckProjectIDsAsync`;
+- [x] missing IDs reported by `CheckProjectIDsAsync`;
+- [x] load cancellation and partial extraction cleanup;
+- [x] corrupted settings JSON entry reports a controlled error;
+- [x] corrupted patient/group/dataset/visualization entries report controlled
+  errors with preserved inner exceptions through an awaited non-blocking
+  harness;
+- [x] archive does not leak redirected temporary absolute paths.
+- [x] `Project.SetPatients`, `RemovePatient`, `SetDatasets`,
+  `RemoveDataset`, `SetGroups`, `RemoveGroup`, `SetVisualizations` and
+  `RemoveVisualization` preserve project invariants and clean dependent
+  references in datasets, groups and visualizations.
+- [x] removing or replacing a patient removes patient data infos, group
+  memberships and visualization patient references that point to the removed
+  object.
+- [x] removing or replacing a dataset removes every visualization column that
+  references the removed dataset, including all dataset-backed column types.
+- [x] project discovery through `Project.GetProject(path)` returns only valid
+  `.hibop` archives, handles empty/missing folders predictably and ignores
+  non-project files.
+- [x] project discovery by ID returns the archive whose settings ID matches the
+  requested ID and behaves predictably for missing or unreadable settings.
+- [x] `ProjectInfo` default construction, corrupted settings fallback
+  (`CanLoadProject = false`), preserved `SettingsLoadException`, temporary
+  settings extraction cleanup and count calculation are covered directly.
+- [x] `ProjectInfo` and `Project.IsProject` malformed ZIP behavior is specified:
+  either controlled exception or false, but not an undocumented editor log or
+  hang.
+- [x] missing archive folders (`Patients/`, `Groups/`, `Datasets/`,
+  `Visualizations/`) and multiple project settings files produce documented
+  controlled errors.
+- [x] load cancellation is covered at more than one phase, not only with a token
+  cancelled before load starts.
+- [x] load progress callbacks are monotonic enough for UI consumers and finish
+  with the expected success state on valid projects.
+- [x] save rejects empty, null and non-existent destinations with a controlled
+  error and always cleans `ApplicationState.ExtractProjectFolder`.
+- [x] save cancellation cleanup is covered before JSON writing, during entity
+  writing and before the final ZIP is produced.
+- [x] saving over an existing archive replaces stale entries instead of leaving
+  removed patients/groups/datasets/visualizations in the ZIP.
+- [x] saving updates project settings version from `ApplicationState.Version`.
+- [x] project/entity names used as archive entry file names are tested for
+  collisions.
+- [x] invalid filename characters in project/entity names are either rejected
+  before save or converted to controlled save errors.
+- [x] aliases and extraction paths beyond temporary path redirection;
+- [ ] copied/embedded project data paths are covered if `CopyIcons` or
+  `EmbedDataIntoProjectFileAsync` become reachable again; otherwise their
+  removal should be tracked during refactor.
+- [x] UI lifecycle wrappers are covered with PlayMode or extracted service
+  tests: `ProjectLoaderSaver.LoadAsync`, `ProjectLoaderSaver.SaveAsync`,
+  `NewProject`, `OpenProject`, `SaveProjectAs`, project list display and the
+  QuickStart project finalization flow. The extracted `ProjectWorkflowService`
+  covers the business decisions; project-list display remains a PlayMode smoke
+  candidate.
+- [x] `ProjectLoaderSaver.LoadAsync` restores the previously loaded project and
+  location on failure, clears data manager state at the right time and updates
+  interactable/menu state on success.
+- [x] save-as and new-project overwrite prompts preserve or change project name,
+  preferences and loaded location exactly as the UI contract expects.
+- [ ] protocols as separately persisted project entries, if the archive format
+  gains protocol files instead of referencing database protocols.
+
+Phase 2 core/project-workflow coverage is complete on the extracted EditMode
+boundary. The remaining PlayMode work is explicitly smoke-only:
+`NewProjectWindow_SetFields_UsesUserDefaultNameAndLocation`,
+`SaveProjectAsWindow_Initialize_UsesLoadedProjectNameAndLocation` and
+`OpenProjectWindow_DisplayProjects_PopulatesValidProjectsAndDisablesInvalidSettingsProject`
+should be added only if the prefabs can be instantiated without a fragile full
+application boot. They are deferred for now because these windows depend on the
+main-scene UI manager graph (`WindowsManager`, `DialogBoxManager`,
+`LoadingManager`, persistent data managers and serialized prefab references);
+without a dedicated harness scene, exercising them would validate bootstrapping
+fragility more than project lifecycle behavior. Rely on
+`ProjectWorkflowService` tests for deterministic lifecycle behavior until that
+small PlayMode harness exists.
 
 ### 3. Patients, Groups, Tags and Sites
 
@@ -659,8 +796,8 @@ Track progress with a simple table in this document or a follow-up issue list.
 
 | Area | Current status | Target |
 | --- | --- | --- |
-| Serialization/core objects | Part 1 implemented: 30/30 `HBP.Serialization.Tests` passing; core JSON round-trips, preferences, legacy `$type` fixtures, missing/unknown field compatibility, ID stability, clone isolation, `Copy` identity behavior, and reflection audit for 515 JSON descriptors plus 376 lifecycle/BaseData descriptors covered | Extend when new persisted types, fields or real legacy project files are discovered |
-| Project archive lifecycle | Started | Save/load/re-save, invalid archives, cancellation |
+| Serialization/core objects | Part 1 implemented; current manual EditMode XML validation passed full `HBP.Serialization.Tests` 40/40; core JSON round-trips, preferences, legacy `$type` fixtures, missing/unknown field compatibility, ID stability, clone isolation, `Copy` identity behavior, and reflection audit for 515 JSON descriptors plus 376 lifecycle/BaseData descriptors covered | Extend when new persisted types, fields or real legacy project files are discovered |
+| Project archive lifecycle | Phase 2 core + workflow service implemented and validated on 2026-06-30: targeted Unity MCP EditMode run passed `HBP.Serialization.Tests` and `HBP.ProjectWorkflow.Tests` 93/93. Coverage includes `.hibop` save/load/re-save, archive entries, `ProjectInfo`, duplicate/missing IDs, corrupted settings and project-data entries, mutation reference cleanup, discovery by folder/ID, malformed archives, load/save cancellation at multiple phases, progress, overwrite cleanup, duplicate/invalid internal file names, settings version, temporary path leakage, alias/project-token paths and extracted project workflow decisions for load/save/new/open/save-as/QuickStart. | Keep PlayMode project-window tests as smoke-only wiring checks; revisit dead `CopyIcons`/`EmbedDataIntoProjectFileAsync` during refactor |
 | Patients/groups/sites | Partial through serialization | EditMode plus site UI/tool PlayMode |
 | Protocols/datasets/data containers | Partial through serialization | All protocol/data/container variants |
 | BIDS/localizer/database | Not covered | Synthetic fixtures and export request tests |
@@ -669,5 +806,5 @@ Track progress with a simple table in this document or a follow-up issue list.
 | Cuts/triangle erasing | Not covered | PlayMode behavior and serialization |
 | Toolbar | Not covered | One behavior per tool/group, smoke click paths |
 | Graphs/trial matrices | Not covered | Data tests plus UI PlayMode rendering |
-| Main UI workflows | Not covered | Focused PlayMode workflow smokes |
+| Main UI workflows | Project lifecycle business decisions covered through extracted EditMode service; full prefab/window click paths not yet covered | Focused PlayMode workflow smokes |
 | Asset/prefab integrity | Started | All critical prefabs/scenes/assets |

@@ -230,7 +230,7 @@ namespace HBP.Core.Data
             AddDataset(datasets);
             foreach (Visualization visualization in m_Visualizations)
             {
-                Column[] columnsToRemove = visualization.Columns.Where(column => column is IEEGColumn && !m_Datasets.Any(d => d == (column as IEEGColumn).Dataset)).ToArray();
+                Column[] columnsToRemove = visualization.Columns.Where(ReferencesMissingDataset).ToArray();
                 foreach (Column column in columnsToRemove)
                 {
                     visualization.Columns.Remove(column);
@@ -252,7 +252,7 @@ namespace HBP.Core.Data
         {
             foreach (Visualization visualization in m_Visualizations)
             {
-                visualization.Columns.RemoveAll((column) => (column is IEEGColumn) && (column as IEEGColumn).Dataset == dataset);
+                visualization.Columns.RemoveAll(column => ReferencesDataset(column, dataset));
             }
             m_Datasets.Remove(dataset);
         }
@@ -299,36 +299,43 @@ namespace HBP.Core.Data
             bool isProject = false;
             if (new FileInfo(path).Extension == EXTENSION)
             {
-                using ZipFile zip = ZipFile.Read(path);
-                bool hasPatientsDirectory = false;
-                bool hasGroupsDirectory = false;
-                bool hasDatasetsDirectory = false;
-                bool hasVisualizationsDirectory = false;
-                bool hasSettingsFile = false;
-                foreach (var entryFileName in zip.EntryFileNames)
+                try
                 {
-                    if (entryFileName == "Patients/")
+                    using ZipFile zip = ZipFile.Read(path);
+                    bool hasPatientsDirectory = false;
+                    bool hasGroupsDirectory = false;
+                    bool hasDatasetsDirectory = false;
+                    bool hasVisualizationsDirectory = false;
+                    bool hasSettingsFile = false;
+                    foreach (var entryFileName in zip.EntryFileNames)
                     {
-                        hasPatientsDirectory = true;
+                        if (entryFileName == "Patients/")
+                        {
+                            hasPatientsDirectory = true;
+                        }
+                        else if (entryFileName == "Groups/")
+                        {
+                            hasGroupsDirectory = true;
+                        }
+                        else if (entryFileName == "Datasets/")
+                        {
+                            hasDatasetsDirectory = true;
+                        }
+                        else if (entryFileName == "Visualizations/")
+                        {
+                            hasVisualizationsDirectory = true;
+                        }
+                        else if (entryFileName.EndsWith(ProjectPreferences.EXTENSION))
+                        {
+                            hasSettingsFile = true;
+                        }
                     }
-                    else if (entryFileName == "Groups/")
-                    {
-                        hasGroupsDirectory = true;
-                    }
-                    else if (entryFileName == "Datasets/")
-                    {
-                        hasDatasetsDirectory = true;
-                    }
-                    else if (entryFileName == "Visualizations/")
-                    {
-                        hasVisualizationsDirectory = true;
-                    }
-                    else if (entryFileName.EndsWith(ProjectPreferences.EXTENSION))
-                    {
-                        hasSettingsFile = true;
-                    }
+                    isProject = hasPatientsDirectory && hasGroupsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
                 }
-                isProject = hasPatientsDirectory && hasGroupsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
+                catch
+                {
+                    isProject = false;
+                }
             }
             return isProject;
         }
@@ -361,8 +368,9 @@ namespace HBP.Core.Data
                 Dictionary<string, List<Tuple<BaseData, string>>> dataByID = new();
                 void addToDict(BaseData data, string name)
                 {
-                    if (dataByID.ContainsKey(data.ID)) dataByID[data.ID].Add(new Tuple<BaseData, string>(data, name));
-                    else dataByID.Add(data.ID, new List<Tuple<BaseData, string>>(new Tuple<BaseData, string>[] { new(data, name) }));
+                    string id = data.ID ?? string.Empty;
+                    if (dataByID.ContainsKey(id)) dataByID[id].Add(new Tuple<BaseData, string>(data, name));
+                    else dataByID.Add(id, new List<Tuple<BaseData, string>>(new Tuple<BaseData, string>[] { new(data, name) }));
                 }
                 string getName(INameable data)
                 {
@@ -418,7 +426,7 @@ namespace HBP.Core.Data
                 }
                 // Check unicity and return error string
                 Dictionary<string, List<Tuple<BaseData, string>>> problematicData = new();
-                foreach (var kv in dataByID) if (kv.Value.Count > 1) problematicData.Add(kv.Key, kv.Value);
+                foreach (var kv in dataByID) if (kv.Value.Count > 1 || string.IsNullOrEmpty(kv.Key)) problematicData.Add(kv.Key, kv.Value);
                 return problematicData;
             });
         }
@@ -457,37 +465,44 @@ namespace HBP.Core.Data
                 // Load Settings.
                 token.ThrowIfCancellationRequested();
                 await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
+                token.ThrowIfCancellationRequested();
                 progress += settingsProgress;
 
                 // Load Patients.
                 token.ThrowIfCancellationRequested();
                 await LoadPatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token);
+                token.ThrowIfCancellationRequested();
                 progress += patientsProgress;
 
                 // Load Groups.
                 token.ThrowIfCancellationRequested();
                 await LoadGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token);
+                token.ThrowIfCancellationRequested();
                 progress += groupsProgress;
 
                 // Load Datasets.
                 token.ThrowIfCancellationRequested();
                 await LoadDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token);
+                token.ThrowIfCancellationRequested();
                 progress += datasetsProgress;
 
                 // Load Visualizations.
                 token.ThrowIfCancellationRequested();
                 await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token);
+                token.ThrowIfCancellationRequested();
                 progress += visualizationsProgress;
 
+                token.ThrowIfCancellationRequested();
                 updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully"));
             }
-            catch (Exception e)
+            catch
             {
-                throw e;
+                throw;
             }
             finally
             {
                 if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+                await UniTask.SwitchToMainThread();
             }
         }
         public async UniTask SaveAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -515,6 +530,11 @@ namespace HBP.Core.Data
                 progress += initializationProgress;
 
                 updateProgress.Invoke(progress, 0, new LoadingText("Saving project"));
+
+                if (HasInvalidFileNameChars(FileName))
+                {
+                    throw new CanNotSaveSettingsException();
+                }
 
                 // Save Settings.
                 token.ThrowIfCancellationRequested();
@@ -557,13 +577,14 @@ namespace HBP.Core.Data
 
                 updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully"));
             }
-            catch (Exception e)
+            catch
             {
-                throw e;
+                throw;
             }
             finally
             {
                 if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+                await UniTask.SwitchToMainThread();
             }
         }
         #endregion
@@ -581,10 +602,38 @@ namespace HBP.Core.Data
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
-                throw new CanNotReadSettingsFileException(settingsFiles[0].Name);
+                throw new CanNotReadSettingsFileException(settingsFiles[0].Name, e);
             }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
+        }
+
+        private bool ReferencesMissingDataset(Column column)
+        {
+            Dataset dataset = GetColumnDataset(column);
+            return IsDatasetBackedColumn(column) && (dataset == null || !m_Datasets.Contains(dataset));
+        }
+
+        private static bool ReferencesDataset(Column column, Dataset dataset)
+        {
+            return GetColumnDataset(column) == dataset;
+        }
+
+        private static bool IsDatasetBackedColumn(Column column)
+        {
+            return column is IEEGColumn or CCEPColumn or FMRIColumn or MEGColumn or StaticColumn;
+        }
+
+        private static Dataset GetColumnDataset(Column column)
+        {
+            return column switch
+            {
+                IEEGColumn ieegColumn => ieegColumn.Dataset,
+                CCEPColumn ccepColumn => ccepColumn.Dataset,
+                FMRIColumn fmriColumn => fmriColumn.Dataset,
+                MEGColumn megColumn => megColumn.Dataset,
+                StaticColumn staticColumn => staticColumn.Dataset,
+                _ => null
+            };
         }
         private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
@@ -601,8 +650,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
-                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name), e);
                 }
             }));
             patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
@@ -622,8 +670,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
-                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name), e);
                 }
             }));
             groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
@@ -643,8 +690,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
-                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name), e);
                 }
             }));
             datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
@@ -664,8 +710,7 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    Debug.LogException(e);
-                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name));
+                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name), e);
                 }
             }));
             visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
@@ -691,74 +736,127 @@ namespace HBP.Core.Data
         private async UniTask SavePatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo patientDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Patients"));
-            var tasks = m_Patients.Select(patient => (Func<UniTask>)(async () =>
+            HashSet<string> reservedPaths = new(StringComparer.OrdinalIgnoreCase);
+            var tasks = m_Patients.Select(patient =>
             {
-                try
+                string patientPath = ReserveUniqueFilePath(Path.Combine(patientDirectory.FullName, BuildSafeFileName(patient.ID, Patient.EXTENSION, "patient")), reservedPaths);
+                return (Func<UniTask>)(async () =>
                 {
-                    await ClassLoaderSaver.SaveToJsonAsync(patient, Path.Combine(patientDirectory.FullName, patient.ID + Patient.EXTENSION));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            }));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJsonAsync(patient, patientPath, true);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
+                });
+            });
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
         private async UniTask SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo groupDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Groups"));
-            var tasks = m_Groups.Select(group => (Func<UniTask>)(async () =>
+            HashSet<string> reservedPaths = new(StringComparer.OrdinalIgnoreCase);
+            var tasks = m_Groups.Select(group =>
             {
-                try
+                string groupPath = ReserveUniqueFilePath(Path.Combine(groupDirectory.FullName, BuildSafeFileName(group.Name, Group.EXTENSION, "group")), reservedPaths);
+                return (Func<UniTask>)(async () =>
                 {
-                    await ClassLoaderSaver.SaveToJsonAsync(group, Path.Combine(groupDirectory.FullName, group.Name + Group.EXTENSION));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            }));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJsonAsync(group, groupPath, true);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
+                });
+            });
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
         private async UniTask SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo datasetDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Datasets"));
-            var tasks = m_Datasets.Select(dataset => (Func<UniTask>)(async () =>
+            HashSet<string> reservedPaths = new(StringComparer.OrdinalIgnoreCase);
+            var tasks = m_Datasets.Select(dataset =>
             {
-                try
+                string datasetPath = ReserveUniqueFilePath(Path.Combine(datasetDirectory.FullName, BuildSafeFileName(dataset.Name, Dataset.EXTENSION, "dataset")), reservedPaths);
+                return (Func<UniTask>)(async () =>
                 {
-                    await ClassLoaderSaver.SaveToJsonAsync(dataset, Path.Combine(datasetDirectory.FullName, dataset.Name + Dataset.EXTENSION));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            }));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJsonAsync(dataset, datasetPath, true);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
+                });
+            });
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
         private async UniTask SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo visualizationDirectory = Directory.CreateDirectory(Path.Combine(projectDirectory.FullName, "Visualizations"));
-            var tasks = m_Visualizations.Select(visualization => (Func<UniTask>)(async () =>
+            HashSet<string> reservedPaths = new(StringComparer.OrdinalIgnoreCase);
+            var tasks = m_Visualizations.Select(visualization =>
             {
-                try
+                string visualizationPath = ReserveUniqueFilePath(Path.Combine(visualizationDirectory.FullName, BuildSafeFileName(visualization.Name, Visualization.EXTENSION, "visualization")), reservedPaths);
+                return (Func<UniTask>)(async () =>
                 {
-                    await ClassLoaderSaver.SaveToJsonAsync(visualization, Path.Combine(visualizationDirectory.FullName, visualization.Name + Visualization.EXTENSION));
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    throw new CanNotSaveSettingsException();
-                }
-            }));
+                    try
+                    {
+                        await ClassLoaderSaver.SaveToJsonAsync(visualization, visualizationPath, true);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                        throw new CanNotSaveSettingsException();
+                    }
+                });
+            });
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
+        }
+
+        private static string ReserveUniqueFilePath(string path, ISet<string> reservedPaths)
+        {
+            string result = path;
+            string extension = Path.GetExtension(path);
+            string pathWithoutExtension = Path.Combine(Path.GetDirectoryName(path), Path.GetFileNameWithoutExtension(path));
+            int count = 0;
+            while (File.Exists(result) || reservedPaths.Contains(result))
+            {
+                result = string.Format("{0}({1}){2}", pathWithoutExtension, ++count, extension);
+            }
+            reservedPaths.Add(result);
+            return result;
+        }
+
+        private static string BuildSafeFileName(string fileNameWithoutExtension, string extension, string fallbackName)
+        {
+            string safeName = string.IsNullOrWhiteSpace(fileNameWithoutExtension) ? fallbackName : fileNameWithoutExtension;
+            foreach (char invalidChar in Path.GetInvalidFileNameChars())
+            {
+                safeName = safeName.Replace(invalidChar, '_');
+            }
+            if (string.IsNullOrWhiteSpace(safeName))
+            {
+                safeName = fallbackName;
+            }
+            return safeName + extension;
+        }
+
+        private static bool HasInvalidFileNameChars(string fileName)
+        {
+            return fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0;
         }
 
         private void CopyIcons(string oldIconsDirectoryPath, string newIconsDirectoryPath)

@@ -119,7 +119,10 @@ namespace HBP.Core.Exceptions
         {
             Title = "Can not read settings file.";
         }
-        public CanNotReadSettingsFileException(string file, Exception inner) : base(file, inner) { }
+        public CanNotReadSettingsFileException(string file, Exception inner) : base("Settings <color=red>" + file + "</color> could not be loaded.\n\nPlease verify the file.", inner)
+        {
+            Title = "Can not read settings file.";
+        }
         protected CanNotReadSettingsFileException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
@@ -147,7 +150,10 @@ namespace HBP.Core.Exceptions
         {
             Title = "Can not read patient file.";
         }
-        public CanNotReadPatientFileException(string message, Exception inner) : base(message, inner) { }
+        public CanNotReadPatientFileException(string file, Exception inner) : base("Patient <color=red>" + file + "</color> could not be loaded.\n\nPlease verify the file.", inner)
+        {
+            Title = "Can not read patient file.";
+        }
         protected CanNotReadPatientFileException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
@@ -162,7 +168,10 @@ namespace HBP.Core.Exceptions
         {
             Title = "Can not read group file.";
         }
-        public CanNotReadGroupFileException(string message, Exception inner) : base(message, inner) { }
+        public CanNotReadGroupFileException(string file, Exception inner) : base("Group <color=red>" + file + "</color> could not be loaded.\n\nPlease verify the file.", inner)
+        {
+            Title = "Can not read group file.";
+        }
         protected CanNotReadGroupFileException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
@@ -190,7 +199,10 @@ namespace HBP.Core.Exceptions
         {
             Title = "Can not read dataset file.";
         }
-        public CanNotReadDatasetFileException(string message, Exception inner) : base(message, inner) { }
+        public CanNotReadDatasetFileException(string file, Exception inner) : base("Dataset <color=red>" + file + "</color> could not be loaded.\n\nPlease verify the file.", inner)
+        {
+            Title = "Can not read dataset file.";
+        }
         protected CanNotReadDatasetFileException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
@@ -204,7 +216,10 @@ namespace HBP.Core.Exceptions
         {
             Title = "Can not read visualization file.";
         }
-        public CanNotReadVisualizationFileException(string message, Exception inner) : base(message, inner) { }
+        public CanNotReadVisualizationFileException(string file, Exception inner) : base("Visualization <color=red>" + file + "</color> could not be loaded.\n\nPlease verify the file.", inner)
+        {
+            Title = "Can not read visualization file.";
+        }
         protected CanNotReadVisualizationFileException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }

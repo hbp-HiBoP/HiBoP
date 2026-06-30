@@ -33,24 +33,20 @@ namespace HBP.UI.Main
         #region Public Methods
         public override async void OK()
         {
+            bool overwriteConfirmed = true;
             if (new FileInfo(Path.Combine(m_LocationFolderSelector.Folder, string.Format("{0}.hibop", m_NameInputField.text))).Exists)
             {
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Project already exists", string.Format("A project named {0} already exists within the selected directory.\n\nWould you like to override this project?", m_NameInputField.text), "OK", "Cancel");
-                if (result == 0)
-                {
-                    var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
-                    ApplicationState.LoadedProject.Name = m_NameInputField.text;
-                    ApplicationState.LoadedProject.Preferences = preferences;
-                    ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder).Forget();
-                    base.OK();
-                }
+                overwriteConfirmed = result == 0;
             }
-            else
+
+            ProjectWorkflowResult workflowResult = await ProjectWorkflowService.Default.SaveProjectAsAsync(
+                m_NameInputField.text,
+                m_LocationFolderSelector.Folder,
+                overwriteConfirmed);
+
+            if (workflowResult.Success)
             {
-                var preferences = ApplicationState.LoadedProject.Preferences.Clone() as ProjectPreferences;
-                ApplicationState.LoadedProject.Name = m_NameInputField.text;
-                ApplicationState.LoadedProject.Preferences = preferences;
-                ProjectLoaderSaver.Save(m_LocationFolderSelector.Folder).Forget();
                 base.OK();
             }
         }

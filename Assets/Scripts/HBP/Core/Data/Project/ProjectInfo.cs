@@ -2,7 +2,6 @@
 using Ionic.Zip;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
-using UnityEngine;
 
 namespace HBP.Core.Data
 {
@@ -16,6 +15,7 @@ namespace HBP.Core.Data
         public int Datasets { get; set; }
         public int Visualizations { get; set; }
         public string Path { get; set; }
+        public System.Exception SettingsLoadException { get; private set; }
         #endregion
 
         #region Constructors
@@ -28,6 +28,7 @@ namespace HBP.Core.Data
             Datasets = 0;
             Visualizations = 0;
             Path = string.Empty;
+            SettingsLoadException = null;
         }
         public ProjectInfo(string path) : base()
         {
@@ -65,7 +66,7 @@ namespace HBP.Core.Data
                         }
                         catch (System.Exception e)
                         {
-                            Debug.LogException(e);
+                            SettingsLoadException = e;
                             Settings = new ProjectPreferences();
                             Settings.CanLoadProject = false;
                         }

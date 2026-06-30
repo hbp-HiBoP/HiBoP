@@ -2,10 +2,8 @@
 using UnityEngine.UI;
 using HBP.Core.Tools;
 using HBP.Core.Data;
-using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
-using System.Threading;
 
 namespace HBP.UI.Main.QuickStart
 {
@@ -52,8 +50,7 @@ namespace HBP.UI.Main.QuickStart
             }
         }
 
-        private Project m_CurrentlyOpenedProject;
-        private string m_CurrentlyOpenedProjectLocation;
+        private HBP.UI.Tools.ProjectWorkflowSnapshot m_QuickStartSnapshot;
         #endregion
 
         #region Private Methods
@@ -74,17 +71,12 @@ namespace HBP.UI.Main.QuickStart
                 if (CurrentPanel == null)
                     Finish().Forget();
             });
-            m_CurrentlyOpenedProject = ApplicationState.LoadedProject;
-            m_CurrentlyOpenedProjectLocation = ApplicationState.LoadedProjectLocation;
-            ApplicationState.LoadedProject = new Project();
-            ApplicationState.LoadedProjectLocation = Application.dataPath;
+            m_QuickStartSnapshot = ProjectWorkflowService.Default.QuickStartBegin(Application.dataPath);
         }
         private async UniTaskVoid Finish()
         {
             base.Close();
-            await LoadingManager.LoadAsync((update, token) => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update, token));
-            InteractableStateManager.SetInteractables();
-            LoadingManager.Load((update, token) => Module3DMain.LoadAsync(ApplicationState.LoadedProject.Visualizations, update, token));
+            await ProjectWorkflowService.Default.QuickStartFinishAsync();
         }
         #endregion
 
@@ -92,8 +84,7 @@ namespace HBP.UI.Main.QuickStart
         public override void Close()
         {
             base.Close();
-            ApplicationState.LoadedProject = m_CurrentlyOpenedProject;
-            ApplicationState.LoadedProjectLocation = m_CurrentlyOpenedProjectLocation;
+            ProjectWorkflowService.Default.QuickStartCancel(m_QuickStartSnapshot);
         }
         #endregion
     }
