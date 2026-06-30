@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.agm.edge-detection": "https://github.com/AGM-GR/EdgeDetection.git#1.1.0",
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.crnl.hibop_utilities": "https://github.com/hbp-HiBoP/HiBoP_Utilities.git",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.unity.2d.sprite": "1.0.0",
