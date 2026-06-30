@@ -97,6 +97,7 @@ namespace HBP.Tests.Serialization.Helpers
             DataInfo[] data =
             {
                 new IEEGDataInfo("signal-alpha", protocol, new Elan("synthetic.eeg", "synthetic.pos", "", errors, warnings, "synthetic-container-elan-001"), errors, warnings, patient, NormalizationType.Auto, "synthetic-db-001", "synthetic-data-ieeg-001"),
+                new IEEGDataInfo("signal-micromed-alpha", protocol, new Micromed("synthetic.trc", errors, warnings, "synthetic-container-micromed-001"), errors, warnings, patient, NormalizationType.Auto, "synthetic-db-001", "synthetic-data-ieeg-micromed-001"),
                 new CCEPDataInfo("response-alpha", protocol, new EDF("synthetic.edf", errors, warnings, "synthetic-container-edf-001"), errors, warnings, patient, "channel-alpha", "synthetic-db-001", "synthetic-data-ccep-001"),
                 new FMRIDataInfo("fmri-alpha", protocol, new Nifti("synthetic-fmri.nii", errors, warnings, "synthetic-container-fmri-001"), new Nifti("synthetic-mask.nii", errors, warnings, "synthetic-container-mask-001"), errors, warnings, patient, "synthetic-db-001", "synthetic-data-fmri-001"),
                 new MEGcDataInfo("megc-alpha", protocol, new BrainVision("synthetic.vhdr", errors, warnings, "synthetic-container-brainvision-001"), errors, warnings, patient, "synthetic-db-001", "synthetic-data-megc-001"),
@@ -110,25 +111,28 @@ namespace HBP.Tests.Serialization.Helpers
 
         public static Visualization CreateVisualization(Patient patient, Dataset dataset, Bloc bloc)
         {
-            BaseConfiguration baseConfiguration = new(
-                0.75f,
-                new Dictionary<string, SiteConfiguration>
-                {
-                    { SiteId, new SiteConfiguration(false, true, Color.cyan, new[] { "label-alpha" }, "synthetic-site-config-001") }
-                },
-                "synthetic-base-config-001");
-
             Column[] columns =
             {
-                new AnatomicColumn("anatomic-alpha", baseConfiguration, new AnatomicConfiguration("synthetic-anatomic-config-001"), "synthetic-column-anatomic-001"),
-                new IEEGColumn("ieeg-alpha", baseConfiguration.Clone() as BaseConfiguration, dataset, "signal-alpha", bloc, new DynamicConfiguration(12, -1, 0, 1, "synthetic-dynamic-config-001"), "synthetic-column-ieeg-001"),
-                new CCEPColumn("ccep-alpha", baseConfiguration.Clone() as BaseConfiguration, dataset, "response-alpha", bloc, new DynamicConfiguration(10, -2, 0, 2, "synthetic-ccep-config-001"), "synthetic-column-ccep-001"),
-                new FMRIColumn("fmri-alpha", baseConfiguration.Clone() as BaseConfiguration, dataset, new FMRIConfiguration(0.1f, 0.5f, 0.1f, 0.5f, false, true, false, "synthetic-fmri-config-001"), "synthetic-column-fmri-001"),
-                new MEGColumn("meg-alpha", baseConfiguration.Clone() as BaseConfiguration, dataset, new MEGConfiguration(0.1f, 0.5f, 0.1f, 0.5f, true, false, false, "synthetic-meg-config-001"), "synthetic-column-meg-001"),
-                new StaticColumn("static-alpha", baseConfiguration.Clone() as BaseConfiguration, dataset, "static-alpha", new StaticConfiguration(9, -1, 0, 1, "synthetic-static-config-001"), "synthetic-column-static-001")
+                new AnatomicColumn("anatomic-alpha", CreateBaseConfiguration("anatomic"), new AnatomicConfiguration("synthetic-anatomic-config-001"), "synthetic-column-anatomic-001"),
+                new IEEGColumn("ieeg-alpha", CreateBaseConfiguration("ieeg"), dataset, "signal-alpha", bloc, new DynamicConfiguration(12, -1, 0, 1, "synthetic-dynamic-config-001"), "synthetic-column-ieeg-001"),
+                new CCEPColumn("ccep-alpha", CreateBaseConfiguration("ccep"), dataset, "response-alpha", bloc, new DynamicConfiguration(10, -2, 0, 2, "synthetic-ccep-config-001"), "synthetic-column-ccep-001"),
+                new FMRIColumn("fmri-alpha", CreateBaseConfiguration("fmri"), dataset, new FMRIConfiguration(0.1f, 0.5f, 0.1f, 0.5f, false, true, false, "synthetic-fmri-config-001"), "synthetic-column-fmri-001"),
+                new MEGColumn("meg-alpha", CreateBaseConfiguration("meg"), dataset, new MEGConfiguration(0.1f, 0.5f, 0.1f, 0.5f, true, false, false, "synthetic-meg-config-001"), "synthetic-column-meg-001"),
+                new StaticColumn("static-alpha", CreateBaseConfiguration("static"), dataset, "static-alpha", new StaticConfiguration(9, -1, 0, 1, "synthetic-static-config-001"), "synthetic-column-static-001")
             };
 
             return new Visualization("visualization-alpha", new[] { patient }, columns, new VisualizationConfiguration(), VisualizationId);
+        }
+
+        private static BaseConfiguration CreateBaseConfiguration(string suffix)
+        {
+            return new BaseConfiguration(
+                0.75f,
+                new Dictionary<string, SiteConfiguration>
+                {
+                    { SiteId, new SiteConfiguration(false, true, Color.cyan, new[] { "label-alpha" }, $"synthetic-site-config-{suffix}-001") }
+                },
+                $"synthetic-base-config-{suffix}-001");
         }
     }
 }

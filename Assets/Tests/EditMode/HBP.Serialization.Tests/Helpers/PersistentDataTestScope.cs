@@ -38,10 +38,17 @@ namespace HBP.Tests.Serialization.Helpers
             ResetSingleton<DatabaseManager>();
 
             m_PersistentDataObject = new GameObject("PersistentDataManager_Test");
-            EnsureInitialized(m_PersistentDataObject.AddComponent<PersistentDataManager>());
+            PersistentDataManager persistentDataManager = m_PersistentDataObject.AddComponent<PersistentDataManager>();
+            SetSingleton(persistentDataManager);
+            SetPrivateField(persistentDataManager, "m_UserPreferences", UserPreferences.Initialize());
+            SetPrivateField(persistentDataManager, "m_Tags", TagCollection.Initialize());
+            SetPrivateField(persistentDataManager, "m_Aliases", AliasCollection.Initialize());
+            SetPrivateField(persistentDataManager, "m_FilterConditionsPresets", FilterConditionsPresetCollection.Initialize());
 
             m_DatabaseObject = new GameObject("DatabaseManager_Test");
-            EnsureInitialized(m_DatabaseObject.AddComponent<DatabaseManager>());
+            DatabaseManager databaseManager = m_DatabaseObject.AddComponent<DatabaseManager>();
+            SetSingleton(databaseManager);
+            SetPrivateField(databaseManager, "m_Database", new GlobalDatabase());
         }
 
         public void Dispose()
@@ -65,12 +72,16 @@ namespace HBP.Tests.Serialization.Helpers
             field.SetValue(null, null);
         }
 
-        private static void EnsureInitialized<T>(T manager) where T : MonoBehaviour
+        private static void SetSingleton<T>(T manager) where T : MonoBehaviour
         {
-            if (Singleton<T>.IsInitialized) return;
+            FieldInfo field = typeof(Singleton<T>).GetField("m_Instance", BindingFlags.NonPublic | BindingFlags.Static);
+            field.SetValue(null, manager);
+        }
 
-            MethodInfo awake = typeof(Singleton<T>).GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance);
-            awake.Invoke(manager, null);
+        private static void SetPrivateField<T>(T target, string fieldName, object value)
+        {
+            FieldInfo field = typeof(T).GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            field.SetValue(target, value);
         }
     }
 }

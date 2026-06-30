@@ -1,4 +1,5 @@
 ﻿using HBP.Core.Enums;
+using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
@@ -205,7 +206,7 @@ namespace HBP.Core.Data
             return new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap,
                 MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts,
                 HideBlacklistedSites, ShowAllSites, AutomaticCutAroundSelectedSite, SiteGain, MRICalMinFactor,
-                MRICalMaxFactor, CameraType, Cuts, Views, RegionsOfInterest, ID);
+                MRICalMaxFactor, CameraType, Cuts.ToList(), Views.ToList(), RegionsOfInterest.DeepClone().ToList(), ID);
         }
         public override void Copy(object copy)
         {
@@ -235,6 +236,7 @@ namespace HBP.Core.Data
                 RegionsOfInterest = visualizationConfiguration.RegionsOfInterest;
             }
         }
+
         #endregion
     }
 }

@@ -1,0 +1,7 @@
+{
+  "$type": "HBP.Core.Data.ProjectPreferences, Assembly-CSharp",
+  "ID": "legacy-project-preferences-v0-001",
+  "Version": "0.0.0-alpha",
+  "LegacyWorkspacePath": "ignored",
+  "LegacyProjectDatabase": "ignored"
+}

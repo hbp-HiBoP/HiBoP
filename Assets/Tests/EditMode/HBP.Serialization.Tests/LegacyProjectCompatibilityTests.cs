@@ -15,6 +15,7 @@ namespace HBP.Tests.Serialization
         [TestCase("legacy_bool_tag_assembly_csharp.json", typeof(BoolTag))]
         [TestCase("legacy_user_preferences_namespace.json", typeof(HBP.Core.Preferences.UserPreferences))]
         [TestCase("legacy_database_settings_namespace.json", typeof(GlobalDatabaseSettings))]
+        [TestCase("legacy_project_preferences_v0.json", typeof(ProjectPreferences))]
         public void LegacyFixtures_LoadWithExpectedConcreteType(string fileName, Type expectedType)
         {
             string json = File.ReadAllText(TestPathUtility.FixturePath("Serialization", fileName));
@@ -33,6 +34,18 @@ namespace HBP.Tests.Serialization
             Exception exception = Assert.Catch(() => ClassLoaderSaver.LoadFromJsonString<object>(json));
             Assert.That(exception.GetType().FullName, Is.EqualTo("Newtonsoft.Json.JsonSerializationException"));
             Assert.That(exception.Message, Does.Contain("was not resolved"));
+        }
+
+        [Test]
+        public void LegacyProjectPreferencesV0_LoadsKnownFieldsAndIgnoresObsoleteFields()
+        {
+            string json = File.ReadAllText(TestPathUtility.FixturePath("Serialization", "legacy_project_preferences_v0.json"));
+
+            ProjectPreferences preferences = ClassLoaderSaver.LoadFromJsonString<ProjectPreferences>(json);
+
+            Assert.That(preferences.ID, Is.EqualTo("legacy-project-preferences-v0-001"));
+            Assert.That(preferences.Version, Is.EqualTo("0.0.0-alpha"));
+            Assert.That(preferences.CanLoadProject, Is.True);
         }
 
         [Test]
