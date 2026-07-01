@@ -768,22 +768,30 @@ Add EditMode characterization where possible for:
 
 Goal: cut planes, site-centered cuts and triangle erasing remain stable.
 
-Add PlayMode tests for:
+Implemented on 2026-07-01 with EditMode and PlayMode coverage. The PlayMode
+tests use isolated Module3D scene harnesses for cut and triangle-erasing command
+paths so they do not depend on the full MNI/`InitializeAsync` loading pipeline.
+Native full-scene cut-around-site integration should be reintroduced only with a
+stable real-fixture policy.
+
+Added PlayMode tests for:
 
 - add, remove and update cut plane;
 - cut mode toggles the expected scene state;
 - cut color changes update materials/preferences;
-- cut around selected site creates the expected cut parameters;
+- cut-around-site toolbar state marks the scene cut state dirty;
 - cut parameters UI writes back to scene state;
 - triangle erasing mode toggles;
-- expand, invert, reset and cancel erasing mutate only the target mesh state;
+- reset, cancel and mask reload mutate only the target mesh state;
+- expand and invert toolbar interactability is covered without invoking the
+  native ray-based erasing path from a synthetic zero-ray harness;
 - saved triangle-erasing state can be loaded back.
 
-Add lower-level tests for:
+Added lower-level tests for:
 
 - `Cut` geometry/configuration serialization;
 - `CutTexturesUtility` deterministic behavior on synthetic inputs;
-- native cut generator unavailable path.
+- cut plane fallback behavior when no native brain surface is available.
 
 ### 9. Toolbar Coverage
 
@@ -1015,7 +1023,7 @@ Track progress with a simple table in this document or a follow-up issue list.
 | BIDS/localizer/database | Phase 5 EditMode coverage added for synthetic BIDS discovery/import, BIDS export config and generated TSV/JSON paths, missing metadata validation, database reference serialization for BrainVisa/Localizer/BIDS/Tags, and localizer protocol/data/bloc discovery without a 3D scene. Phase 5 PlayMode coverage added on 2026-07-01 for the Database Browser, BIDS export and Localizer atlas export window prefabs with seeded synthetic database state; Unity MCP PlayMode run passed the local PlayMode assemblies 21/21. | Extend when new database import/export workflows, export selections or database window states are introduced |
 | DataManager/data processing | Phase 6 EditMode coverage added for `DataManager` load/unload/reload cache lifecycle, invalid data defaults, `Clear`, channel/event statistics, concurrent cached reads, processed iEEG unload cleanup and all iEEG normalization modes. Phase 6 PlayMode coverage added on 2026-07-01 for static CSV cache lifecycle, `Clear` across multiple loaded entries and invalid data defaults under isolated runtime scopes. Unity MCP EditMode run passed `HBP.Serialization.Tests` 104/104. | Add separate native integration tests only when real EEG/NIfTI fixture policy and platform skip rules are agreed |
 | Module3D scene/view/camera/columns | Phase 7 coverage expanded on 2026-07-01: EditMode `HBP.Serialization.Tests` passed 114/114 with visualization configuration/column variants, Module3D parameter containers, atlas metadata, `SceneInformation` invalidation cascades and Scene/View/Column/DisplayedObjects/manager prefab asset-contract tests; PlayMode `HBP.Module3D.PlayModeTests` passed 22/22 with controlled `Module3DMain` selected scene/column/view state, Base3DScene column aggregation/selection, visibility/focus events and export directory generation, Module3D selection events, Column3D state and configuration load/save, initialized scene configuration load/save, view-line removal fallback, initialized multi-column view-line/cut synchronization, View3D minimized/selection/camera-circle/viewport/render-target state, Camera3D zoom/strafe limits, standard/default views, camera type and auto-rotation propagation, ROI mask invalidation, compare-site manager state, TriangleEraser invisible-mesh toggle behavior, awaitable `CleanAsync` generated-object cleanup, non-blocking `CanNotLoadMNI` coverage and a positive synthetic OBJ-backed MNI/anatomy-column path for `InitializeAsync`. Local PlayMode assemblies passed 45/45. | Add native integration tests only when real MNI/mesh/MRI fixture policy and platform skip rules are agreed |
-| Cuts/triangle erasing | Partially covered through phase 7 PlayMode cut add/remove synchronization and TriangleEraser invisible-mesh toggle behavior | Extend with full erasing geometry, undo stack, cleanup and serialization |
+| Cuts/triangle erasing | Phase 8 coverage added on 2026-07-01: EditMode `HBP.Serialization.Tests` passed 117/117 with `Cut` JSON/runtime defaults and deterministic `CutTexturesUtility` synthetic-input behavior; PlayMode `HBP.Module3D.PlayModeTests` passed 28/28, including Phase 8 6/6 for isolated cut add/update/remove, cut toolbar mode/color/cut-around-site state, cut parameter UI writeback/removal, triangle-erasing mask load/reset/cancel target isolation, triangle erasing toolbar mode/degrees/reset/cancel/interactability, and no-native-surface cut fallback. Local PlayMode assemblies passed 51/51. | Add real native integration for site-centered cut generation and ray-based expand/invert erasing when MNI/mesh/MRI fixture policy and platform skip rules are agreed |
 | Toolbar | PlayMode assembly and isolated scene smoke harness created | One behavior per tool/group, smoke click paths |
 | Graphs/trial matrices | Not covered | Data tests plus UI PlayMode rendering |
 | Main UI workflows | Project lifecycle business decisions covered through extracted EditMode service; full prefab/window click paths not yet covered. PlayMode workflow assembly and synthetic project harness created | Focused PlayMode workflow smokes |
