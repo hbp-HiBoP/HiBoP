@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -333,9 +334,9 @@ namespace HBP.Data.BIDS
                 }
 
                 // Add x, y, z coordinates
-                rowValues.Add(x.ToString("F3"));
-                rowValues.Add(y.ToString("F3"));
-                rowValues.Add(z.ToString("F3"));
+                rowValues.Add(x.ToString("F3", CultureInfo.InvariantCulture));
+                rowValues.Add(y.ToString("F3", CultureInfo.InvariantCulture));
+                rowValues.Add(z.ToString("F3", CultureInfo.InvariantCulture));
 
                 // Add size (fixed to 0 for now)
                 rowValues.Add("0");

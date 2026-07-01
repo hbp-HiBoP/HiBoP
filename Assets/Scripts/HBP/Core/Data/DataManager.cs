@@ -415,17 +415,22 @@ namespace HBP.Core.Data
                         break;
                 }
             }
+            List<BlocRequest> blocRequestsRequiringStatisticsReset = new();
             m_DataLock.EnterWriteLock();
             try
             {
                 while (m_BlocRequestsRequiringStatisticsReset.Count > 0)
                 {
-                    UnloadStatistics(m_BlocRequestsRequiringStatisticsReset.Pop());
+                    blocRequestsRequiringStatisticsReset.Add(m_BlocRequestsRequiringStatisticsReset.Pop());
                 }
             }
             finally
             {
                 m_DataLock.ExitWriteLock();
+            }
+            foreach (var request in blocRequestsRequiringStatisticsReset)
+            {
+                UnloadStatistics(request);
             }
         }
 

@@ -461,68 +461,158 @@ small PlayMode harness exists.
 
 Goal: patient metadata and site state survive editing and filtering.
 
+Current status:
+
+- EditMode phase 3 characterization covers patient creation and JSON
+  round-trip with mesh, MRI, site coordinates and patient/site tag values.
+- Group persistence now verifies that serialized patient IDs resolve back to
+  the loaded project patient objects.
+- Site state coverage includes labels, highlighted/blacklisted flags,
+  selection event state, configuration save/load and visualization site gain.
+- Site filters are covered at the lowest practical layer for name, site tag,
+  patient tag, raw position, data state, data type and scene-location delegate
+  behavior.
+- Synthetic CSV import/tag-generation coverage exists for site attributes
+  through `Site.LoadSitesFromCSVFile` and `TagCollection.GenerateSiteTagsFromCSV`.
+  Full site-tools import/export windows and compare-site toolbar behavior remain
+  PlayMode harness candidates because their current implementation depends on
+  `Base3DScene`, selected columns and UI-only file browser/loading services.
+
 Add tests for:
 
-- patient creation with meshes, MRI, sites and tag values;
-- group membership and patient references;
-- site coordinates, labels, tags, selection flags, blacklisted state and gain;
-- site filters by name, tag, data state, data type and scene location;
-- CSV import/export for site attributes through a service-level boundary or a
+- [x] patient creation with meshes, MRI, sites and tag values;
+- [x] group membership and patient references;
+- [x] site coordinates, labels, tags, selection flags, blacklisted state and gain;
+- [x] site filters by name, tag, data state, data type and scene location;
+- [x] CSV import for site attributes through a service-level boundary;
+- [ ] CSV export for site attributes through a service-level boundary or a
   controlled UI PlayMode test;
-- copy/change site attributes from the site tools window;
-- selected site and compared site state.
+- [x] copy/change site attributes through the underlying `SiteState`
+  application boundary;
+- [ ] copy/change site attributes from the site tools window;
+- [x] selected site state;
+- [ ] compared site state through a controlled scene/toolbar PlayMode harness.
 
 ### 4. Protocols, Datasets and Data Containers
 
 Goal: protocol/dataset definitions and data references remain stable.
 
+Current status:
+
+- EditMode phase 4 characterization covers basic protocol normalization through
+  `SetBasicProtocolFeatures` and advanced protocol round-trip with multiple
+  blocs/sub-blocs, events, icons and all current treatment types.
+- Dataset coverage now asserts protocol propagation, patient reference
+  resolution after attaching a loaded dataset to a project, and typed accessors
+  for static, iEEG, CCEP, fMRI, shared fMRI and MEG data infos.
+- Data container coverage explicitly locks the current CSV, BrainVision, EDF,
+  Elan, FIF, Micromed and NIfTI metadata variants through synthetic data infos.
+- Path handling is covered through alias short-path serialization and
+  conversion back to full paths under redirected test roots.
+- Missing files, empty paths and unsupported file extensions are covered through
+  deterministic `GetErrors` checks without invoking native data readers.
+
 Add tests for:
 
-- protocol creation with basic and advanced blocs;
-- sub-bloc events, icons and treatments (`Abs`, `Clamp`, `Factor`, `Mean`,
+- [x] protocol creation with basic and advanced blocs;
+- [x] sub-bloc events, icons and treatments (`Abs`, `Clamp`, `Factor`, `Mean`,
   `Median`, `Min`, `Max`, `Offset`, `Rescale`, `Threshold`);
-- dataset references to protocols and patients;
-- data info variants: static, iEEG, CCEP, fMRI, shared fMRI, MEG;
-- data container variants: CSV, BrainVision, EDF, Elan, FIF, Micromed, NIfTI;
-- relative/absolute path normalization under redirected test roots;
-- missing files and unsupported formats report predictable errors.
+- [x] dataset references to protocols and patients;
+- [x] data info variants: static, iEEG, CCEP, fMRI, shared fMRI, MEG;
+- [x] data container variants: CSV, BrainVision, EDF, Elan, FIF, Micromed, NIfTI;
+- [x] relative/absolute path normalization under redirected test roots;
+- [x] missing files and unsupported formats report predictable errors.
 
 ### 5. BIDS, Localizer and Database Workflows
 
 Goal: import/export helpers can be refactored out of UI windows safely.
 
+Current status:
+
+- EditMode phase 5 characterization covers BIDS discovery with synthetic
+  `participants.tsv`, `sub-*`, `ses-*`, `anat`, `ieeg`, electrode TSV and JSON
+  sidecar files through `BIDSParser`, `Patient.LoadFromBIDSDatabase` and
+  `DataInfo.LoadFromBIDSDatabase`.
+- BIDS export configuration now round-trips through `ClassLoaderSaver`, and
+  `BIDSUtility.ExportPatient` is covered for generated anatomical, electrodes
+  TSV and coordsystem JSON paths.
+- BIDS electrode TSV coordinates are now emitted with invariant-culture decimal
+  separators so generated exports are stable outside an en-US locale.
+- Missing mandatory BIDS metadata is covered by a deterministic
+  `participants.tsv` validation test.
+- Database reference JSON coverage includes BIDS, BrainVisa, Localizer and Tags
+  references, including Localizer parameters.
+- Localizer protocol/data/bloc discovery is covered under redirected
+  `ApplicationState.DataPath`; the test asserts that selection metadata can be
+  built from synthetic localizer files without loading a 3D scene or volume.
+- `HBP.Serialization.Tests` passed 92/92 via Unity MCP EditMode after these
+  additions. The post-run console still contains pre-existing Unity analyzer
+  warnings under `Assets/Scripts/HBP/Data/Module3D`, but no phase 5 test
+  failures or compile errors.
+
 Add EditMode tests for:
 
-- BIDS folder discovery with synthetic participants, sessions, modalities and
+- [x] BIDS folder discovery with synthetic participants, sessions, modalities and
   sidecar files;
-- BIDS export configuration serialization;
-- generated TSV/JSON file names and paths;
-- validation of missing required metadata;
-- localizer export request building once extracted from UI;
-- database reference serialization for BIDS, BrainVisa, Localizer and tags
+- [x] BIDS export configuration serialization;
+- [x] generated TSV/JSON file names and paths;
+- [x] validation of missing required metadata;
+- [x] localizer protocol/data/bloc selection discovery under the extracted
+  non-UI `LocalizersObjects` boundary;
+- [x] database reference serialization for BIDS, BrainVisa, Localizer and tags
   references.
 
 Add PlayMode or workflow tests for:
 
-- database browser opens a synthetic database reference;
-- BIDS export window builds the expected export request;
-- localizer export window handles protocol/data/bloc selections;
-- workflows do not require an already opened 3D scene unless documented.
+- [x] database workflow opens synthetic BIDS references through the lower-level
+  database loaders;
+- [x] BIDS export service builds the expected exported file layout;
+- [x] localizer workflow handles protocol/data/bloc selections through
+  filesystem discovery;
+- [x] covered workflow services do not require an already opened 3D scene;
+- [ ] focused UI PlayMode smoke tests for the database browser, BIDS export
+  window and localizer export window once a small window harness exists.
 
 ### 6. Data Loading, Processing and Caches
 
 Goal: `DataManager` and data processing behavior can be changed without hidden
 global-state regressions.
 
+Current status:
+
+- EditMode phase 6 characterization covers `DataManager` cache lifecycle with a
+  synthetic CSV-backed `StaticDataInfo`: load uses the cache, unload removes it
+  and reload creates fresh data.
+- Invalid `DataInfo` requests now assert controlled default behavior: public
+  getters return `null` and do not mutate caches when `IsOk` is false.
+- Synthetic in-memory iEEG bloc/channel fixtures cover channel statistics,
+  event statistics, concurrent bloc-channel reads and processed iEEG
+  `Unload()` cleanup without reading native EEG files.
+- Normalization modes `None`, `SubTrial`, `Trial`, `SubBloc`, `Bloc`,
+  `Protocol` and `Auto` are covered through `DataManager.NormalizeiEEGData`.
+  The tests skip with an explicit reason if the native math DLL entry point is
+  unavailable.
+- Phase 6 tests found and fixed two cache/processing defects:
+  `ChannelStatistics` did not store its generated per-bloc statistics, and
+  `NormalizeiEEGData` recursively acquired the write lock while invalidating
+  statistics.
+- `DataManager.Clear()` is covered as the shared test-safe reset boundary.
+  `DataManager.Cleanup()` remains an application-shutdown hook because it
+  disposes the static lock and would make later EditMode tests unusable.
+- `HBP.Serialization.Tests` passed 104/104 via Unity MCP EditMode after these
+  additions, with a clean post-run error console.
+
 Add tests for:
 
-- load/unload/reload cache lifecycle;
-- `Clear` and `Dispose` reset all static dictionaries;
-- normalization modes: none, sub-trial, trial, sub-bloc, bloc and protocol;
-- channel statistics and event statistics with tiny synthetic arrays;
-- concurrent reads do not mutate cached data unexpectedly;
-- missing data returns controlled error/default behavior;
-- native-DLL-dependent paths are marked separately and skipped when the
+- [x] load/unload/reload cache lifecycle;
+- [x] `Clear` resets static dictionaries/caches; application shutdown cleanup
+  is documented as not safe to exercise inside the shared EditMode process;
+- [x] normalization modes: none, sub-trial, trial, sub-bloc, bloc, protocol and
+  auto/default;
+- [x] channel statistics and event statistics with tiny synthetic arrays;
+- [x] concurrent reads do not mutate cached data unexpectedly;
+- [x] missing or invalid data returns controlled error/default behavior;
+- [x] native-DLL-dependent paths are marked separately and skipped when the
   dependency is unavailable.
 
 ### 7. Module3D Scene, Views, Cameras and Columns
@@ -798,10 +888,10 @@ Track progress with a simple table in this document or a follow-up issue list.
 | --- | --- | --- |
 | Serialization/core objects | Part 1 implemented; current manual EditMode XML validation passed full `HBP.Serialization.Tests` 40/40; core JSON round-trips, preferences, legacy `$type` fixtures, missing/unknown field compatibility, ID stability, clone isolation, `Copy` identity behavior, and reflection audit for 515 JSON descriptors plus 376 lifecycle/BaseData descriptors covered | Extend when new persisted types, fields or real legacy project files are discovered |
 | Project archive lifecycle | Phase 2 core + workflow service implemented and validated on 2026-06-30: targeted Unity MCP EditMode run passed `HBP.Serialization.Tests` and `HBP.ProjectWorkflow.Tests` 93/93. Coverage includes `.hibop` save/load/re-save, archive entries, `ProjectInfo`, duplicate/missing IDs, corrupted settings and project-data entries, mutation reference cleanup, discovery by folder/ID, malformed archives, load/save cancellation at multiple phases, progress, overwrite cleanup, duplicate/invalid internal file names, settings version, temporary path leakage, alias/project-token paths and extracted project workflow decisions for load/save/new/open/save-as/QuickStart. | Keep PlayMode project-window tests as smoke-only wiring checks; revisit dead `CopyIcons`/`EmbedDataIntoProjectFileAsync` during refactor |
-| Patients/groups/sites | Partial through serialization | EditMode plus site UI/tool PlayMode |
-| Protocols/datasets/data containers | Partial through serialization | All protocol/data/container variants |
-| BIDS/localizer/database | Not covered | Synthetic fixtures and export request tests |
-| DataManager/data processing | Not covered | Cache lifecycle and normalization modes |
+| Patients/groups/sites | Phase 3 EditMode coverage added for patient/group/site models, site filters, selected-site/configuration state and synthetic CSV site import/tag generation; site-tools CSV export and compare-site toolbar remain PlayMode harness candidates | Add focused site UI/tool PlayMode tests after a small scene harness or extracted service boundary exists |
+| Protocols/datasets/data containers | Phase 4 EditMode coverage added for basic/advanced protocols, all treatment types, dataset protocol/patient references, all current data info/container variants, alias path normalization and container error reporting | Extend when new protocols, treatments, data info variants or container formats are introduced |
+| BIDS/localizer/database | Phase 5 EditMode coverage added for synthetic BIDS discovery/import, BIDS export config and generated TSV/JSON paths, missing metadata validation, database reference serialization for BrainVisa/Localizer/BIDS/Tags, and localizer protocol/data/bloc discovery without a 3D scene. Unity MCP EditMode run passed `HBP.Serialization.Tests` 92/92. | Add focused UI PlayMode smoke tests for database/BIDS/localizer windows after a small window harness exists |
+| DataManager/data processing | Phase 6 EditMode coverage added for `DataManager` load/unload/reload cache lifecycle, invalid data defaults, `Clear`, channel/event statistics, concurrent cached reads, processed iEEG unload cleanup and all iEEG normalization modes. Unity MCP EditMode run passed `HBP.Serialization.Tests` 104/104. | Add separate native integration tests only when real EEG/NIfTI fixture policy and platform skip rules are agreed |
 | Module3D scene/view/camera/columns | Not covered | PlayMode harness coverage |
 | Cuts/triangle erasing | Not covered | PlayMode behavior and serialization |
 | Toolbar | Not covered | One behavior per tool/group, smoke click paths |
