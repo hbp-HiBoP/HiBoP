@@ -80,6 +80,7 @@ Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/
 Assets/Tests/PlayMode/HBP.Toolbar.PlayModeTests/
 Assets/Tests/PlayMode/HBP.UI.PlayModeTests/
 Assets/Tests/PlayMode/HBP.Workflow.PlayModeTests/
+Assets/Tests/PlayMode/HBP.PlayModeTestUtilities/
 
 Assets/Tests/Fixtures/
 ```
@@ -104,6 +105,10 @@ Suggested boundaries:
 - `HBP.UI.PlayModeTests`: focused UI components and windows.
 - `HBP.Workflow.PlayModeTests`: high-value user workflows spanning several
   systems.
+- `HBP.PlayModeTestUtilities`: shared PlayMode-only harness code for temporary
+  folders, redirected application state, isolated scenes, minimal UI roots and
+  synthetic project setup. It should not contain assertions for production
+  behavior.
 
 ## Fixture Rules
 
@@ -237,6 +242,43 @@ Every PlayMode test must:
 - assert observable state, not just "no exception";
 - keep screenshots optional and targeted for visual regressions.
 
+### PlayMode Skeleton
+
+The first PlayMode structure lives under `Assets/Tests/PlayMode/` and is
+intended to receive both phase 7 coverage and the PlayMode-only smoke cases
+identified during phases 1-6.
+
+Shared utilities:
+
+- `PlayModeTempDirectoryScope` creates disposable filesystem roots under the
+  machine temp folder.
+- `PlayModeApplicationStateScope` redirects `ApplicationState` paths and
+  restores the previously loaded project.
+- `PlayModePersistentDataScope` creates isolated `PersistentDataManager` and
+  `DatabaseManager` instances backed by synthetic preference/database files.
+- `PlayModeSceneScope` creates an additive scene, makes it active and cleans up
+  created roots.
+- `PlayModeWindowHarness` creates a minimal canvas, graphic raycaster and event
+  system for focused UI tests.
+- `PlayModeProjectHarness` creates and loads a minimal synthetic project.
+- `AsyncPlayModeTestUtilities` provides non-blocking wait/exception helpers for
+  async PlayMode tests.
+
+Routing for backlog items:
+
+- phase 1-2 project/window bootstrapping smoke tests go to
+  `HBP.Workflow.PlayModeTests`;
+- phase 3 site UI, site comparison and toolbar-driven site state tests go to
+  `HBP.Toolbar.PlayModeTests` or `HBP.Workflow.PlayModeTests` depending on
+  whether the assertion is a single command or a multi-window workflow;
+- phase 5 database, BIDS and localizer window smoke tests go to
+  `HBP.UI.PlayModeTests` unless they cross project/application state, in which
+  case they go to `HBP.Workflow.PlayModeTests`;
+- phase 7 visualization, view, camera, column, cut and selection behavior goes
+  to `HBP.Module3D.PlayModeTests`;
+- graph and trial-matrix rendering tests start in `HBP.UI.PlayModeTests` after
+  their data-generation behavior is covered in EditMode.
+
 ## Coverage Backlog By Feature Area
 
 ### 1. Serialization and Format Compatibility
@@ -255,9 +297,10 @@ Current status:
   explicitly awaited `try/catch`, not `Assert.ThrowsAsync` or
   `Assert.CatchAsync`, because NUnit's synchronous async-assert wrappers can
   block Unity's main-thread continuation while `UniTask` is switching
-  schedulers. Direct corrupted
-  patient/group/dataset/visualization `LoadAsync` tests remain quarantined
-  from the automatic EditMode suite until a non-blocking harness exists.
+  schedulers. The direct corrupted
+  patient/group/dataset/visualization `LoadAsync` path is now covered by
+  PlayMode phase 1 tests that exercise the Unity player loop without blocking
+  it.
 - `PersistentDataTestScope` initializes `PersistentDataManager` and
   `DatabaseManager` without invoking PlayMode-only `DontDestroyOnLoad`.
 - Synthetic serialization fixtures use stable IDs and controlled
@@ -266,6 +309,10 @@ Current status:
   filters, protocol, patient, dataset, visualization, all current synthetic data
   info/container variants, visualization columns and column base
   configurations and project/user/visualization preferences.
+- PlayMode phase 1 coverage validates that a complete synthetic project can
+  save/load through the runtime player loop while preserving serialized IDs and
+  project references, and that corrupted patient/group/dataset/visualization
+  archive entries throw controlled exceptions and clean extraction state.
 - Legacy compatibility fixtures currently cover old `$type` shapes for
   `BoolTag`, `UserPreferences`, `GlobalDatabaseSettings` and project
   preferences from an old project-version fixture.
@@ -308,6 +355,11 @@ Later tests:
   without replacing global collection/preference identity.
 - [x] reflection audit locks the current serialized field/type surface and the
   serialization lifecycle/identity method surface.
+- [x] PlayMode save/load round-trip preserves serialized IDs and references for
+  a complete synthetic project.
+- [x] PlayMode corrupted patient/group/dataset/visualization project entries
+  report controlled errors and clean extracted state without blocking the
+  player loop.
 
 ### 2. Project Archive and Project Lifecycle
 
@@ -353,11 +405,12 @@ Current status:
   `ProjectLoaderSaver.LoadAsync`) where the error is actionable, which keeps
   low-level project scans and tests quiet while retaining the original failure
   details.
-- Coverage verdict as of 2026-06-30: the EditMode portion of phase 2 is now
+- Coverage verdict as of 2026-07-01: the EditMode portion of phase 2 is
   complete for core archive behavior and the extracted project workflow
-  service. The current tests intentionally do not boot the full project-window
-  prefabs; remaining PlayMode work is limited to smoke coverage that verifies
-  prefab fields and service wiring rather than duplicating business logic.
+  service, and the PlayMode portion now smoke-tests the project-window prefabs
+  without booting the full main scene. These PlayMode tests verify prefab
+  fields and service wiring rather than duplicating the deterministic business
+  logic already covered by `ProjectWorkflowService`.
 - The current "complete synthetic project" fixture is representative, not
   exhaustive. It contains one patient, one group, one dataset, one visualization
   and one site with representative data/column variants. Additional tests must
@@ -444,18 +497,17 @@ Add tests for:
   gains protocol files instead of referencing database protocols.
 
 Phase 2 core/project-workflow coverage is complete on the extracted EditMode
-boundary. The remaining PlayMode work is explicitly smoke-only:
-`NewProjectWindow_SetFields_UsesUserDefaultNameAndLocation`,
-`SaveProjectAsWindow_Initialize_UsesLoadedProjectNameAndLocation` and
-`OpenProjectWindow_DisplayProjects_PopulatesValidProjectsAndDisablesInvalidSettingsProject`
-should be added only if the prefabs can be instantiated without a fragile full
-application boot. They are deferred for now because these windows depend on the
-main-scene UI manager graph (`WindowsManager`, `DialogBoxManager`,
-`LoadingManager`, persistent data managers and serialized prefab references);
-without a dedicated harness scene, exercising them would validate bootstrapping
-fragility more than project lifecycle behavior. Rely on
-`ProjectWorkflowService` tests for deterministic lifecycle behavior until that
-small PlayMode harness exists.
+boundary and now has focused PlayMode prefab smoke coverage:
+
+- [x] `NewProjectWindow_SetFields_UsesUserDefaultNameAndLocation`;
+- [x] `SaveProjectAsWindow_Initialize_UsesLoadedProjectNameAndLocation`;
+- [x] `OpenProjectWindow_DisplayProjects_PopulatesValidProjectsAndDisablesInvalidSettingsProject`.
+
+The PlayMode tests instantiate the real window prefabs inside a synthetic UI
+harness with a local `SelectionManager`, redirected persistent data and
+synthetic project archives. They intentionally stop at prefab field/state
+wiring; `ProjectWorkflowService` remains the source of deterministic coverage
+for creation, save-as, open-project and QuickStart business decisions.
 
 ### 3. Patients, Groups, Tags and Sites
 
@@ -474,9 +526,12 @@ Current status:
   behavior.
 - Synthetic CSV import/tag-generation coverage exists for site attributes
   through `Site.LoadSitesFromCSVFile` and `TagCollection.GenerateSiteTagsFromCSV`.
-  Full site-tools import/export windows and compare-site toolbar behavior remain
-  PlayMode harness candidates because their current implementation depends on
-  `Base3DScene`, selected columns and UI-only file browser/loading services.
+- PlayMode phase 3 coverage now instantiates the real Site Tools prefab with a
+  synthetic `Base3DScene`/column/site harness. It covers change attributes,
+  copy attributes and CSV export paths while keeping file browser/loading
+  services outside the assertion boundary.
+- Compare-site toolbar state is covered through a controlled PlayMode toolbar
+  harness with a selected synthetic site.
 
 Add tests for:
 
@@ -485,13 +540,13 @@ Add tests for:
 - [x] site coordinates, labels, tags, selection flags, blacklisted state and gain;
 - [x] site filters by name, tag, data state, data type and scene location;
 - [x] CSV import for site attributes through a service-level boundary;
-- [ ] CSV export for site attributes through a service-level boundary or a
+- [x] CSV export for site attributes through a service-level boundary or a
   controlled UI PlayMode test;
 - [x] copy/change site attributes through the underlying `SiteState`
   application boundary;
-- [ ] copy/change site attributes from the site tools window;
+- [x] copy/change site attributes from the site tools window;
 - [x] selected site state;
-- [ ] compared site state through a controlled scene/toolbar PlayMode harness.
+- [x] compared site state through a controlled scene/toolbar PlayMode harness.
 
 ### 4. Protocols, Datasets and Data Containers
 
@@ -511,6 +566,10 @@ Current status:
   conversion back to full paths under redirected test roots.
 - Missing files, empty paths and unsupported file extensions are covered through
   deterministic `GetErrors` checks without invoking native data readers.
+- PlayMode phase 4 coverage now extends the shared complete-project harness to
+  all current data info/container metadata variants. It verifies project
+  save/load in PlayMode and smoke-tests the real Protocol, Dataset and DataInfo
+  selector window prefabs with synthetic phase 4 objects.
 
 Add tests for:
 
@@ -545,6 +604,11 @@ Current status:
 - Localizer protocol/data/bloc discovery is covered under redirected
   `ApplicationState.DataPath`; the test asserts that selection metadata can be
   built from synthetic localizer files without loading a 3D scene or volume.
+- PlayMode phase 5 coverage now smoke-tests the real Database Browser, BIDS
+  export and Localizer atlas export window prefabs with a seeded synthetic
+  database. These tests verify list population, advanced export action
+  visibility and export-button enablement after controlled selections without
+  invoking the actual export jobs.
 - `HBP.Serialization.Tests` passed 92/92 via Unity MCP EditMode after these
   additions. The post-run console still contains pre-existing Unity analyzer
   warnings under `Assets/Scripts/HBP/Data/Module3D`, but no phase 5 test
@@ -570,7 +634,7 @@ Add PlayMode or workflow tests for:
 - [x] localizer workflow handles protocol/data/bloc selections through
   filesystem discovery;
 - [x] covered workflow services do not require an already opened 3D scene;
-- [ ] focused UI PlayMode smoke tests for the database browser, BIDS export
+- [x] focused UI PlayMode smoke tests for the database browser, BIDS export
   window and localizer export window once a small window harness exists.
 
 ### 6. Data Loading, Processing and Caches
@@ -599,6 +663,11 @@ Current status:
 - `DataManager.Clear()` is covered as the shared test-safe reset boundary.
   `DataManager.Cleanup()` remains an application-shutdown hook because it
   disposes the static lock and would make later EditMode tests unusable.
+- PlayMode phase 6 coverage now verifies the same `DataManager` static CSV
+  cache boundary under the Unity player loop: cached reads are reused,
+  `UnLoad`/`Reload` create fresh data, `Clear` removes multiple loaded entries
+  and invalid `DataInfo` requests do not mutate caches while the isolated
+  application/persistent-data scopes are active.
 - `HBP.Serialization.Tests` passed 104/104 via Unity MCP EditMode after these
   additions, with a clean post-run error console.
 
@@ -614,6 +683,8 @@ Add tests for:
 - [x] missing or invalid data returns controlled error/default behavior;
 - [x] native-DLL-dependent paths are marked separately and skipped when the
   dependency is unavailable.
+- [x] PlayMode cache smoke tests for `DataManager` lifecycle, `Clear` and
+  invalid static CSV data under isolated runtime scopes.
 
 ### 7. Module3D Scene, Views, Cameras and Columns
 
@@ -886,15 +957,15 @@ Track progress with a simple table in this document or a follow-up issue list.
 
 | Area | Current status | Target |
 | --- | --- | --- |
-| Serialization/core objects | Part 1 implemented; current manual EditMode XML validation passed full `HBP.Serialization.Tests` 40/40; core JSON round-trips, preferences, legacy `$type` fixtures, missing/unknown field compatibility, ID stability, clone isolation, `Copy` identity behavior, and reflection audit for 515 JSON descriptors plus 376 lifecycle/BaseData descriptors covered | Extend when new persisted types, fields or real legacy project files are discovered |
-| Project archive lifecycle | Phase 2 core + workflow service implemented and validated on 2026-06-30: targeted Unity MCP EditMode run passed `HBP.Serialization.Tests` and `HBP.ProjectWorkflow.Tests` 93/93. Coverage includes `.hibop` save/load/re-save, archive entries, `ProjectInfo`, duplicate/missing IDs, corrupted settings and project-data entries, mutation reference cleanup, discovery by folder/ID, malformed archives, load/save cancellation at multiple phases, progress, overwrite cleanup, duplicate/invalid internal file names, settings version, temporary path leakage, alias/project-token paths and extracted project workflow decisions for load/save/new/open/save-as/QuickStart. | Keep PlayMode project-window tests as smoke-only wiring checks; revisit dead `CopyIcons`/`EmbedDataIntoProjectFileAsync` during refactor |
-| Patients/groups/sites | Phase 3 EditMode coverage added for patient/group/site models, site filters, selected-site/configuration state and synthetic CSV site import/tag generation; site-tools CSV export and compare-site toolbar remain PlayMode harness candidates | Add focused site UI/tool PlayMode tests after a small scene harness or extracted service boundary exists |
-| Protocols/datasets/data containers | Phase 4 EditMode coverage added for basic/advanced protocols, all treatment types, dataset protocol/patient references, all current data info/container variants, alias path normalization and container error reporting | Extend when new protocols, treatments, data info variants or container formats are introduced |
-| BIDS/localizer/database | Phase 5 EditMode coverage added for synthetic BIDS discovery/import, BIDS export config and generated TSV/JSON paths, missing metadata validation, database reference serialization for BrainVisa/Localizer/BIDS/Tags, and localizer protocol/data/bloc discovery without a 3D scene. Unity MCP EditMode run passed `HBP.Serialization.Tests` 92/92. | Add focused UI PlayMode smoke tests for database/BIDS/localizer windows after a small window harness exists |
-| DataManager/data processing | Phase 6 EditMode coverage added for `DataManager` load/unload/reload cache lifecycle, invalid data defaults, `Clear`, channel/event statistics, concurrent cached reads, processed iEEG unload cleanup and all iEEG normalization modes. Unity MCP EditMode run passed `HBP.Serialization.Tests` 104/104. | Add separate native integration tests only when real EEG/NIfTI fixture policy and platform skip rules are agreed |
-| Module3D scene/view/camera/columns | Not covered | PlayMode harness coverage |
+| Serialization/core objects | Part 1 implemented; current manual EditMode XML validation passed full `HBP.Serialization.Tests` 40/40; core JSON round-trips, preferences, legacy `$type` fixtures, missing/unknown field compatibility, ID stability, clone isolation, `Copy` identity behavior, reflection audit for 515 JSON descriptors plus 376 lifecycle/BaseData descriptors, and PlayMode runtime save/load/corrupted-entry coverage are covered | Extend when new persisted types, fields or real legacy project files are discovered |
+| Project archive lifecycle | Phase 2 core + workflow service implemented and validated on 2026-06-30: targeted Unity MCP EditMode run passed `HBP.Serialization.Tests` and `HBP.ProjectWorkflow.Tests` 93/93. Coverage includes `.hibop` save/load/re-save, archive entries, `ProjectInfo`, duplicate/missing IDs, corrupted settings and project-data entries, mutation reference cleanup, discovery by folder/ID, malformed archives, load/save cancellation at multiple phases, progress, overwrite cleanup, duplicate/invalid internal file names, settings version, temporary path leakage, alias/project-token paths and extracted project workflow decisions for load/save/new/open/save-as/QuickStart. Phase 2 PlayMode smoke coverage added on 2026-07-01 for the New Project, Save Project As and Open Project prefabs. | Keep PlayMode project-window tests as smoke-only wiring checks; revisit dead `CopyIcons`/`EmbedDataIntoProjectFileAsync` during refactor |
+| Patients/groups/sites | Phase 3 EditMode coverage added for patient/group/site models, site filters, selected-site/configuration state and synthetic CSV site import/tag generation. Phase 3 PlayMode coverage added on 2026-07-01 for Site Tools prefab change/copy/export behavior and CompareSite toolbar state through synthetic scene/UI harnesses; Unity MCP PlayMode run passed the local PlayMode assemblies 16/16. | Extend only when new site tools, filters or toolbar state transitions are introduced |
+| Protocols/datasets/data containers | Phase 4 EditMode coverage added for basic/advanced protocols, all treatment types, dataset protocol/patient references, all current data info/container variants, alias path normalization and container error reporting. Phase 4 PlayMode coverage added on 2026-07-01 for complete-project save/load with all current data info/container metadata variants and Protocol/Dataset/DataInfo selector window prefabs; Unity MCP PlayMode run passed the local PlayMode assemblies 18/18. | Extend when new protocols, treatments, data info variants, container formats or selector display states are introduced |
+| BIDS/localizer/database | Phase 5 EditMode coverage added for synthetic BIDS discovery/import, BIDS export config and generated TSV/JSON paths, missing metadata validation, database reference serialization for BrainVisa/Localizer/BIDS/Tags, and localizer protocol/data/bloc discovery without a 3D scene. Phase 5 PlayMode coverage added on 2026-07-01 for the Database Browser, BIDS export and Localizer atlas export window prefabs with seeded synthetic database state; Unity MCP PlayMode run passed the local PlayMode assemblies 21/21. | Extend when new database import/export workflows, export selections or database window states are introduced |
+| DataManager/data processing | Phase 6 EditMode coverage added for `DataManager` load/unload/reload cache lifecycle, invalid data defaults, `Clear`, channel/event statistics, concurrent cached reads, processed iEEG unload cleanup and all iEEG normalization modes. Phase 6 PlayMode coverage added on 2026-07-01 for static CSV cache lifecycle, `Clear` across multiple loaded entries and invalid data defaults under isolated runtime scopes. Unity MCP EditMode run passed `HBP.Serialization.Tests` 104/104. | Add separate native integration tests only when real EEG/NIfTI fixture policy and platform skip rules are agreed |
+| Module3D scene/view/camera/columns | PlayMode assembly and scene/camera/light smoke harness created | Add behavior coverage for synthetic visualization opening, view switching, camera state and columns |
 | Cuts/triangle erasing | Not covered | PlayMode behavior and serialization |
-| Toolbar | Not covered | One behavior per tool/group, smoke click paths |
+| Toolbar | PlayMode assembly and isolated scene smoke harness created | One behavior per tool/group, smoke click paths |
 | Graphs/trial matrices | Not covered | Data tests plus UI PlayMode rendering |
-| Main UI workflows | Project lifecycle business decisions covered through extracted EditMode service; full prefab/window click paths not yet covered | Focused PlayMode workflow smokes |
+| Main UI workflows | Project lifecycle business decisions covered through extracted EditMode service; full prefab/window click paths not yet covered. PlayMode workflow assembly and synthetic project harness created | Focused PlayMode workflow smokes |
 | Asset/prefab integrity | Started | All critical prefabs/scenes/assets |
