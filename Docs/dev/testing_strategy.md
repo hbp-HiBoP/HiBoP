@@ -691,19 +691,70 @@ Add tests for:
 Goal: the runtime 3D state can be protected before splitting `Base3DScene` and
 `HBP.Data.Module3D`.
 
+Current status:
+
+- EditMode phase 7 coverage now characterizes `VisualizationConfiguration`
+  clone/copy for scene, camera, cut, view and ROI state, all current
+  visualization column variants, their clone/round-trip/compatibility behavior,
+  Module3D parameter containers (`AnatomyDataParameters`,
+  `DynamicDataParameters`, `FMRIDataParameters`, `MEGDataParameters`) and
+  `AtlasInfo` metadata without entering PlayMode.
+- EditMode asset-contract tests load the real `Scene 3D` and `View 3D` prefabs
+  and assert their serialized manager, displayed-object, container,
+  column-prefab, camera and line-renderer references are present, including the
+  manager back-references to the scene graph.
+- EditMode asset-contract tests also validate each current `Column 3D` prefab
+  has the required mesh/cut/site containers, `Views` child and `View3D` prefab
+  reference used by `Column3D.AddView`.
+- PlayMode phase 7 coverage now exercises a controlled Module3D scene graph:
+  `Module3DMain.SelectedScene`/`SelectedColumn`/`SelectedView`, `Base3DScene`
+  column variant aggregation and selection, scene selection events through
+  isolated `Module3DMain` static events, observable `Column3D`
+  minimized/activity-alpha state, `View3D` minimized/selected/camera-circle
+  state, view viewport/render-target assignment, line removal across columns
+  with selected-view fallback, controlled scene visibility/focus events, column
+  configuration load/save for activity alpha, `Camera3D` zoom/strafe distance
+  limits, standard/default view state, camera type and auto-rotation
+  propagation, export-directory generation, `ROIManager` ROI-mask invalidation,
+  `ImplantationManager` compare-site state, awaitable `CleanAsync` cleanup of
+  generated scene objects, columns and cuts, the non-blocking controlled
+  `CanNotLoadMNI` path of `Base3DScene.InitializeAsync` without native asset
+  loads, a positive `InitializeAsync` path using an in-memory OBJ-backed
+  synthetic MNI plus anatomy columns, initialized multi-column view-line/cut
+  synchronization, initialized scene `LoadConfiguration`/`SaveConfiguration`
+  round-trip behavior, and `TriangleEraser` enable/disable behavior against
+  the generated invisible mesh.
+- Unity MCP validation on 2026-07-01: `HBP.Serialization.Tests` passed 114/114,
+  `HBP.Module3D.PlayModeTests` passed 22/22 with a clean post-run error
+  console, and the local PlayMode assemblies (`HBP.Workflow.PlayModeTests`,
+  `HBP.UI.PlayModeTests`, `HBP.Toolbar.PlayModeTests`,
+  `HBP.Module3D.PlayModeTests`) passed 45/45. The broader PlayMode run still
+  emits the known phase 1 corrupted-project `JsonReaderException` through
+  `OpenProject.cs:97`; the targeted Module3D run does not.
+- `SceneInformation` flag cascades are covered in EditMode so geometry/cut/base
+  texture invalidation dependencies are explicit before manager refactors.
+- Native MNI/mesh/MRI fixture policy remains separate from this synthetic phase
+  7 suite; native integration tests should be added only when real fixture
+  locations and platform skip rules are agreed.
+
 Add PlayMode tests for:
 
-- creating a synthetic 3D scene from a synthetic visualization;
-- `Base3DScene.InitializeAsync` reaches a loaded state with synthetic assets;
-- `Clean` removes columns, cuts, generated objects and event subscriptions;
-- adding/removing/selecting columns;
-- column variants: anatomy, static, iEEG, CCEP, fMRI, MEG and dynamic;
-- `View3D` creation, resizing, focus and visibility;
-- `Camera3D` default view, standard views, camera type switching, auto-rotate
-  and screenshot path generation;
-- mesh/MRI/implantation/fMRI/atlas/ROI managers enable and disable the expected
-  displayed objects;
-- active scene changes through `Module3DMain`.
+- [x] creating a synthetic 3D scene from a synthetic visualization;
+- [x] `Base3DScene.InitializeAsync` reaches a loaded state with synthetic
+  assets;
+- [x] initialized multi-column view-line and cut add/remove synchronization;
+- [x] initialized scene `LoadConfiguration`/`SaveConfiguration` round-trip;
+- [x] `TriangleEraser` enable/disable controls the generated invisible mesh;
+- [x] `CleanAsync` removes columns, cuts and generated scene objects through an
+  awaitable cleanup path;
+- [x] adding/selecting columns and view-line removal across all columns;
+- [x] column variants: anatomy, static, iEEG, CCEP, fMRI, MEG and dynamic;
+- [x] `View3D` creation, resizing, focus and visibility;
+- [x] `Camera3D` default view, standard views, camera type switching,
+  auto-rotate and export path generation;
+- [x] mesh/MRI/implantation/ROI managers and displayed-object references are
+  covered through prefab contracts plus focused runtime manager behavior;
+- [x] active scene changes through `Module3DMain`.
 
 Add EditMode characterization where possible for:
 
@@ -963,8 +1014,8 @@ Track progress with a simple table in this document or a follow-up issue list.
 | Protocols/datasets/data containers | Phase 4 EditMode coverage added for basic/advanced protocols, all treatment types, dataset protocol/patient references, all current data info/container variants, alias path normalization and container error reporting. Phase 4 PlayMode coverage added on 2026-07-01 for complete-project save/load with all current data info/container metadata variants and Protocol/Dataset/DataInfo selector window prefabs; Unity MCP PlayMode run passed the local PlayMode assemblies 18/18. | Extend when new protocols, treatments, data info variants, container formats or selector display states are introduced |
 | BIDS/localizer/database | Phase 5 EditMode coverage added for synthetic BIDS discovery/import, BIDS export config and generated TSV/JSON paths, missing metadata validation, database reference serialization for BrainVisa/Localizer/BIDS/Tags, and localizer protocol/data/bloc discovery without a 3D scene. Phase 5 PlayMode coverage added on 2026-07-01 for the Database Browser, BIDS export and Localizer atlas export window prefabs with seeded synthetic database state; Unity MCP PlayMode run passed the local PlayMode assemblies 21/21. | Extend when new database import/export workflows, export selections or database window states are introduced |
 | DataManager/data processing | Phase 6 EditMode coverage added for `DataManager` load/unload/reload cache lifecycle, invalid data defaults, `Clear`, channel/event statistics, concurrent cached reads, processed iEEG unload cleanup and all iEEG normalization modes. Phase 6 PlayMode coverage added on 2026-07-01 for static CSV cache lifecycle, `Clear` across multiple loaded entries and invalid data defaults under isolated runtime scopes. Unity MCP EditMode run passed `HBP.Serialization.Tests` 104/104. | Add separate native integration tests only when real EEG/NIfTI fixture policy and platform skip rules are agreed |
-| Module3D scene/view/camera/columns | PlayMode assembly and scene/camera/light smoke harness created | Add behavior coverage for synthetic visualization opening, view switching, camera state and columns |
-| Cuts/triangle erasing | Not covered | PlayMode behavior and serialization |
+| Module3D scene/view/camera/columns | Phase 7 coverage expanded on 2026-07-01: EditMode `HBP.Serialization.Tests` passed 114/114 with visualization configuration/column variants, Module3D parameter containers, atlas metadata, `SceneInformation` invalidation cascades and Scene/View/Column/DisplayedObjects/manager prefab asset-contract tests; PlayMode `HBP.Module3D.PlayModeTests` passed 22/22 with controlled `Module3DMain` selected scene/column/view state, Base3DScene column aggregation/selection, visibility/focus events and export directory generation, Module3D selection events, Column3D state and configuration load/save, initialized scene configuration load/save, view-line removal fallback, initialized multi-column view-line/cut synchronization, View3D minimized/selection/camera-circle/viewport/render-target state, Camera3D zoom/strafe limits, standard/default views, camera type and auto-rotation propagation, ROI mask invalidation, compare-site manager state, TriangleEraser invisible-mesh toggle behavior, awaitable `CleanAsync` generated-object cleanup, non-blocking `CanNotLoadMNI` coverage and a positive synthetic OBJ-backed MNI/anatomy-column path for `InitializeAsync`. Local PlayMode assemblies passed 45/45. | Add native integration tests only when real MNI/mesh/MRI fixture policy and platform skip rules are agreed |
+| Cuts/triangle erasing | Partially covered through phase 7 PlayMode cut add/remove synchronization and TriangleEraser invisible-mesh toggle behavior | Extend with full erasing geometry, undo stack, cleanup and serialization |
 | Toolbar | PlayMode assembly and isolated scene smoke harness created | One behavior per tool/group, smoke click paths |
 | Graphs/trial matrices | Not covered | Data tests plus UI PlayMode rendering |
 | Main UI workflows | Project lifecycle business decisions covered through extracted EditMode service; full prefab/window click paths not yet covered. PlayMode workflow assembly and synthetic project harness created | Focused PlayMode workflow smokes |

@@ -2283,6 +2283,10 @@ namespace HBP.Data.Module3D
         /// <returns>Coroutine return</returns>
         public async UniTaskVoid Clean()
         {
+            await CleanAsync();
+        }
+        public async UniTask CleanAsync()
+        {
             SceneInformation.GeneratorNeedsUpdate = true;
             m_DestroyRequested = true;
             await new WaitUntil(() => !m_UpdatingGenerators);
