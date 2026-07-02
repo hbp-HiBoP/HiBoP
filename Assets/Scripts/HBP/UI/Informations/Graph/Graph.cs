@@ -247,7 +247,7 @@ namespace HBP.UI.Informations.Graphs
         }
 
         #region Events
-        [SerializeField] private StringEvent m_OnChangeTitle;
+        [SerializeField] private StringEvent m_OnChangeTitle = new();
         public StringEvent OnChangeTitle
         {
             get
@@ -256,7 +256,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private StringEvent m_OnChangeAbscissaUnit;
+        [SerializeField] private StringEvent m_OnChangeAbscissaUnit = new();
         public StringEvent OnChangeAbscissaUnit
         {
             get
@@ -265,7 +265,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private StringEvent m_OnChangeAbscissaLabel;
+        [SerializeField] private StringEvent m_OnChangeAbscissaLabel = new();
         public StringEvent OnChangeAbscissaLabel
         {
             get
@@ -274,7 +274,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private StringEvent m_OnChangeOrdinateUnit;
+        [SerializeField] private StringEvent m_OnChangeOrdinateUnit = new();
         public StringEvent OnChangeOrdinateUnit
         {
             get
@@ -283,7 +283,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private StringEvent m_OnChangeOrdinateLabel;
+        [SerializeField] private StringEvent m_OnChangeOrdinateLabel = new();
         public StringEvent OnChangeOrdinateLabel
         {
             get
@@ -292,7 +292,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeFontColor;
+        [SerializeField] private ColorEvent m_OnChangeFontColor = new();
         public ColorEvent OnChangeFontColor
         {
             get
@@ -301,7 +301,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeBackgroundColor;
+        [SerializeField] private ColorEvent m_OnChangeBackgroundColor = new();
         public ColorEvent OnChangeBackgroundColor
         {
             get
@@ -310,7 +310,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange = new();
         public Vector2Event OnChangeOrdinateDisplayRange
         {
             get
@@ -319,7 +319,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange = new();
         public Vector2Event OnChangeAbscissaDisplayRange
         {
             get
@@ -328,7 +328,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private BoolEvent m_OnChangeUseDefaultRange;
+        [SerializeField] private BoolEvent m_OnChangeUseDefaultRange = new();
         public BoolEvent OnChangeUseDefaultRange
         {
             get
@@ -337,7 +337,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private BoolEvent m_OnChangeDisplayCurrentTime;
+        [SerializeField] private BoolEvent m_OnChangeDisplayCurrentTime = new();
         public BoolEvent OnChangeDisplayCurrentTime
         {
             get
@@ -346,7 +346,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField]  private FloatEvent m_OnChangeCurrentTime;
+        [SerializeField]  private FloatEvent m_OnChangeCurrentTime = new();
         public FloatEvent OnChangeCurrentTime
         {
             get
@@ -355,7 +355,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private CurvesEvent m_OnChangeCurves;
+        [SerializeField] private CurvesEvent m_OnChangeCurves = new();
         public CurvesEvent OnChangeCurves
         {
             get

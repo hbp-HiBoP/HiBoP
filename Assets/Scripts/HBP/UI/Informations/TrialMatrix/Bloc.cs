@@ -40,7 +40,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 }
             }
         }
-        public StringEvent OnChangeTitle;
+        public StringEvent OnChangeTitle = new();
 
         private Sprite m_Sprite = null;
         public Sprite Sprite
@@ -59,7 +59,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 }
             }
         }
-        public SpriteEvent OnChangeSprite;
+        public SpriteEvent OnChangeSprite = new();
 
         Vector2 m_Limits;
         public Vector2 Limits
@@ -108,7 +108,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 return ChannelBlocs.Any(channelBloc => channelBloc.Hovered);
             }
         }
-        public UnityEvent OnChangeIsHovered;
+        public UnityEvent OnChangeIsHovered = new();
 
         public ChannelBloc ChannelBlocHovered
         {

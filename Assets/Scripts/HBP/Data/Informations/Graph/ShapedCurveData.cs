@@ -27,7 +27,7 @@ namespace HBP.Data.Informations.Graphs
         public virtual void Init(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color, float width)
         {
             base.Init(points, color, width);
-            float[] shapeArray = shapes as float[];
+            float[] shapeArray = shapes == null ? new float[0] : new List<float>(shapes).ToArray();
             if (shapeArray.Length == Points.Length)
             {
                 Shapes = shapeArray;

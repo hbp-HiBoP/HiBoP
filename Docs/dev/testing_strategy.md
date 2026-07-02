@@ -876,11 +876,61 @@ Implementation pattern:
 Goal: graphs and trial matrices are covered both as data products and as UI
 rendering surfaces.
 
+Current status:
+
+- `Phase10InformationDataTests` covers curve data creation, shaped curve data
+  from non-array enumerables, graph/trial matrix preference clone and JSON
+  round-trip, trial matrix data struct equality, missing-channel fallback
+  sub-blocs, populated iEEG and CCEP trial matrix data from injected synthetic
+  epoch caches, sub-bloc filler state, and serialized prefab wiring for the
+  information graph/trial matrix rendering surfaces, graph settings window,
+  trial matrix explorer window and site-tool graph/trial-matrix actions.
+- `Phase10InformationGraphPlayModeTests` covers graph UI data conversion through
+  `StructWrapper`, nested legends, enabled/disabled curve filtering, synthetic
+  `Graph` curve state, CSV export, SVG export smoke output, and localizer graph
+  worker empty-selection returns for voxel and region modes without requiring a
+  selected Module3D scene. It also covers synthetic localizer graph generation
+  for voxel, region and atlas modes, including mask filtering, rescaling,
+  region/atlas mean values and SEM output without loading native NIfTI volumes.
+  It also covers `GraphsGrid` creation from a synthetic
+  iEEG column/channel, graph selection, display requests and filter requests,
+  synthetic `TrialMatrixGrid` rendering of channels/blocs/sub-blocs/cell
+  textures/selection masks, and `GraphZone` curve generation from trial matrix
+  selections with live curve updates when selected trials change. It also covers
+  `TrialMatrixZone` building visible-column grid data and preserving custom
+  display limits across redisplay, plus trial matrix explorer rendering of
+  titled synthetic matrix data and patient/site information panels honoring tag
+  display settings. It also covers the site-tools "display graph" action
+  publishing the requested graph name and filtered site set to the selected
+  Module3D scene, the selected-site "open trial matrix explorer" action passing
+  filtered sites and selected data into the explorer, the trial matrix explorer
+  context action error path when no current patient is selected, and Graph
+  settings localizer rescaling controls updating parameters, formula text and
+  invalid gain fallback.
+- `ShapedCurveData` accepts any `IEnumerable<float>` shapes collection instead
+  of only preserving arrays. `Graph` and `StructWrapper` now initialize their
+  serialized UnityEvents so dynamically created information graph components do
+  not log null-reference exceptions on validation or event emission. `SimpleGraph`
+  now follows the same event-initialization pattern for dynamic graph-grid items.
+  Trial matrix UI components now initialize serialized UnityEvents and ignore
+  selection validation until trial selection data exists, so focused runtime
+  harnesses can instantiate them safely outside prefabs. The Graph settings
+  window prefab now assigns the `LocalizersPanel` generate button field.
+  `LocalizersGraphsWorker` now exposes protected data-access hooks so the same
+  runtime behavior can be covered with synthetic localizer and atlas data
+  without invoking native volume loading in PlayMode tests.
+- Unity MCP validation on 2026-07-02: `HBP.Serialization.Tests` passed 128/128,
+  `HBP.UI.PlayModeTests` passed 25/25, and the post-run console error check was
+  clean apart from existing Unity serialization analyzer warnings.
+- Remaining Phase 10 coverage: none identified; future additions should follow
+  the same focused synthetic-data pattern.
+
 Add EditMode tests for:
 
 - `Data.Informations.Graph` curve data creation;
 - shaped curve data and color/group settings;
-- localizer graph worker with synthetic localizer data;
+- localizer graph worker pure data helpers when they are split from the PlayMode
+  worker harness;
 - trial matrix grid data equality and grouping;
 - CCEP and iEEG trial matrix data cases;
 - graph/trial matrix preferences round-trip.

@@ -79,7 +79,7 @@ namespace HBP.UI.Informations.TrialMatrix
             }
         }
 
-        [SerializeField] UnityEvent m_OnChangeHovered;
+        [SerializeField] UnityEvent m_OnChangeHovered = new();
         public UnityEvent OnChangeHovered
         {
             get

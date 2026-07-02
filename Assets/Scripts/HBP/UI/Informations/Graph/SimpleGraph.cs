@@ -122,7 +122,7 @@ namespace HBP.UI.Informations.Graphs
         #endregion
 
         #region Events
-        [SerializeField] private StringEvent m_OnChangeTitle;
+        [SerializeField] private StringEvent m_OnChangeTitle = new();
         public StringEvent OnChangeTitle
         {
             get
@@ -131,7 +131,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeFontColor;
+        [SerializeField] private ColorEvent m_OnChangeFontColor = new();
         public ColorEvent OnChangeFontColor
         {
             get
@@ -140,7 +140,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeBackgroundColor;
+        [SerializeField] private ColorEvent m_OnChangeBackgroundColor = new();
         public ColorEvent OnChangeBackgroundColor
         {
             get
@@ -149,7 +149,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange = new();
         public Vector2Event OnChangeOrdinateDisplayRange
         {
             get
@@ -158,7 +158,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange = new();
         public Vector2Event OnChangeAbscissaDisplayRange
         {
             get
@@ -167,7 +167,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] private Graph.CurvesEvent m_OnChangeCurves;
+        [SerializeField] private Graph.CurvesEvent m_OnChangeCurves = new();
         public Graph.CurvesEvent OnChangeCurves
         {
             get
@@ -176,7 +176,7 @@ namespace HBP.UI.Informations.Graphs
             }
         }
         
-        [SerializeField] private BoolEvent m_OnChangeSelected;
+        [SerializeField] private BoolEvent m_OnChangeSelected = new();
         public BoolEvent OnChangeSelected
         {
             get

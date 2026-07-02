@@ -7,7 +7,7 @@ namespace HBP.UI.Informations.Graphs
     public class StructWrapper : MonoBehaviour
     {
         #region Properties
-        [SerializeField] LegendsGestion.LegendsEvent m_OnLegendsResult;
+        [SerializeField] LegendsGestion.LegendsEvent m_OnLegendsResult = new();
         public LegendsGestion.LegendsEvent OnLegendResult
         {
             get
@@ -15,7 +15,7 @@ namespace HBP.UI.Informations.Graphs
                 return m_OnLegendsResult;
             }
         }
-        [SerializeField] CurvesDataEvent m_OnCurveDataResult;
+        [SerializeField] CurvesDataEvent m_OnCurveDataResult = new();
         public CurvesDataEvent OnCurveDataResult
         {
             get

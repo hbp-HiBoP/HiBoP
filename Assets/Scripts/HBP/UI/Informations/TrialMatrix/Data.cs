@@ -31,7 +31,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 }
             }
         }
-        public StringEvent OnChangeTitle;
+        public StringEvent OnChangeTitle = new();
 
         [SerializeField] bool m_UseDefaultLimits;
         public bool UseDefaultLimits
@@ -51,7 +51,7 @@ namespace HBP.UI.Informations.TrialMatrix
             }
 
         }
-        public BoolEvent OnChangeUseDefaultLimits;
+        public BoolEvent OnChangeUseDefaultLimits = new();
 
         [SerializeField] Vector2 m_Limits;
         public Vector2 Limits
@@ -73,7 +73,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 }
             }
         }
-        public Vector2Event OnChangeLimits;
+        public Vector2Event OnChangeLimits = new();
 
         [SerializeField] Texture2D m_Colormap;
         public Texture2D Colormap
@@ -90,7 +90,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 }
             }
         }
-        public Texture2DEvent OnChangeColormap;
+        public Texture2DEvent OnChangeColormap = new();
 
         public bool IsHovered
         {
@@ -99,7 +99,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 return Blocs.Any(b => b.IsHovered);
             }
         }
-        public BoolEvent OnChangeIsHovered;
+        public BoolEvent OnChangeIsHovered = new();
 
         Color[] m_Colors;
         public Color[] Colors

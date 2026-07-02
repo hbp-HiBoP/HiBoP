@@ -2817,7 +2817,7 @@ MonoBehaviour:
   m_ProtocolItemPrefab: {fileID: 8191600796491628781, guid: 76c09048a45e2c24eb06bcdc9c884267,
     type: 3}
   m_ProtocolsContainer: {fileID: 4642970105716330053}
-  m_GenerateLocalizersGraphsButton: {fileID: 0}
+  m_GenerateLocalizersGraphsButton: {fileID: 3419771764138460858}
 --- !u!1 &7213312941499309585
 GameObject:
   m_ObjectHideFlags: 0

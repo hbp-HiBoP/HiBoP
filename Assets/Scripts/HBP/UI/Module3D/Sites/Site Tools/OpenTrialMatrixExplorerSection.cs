@@ -74,8 +74,12 @@ namespace HBP.UI.Module3D
                 return;
             }
 
+            OpenTrialMatrixExplorer(channelStructs, m_IEEGDataInfos, selectedDataName);
+        }
+        protected virtual void OpenTrialMatrixExplorer(List<ChannelStruct> channelStructs, List<IEEGDataInfo> dataInfos, string dataName)
+        {
             var trialMatrixExplorerWindow = WindowsManager.Open("Trial matrix explorer window", null) as TrialMatrixExplorerWindow;
-            trialMatrixExplorerWindow.SetWithPredefinedData(channelStructs, m_IEEGDataInfos, selectedDataName);
+            trialMatrixExplorerWindow.SetWithPredefinedData(channelStructs, dataInfos, dataName);
         }
         public override void StoreSettings()
         {

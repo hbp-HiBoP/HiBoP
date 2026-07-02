@@ -28,19 +28,19 @@ namespace HBP.UI.Database
 
             if (patient == null)
             {
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No patient selected", "Please select a patient before adding them to a group.").Forget();
+                OpenDialog(Core.Enums.DialogBoxType.Error, "No patient selected", "Please select a patient before adding them to a group.");
                 return;
             }
 
             if (ApplicationState.LoadedProject == null)
             {
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No project loaded", "Please load a project before adding patients to a group.").Forget();
+                OpenDialog(Core.Enums.DialogBoxType.Error, "No project loaded", "Please load a project before adding patients to a group.");
                 return;
             }
 
             if (!ApplicationState.LoadedProject.Patients.Contains(patient))
             {
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Patient not in project", "The selected patient is not part of the loaded project. Please add the patient to the project first.").Forget();
+                OpenDialog(Core.Enums.DialogBoxType.Error, "Patient not in project", "The selected patient is not part of the loaded project. Please add the patient to the project first.");
                 return;
             }
 
@@ -71,6 +71,10 @@ namespace HBP.UI.Database
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Patient added", $"Patient {patient.Name} has been added to group {selectedGroup.Name}.").Forget();
                 });
             }
+        }
+        protected virtual void OpenDialog(Core.Enums.DialogBoxType type, string title, string message)
+        {
+            DialogBoxManager.Open(type, title, message).Forget();
         }
         #endregion
     }

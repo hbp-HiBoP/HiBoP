@@ -83,7 +83,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 }
             }
         }
-        [SerializeField] UnityEvent m_OnChangeTrialSelected;
+        [SerializeField] UnityEvent m_OnChangeTrialSelected = new();
         public UnityEvent OnChangeTrialSelected
         {
             get
@@ -123,7 +123,7 @@ namespace HBP.UI.Informations.TrialMatrix
         int m_LastDragTrial;
         bool[] m_OnBeginDragStates;
 
-        [SerializeField] StringEvent m_OnChangeTitle;
+        [SerializeField] StringEvent m_OnChangeTitle = new();
         public StringEvent OnChangeTitle
         {
             get
@@ -132,7 +132,7 @@ namespace HBP.UI.Informations.TrialMatrix
             }
         }
 
-        [SerializeField] UnityEvent m_OnChangeHovered;
+        [SerializeField] UnityEvent m_OnChangeHovered = new();
         public UnityEvent OnChangeHovered
         {
             get
@@ -463,6 +463,11 @@ namespace HBP.UI.Informations.TrialMatrix
         }
         void SetSelections()
         {
+            if (m_TrialIsSelected == null)
+            {
+                return;
+            }
+
             List<Tuple<int, int>> masks = new();
             bool inside = false;
             int startIndex = -1;
