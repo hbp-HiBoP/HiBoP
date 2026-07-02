@@ -128,6 +128,31 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public async Task SaveLoad_UsesDatabaseProtocolsInsteadOfSeparateProtocolArchiveEntries()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+
+            Project source = SyntheticProjectFactory.CreateCompleteProject();
+            string archivePath = await SaveProject(temp, source);
+
+            using (ZipArchive zip = ZipFile.OpenRead(archivePath))
+            {
+                string[] entryNames = zip.Entries.Select(entry => entry.FullName).ToArray();
+                Assert.That(entryNames.Any(name => name.StartsWith("Protocols/")), Is.False);
+                Assert.That(entryNames.Any(name => name.EndsWith(Protocol.EXTENSION)), Is.False);
+            }
+
+            Protocol databaseProtocol = SyntheticProjectFactory.CreateProtocol();
+            Project loaded = await LoadProject(temp, archivePath, databaseProtocol);
+
+            Dataset loadedDataset = loaded.Datasets.Single();
+            Assert.That(loadedDataset.Protocol, Is.SameAs(databaseProtocol));
+            Assert.That(loadedDataset.Data.Select(data => data.Protocol), Is.All.SameAs(databaseProtocol));
+        }
+
+        [Test]
         public async Task SaveLoadResave_CompleteSyntheticProject_ProducesValidArchive()
         {
             using TempDirectoryScope temp = new();
@@ -941,14 +966,14 @@ namespace HBP.Tests.Serialization
             return Path.Combine(saveDirectory, project.FileName);
         }
 
-        private static async Task<Project> LoadProject(TempDirectoryScope temp, string archivePath)
+        private static async Task<Project> LoadProject(TempDirectoryScope temp, string archivePath, params Protocol[] databaseProtocols)
         {
             ProjectInfo info = new(archivePath);
             Project loaded = new(info.Name, new ProjectPreferences("load-placeholder"));
             ApplicationState.LoadedProject = loaded;
             ApplicationState.LoadedProjectLocation = Path.GetDirectoryName(archivePath);
 
-            DatabaseManager.Database.SetProtocols(new[] { SyntheticProjectFactory.CreateProtocol() });
+            DatabaseManager.Database.SetProtocols(databaseProtocols.Length > 0 ? databaseProtocols : new[] { SyntheticProjectFactory.CreateProtocol() });
             await loaded.LoadAsync(info, NoProgress, CancellationToken.None);
             return loaded;
         }

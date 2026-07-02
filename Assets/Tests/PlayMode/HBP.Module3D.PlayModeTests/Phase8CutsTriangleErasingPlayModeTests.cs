@@ -372,6 +372,76 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Phase8")]
+        public void Base3DScene_AddCutPlaneWithNativeSurfaceCreatesGeometry()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Phase8NativeCutPlane");
+            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, "native-cut-plane", includeSurface: true);
+
+            HBP.Core.Object3D.Cut cut = null;
+            AssertNoException("Add cut plane on native surface", () => cut = baseScene.AddCutPlane());
+
+            Assert.That(cut, Is.Not.Null);
+            Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
+            Assert.That(baseScene.CutGeometryGenerators, Has.Count.EqualTo(1));
+            Assert.That(baseScene.Cuts[0].Position, Is.InRange(0f, 1f));
+        }
+
+        [Test]
+        [Category("PlayMode.Phase8")]
+        public void TriangleEraser_NativeMaskModesInvertAndExpandSurfaceMasks()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Phase8NativeTriangleMaskModes");
+            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, "native-mask-modes", includeSurface: true);
+            DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
+            displayedObjects.InstantiateInvisibleMesh(false);
+
+            AssertNoException("Erase native triangle from ray hit", () =>
+            {
+                baseScene.TriangleEraser.CurrentMode = TriEraserMode.OneTri;
+                baseScene.TriangleEraser.EraseTriangles(Vector3.forward, new Vector3(0.1f, 0.1f, 0f));
+            });
+            Assert.That(baseScene.TriangleEraser.CanCancelLastAction, Is.True);
+            Assert.That(baseScene.TriangleEraser.CurrentMasks[0], Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfTriangles));
+            AssertNoException("Reset native triangle eraser after ray hit", baseScene.TriangleEraser.ResetEraser);
+
+            int[] initialBrainMask = CreateMask(baseScene.MeshManager.BrainSurface.NumberOfTriangles, 1);
+            int[] initialSimplifiedMask = CreateMask(baseScene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles, 1);
+            initialBrainMask[0] = 0;
+            initialSimplifiedMask[0] = 0;
+
+            AssertNoException("Apply initial native triangle masks", () =>
+            {
+                baseScene.TriangleEraser.CurrentMasks = new List<int[]> { initialBrainMask, initialSimplifiedMask };
+            });
+
+            int hiddenBeforeExpand = baseScene.TriangleEraser.CurrentMasks[0].Count(value => value == 0);
+            AssertNoException("Expand native triangle mask", () =>
+            {
+                baseScene.TriangleEraser.CurrentMode = TriEraserMode.Expand;
+            });
+            int hiddenAfterExpand = baseScene.TriangleEraser.CurrentMasks[0].Count(value => value == 0);
+
+            Assert.That(hiddenAfterExpand, Is.GreaterThanOrEqualTo(hiddenBeforeExpand));
+
+            int[] beforeInvert = baseScene.TriangleEraser.CurrentMasks[0].ToArray();
+            AssertNoException("Invert native triangle mask", () =>
+            {
+                baseScene.TriangleEraser.CurrentMode = TriEraserMode.Invert;
+            });
+            int[] afterInvert = baseScene.TriangleEraser.CurrentMasks[0];
+
+            Assert.That(afterInvert, Is.EqualTo(beforeInvert.Select(value => value == 0 ? 1 : 0).ToArray()));
+            Assert.That(baseScene.TriangleEraser.CanCancelLastAction, Is.True);
+        }
+
+        [Test]
+        [Category("PlayMode.Phase8")]
         public void Base3DScene_CutPlaneLifecycleWithoutNativeSurfaceUsesFallbackState()
         {
             using PlayModeTempDirectoryScope temp = new();

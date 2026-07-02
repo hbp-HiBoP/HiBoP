@@ -1,0 +1,9 @@
+Brain Vision Data Exchange Marker File, Version 1.0
+[Common Infos]
+DataFile=conversion_seed_trc.eeg
+
+[Marker Infos]
+Mk1=New Segment,,1,1,0,00000000000000000000
+Mk2=Stimulus,S 11,50,1,0
+Mk3=Stimulus,S 12,160,1,0
+Mk4=Stimulus,S 21,260,1,0

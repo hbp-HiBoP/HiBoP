@@ -1,0 +1,60 @@
+V2
+Conversion from Micromed file
+by EEGFormat Library
+XX:XX:XX
+XX:XX:XX
+-1
+Reserved
+-1
+0.005
+5
+A1.-1
+A2.-1
+A3.-1
+NUM1
+NUM2
+electrode EEG
+electrode EEG
+electrode EEG
+dateur echantillon
+type evenement et byte info
+uV
+uV
+uV
+none
+none
+-3200
+-3200
+-3200
+-1
+-1
+3200
+3200
+3200
++1
++1
+-32768
+-32768
+-32768
+-32768
+-32768
+32767
+32767
+32767
+32767
+32767
+passe-haut X Hz passe-bas X Hz
+passe-haut X Hz passe-bas X Hz
+passe-haut X Hz passe-bas X Hz
+sans
+sans
+1
+1
+1
+1
+1
+reserved
+reserved
+reserved
+reserved
+reserved

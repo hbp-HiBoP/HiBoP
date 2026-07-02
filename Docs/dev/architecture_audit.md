@@ -389,7 +389,7 @@ Des classes qui ressemblent à des modèles métier contiennent directement des 
 
 **Preuves dans la codebase :**
 
-* `Project.cs` utilise `Ionic.Zip`, `UnityEngine`, `PersistentDataManager`, `ApplicationState`, `Directory`, `File`, `ClassLoaderSaver`, et contient `LoadAsync`, `SaveAsync`, `LoadPatientsAsync`, `SavePatientsAsync`, `EmbedDataIntoProjectFileAsync`.
+* `Project.cs` utilise `Ionic.Zip`, `UnityEngine`, `PersistentDataManager`, `ApplicationState`, `Directory`, `File`, `ClassLoaderSaver`, et contient `LoadAsync`, `SaveAsync`, `LoadPatientsAsync`, `SavePatientsAsync`.
 * `Patient.cs` implémente `ILoadableFromDatabase<Patient>` et `ILoadableFromDirectory<Patient>`, lit des dossiers, charge des patients depuis Intranat/BIDS, manipule `DatabaseReference`, `PersistentDataManager.Tags`, `BIDSParser`.
 * `BaseMesh.cs` recherche directement des fichiers anatomiques et transformations dans l'arborescence disque.
 * `DataContainer.cs` impose `CopyDataToDirectory` et chemins de projet directement dans l'abstraction de donnée.

@@ -1,0 +1,77 @@
+{
+  "description": "Deterministic synthetic native fixtures for HiBoP tests.",
+  "sample_rate_hz": 200.0,
+  "channels": [
+    "A1",
+    "A2",
+    "A3"
+  ],
+  "events": [
+    {
+      "sample": 50,
+      "code": 11,
+      "label": "Stimulus/S 11"
+    },
+    {
+      "sample": 160,
+      "code": 12,
+      "label": "Stimulus/S 12"
+    },
+    {
+      "sample": 260,
+      "code": 21,
+      "label": "Response/R 21"
+    }
+  ],
+  "paths": {
+    "brainvision": [
+      "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/BrainVision/native_brainvision_alpha.vhdr",
+      "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/BrainVision/native_brainvision_beta.vhdr",
+      "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/BrainVision/conversion_seed_trc.vhdr",
+      "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/BrainVision/conversion_seed_elan.vhdr"
+    ],
+    "manual_conversion_targets": {
+      "micromed_trc": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/Micromed/native_from_brainvision.trc",
+      "elan_eeg": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/Elan/native_from_brainvision.eeg",
+      "elan_header": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/Elan/native_from_brainvision.eeg.ent",
+      "elan_pos": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/Elan/native_from_brainvision.pos",
+      "elan_notes": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/Elan/native_from_brainvision.txt"
+    },
+    "edf": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/EDF/native_edf.edf",
+    "fif": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/EEG/FIF/native_raw.fif",
+    "csv": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Static/native_static.csv",
+    "nifti": {
+      "fmri_3d": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Nifti/fmri_3d.nii",
+      "fmri_4d": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Nifti/fmri_4d.nii.gz",
+      "mask_binary": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Nifti/mask_binary.nii",
+      "mri_t1": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Nifti/mri_t1.nii",
+      "megv_mask": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Nifti/megv_mask.nii"
+    },
+    "meshes": {
+      "transform": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/MNI.trm",
+      "MNI_Lhemi": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/MNI_Lhemi.gii",
+      "MNI_Rhemi": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/MNI_Rhemi.gii",
+      "MNI_Lwhite": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/MNI_Lwhite.gii",
+      "MNI_Rwhite": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/MNI_Rwhite.gii",
+      "MNI_Lwhite_inflated": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/MNI_Lwhite_inflated.gii",
+      "MNI_Rwhite_inflated": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/MNI_Rwhite_inflated.gii",
+      "single_surface": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/single_surface.gii",
+      "single_surface_marsAtlas": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Meshes/single_surface_marsAtlas.gii"
+    },
+    "patient_tree": {
+      "root": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Patients/synthetic-patient"
+    },
+    "localizers": {
+      "bloc-alpha": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Localizers/protocol-alpha/signal-alpha/bloc-alpha.nii",
+      "bloc-alpha-mask": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Localizers/protocol-alpha/signal-alpha/bloc-alpha_MASK.nii",
+      "bloc-beta": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Localizers/protocol-alpha/signal-alpha/bloc-beta.nii.gz",
+      "bloc-beta-mask": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/Localizers/protocol-alpha/signal-alpha/bloc-beta_MASK.nii.gz"
+    },
+    "bids": {
+      "t1w": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/BIDS/sub-01/ses-pre/anat/sub-01_ses-pre_T1w.nii",
+      "ieeg_header": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/BIDS/sub-01/ses-post/ieeg/sub-01_ses-post_task-protocol-alpha_acq-raw_ieeg.vhdr",
+      "channels": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/BIDS/sub-01/ses-post/ieeg/sub-01_ses-post_task-protocol-alpha_acq-raw_channels.tsv",
+      "sidecar": "C:/HBP/Software/HiBoP/Assets/Tests/Fixtures/Native/BIDS/sub-01/ses-post/ieeg/sub-01_ses-post_task-protocol-alpha_acq-raw_ieeg.json"
+    }
+  }
+}

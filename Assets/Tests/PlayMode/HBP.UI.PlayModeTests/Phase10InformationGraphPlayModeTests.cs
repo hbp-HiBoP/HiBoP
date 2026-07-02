@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -113,17 +114,28 @@ namespace HBP.Tests.PlayMode.UI
                 graph.AddCurve(new Graph.Curve("First", firstData, true, "first-id", Array.Empty<Graph.Curve>(), Color.green));
                 graph.AddCurve(new Graph.Curve("Second", secondData, true, "second-id", Array.Empty<Graph.Curve>(), Color.yellow));
 
+                Dictionary<string, string> csvByCurve = graph.ToCSV();
+                string svg = graph.ToSVG();
+
                 Assert.That(graph.Curves, Has.Count.EqualTo(2));
                 Assert.That(graph.GetEnabledCurvesName(), Is.EquivalentTo(new[] { "First", "Second" }));
-                Assert.That(graph.ToCSV().Keys, Is.EquivalentTo(new[] { "first-id", "second-id" }));
-                Assert.That(graph.ToCSV()["first-id"], Does.Contain("X\tY\tSEM"));
-                Assert.That(graph.ToSVG(), Does.Contain("<svg"));
-                Assert.That(graph.ToSVG(), Does.Contain("first-id"));
+                Assert.That(csvByCurve.Keys, Is.EquivalentTo(new[] { "first-id", "second-id" }));
+                Assert.That(csvByCurve["first-id"], Does.Contain("X\tY\tSEM"));
+                Assert.That(csvByCurve["first-id"], Does.Contain("0\t1\t0"));
+                Assert.That(csvByCurve["first-id"], Does.Contain("1\t3\t0"));
+                Assert.That(csvByCurve["second-id"], Does.Contain("1\t-2\t0"));
+                Assert.That(svg, Does.Contain("<svg"));
+                Assert.That(svg, Does.Contain("Synthetic graph"));
+                Assert.That(svg, Does.Contain("Time (ms)"));
+                Assert.That(svg, Does.Contain("Signal (uV)"));
+                Assert.That(svg, Does.Contain("first-id"));
+                Assert.That(svg, Does.Contain("second-id"));
 
                 graph.SetEnabled("second-id", false);
 
                 Assert.That(graph.GetEnabledCurvesName(), Is.EqualTo(new[] { "First" }));
                 Assert.That(graph.ToCSV().Keys, Is.EqualTo(new[] { "first-id" }));
+                Assert.That(graph.ToSVG(), Does.Contain("first-id").And.Not.Contain("second-id"));
             }
             finally
             {
@@ -250,6 +262,63 @@ namespace HBP.Tests.PlayMode.UI
             }
             finally
             {
+                HBP.Core.Object3D.Object3DManager.Localizers = previousLocalizers;
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Phase10")]
+        [Category("NativeDll")]
+        [Explicit("Runs native NIfTI DLL loading and can crash Unity if the native stack rejects a fixture. Run explicitly from the Unity Test Runner when needed.")]
+        public async Task LocalizersGraphsWorker_VoxelWithNativeLocalizerFixture_BuildsCurveFromNiftiVolume()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Phase10NativeLocalizersVoxel");
+            HBP.Core.Object3D.LocalizersObjects previousLocalizers = HBP.Core.Object3D.Object3DManager.Localizers;
+            HBP.Core.Object3D.Object3DManager.Localizers = new HBP.Core.Object3D.LocalizersObjects();
+            HBP.Core.Object3D.FMRI fmri = new(
+                "bloc-alpha",
+                NativeFixturePath("Localizers", "protocol-alpha", "signal-alpha", "bloc-alpha.nii"),
+                NativeFixturePath("Localizers", "protocol-alpha", "signal-alpha", "bloc-alpha_MASK.nii"),
+                false);
+
+            try
+            {
+                CopyDirectory(NativeFixturePath("Localizers"), Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers"));
+                await ExecuteNativeOrIgnoreAsync(async () => await fmri.LoadAsync(), "native localizer NIfTI");
+
+                const string protocolName = "protocol-alpha";
+                const string dataType = "signal-alpha";
+                const string blocName = "bloc-alpha";
+                AddLoadedLocalizerBloc(protocolName, dataType, blocName, fmri);
+
+                Patient patient = new("native-localizer-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, "phase10-native-localizer-patient-001");
+                ObjectSite site = CreateRuntimeSite(scene, "N1", patient, new Vector3(2, 2, 2));
+                NativeLocalizersGraphsWorker worker = new(new[] { site });
+                ProtocolItem protocolItem = CreateSelectedProtocolItem(scene, protocolName, blocName);
+
+                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsVoxelAsync(
+                    dataType,
+                    new List<ProtocolItem> { protocolItem },
+                    new RescalingParameters(false, 0f, 1f, 0f),
+                    null,
+                    CancellationToken.None);
+
+                ChannelStruct channel = new(site.Information.Name, patient);
+                Assert.That(result, Does.ContainKey(channel));
+                LocalizerCurveData curve = result[channel].Single();
+                Assert.That(curve.DataType, Is.EqualTo(dataType));
+                Assert.That(curve.ProtocolName, Is.EqualTo(protocolName));
+                Assert.That(curve.BlocName, Is.EqualTo(blocName));
+                Assert.That(curve.Points, Is.Not.Empty);
+                Assert.That(curve.Points.All(point => !float.IsNaN(point.y) && !float.IsInfinity(point.y)), Is.True);
+            }
+            finally
+            {
+                HBP.Core.Object3D.Object3DManager.Localizers.Protocols.Clear();
+                fmri.Clean();
                 HBP.Core.Object3D.Object3DManager.Localizers = previousLocalizers;
             }
         }
@@ -738,6 +807,18 @@ namespace HBP.Tests.PlayMode.UI
             HBP.Core.Object3D.LocalizerData data = new(dataType, string.Empty, false);
             HBP.Core.Object3D.LocalizerBloc bloc = (HBP.Core.Object3D.LocalizerBloc)FormatterServices.GetUninitializedObject(typeof(HBP.Core.Object3D.LocalizerBloc));
             SetAutoProperty(bloc, "Name", blocName);
+            data.Blocs.Add(bloc);
+            protocol.Datas.Add(data);
+            HBP.Core.Object3D.Object3DManager.Localizers.Protocols.Add(protocol);
+        }
+
+        private static void AddLoadedLocalizerBloc(string protocolName, string dataType, string blocName, HBP.Core.Object3D.FMRI fmri)
+        {
+            HBP.Core.Object3D.LocalizerProtocol protocol = new(protocolName, string.Empty, false);
+            HBP.Core.Object3D.LocalizerData data = new(dataType, string.Empty, false);
+            HBP.Core.Object3D.LocalizerBloc bloc = (HBP.Core.Object3D.LocalizerBloc)FormatterServices.GetUninitializedObject(typeof(HBP.Core.Object3D.LocalizerBloc));
+            SetAutoProperty(bloc, "Name", blocName);
+            SetAutoProperty(bloc, "FMRI", fmri);
             data.Blocs.Add(bloc);
             protocol.Datas.Add(data);
             HBP.Core.Object3D.Object3DManager.Localizers.Protocols.Add(protocol);
@@ -1318,6 +1399,53 @@ namespace HBP.Tests.PlayMode.UI
             return Activator.CreateInstance(requestType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, args, null);
         }
 
+        private static async Task ExecuteNativeOrIgnoreAsync(Func<Task> action, string context)
+        {
+            try
+            {
+                await action();
+            }
+            catch (Exception exception) when (IsMissingNativeDependency(exception))
+            {
+                Assert.Ignore($"Native dependency unavailable for {context}: {exception.Message}");
+            }
+        }
+
+        private static bool IsMissingNativeDependency(Exception exception)
+        {
+            for (Exception current = exception; current != null; current = current.InnerException)
+            {
+                if (current is DllNotFoundException or EntryPointNotFoundException or BadImageFormatException)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static string NativeFixturePath(params string[] parts)
+        {
+            string path = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Assets", "Tests", "Fixtures", "Native");
+            foreach (string part in parts)
+            {
+                path = Path.Combine(path, part);
+            }
+            return path;
+        }
+
+        private static void CopyDirectory(string sourceDirectory, string targetDirectory)
+        {
+            Directory.CreateDirectory(targetDirectory);
+            foreach (string directory in Directory.GetDirectories(sourceDirectory, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(directory.Replace(sourceDirectory, targetDirectory));
+            }
+            foreach (string file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
+            {
+                File.Copy(file, file.Replace(sourceDirectory, targetDirectory), true);
+            }
+        }
+
         private sealed class SyntheticLocalizersGraphsWorker : LocalizersGraphsWorker
         {
             private readonly List<ObjectSite> m_Sites;
@@ -1397,6 +1525,26 @@ namespace HBP.Tests.PlayMode.UI
                         new[] { 18f, 22f },
                         new[] { 28f, 32f }
                     });
+            }
+        }
+
+        private sealed class NativeLocalizersGraphsWorker : LocalizersGraphsWorker
+        {
+            private readonly List<ObjectSite> m_Sites;
+
+            public NativeLocalizersGraphsWorker(IEnumerable<ObjectSite> sites)
+            {
+                m_Sites = sites.ToList();
+            }
+
+            protected override List<ObjectSite> GetSceneSites()
+            {
+                return m_Sites;
+            }
+
+            protected override bool IsInsideMask(Vector3 position, HBP.Core.Object3D.LocalizerBloc bloc)
+            {
+                return true;
             }
         }
 
