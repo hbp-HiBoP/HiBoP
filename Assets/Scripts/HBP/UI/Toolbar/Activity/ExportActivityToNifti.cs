@@ -20,7 +20,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                WindowsManager.Open("Export activity to nifti window", null);
+                ToolbarExternalActions.OpenWindow("Export activity to nifti window");
             });
         }
         /// <summary>

@@ -27,7 +27,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private async void SaveSelectedROI()
         {
-            string savePath = await FileBrowser.GetSavedFileNameAsync(new string[] { "roi" }, "Save ROI to");
+            string savePath = await ToolbarExternalActions.GetSavedFileNameAsync(new string[] { "roi" }, "Save ROI to");
             if (!string.IsNullOrEmpty(savePath))
             {
                 Core.Data.RegionOfInterest ROI = new(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
@@ -40,7 +40,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private async void LoadROI()
         {
-            string loadPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "roi" }, "Load ROI file");
+            string loadPath = await ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "roi" }, "Load ROI file");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 try

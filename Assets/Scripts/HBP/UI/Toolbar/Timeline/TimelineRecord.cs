@@ -24,7 +24,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                Module3DUI.Scenes[SelectedScene].Video();
+                ToolbarExternalActions.RecordVideo(SelectedScene);
             });
         }
         /// <summary>

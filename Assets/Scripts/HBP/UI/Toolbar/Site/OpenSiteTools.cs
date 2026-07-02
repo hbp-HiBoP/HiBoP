@@ -23,14 +23,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                var siteTools = WindowsManager.Open("Site Tools window", null).GetComponent<SiteToolsWindow>();
-                siteTools.Scene = SelectedScene;
-                siteTools.OnToolApplied.AddListener(Module3DMain.OnRequestUpdateInSiteList.Invoke);
-
-                Module3DMain.OnRemoveScene.AddSafeListener(s =>
-                {
-                    if (SelectedScene == s) siteTools.Close();
-                }, siteTools.gameObject);
+                ToolbarExternalActions.OpenSiteTools(SelectedScene);
             });
         }
         /// <summary>

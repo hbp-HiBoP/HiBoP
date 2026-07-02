@@ -64,7 +64,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private async void SaveSiteStatesOfSelectedColumn()
         {
-            string savePath = await FileBrowser.GetSavedFileNameAsync(new string[] { "csv" }, "Save site states to");
+            string savePath = await ToolbarExternalActions.GetSavedFileNameAsync(new string[] { "csv" }, "Save site states to");
             if (!string.IsNullOrEmpty(savePath))
             {
                 SaveSiteStates(savePath);
@@ -99,7 +99,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private async void LoadSiteStatesToSelectedColumn()
         {
-            string loadPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "csv" }, "Load site states");
+            string loadPath = await ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "csv" }, "Load site states");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Override Site Attributes", "Would you like to override the site attributes for all columns or just the selected one?\n\nReminder: a site's attributes consist of its blacklisted status, highlighted status, color and labels.", "All columns", "Selected only", "Cancel");

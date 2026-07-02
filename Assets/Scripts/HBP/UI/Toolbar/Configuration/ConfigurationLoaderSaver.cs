@@ -40,14 +40,10 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                ObjectSelector<Visualization> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Visualizations, null, false);
-                selector.OnOk.AddListener(() =>
+                ToolbarExternalActions.SelectVisualization(ApplicationState.LoadedProject.Visualizations, visualization =>
                 {
-                    if (selector.ObjectsSelected.Length > 0)
-                    {
-                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as VisualizationConfiguration;
-                        SelectedScene.LoadConfiguration();
-                    }
+                    SelectedScene.Visualization.Configuration = visualization.Configuration.Clone() as VisualizationConfiguration;
+                    SelectedScene.LoadConfiguration();
                 });
             });
             m_Reset.onClick.AddListener(() =>

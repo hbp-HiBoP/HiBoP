@@ -30,7 +30,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                string file = await FileBrowser.GetSavedFileNameAsync(new string[] { "trimask" }, "Save brain state to");
+                string file = await ToolbarExternalActions.GetSavedFileNameAsync(new string[] { "trimask" }, "Save brain state to");
                 if (!string.IsNullOrEmpty(file))
                 {
                     try
@@ -49,7 +49,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                string file = await FileBrowser.GetExistingFileNameAsync(new string[] { "trimask" }, "Load brain state from");
+                string file = await ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "trimask" }, "Load brain state from");
                 if (!string.IsNullOrEmpty(file))
                 {
                     try

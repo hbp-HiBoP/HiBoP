@@ -27,13 +27,13 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                Module3DUI.Scenes[SelectedScene].Screenshot(false).Forget();
+                ToolbarExternalActions.Screenshot(SelectedScene, false);
             });
             m_MultiScreenshots.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                Module3DUI.Scenes[SelectedScene].Screenshot(true).Forget();
+                ToolbarExternalActions.Screenshot(SelectedScene, true);
             });
         }
         /// <summary>

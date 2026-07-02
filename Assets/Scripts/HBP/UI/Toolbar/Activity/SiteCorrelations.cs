@@ -84,7 +84,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                LoadingManager.Load((update, token) => ComputeCorrelations(update, token));
+                ToolbarExternalActions.LoadCancelable((update, token) => ComputeCorrelations(update, token));
             });
             m_Load.onClick.AddListener(() =>
             {
@@ -384,7 +384,7 @@ namespace HBP.UI.Toolbar
                 }
             }
 
-            string loadPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "json" }, "Load correlations");
+            string loadPath = await ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "json" }, "Load correlations");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 Load(loadPath);

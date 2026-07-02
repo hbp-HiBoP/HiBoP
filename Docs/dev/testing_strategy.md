@@ -798,6 +798,50 @@ Added lower-level tests for:
 Goal: each toolbar control has at least one behavioral test proving the command
 changes the intended state.
 
+Current status:
+
+- Phase 9 PlayMode coverage added for isolated toolbar command behavior in
+  `HBP.Toolbar.PlayModeTests`. The synthetic toolbar scene harness now covers
+  display controls (auto-rotate, camera type and reset-view events), scene
+  display controls (brain color, colormap, transparent brain, edge mode, cut
+  mode and cut color), site controls (selected site label, show-all-sites,
+  blacklisted-site display, site gain and cut-around-site), activity controls
+  (compute request, stale-generator reset, global toggle, transparency, static
+  label selection and site-correlation gating), CCEP mode/source selection,
+  timeline play/loop/slider/step/record/global behavior, ROI manager
+  add/rename/remove plus ROI export interactivity, brain selector and left/right
+  mesh toggles, MRI/implantation selector status, view/standard-view
+  availability, screenshot availability, export-activity availability,
+  configuration/copy command availability, atlas unavailable-state gating plus
+  IBC/DiFuMo/localizer selector gating, load-patient gating, interactive-viewer
+  availability, site filters/open-site-tools availability, move-site reset, and
+  site-state import/export availability including CSV import into selected-only
+  and all-column modes. Additional safe-state coverage gates DefaultView,
+  fMRI/MEG selectors, DynamicParameters for iEEG/static columns, FMRIParameters
+  when unavailable, MRIContrast, CCEP MarsAtlas area selection,
+  FMRIAtlasParameters, LocalizersParameters, LocalizersTimeline and
+  TriangleErasingLoaderSaver safe availability. Other triangle-erasing toolbar
+  controls remain covered by the Phase 8 cut/triangle-erasing PlayMode tests.
+  Commands that leave the isolated scene harness now route through
+  `ToolbarExternalActions`, which keeps default runtime behavior unchanged
+  while allowing PlayMode tests to click the command path without opening
+  native file browsers, global windows, loading UI, native viewers or
+  screenshot/video exporters.
+- Unity MCP validation on 2026-07-02: `HBP.Toolbar.PlayModeTests` passed 16/16
+  in PlayMode with a clean post-run error console.
+- Adapter-backed smoke clicks cover ROI import/export, site-state import/export,
+  triangle-mask save/load, configuration load selector, export-activity window
+  opening, screenshot/video requests, site-correlation compute/load,
+  load-patient request, interactive-viewer URL generation, site-filter window
+  opening and site-tools window opening. The tests intentionally do not invoke
+  the real OS/native UI endpoints.
+- Coverage audit verdict: isolated PlayMode coverage now exercises all toolbar
+  `Tool` classes either in Phase 9 or in earlier focused toolbar tests
+  (CompareSite in Phase 3, triangle-erasing mode/reset/cancel/invert/expand in
+  Phase 8). Phase 9 is considered complete for automated toolbar behavior
+  coverage; native OS/browser/window integration remains a manual or dedicated
+  integration-test concern, not a unit/isolated PlayMode requirement.
+
 Toolbar areas to cover:
 
 - Activity: compute activity, global activity toggle, transparency, static
@@ -1024,7 +1068,7 @@ Track progress with a simple table in this document or a follow-up issue list.
 | DataManager/data processing | Phase 6 EditMode coverage added for `DataManager` load/unload/reload cache lifecycle, invalid data defaults, `Clear`, channel/event statistics, concurrent cached reads, processed iEEG unload cleanup and all iEEG normalization modes. Phase 6 PlayMode coverage added on 2026-07-01 for static CSV cache lifecycle, `Clear` across multiple loaded entries and invalid data defaults under isolated runtime scopes. Unity MCP EditMode run passed `HBP.Serialization.Tests` 104/104. | Add separate native integration tests only when real EEG/NIfTI fixture policy and platform skip rules are agreed |
 | Module3D scene/view/camera/columns | Phase 7 coverage expanded on 2026-07-01: EditMode `HBP.Serialization.Tests` passed 114/114 with visualization configuration/column variants, Module3D parameter containers, atlas metadata, `SceneInformation` invalidation cascades and Scene/View/Column/DisplayedObjects/manager prefab asset-contract tests; PlayMode `HBP.Module3D.PlayModeTests` passed 22/22 with controlled `Module3DMain` selected scene/column/view state, Base3DScene column aggregation/selection, visibility/focus events and export directory generation, Module3D selection events, Column3D state and configuration load/save, initialized scene configuration load/save, view-line removal fallback, initialized multi-column view-line/cut synchronization, View3D minimized/selection/camera-circle/viewport/render-target state, Camera3D zoom/strafe limits, standard/default views, camera type and auto-rotation propagation, ROI mask invalidation, compare-site manager state, TriangleEraser invisible-mesh toggle behavior, awaitable `CleanAsync` generated-object cleanup, non-blocking `CanNotLoadMNI` coverage and a positive synthetic OBJ-backed MNI/anatomy-column path for `InitializeAsync`. Local PlayMode assemblies passed 45/45. | Add native integration tests only when real MNI/mesh/MRI fixture policy and platform skip rules are agreed |
 | Cuts/triangle erasing | Phase 8 coverage added on 2026-07-01: EditMode `HBP.Serialization.Tests` passed 117/117 with `Cut` JSON/runtime defaults and deterministic `CutTexturesUtility` synthetic-input behavior; PlayMode `HBP.Module3D.PlayModeTests` passed 28/28, including Phase 8 6/6 for isolated cut add/update/remove, cut toolbar mode/color/cut-around-site state, cut parameter UI writeback/removal, triangle-erasing mask load/reset/cancel target isolation, triangle erasing toolbar mode/degrees/reset/cancel/interactability, and no-native-surface cut fallback. Local PlayMode assemblies passed 51/51. | Add real native integration for site-centered cut generation and ray-based expand/invert erasing when MNI/mesh/MRI fixture policy and platform skip rules are agreed |
-| Toolbar | PlayMode assembly and isolated scene smoke harness created | One behavior per tool/group, smoke click paths |
+| Toolbar | Phase 9 complete on 2026-07-02: `HBP.Toolbar.PlayModeTests` passed 16/16 with display, scene, site, activity, CCEP, timeline, ROI, brain mesh/selector, MRI/implantation selector status, static labels, site-state CSV import, move-site reset, view/default-view/standard-view availability, atlas selector/parameter/timeline gating, site-correlation gating, configuration availability, triangle-mask load/save availability and adapter-backed smoke clicks for file-browser, selector, global-window, screenshot/video, native-viewer and loading command paths. | Native OS/browser/window integration can be covered separately if a platform fixture policy is introduced |
 | Graphs/trial matrices | Not covered | Data tests plus UI PlayMode rendering |
 | Main UI workflows | Project lifecycle business decisions covered through extracted EditMode service; full prefab/window click paths not yet covered. PlayMode workflow assembly and synthetic project harness created | Focused PlayMode workflow smokes |
 | Asset/prefab integrity | Started | All critical prefabs/scenes/assets |

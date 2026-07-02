@@ -38,7 +38,7 @@ namespace HBP.UI.Toolbar
                 3000000,
                 (-sitePosition.x * 1000000).ToString("0.00", new CultureInfo("en-US")), (sitePosition.y * 1000000).ToString("0.00", new CultureInfo("en-US")), (sitePosition.z * 1000000).ToString("0.00", new CultureInfo("en-US")),
                 150000);
-            Application.OpenURL(url);
+            ToolbarExternalActions.OpenURL(url);
         }
         #endregion
 

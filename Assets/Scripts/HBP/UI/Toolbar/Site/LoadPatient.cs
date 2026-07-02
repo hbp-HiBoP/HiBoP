@@ -23,8 +23,9 @@ namespace HBP.UI.Toolbar
         {
             m_Button.onClick.AddListener(() =>
             {
-                var visualization = Module3DMain.PrepareSinglePatientVisualizationFromMultiPatientScene(SelectedScene.Visualization, SelectedColumn.SelectedSite.Information.Patient);
-                LoadingManager.Load((update, token) => Module3DMain.LoadAsync(new[] { visualization }, update, token));
+                if (ListenerLock) return;
+
+                ToolbarExternalActions.LoadSinglePatientVisualization(SelectedScene, SelectedColumn.SelectedSite.Information.Patient);
             });
         }
         /// <summary>
