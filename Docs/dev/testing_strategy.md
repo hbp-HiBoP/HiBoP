@@ -950,6 +950,26 @@ Add PlayMode tests for:
 Goal: UI-level regressions are caught without requiring exhaustive brittle
 pixel tests.
 
+Current status:
+
+- Project lifecycle decisions and project-window prefab smoke coverage already
+  protect create/open/save/save-as through the phase 2 PlayMode tests and the
+  extracted `ProjectWorkflowService` EditMode tests.
+- `Phase11MainWorkflowPlayModeTests` adds focused PlayMode workflow coverage for
+  patient, group, protocol, dataset and visualization gestion windows, including
+  add/edit/remove commits to the loaded project or database model. The protocol
+  workflow waits for the saved synthetic `.prov` file before loading a project,
+  avoiding accidental Module3D reload paths in a management-window test.
+- The same Phase 11 PlayMode file covers all current visualization column types
+  from synthetic project data, user/project preference windows, database
+  references and workspace settings.
+- Module3D open/close/reopen lifecycle behavior remains covered by the phase 7
+  Module3D PlayMode tests rather than duplicated in the main workflow assembly.
+- Unity MCP validation on 2026-07-02: `PlayMode.Phase11` passed 3/3 with a
+  clean post-run error console, and `HBP.Workflow.PlayModeTests` passed 16/16.
+  The full workflow run still emits the expected phase 2 invalid-project JSON
+  exception that is asserted with `LogAssert`.
+
 Add PlayMode tests for high-value workflows:
 
 - create a new project with synthetic defaults;
@@ -970,6 +990,27 @@ expressed as state.
 
 Goal: broken serialized references are caught before runtime tests fail
 indirectly.
+
+Current status:
+
+- `UnityAssetIntegrityEditModeTests` now covers the phase 12 asset-integrity
+  surface in EditMode. It checks project prefabs and the main scene for missing
+  scripts, verifies that the main scene exists and is enabled in
+  `EditorBuildSettings`, and asserts bootstrap components in the scene.
+- The same suite verifies that critical Module3D, toolbar, graph, trial matrix
+  and main workflow window prefabs load with the expected components, and that
+  bootstrap serialized references are assigned for `Module3DMain`,
+  `ToolbarMenu`, `ToolbarSelector`, `WindowsManager`, `DialogBoxManager`,
+  `LoadingManager` and `MainMenu`.
+- Rendering resource checks now lock the current shader, material, colormap,
+  icon and shared-material assets that the Module3D/UI surfaces depend on.
+- Assembly definition checks make EditMode/PlayMode test boundaries explicit:
+  `HBP.Serialization.Tests` stays UI-free, the project workflow EditMode test
+  assembly intentionally references UI runtime, PlayMode test assemblies remain
+  PlayMode-runnable, and runtime asmdefs do not reference test assemblies.
+- Unity MCP validation on 2026-07-02: the targeted
+  `UnityAssetIntegrityEditModeTests` run passed 8/8, then
+  `HBP.Serialization.Tests` passed 133/133 with a clean post-run error console.
 
 Add EditMode tests for:
 
@@ -1120,5 +1161,5 @@ Track progress with a simple table in this document or a follow-up issue list.
 | Cuts/triangle erasing | Phase 8 coverage added on 2026-07-01: EditMode `HBP.Serialization.Tests` passed 117/117 with `Cut` JSON/runtime defaults and deterministic `CutTexturesUtility` synthetic-input behavior; PlayMode `HBP.Module3D.PlayModeTests` passed 28/28, including Phase 8 6/6 for isolated cut add/update/remove, cut toolbar mode/color/cut-around-site state, cut parameter UI writeback/removal, triangle-erasing mask load/reset/cancel target isolation, triangle erasing toolbar mode/degrees/reset/cancel/interactability, and no-native-surface cut fallback. Local PlayMode assemblies passed 51/51. | Add real native integration for site-centered cut generation and ray-based expand/invert erasing when MNI/mesh/MRI fixture policy and platform skip rules are agreed |
 | Toolbar | Phase 9 complete on 2026-07-02: `HBP.Toolbar.PlayModeTests` passed 16/16 with display, scene, site, activity, CCEP, timeline, ROI, brain mesh/selector, MRI/implantation selector status, static labels, site-state CSV import, move-site reset, view/default-view/standard-view availability, atlas selector/parameter/timeline gating, site-correlation gating, configuration availability, triangle-mask load/save availability and adapter-backed smoke clicks for file-browser, selector, global-window, screenshot/video, native-viewer and loading command paths. | Native OS/browser/window integration can be covered separately if a platform fixture policy is introduced |
 | Graphs/trial matrices | Not covered | Data tests plus UI PlayMode rendering |
-| Main UI workflows | Project lifecycle business decisions covered through extracted EditMode service; full prefab/window click paths not yet covered. PlayMode workflow assembly and synthetic project harness created | Focused PlayMode workflow smokes |
-| Asset/prefab integrity | Started | All critical prefabs/scenes/assets |
+| Main UI workflows | Phase 11 PlayMode workflow coverage added on 2026-07-02: project lifecycle decisions remain covered by `ProjectWorkflowService` and phase 2 project-window smokes; `Phase11MainWorkflowPlayModeTests` covers gestion-window add/edit/remove commits for patients, groups, protocols, datasets and visualizations, all visualization column types, preference windows, database references and workspace settings. Unity MCP `PlayMode.Phase11` passed 3/3 with clean console, and `HBP.Workflow.PlayModeTests` passed 16/16 with the expected phase 2 invalid-project JSON log asserted by `LogAssert`. Module3D open/close/reopen remains covered by phase 7 Module3D lifecycle tests. | Extend only when new top-level windows or end-to-end workflows are introduced |
+| Asset/prefab integrity | Phase 12 coverage added on 2026-07-02 in `UnityAssetIntegrityEditModeTests`: missing-script checks, main scene existence/build-settings/bootstrap components, critical Module3D/toolbar/graph/trial-matrix/main-window prefab component contracts, bootstrap serialized references, shader/material/colormap/icon/shared-material resources, and asmdef boundary checks. Unity MCP targeted integrity run passed 8/8; `HBP.Serialization.Tests` passed 133/133 with a clean post-run error console. | Extend when new critical prefabs, resources, scenes or test assemblies are introduced |
