@@ -28,7 +28,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace HBP.Tests.Serialization
 {
-    public class Phase10InformationDataTests
+    public class InformationDataTests
     {
         [TearDown]
         public void TearDown()
@@ -115,7 +115,7 @@ namespace HBP.Tests.Serialization
             preferences.Visualization.TrialMatrix.BlocRatio = 0.4f;
             preferences.Visualization.TrialMatrix.ProtocolRatio = 1.2f;
 
-            string path = temp.GetPath("phase10-preferences.json");
+            string path = temp.GetPath("information-data-preferences.json");
             Assert.That(ClassLoaderSaver.SaveToJSon(preferences, path, true), Is.True);
             UserPreferences loaded = ClassLoaderSaver.LoadFromJson<UserPreferences>(path);
 
@@ -424,20 +424,20 @@ namespace HBP.Tests.Serialization
 
         private static IEEGEpochFixture CreateInjectedIEEGFixture()
         {
-            Patient patient = new("patient-a", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "phase10-patient-001");
+            Patient patient = new("patient-a", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-data-patient-001");
             CoreSubBloc subBloc = new(
                 "response",
                 0,
                 MainSecondaryEnum.Main,
                 new TimeWindow(0, 2),
                 new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "phase10-event-001") },
+                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-data-event-001") },
                 Array.Empty<Icon>(),
                 Array.Empty<Treatment>(),
-                "phase10-subbloc-001");
-            CoreBloc bloc = new("response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "phase10-bloc-001");
+                "information-data-subbloc-001");
+            CoreBloc bloc = new("response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-data-bloc-001");
 
-            Protocol protocol = new("protocol-a", new[] { bloc }, "phase10-protocol-001");
+            Protocol protocol = new("protocol-a", new[] { bloc }, "information-data-protocol-001");
             IEEGDataInfo dataInfo = new(
                 "ieeg-data",
                 protocol,
@@ -446,8 +446,8 @@ namespace HBP.Tests.Serialization
                 Array.Empty<Warning>(),
                 patient,
                 NormalizationType.None,
-                "phase10-db",
-                "phase10-ieeg-001");
+                "information-data-db",
+                "information-data-ieeg-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
             blocData.Frequency = new Frequency(1000);
@@ -476,20 +476,20 @@ namespace HBP.Tests.Serialization
 
         private static CCEPEpochFixture CreateInjectedCCEPFixture()
         {
-            Patient patient = new("patient-ccep", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "phase10-ccep-patient-001");
+            Patient patient = new("patient-ccep", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-data-ccep-patient-001");
             CoreSubBloc subBloc = new(
                 "response",
                 0,
                 MainSecondaryEnum.Main,
                 new TimeWindow(0, 2),
                 new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "phase10-ccep-event-001") },
+                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-data-ccep-event-001") },
                 Array.Empty<Icon>(),
                 Array.Empty<Treatment>(),
-                "phase10-ccep-subbloc-001");
-            CoreBloc bloc = new("ccep-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "phase10-ccep-bloc-001");
+                "information-data-ccep-subbloc-001");
+            CoreBloc bloc = new("ccep-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-data-ccep-bloc-001");
 
-            Protocol protocol = new("protocol-ccep", new[] { bloc }, "phase10-ccep-protocol-001");
+            Protocol protocol = new("protocol-ccep", new[] { bloc }, "information-data-ccep-protocol-001");
             CCEPDataInfo dataInfo = new(
                 "ccep-data",
                 protocol,
@@ -498,8 +498,8 @@ namespace HBP.Tests.Serialization
                 Array.Empty<Warning>(),
                 patient,
                 "Stim",
-                "phase10-db",
-                "phase10-ccep-001");
+                "information-data-db",
+                "information-data-ccep-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
             blocData.Frequency = new Frequency(1000);

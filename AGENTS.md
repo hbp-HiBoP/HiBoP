@@ -36,9 +36,9 @@ If multiple Unity instances are connected, use:
 set_active_instance(instance="HiBoP@...")
 ```
 
-For this project, the expected Unity instance is named `HiBoP` and currently uses Unity `6000.5.1f1`.
+For this project, the expected Unity instance is named `HiBoP` and currently uses Unity `6000.5.2f1`.
 
-### Running Tests
+### Running Tests With MCP
 
 Use Unity MCP instead of launching Unity batchmode when the editor is open.
 
@@ -162,3 +162,58 @@ mcp__unityMCP.read_console
 ```
 
 Batchmode Unity test scripts are only a fallback for CI or closed-editor runs, not the preferred local workflow.
+
+## Unity CLI Workflow When The Editor Is Closed
+
+When Unity is not open, run tests through the official Unity CLI instead of MCP.
+Read the project version from `ProjectSettings/ProjectVersion.txt` and use the
+matching Unity Hub editor, currently:
+
+```powershell
+C:\Program Files\Unity\Hub\Editor\6000.5.2f1\Editor\Unity.exe
+```
+
+Use `Start-Process -Wait -PassThru` from PowerShell. A direct call with `&` can
+return control to Codex while the Unity process is still running in the
+background, which makes the test result look complete too early.
+
+Typical closed-editor EditMode run:
+
+```powershell
+$Unity = "C:\Program Files\Unity\Hub\Editor\6000.5.2f1\Editor\Unity.exe"
+$ResultRoot = "C:\HBP\Software\HiBoP\.test-results\unity-cli"
+New-Item -ItemType Directory -Force -Path $ResultRoot | Out-Null
+
+$Args = @(
+  "-batchmode",
+  "-nographics",
+  "-accept-apiupdate",
+  "-projectPath", "C:\HBP\Software\HiBoP",
+  "-runTests",
+  "-testPlatform", "EditMode",
+  "-assemblyNames", "HBP.Serialization.Tests;HBP.ProjectWorkflow.Tests",
+  "-testResults", (Join-Path $ResultRoot "editmode-results.xml"),
+  "-logFile", (Join-Path $ResultRoot "editmode.log"),
+  "-forgetProjectPath"
+)
+
+$Process = Start-Process -FilePath $Unity -ArgumentList $Args -Wait -PassThru -NoNewWindow
+exit $Process.ExitCode
+```
+
+Important CLI details:
+
+- Do not pass `-quit` with `-runTests`; Unity Test Framework exits the editor
+  itself when the run completes.
+- Multiple test assemblies are passed as one semicolon-separated value, for
+  example `HBP.Serialization.Tests;HBP.ProjectWorkflow.Tests`.
+- Unity Test Framework exit codes observed here: `0` means passed, `2` means at
+  least one test failed, `3` means run error, and `4` means test platform not
+  found.
+- The first CLI run after a Unity version change can spend about a minute on
+  asset import and script compilation before tests start.
+- Use `-nographics` for EditMode. Be careful with `-nographics` for PlayMode
+  UI or 3D tests because those tests may need a real graphics device.
+- Closed-editor PlayMode runs are possible, but the full HiBoP PlayMode UI set
+  can create very large logs/XML when UI tests time out. Prefer filtered
+  PlayMode runs while debugging.

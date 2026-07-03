@@ -13,7 +13,7 @@ using DataSphere = HBP.Core.Data.Sphere;
 
 namespace HBP.Tests.Serialization
 {
-    public class Phase7Module3DConfigurationTests
+    public class Module3DConfigurationTests
     {
         [Test]
         public void VisualizationConfiguration_CloneAndCopy_PreserveSceneViewCameraAndColumnState()
@@ -40,7 +40,7 @@ namespace HBP.Tests.Serialization
                 new[] { new Cut(Vector3.right, CutOrientation.Sagittal, true, 12.5f) },
                 new[] { new View(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30), new Vector3(4, 5, 6)) },
                 new[] { new RegionOfInterest("roi-alpha", new List<DataSphere> { new(new Vector3(7, 8, 9), 3.5f) }) },
-                "phase7-visualization-config-001");
+                "module3d-configuration-visualization-config-001");
 
             VisualizationConfiguration clone = (VisualizationConfiguration)source.Clone();
             VisualizationConfiguration copy = new();
@@ -82,7 +82,7 @@ namespace HBP.Tests.Serialization
             Assert.That(clones.Select(column => column.BaseConfiguration), Is.All.Not.Null);
             Assert.That(clones.Zip(source.Columns, (clone, original) => ReferenceEquals(clone.BaseConfiguration, original.BaseConfiguration)), Is.All.False);
 
-            Visualization loaded = RoundTrip(temp, source, "phase7-visualization.json");
+            Visualization loaded = RoundTrip(temp, source, "module3d-configuration-visualization.json");
 
             Assert.That(loaded.Columns.Select(column => column.GetType()), Is.EquivalentTo(source.Columns.Select(column => column.GetType())));
             Assert.That(loaded.Columns.Select(column => column.ID), Is.EquivalentTo(source.Columns.Select(column => column.ID)));

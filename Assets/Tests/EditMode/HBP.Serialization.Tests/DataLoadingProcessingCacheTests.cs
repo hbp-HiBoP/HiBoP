@@ -84,16 +84,16 @@ namespace HBP.Tests.Serialization
             using PersistentDataTestScope persistentData = new(temp.Path);
 
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
-            Patient patient = new("phase6-invalid-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "phase6-invalid-patient-001");
+            Patient patient = new("data-loading-cache-invalid-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-invalid-patient-001");
             StaticDataInfo invalidDataInfo = new(
-                "phase6-invalid-static",
+                "data-loading-cache-invalid-static",
                 protocol,
                 new CSV("", Array.Empty<Error>(), Array.Empty<Warning>()),
-                new Error[] { new RequiredFieldEmptyError("phase6 invalid data") },
+                new Error[] { new RequiredFieldEmptyError("data-loading-cache invalid data") },
                 Array.Empty<Warning>(),
                 patient,
-                "phase6-db",
-                "phase6-invalid-data-001");
+                "data-loading-cache-db",
+                "data-loading-cache-invalid-data-001");
 
             Assert.That(DataManager.GetData(invalidDataInfo), Is.Null);
             Assert.That(DataManager.GetData(invalidDataInfo, protocol.Blocs[0], "A1"), Is.Null);
@@ -202,7 +202,7 @@ namespace HBP.Tests.Serialization
 
         private static StaticDataInfo CreateStaticDataInfo(TempDirectoryScope temp)
         {
-            string csvPath = temp.GetPath("phase6-static.csv");
+            string csvPath = temp.GetPath("data-loading-cache-static.csv");
             File.WriteAllLines(csvPath, new[]
             {
                 "channel,alpha,beta",
@@ -211,32 +211,32 @@ namespace HBP.Tests.Serialization
             });
 
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
-            Patient patient = new("phase6-static-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "phase6-static-patient-001");
+            Patient patient = new("data-loading-cache-static-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-static-patient-001");
             return new StaticDataInfo(
-                "phase6-static",
+                "data-loading-cache-static",
                 protocol,
-                new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), "phase6-static-container-001"),
+                new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), "data-loading-cache-static-container-001"),
                 Array.Empty<Error>(),
                 Array.Empty<Warning>(),
                 patient,
-                "phase6-db",
-                "phase6-static-data-001");
+                "data-loading-cache-db",
+                "data-loading-cache-static-data-001");
         }
 
         private static EpochCacheFixture CreateInjectedEpochCache(NormalizationType normalization, int blocCount = 1)
         {
             Protocol protocol = CreateProtocol(blocCount);
-            Patient patient = new("phase6-ieeg-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "phase6-ieeg-patient-001");
+            Patient patient = new("data-loading-cache-ieeg-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-ieeg-patient-001");
             IEEGDataInfo dataInfo = new(
-                "phase6-ieeg",
+                "data-loading-cache-ieeg",
                 protocol,
                 new Elan(),
                 Array.Empty<Error>(),
                 Array.Empty<Warning>(),
                 patient,
                 normalization,
-                "phase6-db",
-                "phase6-ieeg-data-001");
+                "data-loading-cache-db",
+                "data-loading-cache-ieeg-data-001");
             Dictionary<Bloc, BlocData> blocDataByBloc = protocol.Blocs.ToDictionary(bloc => bloc, CreateBlocData);
 
             IEEGData data = (IEEGData)FormatterServices.GetUninitializedObject(typeof(IEEGData));
@@ -266,7 +266,7 @@ namespace HBP.Tests.Serialization
         {
             Bloc[] blocs = Enumerable.Range(0, blocCount).Select(index =>
             {
-                Event mainEvent = new($"event-{index}", new[] { 10 + index }, MainSecondaryEnum.Main, $"phase6-event-{index:000}");
+                Event mainEvent = new($"event-{index}", new[] { 10 + index }, MainSecondaryEnum.Main, $"data-loading-cache-event-{index:000}");
                 SubBloc subBloc = new(
                     $"subbloc-{index}",
                     0,
@@ -276,9 +276,9 @@ namespace HBP.Tests.Serialization
                     new[] { mainEvent },
                     Array.Empty<Icon>(),
                     Array.Empty<Treatment>(),
-                    $"phase6-subbloc-{index:000}");
+                    $"data-loading-cache-subbloc-{index:000}");
                 Bloc bloc = (Bloc)FormatterServices.GetUninitializedObject(typeof(Bloc));
-                bloc.ID = $"phase6-bloc-{index:000}";
+                bloc.ID = $"data-loading-cache-bloc-{index:000}";
                 bloc.Name = $"bloc-{index}";
                 bloc.Order = index;
                 bloc.Sort = $"subbloc-{index}_event-{index}_CODE";
@@ -286,7 +286,7 @@ namespace HBP.Tests.Serialization
                 return bloc;
             }).ToArray();
 
-            return new Protocol("phase6-protocol", blocs, "phase6-protocol-001");
+            return new Protocol("data-loading-cache-protocol", blocs, "data-loading-cache-protocol-001");
         }
 
         private static BlocData CreateBlocData(Bloc bloc)

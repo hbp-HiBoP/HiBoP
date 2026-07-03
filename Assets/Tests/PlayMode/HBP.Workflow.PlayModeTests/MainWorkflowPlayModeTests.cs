@@ -23,7 +23,7 @@ using UserPersistentDataManager = HBP.Core.Preferences.PersistentDataManager;
 
 namespace HBP.Tests.PlayMode.Workflow
 {
-    public class Phase11MainWorkflowPlayModeTests
+    public class MainWorkflowPlayModeTests
     {
         private const string PatientGestionResource = "Prefabs/UI/Windows/Patient gestion window";
         private const string GroupGestionResource = "Prefabs/UI/Windows/Group gestion window";
@@ -36,7 +36,7 @@ namespace HBP.Tests.PlayMode.Workflow
         private const string DatabaseReferenceGestionResource = "Prefabs/UI/Windows/Database Reference gestion window";
 
         [Test]
-        [Category("PlayMode.Phase11")]
+        [Category("PlayMode.MainWorkflow")]
         public async Task ManagementWindows_CommitAddEditDeleteWorkflowsToProjectModel()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -44,8 +44,8 @@ namespace HBP.Tests.PlayMode.Workflow
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
             using PlayModeInteractableStateManagerScope interactables = new();
-            using PlayModeSceneScope scene = new("Phase11ManagementWindows");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase11 Management Windows Harness");
+            using PlayModeSceneScope scene = new("MainWorkflowManagementWindows");
+            PlayModeWindowHarness window = new(scene.Scene, "MainWorkflow Management Windows Harness");
             ApplicationState.LoadedProjectLocation = temp.Path;
             ApplicationState.LoadedProject = null;
             DatabaseManager.Database.SetProtocols(new[] { PlayModeProjectHarness.CreateProtocol() });
@@ -53,9 +53,9 @@ namespace HBP.Tests.PlayMode.Workflow
 
             ProtocolGestion protocols = InstantiateWindow<ProtocolGestion>(ProtocolGestionResource, window.Root.transform);
             await UniTask.Yield();
-            Protocol editedProtocol = CloneWithName(DatabaseManager.Database.Protocols.Single(), "phase11-protocol-edited");
-            Protocol createdProtocol = new("phase11-protocol-created", Array.Empty<Bloc>(), "phase11-protocol-created-id");
-            Protocol deletedProtocol = new("phase11-protocol-deleted", Array.Empty<Bloc>(), "phase11-protocol-deleted-id");
+            Protocol editedProtocol = CloneWithName(DatabaseManager.Database.Protocols.Single(), "main-workflow-protocol-edited");
+            Protocol createdProtocol = new("main-workflow-protocol-created", Array.Empty<Bloc>(), "main-workflow-protocol-created-id");
+            Protocol deletedProtocol = new("main-workflow-protocol-deleted", Array.Empty<Bloc>(), "main-workflow-protocol-deleted-id");
             ActionableList<Protocol> protocolList = protocols.ListGestion.List;
             protocolList.UpdateObject(editedProtocol);
             protocolList.Add(createdProtocol);
@@ -66,7 +66,7 @@ namespace HBP.Tests.PlayMode.Workflow
             await WaitUntilAsync(() => File.Exists(createdProtocolPath));
             await UniTask.DelayFrame(10);
 
-            Assert.That(DatabaseManager.Database.Protocols.Select(protocol => protocol.Name), Does.Contain("phase11-protocol-edited"));
+            Assert.That(DatabaseManager.Database.Protocols.Select(protocol => protocol.Name), Does.Contain("main-workflow-protocol-edited"));
             Assert.That(DatabaseManager.Database.Protocols.Any(protocol => protocol.ID == createdProtocol.ID), Is.True);
             Assert.That(DatabaseManager.Database.Protocols.Any(protocol => protocol.ID == deletedProtocol.ID), Is.False);
 
@@ -76,9 +76,9 @@ namespace HBP.Tests.PlayMode.Workflow
 
             PatientGestion patients = InstantiateWindow<PatientGestion>(PatientGestionResource, window.Root.transform);
             await UniTask.Yield();
-            Patient editedPatient = CloneWithName(project.Patients.Single(), "phase11-patient-edited");
-            Patient createdPatient = CreatePatient("phase11-patient-created", "phase11-patient-created-id");
-            Patient deletedPatient = CreatePatient("phase11-patient-deleted", "phase11-patient-deleted-id");
+            Patient editedPatient = CloneWithName(project.Patients.Single(), "main-workflow-patient-edited");
+            Patient createdPatient = CreatePatient("main-workflow-patient-created", "main-workflow-patient-created-id");
+            Patient deletedPatient = CreatePatient("main-workflow-patient-deleted", "main-workflow-patient-deleted-id");
             ActionableList<Patient> patientList = patients.ListGestion.List;
             patientList.UpdateObject(editedPatient);
             patientList.Add(createdPatient);
@@ -87,15 +87,15 @@ namespace HBP.Tests.PlayMode.Workflow
             patients.OK();
             await UniTask.Yield();
 
-            Assert.That(project.Patients.Select(patient => patient.Name), Does.Contain("phase11-patient-edited"));
+            Assert.That(project.Patients.Select(patient => patient.Name), Does.Contain("main-workflow-patient-edited"));
             Assert.That(project.Patients.Any(patient => patient.ID == createdPatient.ID), Is.True);
             Assert.That(project.Patients.Any(patient => patient.ID == deletedPatient.ID), Is.False);
 
             GroupGestion groups = InstantiateWindow<GroupGestion>(GroupGestionResource, window.Root.transform);
             await UniTask.Yield();
-            Group editedGroup = CloneWithName(project.Groups.Single(), "phase11-group-edited");
-            Group createdGroup = new("phase11-group-created", new[] { createdPatient }, "phase11-group-created-id");
-            Group deletedGroup = new("phase11-group-deleted", new[] { createdPatient }, "phase11-group-deleted-id");
+            Group editedGroup = CloneWithName(project.Groups.Single(), "main-workflow-group-edited");
+            Group createdGroup = new("main-workflow-group-created", new[] { createdPatient }, "main-workflow-group-created-id");
+            Group deletedGroup = new("main-workflow-group-deleted", new[] { createdPatient }, "main-workflow-group-deleted-id");
             ActionableList<Group> groupList = groups.ListGestion.List;
             groupList.UpdateObject(editedGroup);
             groupList.Add(createdGroup);
@@ -104,15 +104,15 @@ namespace HBP.Tests.PlayMode.Workflow
             groups.OK();
             await UniTask.Yield();
 
-            Assert.That(project.Groups.Select(group => group.Name), Does.Contain("phase11-group-edited"));
+            Assert.That(project.Groups.Select(group => group.Name), Does.Contain("main-workflow-group-edited"));
             Assert.That(project.Groups.Any(group => group.ID == createdGroup.ID), Is.True);
             Assert.That(project.Groups.Any(group => group.ID == deletedGroup.ID), Is.False);
 
             DatasetGestion datasets = InstantiateWindow<DatasetGestion>(DatasetGestionResource, window.Root.transform);
             await UniTask.Yield();
-            Dataset editedDataset = CloneWithName(project.Datasets.Single(), "phase11-dataset-edited");
-            Dataset createdDataset = new("phase11-dataset-created", project.Datasets.Single().Protocol, Array.Empty<DataInfo>(), "phase11-dataset-created-id");
-            Dataset deletedDataset = new("phase11-dataset-deleted", project.Datasets.Single().Protocol, Array.Empty<DataInfo>(), "phase11-dataset-deleted-id");
+            Dataset editedDataset = CloneWithName(project.Datasets.Single(), "main-workflow-dataset-edited");
+            Dataset createdDataset = new("main-workflow-dataset-created", project.Datasets.Single().Protocol, Array.Empty<DataInfo>(), "main-workflow-dataset-created-id");
+            Dataset deletedDataset = new("main-workflow-dataset-deleted", project.Datasets.Single().Protocol, Array.Empty<DataInfo>(), "main-workflow-dataset-deleted-id");
             ActionableList<Dataset> datasetList = datasets.ListGestion.List;
             datasetList.UpdateObject(editedDataset);
             datasetList.Add(createdDataset);
@@ -121,15 +121,15 @@ namespace HBP.Tests.PlayMode.Workflow
             datasets.OK();
             await UniTask.Yield();
 
-            Assert.That(project.Datasets.Select(dataset => dataset.Name), Does.Contain("phase11-dataset-edited"));
+            Assert.That(project.Datasets.Select(dataset => dataset.Name), Does.Contain("main-workflow-dataset-edited"));
             Assert.That(project.Datasets.Any(dataset => dataset.ID == createdDataset.ID), Is.True);
             Assert.That(project.Datasets.Any(dataset => dataset.ID == deletedDataset.ID), Is.False);
 
             VisualizationGestion visualizations = InstantiateWindow<VisualizationGestion>(VisualizationGestionResource, window.Root.transform);
             await UniTask.Yield();
-            Visualization editedVisualization = CloneWithName(project.Visualizations.Single(), "phase11-visualization-edited");
-            Visualization createdVisualization = CreateVisualization("phase11-visualization-created", createdPatient, createdDataset, "phase11-visualization-created-id");
-            Visualization deletedVisualization = CreateVisualization("phase11-visualization-deleted", createdPatient, createdDataset, "phase11-visualization-deleted-id");
+            Visualization editedVisualization = CloneWithName(project.Visualizations.Single(), "main-workflow-visualization-edited");
+            Visualization createdVisualization = CreateVisualization("main-workflow-visualization-created", createdPatient, createdDataset, "main-workflow-visualization-created-id");
+            Visualization deletedVisualization = CreateVisualization("main-workflow-visualization-deleted", createdPatient, createdDataset, "main-workflow-visualization-deleted-id");
             ActionableList<Visualization> visualizationList = visualizations.ListGestion.List;
             visualizationList.UpdateObject(editedVisualization);
             visualizationList.Add(createdVisualization);
@@ -138,7 +138,7 @@ namespace HBP.Tests.PlayMode.Workflow
             visualizations.OK();
             await UniTask.Yield();
 
-            Assert.That(project.Visualizations.Select(visualization => visualization.Name), Does.Contain("phase11-visualization-edited"));
+            Assert.That(project.Visualizations.Select(visualization => visualization.Name), Does.Contain("main-workflow-visualization-edited"));
             Assert.That(project.Visualizations.Any(visualization => visualization.ID == createdVisualization.ID), Is.True);
             Assert.That(project.Visualizations.Any(visualization => visualization.ID == deletedVisualization.ID), Is.False);
 
@@ -147,7 +147,7 @@ namespace HBP.Tests.PlayMode.Workflow
         }
 
         [Test]
-        [Category("PlayMode.Phase11")]
+        [Category("PlayMode.MainWorkflow")]
         public async Task PreferencesAndDatabaseWindows_DisplayProjectUserReferenceAndWorkspaceState()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -155,15 +155,15 @@ namespace HBP.Tests.PlayMode.Workflow
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
             using PlayModeInteractableStateManagerScope interactables = new();
-            using PlayModeSceneScope scene = new("Phase11PreferencesDatabaseWindows");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase11 Preferences Database Harness");
+            using PlayModeSceneScope scene = new("MainWorkflowPreferencesDatabaseWindows");
+            PlayModeWindowHarness window = new(scene.Scene, "MainWorkflow Preferences Database Harness");
             Project project = PlayModeProjectHarness.CreateAndLoadCompleteProject();
             ApplicationState.LoadedProjectLocation = temp.Path;
 
-            Workspace workspace = new("phase11-workspace", "phase11-workspace-id");
+            Workspace workspace = new("main-workflow-workspace", "main-workflow-workspace-id");
             DatabaseManager.Database.Settings.SetWorkspaces(new[] { workspace });
             DatabaseManager.Database.Settings.SelectedWorkspace = workspace;
-            DatabaseReference reference = new("phase11-reference", DatabaseType.Brainvisa, temp.GetPath("brainvisa"), new BrainvisaDatabaseParameters(), DateTime.UtcNow, "phase11-reference-id");
+            DatabaseReference reference = new("main-workflow-reference", DatabaseType.Brainvisa, temp.GetPath("brainvisa"), new BrainvisaDatabaseParameters(), DateTime.UtcNow, "main-workflow-reference-id");
             DatabaseManager.Database.SetDatabaseReferences(new[] { reference });
             await UniTask.Yield();
 
@@ -191,7 +191,7 @@ namespace HBP.Tests.PlayMode.Workflow
             await UniTask.Yield();
             DatabaseReferenceListGestion referenceListGestion = GetPrivateField<DatabaseReferenceListGestion>(referenceGestion, "m_ListGestion");
             Button updateButton = GetPrivateField<Button>(referenceGestion, "m_UpdateButton");
-            Assert.That(referenceListGestion.List.Objects.Single().Name, Is.EqualTo("phase11-reference"));
+            Assert.That(referenceListGestion.List.Objects.Single().Name, Is.EqualTo("main-workflow-reference"));
             Assert.That(updateButton.interactable, Is.False);
 
             DestroyWindowHarness(window);
@@ -199,7 +199,7 @@ namespace HBP.Tests.PlayMode.Workflow
         }
 
         [Test]
-        [Category("PlayMode.Phase11")]
+        [Category("PlayMode.MainWorkflow")]
         public void VisualizationWorkflow_CreatesEveryColumnTypeFromSyntheticProjectData()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -213,15 +213,15 @@ namespace HBP.Tests.PlayMode.Workflow
 
             Column[] columns =
             {
-                new AnatomicColumn("phase11-anatomic", new BaseConfiguration(), new AnatomicConfiguration()),
-                new IEEGColumn("phase11-ieeg", new BaseConfiguration(), dataset, "playmode-signal-alpha", bloc, new DynamicConfiguration()),
-                new CCEPColumn("phase11-ccep", new BaseConfiguration(), dataset, "playmode-response-alpha", bloc, new DynamicConfiguration()),
-                new FMRIColumn("phase11-fmri", new BaseConfiguration(), dataset, new FMRIConfiguration()),
-                new MEGColumn("phase11-meg", new BaseConfiguration(), dataset, new MEGConfiguration()),
-                new StaticColumn("phase11-static", new BaseConfiguration(), dataset, "playmode-static-alpha", new StaticConfiguration())
+                new AnatomicColumn("main-workflow-anatomic", new BaseConfiguration(), new AnatomicConfiguration()),
+                new IEEGColumn("main-workflow-ieeg", new BaseConfiguration(), dataset, "playmode-signal-alpha", bloc, new DynamicConfiguration()),
+                new CCEPColumn("main-workflow-ccep", new BaseConfiguration(), dataset, "playmode-response-alpha", bloc, new DynamicConfiguration()),
+                new FMRIColumn("main-workflow-fmri", new BaseConfiguration(), dataset, new FMRIConfiguration()),
+                new MEGColumn("main-workflow-meg", new BaseConfiguration(), dataset, new MEGConfiguration()),
+                new StaticColumn("main-workflow-static", new BaseConfiguration(), dataset, "playmode-static-alpha", new StaticConfiguration())
             };
 
-            Visualization visualization = new("phase11-all-columns", new[] { patient }, columns, new VisualizationConfiguration(), "phase11-all-columns-id");
+            Visualization visualization = new("main-workflow-all-columns", new[] { patient }, columns, new VisualizationConfiguration(), "main-workflow-all-columns-id");
 
             Assert.That(visualization.Columns.Select(column => column.GetType()), Is.EquivalentTo(new[]
             {
@@ -283,7 +283,7 @@ namespace HBP.Tests.PlayMode.Workflow
             {
                 if (Time.realtimeSinceStartup > deadline)
                 {
-                    throw new TimeoutException("Timed out while waiting for Phase 11 workflow state.");
+                    throw new TimeoutException("Timed out while waiting for main workflow workflow state.");
                 }
                 await UniTask.Yield();
             }

@@ -50,13 +50,13 @@ using ObjectSite = HBP.Core.Object3D.Site;
 
 namespace HBP.Tests.PlayMode.UI
 {
-    public class Phase10InformationGraphPlayModeTests
+    public class InformationGraphPlayModeTests
     {
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void StructWrapper_SetNestedCurves_EmitsLegendsAndEnabledCurveData()
         {
-            using PlayModeSceneScope scene = new("Phase10StructWrapper");
+            using PlayModeSceneScope scene = new("InformationGraphStructWrapper");
             GameObject wrapperObject = new("StructWrapper");
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(wrapperObject, scene.Scene);
             StructWrapper wrapper = wrapperObject.AddComponent<StructWrapper>();
@@ -90,10 +90,10 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void Graph_AddSyntheticCurves_ExportsCsvAndSvgAndTracksEnabledState()
         {
-            using PlayModeSceneScope scene = new("Phase10Graph");
+            using PlayModeSceneScope scene = new("InformationGraphGraph");
             GameObject graphObject = new("Graph");
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(graphObject, scene.Scene);
             Graph graph = graphObject.AddComponent<Graph>();
@@ -145,7 +145,7 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public async Task LocalizersGraphsWorker_VoxelWithoutSelectedBlocs_ReturnsEmptyWithoutSceneAccess()
         {
             LocalizersGraphsWorker worker = new();
@@ -164,7 +164,7 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public async Task LocalizersGraphsWorker_RegionWithoutSelectedBlocs_ReturnsEmptyWithoutSceneAccess()
         {
             LocalizersGraphsWorker worker = new();
@@ -184,10 +184,10 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public async Task LocalizersGraphsWorker_VoxelWithSyntheticLocalizerVolume_BuildsRescaledCurves()
         {
-            using PlayModeSceneScope scene = new("Phase10LocalizersVoxel");
+            using PlayModeSceneScope scene = new("InformationGraphLocalizersVoxel");
             HBP.Core.Object3D.LocalizersObjects previousLocalizers = HBP.Core.Object3D.Object3DManager.Localizers;
             HBP.Core.Object3D.Object3DManager.Localizers = new HBP.Core.Object3D.LocalizersObjects();
 
@@ -228,10 +228,10 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public async Task LocalizersGraphsWorker_RegionWithSyntheticLocalizerVolume_BuildsMeanAndSemCurves()
         {
-            using PlayModeSceneScope scene = new("Phase10LocalizersRegion");
+            using PlayModeSceneScope scene = new("InformationGraphLocalizersRegion");
             HBP.Core.Object3D.LocalizersObjects previousLocalizers = HBP.Core.Object3D.Object3DManager.Localizers;
             HBP.Core.Object3D.Object3DManager.Localizers = new HBP.Core.Object3D.LocalizersObjects();
 
@@ -267,15 +267,14 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         [Category("NativeDll")]
-        [Explicit("Runs native NIfTI DLL loading and can crash Unity if the native stack rejects a fixture. Run explicitly from the Unity Test Runner when needed.")]
         public async Task LocalizersGraphsWorker_VoxelWithNativeLocalizerFixture_BuildsCurveFromNiftiVolume()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase10NativeLocalizersVoxel");
+            using PlayModeSceneScope scene = new("InformationGraphNativeLocalizersVoxel");
             HBP.Core.Object3D.LocalizersObjects previousLocalizers = HBP.Core.Object3D.Object3DManager.Localizers;
             HBP.Core.Object3D.Object3DManager.Localizers = new HBP.Core.Object3D.LocalizersObjects();
             HBP.Core.Object3D.FMRI fmri = new(
@@ -294,7 +293,7 @@ namespace HBP.Tests.PlayMode.UI
                 const string blocName = "bloc-alpha";
                 AddLoadedLocalizerBloc(protocolName, dataType, blocName, fmri);
 
-                Patient patient = new("native-localizer-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, "phase10-native-localizer-patient-001");
+                Patient patient = new("native-localizer-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-graph-native-localizer-patient-001");
                 ObjectSite site = CreateRuntimeSite(scene, "N1", patient, new Vector3(2, 2, 2));
                 NativeLocalizersGraphsWorker worker = new(new[] { site });
                 ProtocolItem protocolItem = CreateSelectedProtocolItem(scene, protocolName, blocName);
@@ -324,10 +323,10 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public async Task LocalizersGraphsWorker_AtlasWithSyntheticAtlasData_BuildsMaskedRegionCurves()
         {
-            using PlayModeSceneScope scene = new("Phase10LocalizersAtlas");
+            using PlayModeSceneScope scene = new("InformationGraphLocalizersAtlas");
             HBP.Core.Object3D.LocalizersObjects previousLocalizers = HBP.Core.Object3D.Object3DManager.Localizers;
             HBP.Core.Object3D.Object3DManager.Localizers = new HBP.Core.Object3D.LocalizersObjects();
 
@@ -363,12 +362,12 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void GraphsGrid_DisplaySyntheticIEEGColumn_CreatesSelectableGraphAndEmitsRequests()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase10GraphsGrid");
+            using PlayModeSceneScope scene = new("InformationGraphGraphsGrid");
             IEEGGraphFixture fixture = CreateInjectedIEGGraphFixture();
             try
             {
@@ -412,12 +411,12 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void TrialMatrixGrid_DisplaySyntheticIEEGData_RendersChannelsBlocsCellsAndSelectionMasks()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase10TrialMatrixGrid");
+            using PlayModeSceneScope scene = new("InformationGraphTrialMatrixGrid");
             IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
             Texture2D colormap = CreateColormap();
 
@@ -470,12 +469,12 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void GraphZone_DisplayUsesTrialMatrixSelectionAndUpdatesCurveWhenSelectionChanges()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase10GraphZone");
+            using PlayModeSceneScope scene = new("InformationGraphGraphZone");
             IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
             Texture2D colormap = CreateColormap();
 
@@ -523,12 +522,12 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void TrialMatrixZone_DisplayVisibleColumnsBuildsGridAndPreservesCustomLimits()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase10TrialMatrixZone");
+            using PlayModeSceneScope scene = new("InformationGraphTrialMatrixZone");
             IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
             Texture2D colormap = CreateColormap();
 
@@ -565,12 +564,12 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void TrialMatrixExplorerGrid_DisplaySyntheticData_RendersTitleAndMatrixData()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase10TrialMatrixExplorerGrid");
+            using PlayModeSceneScope scene = new("InformationGraphTrialMatrixExplorerGrid");
             IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
             Texture2D colormap = CreateColormap();
 
@@ -606,31 +605,31 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void TrialMatrixExplorerInformationPanels_RespectPatientAndSiteTagDisplaySettings()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase10TrialMatrixExplorerInformationPanels");
+            using PlayModeSceneScope scene = new("InformationGraphTrialMatrixExplorerInformationPanels");
 
-            BoolTag patientTag = new("Included", "phase10-info-patient-tag-001");
-            StringTag siteTag = new("Location", "phase10-info-site-tag-001");
+            BoolTag patientTag = new("Included", "information-graph-info-patient-tag-001");
+            StringTag siteTag = new("Location", "information-graph-info-site-tag-001");
             PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag }, false);
             PersistentDataManager.Tags.SetSiteTags(new BaseTag[] { siteTag }, false);
 
             Site site = new(
                 "A1",
-                new[] { new Coordinate("phase10-space", Vector3.one, "phase10-info-coordinate-001") },
-                new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "phase10-info-site-tag-value-001") },
-                "phase10-info-site-001");
+                new[] { new Coordinate("information-graph-space", Vector3.one, "information-graph-info-coordinate-001") },
+                new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "information-graph-info-site-tag-value-001") },
+                "information-graph-info-site-001");
             Patient patient = new(
                 "patient-info",
                 Array.Empty<BaseMesh>(),
                 Array.Empty<MRI>(),
                 new[] { site },
-                new BaseTagValue[] { new BoolTagValue(patientTag, true, "phase10-info-patient-tag-value-001") },
+                new BaseTagValue[] { new BoolTagValue(patientTag, true, "information-graph-info-patient-tag-value-001") },
                 string.Empty,
-                "phase10-info-patient-001");
+                "information-graph-info-patient-001");
 
             DBInformationPanels panels = CreateInformationPanelsHarness(scene);
             DBTagDisplaySettingsContextMenu patientMenu = GetPrivateField<DBTagDisplaySettingsContextMenu>(panels, "m_PatientTagDisplaySettingsContextMenu");
@@ -655,14 +654,14 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public async Task DisplayGraphSection_ApplyRequestsFilteredSitesGraphWithStoredName()
         {
-            using PlayModeSceneScope scene = new("Phase10DisplayGraphSection");
+            using PlayModeSceneScope scene = new("InformationGraphDisplayGraphSection");
             using PlayModeModule3DTestHarness module3D = new(scene.Scene);
             DisplayGraphSection section = CreateDisplayGraphSectionHarness(scene, module3D.Scene);
             section.ApplyFor = ApplyFor.FilteredSites;
-            GetPrivateField<InputField>(section, "m_NameInputField").text = "phase10 filtered graph";
+            GetPrivateField<InputField>(section, "m_NameInputField").text = "information-graph filtered graph";
 
             module3D.SourceSiteA.State.IsFiltered = true;
             module3D.SourceSiteB.State.IsFiltered = false;
@@ -678,17 +677,17 @@ namespace HBP.Tests.PlayMode.UI
 
             await section.ApplyAsync();
 
-            Assert.That(requestedName, Is.EqualTo("phase10 filtered graph"));
+            Assert.That(requestedName, Is.EqualTo("information-graph filtered graph"));
             Assert.That(requestedSites, Is.EqualTo(new[] { module3D.SourceSiteA }));
 
             section.StoreSettings();
             GetPrivateField<InputField>(section, "m_NameInputField").text = string.Empty;
             section.LoadSettings();
-            Assert.That(GetPrivateField<InputField>(section, "m_NameInputField").text, Is.EqualTo("phase10 filtered graph"));
+            Assert.That(GetPrivateField<InputField>(section, "m_NameInputField").text, Is.EqualTo("information-graph filtered graph"));
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public async Task OpenTrialMatrixExplorerSection_ApplyRequestsExplorerForFilteredSitesAndSelectedData()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -729,10 +728,10 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void TrialMatrixActionsContextMenu_AddCurrentPatientWithoutSelectionReportsError()
         {
-            using PlayModeSceneScope scene = new("Phase10TrialMatrixActionsContextMenu");
+            using PlayModeSceneScope scene = new("InformationGraphTrialMatrixActionsContextMenu");
             GameObject displayerObject = new("TrialMatrixDisplayer");
             displayerObject.SetActive(false);
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(displayerObject, scene.Scene);
@@ -752,10 +751,10 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase10")]
+        [Category("PlayMode.InformationGraph")]
         public void LocalizersPanel_RescalingControlsUpdateParametersFormulaAndRejectInvalidGain()
         {
-            using PlayModeSceneScope scene = new("Phase10LocalizersPanelRescaling");
+            using PlayModeSceneScope scene = new("InformationGraphLocalizersPanelRescaling");
             LocalizersPanel panel = CreateLocalizersPanelRescalingHarness(scene);
             Toggle enableToggle = GetPrivateField<Toggle>(panel, "m_EnableRescalingToggle");
             InputField baselineInput = GetPrivateField<InputField>(panel, "m_BaselineValueInputField");
@@ -1222,19 +1221,19 @@ namespace HBP.Tests.PlayMode.UI
 
         private static IEEGGraphFixture CreateInjectedIEGGraphFixture()
         {
-            Patient patient = new("patient-grid", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "phase10-grid-patient-001");
+            Patient patient = new("patient-grid", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-graph-grid-patient-001");
             CoreSubBloc subBloc = new(
                 "response",
                 0,
                 MainSecondaryEnum.Main,
                 new TimeWindow(0, 2),
                 new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "phase10-grid-event-001") },
+                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-graph-grid-event-001") },
                 Array.Empty<CoreIcon>(),
                 Array.Empty<Treatment>(),
-                "phase10-grid-subbloc-001");
-            CoreBloc bloc = new("grid-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "phase10-grid-bloc-001");
-            Protocol protocol = new("protocol-grid", new[] { bloc }, "phase10-grid-protocol-001");
+                "information-graph-grid-subbloc-001");
+            CoreBloc bloc = new("grid-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-graph-grid-bloc-001");
+            Protocol protocol = new("protocol-grid", new[] { bloc }, "information-graph-grid-protocol-001");
             IEEGDataInfo dataInfo = new(
                 "grid-ieeg",
                 protocol,
@@ -1243,9 +1242,9 @@ namespace HBP.Tests.PlayMode.UI
                 Array.Empty<Warning>(),
                 patient,
                 NormalizationType.None,
-                "phase10-db",
-                "phase10-grid-ieeg-001");
-            Dataset dataset = new("dataset-grid", protocol, new[] { dataInfo }, "phase10-grid-dataset-001");
+                "information-graph-db",
+                "information-graph-grid-ieeg-001");
+            Dataset dataset = new("dataset-grid", protocol, new[] { dataInfo }, "information-graph-grid-dataset-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
             blocData.Frequency = new Frequency(1000);
@@ -1274,19 +1273,19 @@ namespace HBP.Tests.PlayMode.UI
 
         private static IEEGTrialMatrixFixture CreateInjectedTrialMatrixFixture()
         {
-            Patient patient = new("patient-trial-matrix", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "phase10-trial-matrix-patient-001");
+            Patient patient = new("patient-trial-matrix", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-graph-trial-matrix-patient-001");
             CoreSubBloc subBloc = new(
                 "response",
                 0,
                 MainSecondaryEnum.Main,
                 new TimeWindow(0, 2),
                 new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "phase10-trial-matrix-event-001") },
+                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-graph-trial-matrix-event-001") },
                 Array.Empty<CoreIcon>(),
                 Array.Empty<Treatment>(),
-                "phase10-trial-matrix-subbloc-001");
-            CoreBloc bloc = new("trial-matrix-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "phase10-trial-matrix-bloc-001");
-            Protocol protocol = new("protocol-trial-matrix", new[] { bloc }, "phase10-trial-matrix-protocol-001");
+                "information-graph-trial-matrix-subbloc-001");
+            CoreBloc bloc = new("trial-matrix-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-graph-trial-matrix-bloc-001");
+            Protocol protocol = new("protocol-trial-matrix", new[] { bloc }, "information-graph-trial-matrix-protocol-001");
             IEEGDataInfo dataInfo = new(
                 "trial-matrix-ieeg",
                 protocol,
@@ -1295,9 +1294,9 @@ namespace HBP.Tests.PlayMode.UI
                 Array.Empty<Warning>(),
                 patient,
                 NormalizationType.None,
-                "phase10-db",
-                "phase10-trial-matrix-ieeg-001");
-            Dataset dataset = new("dataset-trial-matrix", protocol, new[] { dataInfo }, "phase10-trial-matrix-dataset-001");
+                "information-graph-db",
+                "information-graph-trial-matrix-ieeg-001");
+            Dataset dataset = new("dataset-trial-matrix", protocol, new[] { dataInfo }, "information-graph-trial-matrix-dataset-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
             blocData.Frequency = new Frequency(1000);

@@ -12,16 +12,16 @@ using NUnit.Framework;
 
 namespace HBP.Tests.PlayMode.Workflow
 {
-    public class Phase1SerializationPlayModeTests
+    public class SerializationPlayModeTests
     {
         [Test]
-        [Category("PlayMode.Phase1")]
+        [Category("PlayMode.Serialization")]
         public async Task ProjectRoundTrip_InPlayMode_PreservesSerializedReferencesAndIds()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase1SerializationRoundTrip");
+            using PlayModeSceneScope scene = new("SerializationSerializationRoundTrip");
 
             Project source = PlayModeProjectHarness.CreateAndLoadCompleteProject();
             string archivePath = await SaveProjectAsync(temp, source);
@@ -45,13 +45,13 @@ namespace HBP.Tests.PlayMode.Workflow
         [TestCase("Groups/playmode-group-alpha.group", typeof(CanNotReadGroupFileException))]
         [TestCase("Datasets/playmode-dataset-alpha.dataset", typeof(CanNotReadDatasetFileException))]
         [TestCase("Visualizations/playmode-visualization-alpha.visualization", typeof(CanNotReadVisualizationFileException))]
-        [Category("PlayMode.Phase1")]
+        [Category("PlayMode.Serialization")]
         public async Task ProjectLoadAsync_WithCorruptedSerializedEntryInPlayMode_ThrowsControlledExceptionAndCleansExtraction(string entryName, Type expectedExceptionType)
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase1SerializationCorruptedEntry");
+            using PlayModeSceneScope scene = new("SerializationSerializationCorruptedEntry");
 
             Project source = PlayModeProjectHarness.CreateAndLoadCompleteProject();
             string archivePath = await SaveProjectAsync(temp, source);
@@ -71,7 +71,7 @@ namespace HBP.Tests.PlayMode.Workflow
 
         private static async Task<string> SaveProjectAsync(PlayModeTempDirectoryScope temp, Project project)
         {
-            string saveDirectory = temp.GetPath("phase1-project");
+            string saveDirectory = temp.GetPath("serialization-project");
             Directory.CreateDirectory(saveDirectory);
             ApplicationState.LoadedProject = project;
             ApplicationState.LoadedProjectLocation = saveDirectory;

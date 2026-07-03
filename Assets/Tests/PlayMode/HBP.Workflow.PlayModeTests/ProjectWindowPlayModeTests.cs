@@ -23,22 +23,22 @@ using UserProjectPreferences = HBP.Core.Preferences.ProjectPreferences;
 
 namespace HBP.Tests.PlayMode.Workflow
 {
-    public class Phase2ProjectWindowPlayModeTests
+    public class ProjectWindowPlayModeTests
     {
         private const string NewProjectWindowResource = "Prefabs/UI/Windows/New project window";
         private const string SaveProjectAsWindowResource = "Prefabs/UI/Windows/Save project as window";
         private const string OpenProjectWindowResource = "Prefabs/UI/Windows/Open project window";
 
         [Test]
-        [Category("PlayMode.Phase2")]
+        [Category("PlayMode.ProjectWindow")]
         public async Task NewProjectWindow_SetFields_UsesUserDefaultNameAndLocation()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase2NewProjectWindow");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase2 New Project Window Harness");
+            using PlayModeSceneScope scene = new("ProjectWindowNewProjectWindow");
+            PlayModeWindowHarness window = new(scene.Scene, "ProjectWindow New Project Window Harness");
             string defaultLocation = temp.GetPath("default-projects");
             Directory.CreateDirectory(defaultLocation);
             UserPreferencesManager.UserPreferences.General.Project = new UserProjectPreferences("playmode-default-project", defaultLocation, temp.GetPath("exports"));
@@ -58,18 +58,18 @@ namespace HBP.Tests.PlayMode.Workflow
         }
 
         [Test]
-        [Category("PlayMode.Phase2")]
+        [Category("PlayMode.ProjectWindow")]
         public async Task SaveProjectAsWindow_Initialize_UsesLoadedProjectNameAndLocation()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase2SaveProjectAsWindow");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase2 Save Project As Window Harness");
+            using PlayModeSceneScope scene = new("ProjectWindowSaveProjectAsWindow");
+            PlayModeWindowHarness window = new(scene.Scene, "ProjectWindow Save Project As Window Harness");
             string projectLocation = temp.GetPath("loaded-project-location");
             Directory.CreateDirectory(projectLocation);
-            ApplicationState.LoadedProject = new Project("loaded-playmode-project", new ProjectPreferences("playmode-phase2", "loaded-playmode-project-id"));
+            ApplicationState.LoadedProject = new Project("loaded-playmode-project", new ProjectPreferences("playmode-project-window", "loaded-playmode-project-id"));
             ApplicationState.LoadedProjectLocation = projectLocation;
             await UniTask.Yield();
 
@@ -87,23 +87,23 @@ namespace HBP.Tests.PlayMode.Workflow
         }
 
         [Test]
-        [Category("PlayMode.Phase2")]
+        [Category("PlayMode.ProjectWindow")]
         public async Task OpenProjectWindow_DisplayProjects_PopulatesValidProjectsAndDisablesInvalidSettingsProject()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase2OpenProjectWindow");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase2 Open Project Window Harness");
+            using PlayModeSceneScope scene = new("ProjectWindowOpenProjectWindow");
+            PlayModeWindowHarness window = new(scene.Scene, "ProjectWindow Open Project Window Harness");
             string projectFolder = temp.GetPath("project-list");
             string emptyDefaultFolder = temp.GetPath("empty-project-list");
             Directory.CreateDirectory(projectFolder);
             Directory.CreateDirectory(emptyDefaultFolder);
             UserPreferencesManager.UserPreferences.General.Project = new UserProjectPreferences("unused", emptyDefaultFolder, temp.GetPath("exports"));
 
-            string validArchive = await SaveProjectToDirectoryAsync(projectFolder, new Project("valid-project", new ProjectPreferences("playmode-phase2", "valid-project-id")));
-            string invalidArchive = await SaveProjectToDirectoryAsync(projectFolder, new Project("invalid-settings-project", new ProjectPreferences("playmode-phase2", "invalid-project-id")));
+            string validArchive = await SaveProjectToDirectoryAsync(projectFolder, new Project("valid-project", new ProjectPreferences("playmode-project-window", "valid-project-id")));
+            string invalidArchive = await SaveProjectToDirectoryAsync(projectFolder, new Project("invalid-settings-project", new ProjectPreferences("playmode-project-window", "invalid-project-id")));
             ReplaceZipEntryContent(invalidArchive, "invalid-settings-project" + ProjectPreferences.EXTENSION, "{ this is not valid json");
             await UniTask.Yield();
 

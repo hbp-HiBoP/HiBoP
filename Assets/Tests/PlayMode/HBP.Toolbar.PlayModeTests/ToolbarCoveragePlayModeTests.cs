@@ -24,13 +24,13 @@ using ObjectSiteState = HBP.Core.Object3D.SiteState;
 
 namespace HBP.Tests.PlayMode.Toolbar
 {
-    public class Phase9ToolbarCoveragePlayModeTests
+    public class ToolbarCoveragePlayModeTests
     {
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void DisplayToolbarTools_UpdateSceneRotationCameraAndResetEvents()
         {
-            using PlayModeSceneScope scene = new("Phase9DisplayToolbar");
+            using PlayModeSceneScope scene = new("ToolbarDisplayToolbar");
             using ToolbarSceneHarness harness = new(scene.Scene);
             Column3D selectedColumn = harness.CreateColumn("display-column", selected: true);
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
@@ -77,10 +77,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void SceneToolbarTools_UpdateSceneDisplayStateAndMaterials()
         {
-            using PlayModeSceneScope scene = new("Phase9SceneToolbar");
+            using PlayModeSceneScope scene = new("ToolbarSceneToolbar");
             using ToolbarSceneHarness harness = new(scene.Scene);
             Column3D selectedColumn = harness.CreateColumn("scene-column", selected: true);
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
@@ -147,10 +147,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void SiteToolbarTools_UpdateSiteSceneFlagsAndSelectionLabel()
         {
-            using PlayModeSceneScope scene = new("Phase9SiteToolbar");
+            using PlayModeSceneScope scene = new("ToolbarSiteToolbar");
             using ToolbarSceneHarness harness = new(scene.Scene);
             ToolbarTestColumn selectedColumn = harness.CreateColumn("site-column", selected: true);
             ObjectSite selectedSite = harness.CreateSite("A1", 0, new Vector3(1, 2, 3), selectedColumn);
@@ -200,10 +200,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void ActivityToolbarTools_RequestComputationAndApplyActivityAlpha()
         {
-            using PlayModeSceneScope scene = new("Phase9ActivityToolbar");
+            using PlayModeSceneScope scene = new("ToolbarActivityToolbar");
             using ToolbarSceneHarness harness = new(scene.Scene);
             ToolbarTestColumn selectedColumn = harness.CreateColumn("activity-column", selected: true);
             ToolbarTestColumn otherColumn = harness.CreateColumn("activity-column-2", selected: false);
@@ -255,10 +255,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void CCEPToolbarTools_SwitchModeAndSelectSourceSite()
         {
-            using PlayModeSceneScope scene = new("Phase9CCEPToolbar");
+            using PlayModeSceneScope scene = new("ToolbarCCEPToolbar");
             using ToolbarSceneHarness harness = new(scene.Scene);
             Column3DCCEP ccepColumn = harness.CreateCCEPColumn("ccep-column", selected: true);
             ObjectSite site = harness.CreateSite("S1", 0, Vector3.one, ccepColumn);
@@ -303,10 +303,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void TimelineToolbarTools_UpdateDynamicTimelineLocallyAndGlobally()
         {
-            using PlayModeSceneScope scene = new("Phase9TimelineToolbar");
+            using PlayModeSceneScope scene = new("ToolbarTimelineToolbar");
             using ToolbarSceneHarness harness = new(scene.Scene);
             TestIEEGColumn selectedColumn = harness.CreateIEEGColumn("dynamic-column", selected: true);
             TestIEEGColumn otherColumn = harness.CreateIEEGColumn("dynamic-column-2", selected: false);
@@ -365,10 +365,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void ROIToolbarTools_AddRenameSelectAndRemoveROI()
         {
-            using PlayModeSceneScope scene = new("Phase9ROIToolbar");
+            using PlayModeSceneScope scene = new("ToolbarROIToolbar");
             using ToolbarSceneHarness harness = new(scene.Scene);
             Column3D selectedColumn = harness.CreateColumn("roi-column", selected: true);
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
@@ -422,10 +422,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void RemainingToolbarToolsExposeSafeStateWithoutOpeningDialogsOrNativeViewers()
         {
-            using PlayModeSceneScope scene = new("Phase9ToolbarSafeStates");
+            using PlayModeSceneScope scene = new("ToolbarToolbarSafeStates");
             using ToolbarSceneHarness harness = new(scene.Scene);
             ToolbarTestColumn selectedColumn = harness.CreateColumn("safe-state-column", selected: true);
             ObjectSite selectedSite = harness.CreateSite("A2", 0, new Vector3(2, 0, 0), selectedColumn);
@@ -532,10 +532,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void StaticLabelSelector_UpdatesLabelsSelectionAndVisibility()
         {
-            using PlayModeSceneScope scene = new("Phase9StaticLabelSelector");
+            using PlayModeSceneScope scene = new("ToolbarStaticLabelSelector");
             using ToolbarSceneHarness harness = new(scene.Scene);
             TestStaticColumn staticColumn = harness.CreateStaticColumn("static-column", selected: true, "alpha", "beta", "gamma");
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
@@ -563,10 +563,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void TimelineSliderRecordAndScreenshot_ExposeSafeDynamicControls()
         {
-            using PlayModeSceneScope scene = new("Phase9TimelineSliderRecord");
+            using PlayModeSceneScope scene = new("ToolbarTimelineSliderRecord");
             using ToolbarSceneHarness harness = new(scene.Scene);
             TestIEEGColumn selectedColumn = harness.CreateIEEGColumn("timeline-slider-column", selected: true);
             TestIEEGColumn otherColumn = harness.CreateIEEGColumn("timeline-slider-column-2", selected: false);
@@ -623,10 +623,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void SiteStateImportMoveSitesAndSiteWindows_UpdateSafeState()
         {
-            using PlayModeSceneScope scene = new("Phase9SiteStateImportMove");
+            using PlayModeSceneScope scene = new("ToolbarSiteStateImportMove");
             using ToolbarSceneHarness harness = new(scene.Scene);
             ToolbarTestColumn selectedColumn = harness.CreateColumn("site-state-column", selected: true);
             ToolbarTestColumn otherColumn = harness.CreateColumn("site-state-column-2", selected: false);
@@ -642,25 +642,25 @@ namespace HBP.Tests.PlayMode.Toolbar
                 SetPrivateField(tool, "m_Import", import);
                 SetPrivateField(tool, "m_Export", export);
             });
-            string csvPath = Path.Combine(Application.temporaryCachePath, $"phase9_site_states_{Guid.NewGuid():N}.csv");
+            string csvPath = Path.Combine(Application.temporaryCachePath, $"toolbar_site_states_{Guid.NewGuid():N}.csv");
             File.WriteAllLines(csvPath, new[]
             {
                 "ID,Blacklisted,Highlighted,Color,Labels",
-                $"{selectedSite.Information.FullID},True,True,#112233FF,Imported;Phase9"
+                $"{selectedSite.Information.FullID},True,True,#112233FF,Imported;Toolbar"
             });
 
             siteStateExport.LoadSiteStates(csvPath, allColumns: false);
 
             Assert.That(selectedSite.State.IsBlackListed, Is.True);
             Assert.That(selectedSite.State.IsHighlighted, Is.True);
-            Assert.That(selectedSite.State.Labels, Is.EquivalentTo(new[] { "Imported", "Phase9" }));
+            Assert.That(selectedSite.State.Labels, Is.EquivalentTo(new[] { "Imported", "Toolbar" }));
             Assert.That(otherSite.State.IsBlackListed, Is.False);
 
             siteStateExport.LoadSiteStates(csvPath, allColumns: true);
 
             Assert.That(otherSite.State.IsBlackListed, Is.True);
             Assert.That(otherSite.State.IsHighlighted, Is.True);
-            Assert.That(otherSite.State.Labels, Is.EquivalentTo(new[] { "Imported", "Phase9" }));
+            Assert.That(otherSite.State.Labels, Is.EquivalentTo(new[] { "Imported", "Toolbar" }));
 
             Button movePanel = CreateButton("Move Sites Panel");
             Button moveLeft = CreateButton("Move Sites Left");
@@ -700,10 +700,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void SelectorAndCorrelationTools_GateUnavailableDataWithoutOpeningWindows()
         {
-            using PlayModeSceneScope scene = new("Phase9SelectorGating");
+            using PlayModeSceneScope scene = new("ToolbarSelectorGating");
             using ToolbarSceneHarness harness = new(scene.Scene);
             TestIEEGColumn selectedColumn = harness.CreateIEEGColumn("selector-ieeg-column", selected: true);
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
@@ -794,10 +794,10 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void RemainingParameterSelectors_GateControlsWithoutHeavyThresholdPanels()
         {
-            using PlayModeSceneScope scene = new("Phase9RemainingParameterSelectors");
+            using PlayModeSceneScope scene = new("ToolbarRemainingParameterSelectors");
             using ToolbarSceneHarness harness = new(scene.Scene);
             TestIEEGColumn ieegColumn = harness.CreateIEEGColumn("remaining-ieeg-column", selected: true);
             TestStaticColumn staticColumn = harness.CreateStaticColumn("remaining-static-column", selected: false, "alpha", "beta");
@@ -932,18 +932,18 @@ namespace HBP.Tests.PlayMode.Toolbar
         }
 
         [Test]
-        [Category("PlayMode.Phase9")]
+        [Category("PlayMode.Toolbar")]
         public void ExternalCommandClickPaths_UseAdaptersWithoutOpeningNativeUI()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase9ExternalToolbarCommands");
+            using PlayModeSceneScope scene = new("ToolbarExternalToolbarCommands");
             using ToolbarSceneHarness harness = new(scene.Scene);
             ToolbarTestColumn selectedColumn = harness.CreateColumn("external-command-column", selected: true);
             ObjectSite selectedSite = harness.CreateSite("A4", 0, new Vector3(4, 0, 0), selectedColumn);
             SelectSite(selectedColumn, selectedSite);
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
-            ApplicationState.LoadedProject = new Project("phase9-toolbar-project", new ProjectPreferences());
+            ApplicationState.LoadedProject = new Project("toolbar-toolbar-project", new ProjectPreferences());
             ApplicationState.LoadedProject.AddVisualization(harness.Scene.Visualization);
 
             List<string> saveFileRequests = new();
@@ -1238,16 +1238,16 @@ namespace HBP.Tests.PlayMode.Toolbar
 
             public ToolbarSceneHarness(UnityEngine.SceneManagement.Scene unityScene)
             {
-                m_Root = new GameObject("Phase9 Toolbar Harness");
+                m_Root = new GameObject("Toolbar Toolbar Harness");
                 SceneManager.MoveGameObjectToScene(m_Root, unityScene);
 
-                GameObject sceneObject = new("Base3DScene_Phase9");
+                GameObject sceneObject = new("Base3DScene_Toolbar");
                 sceneObject.transform.SetParent(m_Root.transform, false);
                 Scene = sceneObject.AddComponent<Base3DScene>();
                 SetAutoProperty(Scene, "Visualization", CreateVisualization());
                 SetAutoProperty(Scene, "BrainMaterials", new BrainMaterials());
 
-                GameObject displayedObject = new("DisplayedObjects_Phase9");
+                GameObject displayedObject = new("DisplayedObjects_Toolbar");
                 displayedObject.SetActive(false);
                 displayedObject.transform.SetParent(m_Root.transform, false);
                 m_DisplayedObjects = displayedObject.AddComponent<DisplayedObjects>();
@@ -1266,7 +1266,7 @@ namespace HBP.Tests.PlayMode.Toolbar
                 m_DisplayedObjects.InstantiateBrain();
                 m_DisplayedObjects.InstantiateSimplifiedBrain();
 
-                GameObject meshManagerObject = new("MeshManager_Phase9");
+                GameObject meshManagerObject = new("MeshManager_Toolbar");
                 meshManagerObject.transform.SetParent(m_Root.transform, false);
                 m_MeshManager = meshManagerObject.AddComponent<MeshManager>();
                 SetPrivateField(m_MeshManager, "m_Scene", Scene);
@@ -1274,30 +1274,30 @@ namespace HBP.Tests.PlayMode.Toolbar
                 m_MeshManager.Meshes.Add(new LeftRightMesh3D { Name = "Synthetic LeftRight" });
                 m_MeshManager.Meshes.Add(new LeftRightMesh3D { Name = "Synthetic Alternate" });
 
-                GameObject roiManagerObject = new("ROIManager_Phase9");
+                GameObject roiManagerObject = new("ROIManager_Toolbar");
                 roiManagerObject.transform.SetParent(m_Root.transform, false);
                 m_ROIManager = roiManagerObject.AddComponent<DataROIManager>();
                 SetPrivateField(m_ROIManager, "m_Scene", Scene);
                 SetPrivateField(m_ROIManager, "m_DisplayedObjects", m_DisplayedObjects);
 
-                GameObject implantationObject = new("ImplantationManager_Phase9");
+                GameObject implantationObject = new("ImplantationManager_Toolbar");
                 implantationObject.transform.SetParent(m_Root.transform, false);
                 ImplantationManager implantationManager = implantationObject.AddComponent<ImplantationManager>();
                 SetPrivateField(implantationManager, "m_Scene", Scene);
 
-                GameObject atlasObject = new("AtlasManager_Phase9");
+                GameObject atlasObject = new("AtlasManager_Toolbar");
                 atlasObject.transform.SetParent(m_Root.transform, false);
                 AtlasManager atlasManager = atlasObject.AddComponent<AtlasManager>();
                 SetPrivateField(atlasManager, "m_Scene", Scene);
                 SetPrivateField(atlasManager, "m_DisplayedObjects", m_DisplayedObjects);
 
-                GameObject fmriObject = new("FMRIManager_Phase9");
+                GameObject fmriObject = new("FMRIManager_Toolbar");
                 fmriObject.transform.SetParent(m_Root.transform, false);
                 FMRIManager fmriManager = fmriObject.AddComponent<FMRIManager>();
                 SetPrivateField(fmriManager, "m_Scene", Scene);
                 SetPrivateField(fmriManager, "m_DisplayedObjects", m_DisplayedObjects);
 
-                GameObject mriObject = new("MRIManager_Phase9");
+                GameObject mriObject = new("MRIManager_Toolbar");
                 mriObject.transform.SetParent(m_Root.transform, false);
                 MRIManager mriManager = mriObject.AddComponent<MRIManager>();
                 SetPrivateField(mriManager, "m_Scene", Scene);
@@ -1363,7 +1363,7 @@ namespace HBP.Tests.PlayMode.Toolbar
                 ObjectSite site = siteObject.AddComponent<ObjectSite>();
                 site.Information = new ObjectSiteInformation
                 {
-                    SiteData = new DataSite(name, new[] { new Coordinate("phase9-space", position, $"coord-{name}") }, Array.Empty<BaseTagValue>(), $"site-{name}"),
+                    SiteData = new DataSite(name, new[] { new Coordinate("toolbar-space", position, $"coord-{name}") }, Array.Empty<BaseTagValue>(), $"site-{name}"),
                     Patient = Scene.Visualization.Patients[0],
                     Name = name,
                     Index = index,
@@ -1403,8 +1403,8 @@ namespace HBP.Tests.PlayMode.Toolbar
 
             private static Visualization CreateVisualization()
             {
-                Patient patient = new("phase9-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<DataSite>(), Array.Empty<BaseTagValue>(), string.Empty, "phase9-patient-id");
-                return new Visualization("phase9-visualization", new[] { patient }, Array.Empty<Column>(), new VisualizationConfiguration(), "phase9-visualization-id");
+                Patient patient = new("toolbar-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<DataSite>(), Array.Empty<BaseTagValue>(), string.Empty, "toolbar-patient-id");
+                return new Visualization("toolbar-visualization", new[] { patient }, Array.Empty<Column>(), new VisualizationConfiguration(), "toolbar-visualization-id");
             }
 
             private static GameObject CreateMeshPrefab(string name)

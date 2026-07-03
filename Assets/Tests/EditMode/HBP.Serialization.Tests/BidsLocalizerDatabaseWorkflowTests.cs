@@ -27,12 +27,12 @@ namespace HBP.Tests.Serialization
             DatabaseManager.Database.SetProtocols(new[] { protocol });
             string bidsRoot = CreateSyntheticBidsDatabase(temp, protocol.Name);
             DatabaseReference reference = new(
-                "phase5-bids",
+                "bids-localizer-database-bids",
                 DatabaseType.BIDS,
                 bidsRoot,
                 new BIDSDatabaseParameters(),
                 DateTime.MinValue,
-                "phase5-bids-reference-001");
+                "bids-localizer-database-bids-reference-001");
 
             var discovered = BIDSParser.FindFiles(
                 bidsRoot,
@@ -64,7 +64,7 @@ namespace HBP.Tests.Serialization
 
             BIDSExportConfiguration configuration = new()
             {
-                Version = "phase5",
+                Version = "bids-localizer-database",
                 AnatomicalRules =
                 {
                     new AnatomicalDataRule
@@ -81,31 +81,31 @@ namespace HBP.Tests.Serialization
                     new CoordinateSystemRule { CoordinateSystemName = "mni", BIDSSpace = "MNI152Lin" }
                 }
             };
-            BIDSExportConfiguration loadedConfiguration = RoundTrip(temp, configuration, "phase5-bids-export-config.json");
+            BIDSExportConfiguration loadedConfiguration = RoundTrip(temp, configuration, "bids-localizer-database-bids-export-config.json");
 
-            string sourceMri = temp.GetPath("phase5-source-t1w.nii");
+            string sourceMri = temp.GetPath("bids-localizer-database-source-t1w.nii");
             File.WriteAllText(sourceMri, "synthetic mri");
             Patient patient = new(
-                "phase5 patient",
+                "bids-localizer-database patient",
                 Array.Empty<BaseMesh>(),
-                new[] { new MRI("preimplantation", sourceMri, "phase5-mri-001") },
+                new[] { new MRI("preimplantation", sourceMri, "bids-localizer-database-mri-001") },
                 new[]
                 {
                     new Site(
                         "A1",
                         new[]
                         {
-                            new Coordinate("scanner", new Vector3(1, 2, 3), "phase5-coordinate-scanner-001"),
-                            new Coordinate("mni", new Vector3(4, 5, 6), "phase5-coordinate-mni-001")
+                            new Coordinate("scanner", new Vector3(1, 2, 3), "bids-localizer-database-coordinate-scanner-001"),
+                            new Coordinate("mni", new Vector3(4, 5, 6), "bids-localizer-database-coordinate-mni-001")
                         },
                         Array.Empty<BaseTagValue>(),
-                        "phase5-site-001")
+                        "bids-localizer-database-site-001")
                 },
                 Array.Empty<BaseTagValue>(),
                 "",
-                "phase5-patient-001");
+                "bids-localizer-database-patient-001");
             BIDSPatient bidsPatient = new(patient, Array.Empty<Protocol>(), Array.Empty<string>(), "01");
-            string exportRoot = temp.GetPath("phase5-export");
+            string exportRoot = temp.GetPath("bids-localizer-database-export");
             Directory.CreateDirectory(exportRoot);
 
             BIDSUtility.ExportPatient(bidsPatient, exportRoot, loadedConfiguration, Array.Empty<BaseTag>());
@@ -114,7 +114,7 @@ namespace HBP.Tests.Serialization
             string anatFolder = Path.Combine(participantFolder, "ses-pre", "anat");
             string ieegFolder = Path.Combine(participantFolder, "ses-post", "ieeg");
 
-            Assert.That(loadedConfiguration.Version, Is.EqualTo("phase5"));
+            Assert.That(loadedConfiguration.Version, Is.EqualTo("bids-localizer-database"));
             Assert.That(loadedConfiguration.AnatomicalRules.Single().BIDSSuffix, Is.EqualTo("T1w"));
             Assert.That(File.Exists(Path.Combine(anatFolder, "sub-01_ses-pre_T1w.nii")), Is.True);
             Assert.That(File.Exists(Path.Combine(ieegFolder, "sub-01_ses-post_electrodes.tsv")), Is.True);
@@ -131,15 +131,15 @@ namespace HBP.Tests.Serialization
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
 
-            string bidsRoot = temp.GetPath("phase5-missing-participants");
+            string bidsRoot = temp.GetPath("bids-localizer-database-missing-participants");
             Directory.CreateDirectory(Path.Combine(bidsRoot, "sub-01", "ses-pre", "anat"));
             DatabaseReference reference = new(
-                "phase5-bids-missing",
+                "bids-localizer-database-bids-missing",
                 DatabaseType.BIDS,
                 bidsRoot,
                 new BIDSDatabaseParameters(),
                 DateTime.MinValue,
-                "phase5-bids-reference-missing-001");
+                "bids-localizer-database-bids-reference-missing-001");
 
             HBPException exception = Assert.Catch<HBPException>(() =>
                 Patient.LoadFromBIDSDatabase(reference, out _, null, CancellationToken.None));
@@ -157,9 +157,9 @@ namespace HBP.Tests.Serialization
 
             DatabaseReference[] references =
             {
-                new("phase5-brainvisa", DatabaseType.Brainvisa, temp.GetPath("brainvisa"), new BrainvisaDatabaseParameters(), DateTime.UtcNow, "phase5-db-brainvisa-001"),
+                new("bids-localizer-database-brainvisa", DatabaseType.Brainvisa, temp.GetPath("brainvisa"), new BrainvisaDatabaseParameters(), DateTime.UtcNow, "bids-localizer-database-db-brainvisa-001"),
                 new(
-                    "phase5-localizer",
+                    "bids-localizer-database-localizer",
                     DatabaseType.Localizer,
                     temp.GetPath("localizer"),
                     new LocalizerDatabaseParameters
@@ -169,9 +169,9 @@ namespace HBP.Tests.Serialization
                         TemporalSmoothings = new[] { "sm0", "sm250" }
                     },
                     DateTime.UtcNow,
-                    "phase5-db-localizer-001"),
-                new("phase5-bids", DatabaseType.BIDS, temp.GetPath("bids"), new BIDSDatabaseParameters(), DateTime.UtcNow, "phase5-db-bids-001"),
-                new("phase5-tags", DatabaseType.Tags, temp.GetPath("tags"), new TagsDatabaseParameters(), DateTime.UtcNow, "phase5-db-tags-001")
+                    "bids-localizer-database-db-localizer-001"),
+                new("bids-localizer-database-bids", DatabaseType.BIDS, temp.GetPath("bids"), new BIDSDatabaseParameters(), DateTime.UtcNow, "bids-localizer-database-db-bids-001"),
+                new("bids-localizer-database-tags", DatabaseType.Tags, temp.GetPath("tags"), new TagsDatabaseParameters(), DateTime.UtcNow, "bids-localizer-database-db-tags-001")
             };
 
             DatabaseReference[] loaded = references
@@ -213,7 +213,7 @@ namespace HBP.Tests.Serialization
 
         private static string CreateSyntheticBidsDatabase(TempDirectoryScope temp, string protocolName)
         {
-            string bidsRoot = temp.GetPath("phase5-bids");
+            string bidsRoot = temp.GetPath("bids-localizer-database-bids");
             string anatFolder = Path.Combine(bidsRoot, "sub-01", "ses-pre", "anat");
             string ieegFolder = Path.Combine(bidsRoot, "sub-01", "ses-post", "ieeg");
             Directory.CreateDirectory(anatFolder);

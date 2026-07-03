@@ -23,7 +23,7 @@ using UnityEngine.TestTools;
 
 namespace HBP.Tests.PlayMode.Module3D
 {
-    public class Phase7Module3DScenePlayModeTests
+    public class Module3DScenePlayModeTests
     {
         private GenericEvent<Base3DScene> m_OnSelectScene;
         private GenericEvent<Base3DScene> m_OnDeselectScene;
@@ -65,10 +65,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Module3DMain_SelectedSceneColumnAndViewFollowControlledSceneState()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DMainSelection");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DMainSelection");
             GameObject moduleObject = new("Controlled Module3DMain");
             moduleObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
@@ -105,10 +105,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Base3DScene_ManualColumnsExposeVariantListsAndSelection()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DColumns");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DColumns");
             Base3DScene baseScene = scene.Root.AddComponent<Base3DScene>();
 
             Column3DAnatomy anatomy = CreateColumn<Column3DAnatomy>(scene, "Anatomy Column");
@@ -142,10 +142,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Base3DScene_UpdateVisibleStatePublishesVisibilityAndSelectionEvents()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DVisibleState");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DVisibleState");
             Base3DScene baseScene = CreateBaseScene(scene, "Visible State Scene");
             Column3DStatic column = CreateColumn<Column3DStatic>(scene, "Visible State Column");
             View3D view = CreateControlledView(scene, "Visible State View", out _, out _);
@@ -184,10 +184,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Base3DScene_SelectionRaisesModule3DSelectionEvents()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DSceneSelection");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DSceneSelection");
             Base3DScene baseScene = scene.Root.AddComponent<Base3DScene>();
             Base3DScene selectedScene = null;
             Base3DScene deselectedScene = null;
@@ -215,10 +215,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Base3DScene_RemoveViewLine_RemovesViewsFromAllColumnsAndSelectsFallback()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DRemoveViewLine");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DRemoveViewLine");
             Base3DScene baseScene = scene.Root.AddComponent<Base3DScene>();
             Column3DAnatomy firstColumn = CreateColumn<Column3DAnatomy>(scene, "First Column");
             Column3DStatic secondColumn = CreateColumn<Column3DStatic>(scene, "Second Column");
@@ -252,10 +252,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Column3D_SelectionMinimizeAndActivityAlphaRaiseObservableEvents()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DColumnState");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DColumnState");
             Column3DStatic column = CreateColumn<Column3DStatic>(scene, "Observable Column");
             Column3D selectedColumn = null;
             int minimizedUpdates = 0;
@@ -289,16 +289,16 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Column3D_LoadAndSaveConfigurationSynchronizesActivityAlpha()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DColumnConfiguration");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DColumnConfiguration");
             Column3DAnatomy column = CreateColumn<Column3DAnatomy>(scene, "Configured Column");
             HBP.Core.Data.AnatomicColumn columnData = new(
                 "configured-column",
                 new HBP.Core.Data.BaseConfiguration(0.33f, new System.Collections.Generic.Dictionary<string, HBP.Core.Data.SiteConfiguration>()),
-                new HBP.Core.Data.AnatomicConfiguration("phase7-anatomic-config-001"),
-                "phase7-anatomic-column-001");
+                new HBP.Core.Data.AnatomicConfiguration("module3d-scene-anatomic-config-001"),
+                "module3d-scene-anatomic-column-001");
             SetAutoProperty(column, "ColumnData", columnData);
             SetAutoProperty(column, "Sites", new System.Collections.Generic.List<HBP.Core.Object3D.Site>());
 
@@ -313,10 +313,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator View3D_MinimizeSelectionAndCameraCircleStateUseControlledCameraGraph()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DViewCamera");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DViewCamera");
             GameObject viewObject = new("Synthetic View3D");
             viewObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(viewObject, scene.Scene);
@@ -369,10 +369,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Camera3D_ZoomAndStrafeRespectConfiguredTargetAndDistanceLimits()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DCameraMovement");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DCameraMovement");
             GameObject cameraObject = new("Synthetic Camera3D");
             cameraObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(cameraObject, scene.Scene);
@@ -405,10 +405,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator View3D_SetViewportAndTargetTextureUpdateTheBackingCamera()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DViewViewport");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DViewViewport");
             View3D view = CreateControlledView(scene, "Viewport View", out _, out Camera camera);
             RenderTexture firstTexture = new(64, 32, 24);
             RenderTexture secondTexture = new(32, 64, 24);
@@ -430,10 +430,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator View3D_DefaultStandardViewsAndCameraTypeUseControlledCameraState()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DStandardViews");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DStandardViews");
             View3D line0 = CreateControlledView(scene, "Default View 0", out _, out _);
             View3D line1 = CreateControlledView(scene, "Default View 1", out _, out _);
             View3D line2 = CreateControlledView(scene, "Default View 2", out _, out _);
@@ -457,10 +457,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Base3DScene_CameraTypeAndAutomaticRotationPropagateToControlledViews()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DCameraPropagation");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DCameraPropagation");
             Base3DScene baseScene = CreateBaseScene(scene, "Camera Propagation Scene");
             Column3DStatic firstColumn = CreateColumn<Column3DStatic>(scene, "First Propagation Column");
             Column3DStatic secondColumn = CreateColumn<Column3DStatic>(scene, "Second Propagation Column");
@@ -486,13 +486,13 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator Base3DScene_GenerateExportDirectoryUsesProjectVisualizationAndConfiguredExportRoot()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase7Module3DExportDirectory");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DExportDirectory");
             Project project = PlayModeProjectHarness.CreateAndLoadCompleteProject();
             string exportRoot = temp.GetPath("exports");
             PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation = exportRoot;
@@ -509,10 +509,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator ROIManager_UpdateROIMasksWithoutSelectedROIMarksSitesOutOfROIAndInvalidatesGenerator()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DROIManager");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DROIManager");
             using PlayModeModule3DTestHarness harness = new(scene.Scene);
             GameObject managerObject = new("ROI Manager");
             SceneManager.MoveGameObjectToScene(managerObject, scene.Scene);
@@ -533,10 +533,10 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [UnityTest]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator ImplantationManager_ComparingSitesTracksSelectedSiteUntilDisabled()
         {
-            using PlayModeSceneScope scene = new("Phase7Module3DImplantationManager");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DImplantationManager");
             using PlayModeModule3DTestHarness harness = new(scene.Scene);
 
             harness.SourceColumn.SelectSite(harness.SourceSiteA);
@@ -554,14 +554,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_InitializeAsync_WithSyntheticMNIAndAnatomyColumnCreatesLoadedSceneGraph()
         {
             using PlayModeTempDirectoryScope temp = new();
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase7Module3DInitializeSyntheticMNI");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DInitializeSyntheticMNI");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
             Base3DScene baseScene = initialized.BaseScene;
 
@@ -582,14 +582,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_InitializedMultiColumnViewAndCutLifecycleStaySynchronized()
         {
             using PlayModeTempDirectoryScope temp = new();
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase7Module3DInitializedLifecycle");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DInitializedLifecycle");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, 2);
             Base3DScene baseScene = initialized.BaseScene;
             DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
@@ -638,14 +638,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_TriangleEraserToggleControlsGeneratedInvisibleMesh()
         {
             using PlayModeTempDirectoryScope temp = new();
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase7Module3DCleanGeneratedObjects");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DCleanGeneratedObjects");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
             Base3DScene baseScene = initialized.BaseScene;
             DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
@@ -675,14 +675,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_CleanAsyncDestroysSceneAndGeneratedObjects()
         {
             using PlayModeTempDirectoryScope temp = new();
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase7Module3DCleanAsync");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DCleanAsync");
             GameObject moduleObject = new("Controlled Module3DMain For CleanAsync");
             moduleObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
@@ -720,14 +720,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState()
         {
             using PlayModeTempDirectoryScope temp = new();
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase7Module3DConfigurationRoundTrip");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DConfigurationRoundTrip");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
             Base3DScene baseScene = initialized.BaseScene;
             Visualization visualization = initialized.Visualization;
@@ -804,7 +804,7 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase7")]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_InitializeAsync_WhenMNIIsUnavailableThrowsControlledException()
         {
             if (Object3DManager.MNI.IsLoaded)
@@ -815,7 +815,7 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase7Module3DInitializeMNIUnavailable");
+            using PlayModeSceneScope scene = new("Module3DSceneModule3DInitializeMNIUnavailable");
             Project project = PlayModeProjectHarness.CreateAndLoadCompleteProject();
             Base3DScene baseScene = CreateBaseScene(scene, "Initialize MNI Unavailable Scene");
             Visualization visualization = project.Visualizations.Single();
@@ -1098,34 +1098,34 @@ namespace HBP.Tests.PlayMode.Module3D
         private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1)
         {
             HBP.Core.Data.Site site = new(
-                "phase7-site-alpha",
-                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), "phase7-coordinate-001") },
+                "module3d-scene-site-alpha",
+                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), "module3d-scene-coordinate-001") },
                 Array.Empty<BaseTagValue>(),
-                "phase7-site-001");
+                "module3d-scene-site-001");
             Patient patient = new(
-                "phase7-patient-alpha",
+                "module3d-scene-patient-alpha",
                 Array.Empty<BaseMesh>(),
                 Array.Empty<MRI>(),
                 new[] { site },
                 Array.Empty<BaseTagValue>(),
                 string.Empty,
-                "phase7-patient-001");
+                "module3d-scene-patient-001");
             List<Column> columns = Enumerable.Range(0, anatomyColumnCount)
                 .Select(index => (Column)new AnatomicColumn(
-                    $"phase7-anatomy-{index}",
+                    $"module3d-scene-anatomy-{index}",
                     new BaseConfiguration(),
-                    new AnatomicConfiguration($"phase7-anatomy-config-{index}"),
-                    $"phase7-column-anatomy-{index}"))
+                    new AnatomicConfiguration($"module3d-scene-anatomy-config-{index}"),
+                    $"module3d-scene-column-anatomy-{index}"))
                 .ToList();
             Visualization visualization = new(
-                "phase7-visualization-alpha",
+                "module3d-scene-visualization-alpha",
                 new[] { patient },
                 columns,
                 new VisualizationConfiguration(),
-                "phase7-visualization-001");
+                "module3d-scene-visualization-001");
             Project project = new(
-                "phase7-project-alpha",
-                new HBP.Core.Data.ProjectPreferences("phase7-test", "phase7-project-preferences-001"),
+                "module3d-scene-project-alpha",
+                new HBP.Core.Data.ProjectPreferences("module3d-scene-test", "module3d-scene-project-preferences-001"),
                 new[] { patient },
                 Array.Empty<Group>(),
                 Array.Empty<Dataset>(),

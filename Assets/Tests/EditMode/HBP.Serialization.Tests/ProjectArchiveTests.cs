@@ -51,10 +51,10 @@ namespace HBP.Tests.Serialization
         [Test]
         public void NewProject_CreatesDefaultPreferencesAndEmptyCollections()
         {
-            Project project = new("phase2-defaults");
+            Project project = new("project-archive-defaults");
 
-            Assert.That(project.Name, Is.EqualTo("phase2-defaults"));
-            Assert.That(project.FileName, Is.EqualTo("phase2-defaults" + Project.EXTENSION));
+            Assert.That(project.Name, Is.EqualTo("project-archive-defaults"));
+            Assert.That(project.FileName, Is.EqualTo("project-archive-defaults" + Project.EXTENSION));
             Assert.That(project.Preferences, Is.Not.Null);
             Assert.That(project.Patients, Is.Empty);
             Assert.That(project.Groups, Is.Empty);

@@ -17,22 +17,22 @@ using Object = UnityEngine.Object;
 
 namespace HBP.Tests.PlayMode.UI
 {
-    public class Phase3SiteToolsPlayModeTests
+    public class SiteToolsPlayModeTests
     {
         private const string SiteToolsWindowResource = "Prefabs/UI/Windows/Site Tools window";
 
         [Test]
-        [Category("PlayMode.Phase3")]
+        [Category("PlayMode.SiteTools")]
         public async Task SiteToolsWindow_ChangeAttributesSection_AppliesOnlyFilteredSelectedColumnSites()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase3SiteToolsChangeAttributes");
+            using PlayModeSceneScope scene = new("SiteToolsSiteToolsChangeAttributes");
             using PlayModeModule3DTestHarness module3D = new(scene.Scene);
-            PlayModeWindowHarness window = new(scene.Scene, "Phase3 Site Tools Window Harness");
-            PlayModeProjectHarness.CreateAndLoadMinimalProject("phase3-site-tools-change");
+            PlayModeWindowHarness window = new(scene.Scene, "SiteTools Site Tools Window Harness");
+            PlayModeProjectHarness.CreateAndLoadMinimalProject("site-tools-site-tools-change");
             SiteToolsWindow siteToolsWindow = InstantiateWindow<SiteToolsWindow>(SiteToolsWindowResource, window.Root.transform);
             siteToolsWindow.Scene = module3D.Scene;
             ChangeSitesAttributesSection section = GetSection<ChangeSitesAttributesSection>(siteToolsWindow);
@@ -46,7 +46,7 @@ namespace HBP.Tests.PlayMode.UI
             SetPrivateField(section, "m_ColorToggle", true);
             GetPrivateField<Image>(section, "m_ColorPickedImage").color = Color.green;
             SetPrivateField(section, "m_AddLabelToggle", true);
-            GetPrivateField<InputField>(section, "m_AddLabelInputField").text = "phase3, window";
+            GetPrivateField<InputField>(section, "m_AddLabelInputField").text = "site-tools, window";
             GetPrivateField<Dropdown>(section, "m_ScopeDropdown").value = 0;
 
             await InvokeChangeSitesAttributesApplyAsync(section);
@@ -54,7 +54,7 @@ namespace HBP.Tests.PlayMode.UI
             Assert.That(module3D.SourceSiteA.State.IsHighlighted, Is.True);
             Assert.That(module3D.SourceSiteA.State.IsBlackListed, Is.True);
             Assert.That(module3D.SourceSiteA.State.Color, Is.EqualTo(Color.green));
-            Assert.That(module3D.SourceSiteA.State.Labels, Is.EquivalentTo(new[] { "phase3", "window" }));
+            Assert.That(module3D.SourceSiteA.State.Labels, Is.EquivalentTo(new[] { "site-tools", "window" }));
             Assert.That(module3D.SourceSiteB.State.IsHighlighted, Is.False);
             Assert.That(module3D.SourceSiteB.State.Labels, Is.Empty);
             Assert.That(module3D.TargetSiteA.State.IsHighlighted, Is.False);
@@ -64,17 +64,17 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase3")]
+        [Category("PlayMode.SiteTools")]
         public async Task SiteToolsWindow_CopyAttributesSection_CopiesSourceColumnSiteStateToOtherColumns()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase3SiteToolsCopyAttributes");
+            using PlayModeSceneScope scene = new("SiteToolsSiteToolsCopyAttributes");
             using PlayModeModule3DTestHarness module3D = new(scene.Scene);
-            PlayModeWindowHarness window = new(scene.Scene, "Phase3 Site Tools Copy Harness");
-            PlayModeProjectHarness.CreateAndLoadMinimalProject("phase3-site-tools-copy");
+            PlayModeWindowHarness window = new(scene.Scene, "SiteTools Site Tools Copy Harness");
+            PlayModeProjectHarness.CreateAndLoadMinimalProject("site-tools-site-tools-copy");
             SiteToolsWindow siteToolsWindow = InstantiateWindow<SiteToolsWindow>(SiteToolsWindowResource, window.Root.transform);
             siteToolsWindow.Scene = module3D.Scene;
             CopyAttributesSection section = GetSection<CopyAttributesSection>(siteToolsWindow);
@@ -96,17 +96,17 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase3")]
+        [Category("PlayMode.SiteTools")]
         public async Task SiteToolsWindow_ExportToCsvSection_WritesSelectedSiteAttributes()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase3SiteToolsExportCsv");
+            using PlayModeSceneScope scene = new("SiteToolsSiteToolsExportCsv");
             using PlayModeModule3DTestHarness module3D = new(scene.Scene);
-            PlayModeWindowHarness window = new(scene.Scene, "Phase3 Site Tools Export Harness");
-            PlayModeProjectHarness.CreateAndLoadMinimalProject("phase3-site-tools-export");
+            PlayModeWindowHarness window = new(scene.Scene, "SiteTools Site Tools Export Harness");
+            PlayModeProjectHarness.CreateAndLoadMinimalProject("site-tools-site-tools-export");
             SiteToolsWindow siteToolsWindow = InstantiateWindow<SiteToolsWindow>(SiteToolsWindowResource, window.Root.transform);
             siteToolsWindow.Scene = module3D.Scene;
             ExportToCSVSection section = GetSection<ExportToCSVSection>(siteToolsWindow);
@@ -120,7 +120,7 @@ namespace HBP.Tests.PlayMode.UI
             SetPrivateField(section, "m_ExportPosition", false);
             SetPrivateField(section, "m_ExportData", false);
             SetPrivateField(section, "m_ExportTags", false);
-            string csvPath = temp.GetPath("phase3-sites.csv");
+            string csvPath = temp.GetPath("site-tools-sites.csv");
 
             await InvokeExportSitesAsync(section, module3D.SourceColumn.Sites, csvPath);
 

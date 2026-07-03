@@ -17,22 +17,22 @@ using Object = UnityEngine.Object;
 
 namespace HBP.Tests.PlayMode.UI
 {
-    public class Phase4ProtocolDatasetUiPlayModeTests
+    public class ProtocolDatasetUiPlayModeTests
     {
         private const string ProtocolSelectorResource = "Prefabs/UI/Windows/Protocol selector window";
         private const string DatasetSelectorResource = "Prefabs/UI/Windows/Dataset selector window";
         private const string DataInfoSelectorResource = "Prefabs/UI/Windows/DataInfo selector window";
 
         [Test]
-        [Category("PlayMode.Phase4")]
-        public async Task ProtocolDatasetAndDataInfoSelectors_DisplaySyntheticPhase4Objects()
+        [Category("PlayMode.ProtocolDataset")]
+        public async Task ProtocolDatasetAndDataInfoSelectors_DisplaySyntheticProtocolDatasetObjects()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase4ProtocolDatasetLists");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase4 Protocol Dataset Lists Harness");
+            using PlayModeSceneScope scene = new("ProtocolDatasetProtocolDatasetLists");
+            PlayModeWindowHarness window = new(scene.Scene, "ProtocolDataset Protocol Dataset Lists Harness");
             Project project = PlayModeProjectHarness.CreateAndLoadCompleteProject();
             Protocol protocol = project.Datasets.Single().Protocol;
             Dataset dataset = project.Datasets.Single();
@@ -50,8 +50,9 @@ namespace HBP.Tests.PlayMode.UI
             protocolSelector.Objects = new[] { protocol };
             datasetSelector.Objects = new[] { dataset };
             dataInfoSelector.Objects = dataset.Data.ToArray();
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+            Canvas.ForceUpdateCanvases();
             await UniTask.Yield();
-            await UniTask.WaitForEndOfFrame();
 
             protocolList.SortByBlocs(BaseList.Sorting.Ascending);
             datasetList.SortByData(BaseList.Sorting.Descending);

@@ -7,13 +7,13 @@ using UnityEngine.UI;
 
 namespace HBP.Tests.PlayMode.Toolbar
 {
-    public class Phase3CompareSiteToolbarPlayModeTests
+    public class CompareSiteToolbarPlayModeTests
     {
         [Test]
-        [Category("PlayMode.Phase3")]
+        [Category("PlayMode.CompareSiteToolbar")]
         public void CompareSiteTool_ToggleStoresAndClearsComparedSite()
         {
-            using PlayModeSceneScope scene = new("Phase3CompareSiteToolbar");
+            using PlayModeSceneScope scene = new("CompareSiteToolbarCompareSiteToolbar");
             using PlayModeModule3DTestHarness module3D = new(scene.Scene);
             module3D.SourceColumn.SelectSite(module3D.SourceSiteA);
             GameObject toolObject = new("Compare Site Tool");

@@ -11,16 +11,16 @@ using NUnit.Framework;
 
 namespace HBP.Tests.PlayMode.Workflow
 {
-    public class Phase4ProtocolDatasetPlayModeTests
+    public class ProtocolDatasetPlayModeTests
     {
         [Test]
-        [Category("PlayMode.Phase4")]
+        [Category("PlayMode.ProtocolDataset")]
         public async Task ProjectRoundTrip_InPlayMode_PreservesProtocolDatasetAndDataInfoVariants()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase4ProtocolDatasetRoundTrip");
+            using PlayModeSceneScope scene = new("ProtocolDatasetProtocolDatasetRoundTrip");
 
             Project source = PlayModeProjectHarness.CreateAndLoadCompleteProject();
             string archivePath = await SaveProjectAsync(temp, source);
@@ -59,7 +59,7 @@ namespace HBP.Tests.PlayMode.Workflow
 
         private static async Task<string> SaveProjectAsync(PlayModeTempDirectoryScope temp, Project project)
         {
-            string saveDirectory = temp.GetPath("phase4-project");
+            string saveDirectory = temp.GetPath("protocol-dataset-project");
             Directory.CreateDirectory(saveDirectory);
             ApplicationState.LoadedProject = project;
             ApplicationState.LoadedProjectLocation = saveDirectory;

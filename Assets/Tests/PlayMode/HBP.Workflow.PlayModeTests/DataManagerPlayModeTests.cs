@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace HBP.Tests.PlayMode.Workflow
 {
-    public class Phase6DataManagerPlayModeTests
+    public class DataManagerPlayModeTests
     {
         private NormalizationType m_DefaultNormalization;
         private AveragingType m_DefaultAveraging;
@@ -38,13 +38,13 @@ namespace HBP.Tests.PlayMode.Workflow
         }
 
         [Test]
-        [Category("PlayMode.Phase6")]
+        [Category("PlayMode.DataManager")]
         public async Task StaticCsvData_InPlayMode_ReusesCacheThenReloadsAfterUnload()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase6DataManagerCacheLifecycle");
+            using PlayModeSceneScope scene = new("DataManagerDataManagerCacheLifecycle");
             await Task.Yield();
 
             StaticDataInfo dataInfo = CreateStaticDataInfo(temp, "lifecycle");
@@ -73,13 +73,13 @@ namespace HBP.Tests.PlayMode.Workflow
         }
 
         [Test]
-        [Category("PlayMode.Phase6")]
+        [Category("PlayMode.DataManager")]
         public async Task Clear_InPlayMode_RemovesAllLoadedStaticCsvCaches()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase6DataManagerClear");
+            using PlayModeSceneScope scene = new("DataManagerDataManagerClear");
             await Task.Yield();
 
             StaticDataInfo firstInfo = CreateStaticDataInfo(temp, "clear-a");
@@ -98,26 +98,26 @@ namespace HBP.Tests.PlayMode.Workflow
         }
 
         [Test]
-        [Category("PlayMode.Phase6")]
+        [Category("PlayMode.DataManager")]
         public async Task InvalidStaticDataInfo_InPlayMode_ReturnsNullWithoutCreatingCache()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase6DataManagerInvalidData");
+            using PlayModeSceneScope scene = new("DataManagerDataManagerInvalidData");
             await Task.Yield();
 
             Protocol protocol = PlayModeProjectHarness.CreateProtocol();
             Patient patient = CreatePatient("invalid");
             StaticDataInfo invalidDataInfo = new(
-                "phase6-playmode-invalid-static",
+                "data-manager-playmode-invalid-static",
                 protocol,
                 new CSV("", Array.Empty<Error>(), Array.Empty<Warning>()),
-                new Error[] { new RequiredFieldEmptyError("phase6 playmode invalid data") },
+                new Error[] { new RequiredFieldEmptyError("data-manager playmode invalid data") },
                 Array.Empty<Warning>(),
                 patient,
-                "phase6-playmode-db",
-                "phase6-playmode-invalid-data-001");
+                "data-manager-playmode-db",
+                "data-manager-playmode-invalid-data-001");
 
             Assert.That(DataManager.GetData(invalidDataInfo), Is.Null);
             Assert.That(DataManager.GetData(invalidDataInfo, protocol.Blocs[0], "A1"), Is.Null);
@@ -128,7 +128,7 @@ namespace HBP.Tests.PlayMode.Workflow
 
         private static StaticDataInfo CreateStaticDataInfo(PlayModeTempDirectoryScope temp, string suffix)
         {
-            string csvPath = temp.GetPath($"phase6-static-{suffix}.csv");
+            string csvPath = temp.GetPath($"data-manager-static-{suffix}.csv");
             File.WriteAllLines(csvPath, new[]
             {
                 "channel,alpha,beta",
@@ -138,26 +138,26 @@ namespace HBP.Tests.PlayMode.Workflow
 
             Protocol protocol = PlayModeProjectHarness.CreateProtocol();
             return new StaticDataInfo(
-                $"phase6-playmode-static-{suffix}",
+                $"data-manager-playmode-static-{suffix}",
                 protocol,
-                new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), $"phase6-playmode-container-{suffix}"),
+                new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), $"data-manager-playmode-container-{suffix}"),
                 Array.Empty<Error>(),
                 Array.Empty<Warning>(),
                 CreatePatient(suffix),
-                "phase6-playmode-db",
-                $"phase6-playmode-static-data-{suffix}");
+                "data-manager-playmode-db",
+                $"data-manager-playmode-static-data-{suffix}");
         }
 
         private static Patient CreatePatient(string suffix)
         {
             return new Patient(
-                $"phase6-playmode-patient-{suffix}",
+                $"data-manager-playmode-patient-{suffix}",
                 Array.Empty<BaseMesh>(),
                 Array.Empty<MRI>(),
                 Array.Empty<Site>(),
                 Array.Empty<BaseTagValue>(),
                 string.Empty,
-                $"phase6-playmode-patient-{suffix}");
+                $"data-manager-playmode-patient-{suffix}");
         }
     }
 }

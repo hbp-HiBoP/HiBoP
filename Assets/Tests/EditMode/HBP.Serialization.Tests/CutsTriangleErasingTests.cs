@@ -11,7 +11,7 @@ using ObjectCut = HBP.Core.Object3D.Cut;
 
 namespace HBP.Tests.Serialization
 {
-    public class Phase8CutsTriangleErasingTests
+    public class CutsTriangleErasingTests
     {
         [Test]
         public void Cut_ConfigurationRoundTripAndRuntimeDefaultsAreStable()
@@ -19,7 +19,7 @@ namespace HBP.Tests.Serialization
             using TempDirectoryScope temp = new();
             Cut source = new(new Vector3(1, 2, 3), CutOrientation.Custom, true, 0.75f);
 
-            string path = temp.GetPath("phase8-cut.json");
+            string path = temp.GetPath("cuts-triangle-erasing-cut.json");
             Assert.That(ClassLoaderSaver.SaveToJSon(source, path, true), Is.True);
             Cut loaded = ClassLoaderSaver.LoadFromJson<Cut>(path);
 

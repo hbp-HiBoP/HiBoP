@@ -460,7 +460,7 @@ namespace HBP.UI.Tools.Lists
         }
         protected virtual async void Start()
         {
-            await UniTask.WaitForEndOfFrame();
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
             OnViewportChanged();
             OnContentChanged();
         }

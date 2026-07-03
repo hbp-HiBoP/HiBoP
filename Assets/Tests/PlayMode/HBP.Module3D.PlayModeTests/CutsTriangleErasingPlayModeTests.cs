@@ -26,7 +26,7 @@ using Object = UnityEngine.Object;
 
 namespace HBP.Tests.PlayMode.Module3D
 {
-    public class Phase8CutsTriangleErasingPlayModeTests
+    public class CutsTriangleErasingPlayModeTests
     {
         private GenericEvent<Base3DScene> m_OnSelectScene;
         private GenericEvent<Base3DScene> m_OnDeselectScene;
@@ -56,7 +56,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Module3DMain.OnRequestUpdateInToolbar = new UnityEvent();
 
             SetModule3DMainInstance(null);
-            m_ControlledModule3DMainObject = new GameObject("Controlled Module3DMain Phase8");
+            m_ControlledModule3DMainObject = new GameObject("Controlled Module3DMain CutsTriangleErasing");
             m_ControlledModule3DMainObject.SetActive(false);
             Module3DMain module = m_ControlledModule3DMainObject.AddComponent<Module3DMain>();
             SetPrivateField(module, "m_Scenes", new List<Base3DScene>());
@@ -104,14 +104,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void Base3DScene_AddUpdateAndRemoveCutPlaneUpdatesSceneState()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8CutPlaneLifecycle");
-            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, includeSurface: false);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingCutPlaneLifecycle");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, includeSurface: false);
             DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
             int modifyEvents = 0;
             int addEvents = 0;
@@ -147,14 +147,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void CutToolbarTools_WriteModeColorAndSiteCutStateBackToScene()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8CutToolbar");
-            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, includeSurface: true);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingCutToolbar");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, includeSurface: true);
             Column3D selectedColumn = null;
             View3D selectedView = null;
 
@@ -194,14 +194,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void CutParametersController_WritesPositionOrientationFlipCustomNormalAndRemoveToScene()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8CutParametersUI");
-            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, includeSurface: false);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingCutParametersUI");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, includeSurface: false);
             HBP.Core.Object3D.Cut cut = baseScene.AddCutPlane();
             CutParameterUiHarness ui = CreateCutParameterUi(scene);
             ui.Controller.Initialize(baseScene, cut);
@@ -245,15 +245,15 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void TriangleEraser_MaskActionsAffectOnlySelectedSceneAndCanBeResetCanceledAndLoaded()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8TriangleEraserMasks");
-            Base3DScene firstScene = CreateIsolatedPhase8Scene(scene, temp, "first", includeSurface: true);
-            Base3DScene secondScene = CreateIsolatedPhase8Scene(scene, temp, "second", includeSurface: true);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingTriangleEraserMasks");
+            Base3DScene firstScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "first", includeSurface: true);
+            Base3DScene secondScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "second", includeSurface: true);
             DisplayedObjects firstDisplayedObjects = GetPrivateField<DisplayedObjects>(firstScene, "m_DisplayedObjects");
             firstDisplayedObjects.InstantiateInvisibleMesh(false);
 
@@ -298,14 +298,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void TriangleErasingToolbarTools_WriteModeDegreesAndCommandsToTriangleEraser()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8TriangleToolbar");
-            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, includeSurface: true);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingTriangleToolbar");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, includeSurface: true);
             (Column3D selectedColumn, View3D selectedView) = CreateDetachedToolSelection(scene);
             DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
             displayedObjects.InstantiateInvisibleMesh(false);
@@ -371,14 +371,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void Base3DScene_AddCutPlaneWithNativeSurfaceCreatesGeometry()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8NativeCutPlane");
-            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, "native-cut-plane", includeSurface: true);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingNativeCutPlane");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "native-cut-plane", includeSurface: true);
 
             HBP.Core.Object3D.Cut cut = null;
             AssertNoException("Add cut plane on native surface", () => cut = baseScene.AddCutPlane());
@@ -390,14 +390,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void TriangleEraser_NativeMaskModesInvertAndExpandSurfaceMasks()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8NativeTriangleMaskModes");
-            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, "native-mask-modes", includeSurface: true);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingNativeTriangleMaskModes");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "native-mask-modes", includeSurface: true);
             DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
             displayedObjects.InstantiateInvisibleMesh(false);
 
@@ -441,14 +441,14 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
         [Test]
-        [Category("PlayMode.Phase8")]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void Base3DScene_CutPlaneLifecycleWithoutNativeSurfaceUsesFallbackState()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
-            using PlayModeSceneScope scene = new("Phase8NativeCutGeneratorUnavailable");
-            Base3DScene baseScene = CreateIsolatedPhase8Scene(scene, temp, "unavailable", includeSurface: false);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingNativeCutGeneratorUnavailable");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "unavailable", includeSurface: false);
 
             HBP.Core.Object3D.Cut cut = baseScene.AddCutPlane();
             cut.Orientation = CutOrientation.Custom;
@@ -483,7 +483,7 @@ namespace HBP.Tests.PlayMode.Module3D
             return (project, baseScene, visualization);
         }
 
-        private static Base3DScene CreateIsolatedPhase8Scene(
+        private static Base3DScene CreateIsolatedCutsTriangleErasingScene(
             PlayModeSceneScope scene,
             PlayModeTempDirectoryScope temp,
             string suffix = "isolated",
@@ -499,11 +499,11 @@ namespace HBP.Tests.PlayMode.Module3D
 
             HBP.Core.DLL.Volume volume = new();
             SetAutoProperty(volume, "IsLoaded", true);
-            baseScene.MRIManager.MRIs.Add(new MRI3D($"phase8-mri-{suffix}", volume));
+            baseScene.MRIManager.MRIs.Add(new MRI3D($"cuts-triangle-erasing-mri-{suffix}", volume));
 
             if (includeSurface)
             {
-                HBP.Core.DLL.Surface surface = CreateTetraSurface(temp.GetPath($"phase8-surface-{suffix}.obj"));
+                HBP.Core.DLL.Surface surface = CreateTetraSurface(temp.GetPath($"cuts-triangle-erasing-surface-{suffix}.obj"));
                 SetAutoProperty(baseScene.MeshManager, "BrainSurface", surface);
                 SetAutoProperty(baseScene.MeshManager, "SimplifiedMeshToUse", (HBP.Core.DLL.Surface)surface.Clone());
             }
@@ -524,7 +524,7 @@ namespace HBP.Tests.PlayMode.Module3D
             string suffix,
             GameObject brainMesh)
         {
-            GameObject columnObject = new($"Phase8 Column {suffix}");
+            GameObject columnObject = new($"CutsTriangleErasing Column {suffix}");
             SceneManager.MoveGameObjectToScene(columnObject, scene.Scene);
             columnObject.transform.SetParent(baseScene.transform, false);
             Column3DAnatomy column = columnObject.AddComponent<Column3DAnatomy>();
@@ -539,17 +539,17 @@ namespace HBP.Tests.PlayMode.Module3D
             views.SetParent(columnObject.transform, false);
 
             SetAutoProperty(column, "ColumnData", new AnatomicColumn(
-                $"phase8-column-{suffix}",
+                $"cuts-triangle-erasing-column-{suffix}",
                 new BaseConfiguration(),
-                new AnatomicConfiguration($"phase8-column-config-{suffix}"),
-                $"phase8-column-id-{suffix}"));
+                new AnatomicConfiguration($"cuts-triangle-erasing-column-config-{suffix}"),
+                $"cuts-triangle-erasing-column-id-{suffix}"));
             SetAutoProperty(column, "Layer", "Default");
             SetPrivateField(column, "m_BrainSurfaceMeshesParent", brains);
             SetPrivateField(column, "m_CutMeshesParent", cuts);
             SetPrivateField(column, "m_SitesMeshesParent", sites);
 
             GameObject columnBrain = Object.Instantiate(brainMesh, brains);
-            columnBrain.name = $"Phase8 Column Brain {suffix}";
+            columnBrain.name = $"CutsTriangleErasing Column Brain {suffix}";
             columnBrain.SetActive(true);
             SetAutoProperty(column, "BrainMesh", columnBrain);
 
@@ -566,7 +566,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
         private static View3D CreateSelectedRuntimeView(Transform parent)
         {
-            GameObject viewObject = new("Phase8 View");
+            GameObject viewObject = new("CutsTriangleErasing View");
             viewObject.transform.SetParent(parent, false);
             View3D view = viewObject.AddComponent<View3D>();
             GameObject cameraObject = new("Camera");
@@ -580,10 +580,10 @@ namespace HBP.Tests.PlayMode.Module3D
 
         private static (Column3D Column, View3D View) CreateDetachedToolSelection(PlayModeSceneScope scene)
         {
-            GameObject columnObject = new("Phase8 Detached Tool Column");
+            GameObject columnObject = new("CutsTriangleErasing Detached Tool Column");
             SceneManager.MoveGameObjectToScene(columnObject, scene.Scene);
             Column3DAnatomy column = columnObject.AddComponent<Column3DAnatomy>();
-            GameObject viewObject = new("Phase8 Detached Tool View");
+            GameObject viewObject = new("CutsTriangleErasing Detached Tool View");
             SceneManager.MoveGameObjectToScene(viewObject, scene.Scene);
             View3D view = viewObject.AddComponent<View3D>();
             return (column, view);
@@ -591,22 +591,22 @@ namespace HBP.Tests.PlayMode.Module3D
 
         private static HBP.Core.Object3D.Site CreateSelectedRuntimeSite(Transform parent, string suffix)
         {
-            GameObject siteObject = new($"Phase8 Site {suffix}");
+            GameObject siteObject = new($"CutsTriangleErasing Site {suffix}");
             siteObject.transform.SetParent(parent, false);
             siteObject.transform.localPosition = new Vector3(0.2f, 0.3f, 0.4f);
             HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
             Patient patient = new(
-                $"phase8-patient-{suffix}",
+                $"cuts-triangle-erasing-patient-{suffix}",
                 Array.Empty<BaseMesh>(),
                 Array.Empty<MRI>(),
                 Array.Empty<HBP.Core.Data.Site>(),
                 Array.Empty<BaseTagValue>(),
                 string.Empty,
-                $"phase8-patient-id-{suffix}");
+                $"cuts-triangle-erasing-patient-id-{suffix}");
             site.Information = new SiteInformation
             {
                 Patient = patient,
-                Name = $"phase8-site-{suffix}",
+                Name = $"cuts-triangle-erasing-site-{suffix}",
                 Index = 0,
                 DefaultPosition = siteObject.transform.localPosition
             };
@@ -647,34 +647,34 @@ namespace HBP.Tests.PlayMode.Module3D
         private static Project CreateMinimalAnatomicProject(string suffix, int anatomyColumnCount = 1)
         {
             HBP.Core.Data.Site site = new(
-                $"phase8-site-{suffix}",
-                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"phase8-coordinate-{suffix}") },
+                $"cuts-triangle-erasing-site-{suffix}",
+                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"cuts-triangle-erasing-coordinate-{suffix}") },
                 Array.Empty<BaseTagValue>(),
-                $"phase8-site-id-{suffix}");
+                $"cuts-triangle-erasing-site-id-{suffix}");
             Patient patient = new(
-                $"phase8-patient-{suffix}",
+                $"cuts-triangle-erasing-patient-{suffix}",
                 Array.Empty<BaseMesh>(),
                 Array.Empty<MRI>(),
                 new[] { site },
                 Array.Empty<BaseTagValue>(),
                 string.Empty,
-                $"phase8-patient-id-{suffix}");
+                $"cuts-triangle-erasing-patient-id-{suffix}");
             List<Column> columns = Enumerable.Range(0, anatomyColumnCount)
                 .Select(index => (Column)new AnatomicColumn(
-                    $"phase8-anatomy-{suffix}-{index}",
+                    $"cuts-triangle-erasing-anatomy-{suffix}-{index}",
                     new BaseConfiguration(),
-                    new AnatomicConfiguration($"phase8-anatomy-config-{suffix}-{index}"),
-                    $"phase8-column-anatomy-{suffix}-{index}"))
+                    new AnatomicConfiguration($"cuts-triangle-erasing-anatomy-config-{suffix}-{index}"),
+                    $"cuts-triangle-erasing-column-anatomy-{suffix}-{index}"))
                 .ToList();
             Visualization visualization = new(
-                $"phase8-visualization-{suffix}",
+                $"cuts-triangle-erasing-visualization-{suffix}",
                 new[] { patient },
                 columns,
                 new VisualizationConfiguration(),
-                $"phase8-visualization-id-{suffix}");
+                $"cuts-triangle-erasing-visualization-id-{suffix}");
             Project project = new(
-                $"phase8-project-{suffix}",
-                new HBP.Core.Data.ProjectPreferences($"phase8-test-{suffix}", $"phase8-project-preferences-{suffix}"),
+                $"cuts-triangle-erasing-project-{suffix}",
+                new HBP.Core.Data.ProjectPreferences($"cuts-triangle-erasing-test-{suffix}", $"cuts-triangle-erasing-project-preferences-{suffix}"),
                 new[] { patient },
                 Array.Empty<Group>(),
                 Array.Empty<Dataset>(),

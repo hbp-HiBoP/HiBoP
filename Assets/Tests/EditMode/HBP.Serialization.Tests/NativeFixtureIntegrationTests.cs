@@ -139,7 +139,6 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeFixtures")]
         [Category("NativeDll")]
-        [Explicit("Runs native DLL readers and can crash Unity if the native stack rejects a fixture. Run explicitly from the Unity Test Runner when needed.")]
         public void NativeEegFixtures_LoadThroughDataManager_WhenNativeDllsAreAvailable()
         {
             using TempDirectoryScope temp = new();
@@ -162,7 +161,6 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeFixtures")]
         [Category("NativeDll")]
-        [Explicit("Runs native DLL readers and can crash Unity if the native stack rejects a fixture. Run explicitly from the Unity Test Runner when needed.")]
         public async Task NativeNiftiFixture_LoadsVolumeAndMask_WhenNativeDllsAreAvailable()
         {
             HBP.Core.Object3D.FMRI fmri = new(

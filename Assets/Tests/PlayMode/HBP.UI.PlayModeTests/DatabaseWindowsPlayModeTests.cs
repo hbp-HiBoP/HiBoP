@@ -20,22 +20,22 @@ using Object = UnityEngine.Object;
 
 namespace HBP.Tests.PlayMode.UI
 {
-    public class Phase5DatabaseWindowsPlayModeTests
+    public class DatabaseWindowsPlayModeTests
     {
         private const string DatabaseBrowserResource = "Prefabs/UI/Windows/Database browser window";
         private const string ExportBidsResource = "Prefabs/UI/Windows/Export BIDS window";
         private const string ExportLocalizerAtlasResource = "Prefabs/UI/Windows/Export Localizer atlas window";
 
         [Test]
-        [Category("PlayMode.Phase5")]
+        [Category("PlayMode.DatabaseWindows")]
         public async Task DatabaseBrowserWindow_DisplaysSeededDatabasePatientsAndAdvancedExportActions()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase5DatabaseBrowserWindow");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase5 Database Browser Harness");
+            using PlayModeSceneScope scene = new("DatabaseWindowsDatabaseBrowserWindow");
+            PlayModeWindowHarness window = new(scene.Scene, "DatabaseWindows Database Browser Harness");
             Project project = SeedDatabase(temp);
 
             DatabaseBrowserWindow databaseBrowserWindow = InstantiateWindow<DatabaseBrowserWindow>(DatabaseBrowserResource, window.Root.transform);
@@ -56,15 +56,15 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase5")]
+        [Category("PlayMode.DatabaseWindows")]
         public async Task ExportBidsWindow_PopulatesSyntheticDatabaseAndEnablesExportAfterSelections()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase5ExportBidsWindow");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase5 Export BIDS Harness");
+            using PlayModeSceneScope scene = new("DatabaseWindowsExportBidsWindow");
+            PlayModeWindowHarness window = new(scene.Scene, "DatabaseWindows Export BIDS Harness");
             Project project = SeedDatabase(temp);
 
             ExportBIDSWindow exportWindow = InstantiateWindow<ExportBIDSWindow>(ExportBidsResource, window.Root.transform);
@@ -101,15 +101,15 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         [Test]
-        [Category("PlayMode.Phase5")]
+        [Category("PlayMode.DatabaseWindows")]
         public async Task ExportLocalizerAtlasWindow_PopulatesSyntheticDatabaseAndEnablesExportAfterSelections()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
-            using PlayModeSceneScope scene = new("Phase5ExportLocalizerAtlasWindow");
-            PlayModeWindowHarness window = new(scene.Scene, "Phase5 Export Localizer Harness");
+            using PlayModeSceneScope scene = new("DatabaseWindowsExportLocalizerAtlasWindow");
+            PlayModeWindowHarness window = new(scene.Scene, "DatabaseWindows Export Localizer Harness");
             Project project = SeedDatabase(temp);
 
             ExportLocalizerAtlasWindow exportWindow = InstantiateWindow<ExportLocalizerAtlasWindow>(ExportLocalizerAtlasResource, window.Root.transform);
@@ -156,8 +156,9 @@ namespace HBP.Tests.PlayMode.UI
 
         private static async UniTask WaitForWindowLayoutAsync()
         {
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+            Canvas.ForceUpdateCanvases();
             await UniTask.Yield();
-            await UniTask.WaitForEndOfFrame();
         }
 
         private static T InstantiateWindow<T>(string resourcePath, Transform parent) where T : Component
