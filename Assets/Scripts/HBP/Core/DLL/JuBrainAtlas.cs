@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace HBP.Core.DLL
 {
@@ -14,9 +15,9 @@ namespace HBP.Core.DLL
     public class JuBrainAtlas : BrainAtlas
     {
         #region Properties
-        private readonly string m_LeftNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz");
-        private readonly string m_RightNIIPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz");
-        private readonly string m_JsonPath = Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels_3.1.json");
+        private static string LeftNIIPath => Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz");
+        private static string RightNIIPath => Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz");
+        private static string JsonPath => Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels_3.1.json");
         #endregion
 
         #region Constructors
@@ -33,8 +34,9 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public override void Load()
         {
+            GetAreaNames();
             Loading = true;
-            Loaded = load_JuBrainAtlas(_handle, m_LeftNIIPath, m_RightNIIPath, m_JsonPath) == 1;
+            Loaded = load_JuBrainAtlas(_handle, LeftNIIPath, RightNIIPath, JsonPath) == 1;
             Loading = false;
         }
         public override string GetAreaName(int index)
@@ -49,11 +51,12 @@ namespace HBP.Core.DLL
         #region Private Methods
         protected override void GetAreaNames()
         {
+            m_AreaNames = new List<string>();
             var names = new List<string>();
 
-            if (!File.Exists(m_JsonPath)) return;
+            if (!File.Exists(JsonPath)) return;
 
-            string json = File.ReadAllText(m_JsonPath);
+            string json = File.ReadAllText(JsonPath);
             JObject root = JObject.Parse(json);
 
             var structures = root["JulichBrainAtlas"]?["Structures"]?["Structure"];

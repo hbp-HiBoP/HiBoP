@@ -204,7 +204,7 @@ namespace HBP.Data.Module3D
         }
         void OnDestroy()
         {
-            Object3DManager.Clean();
+            Object3DManager.Reset();
         }
         #endregion
 

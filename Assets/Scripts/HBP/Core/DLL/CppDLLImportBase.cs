@@ -75,6 +75,8 @@ namespace HBP.Core.DLL
         /// </summary>
         private void Cleanup()
         {
+            if (_handle.Handle == IntPtr.Zero) return;
+
             delete_DLL_class();
             _handle = new HandleRef(this, IntPtr.Zero);
         }

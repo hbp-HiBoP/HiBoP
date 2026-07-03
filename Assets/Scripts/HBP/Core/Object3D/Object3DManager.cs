@@ -1,4 +1,5 @@
 using HBP.Core.DLL;
+using UnityEngine;
 
 namespace HBP.Core.Object3D
 {
@@ -16,12 +17,28 @@ namespace HBP.Core.Object3D
         #region Public Methods
         public static void Clean()
         {
-            MNI.Clean();
-            IBC.Clean();
-            DiFuMo.Clean();
-            Localizers.Clean();
-            MarsAtlas.Dispose();
-            JuBrain.Dispose();
+            MNI?.Clean();
+            IBC?.Clean();
+            DiFuMo?.Clean();
+            Localizers?.Clean();
+            MarsAtlas?.Dispose();
+            JuBrain?.Dispose();
+        }
+        public static void Reset()
+        {
+            try
+            {
+                Clean();
+            }
+            finally
+            {
+                MarsAtlas = new MarsAtlas();
+                JuBrain = new JuBrainAtlas();
+                MNI = new MNIObjects();
+                DiFuMo = new DiFuMoObjects();
+                IBC = new IBCObjects();
+                Localizers = new LocalizersObjects();
+            }
         }
         public static void UnloadMarsAtlas()
         {

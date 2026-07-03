@@ -43,14 +43,15 @@ namespace HBP.Core.Object3D
         #region Properties
         public List<LocalizerProtocol> Protocols { get; private set; } = new List<LocalizerProtocol>();
         public bool Loaded => Protocols.Count > 0 && Protocols.All(p => p.Loaded);
-        private readonly string m_LocalizersPath = Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers");
+        private static string LocalizersPath => Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers");
         public List<string> AvailableProtocolNames
         {
             get
             {
-                if (Directory.Exists(m_LocalizersPath))
+                string localizersPath = LocalizersPath;
+                if (Directory.Exists(localizersPath))
                 {
-                    return Directory.GetDirectories(m_LocalizersPath).Select(Path.GetFileName).OrderBy(n => n).ToList();
+                    return Directory.GetDirectories(localizersPath).Select(Path.GetFileName).OrderBy(n => n).ToList();
                 }
                 return new List<string>();
             }
@@ -60,8 +61,9 @@ namespace HBP.Core.Object3D
             get
             {
                 var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                if (!Directory.Exists(m_LocalizersPath)) return new List<string>();
-                foreach (var protocolDirectory in Directory.GetDirectories(m_LocalizersPath))
+                string localizersPath = LocalizersPath;
+                if (!Directory.Exists(localizersPath)) return new List<string>();
+                foreach (var protocolDirectory in Directory.GetDirectories(localizersPath))
                 {
                     foreach (var dataDirectory in Directory.GetDirectories(protocolDirectory))
                     {
@@ -83,12 +85,12 @@ namespace HBP.Core.Object3D
         }
         public bool IsAvailable(string protocol)
         {
-            string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
+            string protocolDirectory = Path.Combine(LocalizersPath, protocol);
             return Directory.Exists(protocolDirectory);
         }
         public bool TryLoad(string protocol)
         {
-            string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
+            string protocolDirectory = Path.Combine(LocalizersPath, protocol);
             
             if (Directory.Exists(protocolDirectory))
             {
@@ -122,7 +124,7 @@ namespace HBP.Core.Object3D
             if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || blocNames == null)
                 return loadedBlocs;
 
-            string protocolDirectory = Path.Combine(m_LocalizersPath, protocolName);
+            string protocolDirectory = Path.Combine(LocalizersPath, protocolName);
             if (!Directory.Exists(protocolDirectory))
                 return loadedBlocs;
 
@@ -240,7 +242,7 @@ namespace HBP.Core.Object3D
         {
             var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (string.IsNullOrEmpty(protocol)) return new List<string>();
-            string protocolDirectory = Path.Combine(m_LocalizersPath, protocol);
+            string protocolDirectory = Path.Combine(LocalizersPath, protocol);
             if (!Directory.Exists(protocolDirectory)) return new List<string>();
 
             foreach (var dataDirectory in Directory.GetDirectories(protocolDirectory))
