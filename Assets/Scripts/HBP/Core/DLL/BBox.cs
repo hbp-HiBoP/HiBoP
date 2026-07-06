@@ -268,7 +268,7 @@ namespace HBP.Core.DLL
         {
             m_Backend = NativeBackend.HbpExport;
         }
-        private BBox(IntPtr bBoxPointer, NativeBackend backend) : base(bBoxPointer)
+        internal BBox(IntPtr bBoxPointer, NativeBackend backend) : base(bBoxPointer)
         {
             m_Backend = backend;
         }

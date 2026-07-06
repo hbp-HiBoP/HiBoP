@@ -39,7 +39,7 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(308));
+            Assert.That(imports, Has.Count.EqualTo(327));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -48,8 +48,8 @@ namespace HBP.Tests.Serialization
                 .Select(imported => imported.RelativeFile)
                 .Distinct()
                 .ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "HbpCore/HbpCoreRuntime.cs", "Plane.cs", "Segment3.cs", "Transformation3.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(35));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "HbpCore/HbpCoreRuntime.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Transformation3.cs", "Volume.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(54));
         }
 
         [Test]
@@ -243,6 +243,53 @@ namespace HBP.Tests.Serialization
                 new[] { hbpExportSegment.End1, hbpExportSegment.End2 });
             hbpCoreSegment.Dispose();
             hbpExportSegment.Dispose();
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreVolumeAndNifti_LoadReadOnlyFixtures_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            using Volume hbpExportVolume = ExecuteNativeOrIgnore(() => new Volume(), "historical Volume wrapper");
+            Assert.That(hbpExportVolume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                using Volume hbpCoreVolume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
+                Assert.That(hbpCoreVolume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+                Assert.That(hbpCoreVolume.IsLoaded, Is.True);
+                AssertVector(hbpCoreVolume.Center, hbpExportVolume.Center);
+                AssertVector(hbpCoreVolume.Spacing, hbpExportVolume.Spacing);
+                Assert.That(hbpCoreVolume.GetValueFromPosition(new Vector3(-2, 3, 4)), Is.EqualTo(69.0f).Within(0.0001f));
+
+                using BBox hbpExportBBox = hbpExportVolume.BoundingBox;
+                using BBox hbpCoreBBox = hbpCoreVolume.BoundingBox;
+                AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min);
+                AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max);
+
+                using HbpPlane cutPlane = new(hbpCoreVolume.Center, Vector3.forward);
+                Assert.That(hbpCoreVolume.SizeOffsetCutPlane(cutPlane, 10), Is.GreaterThan(0.0f));
+
+                using NIFTI nifti = ExecuteNativeOrIgnore(() => new NIFTI(), "hbp_core NIFTI wrapper");
+                Assert.That(nifti.Load(NativePath("Nifti", "fmri_4d.nii.gz")), Is.True);
+                Assert.That(nifti.NumberOfVolumes, Is.GreaterThan(1));
+                Assert.That(nifti.TimeStep, Is.GreaterThan(0.0f));
+                Assert.That(nifti.TimeUnit, Is.Not.Null);
+
+                using Volume extractedVolume = nifti.ExtractVolume(1);
+                Assert.That(extractedVolume.IsLoaded, Is.True);
+                AssertVector(extractedVolume.Spacing, hbpCoreVolume.Spacing);
+            }
+            finally
+            {
+                NativeBackendOptions.Reset();
+            }
         }
 
         private static List<DllImportSignature> ReadCurrentDllImports()

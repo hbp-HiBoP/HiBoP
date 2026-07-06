@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using HBP.Core.DLL.HbpCore;
 using UnityEngine;
 using HBP.Core.Enums;
 
@@ -11,6 +12,8 @@ namespace HBP.Core.DLL
     /// </summary>
     public class Volume : CppDLLImportBase
     {
+        private NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
+
         #region Properties
         /// <summary>
         /// Is the volume completely loaded ?
@@ -23,6 +26,12 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    ThrowIfFailed(hbp_volume_get_center(_handle.Handle, out Vec3 value));
+                    return value.ToVector3();
+                }
+
                 float[] center = new float[3];
                 center_Volume(_handle, center);
                 return new Vector3(center[0], center[1], center[2]);
@@ -35,6 +44,12 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    ThrowIfFailed(hbp_volume_get_spacing(_handle.Handle, out Vec3 value));
+                    return value.ToVector3();
+                }
+
                 float[] spacing = new float[3];
                 spacing_Volume(_handle, spacing);
                 return new Vector3(spacing[0], spacing[1], spacing[2]);
@@ -47,6 +62,12 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    ThrowIfFailed(hbp_volume_get_extrema(_handle.Handle, out VolumeExtrema nativeValues));
+                    return ToMRICalValues(nativeValues);
+                }
+
                 Tools.MRICalValues values = new();
 
                 float[] valuesF = new float[6];
@@ -69,6 +90,12 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    ThrowIfFailed(hbp_volume_get_bounding_box(_handle.Handle, out IntPtr bbox));
+                    return new BBox(bbox, NativeBackend.HbpCore);
+                }
+
                 return new BBox(boundingBox_Volume(_handle));
             }
         }
@@ -82,6 +109,12 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public bool LoadNIFTIFile(string path)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
+                return IsLoaded;
+            }
+
             IsLoaded = (loadNiiFile_Volume(_handle, path) == 1);
             return IsLoaded;
         }
@@ -93,6 +126,12 @@ namespace HBP.Core.DLL
         /// <returns>Value of the offset</returns>
         public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_volume_size_offset_cut_plane(_handle.Handle, cutPlane.getHandle().Handle, nbCuts, out float offset));
+                return offset;
+            }
+
             return sizeOffsetCutPlane_Volume(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
         /// <summary>
@@ -107,6 +146,12 @@ namespace HBP.Core.DLL
         }
         public Vector3 GetOrientationVector(CutOrientation orientation, bool flip)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_volume_get_orientation_vector(_handle.Handle, (int)orientation, flip ? 1 : 0, out Vec3 value));
+                return value.ToVector3();
+            }
+
             float[] normal = new float[3];
             definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
             return new Vector3(normal[0], normal[1], normal[2]);
@@ -118,6 +163,11 @@ namespace HBP.Core.DLL
         /// <returns>The cube bounding box around the volume</returns>
         public BBox GetCubeBoundingBox(List<Object3D.Cut> cuts)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("hbp_core does not expose Volume.GetCubeBoundingBox in step 6.");
+            }
+
             float[] planes = new float[cuts.Count * 6];
             int planesCount = 0;
             for (int ii = 0; ii < cuts.Count; ++ii)
@@ -141,12 +191,22 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public float[] GetVerticesValues(Surface surface)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("hbp_core does not expose Volume.GetVerticesValues in step 6.");
+            }
+
             float[] result = new float[surface.NumberOfVertices];
             get_vertices_values_Volume(_handle, surface.getHandle(), result);
             return result;
         }
         public Color[] ConvertValuesToColors(float[] values, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("hbp_core does not expose Volume.ConvertValuesToColors in step 6.");
+            }
+
             Color[] colors = new Color[values.Length];
             float[] result = new float[values.Length * 4];
             get_colors_from_values_Volume(_handle, values, values.Length, negativeMin, negativeMax, positiveMin, positiveMax, alpha, result);
@@ -158,6 +218,11 @@ namespace HBP.Core.DLL
         }
         public Color[] ConvertValuesToColors(float[] values, int[] mask, float min, float middle, float max, Texture texture)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("hbp_core does not expose Volume.ConvertValuesToColors with Texture in step 6.");
+            }
+
             Color[] colors = new Color[values.Length];
             float[] result = new float[values.Length * 4];
             get_colors_from_values_texture_Volume(_handle, values, mask, values.Length, min, middle, max, texture.getHandle(), result);
@@ -169,20 +234,61 @@ namespace HBP.Core.DLL
         }
         public float GetValueFromPosition(Vector3 position)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                Vec3 nativePosition = Vec3.FromVector3(new Vector3(-position.x, position.y, position.z));
+                ThrowIfFailed(hbp_volume_sample_value(_handle.Handle, ref nativePosition, out float value));
+                return value;
+            }
+
             return get_value_from_position_Volume(_handle, -position.x, position.y, position.z);
         }
         public float GetAverageValueAroundPositionWithMask(Vector3 position, int precision, Volume maskVolume, ref float[] rawValues, ref int actualLength)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("hbp_core does not expose Volume.GetAverageValueAroundPositionWithMask in step 6.");
+            }
+
             return get_average_value_around_position_with_mask_Volume(_handle, -position.x, position.y, position.z, precision, maskVolume.getHandle(), rawValues, rawValues.Length, ref actualLength);
         }
         #endregion
 
         #region Memory Management
+        internal NativeBackend Backend => m_Backend;
+
+        public Volume()
+        {
+        }
+
+        internal Volume(IntPtr volumePointer, NativeBackend backend) : base(volumePointer)
+        {
+            m_Backend = backend;
+        }
+
+        internal static Volume CreateHbpCore()
+        {
+            ThrowIfFailed(hbp_volume_create(out IntPtr volume));
+            return new Volume(volume, NativeBackend.HbpCore);
+        }
+
+        internal void MarkLoaded()
+        {
+            IsLoaded = true;
+        }
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
         protected override void create_DLL_class()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_volume_create(out IntPtr volume));
+                _handle = new HandleRef(this, volume);
+                return;
+            }
+
             _handle = new HandleRef(this, create_Volume());
         }
         /// <summary>
@@ -190,9 +296,36 @@ namespace HBP.Core.DLL
         /// </summary>
         protected override void delete_DLL_class()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_volume_destroy(_handle.Handle));
+                return;
+            }
+
             delete_Volume(_handle);
         }
         #endregion
+
+        private static Tools.MRICalValues ToMRICalValues(VolumeExtrema nativeValues)
+        {
+            return new Tools.MRICalValues
+            {
+                Min = nativeValues.min,
+                Max = nativeValues.max,
+                LoadedCalMin = nativeValues.loadedCalMin,
+                LoadedCalMax = nativeValues.loadedCalMax,
+                ComputedCalMin = nativeValues.recomputedCalMin,
+                ComputedCalMax = nativeValues.recomputedCalMax
+            };
+        }
+
+        private static void ThrowIfFailed(HbpCoreStatus status)
+        {
+            if (status != HbpCoreStatus.Ok)
+            {
+                throw new InvalidOperationException($"hbp_core Volume call failed with status {status}: {HbpCoreRuntime.LastError}");
+            }
+        }
 
         #region DLLimport
         [DllImport("hbp_export", EntryPoint = "create_Volume", CallingConvention = CallingConvention.Cdecl)]
@@ -229,6 +362,27 @@ namespace HBP.Core.DLL
         static private extern float get_value_from_position_Volume(HandleRef handleVolume, float x, float y, float z);
         [DllImport("hbp_export", EntryPoint = "get_average_value_around_position_with_mask_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern float get_average_value_around_position_with_mask_Volume(HandleRef handleVolume, float x, float y, float z, int precision, HandleRef maskVolume, float[] rawValues, int length, ref int actualLength);
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_create", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_create(out IntPtr volume);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_destroy", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_destroy(IntPtr volume);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_load_nifti", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_load_nifti(IntPtr volume, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_get_center", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_get_center(IntPtr volume, out Vec3 center);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_get_spacing", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_get_spacing(IntPtr volume, out Vec3 spacing);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_get_extrema", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_get_extrema(IntPtr volume, out VolumeExtrema extrema);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_get_bounding_box(IntPtr volume, out IntPtr bbox);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_get_orientation_vector", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_get_orientation_vector(IntPtr volume, int cutOrientation, int flip, out Vec3 normal);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_sample_value", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_sample_value(IntPtr volume, ref Vec3 position, out float value);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_size_offset_cut_plane(IntPtr volume, IntPtr plane, int cutCount, out float offset);
         #endregion
     }
 

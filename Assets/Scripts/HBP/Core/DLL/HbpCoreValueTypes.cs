@@ -20,4 +20,24 @@ namespace HBP.Core.DLL
             return new Vector3(x, y, z);
         }
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct VolumeDimensions
+    {
+        public int x;
+        public int y;
+        public int z;
+        public int t;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct VolumeExtrema
+    {
+        public float min;
+        public float max;
+        public float loadedCalMin;
+        public float loadedCalMax;
+        public float recomputedCalMin;
+        public float recomputedCalMax;
+    }
 }
