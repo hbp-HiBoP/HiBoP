@@ -39,7 +39,7 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(348));
+            Assert.That(imports, Has.Count.EqualTo(350));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -49,7 +49,7 @@ namespace HBP.Tests.Serialization
                 .Distinct()
                 .ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "HbpCore/HbpCoreRuntime.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(75));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(77));
         }
 
         [Test]
@@ -350,6 +350,36 @@ namespace HBP.Tests.Serialization
                 clone.Append(surface);
                 Assert.That(clone.NumberOfVertices, Is.EqualTo(8));
                 Assert.That(clone.NumberOfTriangles, Is.EqualTo(4));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreSurface_LoadsGiftiFixture_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            Mesh mesh = new();
+            try
+            {
+                using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+                Assert.That(surface.LoadGIIFile(NativePath("Meshes", "single_surface.gii"), NativePath("Meshes", "MNI.trm")), Is.True);
+                surface.UpdateMeshFromDLL(mesh);
+
+                Assert.That(surface.NumberOfVertices, Is.EqualTo(4));
+                Assert.That(surface.NumberOfTriangles, Is.EqualTo(4));
+                Assert.That(mesh.vertexCount, Is.EqualTo(4));
+                Assert.That(mesh.triangles, Has.Length.EqualTo(12));
             }
             finally
             {

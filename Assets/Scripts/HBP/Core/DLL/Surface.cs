@@ -209,7 +209,22 @@ namespace HBP.Core.DLL
         /// <returns>True if loading is complete</returns>
         public bool LoadGIIFile(string gii, string transformation = "")
         {
-            EnsureHbpExport(nameof(LoadGIIFile));
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                IsLoaded = hbp_surface_load_gifti(_handle.Handle, gii) == HbpCoreStatus.Ok;
+                if (IsLoaded && !string.IsNullOrEmpty(transformation))
+                {
+                    using Transformation3 hbpCoreTransformation = Transformation3.FromFile(transformation);
+                    ThrowIfFailed(hbp_surface_transform(_handle.Handle, hbpCoreTransformation.getHandle().Handle));
+                }
+
+                if (!IsLoaded)
+                {
+                    Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + gii + " " + transformation);
+                }
+                return IsLoaded;
+            }
+
             IsLoaded = load_GII_file_Surface(_handle, gii, !string.IsNullOrEmpty(transformation) ? 1 : 0, transformation) == 1;
             if (!IsLoaded)
             {
@@ -994,6 +1009,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_load_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_load_tri", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_load_tri(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_load_gifti", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_load_gifti(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_save_obj", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_save_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, [MarshalAs(UnmanagedType.LPUTF8Str)] string textureName);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_set_vertices", CallingConvention = CallingConvention.Cdecl)]
@@ -1026,6 +1043,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_compute_normals(IntPtr surface);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_flip", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_flip(IntPtr surface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_transform", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_transform(IntPtr surface, IntPtr transformation);
         #endregion
     }
 }
