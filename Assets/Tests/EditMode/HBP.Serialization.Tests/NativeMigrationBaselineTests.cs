@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using HBP.Core.DLL;
+using HBP.Core.DLL.HbpCore;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 
@@ -13,7 +14,7 @@ namespace HBP.Tests.Serialization
     public class NativeMigrationBaselineTests
     {
         private static readonly Regex DllImportRegex = new(
-            "\\[DllImport\\(\"(?<dll>[^\"]+)\"\\s*,\\s*EntryPoint\\s*=\\s*\"(?<entry>[^\"]+)\"",
+            "\\[DllImport\\((?:\"(?<dll>[^\"]+)\"|NativeDll\\.(?<nativeDll>HbpExport|HbpCore))\\s*,\\s*EntryPoint\\s*=\\s*\"(?<entry>[^\"]+)\"",
             RegexOptions.Compiled);
 
         [Test]
@@ -24,19 +25,27 @@ namespace HBP.Tests.Serialization
             Assert.That(NativeDll.HbpCore, Is.EqualTo("hbp_core"));
             Assert.That(NativeBackend.HbpExport.ToString(), Is.EqualTo("HbpExport"));
             Assert.That(NativeBackend.HbpCore.ToString(), Is.EqualTo("HbpCore"));
+            Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpExport));
+            Assert.That(NativeBackendOptions.UsesHbpCore, Is.False);
         }
 
         [Test]
         [Category("NativeMigration")]
-        public void CurrentDllImportInventory_MatchesStepZeroBaseline()
+        public void CurrentDllImportInventory_KeepsHistoricalImportsAndAddsOnlyHbpCoreSmokeWrapper()
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(273));
+            Assert.That(imports, Has.Count.EqualTo(277));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
-            Assert.That(imports.Any(imported => imported.Dll == NativeDll.HbpCore), Is.False);
+            string[] hbpCoreImportFiles = imports
+                .Where(imported => imported.Dll == NativeDll.HbpCore)
+                .Select(imported => imported.RelativeFile)
+                .Distinct()
+                .ToArray();
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "HbpCore/HbpCoreRuntime.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(4));
         }
 
         [Test]
@@ -53,6 +62,46 @@ namespace HBP.Tests.Serialization
             {
                 bbox.Dispose();
             }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void ExperimentalBackendOption_DoesNotMoveHistoricalWrappers()
+        {
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                BBox bbox = ExecuteNativeOrIgnore(() => new BBox(), "historical BBox wrapper");
+                try
+                {
+                    Assert.That(NativeBackendOptions.UsesHbpCore, Is.True);
+                    Assert.That(bbox.getHandle().Handle, Is.Not.EqualTo(IntPtr.Zero));
+                }
+                finally
+                {
+                    bbox.Dispose();
+                }
+            }
+            finally
+            {
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreSmoke_LoadsVersion_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out string version, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            Assert.That(version, Is.Not.Empty);
+            Assert.That(HbpCoreRuntime.Init(), Is.EqualTo(HbpCoreStatus.Ok));
+            Assert.That(HbpCoreRuntime.LastError, Is.Empty);
+            Assert.That(HbpCoreRuntime.Shutdown(), Is.EqualTo(HbpCoreStatus.Ok));
         }
 
         private static List<DllImportSignature> ReadCurrentDllImports()
@@ -73,11 +122,25 @@ namespace HBP.Tests.Serialization
 
             foreach (Match match in DllImportRegex.Matches(File.ReadAllText(file)))
             {
+                string dll = match.Groups["dll"].Success
+                    ? match.Groups["dll"].Value
+                    : NativeDllName(match.Groups["nativeDll"].Value);
+
                 yield return new DllImportSignature(
-                    match.Groups["dll"].Value,
+                    dll,
                     match.Groups["entry"].Value,
                     relativeFile);
             }
+        }
+
+        private static string NativeDllName(string nativeDllConstant)
+        {
+            return nativeDllConstant switch
+            {
+                nameof(NativeBackend.HbpExport) => NativeDll.HbpExport,
+                nameof(NativeBackend.HbpCore) => NativeDll.HbpCore,
+                _ => throw new InvalidOperationException($"Unknown NativeDll constant: {nativeDllConstant}")
+            };
         }
 
         private static T ExecuteNativeOrIgnore<T>(Func<T> action, string context)
