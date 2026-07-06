@@ -7,7 +7,7 @@ namespace HBP.Core.Object3D
     /// <summary>
     /// Class representing a cut on the scene
     /// </summary>
-    public class Cut : Plane
+    public class Cut : HBP.Core.DLL.Plane
     {
         #region Properties
         /// <summary>

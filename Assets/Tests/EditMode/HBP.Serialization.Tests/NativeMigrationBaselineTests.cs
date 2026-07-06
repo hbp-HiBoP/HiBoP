@@ -10,6 +10,8 @@ using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using HbpPlane = HBP.Core.DLL.Plane;
+using HbpSegment3 = HBP.Core.DLL.Segment3;
 
 namespace HBP.Tests.Serialization
 {
@@ -33,11 +35,11 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
-        public void CurrentDllImportInventory_KeepsHistoricalImportsAndAddsOnlyHbpCoreSmokeWrapper()
+        public void CurrentDllImportInventory_KeepsHistoricalImportsAndAddsHbpCoreObjectWrappers()
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(280));
+            Assert.That(imports, Has.Count.EqualTo(308));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -46,8 +48,8 @@ namespace HBP.Tests.Serialization
                 .Select(imported => imported.RelativeFile)
                 .Distinct()
                 .ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "HbpCore/HbpCoreRuntime.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(7));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "HbpCore/HbpCoreRuntime.cs", "Plane.cs", "Segment3.cs", "Transformation3.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(35));
         }
 
         [Test]
@@ -68,16 +70,22 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
-        public void ExperimentalBackendOption_DoesNotMoveHistoricalWrappers()
+        public void ExperimentalBackendOption_CreatesBBoxThroughHbpCore()
         {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
             NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
             try
             {
-                BBox bbox = ExecuteNativeOrIgnore(() => new BBox(), "historical BBox wrapper");
+                BBox bbox = ExecuteNativeOrIgnore(() => new BBox(), "hbp_core BBox wrapper");
                 try
                 {
                     Assert.That(NativeBackendOptions.UsesHbpCore, Is.True);
                     Assert.That(bbox.getHandle().Handle, Is.Not.EqualTo(IntPtr.Zero));
+                    Assert.DoesNotThrow(() => _ = bbox.Min);
                 }
                 finally
                 {
@@ -126,6 +134,115 @@ namespace HBP.Tests.Serialization
             {
                 DLLDebugManager.TryResetHbpCoreLogger(out _);
             }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreBBox_ReturnsBoundsAndPlaneIntersections_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            using BBox bbox = BBox.CreateHbpCore(new Vector3(-1, -2, -3), new Vector3(3, 4, 5));
+
+            AssertVector(bbox.Min, new Vector3(-1, -2, -3));
+            AssertVector(bbox.Max, new Vector3(3, 4, 5));
+            AssertVector(bbox.Center, new Vector3(1, 1, 1));
+            Assert.That(bbox.Points, Has.Count.EqualTo(8));
+            List<HbpSegment3> bboxSegments = bbox.Segments;
+            Assert.That(bboxSegments, Has.Count.EqualTo(12));
+            DisposeSegments(bboxSegments);
+
+            using HbpPlane plane = new(new Vector3(0, 0, 1), new Vector3(0, 0, 2));
+            Assert.That(plane.PointSide(new Vector3(0, 0, 3)), Is.EqualTo(1));
+            AssertVector(plane.ProjectPoint(new Vector3(2, 3, 4)), new Vector3(2, 3, 1));
+            Assert.That(plane.IntersectSegment(new Vector3(0, 0, -1), new Vector3(0, 0, 3), out Vector3 planeSegmentPoint), Is.True);
+            AssertVector(planeSegmentPoint, new Vector3(0, 0, 1));
+            plane.Point = new Vector3(0, 0, 2);
+            AssertVector(plane.ProjectPoint(new Vector3(2, 3, 4)), new Vector3(2, 3, 2));
+            plane.Point = new Vector3(0, 0, 1);
+
+            List<Vector3> intersections = bbox.IntersectionPointsWithPlane(plane);
+            Assert.That(intersections, Has.Count.EqualTo(4));
+            Assert.That(intersections.All(point => Mathf.Abs(point.z - 1) < 0.0001f), Is.True);
+
+            List<HbpSegment3> segments = bbox.IntersectionLinesWithPlane(plane);
+            Assert.That(segments, Has.Count.EqualTo(4));
+            Assert.That(segments.All(segment => Mathf.Abs(segment.End1.z - 1) < 0.0001f && Mathf.Abs(segment.End2.z - 1) < 0.0001f), Is.True);
+            DisposeSegments(segments);
+
+            using HbpPlane planeA = new(new Vector3(1, 0, 0), Vector3.right);
+            using HbpPlane planeB = new(new Vector3(0, 1, 0), Vector3.up);
+            HbpSegment3 segment = bbox.IntersectionSegmentBetweenTwoPlanes(planeA, planeB);
+
+            Assert.That(segment, Is.Not.Null);
+            AssertVector(segment.End1, new Vector3(1, 1, -3));
+            AssertVector(segment.End2, new Vector3(1, 1, 5));
+            Assert.That(segment.Length, Is.EqualTo(8.0f).Within(0.0001f));
+            segment.Dispose();
+
+            using Transformation3 transformation = new(
+                new[]
+                {
+                    0.0f, -1.0f, 0.0f,
+                    1.0f, 0.0f, 0.0f,
+                    0.0f, 0.0f, 1.0f
+                },
+                new Vector3(10, 20, 30));
+            AssertVector(transformation.ApplyPoint(new Vector3(1, 2, 3)), new Vector3(8, 21, 33));
+
+            using BBox transformed = BBox.CreateHbpCore(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
+            transformed.Transform(transformation);
+            AssertVector(transformed.Min, new Vector3(9, 19, 29));
+            AssertVector(transformed.Max, new Vector3(11, 21, 31));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreBBox_MatchesHbpExportBoundingBox_WhenUsingSameVolumeBounds()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            using Volume volume = ExecuteNativeOrIgnore(() => new Volume(), "historical Volume wrapper");
+            Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+
+            using BBox hbpExportBBox = volume.BoundingBox;
+            using BBox hbpCoreBBox = BBox.CreateHbpCore(hbpExportBBox.Min, hbpExportBBox.Max);
+
+            AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min);
+            AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max);
+            AssertVector(hbpCoreBBox.Center, hbpExportBBox.Center);
+            AssertSameVectorSet(hbpCoreBBox.Points, hbpExportBBox.Points);
+            List<HbpSegment3> hbpCoreSegments = hbpCoreBBox.Segments;
+            List<HbpSegment3> hbpExportSegments = hbpExportBBox.Segments;
+            Assert.That(hbpCoreSegments, Has.Count.EqualTo(hbpExportSegments.Count));
+            DisposeSegments(hbpCoreSegments);
+            DisposeSegments(hbpExportSegments);
+
+            using HbpPlane plane = new(hbpExportBBox.Center, Vector3.forward);
+            AssertSameVectorSet(
+                hbpCoreBBox.IntersectionPointsWithPlane(plane),
+                hbpExportBBox.IntersectionPointsWithPlane(plane));
+
+            using HbpPlane hbpCorePlaneA = new(hbpExportBBox.Center, Vector3.right);
+            using HbpPlane hbpCorePlaneB = new(hbpExportBBox.Center, Vector3.up);
+            HbpSegment3 hbpCoreSegment = hbpCoreBBox.IntersectionSegmentBetweenTwoPlanes(hbpCorePlaneA, hbpCorePlaneB);
+            HbpSegment3 hbpExportSegment = hbpExportBBox.IntersectionSegmentBetweenTwoPlanes(hbpCorePlaneA, hbpCorePlaneB);
+
+            Assert.That(hbpCoreSegment, Is.Not.Null);
+            Assert.That(hbpExportSegment, Is.Not.Null);
+            AssertSameVectorSet(
+                new[] { hbpCoreSegment.End1, hbpCoreSegment.End2 },
+                new[] { hbpExportSegment.End1, hbpExportSegment.End2 });
+            hbpCoreSegment.Dispose();
+            hbpExportSegment.Dispose();
         }
 
         private static List<DllImportSignature> ReadCurrentDllImports()
@@ -190,6 +307,51 @@ namespace HBP.Tests.Serialization
                 }
             }
             return false;
+        }
+
+        private static string NativePath(params string[] parts)
+        {
+            string path = TestPathUtility.FixturePath("Native");
+            foreach (string part in parts)
+            {
+                path = Path.Combine(path, part);
+            }
+            return path;
+        }
+
+        private static void AssertVector(Vector3 actual, Vector3 expected)
+        {
+            Assert.That(actual.x, Is.EqualTo(expected.x).Within(0.0001f));
+            Assert.That(actual.y, Is.EqualTo(expected.y).Within(0.0001f));
+            Assert.That(actual.z, Is.EqualTo(expected.z).Within(0.0001f));
+        }
+
+        private static void AssertSameVectorSet(IReadOnlyCollection<Vector3> actual, IReadOnlyCollection<Vector3> expected)
+        {
+            Assert.That(actual.Count, Is.EqualTo(expected.Count));
+
+            List<Vector3> remaining = new(actual);
+            foreach (Vector3 expectedPoint in expected)
+            {
+                int foundIndex = remaining.FindIndex(actualPoint => VectorsEqual(actualPoint, expectedPoint));
+                Assert.That(foundIndex, Is.GreaterThanOrEqualTo(0), $"Missing point {expectedPoint}");
+                remaining.RemoveAt(foundIndex);
+            }
+        }
+
+        private static void DisposeSegments(IEnumerable<HbpSegment3> segments)
+        {
+            foreach (HbpSegment3 segment in segments)
+            {
+                segment.Dispose();
+            }
+        }
+
+        private static bool VectorsEqual(Vector3 actual, Vector3 expected)
+        {
+            return Mathf.Abs(actual.x - expected.x) <= 0.0001f
+                && Mathf.Abs(actual.y - expected.y) <= 0.0001f
+                && Mathf.Abs(actual.z - expected.z) <= 0.0001f;
         }
 
         private readonly struct DllImportSignature

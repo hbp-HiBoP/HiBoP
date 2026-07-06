@@ -4,83 +4,6 @@ using UnityEngine;
 namespace HBP.Core.Object3D
 {
     /// <summary>
-    /// This class defines a plane with a point and a normal
-    /// </summary>
-    [System.Serializable]
-    public class Plane
-    {
-        #region Properties
-        /// <summary>
-        /// Point on the plane
-        /// </summary>
-        public Vector3 Point { get; set; }
-        /// <summary>
-        /// Normal to the plane
-        /// </summary>
-        public Vector3 Normal { get; set; }
-        #endregion
-
-        #region Constructors
-        public Plane()
-        {
-            Point = new Vector3(0, 0, 0);
-            Normal = new Vector3(1, 0, 0);
-        }
-        public Plane(Vector3 point, Vector3 normal)
-        {
-            Point = point;
-            Normal = normal;
-        }
-        #endregion
-
-        #region Public Methods
-        /// <summary>
-        /// Convert to float array for DLL use
-        /// </summary>
-        /// <returns>Array of values [PointX, PointY, PointZ, NormalX, NormalY, NormalZ]</returns>
-        public float[] ConvertToArray()
-        {
-            return new float[] { Point[0], Point[1], Point[2], Normal[0], Normal[1], Normal[2] };
-        }
-        #endregion
-    }
-
-    /// <summary>
-    /// This class defines a segment between two points
-    /// </summary>
-    public class Segment3
-    {
-        #region Properties
-        /// <summary>
-        /// First end of the segment
-        /// </summary>
-        public Vector3 End1 { get; set; }
-        /// <summary>
-        /// Second end of the segment
-        /// </summary>
-        public Vector3 End2 { get; set; }
-        /// <summary>
-        /// Length of the segment
-        /// </summary>
-        public float Length
-        {
-            get
-            {
-                return (End2 - End1).magnitude;
-            }
-        }
-        #endregion
-
-        #region Constructors
-        public Segment3(Vector3 end1, Vector3 end2)
-        {
-            End1 = end1;
-            End2 = end2;
-        }
-        #endregion
-    }
-
-    /// <summary>
     /// This class contains utility functions concerning geometry
     /// </summary>
     public class Geometry
@@ -245,16 +168,13 @@ namespace HBP.Core.Object3D
         /// <param name="duration">Duration for which the bounding box is displayed</param>
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset, Color color, float duration = 50)
         {
-            List<Segment3> rawSegments = bbox.Segments;
-            List<Segment3> segments = new(rawSegments.Count);
+            List<DLL.Segment3> rawSegments = bbox.Segments;
             foreach (var s in rawSegments)
             {
-                segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
-            }
-
-            for (int ii = 0; ii < segments.Count; ++ii)
-            {
-                Debug.DrawRay(offset + segments[ii].End1, segments[ii].End2 - segments[ii].End1, color, duration);
+                Vector3 end1 = new(-s.End1.x, s.End1.y, s.End1.z);
+                Vector3 end2 = new(-s.End2.x, s.End2.y, s.End2.z);
+                Debug.DrawRay(offset + end1, end2 - end1, color, duration);
+                s.Dispose();
             }
         }
         /// <summary>
@@ -263,18 +183,15 @@ namespace HBP.Core.Object3D
         /// <param name="bbox">Bounding box of the intersection</param>
         /// <param name="plane">Plane of the intersection</param>
         /// <param name="offset">Offset for the center of the intersection</param>
-        public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, Plane plane, Vector3 offset)
+        public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, DLL.Plane plane, Vector3 offset)
         {
-            List<Segment3> rawSegments = bbox.IntersectionLinesWithPlane(plane);
-            List<Segment3> segments = new(rawSegments.Count);
+            List<DLL.Segment3> rawSegments = bbox.IntersectionLinesWithPlane(plane);
             foreach (var s in rawSegments)
             {
-                segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
-            }
-
-            for (int ii = 0; ii < segments.Count; ++ii)
-            {
-                Debug.DrawRay(offset + segments[ii].End1, segments[ii].End2 - segments[ii].End1, Color.green);
+                Vector3 end1 = new(-s.End1.x, s.End1.y, s.End1.z);
+                Vector3 end2 = new(-s.End2.x, s.End2.y, s.End2.z);
+                Debug.DrawRay(offset + end1, end2 - end1, Color.green);
+                s.Dispose();
             }
         }
         /// <summary>
@@ -293,12 +210,13 @@ namespace HBP.Core.Object3D
             mat.SetPass(0);
             GL.Color(new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a));
 
-            List<Segment3> segments = bbox.Segments;
+            List<DLL.Segment3> segments = bbox.Segments;
 
             for (int ii = 0; ii < segments.Count; ++ii)
             {
                 GL.Vertex(segments[ii].End1);
                 GL.Vertex(segments[ii].End2);
+                segments[ii].Dispose();
             }
 
             GL.Begin(GL.TRIANGLES);

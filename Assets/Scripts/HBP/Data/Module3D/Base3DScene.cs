@@ -1406,7 +1406,7 @@ namespace HBP.Data.Module3D
             }
             else
             {
-                Core.Object3D.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                using Core.DLL.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, cut.Flip);
                 cut.Normal = plane.Normal;
             }
@@ -1418,7 +1418,7 @@ namespace HBP.Data.Module3D
             float offset;
             if (MeshManager.BrainSurface != null)
             {
-                Core.Object3D.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+                using Core.DLL.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
                 bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
                 offset = bbox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);

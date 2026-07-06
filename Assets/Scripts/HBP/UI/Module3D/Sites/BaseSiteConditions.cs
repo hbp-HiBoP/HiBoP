@@ -132,7 +132,7 @@ namespace HBP.UI.Module3D
         /// <returns>True if the site is on any cut plane of the scene</returns>
         protected bool CheckOnPlane(Core.Object3D.Site site)
         {
-            return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as Core.Object3D.Plane, 1.0f);
+            return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as Core.DLL.Plane, 1.0f);
         }
         /// <summary>
         /// Check if the site is in a specific area of the selected atlas

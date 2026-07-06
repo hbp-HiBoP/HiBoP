@@ -73,7 +73,7 @@ namespace HBP.Core.DLL
         /// <param name="plane">Plane on which to perform the check</param>
         /// <param name="precision">Precision of the check</param>
         /// <param name="result">Result array containing a bool for each site in the order of the raw site list: true if the site is on the plane, false otherwise</param>
-        public void GetSitesOnPlane(Object3D.Plane plane, float precision, out int[] result)
+        public void GetSitesOnPlane(Plane plane, float precision, out int[] result)
         {
             result = new int[NumberOfSites];
             float[] planeV = new float[6];
@@ -91,7 +91,7 @@ namespace HBP.Core.DLL
         /// <param name="planes">Planes on which to perform the check</param>
         /// <param name="precision">Precision of the check</param>
         /// <returns>True if the site is on any plane</returns>
-        public bool IsSiteOnAnyPlane(Object3D.Site site, IEnumerable<Object3D.Plane> planes, float precision)
+        public bool IsSiteOnAnyPlane(Object3D.Site site, IEnumerable<Plane> planes, float precision)
         {
             bool result = false;
             foreach (var plane in planes)

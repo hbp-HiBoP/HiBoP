@@ -515,7 +515,7 @@ namespace HBP.UI.Module3D
                 {
                     if (cut == Cut || cut.Orientation == CutOrientation.Custom) continue;
 
-                    Core.Object3D.Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
+                    Core.DLL.Segment3 segment = boundingBox.IntersectionSegmentBetweenTwoPlanes(Cut, cut);
                     List<Vector2> linePoints = new();
                     if (segment != null)
                     {
@@ -544,6 +544,7 @@ namespace HBP.UI.Module3D
                         }
                         addRatioOfPoint(segment.End1);
                         addRatioOfPoint(segment.End2);
+                        segment.Dispose();
                     }
                     UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UILineRenderer>();
                     RectTransform lineRectTransform = lineRenderer.GetComponent<RectTransform>();

@@ -126,5 +126,6 @@ namespace HBP.Core.DLL.HbpCore
 
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_debug_message", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_core_debug_message([MarshalAs(UnmanagedType.LPUTF8Str)] string message, HbpCoreLogType type);
+
     }
 }

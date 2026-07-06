@@ -196,7 +196,7 @@ namespace HBP.Data.Module3D
                     };
                     return mesh != null && mesh.IsPointInside(site.Information.DefaultPosition);
                 case SpecificSiteLocationFilterCondition.SpecificLocationType.CutPlane:
-                    var planes = selectedScene.Cuts.Select(c => (Core.Object3D.Plane)c).ToList();
+                    var planes = selectedScene.Cuts.Select(c => (Core.DLL.Plane)c).ToList();
                     return selectedScene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, planes, 1.0f);
                 default:
                     return null;
