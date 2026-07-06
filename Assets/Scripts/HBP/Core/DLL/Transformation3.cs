@@ -11,7 +11,7 @@ namespace HBP.Core.DLL
         {
         }
 
-        public Transformation3(float[] rotation9, Vector3 translation) : base(CreateTransformation(rotation9, translation))
+        public Transformation3(float[] linear9, Vector3 translation) : base(CreateTransformation(linear9, translation))
         {
         }
 
@@ -33,15 +33,15 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_transform_destroy(_handle.Handle));
         }
 
-        private static IntPtr CreateTransformation(float[] rotation9, Vector3 translation)
+        private static IntPtr CreateTransformation(float[] linear9, Vector3 translation)
         {
-            if (rotation9 == null || rotation9.Length != 9)
+            if (linear9 == null || linear9.Length != 9)
             {
-                throw new ArgumentException("Expected a 3x3 rotation matrix.", nameof(rotation9));
+                throw new ArgumentException("Expected a 3x3 linear transform matrix.", nameof(linear9));
             }
 
             Vec3 nativeTranslation = Vec3.FromVector3(translation);
-            ThrowIfFailed(hbp_transform_create(rotation9, ref nativeTranslation, out IntPtr transformation));
+            ThrowIfFailed(hbp_transform_create(linear9, ref nativeTranslation, out IntPtr transformation));
             return transformation;
         }
 
@@ -57,7 +57,7 @@ namespace HBP.Core.DLL
         private static extern HbpCoreStatus hbp_transform_create_identity(out IntPtr transformation);
 
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_transform_create", CallingConvention = CallingConvention.Cdecl)]
-        private static extern HbpCoreStatus hbp_transform_create(float[] rotation9, ref Vec3 translation, out IntPtr transformation);
+        private static extern HbpCoreStatus hbp_transform_create(float[] linear9, ref Vec3 translation, out IntPtr transformation);
 
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_transform_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_transform_destroy(IntPtr transformation);

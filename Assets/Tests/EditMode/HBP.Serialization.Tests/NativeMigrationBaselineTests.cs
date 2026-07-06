@@ -39,7 +39,7 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(327));
+            Assert.That(imports, Has.Count.EqualTo(348));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -48,8 +48,8 @@ namespace HBP.Tests.Serialization
                 .Select(imported => imported.RelativeFile)
                 .Distinct()
                 .ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "HbpCore/HbpCoreRuntime.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(54));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "HbpCore/HbpCoreRuntime.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "Transformation3.cs", "Volume.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(75));
         }
 
         [Test]
@@ -292,6 +292,122 @@ namespace HBP.Tests.Serialization
             }
         }
 
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreSurface_CreatesUnityMeshFromBuffers_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            Mesh mesh = new();
+            try
+            {
+                using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+                surface.SetBuffers(
+                    new[]
+                    {
+                        new Vector3(0, 0, 0),
+                        new Vector3(1, 0, 0),
+                        new Vector3(1, 1, 0),
+                        new Vector3(0, 1, 0)
+                    },
+                    new[] { 0, 1, 2, 0, 2, 3 },
+                    uv: new[]
+                    {
+                        new Vector2(0, 0),
+                        new Vector2(1, 0),
+                        new Vector2(1, 1),
+                        new Vector2(0, 1)
+                    },
+                    colors: new[]
+                    {
+                        Color.red,
+                        Color.green,
+                        Color.blue,
+                        Color.white
+                    });
+                surface.ComputeNormals();
+                surface.UpdateMeshFromDLL(mesh);
+
+                Assert.That(surface.NumberOfVertices, Is.EqualTo(4));
+                Assert.That(surface.NumberOfTriangles, Is.EqualTo(2));
+                Assert.That(mesh.vertexCount, Is.EqualTo(4));
+                Assert.That(mesh.triangles, Is.EqualTo(new[] { 0, 1, 2, 0, 2, 3 }));
+                AssertVector(mesh.vertices[2], new Vector3(1, 1, 0));
+                AssertVector(mesh.normals[0], Vector3.forward);
+                Assert.That(mesh.uv, Has.Length.EqualTo(4));
+                Assert.That(mesh.colors, Has.Length.EqualTo(4));
+
+                using BBox bbox = surface.BoundingBox;
+                AssertVector(bbox.Min, Vector3.zero);
+                AssertVector(bbox.Max, new Vector3(1, 1, 0));
+
+                using Surface clone = (Surface)surface.Clone();
+                clone.Append(surface);
+                Assert.That(clone.NumberOfVertices, Is.EqualTo(8));
+                Assert.That(clone.NumberOfTriangles, Is.EqualTo(4));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreSurface_MatchesHbpExportObjCube_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            string objPath = Path.Combine(Path.GetTempPath(), "hbp_core_surface_cube_compare.obj");
+            File.WriteAllText(objPath, CubeObjFixture());
+
+            Mesh hbpExportMesh = new();
+            Mesh hbpCoreMesh = new();
+            try
+            {
+                NativeBackendOptions.Reset();
+                using Surface hbpExportSurface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_export Surface wrapper");
+                Assert.That(hbpExportSurface.LoadOBJFile(objPath), Is.True);
+                hbpExportSurface.UpdateMeshFromDLL(hbpExportMesh);
+
+                NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+                using Surface hbpCoreSurface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+                Assert.That(hbpCoreSurface.LoadOBJFile(objPath), Is.True);
+                hbpCoreSurface.UpdateMeshFromDLL(hbpCoreMesh);
+
+                Assert.That(hbpCoreSurface.NumberOfVertices, Is.EqualTo(hbpExportSurface.NumberOfVertices));
+                Assert.That(hbpCoreSurface.NumberOfTriangles, Is.EqualTo(hbpExportSurface.NumberOfTriangles));
+                using BBox hbpExportBBox = hbpExportSurface.BoundingBox;
+                using BBox hbpCoreBBox = hbpCoreSurface.BoundingBox;
+                AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min);
+                AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max);
+                Assert.That(hbpCoreMesh.vertexCount, Is.EqualTo(hbpExportMesh.vertexCount));
+                Assert.That(hbpCoreMesh.triangles.Length, Is.EqualTo(hbpExportMesh.triangles.Length));
+                AssertVector(hbpCoreMesh.vertices[6], hbpExportMesh.vertices[6]);
+                AssertVector(hbpCoreMesh.normals[0], hbpExportMesh.normals[0]);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(hbpExportMesh);
+                UnityEngine.Object.DestroyImmediate(hbpCoreMesh);
+                NativeBackendOptions.Reset();
+                if (File.Exists(objPath))
+                {
+                    File.Delete(objPath);
+                }
+            }
+        }
+
         private static List<DllImportSignature> ReadCurrentDllImports()
         {
             string dllFolder = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Scripts", "HBP", "Core", "DLL");
@@ -364,6 +480,49 @@ namespace HBP.Tests.Serialization
                 path = Path.Combine(path, part);
             }
             return path;
+        }
+
+        private static string CubeObjFixture()
+        {
+            return string.Join(
+                Environment.NewLine,
+                "v 0 0 0 1 0 0",
+                "v 1 0 0 0 1 0",
+                "v 1 1 0 0 0 1",
+                "v 0 1 0 1 1 0",
+                "v 0 0 1 1 0 1",
+                "v 1 0 1 0 1 1",
+                "v 1 1 1 1 1 1",
+                "v 0 1 1 0.5 0.5 0.5",
+                "vn 0 0 1",
+                "vn 0 0 1",
+                "vn 0 0 1",
+                "vn 0 0 1",
+                "vn 0 0 1",
+                "vn 0 0 1",
+                "vn 0 0 1",
+                "vn 0 0 1",
+                "vt 0 0",
+                "vt 1 0",
+                "vt 1 1",
+                "vt 0 1",
+                "vt 0 0",
+                "vt 1 0",
+                "vt 1 1",
+                "vt 0 1",
+                "f 1/1/1 2/2/2 3/3/3",
+                "f 1/1/1 3/3/3 4/4/4",
+                "f 5/5/5 7/7/7 6/6/6",
+                "f 5/5/5 8/8/8 7/7/7",
+                "f 1/1/1 5/5/5 6/6/6",
+                "f 1/1/1 6/6/6 2/2/2",
+                "f 2/2/2 6/6/6 7/7/7",
+                "f 2/2/2 7/7/7 3/3/3",
+                "f 3/3/3 7/7/7 8/8/8",
+                "f 3/3/3 8/8/8 4/4/4",
+                "f 4/4/4 8/8/8 5/5/5",
+                "f 4/4/4 5/5/5 1/1/1",
+                string.Empty);
         }
 
         private static void AssertVector(Vector3 actual, Vector3 expected)

@@ -1,11 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using HBP.Core.DLL.HbpCore;
 using UnityEngine;
 using HBP.Core.Enums;
 
 namespace HBP.Core.DLL
 {
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SurfaceSizes
+    {
+        public int vertexCount;
+        public int normalCount;
+        public int uvCount;
+        public int triangleIndexCount;
+        public int colorCount;
+    }
+
     /// <summary>
     /// Class used to handle the different meshes of the scene within the DLL
     /// </summary>
@@ -15,6 +26,8 @@ namespace HBP.Core.DLL
     /// </remarks>
     public class Surface : CppDLLImportBase, ICloneable
     {
+        private NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
+
         #region Properties
         /// <summary>
         /// Raw array of triangles indices
@@ -56,7 +69,7 @@ namespace HBP.Core.DLL
         {
             get
             {
-                BBox bbox = new(bounding_box_Surface(_handle));
+                BBox bbox = BoundingBox;
                 Vector3 center = bbox.Center;
                 bbox.Dispose();
                 return center;
@@ -69,6 +82,12 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    ThrowIfFailed(hbp_surface_get_bounding_box(_handle.Handle, out IntPtr bbox));
+                    return new BBox(bbox, NativeBackend.HbpCore);
+                }
+
                 return new BBox(bounding_box_Surface(_handle));
             }
         }
@@ -79,6 +98,11 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    return GetHbpCoreSizes().vertexCount;
+                }
+
                 return vertices_nb_Surface(_handle);
             }
         }
@@ -89,6 +113,7 @@ namespace HBP.Core.DLL
         {
             get
             {
+                EnsureHbpExport(nameof(VisibilityMask));
                 int[] visibilityMask = new int[NumberOfTriangles];
                 retrieve_visibility_mask(_handle, visibilityMask);
                 return visibilityMask;
@@ -101,6 +126,11 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    return GetHbpCoreSizes().triangleIndexCount / 3;
+                }
+
                 m_Sizes = new int[6];
                 sizes_Surface(_handle, m_Sizes);
                 return m_Sizes[5];
@@ -113,6 +143,11 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    return NumberOfTriangles;
+                }
+
                 m_Sizes = new int[6];
                 sizes_Surface(_handle, m_Sizes);
                 return m_Sizes[1];
@@ -149,6 +184,16 @@ namespace HBP.Core.DLL
         /// <returns>True if loading is complete</returns>
         public bool LoadOBJFile(string obj)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                IsLoaded = hbp_surface_load_obj(_handle.Handle, obj) == HbpCoreStatus.Ok;
+                if (!IsLoaded)
+                {
+                    Debug.LogError("-ERROR : Surface::loadObjFile -> can't load obj file to surface : " + obj);
+                }
+                return IsLoaded;
+            }
+
             IsLoaded = load_OBJ_file_Surface(_handle, obj)==1;
             if (!IsLoaded)
             {
@@ -164,6 +209,7 @@ namespace HBP.Core.DLL
         /// <returns>True if loading is complete</returns>
         public bool LoadGIIFile(string gii, string transformation = "")
         {
+            EnsureHbpExport(nameof(LoadGIIFile));
             IsLoaded = load_GII_file_Surface(_handle, gii, !string.IsNullOrEmpty(transformation) ? 1 : 0, transformation) == 1;
             if (!IsLoaded)
             {
@@ -179,6 +225,21 @@ namespace HBP.Core.DLL
         /// <returns>True if loading is complete</returns>
         public bool LoadTRIFile(string tri, string transformation = "")
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                if (!string.IsNullOrEmpty(transformation))
+                {
+                    throw new NotSupportedException("hbp_core does not expose TRI transform loading in step 7.");
+                }
+
+                IsLoaded = hbp_surface_load_tri(_handle.Handle, tri) == HbpCoreStatus.Ok;
+                if (!IsLoaded)
+                {
+                    Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + tri);
+                }
+                return IsLoaded;
+            }
+
             IsLoaded = load_TRI_file_Surface(_handle, tri, !string.IsNullOrEmpty(transformation) ? 1 : 0, transformation) == 1;
             if (!IsLoaded)
             {
@@ -194,6 +255,7 @@ namespace HBP.Core.DLL
         /// <returns>True if loading is complete</returns>
         public bool SearchMarsParcelFileAndUpdateColors(MarsAtlas index, string pathMarsParcel)
         {
+            EnsureHbpExport(nameof(SearchMarsParcelFileAndUpdateColors));
             IsMarsAtlasLoaded = seach_mars_parcel_file_and_update_colors_Surface(_handle, index.getHandle(), pathMarsParcel) == 1;
             return IsMarsAtlasLoaded;
         }
@@ -205,6 +267,16 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public bool SaveToOBJ(string pathOBJFile, string textureName = "")
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                bool coreFileSaved = hbp_surface_save_obj(_handle.Handle, pathOBJFile, textureName) == HbpCoreStatus.Ok;
+                if (!coreFileSaved)
+                {
+                    Debug.LogError("-ERROR : Surface::saveToObj -> can't save surface to obj file. ");
+                }
+                return coreFileSaved;
+            }
+
             bool fileSaved = save_to_OBJ_Surface(_handle, pathOBJFile, textureName) == 1;
             if (!fileSaved)
             {
@@ -217,6 +289,12 @@ namespace HBP.Core.DLL
         /// </summary>
         public void ComputeNormals()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_surface_compute_normals(_handle.Handle));
+                return;
+            }
+
             compute_normals_Surface(_handle);
         }
         /// <summary>
@@ -224,6 +302,12 @@ namespace HBP.Core.DLL
         /// </summary>
         public void FlipTriangles()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_surface_flip(_handle.Handle));
+                return;
+            }
+
             flip_Surface(_handle);
         }
         /// <summary>
@@ -233,6 +317,7 @@ namespace HBP.Core.DLL
         /// <returns>New surface made with invisible triangles</returns>
         public Surface UpdateVisibilityMask(int[] visibilityMask)
         {
+            EnsureHbpExport(nameof(UpdateVisibilityMask));
             Surface invisiblePartMesh = new();
             update_visiblity_mask_Surface(_handle, invisiblePartMesh.getHandle(), visibilityMask);
             return invisiblePartMesh;
@@ -247,6 +332,7 @@ namespace HBP.Core.DLL
         /// <returns>New surface made with invisible triangles</returns>
         public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, TriEraserMode mode, float degrees)
         {
+            EnsureHbpExport(nameof(UpdateVisibilityMask));
             float[] hitPointArray = new float[3], rayDirectionArray = new float[3];
             hitPointArray[0] = hitPoint.x;
             hitPointArray[1] = hitPoint.y;
@@ -268,6 +354,7 @@ namespace HBP.Core.DLL
         /// <returns>Resulting surfaces array (the first element is the cut mesh, every other elements are the different cut meshes</returns>
         public Surface[] Cut(Object3D.Cut[] cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
+            EnsureHbpExport(nameof(Cut));
             // check planes
             if (cutPlanes.Length <= 0)
             {
@@ -309,6 +396,7 @@ namespace HBP.Core.DLL
         /// <returns>Array of the cut meshes</returns>
         public List<Surface> GenerateCutSurfaces(List<Object3D.Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
+            EnsureHbpExport(nameof(GenerateCutSurfaces));
             // check planes
             if (cutPlanes.Count <= 0)
             {
@@ -350,6 +438,7 @@ namespace HBP.Core.DLL
         /// <returns>Array of the cut meshes</returns>
         public List<Surface> GenerateRawCutSurfaces(List<Object3D.Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
+            EnsureHbpExport(nameof(GenerateRawCutSurfaces));
             // check planes
             if (cutPlanes.Count <= 0)
             {
@@ -388,6 +477,24 @@ namespace HBP.Core.DLL
         /// <param name="surfaceToAdd">Surface to be merged with this surface</param>
         public void Append(Surface surfaceToAdd)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                if (surfaceToAdd.m_Backend != NativeBackend.HbpCore)
+                {
+                    throw new InvalidOperationException("Cannot merge a hbp_export Surface into a hbp_core Surface.");
+                }
+
+                ThrowIfFailed(hbp_surface_merge(_handle.Handle, surfaceToAdd.getHandle().Handle));
+                IsLoaded &= surfaceToAdd.IsLoaded;
+                IsMarsAtlasLoaded &= surfaceToAdd.IsMarsAtlasLoaded;
+                return;
+            }
+
+            if (surfaceToAdd.m_Backend != NativeBackend.HbpExport)
+            {
+                throw new InvalidOperationException("Cannot merge a hbp_core Surface into a hbp_export Surface.");
+            }
+
             merge_Surface(_handle, surfaceToAdd.getHandle());
             IsLoaded &= surfaceToAdd.IsLoaded;
             IsMarsAtlasLoaded &= surfaceToAdd.IsMarsAtlasLoaded;
@@ -404,6 +511,12 @@ namespace HBP.Core.DLL
         /// <param name="colors">Do we update the colors ?</param>
         public void UpdateMeshFromDLL(Mesh mesh, bool all = true, bool vertices = true, bool normals = true, bool uv = true, bool triangles = true, bool colors = true)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                UpdateMeshFromHbpCore(mesh, all, vertices, normals, uv, triangles, colors);
+                return;
+            }
+
             try
             {
                 UnityEngine.Profiling.Profiler.BeginSample("TEST-updateMeshMashall 1");
@@ -495,6 +608,13 @@ namespace HBP.Core.DLL
         /// </summary>
         public void DisplaySizes()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                SurfaceSizes sizes = GetHbpCoreSizes();
+                Debug.Log("debug surface : " + (sizes.vertexCount * 3) + " " + (sizes.normalCount * 3) + " " + sizes.triangleIndexCount + " " + (sizes.uvCount * 2) + " " + (sizes.colorCount * 4) + " " + sizes.triangleIndexCount);
+                return;
+            }
+
             m_Sizes = new int[6];
             sizes_Surface(_handle, m_Sizes);
 
@@ -512,6 +632,11 @@ namespace HBP.Core.DLL
         /// <param name="surface">Surface to swap the pointer with</param>
         public void SwapDLLHandle(Surface surface)
         {
+            if (m_Backend != surface.m_Backend)
+            {
+                throw new InvalidOperationException("Cannot swap Surface handles from different native backends.");
+            }
+
             HandleRef buffer = surface.getHandle();
             surface._handle = _handle;
             _handle = buffer;
@@ -524,6 +649,7 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public Surface Simplify(int numberOfTriangles = 10000, int agressiveness = 7)
         {
+            EnsureHbpExport(nameof(Simplify));
             Surface surface = new(this);
             simplify_mesh_Surface(surface.getHandle(), numberOfTriangles, agressiveness);
             return surface;
@@ -536,6 +662,7 @@ namespace HBP.Core.DLL
         /// <returns>True if the site is inside the surface</returns>
         public bool IsPointInside(Vector3 point)
         {
+            EnsureHbpExport(nameof(IsPointInside));
             return is_point_inside_Surface(_handle, -point.x, point.y, point.z);
         }
         /// <summary>
@@ -545,6 +672,7 @@ namespace HBP.Core.DLL
         /// <returns>The cube bounding box created</returns>
         public BBox GetCubeBoundingBox(Object3D.Cut[] cuts)
         {
+            EnsureHbpExport(nameof(GetCubeBoundingBox));
             float[] planes = new float[cuts.Length * 6];
             int planesCount = 0;
             for (int ii = 0; ii < cuts.Length; ++ii)
@@ -561,13 +689,71 @@ namespace HBP.Core.DLL
             }
             return new BBox(cube_bounding_box_Surface(_handle, planes, planesCount));
         }
+
+        public void SetBuffers(Vector3[] vertices, int[] triangles, Vector3[] normals = null, Vector2[] uv = null, Color[] colors = null)
+        {
+            if (m_Backend != NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("Surface.SetBuffers is exposed for hbp_core surfaces in step 7.");
+            }
+
+            if (vertices == null) throw new ArgumentNullException(nameof(vertices));
+            if (triangles == null) throw new ArgumentNullException(nameof(triangles));
+
+            Vec3[] nativeVertices = new Vec3[vertices.Length];
+            for (int i = 0; i < vertices.Length; ++i)
+            {
+                nativeVertices[i] = Vec3.FromVector3(vertices[i]);
+            }
+            ThrowIfFailed(hbp_surface_set_vertices(_handle.Handle, nativeVertices, nativeVertices.Length));
+            ThrowIfFailed(hbp_surface_set_triangles(_handle.Handle, triangles, triangles.Length));
+
+            if (normals != null)
+            {
+                Vec3[] nativeNormals = new Vec3[normals.Length];
+                for (int i = 0; i < normals.Length; ++i)
+                {
+                    nativeNormals[i] = Vec3.FromVector3(normals[i]);
+                }
+                ThrowIfFailed(hbp_surface_set_normals(_handle.Handle, nativeNormals, nativeNormals.Length));
+            }
+
+            if (uv != null)
+            {
+                Vec2[] nativeUv = new Vec2[uv.Length];
+                for (int i = 0; i < uv.Length; ++i)
+                {
+                    nativeUv[i] = Vec2.FromVector2(uv[i]);
+                }
+                ThrowIfFailed(hbp_surface_set_uvs(_handle.Handle, nativeUv, nativeUv.Length));
+            }
+
+            if (colors != null)
+            {
+                Color4[] nativeColors = new Color4[colors.Length];
+                for (int i = 0; i < colors.Length; ++i)
+                {
+                    nativeColors[i] = Color4.FromColor(colors[i]);
+                }
+                ThrowIfFailed(hbp_surface_set_colors(_handle.Handle, nativeColors, nativeColors.Length));
+            }
+        }
         #endregion
 
         #region Memory Management
         public Surface() : base() { }
-        public Surface(IntPtr surfaceHandle) : base(surfaceHandle) { }
-        public Surface(Surface other) : base(clone_Surface(other.getHandle()))
+        public Surface(IntPtr surfaceHandle) : base(surfaceHandle)
         {
+            m_Backend = NativeBackend.HbpExport;
+        }
+        internal Surface(IntPtr surfaceHandle, NativeBackend backend) : base(surfaceHandle)
+        {
+            m_Backend = backend;
+        }
+        public Surface(Surface other) : base(CloneNativeSurface(other))
+        {
+            m_Backend = other.m_Backend;
+
             m_Vertices = new Vector3[other.m_Vertices.Length];
             other.m_Vertices.CopyTo(m_Vertices, 0);
 
@@ -588,6 +774,13 @@ namespace HBP.Core.DLL
         /// </summary>
         protected override void create_DLL_class()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_surface_create(out IntPtr surface));
+                _handle = new HandleRef(this, surface);
+                return;
+            }
+
             _handle = new HandleRef(this,create_Surface());
         }
         /// <summary>
@@ -595,6 +788,12 @@ namespace HBP.Core.DLL
         /// </summary>
         protected override void delete_DLL_class()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_surface_destroy(_handle.Handle));
+                return;
+            }
+
             delete_Surface(_handle);
         }
         public object Clone()
@@ -605,6 +804,107 @@ namespace HBP.Core.DLL
             return clonedSurface;
         }
         #endregion
+
+        private SurfaceSizes GetHbpCoreSizes()
+        {
+            ThrowIfFailed(hbp_surface_get_sizes(_handle.Handle, out SurfaceSizes sizes));
+            return sizes;
+        }
+
+        private void UpdateMeshFromHbpCore(Mesh mesh, bool all, bool vertices, bool normals, bool uv, bool triangles, bool colors)
+        {
+            SurfaceSizes sizes = GetHbpCoreSizes();
+
+            m_Vertices = new Vector3[sizes.vertexCount];
+            if (sizes.vertexCount > 0)
+            {
+                Vec3[] nativeVertices = new Vec3[sizes.vertexCount];
+                ThrowIfFailed(hbp_surface_copy_vertices(_handle.Handle, nativeVertices, nativeVertices.Length));
+                for (int i = 0; i < nativeVertices.Length; ++i)
+                {
+                    m_Vertices[i] = nativeVertices[i].ToVector3();
+                }
+            }
+
+            m_Normals = new Vector3[sizes.normalCount];
+            if (sizes.normalCount > 0)
+            {
+                Vec3[] nativeNormals = new Vec3[sizes.normalCount];
+                ThrowIfFailed(hbp_surface_copy_normals(_handle.Handle, nativeNormals, nativeNormals.Length));
+                for (int i = 0; i < nativeNormals.Length; ++i)
+                {
+                    m_Normals[i] = nativeNormals[i].ToVector3();
+                }
+            }
+
+            m_UV = new Vector2[sizes.uvCount];
+            if (sizes.uvCount > 0)
+            {
+                Vec2[] nativeUv = new Vec2[sizes.uvCount];
+                ThrowIfFailed(hbp_surface_copy_uvs(_handle.Handle, nativeUv, nativeUv.Length));
+                for (int i = 0; i < nativeUv.Length; ++i)
+                {
+                    m_UV[i] = nativeUv[i].ToVector2();
+                }
+            }
+
+            m_Colors = new Color[sizes.colorCount];
+            if (sizes.colorCount > 0)
+            {
+                Color4[] nativeColors = new Color4[sizes.colorCount];
+                ThrowIfFailed(hbp_surface_copy_colors(_handle.Handle, nativeColors, nativeColors.Length));
+                for (int i = 0; i < nativeColors.Length; ++i)
+                {
+                    m_Colors[i] = nativeColors[i].ToColor();
+                }
+            }
+
+            m_TriangleIndices = new int[sizes.triangleIndexCount];
+            if (sizes.triangleIndexCount > 0)
+            {
+                ThrowIfFailed(hbp_surface_copy_triangles(_handle.Handle, m_TriangleIndices, m_TriangleIndices.Length));
+            }
+
+            mesh.Clear();
+            if (all || vertices) mesh.vertices = m_Vertices;
+            if (all || normals) mesh.normals = m_Normals;
+            if (all || uv) mesh.uv = m_UV;
+            if ((all || colors) && m_Colors.Length > 0) mesh.colors = m_Colors;
+            if (all || triangles)
+            {
+                mesh.indexFormat = m_Vertices.Length > 65535
+                    ? UnityEngine.Rendering.IndexFormat.UInt32
+                    : UnityEngine.Rendering.IndexFormat.UInt16;
+                mesh.triangles = m_TriangleIndices;
+            }
+        }
+
+        private void EnsureHbpExport(string methodName)
+        {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException($"hbp_core does not expose Surface.{methodName} in step 7.");
+            }
+        }
+
+        private static IntPtr CloneNativeSurface(Surface other)
+        {
+            if (other.m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_surface_clone(other.getHandle().Handle, out IntPtr clonedSurface));
+                return clonedSurface;
+            }
+
+            return clone_Surface(other.getHandle());
+        }
+
+        private static void ThrowIfFailed(HbpCoreStatus status)
+        {
+            if (status != HbpCoreStatus.Ok)
+            {
+                throw new InvalidOperationException($"hbp_core Surface call failed with status {status}: {HbpCoreRuntime.LastError}");
+            }
+        }
 
         #region DLLImport
         [DllImport("hbp_export", EntryPoint = "create_Surface", CallingConvention = CallingConvention.Cdecl)]
@@ -683,6 +983,49 @@ namespace HBP.Core.DLL
         static private extern int nb_MultiSurface(HandleRef handleMultiSurface);
         [DllImport("hbp_export", EntryPoint = "data_MultiSurface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void data_MultiSurface(int numSurface, HandleRef handleMultiSurface, IntPtr verticesArray, IntPtr normalsArray, IntPtr triIndicesArray, IntPtr texturesUVArray);
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_create", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_create(out IntPtr surface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_destroy", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_destroy(IntPtr surface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_clone", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_clone(IntPtr surface, out IntPtr outSurface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_load_obj", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_load_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_load_tri", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_load_tri(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_save_obj", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_save_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, [MarshalAs(UnmanagedType.LPUTF8Str)] string textureName);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_set_vertices", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_set_vertices(IntPtr surface, [In] Vec3[] vertices, int vertexCount);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_set_normals", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_set_normals(IntPtr surface, [In] Vec3[] normals, int normalCount);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_set_uvs", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_set_uvs(IntPtr surface, [In] Vec2[] uv, int uvCount);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_set_colors", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_set_colors(IntPtr surface, [In] Color4[] colors, int colorCount);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_set_triangles", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_set_triangles(IntPtr surface, [In] int[] triangleIndices, int triangleIndexCount);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_merge", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_merge(IntPtr surface, IntPtr surfaceToAdd);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_get_sizes", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_get_sizes(IntPtr surface, out SurfaceSizes sizes);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_vertices", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_vertices(IntPtr surface, [Out] Vec3[] vertices, int vertexCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_normals", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_normals(IntPtr surface, [Out] Vec3[] normals, int normalCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_uvs", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_uvs(IntPtr surface, [Out] Vec2[] uv, int uvCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_colors", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_colors(IntPtr surface, [Out] Color4[] colors, int colorCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_triangles", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_triangles(IntPtr surface, [Out] int[] triangleIndices, int triangleIndexCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_get_bounding_box(IntPtr surface, out IntPtr bbox);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_compute_normals", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_compute_normals(IntPtr surface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_flip", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_flip(IntPtr surface);
         #endregion
     }
 }
