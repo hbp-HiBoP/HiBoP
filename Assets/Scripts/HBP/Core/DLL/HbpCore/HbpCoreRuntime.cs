@@ -12,6 +12,13 @@ namespace HBP.Core.DLL.HbpCore
         BufferTooSmall = 4
     }
 
+    public enum HbpCoreLogType
+    {
+        Info = 0,
+        Warning = 1,
+        Error = 2
+    }
+
     public static class HbpCoreRuntime
     {
         public static string Version => MarshalString(hbp_core_version());
@@ -28,6 +35,21 @@ namespace HBP.Core.DLL.HbpCore
             return hbp_core_shutdown();
         }
 
+        public static HbpCoreStatus SetDebugCallback(DLLDebugManager.LoggerDelegate callback)
+        {
+            return hbp_core_set_debug_callback(callback);
+        }
+
+        public static HbpCoreStatus ResetDebugCallback()
+        {
+            return hbp_core_reset_debug_callback();
+        }
+
+        public static HbpCoreStatus DebugMessage(string message, HbpCoreLogType type)
+        {
+            return hbp_core_debug_message(message, type);
+        }
+
         public static bool TryGetVersion(out string version, out string error)
         {
             try
@@ -39,6 +61,36 @@ namespace HBP.Core.DLL.HbpCore
             catch (Exception exception) when (IsNativeLoadException(exception))
             {
                 version = string.Empty;
+                error = exception.Message;
+                return false;
+            }
+        }
+
+        public static bool TrySetDebugCallback(DLLDebugManager.LoggerDelegate callback, out string error)
+        {
+            try
+            {
+                HbpCoreStatus status = SetDebugCallback(callback);
+                error = status == HbpCoreStatus.Ok ? string.Empty : LastError;
+                return status == HbpCoreStatus.Ok;
+            }
+            catch (Exception exception) when (IsNativeLoadException(exception))
+            {
+                error = exception.Message;
+                return false;
+            }
+        }
+
+        public static bool TryResetDebugCallback(out string error)
+        {
+            try
+            {
+                HbpCoreStatus status = ResetDebugCallback();
+                error = status == HbpCoreStatus.Ok ? string.Empty : LastError;
+                return status == HbpCoreStatus.Ok;
+            }
+            catch (Exception exception) when (IsNativeLoadException(exception))
+            {
                 error = exception.Message;
                 return false;
             }
@@ -65,5 +117,14 @@ namespace HBP.Core.DLL.HbpCore
 
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_shutdown", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_core_shutdown();
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_set_debug_callback", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_core_set_debug_callback(DLLDebugManager.LoggerDelegate callback);
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_reset_debug_callback", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_core_reset_debug_callback();
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_debug_message", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_core_debug_message([MarshalAs(UnmanagedType.LPUTF8Str)] string message, HbpCoreLogType type);
     }
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using HBP.Core.Tools;
+using HBP.Core.DLL.HbpCore;
 using AOT;
 
 namespace HBP.Core.DLL
@@ -57,6 +58,7 @@ namespace HBP.Core.DLL
             if (m_LogDLLToUnity)
             {
                 set_debug_callback_Logger(LogCallback);
+                TryAttachHbpCoreLogger(out _);
             }
             if (m_LogDLLToFile)
             {
@@ -65,6 +67,7 @@ namespace HBP.Core.DLL
         }
         private void OnDestroy()
         {
+            TryResetHbpCoreLogger(out _);
             reset_Logger();
         }
         /// <summary>
@@ -121,6 +124,16 @@ namespace HBP.Core.DLL
                 var objectToRemove = m_Instance.DLLObjects.Find(d => d.Type == typeString && d.ID == id);
                 if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
             }
+        }
+
+        public static bool TryAttachHbpCoreLogger(out string error)
+        {
+            return HbpCoreRuntime.TrySetDebugCallback(LogCallback, out error);
+        }
+
+        public static bool TryResetHbpCoreLogger(out string error)
+        {
+            return HbpCoreRuntime.TryResetDebugCallback(out error);
         }
 
         #endregion

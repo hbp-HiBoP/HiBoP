@@ -8,6 +8,8 @@ using HBP.Core.DLL;
 using HBP.Core.DLL.HbpCore;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace HBP.Tests.Serialization
 {
@@ -35,7 +37,7 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(277));
+            Assert.That(imports, Has.Count.EqualTo(280));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -45,7 +47,7 @@ namespace HBP.Tests.Serialization
                 .Distinct()
                 .ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "HbpCore/HbpCoreRuntime.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(4));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(7));
         }
 
         [Test]
@@ -102,6 +104,28 @@ namespace HBP.Tests.Serialization
             Assert.That(HbpCoreRuntime.Init(), Is.EqualTo(HbpCoreStatus.Ok));
             Assert.That(HbpCoreRuntime.LastError, Is.Empty);
             Assert.That(HbpCoreRuntime.Shutdown(), Is.EqualTo(HbpCoreStatus.Ok));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void DLLDebugManager_ReceivesHbpCoreDebugMessage_WhenLibraryIsPresent()
+        {
+            if (!DLLDebugManager.TryAttachHbpCoreLogger(out string attachError))
+            {
+                Assert.Ignore($"hbp_core debug callback is not available yet: {attachError}");
+            }
+
+            const string message = "hbp_core unity callback";
+            try
+            {
+                LogAssert.Expect(LogType.Warning, message);
+                Assert.That(HbpCoreRuntime.DebugMessage(message, HbpCoreLogType.Warning), Is.EqualTo(HbpCoreStatus.Ok));
+            }
+            finally
+            {
+                DLLDebugManager.TryResetHbpCoreLogger(out _);
+            }
         }
 
         private static List<DllImportSignature> ReadCurrentDllImports()
