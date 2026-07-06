@@ -61,6 +61,7 @@ namespace HBP.Core.DLL
         /// Is mars atlas loaded for this surface ?
         /// </summary>
         public bool IsMarsAtlasLoaded { get; private set; }
+        internal NativeBackend Backend => m_Backend;
 
         /// <summary>
         /// Center of this surface
@@ -270,7 +271,17 @@ namespace HBP.Core.DLL
         /// <returns>True if loading is complete</returns>
         public bool SearchMarsParcelFileAndUpdateColors(MarsAtlas index, string pathMarsParcel)
         {
-            EnsureHbpExport(nameof(SearchMarsParcelFileAndUpdateColors));
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                if (index.Backend != NativeBackend.HbpCore)
+                {
+                    throw new InvalidOperationException("Surface.SearchMarsParcelFileAndUpdateColors cannot mix hbp_core Surface with hbp_export MarsAtlas.");
+                }
+
+                IsMarsAtlasLoaded = hbp_surface_apply_mars_atlas_parcels(_handle.Handle, index.getHandle().Handle, pathMarsParcel) == HbpCoreStatus.Ok;
+                return IsMarsAtlasLoaded;
+            }
+
             IsMarsAtlasLoaded = seach_mars_parcel_file_and_update_colors_Surface(_handle, index.getHandle(), pathMarsParcel) == 1;
             return IsMarsAtlasLoaded;
         }
@@ -1045,6 +1056,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_flip(IntPtr surface);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_transform", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_transform(IntPtr surface, IntPtr transformation);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_apply_mars_atlas_parcels", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_apply_mars_atlas_parcels(IntPtr surface, IntPtr marsAtlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string parcelsPath);
         #endregion
     }
 }

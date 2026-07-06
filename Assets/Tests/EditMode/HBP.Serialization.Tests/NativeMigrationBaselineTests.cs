@@ -39,7 +39,7 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(350));
+            Assert.That(imports, Has.Count.EqualTo(378));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -48,8 +48,8 @@ namespace HBP.Tests.Serialization
                 .Select(imported => imported.RelativeFile)
                 .Distinct()
                 .ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "HbpCore/HbpCoreRuntime.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(77));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "Transformation3.cs", "Volume.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(105));
         }
 
         [Test]
@@ -391,6 +391,145 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        public void HbpCoreMarsAtlas_UsesBrainAtlasMethodsAndColorsSurface_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            Mesh mesh = new();
+            string parcelsPath = Path.Combine(Path.GetTempPath(), "hbp_core_unity_mars_parcels.gii");
+            try
+            {
+                File.WriteAllText(parcelsPath, MarsParcelsGiftiFixture());
+                using MarsAtlas atlas = ExecuteNativeOrIgnore(() => new MarsAtlas(), "hbp_core MarsAtlas wrapper");
+                Assert.That(atlas.Load(
+                    AtlasPath("mars_atlas_index.csv"),
+                    AtlasPath("brodmann_areas.txt"),
+                    AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
+
+                Assert.That(atlas.Label("L_VCcm"), Is.EqualTo(1));
+                Assert.That(atlas.Hemisphere(1), Is.EqualTo("L"));
+                Assert.That(atlas.FullName(1), Does.Contain("Caudal Medial Visual Cortex"));
+                Assert.That(atlas.GetInformation(1), Has.Length.EqualTo(5));
+                Assert.That(atlas.GetAreaName(1), Does.Contain("Caudal Medial Visual Cortex"));
+
+                Vector3[] coordinates = atlas.GetAreaCoordinates(1);
+                Assert.That(coordinates, Is.Not.Empty);
+                Assert.That(atlas.GetClosestAreaIndex(coordinates[0], 0), Is.EqualTo(1));
+
+                Color[] colors = atlas.ConvertIndicesToColors(new[] { 1, -1 }, 1);
+                Assert.That(colors[0].r, Is.GreaterThan(0.9f));
+                Assert.That(colors[1].a, Is.EqualTo(1.0f).Within(0.0001f));
+
+                Assert.That(atlas.Load(
+                    AtlasPath("mars_atlas_index.csv"),
+                    AtlasPath("brodmann_areas.txt"),
+                    AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
+                Assert.That(atlas.FullName(1), Does.Contain("Caudal Medial Visual Cortex"));
+                Assert.That(atlas.ConvertIndicesToColors(new[] { 1 }, 1)[0].r, Is.GreaterThan(0.9f));
+
+                using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+                Assert.That(surface.LoadGIIFile(NativePath("Meshes", "single_surface.gii")), Is.True);
+                int[] labels = atlas.GetSurfaceAreaLabels(surface);
+                Assert.That(labels, Has.Length.EqualTo(surface.NumberOfVertices));
+
+                Assert.That(surface.SearchMarsParcelFileAndUpdateColors(atlas, parcelsPath), Is.True);
+                surface.UpdateMeshFromDLL(mesh);
+                Assert.That(mesh.colors, Has.Length.EqualTo(surface.NumberOfVertices));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+                NativeBackendOptions.Reset();
+                if (File.Exists(parcelsPath))
+                {
+                    File.Delete(parcelsPath);
+                }
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreJuBrainAtlas_UsesBrainAtlasMethods_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                using JuBrainAtlas atlas = ExecuteNativeOrIgnore(() => new JuBrainAtlas(), "hbp_core JuBrainAtlas wrapper");
+                atlas.Load();
+
+                Assert.That(atlas.Loaded, Is.True);
+                Assert.That(atlas.AreaNames, Does.Contain("Area 3b (PostCG)"));
+                Assert.That(atlas.GetAreaName(1), Is.EqualTo("Area 3b (PostCG)"));
+                Assert.That(atlas.GetInformation(1), Is.EqualTo(new[] { "Area 3b (PostCG)" }));
+
+                Vector3[] coordinates = atlas.GetAreaCoordinates(1);
+                Assert.That(coordinates, Is.Not.Empty);
+                Assert.That(atlas.GetClosestAreaIndex(coordinates[0], 0), Is.EqualTo(1));
+
+                Color[] colors = atlas.ConvertIndicesToColors(new[] { 1, 3, 0 }, 1);
+                Assert.That(colors[0].r, Is.GreaterThan(0.9f));
+                Assert.That(colors[0].g, Is.GreaterThan(0.9f));
+                Assert.That(colors[0].b, Is.GreaterThan(0.7f));
+                Assert.That(colors[1].r, Is.GreaterThan(0.8f));
+                Assert.That(colors[2].a, Is.EqualTo(1.0f).Within(0.0001f));
+
+                Color normal = atlas.ConvertIndicesToColors(new[] { 1 }, -1)[0];
+                Color highlighted = atlas.ConvertIndicesToColors(new[] { 1 }, 1)[0];
+                Assert.That(highlighted.r, Is.GreaterThanOrEqualTo(normal.r));
+                Assert.That(highlighted.g, Is.GreaterThanOrEqualTo(normal.g));
+                Assert.That(highlighted.b, Is.GreaterThanOrEqualTo(normal.b));
+
+                atlas.Load();
+                Assert.That(atlas.Loaded, Is.True);
+                Assert.That(atlas.AreaNames, Does.Contain("Area 3b (PostCG)"));
+                Assert.That(atlas.GetAreaName(1), Is.EqualTo("Area 3b (PostCG)"));
+                Assert.That(atlas.GetInformation(1), Is.EqualTo(new[] { "Area 3b (PostCG)" }));
+            }
+            finally
+            {
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void HbpCoreSurfaceRejectsHbpExportMarsAtlas_WhenUpdatingParcelColors()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.Reset();
+            using MarsAtlas hbpExportAtlas = ExecuteNativeOrIgnore(() => new MarsAtlas(), "hbp_export MarsAtlas wrapper");
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                using Surface hbpCoreSurface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+                InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() =>
+                    hbpCoreSurface.SearchMarsParcelFileAndUpdateColors(hbpExportAtlas, NativePath("Meshes", "single_surface_marsAtlas.gii")));
+                Assert.That(exception.Message, Does.Contain("cannot mix hbp_core Surface with hbp_export MarsAtlas"));
+            }
+            finally
+            {
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
         public void HbpCoreSurface_MatchesHbpExportObjCube_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -512,6 +651,11 @@ namespace HBP.Tests.Serialization
             return path;
         }
 
+        private static string AtlasPath(string fileName)
+        {
+            return Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Atlases", "MarsAtlas", fileName);
+        }
+
         private static string CubeObjFixture()
         {
             return string.Join(
@@ -552,6 +696,17 @@ namespace HBP.Tests.Serialization
                 "f 3/3/3 8/8/8 4/4/4",
                 "f 4/4/4 8/8/8 5/5/5",
                 "f 4/4/4 5/5/5 1/1/1",
+                string.Empty);
+        }
+
+        private static string MarsParcelsGiftiFixture()
+        {
+            return string.Join(
+                Environment.NewLine,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<GIFTI Version=\"1.0\" NumberOfDataArrays=\"1\"><MetaData /><LabelTable />",
+                "<DataArray Intent=\"NIFTI_INTENT_NONE\" DataType=\"NIFTI_TYPE_INT32\" ArrayIndexingOrder=\"RowMajorOrder\" Dimensionality=\"1\" Encoding=\"ASCII\" Endian=\"LittleEndian\" ExternalFileName=\"\" ExternalFileOffset=\"0\" Dim0=\"4\">",
+                "<MetaData /><Data>1 2 1 2</Data></DataArray></GIFTI>",
                 string.Empty);
         }
 
