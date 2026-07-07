@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using HBP.Core.DLL.HbpCore;
 using UnityEngine;
 using HBP.Core.Enums;
+using System.Linq;
 
 namespace HBP.Core.DLL
 {
@@ -380,13 +381,19 @@ namespace HBP.Core.DLL
         /// <returns>Resulting surfaces array (the first element is the cut mesh, every other elements are the different cut meshes</returns>
         public Surface[] Cut(Object3D.Cut[] cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
-            EnsureHbpExport(nameof(Cut));
             // check planes
             if (cutPlanes.Length <= 0)
             {
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
                 Surface[] returnError = new Surface[1];
                 return returnError;
+            }
+
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                IntPtr[] planesPtr = cutPlanes.Where(cutPlane => cutPlane != null).Select(cutPlane => cutPlane.getHandle().Handle).Where(handle => handle != IntPtr.Zero).ToArray();
+                ThrowIfFailed(hbp_surface_cut(_handle.Handle, planesPtr, planesPtr.Length, noHoles ? 1 : 0, strongCuts ? 1 : 0, out IntPtr cutSurfaces));
+                return new SurfaceList(cutSurfaces).TakeAllSurfaces().ToArray();
             }
 
             // init plane
@@ -422,13 +429,19 @@ namespace HBP.Core.DLL
         /// <returns>Array of the cut meshes</returns>
         public List<Surface> GenerateCutSurfaces(List<Object3D.Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
-            EnsureHbpExport(nameof(GenerateCutSurfaces));
             // check planes
             if (cutPlanes.Count <= 0)
             {
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
                 List<Surface> returnError = new();
                 return returnError;
+            }
+
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                IntPtr[] planesPtr = cutPlanes.Where(cutPlane => cutPlane != null).Select(cutPlane => cutPlane.getHandle().Handle).Where(handle => handle != IntPtr.Zero).ToArray();
+                ThrowIfFailed(hbp_surface_generate_cuts(_handle.Handle, planesPtr, planesPtr.Length, noHoles ? 1 : 0, strongCuts ? 1 : 0, out IntPtr cutSurfaces));
+                return new SurfaceList(cutSurfaces).TakeAllSurfaces();
             }
 
             // init plane
@@ -464,13 +477,19 @@ namespace HBP.Core.DLL
         /// <returns>Array of the cut meshes</returns>
         public List<Surface> GenerateRawCutSurfaces(List<Object3D.Cut> cutPlanes, bool noHoles = false, bool strongCuts = true)
         {
-            EnsureHbpExport(nameof(GenerateRawCutSurfaces));
             // check planes
             if (cutPlanes.Count <= 0)
             {
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0. ");
                 List<Surface> returnError = new();
                 return returnError;
+            }
+
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                IntPtr[] planesPtr = cutPlanes.Where(cutPlane => cutPlane != null).Select(cutPlane => cutPlane.getHandle().Handle).Where(handle => handle != IntPtr.Zero).ToArray();
+                ThrowIfFailed(hbp_surface_generate_raw_cuts(_handle.Handle, planesPtr, planesPtr.Length, out IntPtr cutSurfaces));
+                return new SurfaceList(cutSurfaces).TakeAllSurfaces();
             }
 
             // init plane
@@ -1058,6 +1077,12 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_transform(IntPtr surface, IntPtr transformation);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_apply_mars_atlas_parcels", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_apply_mars_atlas_parcels(IntPtr surface, IntPtr marsAtlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string parcelsPath);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_cut", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_cut(IntPtr surface, [In] IntPtr[] planes, int planeCount, int noHoles, int strongCuts, out IntPtr surfaces);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_generate_cuts", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_generate_cuts(IntPtr surface, [In] IntPtr[] planes, int planeCount, int noHoles, int strongCuts, out IntPtr surfaces);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_generate_raw_cuts", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_generate_raw_cuts(IntPtr surface, [In] IntPtr[] planes, int planeCount, out IntPtr surfaces);
         #endregion
     }
 }

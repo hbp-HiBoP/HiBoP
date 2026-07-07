@@ -39,7 +39,7 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(378));
+            Assert.That(imports, Has.Count.EqualTo(384));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -48,8 +48,8 @@ namespace HBP.Tests.Serialization
                 .Select(imported => imported.RelativeFile)
                 .Distinct()
                 .ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(105));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(111));
         }
 
         [Test]
@@ -354,6 +354,49 @@ namespace HBP.Tests.Serialization
             finally
             {
                 UnityEngine.Object.DestroyImmediate(mesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreSurface_CutsCubeAndGeneratesSurfaceLists_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            Surface[] cutSurfaces = Array.Empty<Surface>();
+            List<Surface> generatedCuts = new();
+            List<Surface> rawCuts = new();
+            try
+            {
+                using Surface cube = CreateHbpCoreCubeSurface();
+                using HBP.Core.Object3D.Cut cut = new(new Vector3(0.5f, 0, 0), Vector3.right);
+
+                cutSurfaces = cube.Cut(new[] { cut }, noHoles: false, strongCuts: true);
+                Assert.That(cutSurfaces, Has.Length.EqualTo(2));
+                Assert.That(cutSurfaces[0].NumberOfVertices, Is.GreaterThan(0));
+                Assert.That(cutSurfaces[0].NumberOfTriangles, Is.GreaterThan(0));
+                AssertCutSurfaceLiesOnPlane(cutSurfaces[1], 0.5f);
+
+                generatedCuts = cube.GenerateCutSurfaces(new List<HBP.Core.Object3D.Cut> { cut }, noHoles: false, strongCuts: false);
+                Assert.That(generatedCuts, Has.Count.EqualTo(1));
+                AssertCutSurfaceLiesOnPlane(generatedCuts[0], 0.5f);
+
+                rawCuts = cube.GenerateRawCutSurfaces(new List<HBP.Core.Object3D.Cut> { cut });
+                Assert.That(rawCuts, Has.Count.EqualTo(1));
+                Assert.That(rawCuts[0].NumberOfVertices, Is.EqualTo(5));
+                Assert.That(rawCuts[0].NumberOfTriangles, Is.EqualTo(4));
+            }
+            finally
+            {
+                DisposeSurfaces(cutSurfaces);
+                DisposeSurfaces(generatedCuts);
+                DisposeSurfaces(rawCuts);
                 NativeBackendOptions.Reset();
             }
         }
@@ -710,6 +753,43 @@ namespace HBP.Tests.Serialization
                 string.Empty);
         }
 
+        private static Surface CreateHbpCoreCubeSurface()
+        {
+            Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+            surface.SetBuffers(
+                new[]
+                {
+                    new Vector3(0, 0, 0),
+                    new Vector3(1, 0, 0),
+                    new Vector3(1, 1, 0),
+                    new Vector3(0, 1, 0),
+                    new Vector3(0, 0, 1),
+                    new Vector3(1, 0, 1),
+                    new Vector3(1, 1, 1),
+                    new Vector3(0, 1, 1)
+                },
+                new[]
+                {
+                    0, 1, 2, 0, 2, 3,
+                    4, 6, 5, 4, 7, 6,
+                    0, 4, 5, 0, 5, 1,
+                    3, 2, 6, 3, 6, 7,
+                    0, 3, 7, 0, 7, 4,
+                    1, 5, 6, 1, 6, 2
+                });
+            surface.ComputeNormals();
+            return surface;
+        }
+
+        private static void AssertCutSurfaceLiesOnPlane(Surface surface, float x)
+        {
+            Assert.That(surface.NumberOfVertices, Is.GreaterThanOrEqualTo(4));
+            Assert.That(surface.NumberOfTriangles, Is.GreaterThanOrEqualTo(2));
+            using BBox bbox = surface.BoundingBox;
+            Assert.That(bbox.Min.x, Is.EqualTo(x).Within(0.0001f));
+            Assert.That(bbox.Max.x, Is.EqualTo(x).Within(0.0001f));
+        }
+
         private static void AssertVector(Vector3 actual, Vector3 expected)
         {
             Assert.That(actual.x, Is.EqualTo(expected.x).Within(0.0001f));
@@ -735,6 +815,14 @@ namespace HBP.Tests.Serialization
             foreach (HbpSegment3 segment in segments)
             {
                 segment.Dispose();
+            }
+        }
+
+        private static void DisposeSurfaces(IEnumerable<Surface> surfaces)
+        {
+            foreach (Surface surface in surfaces)
+            {
+                surface?.Dispose();
             }
         }
 
