@@ -126,9 +126,7 @@ namespace HBP.UI.Toolbar
                 }
                 if (iEEGValues.Length > 0)
                 {
-                    Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
-                    texture.UpdateTexture2D(m_IEEGHistogram);
-                    texture.Dispose();
+                    m_IEEGHistogram = UnityTextureFactory.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
                 }
                 else
                 {
@@ -155,9 +153,7 @@ namespace HBP.UI.Toolbar
                 }
                 if (iEEGValues.Length > 0)
                 {
-                    Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
-                    texture.UpdateTexture2D(m_IEEGHistogram);
-                    texture.Dispose();
+                    m_IEEGHistogram = UnityTextureFactory.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
                 }
                 else
                 {
@@ -175,7 +171,16 @@ namespace HBP.UI.Toolbar
         {
             UnityEngine.Profiling.Profiler.BeginSample("LOCALIZERS HISTOGRAM");
             var currentFMRI = manager.CurrentFMRI;
-            if (currentFMRI != null && currentFMRI.HistogramTexture != null)
+            if (currentFMRI != null && currentFMRI.HistogramBins != null)
+            {
+                if (!m_IEEGHistogram)
+                {
+                    m_IEEGHistogram = new Texture2D(1, 1);
+                }
+                UnityTextureFactory.UpdateDistributionHistogram(m_IEEGHistogram, currentFMRI.HistogramBins, 440, 440, false);
+                m_Histogram.texture = m_IEEGHistogram;
+            }
+            else if (currentFMRI != null && currentFMRI.HistogramTexture != null)
             {
                 if (!m_IEEGHistogram)
                 {

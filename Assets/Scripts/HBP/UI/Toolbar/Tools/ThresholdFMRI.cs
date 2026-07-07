@@ -100,8 +100,16 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private void UpdateMRIHistogram(Core.Object3D.FMRI fmri)
         {
-            if (m_MRIHistogram == null) m_MRIHistogram = new(1, 1);
-            fmri.HistogramTexture.UpdateTexture2D(m_MRIHistogram);
+            if (fmri.HistogramBins != null)
+            {
+                if (m_MRIHistogram == null) m_MRIHistogram = new(1, 1);
+                UnityTextureFactory.UpdateDistributionHistogram(m_MRIHistogram, fmri.HistogramBins, 440, 440, false);
+            }
+            else
+            {
+                if (m_MRIHistogram == null) m_MRIHistogram = new(1, 1);
+                fmri.HistogramTexture.UpdateTexture2D(m_MRIHistogram);
+            }
             m_Histogram.texture = m_MRIHistogram;
         }
 

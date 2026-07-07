@@ -342,9 +342,7 @@ namespace HBP.UI.Module3D
             Core.DLL.VideoStream videoStream = new();
             videoStream.Open(videoPath, totalWidth, totalHeight, fps);
 
-            Core.DLL.Texture texture = new();
             Texture2D texture2D = new(totalWidth, totalHeight);
-            texture.Reset(totalWidth, totalHeight);
             
             Color[] timelineColors = Enumerable.Repeat(new Color((float)220 / 255, (float)220 / 255, (float)220 / 255, 1.0f), timelineSize * totalWidth).ToArray();
             Color[] mainEventColors = Enumerable.Repeat(new Color(1, 0, 0, 1.0f), timelineSize * timelineSize).ToArray();
@@ -406,14 +404,14 @@ namespace HBP.UI.Module3D
                 int cursorPosition = i * ((totalWidth - timelineSize) / (timelineLength - 1));
                 texture2D.SetPixels(cursorPosition, 0, timelineSize, timelineSize, timelineCursorColors);
 
-                texture.FromTexture2D(texture2D);
-
+                Color32[] framePixels = texture2D.GetPixels32();
                 for (int j = 0; j < numberOfColumns; j++)
-                    texture.WriteText(m_Scene.Columns[j].Name, j * width + (width / 2), 20);
+                    UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, m_Scene.Columns[j].Name, j * width + (width / 2), 20);
 
-                texture.WriteText(string.Format("{0}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex).ToString("N2")), totalWidth / 2, totalHeight - 20);
+                UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, string.Format("{0}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex).ToString("N2")), totalWidth / 2, totalHeight - 20);
+                texture2D.SetPixels32(framePixels);
 
-                videoStream.WriteFrame(texture);
+                videoStream.WriteFrame(texture2D);
             }
             videoStream.Dispose();
             updateProgress.Invoke(1, 0, new LoadingText("Finished"));

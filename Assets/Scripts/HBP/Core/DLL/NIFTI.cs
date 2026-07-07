@@ -138,6 +138,21 @@ namespace HBP.Core.DLL
 
             fill_volume_NIFTI(_handle, volume.getHandle(), t);
         }
+        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f)
+        {
+            if (binCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(binCount));
+            }
+            if (m_Backend != NativeBackend.HbpCore)
+            {
+                return null;
+            }
+
+            int[] bins = new int[binCount];
+            ThrowIfFailed(hbp_nifti_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
+            return bins;
+        }
         #endregion
 
         #region Memory Management
@@ -235,6 +250,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_nifti_get_time_step(IntPtr nifti, out float timeStep);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_get_time_unit", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_nifti_get_time_unit(IntPtr nifti, out IntPtr timeUnit);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_nifti_copy_histogram_bins(IntPtr nifti, int[] bins, int binCount, float minValue, float maxValue);
         #endregion
     }
 }

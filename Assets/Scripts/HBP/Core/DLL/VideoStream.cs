@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+using UnityEngine;
+
 namespace HBP.Core.DLL
 {
     public class VideoStream : CppDLLImportBase
     {
+        private Texture m_FrameTexture;
+
         #region Public Methods
         public void Open(string path, int width, int height, float fps)
         {
@@ -13,6 +17,14 @@ namespace HBP.Core.DLL
         public void WriteFrame(Texture texture)
         {
             write_frame_VideoStream(_handle, texture.getHandle());
+        }
+        public void WriteFrame(Texture2D texture)
+        {
+            if (texture == null) throw new ArgumentNullException(nameof(texture));
+
+            m_FrameTexture ??= new Texture();
+            m_FrameTexture.FromTexture2D(texture);
+            WriteFrame(m_FrameTexture);
         }
         #endregion
 
@@ -23,6 +35,8 @@ namespace HBP.Core.DLL
         }
         protected override void delete_DLL_class()
         {
+            m_FrameTexture?.Dispose();
+            m_FrameTexture = null;
             delete_VideoStream(_handle);
         }
         #endregion

@@ -19,6 +19,7 @@ namespace HBP.Core.DLL
         /// Is the volume completely loaded ?
         /// </summary>
         public bool IsLoaded { get; private set; }
+        public bool UsesHbpCore => m_Backend == NativeBackend.HbpCore;
         /// <summary>
         /// Center point of the volume
         /// </summary>
@@ -252,6 +253,21 @@ namespace HBP.Core.DLL
 
             return get_average_value_around_position_with_mask_Volume(_handle, -position.x, position.y, position.z, precision, maskVolume.getHandle(), rawValues, rawValues.Length, ref actualLength);
         }
+        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f)
+        {
+            if (binCount <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(binCount));
+            }
+            if (m_Backend != NativeBackend.HbpCore)
+            {
+                return null;
+            }
+
+            int[] bins = new int[binCount];
+            ThrowIfFailed(hbp_volume_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
+            return bins;
+        }
         #endregion
 
         #region Memory Management
@@ -383,6 +399,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_volume_sample_value(IntPtr volume, ref Vec3 position, out float value);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_volume_size_offset_cut_plane(IntPtr volume, IntPtr plane, int cutCount, out float offset);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
         #endregion
     }
 

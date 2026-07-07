@@ -220,10 +220,7 @@ namespace HBP.Data.Module3D
             {
                 m_BrainColor = value;
 
-                BrainColorTexture = Texture2DExtension.Generate();
-                Core.DLL.Texture tex = Core.DLL.Texture.Generate1DColorTexture(value);
-                tex.UpdateTexture2D(BrainColorTexture);
-                tex.Dispose();
+                BrainColorTexture = UnityTextureFactory.Generate1DColorTexture(value);
 
                 BrainMaterials.SetBrainColorTexture(BrainColorTexture);
             }
@@ -261,10 +258,7 @@ namespace HBP.Data.Module3D
             {
                 m_Colormap = value;
 
-                BrainColorMapTexture = Texture2DExtension.Generate();
-                Core.DLL.Texture tex = Core.DLL.Texture.Generate1DColorTexture(value);
-                tex.UpdateTexture2D(BrainColorMapTexture);
-                tex.Dispose();
+                BrainColorMapTexture = UnityTextureFactory.Generate1DColorTexture(value);
 
                 ResetColors();
                 BrainMaterials.SetBrainColormapTexture(BrainColorMapTexture);
@@ -811,7 +805,6 @@ namespace HBP.Data.Module3D
             if (column)
             {
                 column.CutTextures.CreateGUIMRITextures(Cuts);
-                column.CutTextures.UpdateTextures2D();
                 foreach (Core.Object3D.Cut cut in Cuts)
                 {
                     cut.OnUpdateGUITextures.Invoke();

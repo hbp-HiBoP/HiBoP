@@ -1,6 +1,7 @@
 ﻿using HBP.Core.Data;
 using HBP.Core.DLL;
 using HBP.Core.Object3D;
+using HBP.Core.Tools;
 using System.Linq;
 using UnityEngine;
 
@@ -378,7 +379,10 @@ namespace HBP.Data.Module3D
         private const float m_DiFuMoPositiveMax = 1;
         private const float m_DiFuMoAlpha = 1f;
 
-        private readonly Core.DLL.Texture m_LocalizersTexture = Core.DLL.Texture.Generate1DColorTexture(Core.Enums.ColorType.MatLab);
+        private readonly Core.DLL.Texture m_LocalizersTexture = Core.DLL.Texture.CreateFromPixels(
+            UnityTextureFactory.Generate1DColorPixels(Core.Enums.ColorType.MatLab),
+            UnityTextureFactory.ColormapSize,
+            1);
 
         private float m_LocalizersMin = 80f;
         /// <summary>
