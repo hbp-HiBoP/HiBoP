@@ -185,7 +185,7 @@ namespace HBP.Core.DLL
                 }
                 else
                 {
-                    colors[i] = new Color(0f, 0f, 0f, 1f);
+                    colors[i] = new Color(0f, 0f, 0f, 0f);
                 }
             }
 

@@ -54,7 +54,7 @@ namespace HBP.Core.DLL
         {
             add_site_RawSiteList(_handle, name, position.x, position.y, position.z, patientIndex, index);
             m_SitePositions.Add(position);
-            m_SiteMask.Add(0);
+            m_SiteMask.Add(1);
         }
         /// <summary>
         /// Save the raw site list to an obj file

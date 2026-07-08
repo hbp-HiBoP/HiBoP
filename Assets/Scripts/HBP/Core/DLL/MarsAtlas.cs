@@ -285,17 +285,6 @@ namespace HBP.Core.DLL
         #region Private Methods
         protected override void GetAreaNames()
         {
-            if (m_Backend == NativeBackend.HbpCore && m_MetadataByLabel != null && m_MetadataByLabel.Count > 0)
-            {
-                m_AreaNames = m_MetadataByLabel.Values
-                    .Select(metadata => metadata.FullName)
-                    .Where(name => !string.IsNullOrEmpty(name))
-                    .OrderBy(name => name)
-                    .Distinct()
-                    .ToList();
-                return;
-            }
-
             m_AreaNames = new List<string>();
 
             string indexPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "mars_atlas_index.csv");
@@ -403,7 +392,7 @@ namespace HBP.Core.DLL
                 }
                 else
                 {
-                    colors[i] = new Color(0f, 0f, 0f, 1f);
+                    colors[i] = new Color(0f, 0f, 0f, 0f);
                 }
             }
 

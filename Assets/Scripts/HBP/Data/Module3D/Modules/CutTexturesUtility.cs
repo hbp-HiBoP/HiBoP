@@ -309,10 +309,8 @@ namespace HBP.Data.Module3D
             DLLCutColorScheme?.Dispose();
             m_BrainCutColorSchemePixels = UnityTextureFactory.Generate1DColorPixels(colorBrainCut);
             m_CutActivityColorSchemePixels = UnityTextureFactory.Generate1DColorPixels(colormap);
-            DLLCutColorScheme = Core.DLL.Texture.CreateFromPixels(
-                UnityTextureFactory.Generate2DColorPixels(colorBrainCut, colormap),
-                UnityTextureFactory.ColormapSize,
-                UnityTextureFactory.ColormapSize);
+            Color32[] colorSchemePixels = UnityTextureFactory.Generate2DColorPixels(colorBrainCut, colormap, out int colorSchemeWidth, out int colorSchemeHeight);
+            DLLCutColorScheme = Core.DLL.Texture.CreateFromPixels(colorSchemePixels, colorSchemeWidth, colorSchemeHeight);
         }
         /// <summary>
         /// Clean the Cut Textures Utility class

@@ -38,7 +38,7 @@ namespace HBP.Core.DLL
                 values[index] = float.Parse(tokens[index], CultureInfo.InvariantCulture);
             }
 
-            if (tokens.Length == 12)
+            if (Path.GetExtension(path).Equals(".trm", StringComparison.OrdinalIgnoreCase))
             {
                 float[] trmLinear9 =
                 {
@@ -46,7 +46,9 @@ namespace HBP.Core.DLL
                     values[6], values[7], values[8],
                     values[9], values[10], values[11]
                 };
-                Vector3 trmTranslation = new(values[0], values[1], values[2]);
+                Vector3 trmTranslation = tokens.Length == 16
+                    ? new Vector3(values[12], values[13], values[14])
+                    : new Vector3(values[0], values[1], values[2]);
                 return new Transformation3(trmLinear9, trmTranslation);
             }
 

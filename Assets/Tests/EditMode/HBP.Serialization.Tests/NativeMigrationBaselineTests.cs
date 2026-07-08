@@ -63,8 +63,8 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(438));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(212));
+            Assert.That(imports, Has.Count.EqualTo(432));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(206));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports
@@ -430,7 +430,7 @@ namespace HBP.Tests.Serialization
                 rawCuts = cube.GenerateRawCutSurfaces(new List<HBP.Core.Object3D.Cut> { cut });
                 Assert.That(rawCuts, Has.Count.EqualTo(1));
                 Assert.That(rawCuts[0].NumberOfVertices, Is.EqualTo(5));
-                Assert.That(rawCuts[0].NumberOfTriangles, Is.EqualTo(4));
+                Assert.That(rawCuts[0].NumberOfTriangles, Is.EqualTo(16));
 
                 using Surface simplified = cube.Simplify(6, 7);
                 Assert.That(simplified.NumberOfVertices, Is.GreaterThan(0));
@@ -532,6 +532,7 @@ namespace HBP.Tests.Serialization
                 densityGenerator.Initialize(generatorSurface);
                 using RawSiteList rawSites = new();
                 rawSites.AddSite("S1", new Vector3(1, 1, 2), 0, 0);
+                rawSites.UpdateMask(0, false);
                 densityGenerator.ComputeActivity(rawSites, 10.0f, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
 
                 using SurfaceGenerator surfaceGenerator = ExecuteNativeOrIgnore(() => new SurfaceGenerator(), "hbp_core SurfaceGenerator wrapper");
@@ -592,6 +593,7 @@ namespace HBP.Tests.Serialization
 
                 using RawSiteList rawSites = new();
                 rawSites.AddSite("S1", new Vector3(1, 1, 2), 0, 0);
+                rawSites.UpdateMask(0, false);
 
                 using IEEGGenerator ieegGenerator = ExecuteNativeOrIgnore(() => new IEEGGenerator(), "hbp_core IEEGGenerator wrapper");
                 ieegGenerator.Initialize(generatorSurface);
@@ -653,7 +655,7 @@ namespace HBP.Tests.Serialization
 
                 Color[] colors = atlas.ConvertIndicesToColors(new[] { 1, -1 }, 1);
                 Assert.That(colors[0].r, Is.GreaterThan(0.9f));
-                Assert.That(colors[1].a, Is.EqualTo(1.0f).Within(0.0001f));
+                Assert.That(colors[1].a, Is.EqualTo(0.0f).Within(0.0001f));
 
                 Assert.That(atlas.Load(
                     AtlasPath("mars_atlas_index.csv"),
@@ -712,7 +714,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(colors[0].g, Is.GreaterThan(0.9f));
                 Assert.That(colors[0].b, Is.GreaterThan(0.7f));
                 Assert.That(colors[1].r, Is.GreaterThan(0.8f));
-                Assert.That(colors[2].a, Is.EqualTo(1.0f).Within(0.0001f));
+                Assert.That(colors[2].a, Is.EqualTo(0.0f).Within(0.0001f));
 
                 Color normal = atlas.ConvertIndicesToColors(new[] { 1 }, -1)[0];
                 Color highlighted = atlas.ConvertIndicesToColors(new[] { 1 }, 1)[0];

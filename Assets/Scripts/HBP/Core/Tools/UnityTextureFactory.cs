@@ -28,8 +28,8 @@ namespace HBP.Core.Tools
 
         public static Texture2D Generate2DColorTexture(ColorType horizontalColorType, ColorType verticalColorType)
         {
-            Color32[] pixels = Generate2DColorPixels(horizontalColorType, verticalColorType);
-            Texture2D texture = CreateTexture(ColormapSize, ColormapSize, FilterMode.Bilinear);
+            Color32[] pixels = Generate2DColorPixels(horizontalColorType, verticalColorType, out int width, out int height);
+            Texture2D texture = CreateTexture(width, height, FilterMode.Bilinear);
             texture.SetPixels32(pixels);
             texture.Apply(false, false);
             return texture;
@@ -42,16 +42,32 @@ namespace HBP.Core.Tools
 
         public static Color32[] Generate2DColorPixels(ColorType horizontalColorType, ColorType verticalColorType)
         {
-            Color32[] horizontal = Generate1DColorPixels(horizontalColorType);
-            Color32[] vertical = Generate1DColorPixels(verticalColorType);
-            Color32[] pixels = new Color32[ColormapSize * ColormapSize];
+            return Generate2DColorPixels(horizontalColorType, verticalColorType, out _, out _);
+        }
 
-            for (int y = 0; y < ColormapSize; y++)
+        public static Color32[] Generate2DColorPixels(ColorType horizontalColorType, ColorType verticalColorType, out int width, out int height)
+        {
+            width = Mathf.Max(HistoricalColorMapWidth(horizontalColorType), HistoricalColorMapWidth(verticalColorType));
+            height = ColormapSize;
+            Color32[] horizontal = GenerateHistorical1DColorPixels(horizontalColorType);
+            Color32[] vertical = GenerateHistorical1DColorPixels(verticalColorType);
+            if (horizontal.Length != width)
             {
-                float t = (ColormapSize - 1 - y) / (float)ColormapSize;
-                for (int x = 0; x < ColormapSize; x++)
+                horizontal = Resize1DColorPixels(horizontal, width);
+            }
+            if (vertical.Length != width)
+            {
+                vertical = Resize1DColorPixels(vertical, width);
+            }
+
+            Color32[] pixels = new Color32[width * height];
+
+            for (int y = 0; y < height; y++)
+            {
+                float t = (height - 1 - y) / (float)height;
+                for (int x = 0; x < width; x++)
                 {
-                    pixels[y * ColormapSize + x] = LerpRgb(horizontal[x], vertical[x], t);
+                    pixels[y * width + x] = LerpRgb(horizontal[x], vertical[x], t);
                 }
             }
 
@@ -371,6 +387,76 @@ namespace HBP.Core.Tools
             return pixels;
         }
 
+        private static int HistoricalColorMapWidth(ColorType colorType)
+        {
+            GetColorStops(colorType, out _, out float[] factors);
+            if (factors.Length == 0)
+            {
+                return ColormapSize;
+            }
+
+            float min = 1.1f;
+            for (int i = 0; i <= factors.Length; i++)
+            {
+                float size;
+                if (i == 0)
+                {
+                    size = factors[i];
+                }
+                else if (i == factors.Length)
+                {
+                    size = 1.0f - factors[i - 1];
+                }
+                else
+                {
+                    size = factors[i] - factors[i - 1];
+                }
+
+                if (size < min)
+                {
+                    min = size;
+                }
+            }
+
+            int totalColumns = 0;
+            for (int i = 0; i < factors.Length; i++)
+            {
+                totalColumns += (int)(ColormapSize * (factors[i] / min));
+            }
+            return totalColumns;
+        }
+
+        private static Color32[] GenerateHistorical1DColorPixels(ColorType colorType)
+        {
+            return Generate1DColorPixels(colorType, HistoricalColorMapWidth(colorType));
+        }
+
+        private static Color32[] Resize1DColorPixels(Color32[] source, int targetWidth)
+        {
+            if (source.Length == targetWidth)
+            {
+                return source;
+            }
+
+            Color32[] target = new Color32[targetWidth];
+            float scale = source.Length / (float)targetWidth;
+            for (int x = 0; x < targetWidth; x++)
+            {
+                float sourcePosition = (x + 0.5f) * scale - 0.5f;
+                int leftIndex = Mathf.FloorToInt(sourcePosition);
+                float t = sourcePosition - leftIndex;
+                if (leftIndex < 0)
+                {
+                    leftIndex = 0;
+                    t = 0.0f;
+                }
+
+                int rightIndex = Mathf.Min(leftIndex + 1, source.Length - 1);
+                target[x] = LerpRgbRounded(source[leftIndex], source[rightIndex], t);
+            }
+            return target;
+        }
+
         private static void GetColorStops(ColorType colorType, out Color32[] colors, out float[] factors)
         {
             Color32 red = Rgb(255, 0, 0);
@@ -485,6 +571,21 @@ namespace HBP.Core.Tools
                 (byte)(left.r * inv + right.r * t),
                 (byte)(left.g * inv + right.g * t),
                 (byte)(left.b * inv + right.b * t),
+                255);
+        }
+
+        private static Color32 LerpRgbRounded(Color32 left, Color32 right, float t)
+        {
+            if (left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a)
+            {
+                return left;
+            }
+
+            float inv = 1.0f - t;
+            return new Color32(
+                (byte)Mathf.Clamp(Mathf.RoundToInt(left.r * inv + right.r * t), 0, 255),
+                (byte)Mathf.Clamp(Mathf.RoundToInt(left.g * inv + right.g * t), 0, 255),
+                (byte)Mathf.Clamp(Mathf.RoundToInt(left.b * inv + right.b * t), 0, 255),
                 255);
         }
 
