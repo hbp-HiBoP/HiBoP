@@ -58,6 +58,13 @@ namespace HBP.Core.DLL
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    internal struct TextureSize
+    {
+        public int width;
+        public int height;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     internal struct VolumeDimensions
     {
         public int x;

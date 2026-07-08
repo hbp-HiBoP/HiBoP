@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Core.Preferences;
+using HBP.Core.DLL;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Tools

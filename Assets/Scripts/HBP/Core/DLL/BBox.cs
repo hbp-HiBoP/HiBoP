@@ -249,7 +249,13 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                throw new NotSupportedException("hbp_core does not expose BBox.SizeOffsetCutPlane in step 5.");
+                if (cutPlane == null || nbCuts <= 0)
+                {
+                    return 0.0f;
+                }
+
+                ThrowIfFailed(hbp_bbox_size_offset_cut_plane(_handle.Handle, cutPlane.getHandle().Handle, nbCuts, out float offset));
+                return offset;
             }
 
             return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
@@ -396,6 +402,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_bbox_intersection_segments_with_plane(IntPtr bbox, IntPtr plane, [Out] Vec3[] segmentPoints, int pointCapacity, out int segmentCount);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_bbox_intersection_segment_between_planes", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_intersection_segment_between_planes(IntPtr bbox, IntPtr planeA, IntPtr planeB, out Vec3 start, out Vec3 end, out int intersects);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_bbox_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_bbox_size_offset_cut_plane(IntPtr bbox, IntPtr plane, int cutCount, out float offset);
         #endregion
     }
 }

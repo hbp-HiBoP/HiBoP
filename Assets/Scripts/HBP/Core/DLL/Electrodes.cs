@@ -26,6 +26,10 @@ namespace HBP.Core.DLL
                 return sites_nb_RawSiteList(_handle);
             }
         }
+        internal Vector3[] SitePositions => m_SitePositions.ToArray();
+        internal int[] SiteMask => m_SiteMask.ToArray();
+        private readonly List<Vector3> m_SitePositions = new();
+        private readonly List<int> m_SiteMask = new();
         #endregion
 
         #region Public Methods
@@ -36,6 +40,8 @@ namespace HBP.Core.DLL
         public void SetPatients(IEnumerable<Data.Patient> patients)
         {
             set_patients_RawSiteList(_handle, string.Join("?", patients.Select(p => p.ID)));
+            m_SitePositions.Clear();
+            m_SiteMask.Clear();
         }
         /// <summary>
         /// Add a site to this raw site list
@@ -47,6 +53,8 @@ namespace HBP.Core.DLL
         public void AddSite(string name, Vector3 position, int patientIndex, int index)
         {
             add_site_RawSiteList(_handle, name, position.x, position.y, position.z, patientIndex, index);
+            m_SitePositions.Add(position);
+            m_SiteMask.Add(0);
         }
         /// <summary>
         /// Save the raw site list to an obj file
@@ -66,6 +74,10 @@ namespace HBP.Core.DLL
         public void UpdateMask(int idSite, bool mask)
         {
             update_mask_RawSiteList(_handle, idSite, mask ? 1 : 0);
+            if (idSite >= 0 && idSite < m_SiteMask.Count)
+            {
+                m_SiteMask[idSite] = mask ? 1 : 0;
+            }
         }
         /// <summary>
         /// Get an array containing bool values telling if a site is on a plane or not considering a specific precision
@@ -119,7 +131,11 @@ namespace HBP.Core.DLL
 
         #region Memory Management
         public RawSiteList() : base() { }
-        public RawSiteList(RawSiteList other) : base(clone_RawSiteList(other.getHandle())) { }
+        public RawSiteList(RawSiteList other) : base(clone_RawSiteList(other.getHandle()))
+        {
+            m_SitePositions.AddRange(other.m_SitePositions);
+            m_SiteMask.AddRange(other.m_SiteMask);
+        }
         public RawSiteList(IntPtr ptr)
         {
             _handle = new HandleRef(this, ptr);

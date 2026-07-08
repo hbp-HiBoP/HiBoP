@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using HBP.Core.Enums;
@@ -40,6 +41,8 @@ namespace HBP.Data.Module3D
         /// Unity textures for the cuts for the GUI
         /// </summary>
         public List<Texture2D> GUIBrainCutTextures = new();
+        private Color32[] m_BrainCutColorSchemePixels = Array.Empty<Color32>();
+        private Color32[] m_CutActivityColorSchemePixels = Array.Empty<Color32>();
         /// <summary>
         /// Size of the cuts arrays
         /// </summary>
@@ -64,11 +67,11 @@ namespace HBP.Data.Module3D
             }
             while (Size > size)
             {
-                Object.Destroy(BaseBrainCutTextures[BaseBrainCutTextures.Count - 1]);
+                UnityEngine.Object.Destroy(BaseBrainCutTextures[BaseBrainCutTextures.Count - 1]);
                 BaseBrainCutTextures.RemoveAt(BaseBrainCutTextures.Count - 1);
-                Object.Destroy(BrainCutTextures[BrainCutTextures.Count - 1]);
+                UnityEngine.Object.Destroy(BrainCutTextures[BrainCutTextures.Count - 1]);
                 BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
-                Object.Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
+                UnityEngine.Object.Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
                 GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
                 DLLBrainCutTextures[DLLBrainCutTextures.Count - 1].Dispose();
                 DLLBrainCutTextures.RemoveAt(DLLBrainCutTextures.Count - 1);
@@ -92,6 +95,15 @@ namespace HBP.Data.Module3D
         {
             Core.DLL.CutGenerator cutGenerator = CutGenerators[indexCut];
             UnityEngine.Profiling.Profiler.BeginSample("FillTextureWithVolume");
+            if (cutGenerator.UsesHbpCore)
+            {
+                cutGenerator.FillTextureWithVolume(m_BrainCutColorSchemePixels, MRICalMinFactor, MRICalMaxFactor);
+                UnityEngine.Profiling.Profiler.EndSample();
+                ApplyPixels(BaseBrainCutTextures[indexCut], cutGenerator.CopyBasePixels(), cutGenerator.CutGeometryGenerator.TextureSize);
+                CopyTexture(BaseBrainCutTextures[indexCut], BrainCutTextures[indexCut]);
+                return;
+            }
+
             cutGenerator.FillTextureWithVolume(DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor);
             UnityEngine.Profiling.Profiler.EndSample();
             cutGenerator.UpdateTextureWithVolume(DLLBrainCutTextures[indexCut]);
@@ -216,6 +228,13 @@ namespace HBP.Data.Module3D
             for (int i = 0; i < CutGenerators.Count; ++i)
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
+                if (generator.UsesHbpCore)
+                {
+                    generator.FillTextureWithActivity(m_CutActivityColorSchemePixels, timelineIndex, Column.ActivityAlpha);
+                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                    continue;
+                }
+
                 generator.FillTextureWithActivity(DLLCutColorScheme, timelineIndex, Column.ActivityAlpha);
 
                 Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
@@ -230,6 +249,12 @@ namespace HBP.Data.Module3D
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithAtlas(selectedAtlas, alpha, selectedArea);
 
+                if (generator.UsesHbpCore)
+                {
+                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                    continue;
+                }
+
                 Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithAtlas(cutTexture);
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
@@ -241,6 +266,12 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithFMRI(volume, negativeMin, negativeMax, positiveMin, positiveMax, alpha);
+
+                if (generator.UsesHbpCore)
+                {
+                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                    continue;
+                }
 
                 Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithAtlas(cutTexture);
@@ -257,6 +288,12 @@ namespace HBP.Data.Module3D
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithLocalizer(volume, min, middle, max, mask, texture);
 
+                if (generator.UsesHbpCore)
+                {
+                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                    continue;
+                }
+
                 Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
                 generator.UpdateTextureWithAtlas(cutTexture);
                 cutTexture.UpdateTexture2D(BrainCutTextures[i]);
@@ -270,6 +307,8 @@ namespace HBP.Data.Module3D
         public void ResetColorSchemes(ColorType colormap, ColorType colorBrainCut)
         {
             DLLCutColorScheme?.Dispose();
+            m_BrainCutColorSchemePixels = UnityTextureFactory.Generate1DColorPixels(colorBrainCut);
+            m_CutActivityColorSchemePixels = UnityTextureFactory.Generate1DColorPixels(colormap);
             DLLCutColorScheme = Core.DLL.Texture.CreateFromPixels(
                 UnityTextureFactory.Generate2DColorPixels(colorBrainCut, colormap),
                 UnityTextureFactory.ColormapSize,
@@ -314,6 +353,37 @@ namespace HBP.Data.Module3D
 
             target.SetPixels32(source.GetPixels32());
             target.Apply(false, false);
+        }
+
+        private static void ApplyPixels(Texture2D texture, Color32[] pixels, Vector2Int size)
+        {
+            if (texture == null)
+            {
+                return;
+            }
+            if (pixels == null || pixels.Length == 0 || size.x <= 0 || size.y <= 0)
+            {
+                texture.Reinitialize(10, 10);
+                Color32[] emptyPixels = new Color32[100];
+                for (int i = 0; i < emptyPixels.Length; ++i)
+                {
+                    emptyPixels[i] = new Color32(0, 0, 0, 255);
+                }
+                texture.SetPixels32(emptyPixels);
+                texture.Apply(false, false);
+                return;
+            }
+            if (pixels.Length < size.x * size.y)
+            {
+                throw new ArgumentException("Pixel buffer is smaller than width * height.", nameof(pixels));
+            }
+            if (texture.width != size.x || texture.height != size.y)
+            {
+                texture.Reinitialize(size.x, size.y);
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply(false, false);
         }
         #endregion
     }

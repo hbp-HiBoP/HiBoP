@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using HBP.Core.DLL.HbpCore;
 using UnityEngine;
 using HBP.Core.Enums;
+using HBP.Core.Tools;
 
 namespace HBP.Core.DLL
 {
@@ -194,7 +195,14 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                throw new NotSupportedException("hbp_core does not expose Volume.GetVerticesValues in step 6.");
+                if (surface.Backend != NativeBackend.HbpCore)
+                {
+                    throw new InvalidOperationException("Volume.GetVerticesValues cannot mix hbp_core Volume with hbp_export Surface.");
+                }
+
+                float[] hbpCoreResult = new float[surface.NumberOfVertices];
+                ThrowIfFailed(hbp_volume_copy_surface_values(_handle.Handle, surface.getHandle().Handle, hbpCoreResult, hbpCoreResult.Length));
+                return hbpCoreResult;
             }
 
             float[] result = new float[surface.NumberOfVertices];
@@ -205,7 +213,14 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                throw new NotSupportedException("hbp_core does not expose Volume.ConvertValuesToColors in step 6.");
+                Color4[] nativeColors = new Color4[values.Length];
+                ThrowIfFailed(hbp_volume_copy_fmri_colors_from_values(_handle.Handle, values, values.Length, negativeMin, negativeMax, positiveMin, positiveMax, alpha, nativeColors, nativeColors.Length));
+                Color[] hbpCoreColors = new Color[nativeColors.Length];
+                for (int i = 0; i < hbpCoreColors.Length; ++i)
+                {
+                    hbpCoreColors[i] = nativeColors[i].ToColor();
+                }
+                return hbpCoreColors;
             }
 
             Color[] colors = new Color[values.Length];
@@ -221,7 +236,15 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                throw new NotSupportedException("hbp_core does not expose Volume.ConvertValuesToColors with Texture in step 6.");
+                Color4[] nativeColorScheme = texture.GetManagedPixels().ToNativeColor4Array();
+                Color4[] nativeColors = new Color4[values.Length];
+                ThrowIfFailed(hbp_volume_copy_localizer_colors_from_values(_handle.Handle, values, mask, values.Length, min, middle, max, nativeColorScheme, nativeColorScheme.Length, nativeColors, nativeColors.Length));
+                Color[] hbpCoreColors = new Color[nativeColors.Length];
+                for (int i = 0; i < hbpCoreColors.Length; ++i)
+                {
+                    hbpCoreColors[i] = nativeColors[i].ToColor();
+                }
+                return hbpCoreColors;
             }
 
             Color[] colors = new Color[values.Length];
@@ -401,6 +424,12 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_volume_size_offset_cut_plane(IntPtr volume, IntPtr plane, int cutCount, out float offset);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_copy_surface_values(IntPtr volume, IntPtr surface, [Out] float[] values, int valueCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_fmri_colors_from_values", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_copy_fmri_colors_from_values(IntPtr volume, [In] float[] values, int valueCount, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, [Out] Color4[] colors, int colorCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_localizer_colors_from_values", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_copy_localizer_colors_from_values(IntPtr volume, [In] float[] values, [In] int[] mask, int valueCount, float minValue, float middleValue, float maxValue, [In] Color4[] colorScheme, int colorCount, [Out] Color4[] colors, int colorCapacity);
         #endregion
     }
 

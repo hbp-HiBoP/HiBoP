@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using HBP.Core.DLL;
 using HBP.Core.DLL.HbpCore;
+using HBP.Core.Enums;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
@@ -25,6 +26,7 @@ namespace HBP.Tests.Serialization
         [Category("NativeMigration")]
         public void NativeBackendConstants_DeclareHistoricalAndCoreDllNames()
         {
+            NativeBackendOptions.Reset();
             Assert.That(NativeDll.HbpExport, Is.EqualTo("hbp_export"));
             Assert.That(NativeDll.HbpCore, Is.EqualTo("hbp_core"));
             Assert.That(NativeBackend.HbpExport.ToString(), Is.EqualTo("HbpExport"));
@@ -35,12 +37,34 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        public void NativeBackendOptions_ParseBackendNamesForCommandLineSelection()
+        {
+            NativeBackendOptions.Reset();
+            try
+            {
+                Assert.That(NativeBackendOptions.TrySetExperimentalBackend("hbp_core"), Is.True);
+                Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpCore));
+                Assert.That(NativeBackendOptions.UsesHbpCore, Is.True);
+
+                Assert.That(NativeBackendOptions.TrySetExperimentalBackend("hbp-export"), Is.True);
+                Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpExport));
+                Assert.That(NativeBackendOptions.TrySetExperimentalBackend("unknown"), Is.False);
+                Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpExport));
+            }
+            finally
+            {
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         public void CurrentDllImportInventory_KeepsHistoricalImportsAndAddsHbpCoreObjectWrappers()
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(384));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(219));
+            Assert.That(imports, Has.Count.EqualTo(438));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(212));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports
@@ -48,8 +72,8 @@ namespace HBP.Tests.Serialization
                 .Select(imported => imported.RelativeFile)
                 .Distinct()
                 .ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(111));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(172));
         }
 
         [Test]
@@ -183,6 +207,7 @@ namespace HBP.Tests.Serialization
             AssertVector(segment.End2, new Vector3(1, 1, 5));
             Assert.That(segment.Length, Is.EqualTo(8.0f).Within(0.0001f));
             segment.Dispose();
+            Assert.That(bbox.SizeOffsetCutPlane(planeA, 4), Is.InRange(1.0f, 1.01f));
 
             using Transformation3 transformation = new(
                 new[]
@@ -335,6 +360,8 @@ namespace HBP.Tests.Serialization
 
                 Assert.That(surface.NumberOfVertices, Is.EqualTo(4));
                 Assert.That(surface.NumberOfTriangles, Is.EqualTo(2));
+                Assert.That(surface.NumberOfVisibleTriangles, Is.EqualTo(2));
+                Assert.That(surface.VisibilityMask, Is.EqualTo(new[] { 1, 1 }));
                 Assert.That(mesh.vertexCount, Is.EqualTo(4));
                 Assert.That(mesh.triangles, Is.EqualTo(new[] { 0, 1, 2, 0, 2, 3 }));
                 AssertVector(mesh.vertices[2], new Vector3(1, 1, 0));
@@ -345,6 +372,19 @@ namespace HBP.Tests.Serialization
                 using BBox bbox = surface.BoundingBox;
                 AssertVector(bbox.Min, Vector3.zero);
                 AssertVector(bbox.Max, new Vector3(1, 1, 0));
+
+                using Surface invisibleSurface = surface.UpdateVisibilityMask(new[] { 1, 0 });
+                Assert.That(surface.NumberOfVisibleTriangles, Is.EqualTo(1));
+                Assert.That(surface.VisibilityMask, Is.EqualTo(new[] { 1, 0 }));
+                Assert.That(invisibleSurface.NumberOfTriangles, Is.EqualTo(1));
+                surface.UpdateMeshFromDLL(mesh);
+                Assert.That(mesh.triangles, Is.EqualTo(new[] { 0, 1, 2 }));
+
+                using Surface rayInvisibleSurface = surface.UpdateVisibilityMask(Vector3.forward, new Vector3(0.7f, 0.2f, 0), TriEraserMode.OneTri, 0.0f);
+                Assert.That(surface.NumberOfVisibleTriangles, Is.EqualTo(0));
+                Assert.That(rayInvisibleSurface.NumberOfTriangles, Is.EqualTo(2));
+                using Surface resetInvisibleSurface = surface.UpdateVisibilityMask(new[] { 1, 1 });
+                Assert.That(surface.NumberOfVisibleTriangles, Is.EqualTo(2));
 
                 using Surface clone = (Surface)surface.Clone();
                 clone.Append(surface);
@@ -391,6 +431,11 @@ namespace HBP.Tests.Serialization
                 Assert.That(rawCuts, Has.Count.EqualTo(1));
                 Assert.That(rawCuts[0].NumberOfVertices, Is.EqualTo(5));
                 Assert.That(rawCuts[0].NumberOfTriangles, Is.EqualTo(4));
+
+                using Surface simplified = cube.Simplify(6, 7);
+                Assert.That(simplified.NumberOfVertices, Is.GreaterThan(0));
+                Assert.That(simplified.NumberOfTriangles, Is.GreaterThan(0));
+                Assert.That(simplified.NumberOfTriangles, Is.LessThanOrEqualTo(cube.NumberOfTriangles));
             }
             finally
             {
@@ -427,6 +472,149 @@ namespace HBP.Tests.Serialization
             finally
             {
                 UnityEngine.Object.DestroyImmediate(mesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreCutGenerators_CreateVolumeAndOverlayPixelBuffers_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            Mesh cutMesh = new();
+            try
+            {
+                using Volume volume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
+                Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+
+                using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward)
+                {
+                    Orientation = HBP.Core.Enums.CutOrientation.Axial
+                };
+                using CutGeometryGenerator geometryGenerator = ExecuteNativeOrIgnore(() => new CutGeometryGenerator(), "hbp_core CutGeometryGenerator wrapper");
+                geometryGenerator.Initialize(volume, cut, 8);
+
+                Vector2Int textureSize = geometryGenerator.TextureSize;
+                Assert.That(textureSize.x, Is.GreaterThan(0));
+                Assert.That(textureSize.y, Is.GreaterThan(0));
+                Assert.That(textureSize.x, Is.LessThanOrEqualTo(8));
+                Assert.That(textureSize.y, Is.LessThanOrEqualTo(8));
+
+                Vector2 ratio = geometryGenerator.GetPositionRatioOnTexture(new Vector3(-volume.Center.x, volume.Center.y, volume.Center.z));
+                Assert.That(ratio.x, Is.InRange(0.45f, 0.55f));
+                Assert.That(ratio.y, Is.InRange(0.45f, 0.55f));
+
+                Color32[] colorScheme = HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(HBP.Core.Enums.ColorType.BrainColor);
+                using CutGenerator volumeOnlyCutGenerator = ExecuteNativeOrIgnore(() => new CutGenerator(), "hbp_core CutGenerator wrapper");
+                volumeOnlyCutGenerator.Initialize(null, geometryGenerator, 0);
+                volumeOnlyCutGenerator.FillTextureWithVolume(colorScheme, 0.0f, 1.0f);
+                Color32[] volumeOnlyPixels = volumeOnlyCutGenerator.CopyBasePixels();
+                Assert.That(volumeOnlyPixels, Has.Length.EqualTo(textureSize.x * textureSize.y));
+                Assert.That(volumeOnlyPixels.Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
+
+                using Surface cutSurface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+                cutSurface.SetBuffers(
+                    new[] { new Vector3(1, 1, 2), new Vector3(3, 1, 2), new Vector3(1, 3, 2) },
+                    new[] { 0, 1, 2 });
+                geometryGenerator.UpdateSurfaceUV(cutSurface);
+                cutSurface.UpdateMeshFromDLL(cutMesh);
+                Assert.That(cutMesh.uv, Has.Length.EqualTo(3));
+
+                using GeneratorSurface generatorSurface = ExecuteNativeOrIgnore(() => new GeneratorSurface(), "hbp_core GeneratorSurface wrapper");
+                generatorSurface.Initialize(cutSurface, volume, 8);
+                using DensityGenerator densityGenerator = ExecuteNativeOrIgnore(() => new DensityGenerator(), "hbp_core DensityGenerator wrapper");
+                densityGenerator.Initialize(generatorSurface);
+                using RawSiteList rawSites = new();
+                rawSites.AddSite("S1", new Vector3(1, 1, 2), 0, 0);
+                densityGenerator.ComputeActivity(rawSites, 10.0f, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
+
+                using SurfaceGenerator surfaceGenerator = ExecuteNativeOrIgnore(() => new SurfaceGenerator(), "hbp_core SurfaceGenerator wrapper");
+                surfaceGenerator.Initialize(densityGenerator);
+                surfaceGenerator.ComputeActivityUV(0, 0.4f);
+                Assert.That(surfaceGenerator.ActivityUV, Has.Length.EqualTo(cutSurface.NumberOfVertices));
+                Assert.That(surfaceGenerator.AlphaUV, Has.Length.EqualTo(cutSurface.NumberOfVertices));
+
+                using CutGenerator cutGenerator = ExecuteNativeOrIgnore(() => new CutGenerator(), "hbp_core CutGenerator wrapper");
+                cutGenerator.Initialize(densityGenerator, geometryGenerator, 0);
+                cutGenerator.FillTextureWithVolume(colorScheme, 0.0f, 1.0f);
+                Color32[] basePixels = cutGenerator.CopyBasePixels();
+                Assert.That(basePixels, Has.Length.EqualTo(textureSize.x * textureSize.y));
+                Assert.That(basePixels.Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
+
+                cutGenerator.FillTextureWithActivity(HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(HBP.Core.Enums.ColorType.MatLab), 0, 0.4f);
+                Color32[] activityPixels = cutGenerator.CopyOverlayPixels();
+                Assert.That(activityPixels, Has.Length.EqualTo(basePixels.Length));
+
+                cutGenerator.FillTextureWithFMRI(volume, 0.25f, 1.0f, 0.25f, 1.0f, 0.5f);
+                Color32[] fmriPixels = cutGenerator.CopyOverlayPixels();
+                Assert.That(fmriPixels, Has.Length.EqualTo(basePixels.Length));
+
+                cutGenerator.FillTextureWithLocalizer(volume, 0.0f, 62.0f, 124.0f, null, HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(HBP.Core.Enums.ColorType.MatLab));
+                Color32[] localizerPixels = cutGenerator.CopyOverlayPixels();
+                Assert.That(localizerPixels, Has.Length.EqualTo(basePixels.Length));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(cutMesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreActivityGenerators_ComputeSurfaceActivityUVs_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                using Volume volume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
+                Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+
+                using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
+                surface.SetBuffers(
+                    new[] { new Vector3(1, 1, 2), new Vector3(3, 1, 2), new Vector3(1, 3, 2) },
+                    new[] { 0, 1, 2 });
+
+                using GeneratorSurface generatorSurface = ExecuteNativeOrIgnore(() => new GeneratorSurface(), "hbp_core GeneratorSurface wrapper");
+                generatorSurface.Initialize(surface, volume, 8);
+
+                using RawSiteList rawSites = new();
+                rawSites.AddSite("S1", new Vector3(1, 1, 2), 0, 0);
+
+                using IEEGGenerator ieegGenerator = ExecuteNativeOrIgnore(() => new IEEGGenerator(), "hbp_core IEEGGenerator wrapper");
+                ieegGenerator.Initialize(generatorSurface);
+                ieegGenerator.ComputeActivity(rawSites, 10.0f, new[] { 1.0f, -0.5f }, 2, rawSites.NumberOfSites, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
+                ieegGenerator.AdjustValues(0.0f, -1.0f, 1.0f);
+                AssertActivityUVs(surface, ieegGenerator);
+
+                using FMRIGenerator fmriGenerator = ExecuteNativeOrIgnore(() => new FMRIGenerator(), "hbp_core FMRIGenerator wrapper");
+                fmriGenerator.Initialize(generatorSurface);
+                fmriGenerator.ComputeActivity(new[] { (volume, (Volume)null) });
+                fmriGenerator.AdjustValues(0.25f, 1.0f, 0.25f, 1.0f);
+                fmriGenerator.HideExtremeValues(false, false, false);
+                AssertActivityUVs(surface, fmriGenerator);
+
+                using MEGGenerator megGenerator = ExecuteNativeOrIgnore(() => new MEGGenerator(), "hbp_core MEGGenerator wrapper");
+                megGenerator.Initialize(generatorSurface);
+                megGenerator.ComputeActivity(new[] { (volume, (Volume)null) });
+                megGenerator.AdjustValues(0.25f, 1.0f, 0.25f, 1.0f);
+                megGenerator.HideExtremeValues(false, false, false);
+                AssertActivityUVs(surface, megGenerator);
+            }
+            finally
+            {
                 NativeBackendOptions.Reset();
             }
         }
@@ -824,6 +1012,16 @@ namespace HBP.Tests.Serialization
             {
                 surface?.Dispose();
             }
+        }
+
+        private static void AssertActivityUVs(Surface surface, ActivityGenerator activityGenerator)
+        {
+            using SurfaceGenerator surfaceGenerator = ExecuteNativeOrIgnore(() => new SurfaceGenerator(), "hbp_core SurfaceGenerator wrapper");
+            surfaceGenerator.Initialize(activityGenerator);
+            surfaceGenerator.ComputeActivityUV(0, 0.4f);
+            Assert.That(surfaceGenerator.ActivityUV, Has.Length.EqualTo(surface.NumberOfVertices));
+            Assert.That(surfaceGenerator.AlphaUV, Has.Length.EqualTo(surface.NumberOfVertices));
+            Assert.That(surfaceGenerator.AlphaUV.Any(uv => uv.x > 0.01f), Is.True);
         }
 
         private static bool VectorsEqual(Vector3 actual, Vector3 expected)

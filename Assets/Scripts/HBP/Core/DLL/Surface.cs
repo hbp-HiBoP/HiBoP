@@ -115,10 +115,17 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    int triangleCount = NumberOfTriangles;
+                    int[] visibilityMask = new int[triangleCount];
+                    ThrowIfFailed(hbp_surface_copy_visibility_mask(_handle.Handle, visibilityMask, visibilityMask.Length));
+                    return visibilityMask;
+                }
                 EnsureHbpExport(nameof(VisibilityMask));
-                int[] visibilityMask = new int[NumberOfTriangles];
-                retrieve_visibility_mask(_handle, visibilityMask);
-                return visibilityMask;
+                int[] exportVisibilityMask = new int[NumberOfTriangles];
+                retrieve_visibility_mask(_handle, exportVisibilityMask);
+                return exportVisibilityMask;
             }
         }
         /// <summary>
@@ -130,7 +137,8 @@ namespace HBP.Core.DLL
             {
                 if (m_Backend == NativeBackend.HbpCore)
                 {
-                    return GetHbpCoreSizes().triangleIndexCount / 3;
+                    ThrowIfFailed(hbp_surface_get_triangle_count(_handle.Handle, out int count));
+                    return count;
                 }
 
                 m_Sizes = new int[6];
@@ -147,7 +155,8 @@ namespace HBP.Core.DLL
             {
                 if (m_Backend == NativeBackend.HbpCore)
                 {
-                    return NumberOfTriangles;
+                    ThrowIfFailed(hbp_surface_get_visible_triangle_count(_handle.Handle, out int count));
+                    return count;
                 }
 
                 m_Sizes = new int[6];
@@ -344,6 +353,16 @@ namespace HBP.Core.DLL
         /// <returns>New surface made with invisible triangles</returns>
         public Surface UpdateVisibilityMask(int[] visibilityMask)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                int triangleCount = NumberOfTriangles;
+                if (visibilityMask == null || visibilityMask.Length != triangleCount)
+                {
+                    throw new ArgumentException($"Visibility mask length must match the surface triangle count ({triangleCount}).", nameof(visibilityMask));
+                }
+                ThrowIfFailed(hbp_surface_update_visibility_mask(_handle.Handle, visibilityMask, visibilityMask.Length, out IntPtr invisibleSurface));
+                return new Surface(invisibleSurface, NativeBackend.HbpCore);
+            }
             EnsureHbpExport(nameof(UpdateVisibilityMask));
             Surface invisiblePartMesh = new();
             update_visiblity_mask_Surface(_handle, invisiblePartMesh.getHandle(), visibilityMask);
@@ -359,6 +378,14 @@ namespace HBP.Core.DLL
         /// <returns>New surface made with invisible triangles</returns>
         public Surface UpdateVisibilityMask(Vector3 rayDirection, Vector3 hitPoint, TriEraserMode mode, float degrees)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                Vec3 nativeRayDirection = Vec3.FromVector3(rayDirection);
+                Vec3 nativeHitPoint = Vec3.FromVector3(hitPoint);
+                ThrowIfFailed(hbp_surface_update_visibility_mask_with_ray(_handle.Handle, ref nativeRayDirection, ref nativeHitPoint, (int)mode, degrees, out IntPtr invisibleSurface));
+                return new Surface(invisibleSurface, NativeBackend.HbpCore);
+            }
+
             EnsureHbpExport(nameof(UpdateVisibilityMask));
             float[] hitPointArray = new float[3], rayDirectionArray = new float[3];
             hitPointArray[0] = hitPoint.x;
@@ -694,6 +721,16 @@ namespace HBP.Core.DLL
         /// <returns></returns>
         public Surface Simplify(int numberOfTriangles = 10000, int agressiveness = 7)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_surface_simplify(_handle.Handle, numberOfTriangles, agressiveness, out IntPtr simplifiedSurface));
+                return new Surface(simplifiedSurface, NativeBackend.HbpCore)
+                {
+                    IsLoaded = IsLoaded,
+                    IsMarsAtlasLoaded = false
+                };
+            }
+
             EnsureHbpExport(nameof(Simplify));
             Surface surface = new(this);
             simplify_mesh_Surface(surface.getHandle(), numberOfTriangles, agressiveness);
@@ -904,10 +941,11 @@ namespace HBP.Core.DLL
                 }
             }
 
-            m_TriangleIndices = new int[sizes.triangleIndexCount];
-            if (sizes.triangleIndexCount > 0)
+            int visibleTriangleIndexCount = NumberOfVisibleTriangles * 3;
+            m_TriangleIndices = new int[visibleTriangleIndexCount];
+            if (visibleTriangleIndexCount > 0)
             {
-                ThrowIfFailed(hbp_surface_copy_triangles(_handle.Handle, m_TriangleIndices, m_TriangleIndices.Length));
+                ThrowIfFailed(hbp_surface_copy_visible_triangles(_handle.Handle, m_TriangleIndices, m_TriangleIndices.Length));
             }
 
             mesh.Clear();
@@ -1057,6 +1095,10 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_merge(IntPtr surface, IntPtr surfaceToAdd);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_get_sizes", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_get_sizes(IntPtr surface, out SurfaceSizes sizes);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_get_triangle_count", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_get_triangle_count(IntPtr surface, out int count);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_get_visible_triangle_count", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_get_visible_triangle_count(IntPtr surface, out int count);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_vertices", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_copy_vertices(IntPtr surface, [Out] Vec3[] vertices, int vertexCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_normals", CallingConvention = CallingConvention.Cdecl)]
@@ -1067,6 +1109,10 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_copy_colors(IntPtr surface, [Out] Color4[] colors, int colorCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_triangles", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_copy_triangles(IntPtr surface, [Out] int[] triangleIndices, int triangleIndexCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_visible_triangles", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_visible_triangles(IntPtr surface, [Out] int[] triangleIndices, int triangleIndexCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_visibility_mask", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_visibility_mask(IntPtr surface, [Out] int[] visibilityMask, int maskCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_get_bounding_box(IntPtr surface, out IntPtr bbox);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_compute_normals", CallingConvention = CallingConvention.Cdecl)]
@@ -1075,6 +1121,12 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_flip(IntPtr surface);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_transform", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_transform(IntPtr surface, IntPtr transformation);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_update_visibility_mask", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_update_visibility_mask(IntPtr surface, [In] int[] visibilityMask, int maskCount, out IntPtr invisibleSurface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_update_visibility_mask_with_ray", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_update_visibility_mask_with_ray(IntPtr surface, ref Vec3 rayDirection, ref Vec3 hitPoint, int mode, float degrees, out IntPtr invisibleSurface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_simplify", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_simplify(IntPtr surface, int targetTriangleCount, int aggressiveness, out IntPtr outSurface);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_apply_mars_atlas_parcels", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_apply_mars_atlas_parcels(IntPtr surface, IntPtr marsAtlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string parcelsPath);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_cut", CallingConvention = CallingConvention.Cdecl)]

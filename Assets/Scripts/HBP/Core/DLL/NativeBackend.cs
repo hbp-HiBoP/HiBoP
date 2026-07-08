@@ -14,9 +14,33 @@ namespace HBP.Core.DLL
 
     public static class NativeBackendOptions
     {
-        public static NativeBackend ExperimentalBackend { get; set; } = NativeBackend.HbpExport;
+        public static NativeBackend ExperimentalBackend { get; set; } = NativeBackend.HbpCore;
 
         public static bool UsesHbpCore => ExperimentalBackend == NativeBackend.HbpCore;
+
+        public static bool TrySetExperimentalBackend(string backend)
+        {
+            if (string.IsNullOrWhiteSpace(backend))
+            {
+                return false;
+            }
+
+            switch (backend.Trim().ToLowerInvariant())
+            {
+                case "hbp_export":
+                case "hbp-export":
+                case "export":
+                    ExperimentalBackend = NativeBackend.HbpExport;
+                    return true;
+                case "hbp_core":
+                case "hbp-core":
+                case "core":
+                    ExperimentalBackend = NativeBackend.HbpCore;
+                    return true;
+                default:
+                    return false;
+            }
+        }
 
         public static void Reset()
         {

@@ -2560,6 +2560,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114654351548163938, guid: 3c3325c0c7367cc468deb979404482a3,
         type: 3}
+      propertyPath: m_UseHBPCoreBackend
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114654351548163938, guid: 3c3325c0c7367cc468deb979404482a3,
+        type: 3}
       propertyPath: m_VisualizationName
       value: Unknown
       objectReference: {fileID: 0}

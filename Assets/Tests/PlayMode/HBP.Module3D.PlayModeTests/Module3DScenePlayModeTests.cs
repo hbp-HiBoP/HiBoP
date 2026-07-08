@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System;
@@ -10,6 +11,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
+using HBP.Core.DLL.HbpCore;
 using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using HBP.Core.Tools;
@@ -20,6 +22,8 @@ using UnityEngine.Events;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using NativeBackend = HBP.Core.DLL.NativeBackend;
+using NativeBackendOptions = HBP.Core.DLL.NativeBackendOptions;
 
 namespace HBP.Tests.PlayMode.Module3D
 {
@@ -32,6 +36,7 @@ namespace HBP.Tests.PlayMode.Module3D
         private GenericEvent<View3D> m_OnSelectView;
         private UnityEvent m_OnRequestUpdateInToolbar;
         private Module3DMain m_Module3DMainInstance;
+        private SharedMaterials m_Module3DMainSharedMaterials;
 
         [SetUp]
         public void SetUp()
@@ -43,6 +48,11 @@ namespace HBP.Tests.PlayMode.Module3D
             m_OnSelectColumn = Module3DMain.OnSelectColumn;
             m_OnSelectView = Module3DMain.OnSelectView;
             m_OnRequestUpdateInToolbar = Module3DMain.OnRequestUpdateInToolbar;
+            if (m_Module3DMainInstance != null)
+            {
+                m_Module3DMainSharedMaterials = GetPrivateField<SharedMaterials>(m_Module3DMainInstance, "m_SharedMaterials");
+                SetPrivateField(m_Module3DMainInstance, "m_SharedMaterials", CreateSharedMaterials());
+            }
 
             Module3DMain.OnSelectScene = new GenericEvent<Base3DScene>();
             Module3DMain.OnDeselectScene = new GenericEvent<Base3DScene>();
@@ -56,6 +66,10 @@ namespace HBP.Tests.PlayMode.Module3D
         public void TearDown()
         {
             SetModule3DMainInstance(m_Module3DMainInstance);
+            if (m_Module3DMainInstance != null)
+            {
+                SetPrivateField(m_Module3DMainInstance, "m_SharedMaterials", m_Module3DMainSharedMaterials);
+            }
             Module3DMain.OnSelectScene = m_OnSelectScene;
             Module3DMain.OnDeselectScene = m_OnDeselectScene;
             Module3DMain.OnMinimizeScene = m_OnMinimizeScene;
@@ -73,6 +87,7 @@ namespace HBP.Tests.PlayMode.Module3D
             moduleObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
             Module3DMain module = moduleObject.AddComponent<Module3DMain>();
+            SetPrivateField(module, "m_SharedMaterials", CreateSharedMaterials());
             SetModule3DMainInstance(module);
 
             Base3DScene firstScene = CreateBaseScene(scene, "First Scene");
@@ -583,6 +598,83 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public async Task Base3DScene_HbpCoreBackendComputesRuntimeCutTexturesAndSurfaceActivity()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                using PlayModeTempDirectoryScope temp = new();
+                using SyntheticMNIScope mni = new(temp);
+                using PlayModeApplicationStateScope appState = new(temp.Path);
+                using PlayModePersistentDataScope persistentData = new(temp.Path);
+                PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+                using PlayModeSceneScope scene = new("Module3DSceneHbpCoreRuntimeCutAndSurface");
+                GameObject moduleObject = new("Controlled Module3DMain For HbpCore");
+                moduleObject.SetActive(false);
+                SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
+                Module3DMain module = moduleObject.AddComponent<Module3DMain>();
+                SetPrivateField(module, "m_SharedMaterials", CreateSharedMaterials());
+                SetPrivateField(module, "m_Scenes", new List<Base3DScene>());
+                SetModule3DMainInstance(module);
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
+                Base3DScene baseScene = initialized.BaseScene;
+                Column3D column = baseScene.Columns.Single();
+
+                Assert.That(baseScene.MRIManager.SelectedMRI.Volume.UsesHbpCore, Is.True);
+                Assert.That(column.ActivityGenerator.UsesHbpCore, Is.True);
+                Assert.That(column.SurfaceGenerator.UsesHbpCore, Is.True);
+
+                await WaitForConditionAsync(() =>
+                    baseScene.MeshManager.BrainSurface != null
+                    && baseScene.MeshManager.BrainSurface.NumberOfVertices > 0
+                    && column.BrainMesh != null
+                    && column.BrainMesh.GetComponent<MeshFilter>().mesh.vertexCount > 0,
+                    "hbp_core initial brain geometry update");
+
+                baseScene.AddCutPlane();
+                await WaitForConditionAsync(() =>
+                    baseScene.Cuts.Count == 1
+                    && column.CutTextures.CutGenerators.Count == 1
+                    && !baseScene.SceneInformation.CutsNeedUpdate
+                    && !baseScene.SceneInformation.BaseCutTexturesNeedUpdate,
+                    "hbp_core cut geometry and base cut texture update",
+                    () => FormatCutUpdateDiagnostics(baseScene, column));
+
+                Assert.That(column.CutTextures.CutGenerators[0].UsesHbpCore, Is.True);
+                Assert.That(column.CutTextures.BaseBrainCutTextures[0].width, Is.GreaterThan(1));
+                Assert.That(column.CutTextures.BaseBrainCutTextures[0].height, Is.GreaterThan(1));
+                Assert.That(column.CutTextures.BaseBrainCutTextures[0].GetPixels32().Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
+
+                baseScene.UpdateGenerator();
+                await WaitForConditionAsync(() => baseScene.IsGeneratorUpToDate, "hbp_core activity generator update", () => FormatGeneratorDiagnostics(baseScene), 600);
+                await WaitForConditionAsync(() =>
+                    !baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate
+                    && !baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate,
+                    "hbp_core functional cut and surface update");
+
+                Assert.That(column.CutTextures.BrainCutTextures[0].width, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].width));
+                Assert.That(column.CutTextures.BrainCutTextures[0].height, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].height));
+                Assert.That(column.SurfaceGenerator.ActivityUV, Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfVertices));
+                Assert.That(column.SurfaceGenerator.AlphaUV, Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfVertices));
+                Mesh brainMesh = column.BrainMesh.GetComponent<MeshFilter>().mesh;
+                Assert.That(brainMesh.uv2, Has.Length.EqualTo(brainMesh.vertexCount));
+                Assert.That(brainMesh.uv3, Has.Length.EqualTo(brainMesh.vertexCount));
+            }
+            finally
+            {
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_InitializedMultiColumnViewAndCutLifecycleStaySynchronized()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -687,6 +779,7 @@ namespace HBP.Tests.PlayMode.Module3D
             moduleObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
             Module3DMain module = moduleObject.AddComponent<Module3DMain>();
+            SetPrivateField(module, "m_SharedMaterials", CreateSharedMaterials());
             SetPrivateField(module, "m_Scenes", new List<Base3DScene>());
             SetModule3DMainInstance(module);
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
@@ -940,8 +1033,18 @@ namespace HBP.Tests.PlayMode.Module3D
             baseScene.FinalizeInitialization();
             WireRuntimeCameraGraph(baseScene);
             EnsureRuntimeSiteConfigurations(baseScene);
+            EnsureRuntimeCutColorSchemes(baseScene);
+            baseScene.SceneInformation.GeometryNeedsUpdate = true;
 
             return (project, baseScene, visualization, loadingMessages);
+        }
+
+        private static void EnsureRuntimeCutColorSchemes(Base3DScene baseScene)
+        {
+            foreach (Column3D column in baseScene.Columns)
+            {
+                column.CutTextures.ResetColorSchemes(baseScene.Colormap, baseScene.CutColor);
+            }
         }
 
         private static void EnsureRuntimeSiteConfigurations(Base3DScene baseScene)
@@ -1095,6 +1198,37 @@ namespace HBP.Tests.PlayMode.Module3D
             return prefab;
         }
 
+        private static SharedMaterials CreateSharedMaterials()
+        {
+            SharedMaterials sharedMaterials = ScriptableObject.CreateInstance<SharedMaterials>();
+            SetAutoProperty(sharedMaterials.ROI, "Normal", CreateTestMaterial(Color.gray));
+            SetAutoProperty(sharedMaterials.ROI, "Selected", CreateTestMaterial(Color.yellow));
+            SetAutoProperty(sharedMaterials.Site, "Basic", CreateTestMaterial(Color.white));
+            SetAutoProperty(sharedMaterials.Site, "Positive", CreateSiteMaterial(Color.red, Color.magenta));
+            SetAutoProperty(sharedMaterials.Site, "Negative", CreateSiteMaterial(Color.blue, Color.cyan));
+            SetAutoProperty(sharedMaterials.Site, "Blacklisted", CreateSiteMaterial(Color.black, Color.gray));
+            SetAutoProperty(sharedMaterials.Site, "Source", CreateSiteMaterial(Color.green, Color.yellow));
+            SetAutoProperty(sharedMaterials.Site, "NotASource", CreateSiteMaterial(Color.white, Color.gray));
+            return sharedMaterials;
+        }
+
+        private static SiteMaterial CreateSiteMaterial(Color normalColor, Color highlightedColor)
+        {
+            SiteMaterial siteMaterial = new();
+            SetAutoProperty(siteMaterial, "Normal", CreateTestMaterial(normalColor));
+            SetAutoProperty(siteMaterial, "Highlighted", CreateTestMaterial(highlightedColor));
+            return siteMaterial;
+        }
+
+        private static Material CreateTestMaterial(Color color)
+        {
+            Shader shader = Shader.Find("Sprites/Default") ?? Shader.Find("UI/Default") ?? Shader.Find("Standard");
+            Assert.That(shader, Is.Not.Null, "A built-in shader is required to create runtime test materials.");
+            Material material = new(shader);
+            material.color = color;
+            return material;
+        }
+
         private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1)
         {
             HBP.Core.Data.Site site = new(
@@ -1180,6 +1314,52 @@ namespace HBP.Tests.PlayMode.Module3D
         {
         }
 
+        private static async Task WaitForConditionAsync(Func<bool> condition, string description, Func<string> diagnostics = null, int maxFrames = 120)
+        {
+            for (int frame = 0; frame < maxFrames; ++frame)
+            {
+                if (condition())
+                {
+                    return;
+                }
+                await UniTask.Delay(10);
+            }
+            string message = $"Timed out while waiting for {description}.";
+            if (diagnostics != null)
+            {
+                message += $" {diagnostics()}";
+            }
+            Assert.Fail(message);
+        }
+
+        private static string FormatCutUpdateDiagnostics(Base3DScene baseScene, Column3D column)
+        {
+            return $"Cuts={baseScene.Cuts.Count}, CutGeometryGenerators={baseScene.CutGeometryGenerators.Count}, " +
+                $"CutGenerators={column.CutTextures.CutGenerators.Count}, BaseTextures={column.CutTextures.BaseBrainCutTextures.Count}, " +
+                $"BrainCutMeshes={column.BrainCutMeshes.Count}, GeometryNeedsUpdate={baseScene.SceneInformation.GeometryNeedsUpdate}, " +
+                $"CutsNeedUpdate={baseScene.SceneInformation.CutsNeedUpdate}, BaseCutTexturesNeedUpdate={baseScene.SceneInformation.BaseCutTexturesNeedUpdate}, " +
+                $"FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, GUICutTexturesNeedUpdate={baseScene.SceneInformation.GUICutTexturesNeedUpdate}, " +
+                $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}.";
+        }
+
+        private static string FormatGeneratorDiagnostics(Base3DScene baseScene)
+        {
+            bool updatingGenerators = GetPrivateField<bool>(baseScene, "m_UpdatingGenerators");
+            return $"IsGeneratorUpToDate={baseScene.IsGeneratorUpToDate}, UpdatingGenerators={updatingGenerators}, GeneratorNeedsUpdate={baseScene.SceneInformation.GeneratorNeedsUpdate}, " +
+                $"GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}, FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, " +
+                $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, SitesNeedUpdate={baseScene.SceneInformation.SitesNeedUpdate}.";
+        }
+
+        private static string NativeFixturePath(params string[] parts)
+        {
+            string path = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Assets", "Tests", "Fixtures", "Native");
+            foreach (string part in parts)
+            {
+                path = Path.Combine(path, part);
+            }
+            return path;
+        }
+
         private static Module3DMain GetModule3DMainInstance()
         {
             FieldInfo field = typeof(Singleton<Module3DMain>).GetField("m_Instance", BindingFlags.NonPublic | BindingFlags.Static);
@@ -1210,20 +1390,47 @@ namespace HBP.Tests.PlayMode.Module3D
 
             private static MNIObjects CreateSyntheticMNI(string objPath)
             {
+                HBP.Core.DLL.Volume volume = new();
+                Vector3 center = Vector3.zero;
+                if (NativeBackendOptions.UsesHbpCore)
+                {
+                    Assert.That(volume.LoadNIFTIFile(NativeFixturePath("Nifti", "fmri_3d.nii")), Is.True);
+                    using HBP.Core.DLL.BBox bbox = volume.BoundingBox;
+                    center = bbox.Center;
+                }
+                else
+                {
+                    SetAutoProperty(volume, "IsLoaded", true);
+                }
+
+                const float halfSize = 100.0f;
                 File.WriteAllLines(objPath, new[]
                 {
-                    "v 0 0 0",
-                    "v 1 0 0",
-                    "v 0 1 0",
-                    "f 1 2 3"
+                    VertexLine(center + new Vector3(-halfSize, -halfSize, -halfSize)),
+                    VertexLine(center + new Vector3(halfSize, -halfSize, -halfSize)),
+                    VertexLine(center + new Vector3(halfSize, halfSize, -halfSize)),
+                    VertexLine(center + new Vector3(-halfSize, halfSize, -halfSize)),
+                    VertexLine(center + new Vector3(-halfSize, -halfSize, halfSize)),
+                    VertexLine(center + new Vector3(halfSize, -halfSize, halfSize)),
+                    VertexLine(center + new Vector3(halfSize, halfSize, halfSize)),
+                    VertexLine(center + new Vector3(-halfSize, halfSize, halfSize)),
+                    "f 1 2 3",
+                    "f 1 3 4",
+                    "f 5 8 7",
+                    "f 5 7 6",
+                    "f 1 5 6",
+                    "f 1 6 2",
+                    "f 2 6 7",
+                    "f 2 7 3",
+                    "f 3 7 8",
+                    "f 3 8 4",
+                    "f 4 8 5",
+                    "f 4 5 1"
                 });
 
                 HBP.Core.DLL.Surface left = LoadSurface(objPath);
                 HBP.Core.DLL.Surface right = LoadSurface(objPath);
                 HBP.Core.DLL.Surface both = (HBP.Core.DLL.Surface)left.Clone();
-                both.Append(right);
-                HBP.Core.DLL.Volume volume = new();
-                SetAutoProperty(volume, "IsLoaded", true);
 
                 MNIObjects mni = new();
                 SetAutoProperty(mni, "GreyMatter", new LeftRightMesh3D("MNI Grey matter", left, right, both, MeshType.MNI));
@@ -1232,6 +1439,16 @@ namespace HBP.Tests.PlayMode.Module3D
                 SetAutoProperty(mni, "MRI", new MRI3D("MNI", volume));
                 SetAutoProperty(mni, "IsLoaded", true);
                 return mni;
+            }
+
+            private static string VertexLine(Vector3 point)
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "v {0} {1} {2}",
+                    point.x,
+                    point.y,
+                    point.z);
             }
 
             private static HBP.Core.DLL.Surface LoadSurface(string objPath)

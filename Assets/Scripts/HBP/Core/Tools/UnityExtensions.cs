@@ -1,4 +1,5 @@
 using HBP.Core.Preferences;
+using HBP.Core.DLL;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -333,6 +334,28 @@ namespace HBP.Core.Tools
         public static string ToHexString(this Color color)
         {
             return "#" + ((int)(color.r * 255)).ToString("X2") + ((int)(color.g * 255)).ToString("X2") + ((int)(color.b * 255)).ToString("X2");
+        }
+
+        internal static Color4[] ToNativeColor4Array(this Color32[] colors)
+        {
+            if (colors == null || colors.Length == 0)
+            {
+                throw new ArgumentException("Color scheme cannot be empty.", nameof(colors));
+            }
+
+            Color4[] result = new Color4[colors.Length];
+            for (int i = 0; i < colors.Length; ++i)
+            {
+                Color32 color = colors[i];
+                result[i] = new Color4
+                {
+                    r = color.r / 255.0f,
+                    g = color.g / 255.0f,
+                    b = color.b / 255.0f,
+                    a = color.a / 255.0f
+                };
+            }
+            return result;
         }
     }
 

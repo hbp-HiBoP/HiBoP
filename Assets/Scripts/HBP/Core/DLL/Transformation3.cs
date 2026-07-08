@@ -29,13 +29,25 @@ namespace HBP.Core.DLL
                 StringSplitOptions.RemoveEmptyEntries);
             if (tokens.Length != 12 && tokens.Length != 16)
             {
-                throw new InvalidDataException($"Expected a 3x4 or 4x4 transform matrix in '{path}'.");
+                throw new InvalidDataException($"Expected a .trm transform or a 4x4 transform matrix in '{path}'.");
             }
 
             float[] values = new float[tokens.Length];
             for (int index = 0; index < tokens.Length; index++)
             {
                 values[index] = float.Parse(tokens[index], CultureInfo.InvariantCulture);
+            }
+
+            if (tokens.Length == 12)
+            {
+                float[] trmLinear9 =
+                {
+                    values[3], values[4], values[5],
+                    values[6], values[7], values[8],
+                    values[9], values[10], values[11]
+                };
+                Vector3 trmTranslation = new(values[0], values[1], values[2]);
+                return new Transformation3(trmLinear9, trmTranslation);
             }
 
             const int stride = 4;

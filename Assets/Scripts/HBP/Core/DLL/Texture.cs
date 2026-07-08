@@ -44,6 +44,7 @@ namespace HBP.Core.DLL
         /// </summary>
         private Color32[] Pixels2 = new Color32[1];
         private byte[] m_RgbUploadBuffer = Array.Empty<byte>();
+        private Color32[] m_ManagedPixels = Array.Empty<Color32>();
 
         /// <summary>
         /// Handle of the pixels array
@@ -107,6 +108,9 @@ namespace HBP.Core.DLL
                 Reset(width, height);
             }
 
+            m_ManagedPixels = new Color32[width * height];
+            Array.Copy(colors, m_ManagedPixels, m_ManagedPixels.Length);
+
             int pixelCount = width * height;
             int byteCount = pixelCount * 3;
             if (m_RgbUploadBuffer.Length != byteCount)
@@ -122,6 +126,17 @@ namespace HBP.Core.DLL
                 m_RgbUploadBuffer[3 * i + 2] = col.b;
             }
             set_colors_Texture(_handle, m_RgbUploadBuffer, pixelCount);
+        }
+        public Color32[] GetManagedPixels()
+        {
+            if (m_ManagedPixels == null || m_ManagedPixels.Length == 0)
+            {
+                return Array.Empty<Color32>();
+            }
+
+            Color32[] result = new Color32[m_ManagedPixels.Length];
+            Array.Copy(m_ManagedPixels, result, result.Length);
+            return result;
         }
         public static Texture CreateFromPixels(Color32[] colors, int width, int height)
         {
