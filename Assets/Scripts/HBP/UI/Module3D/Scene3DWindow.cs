@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -408,7 +409,7 @@ namespace HBP.UI.Module3D
                 for (int j = 0; j < numberOfColumns; j++)
                     UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, m_Scene.Columns[j].Name, j * width + (width / 2), 20);
 
-                UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, string.Format("{0}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex).ToString("N2")), totalWidth / 2, totalHeight - 20);
+                UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, string.Format(CultureInfo.InvariantCulture, "{0:F2}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex)), totalWidth / 2, totalHeight - 20);
                 texture2D.SetPixels32(framePixels);
 
                 videoStream.WriteFrame(texture2D);

@@ -247,6 +247,36 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        public void DrawCenteredText_RendersVideoLabelsWithLowercaseDegreeAndDecimalTime()
+        {
+            Texture2D lowercase = CreateBlackTexture(160, 40);
+            Texture2D uppercase = CreateBlackTexture(160, 40);
+            Texture2D time = CreateBlackTexture(160, 40);
+
+            try
+            {
+                UnityTextureFactory.DrawCenteredText(lowercase, "Column n\u00B01", 80, 10);
+                UnityTextureFactory.DrawCenteredText(uppercase, "COLUMN N\u00B01", 80, 10);
+                UnityTextureFactory.DrawCenteredText(time, "276097.38ms", 80, 30);
+
+                Color32[] lowercasePixels = lowercase.GetPixels32();
+                Color32[] uppercasePixels = uppercase.GetPixels32();
+                Color32[] timePixels = time.GetPixels32();
+
+                Assert.That(lowercasePixels.Count(IsVideoTextPixel), Is.GreaterThan(0));
+                Assert.That(timePixels.Count(IsVideoTextPixel), Is.GreaterThan(0));
+                Assert.That(lowercasePixels, Is.Not.EqualTo(uppercasePixels));
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(lowercase);
+                UnityObject.DestroyImmediate(uppercase);
+                UnityObject.DestroyImmediate(time);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         public void DrawSiteMarkers_ColorsProjectedSitesRedOnUnityPixels()
         {
             Color32[] pixels = Enumerable.Repeat(new Color32(0, 0, 0, 255), 16).ToArray();
@@ -256,6 +286,19 @@ namespace HBP.Tests.Serialization
             Color32 marker = pixels[2 * 4 + 1];
             Assert.That(marker, Is.EqualTo(new Color32(255, 0, 0, 255)));
             Assert.That(pixels.Count(pixel => pixel.r == 255 && pixel.g == 0 && pixel.b == 0), Is.EqualTo(1));
+        }
+
+        private static Texture2D CreateBlackTexture(int width, int height)
+        {
+            Texture2D texture = new(width, height, TextureFormat.RGBA32, false);
+            texture.SetPixels32(Enumerable.Repeat(new Color32(0, 0, 0, 255), width * height).ToArray());
+            texture.Apply(false, false);
+            return texture;
+        }
+
+        private static bool IsVideoTextPixel(Color32 pixel)
+        {
+            return pixel.r == 220 && pixel.g == 220 && pixel.b == 220;
         }
 
         [Test]
