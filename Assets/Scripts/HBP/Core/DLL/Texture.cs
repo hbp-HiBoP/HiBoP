@@ -179,6 +179,17 @@ namespace HBP.Core.DLL
         }
         ~Texture()
         {
+            FreePinnedPixels();
+        }
+
+        public override void Dispose()
+        {
+            FreePinnedPixels();
+            base.Dispose();
+        }
+
+        private void FreePinnedPixels()
+        {
             if (pixelsHandle2.IsAllocated) pixelsHandle2.Free();
         }
         /// <summary>

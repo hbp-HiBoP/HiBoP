@@ -851,6 +851,26 @@ namespace HBP.Core.DLL
             IsLoaded = other.IsLoaded;
             IsMarsAtlasLoaded = other.IsLoaded;
         }
+
+        ~Surface()
+        {
+            FreePinnedMeshBuffers();
+        }
+
+        public override void Dispose()
+        {
+            FreePinnedMeshBuffers();
+            base.Dispose();
+        }
+
+        private void FreePinnedMeshBuffers()
+        {
+            if (m_verticesHandle.IsAllocated) m_verticesHandle.Free();
+            if (m_normalsHandle.IsAllocated) m_normalsHandle.Free();
+            if (m_uvHandle.IsAllocated) m_uvHandle.Free();
+            if (m_triIdHandle.IsAllocated) m_triIdHandle.Free();
+            if (m_colorHandle.IsAllocated) m_colorHandle.Free();
+        }
         /// <summary>
         /// Allocate DLL memory
         /// </summary>

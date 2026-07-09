@@ -27,11 +27,9 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                ThrowIfFailed(hbp_density_generator_compute_activity(
+                ThrowIfFailed(hbp_density_generator_compute_activity_from_sites(
                     _handle.Handle,
-                    ToNativePositions(rawElectrodes.SitePositions),
-                    rawElectrodes.SiteMask,
-                    rawElectrodes.NumberOfSites,
+                    rawElectrodes.getHandle().Handle,
                     influenceDistance,
                     (int)influenceByDistance));
                 return;
@@ -77,8 +75,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_density_generator_create(out IntPtr generator);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_density_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_density_generator_destroy(IntPtr generator);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_density_generator_compute_activity", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_density_generator_compute_activity(IntPtr generator, [In] Vec3[] sitePositions, [In] int[] siteMask, int siteCount, float maxDistance, int ratioDistance);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_density_generator_compute_activity_from_sites", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_density_generator_compute_activity_from_sites(IntPtr generator, IntPtr sites, float maxDistance, int ratioDistance);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_density_generator_get_max_density", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_density_generator_get_max_density(IntPtr generator, out float maxDensity);
         #endregion

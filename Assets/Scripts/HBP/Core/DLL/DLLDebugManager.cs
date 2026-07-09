@@ -13,6 +13,7 @@ namespace HBP.Core.DLL
     /// </summary>
     public class DLLDebugManager : Manager<DLLDebugManager>
     {
+        private static readonly LoggerDelegate s_LogCallback = LogCallback;
 
         #region Internal Classes
         /// <summary>
@@ -57,7 +58,7 @@ namespace HBP.Core.DLL
             base.Initialization();
             if (m_LogDLLToUnity)
             {
-                set_debug_callback_Logger(LogCallback);
+                set_debug_callback_Logger(s_LogCallback);
                 TryAttachHbpCoreLogger(out _);
             }
             if (m_LogDLLToFile)
@@ -67,8 +68,7 @@ namespace HBP.Core.DLL
         }
         private void OnDestroy()
         {
-            TryResetHbpCoreLogger(out _);
-            reset_Logger();
+            ResetNativeLoggers();
         }
         /// <summary>
         /// Log callback when calling the log method within the DLL
@@ -128,12 +128,24 @@ namespace HBP.Core.DLL
 
         public static bool TryAttachHbpCoreLogger(out string error)
         {
-            return HbpCoreRuntime.TrySetDebugCallback(LogCallback, out error);
+            return HbpCoreRuntime.TrySetDebugCallback(s_LogCallback, out error);
         }
 
         public static bool TryResetHbpCoreLogger(out string error)
         {
             return HbpCoreRuntime.TryResetDebugCallback(out error);
+        }
+
+        public static void ResetNativeLoggers()
+        {
+            TryResetHbpCoreLogger(out _);
+            try
+            {
+                reset_Logger();
+            }
+            catch (Exception exception) when (exception is DllNotFoundException || exception is EntryPointNotFoundException || exception is BadImageFormatException)
+            {
+            }
         }
 
         #endregion

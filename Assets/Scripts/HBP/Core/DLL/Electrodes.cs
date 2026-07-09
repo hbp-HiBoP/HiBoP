@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using HBP.Core.DLL.HbpCore;
 using UnityEngine;
 
 namespace HBP.Core.DLL
@@ -16,6 +17,8 @@ namespace HBP.Core.DLL
     public class RawSiteList : CppDLLImportBase
     {
         #region Properties
+        private NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
+        internal NativeBackend Backend => m_Backend;
         /// <summary>
         /// Number of sites
         /// </summary>
@@ -23,13 +26,14 @@ namespace HBP.Core.DLL
         {
             get
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    ThrowIfFailed(hbp_raw_site_list_get_count(_handle.Handle, out int count));
+                    return count;
+                }
                 return sites_nb_RawSiteList(_handle);
             }
         }
-        internal Vector3[] SitePositions => m_SitePositions.ToArray();
-        internal int[] SiteMask => m_SiteMask.ToArray();
-        private readonly List<Vector3> m_SitePositions = new();
-        private readonly List<int> m_SiteMask = new();
         #endregion
 
         #region Public Methods
@@ -39,9 +43,15 @@ namespace HBP.Core.DLL
         /// <param name="patients">List of patients to be set</param>
         public void SetPatients(IEnumerable<Data.Patient> patients)
         {
-            set_patients_RawSiteList(_handle, string.Join("?", patients.Select(p => p.ID)));
-            m_SitePositions.Clear();
-            m_SiteMask.Clear();
+            string patientList = string.Join("?", patients.Select(p => p.ID));
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_raw_site_list_set_patients(_handle.Handle, patientList));
+            }
+            else
+            {
+                set_patients_RawSiteList(_handle, patientList);
+            }
         }
         /// <summary>
         /// Add a site to this raw site list
@@ -52,9 +62,15 @@ namespace HBP.Core.DLL
         /// <param name="index">Index of the site within the parent electrode</param>
         public void AddSite(string name, Vector3 position, int patientIndex, int index)
         {
-            add_site_RawSiteList(_handle, name, position.x, position.y, position.z, patientIndex, index);
-            m_SitePositions.Add(position);
-            m_SiteMask.Add(1);
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                Vec3 nativePosition = Vec3.FromVector3(position);
+                ThrowIfFailed(hbp_raw_site_list_add_site(_handle.Handle, name, ref nativePosition, patientIndex, index));
+            }
+            else
+            {
+                add_site_RawSiteList(_handle, name, position.x, position.y, position.z, patientIndex, index);
+            }
         }
         /// <summary>
         /// Save the raw site list to an obj file
@@ -63,6 +79,10 @@ namespace HBP.Core.DLL
         /// <returns>True if the obj file has been correctly saved</returns>
         public bool SaveToObj(string pathObjNameFile)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("hbp_core RawSiteList.SaveToObj is not implemented in step 12.");
+            }
             bool success = saveToObj_RawPlotList(_handle, pathObjNameFile) == 1;
             return success;
         }
@@ -73,10 +93,14 @@ namespace HBP.Core.DLL
         /// <param name="mask">True if the site has to be masked</param>
         public void UpdateMask(int idSite, bool mask)
         {
-            update_mask_RawSiteList(_handle, idSite, mask ? 1 : 0);
-            if (idSite >= 0 && idSite < m_SiteMask.Count)
+            int nativeMask = mask ? 1 : 0;
+            if (m_Backend == NativeBackend.HbpCore)
             {
-                m_SiteMask[idSite] = mask ? 1 : 0;
+                ThrowIfFailed(hbp_raw_site_list_update_mask(_handle.Handle, idSite, nativeMask));
+            }
+            else
+            {
+                update_mask_RawSiteList(_handle, idSite, nativeMask);
             }
         }
         /// <summary>
@@ -88,6 +112,12 @@ namespace HBP.Core.DLL
         public void GetSitesOnPlane(Plane plane, float precision, out int[] result)
         {
             result = new int[NumberOfSites];
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_raw_site_list_copy_sites_on_plane(_handle.Handle, plane.getHandle().Handle, precision, result, result.Length));
+                return;
+            }
+
             float[] planeV = new float[6];
             for (int ii = 0; ii < 3; ++ii)
             {
@@ -108,6 +138,13 @@ namespace HBP.Core.DLL
             bool result = false;
             foreach (var plane in planes)
             {
+                if (m_Backend == NativeBackend.HbpCore)
+                {
+                    ThrowIfFailed(hbp_raw_site_list_is_site_on_plane(_handle.Handle, site.Information.Index, plane.getHandle().Handle, precision, out int nativeResult));
+                    result |= nativeResult == 1;
+                    continue;
+                }
+
                 float[] planeV = new float[6];
                 for (int ii = 0; ii < 3; ++ii)
                 {
@@ -125,26 +162,35 @@ namespace HBP.Core.DLL
         /// <returns>MarsAtlas label</returns>
         public int GetMarsAtlasLabelOfSite(int siteID)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_raw_site_list_get_mars_atlas_label(_handle.Handle, siteID, out int label));
+                return label;
+            }
             return get_mars_atlas_label_of_site_RawSiteList(_handle, siteID);
         }
         #endregion
 
         #region Memory Management
         public RawSiteList() : base() { }
-        public RawSiteList(RawSiteList other) : base(clone_RawSiteList(other.getHandle()))
+        public RawSiteList(RawSiteList other) : base(CloneNative(other))
         {
-            m_SitePositions.AddRange(other.m_SitePositions);
-            m_SiteMask.AddRange(other.m_SiteMask);
+            m_Backend = other.m_Backend;
         }
-        public RawSiteList(IntPtr ptr)
+        public RawSiteList(IntPtr ptr) : base(ptr)
         {
-            _handle = new HandleRef(this, ptr);
         }
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
         protected override void create_DLL_class()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_raw_site_list_create(out IntPtr list));
+                _handle = new HandleRef(this, list);
+                return;
+            }
             _handle = new HandleRef(this, create_RawSiteList());
         }
         /// <summary>
@@ -152,7 +198,32 @@ namespace HBP.Core.DLL
         /// </summary>
         protected override void delete_DLL_class()
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_raw_site_list_destroy(_handle.Handle));
+                return;
+            }
             delete_RawSiteList(_handle);
+        }
+        #endregion
+
+        #region Private Methods
+        private static IntPtr CloneNative(RawSiteList other)
+        {
+            if (other.m_Backend == NativeBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_raw_site_list_clone(other.getHandle().Handle, out IntPtr clone));
+                return clone;
+            }
+            return clone_RawSiteList(other.getHandle());
+        }
+
+        private static void ThrowIfFailed(HbpCoreStatus status)
+        {
+            if (status != HbpCoreStatus.Ok)
+            {
+                throw new InvalidOperationException($"hbp_core RawSiteList call failed with status {status}: {HbpCoreRuntime.LastError}");
+            }
         }
         #endregion
 
@@ -179,6 +250,27 @@ namespace HBP.Core.DLL
         static private extern void sites_on_plane_RawSiteList(HandleRef handleRawSiteLst, float[] planeV, float precision, int[] result);
         [DllImport("hbp_export", EntryPoint = "get_mars_atlas_label_of_site_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
         static private extern int get_mars_atlas_label_of_site_RawSiteList(HandleRef handleRawSiteLst, int siteID);
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_create", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_create(out IntPtr list);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_destroy", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_destroy(IntPtr list);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_clone", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_clone(IntPtr list, out IntPtr clone);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_set_patients", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_set_patients(IntPtr list, [MarshalAs(UnmanagedType.LPUTF8Str)] string patients);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_add_site", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_add_site(IntPtr list, [MarshalAs(UnmanagedType.LPUTF8Str)] string name, ref Vec3 position, int patientIndex, int index);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_update_mask", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_update_mask(IntPtr list, int siteId, int mask);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_get_count", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_get_count(IntPtr list, out int count);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_copy_sites_on_plane", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_copy_sites_on_plane(IntPtr list, IntPtr plane, float precision, [Out] int[] result, int resultCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_is_site_on_plane", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_is_site_on_plane(IntPtr list, int siteId, IntPtr plane, float precision, out int result);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_raw_site_list_get_mars_atlas_label", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_raw_site_list_get_mars_atlas_label(IntPtr list, int siteId, out int label);
         #endregion
     }
 

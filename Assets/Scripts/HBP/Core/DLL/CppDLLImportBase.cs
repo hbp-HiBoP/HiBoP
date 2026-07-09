@@ -49,7 +49,7 @@ namespace HBP.Core.DLL
 #if UNITY_EDITOR
             DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, DLLDebugManager.CleanedBy.GC);
 #endif
-            Cleanup();
+            Cleanup(suppressExceptions: true);
         }
         /// <summary>
         /// Allocate DLL memory
@@ -67,18 +67,27 @@ namespace HBP.Core.DLL
 #if UNITY_EDITOR
             DLLDebugManager.RemoveDLLOBject(ToString(), m_ID, DLLDebugManager.CleanedBy.Dispose);
 #endif
-            Cleanup();
+            Cleanup(suppressExceptions: false);
             GC.SuppressFinalize(this);
         }
         /// <summary>
         /// Delete C+ DLL data, and set handle to IntPtr.Zero
         /// </summary>
-        private void Cleanup()
+        private void Cleanup(bool suppressExceptions)
         {
             if (_handle.Handle == IntPtr.Zero) return;
 
-            delete_DLL_class();
-            _handle = new HandleRef(this, IntPtr.Zero);
+            try
+            {
+                delete_DLL_class();
+            }
+            catch when (suppressExceptions)
+            {
+            }
+            finally
+            {
+                _handle = new HandleRef(this, IntPtr.Zero);
+            }
         }
         /// <summary>
         /// Return pointer to C++ DLL

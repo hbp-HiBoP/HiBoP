@@ -63,7 +63,7 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(432));
+            Assert.That(imports, Has.Count.EqualTo(442));
             Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(206));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
@@ -72,8 +72,8 @@ namespace HBP.Tests.Serialization
                 .Select(imported => imported.RelativeFile)
                 .Distinct()
                 .ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(172));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(182));
         }
 
         [Test]
@@ -563,6 +563,41 @@ namespace HBP.Tests.Serialization
             finally
             {
                 UnityEngine.Object.DestroyImmediate(cutMesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreRawSiteList_StoresSitesAndQueriesPlanes_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                using RawSiteList rawSites = ExecuteNativeOrIgnore(() => new RawSiteList(), "hbp_core RawSiteList wrapper");
+                rawSites.AddSite("S1", new Vector3(1, 2, 3), patientIndex: 0, index: 0);
+
+                Assert.That(rawSites.NumberOfSites, Is.EqualTo(1));
+                Assert.That(rawSites.GetMarsAtlasLabelOfSite(0), Is.EqualTo(-1));
+
+                using HbpPlane plane = new(new Vector3(0, 0, 3), Vector3.forward);
+                rawSites.GetSitesOnPlane(plane, 0.01f, out int[] sitesOnPlane);
+                Assert.That(sitesOnPlane, Is.EqualTo(new[] { 1 }));
+
+                rawSites.UpdateMask(0, false);
+                using RawSiteList clone = new(rawSites);
+                Assert.That(clone.NumberOfSites, Is.EqualTo(1));
+                clone.GetSitesOnPlane(plane, 0.01f, out int[] cloneSitesOnPlane);
+                Assert.That(cloneSitesOnPlane, Is.EqualTo(new[] { 1 }));
+            }
+            finally
+            {
                 NativeBackendOptions.Reset();
             }
         }

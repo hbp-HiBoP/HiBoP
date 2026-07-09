@@ -21,6 +21,8 @@ namespace HBP.Core.DLL.HbpCore
 
     public static class HbpCoreRuntime
     {
+        private static DLLDebugManager.LoggerDelegate s_DebugCallback;
+
         public static string Version => MarshalString(hbp_core_version());
 
         public static string LastError => MarshalString(hbp_core_last_error());
@@ -37,12 +39,22 @@ namespace HBP.Core.DLL.HbpCore
 
         public static HbpCoreStatus SetDebugCallback(DLLDebugManager.LoggerDelegate callback)
         {
-            return hbp_core_set_debug_callback(callback);
+            HbpCoreStatus status = hbp_core_set_debug_callback(callback);
+            if (status == HbpCoreStatus.Ok)
+            {
+                s_DebugCallback = callback;
+            }
+            return status;
         }
 
         public static HbpCoreStatus ResetDebugCallback()
         {
-            return hbp_core_reset_debug_callback();
+            HbpCoreStatus status = hbp_core_reset_debug_callback();
+            if (status == HbpCoreStatus.Ok)
+            {
+                s_DebugCallback = null;
+            }
+            return status;
         }
 
         public static HbpCoreStatus DebugMessage(string message, HbpCoreLogType type)

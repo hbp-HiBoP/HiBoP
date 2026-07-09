@@ -12,11 +12,9 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                ThrowIfFailed(hbp_ieeg_generator_compute_activity(
+                ThrowIfFailed(hbp_ieeg_generator_compute_activity_from_sites(
                     _handle.Handle,
-                    ToNativePositions(rawElectrodes.SitePositions),
-                    rawElectrodes.SiteMask,
-                    rawElectrodes.NumberOfSites,
+                    rawElectrodes.getHandle().Handle,
                     influenceDistance,
                     activityValues,
                     timelineLength,
@@ -90,8 +88,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_ieeg_generator_create(out IntPtr generator);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_destroy(IntPtr generator);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_compute_activity", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_ieeg_generator_compute_activity(IntPtr generator, [In] Vec3[] sitePositions, [In] int[] siteMask, int siteCount, float maxDistance, [In] float[] activity, int timelineLength, int ratioDistance);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_compute_activity_from_sites", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_ieeg_generator_compute_activity_from_sites(IntPtr generator, IntPtr sites, float maxDistance, [In] float[] activity, int timelineLength, int ratioDistance);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_compute_activity_atlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_compute_activity_atlas(IntPtr generator, [In] float[] activity, int timelineLength, int areaCount, [In] int[] mask, IntPtr atlas);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_adjust_values", CallingConvention = CallingConvention.Cdecl)]
