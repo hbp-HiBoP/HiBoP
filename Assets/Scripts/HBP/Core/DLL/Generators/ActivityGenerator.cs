@@ -49,7 +49,7 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                throw new NotSupportedException("hbp_core does not expose ActivityGenerator.SaveActivityAsNifti in step 11.");
+                return hbp_activity_generator_save_activity_nifti(_handle.Handle, path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description) == HbpCoreStatus.Ok;
             }
             return save_activity_as_nifti_ActivityGenerator(_handle, path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description);
         }
@@ -58,7 +58,7 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                throw new NotSupportedException("hbp_core does not expose ActivityGenerator.SaveMaskAsNifti in step 11.");
+                return hbp_activity_generator_save_mask_nifti(_handle.Handle, path, description) == HbpCoreStatus.Ok;
             }
             return save_mask_as_nifti(_handle, path, description);
         }
@@ -115,6 +115,10 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_activity_generator_initialize(IntPtr generator, IntPtr generatorSurface);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_activity_generator_get_progress", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_activity_generator_get_progress(IntPtr generator, out float progress);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_activity_generator_save_activity_nifti", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_activity_generator_save_activity_nifti(IntPtr generator, string path, int timelineLength, float samplingFrequency, float startTime, string description);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_activity_generator_save_mask_nifti", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_activity_generator_save_mask_nifti(IntPtr generator, string path, string description);
         #endregion
     }
 }
