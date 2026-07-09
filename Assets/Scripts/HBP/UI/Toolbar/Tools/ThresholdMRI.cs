@@ -76,9 +76,7 @@ namespace HBP.UI.Toolbar
                 }
                 else
                 {
-                    Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 440, 440);
-                    texture.UpdateTexture2D(m_MRIHistogram);
-                    texture.Dispose();
+                    m_MRIHistogram = UnityTextureFactory.GenerateSolidTexture(440, 440, new Color32(0, 0, 0, 255));
                 }
                 m_HistogramByMRI.Add(mri3D, m_MRIHistogram);
             }

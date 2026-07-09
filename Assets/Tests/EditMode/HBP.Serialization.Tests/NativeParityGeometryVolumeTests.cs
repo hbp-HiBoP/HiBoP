@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HBP.Core.DLL;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
@@ -122,6 +123,29 @@ namespace HBP.Tests.Serialization
                     Is.EqualTo(hbpExportVolume.GetValueFromPosition(position)).Within(0.0001f),
                     position.ToString());
             }
+
+            using Volume hbpExportMaskVolume = LoadVolume(NativeBackend.HbpExport, "fmri_3d.nii");
+            using Volume hbpCoreMaskVolume = LoadVolume(NativeBackend.HbpCore, "fmri_3d.nii");
+            float[] hbpExportRawValues = new float[27];
+            float[] hbpCoreRawValues = new float[27];
+            int hbpExportActualLength = 0;
+            int hbpCoreActualLength = 0;
+            float hbpExportAverage = hbpExportVolume.GetAverageValueAroundPositionWithMask(
+                new Vector3(-2.0f, 3.0f, 4.0f),
+                1,
+                hbpExportMaskVolume,
+                ref hbpExportRawValues,
+                ref hbpExportActualLength);
+            float hbpCoreAverage = hbpCoreVolume.GetAverageValueAroundPositionWithMask(
+                new Vector3(-2.0f, 3.0f, 4.0f),
+                1,
+                hbpCoreMaskVolume,
+                ref hbpCoreRawValues,
+                ref hbpCoreActualLength);
+
+            Assert.That(hbpCoreAverage, Is.EqualTo(hbpExportAverage).Within(0.0001f));
+            Assert.That(hbpCoreActualLength, Is.EqualTo(hbpExportActualLength));
+            Assert.That(hbpCoreRawValues.Take(hbpCoreActualLength), Is.EqualTo(hbpExportRawValues.Take(hbpExportActualLength)).Within(0.0001f));
 
             foreach (CutOrientation orientation in new[] { CutOrientation.Axial, CutOrientation.Coronal, CutOrientation.Sagittal })
             {

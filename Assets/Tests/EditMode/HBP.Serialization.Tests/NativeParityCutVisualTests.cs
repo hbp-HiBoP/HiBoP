@@ -124,20 +124,12 @@ namespace HBP.Tests.Serialization
                         return new CutPixels(size.x, size.y, cutGenerator.CopyBasePixels());
                     }
 
-                    using HBP.Core.DLL.Texture colorSchemeTexture = HBP.Core.DLL.Texture.CreateFromPixels(colorScheme, UnityTextureFactory.ColormapSize, 1);
-                    using HBP.Core.DLL.Texture outputTexture = new();
-                    cutGenerator.FillTextureWithVolume(colorSchemeTexture, 0.0f, 124.0f);
-                    cutGenerator.UpdateTextureWithVolume(outputTexture);
-                    Texture2D texture = new(1, 1, TextureFormat.RGBA32, false);
-                    try
-                    {
-                        outputTexture.UpdateTexture2D(texture);
-                        return new CutPixels(texture.width, texture.height, texture.GetPixels32());
-                    }
-                    finally
-                    {
-                        UnityEngine.Object.DestroyImmediate(texture);
-                    }
+                    using LegacyTextureBridge colorSchemeTexture = LegacyTextureBridge.CreateFromPixels(colorScheme, UnityTextureFactory.ColormapSize, 1);
+                    using LegacyTextureBridge outputTexture = new();
+                    LegacyCutGeneratorBridge.FillTextureWithVolume(cutGenerator, colorSchemeTexture, 0.0f, 124.0f);
+                    LegacyCutGeneratorBridge.UpdateTextureWithVolume(cutGenerator, outputTexture);
+                    Color32[] pixels = outputTexture.GetPixels(out int width, out int height);
+                    return new CutPixels(width, height, pixels);
                 });
         }
 

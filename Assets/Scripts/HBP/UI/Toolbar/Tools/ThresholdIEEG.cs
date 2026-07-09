@@ -180,18 +180,14 @@ namespace HBP.UI.Toolbar
                 UnityTextureFactory.UpdateDistributionHistogram(m_IEEGHistogram, currentFMRI.HistogramBins, 440, 440, false);
                 m_Histogram.texture = m_IEEGHistogram;
             }
-            else if (currentFMRI != null && currentFMRI.HistogramTexture != null)
+            else
             {
                 if (!m_IEEGHistogram)
                 {
                     m_IEEGHistogram = new Texture2D(1, 1);
                 }
-                currentFMRI.HistogramTexture.UpdateTexture2D(m_IEEGHistogram);
+                UnityTextureFactory.UpdateSolidTexture(m_IEEGHistogram, 440, 440, new Color32(0, 0, 0, 255));
                 m_Histogram.texture = m_IEEGHistogram;
-            }
-            else
-            {
-                m_Histogram.texture = Texture2D.blackTexture;
             }
             UnityEngine.Profiling.Profiler.EndSample();
         }

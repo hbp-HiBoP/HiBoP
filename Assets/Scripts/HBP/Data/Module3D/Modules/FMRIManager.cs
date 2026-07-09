@@ -379,10 +379,7 @@ namespace HBP.Data.Module3D
         private const float m_DiFuMoPositiveMax = 1;
         private const float m_DiFuMoAlpha = 1f;
 
-        private readonly Core.DLL.Texture m_LocalizersTexture = Core.DLL.Texture.CreateFromPixels(
-            UnityTextureFactory.Generate1DColorPixels(Core.Enums.ColorType.MatLab),
-            UnityTextureFactory.ColormapSize,
-            1);
+        private readonly Color32[] m_LocalizersColorSchemePixels = UnityTextureFactory.Generate1DColorPixels(Core.Enums.ColorType.MatLab);
 
         private float m_LocalizersMin = 80f;
         /// <summary>
@@ -482,7 +479,7 @@ namespace HBP.Data.Module3D
             }
             else if (m_DisplayLocalizers)
             {
-                colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRIMask, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, m_LocalizersTexture);
+                colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRIMask, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, m_LocalizersColorSchemePixels);
             }
             m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
             foreach (Column3D column in m_Scene.Columns)
@@ -504,7 +501,7 @@ namespace HBP.Data.Module3D
             }
             else if (m_DisplayLocalizers)
             {
-                column.CutTextures.ColorCutsTexturesWithLocalizersAtlas(CurrentVolume, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, CurrentLocalizersMask, m_LocalizersTexture);
+                column.CutTextures.ColorCutsTexturesWithLocalizersAtlas(CurrentVolume, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, CurrentLocalizersMask, m_LocalizersColorSchemePixels);
             }
         }
 

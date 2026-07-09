@@ -6,7 +6,6 @@ using HBP.Data.Module3D;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
-using DLLTexture = HBP.Core.DLL.Texture;
 using ObjectCut = HBP.Core.Object3D.Cut;
 
 namespace HBP.Tests.Serialization
@@ -118,7 +117,6 @@ namespace HBP.Tests.Serialization
             Texture2D baseTexture = new(1, 1);
             Texture2D brainTexture = new(2, 2);
             Texture2D guiTexture = new(2, 2);
-            utility.DLLBrainCutTextures.Add(new DLLTexture());
             utility.BaseBrainCutTextures.Add(baseTexture);
             utility.BrainCutTextures.Add(brainTexture);
             utility.GUIBrainCutTextures.Add(guiTexture);

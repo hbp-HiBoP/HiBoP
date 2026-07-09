@@ -2065,7 +2065,7 @@ namespace HBP.Data.Module3D
                         Implantation3D.SiteInfo siteInfo = new()
                         {
                             Name = site.Name,
-                            Position = coordinate.Position.ToVector3(),
+                            NativePosition = coordinate.Position.ToVector3(),
                             Patient = patient,
                             Electrode = groups.Count == 3 ? groups[1].ToString() : "Other",
                             PatientIndex = patientIndex,

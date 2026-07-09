@@ -367,7 +367,7 @@ namespace HBP.UI.Main
                     var siteInfo = new Implantation3D.SiteInfo
                     {
                         Name = site.Name,
-                        Position = mniCoordinate.Position.ToVector3(),
+                        NativePosition = mniCoordinate.Position.ToVector3(),
                         Index = globalSiteIndex++,
                         PatientIndex = patientIndex,
                         Patient = patient,

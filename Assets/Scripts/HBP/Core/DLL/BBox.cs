@@ -23,13 +23,13 @@ namespace HBP.Core.DLL
             {
                 if (m_Backend == NativeBackend.HbpCore)
                 {
-                    ThrowIfFailed(hbp_bbox_get_min(_handle.Handle, out Vec3 value));
-                    return value.ToVector3();
+                    GetHbpCoreUnityMinMax(out Vector3 min, out _);
+                    return min;
                 }
 
-                float[] min = new float[3];
-                getMin_BBox(_handle, min);
-                return new Vector3(min[0], min[1], min[2]);
+                float[] _min = new float[3];
+                getMin_BBox(_handle, _min);
+                return new Vector3(_min[0], _min[1], _min[2]);
             }
         }
         /// <summary>
@@ -41,13 +41,13 @@ namespace HBP.Core.DLL
             {
                 if (m_Backend == NativeBackend.HbpCore)
                 {
-                    ThrowIfFailed(hbp_bbox_get_max(_handle.Handle, out Vec3 value));
-                    return value.ToVector3();
+                    GetHbpCoreUnityMinMax(out _, out Vector3 max);
+                    return max;
                 }
 
-                float[] max = new float[3];
-                getMax_BBox(_handle, max);
-                return new Vector3(max[0], max[1], max[2]);
+                float[] _max = new float[3];
+                getMax_BBox(_handle, _max);
+                return new Vector3(_max[0], _max[1], _max[2]);
             }
         }
         /// <summary>
@@ -289,6 +289,7 @@ namespace HBP.Core.DLL
         {
             Vec3 nativeMin = Vec3.FromVector3(min);
             Vec3 nativeMax = Vec3.FromVector3(max);
+            NormalizeNativeMinMax(ref nativeMin, ref nativeMax);
             ThrowIfFailed(hbp_bbox_create_from_min_max(ref nativeMin, ref nativeMax, out IntPtr bbox));
             return new BBox(bbox, NativeBackend.HbpCore);
         }
@@ -330,6 +331,34 @@ namespace HBP.Core.DLL
                 result[i] = points[i].ToVector3();
             }
             return result;
+        }
+
+        private void GetHbpCoreUnityMinMax(out Vector3 min, out Vector3 max)
+        {
+            ThrowIfFailed(hbp_bbox_get_min(_handle.Handle, out Vec3 nativeMin));
+            ThrowIfFailed(hbp_bbox_get_max(_handle.Handle, out Vec3 nativeMax));
+            Vector3 first = nativeMin.ToVector3();
+            Vector3 second = nativeMax.ToVector3();
+            min = Vector3.Min(first, second);
+            max = Vector3.Max(first, second);
+        }
+
+        private static void NormalizeNativeMinMax(ref Vec3 min, ref Vec3 max)
+        {
+            Vec3 normalizedMin = new()
+            {
+                x = Math.Min(min.x, max.x),
+                y = Math.Min(min.y, max.y),
+                z = Math.Min(min.z, max.z)
+            };
+            Vec3 normalizedMax = new()
+            {
+                x = Math.Max(min.x, max.x),
+                y = Math.Max(min.y, max.y),
+                z = Math.Max(min.z, max.z)
+            };
+            min = normalizedMin;
+            max = normalizedMax;
         }
 
         private static List<Segment3> ToSegments(Vector3[] points)

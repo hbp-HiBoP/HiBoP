@@ -10,14 +10,15 @@ namespace HBP.Core.DLL
         public float y;
         public float z;
 
-        public static Vec3 FromVector3(Vector3 value)
+        public static Vec3 FromVector3(Vector3 value, bool convertReferenceSystem = true)
         {
-            return new Vec3 { x = value.x, y = value.y, z = value.z };
+            // Most runtime Vector3 values are in Unity space; hbp_core Vec3 values are in native/classical space.
+            return new Vec3 { x = convertReferenceSystem ? -value.x : value.x, y = value.y, z = value.z };
         }
 
-        public Vector3 ToVector3()
+        public Vector3 ToVector3(bool convertReferenceSystem = true)
         {
-            return new Vector3(x, y, z);
+            return new Vector3(convertReferenceSystem ? -x : x, y, z);
         }
     }
 

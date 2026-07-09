@@ -22,7 +22,7 @@ namespace HBP.Core.Object3D
             /// <summary>
             /// Position of the site
             /// </summary>
-            public Vector3 Position { get; set; }
+            public Vector3 NativePosition { get; set; }
             /// <summary>
             /// Index of this site within the electrode
             /// </summary>
@@ -34,7 +34,7 @@ namespace HBP.Core.Object3D
             {
                 get
                 {
-                    return new Vector3(-Position.x, Position.y, Position.z);
+                    return new Vector3(-NativePosition.x, NativePosition.y, NativePosition.z);
                 }
             }
             /// <summary>
@@ -83,7 +83,7 @@ namespace HBP.Core.Object3D
             RawSiteList.SetPatients(patients);
             foreach (var siteInfo in siteInfos)
             {
-                RawSiteList.AddSite(siteInfo.Name, siteInfo.Position, siteInfo.PatientIndex, siteInfo.Index);
+                RawSiteList.AddSite(siteInfo.Name, siteInfo.NativePosition, siteInfo.PatientIndex, siteInfo.Index);
             }
             IsLoaded = true;
         }

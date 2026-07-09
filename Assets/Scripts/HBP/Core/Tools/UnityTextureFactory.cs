@@ -110,6 +110,33 @@ namespace HBP.Core.Tools
             texture.Apply(false, false);
         }
 
+        public static Texture2D GenerateSolidTexture(int width, int height, Color32 color)
+        {
+            if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
+            if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
+
+            Texture2D texture = CreateTexture(width, height, FilterMode.Point);
+            UpdateSolidTexture(texture, width, height, color);
+            return texture;
+        }
+
+        public static void UpdateSolidTexture(Texture2D texture, int width, int height, Color32 color)
+        {
+            if (texture == null) throw new ArgumentNullException(nameof(texture));
+            if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
+            if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
+
+            if (texture.width != width || texture.height != height)
+            {
+                texture.Reinitialize(width, height);
+            }
+
+            Color32[] pixels = new Color32[width * height];
+            Fill(pixels, color);
+            texture.SetPixels32(pixels);
+            texture.Apply(false, false);
+        }
+
         public static Color32[] GenerateDistributionHistogramPixels(float[] data, int height, int width, float min = 0.0f, float max = 0.0f, bool withGreyArea = true)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));

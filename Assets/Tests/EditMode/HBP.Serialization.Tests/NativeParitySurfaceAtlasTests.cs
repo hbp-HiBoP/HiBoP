@@ -39,6 +39,41 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        public void ClosedSurfacePointContainment_MatchesAcrossBackends()
+        {
+            NativeParityAssert.RequireHbpCore();
+
+            string tempDirectory = Path.Combine(Path.GetTempPath(), "hibop_native_parity_surface");
+            Directory.CreateDirectory(tempDirectory);
+            string objPath = Path.Combine(tempDirectory, "parity_closed_cube.obj");
+            File.WriteAllText(objPath, CubeObjFixture());
+
+            try
+            {
+                using Surface hbpExportSurface = LoadSurface(NativeBackend.HbpExport, surface => surface.LoadOBJFile(objPath));
+                using Surface hbpCoreSurface = LoadSurface(NativeBackend.HbpCore, surface => surface.LoadOBJFile(objPath));
+
+                foreach ((Vector3 point, string name) in new[]
+                {
+                    (new Vector3(0.5f, 0.5f, 0.5f), "center"),
+                    (new Vector3(0.1f, 0.5f, 0.5f), "inside near face"),
+                    (new Vector3(1.5f, 0.5f, 0.5f), "outside x"),
+                    (new Vector3(0.5f, 1.5f, 0.5f), "outside y"),
+                    (new Vector3(0.5f, 0.5f, 1.5f), "outside z")
+                })
+                {
+                    Assert.That(hbpCoreSurface.IsPointInside(point), Is.EqualTo(hbpExportSurface.IsPointInside(point)), name);
+                }
+            }
+            finally
+            {
+                if (File.Exists(objPath)) File.Delete(objPath);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeParity")]
         public void GiftiSurfaceBuffersAndTransform_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();

@@ -69,7 +69,7 @@ namespace HBP.Core.DLL
             Vec3[] result = new Vec3[positions.Length];
             for (int i = 0; i < positions.Length; ++i)
             {
-                result[i] = new Vec3 { x = positions[i].x, y = positions[i].y, z = positions[i].z };
+                result[i] = Vec3.FromVector3(positions[i]);
             }
             return result;
         }

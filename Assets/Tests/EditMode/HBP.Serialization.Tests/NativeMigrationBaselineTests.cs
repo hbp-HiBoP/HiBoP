@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using HBP.Core.DLL;
 using HBP.Core.DLL.HbpCore;
@@ -63,8 +64,8 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(440));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(202));
+            Assert.That(imports, Has.Count.EqualTo(395));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(155));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports
@@ -73,8 +74,75 @@ namespace HBP.Tests.Serialization
                 .Distinct()
                 .ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(184));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(186));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
+            Assert.That(imports.Any(imported => imported.Entry.Contains("PatientElectrodesList")), Is.False);
+            Assert.That(imports.Any(imported => imported.RelativeFile == "ROI.cs"), Is.False);
+            Assert.That(imports.Any(imported => imported.Entry.EndsWith("_ROI", StringComparison.Ordinal)), Is.False);
+            Assert.That(imports.Any(imported => imported.RelativeFile == "Texture.cs"), Is.False);
+            Assert.That(imports.Any(imported => imported.Entry.EndsWith("_Texture", StringComparison.Ordinal)), Is.False);
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void Vec3Conversions_FlipReferenceSystemByDefault_AndAllowExplicitNativeValues()
+        {
+            Type vec3Type = typeof(Volume).Assembly.GetType("HBP.Core.DLL.Vec3", throwOnError: true);
+            MethodInfo fromVector3 = vec3Type.GetMethod("FromVector3", BindingFlags.Public | BindingFlags.Static);
+            MethodInfo toVector3 = vec3Type.GetMethod("ToVector3", BindingFlags.Public | BindingFlags.Instance);
+
+            object converted = fromVector3.Invoke(null, new object[] { new Vector3(1, 2, 3), true });
+            Assert.That(ReadVec3Field(converted, "x"), Is.EqualTo(-1).Within(0.0001f));
+            Assert.That(ReadVec3Field(converted, "y"), Is.EqualTo(2).Within(0.0001f));
+            Assert.That(ReadVec3Field(converted, "z"), Is.EqualTo(3).Within(0.0001f));
+            AssertVector((Vector3)toVector3.Invoke(converted, new object[] { true }), new Vector3(1, 2, 3));
+
+            object native = fromVector3.Invoke(null, new object[] { new Vector3(1, 2, 3), false });
+            Assert.That(ReadVec3Field(native, "x"), Is.EqualTo(1).Within(0.0001f));
+            AssertVector((Vector3)toVector3.Invoke(native, new object[] { false }), new Vector3(1, 2, 3));
+            AssertVector((Vector3)toVector3.Invoke(native, new object[] { true }), new Vector3(-1, 2, 3));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void Vec3ReferenceSystemExceptions_RemainExplicitAndAllowlisted()
+        {
+            string dllFolder = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Scripts", "HBP", "Core", "DLL");
+            Dictionary<string, int> allowedFalseConversions = new()
+            {
+                ["Electrodes.cs"] = 1,
+                ["Volume.cs"] = 1
+            };
+            Dictionary<string, int> actualFalseConversions = Directory
+                .GetFiles(dllFolder, "*.cs", SearchOption.AllDirectories)
+                .Select(file => new
+                {
+                    RelativeFile = file.Substring(dllFolder.Length).TrimStart('\\', '/').Replace('\\', '/'),
+                    Count = Regex.Matches(File.ReadAllText(file), "convertReferenceSystem:\\s*false").Count
+                })
+                .Where(item => item.Count > 0)
+                .ToDictionary(item => item.RelativeFile, item => item.Count);
+
+            Assert.That(actualFalseConversions, Is.EquivalentTo(allowedFalseConversions));
+
+            string[] forbiddenManualFlipPatterns =
+            {
+                @"Vec3\.FromVector3\s*\(\s*new\s+Vector3\s*\(\s*-",
+                @"new\s*\(\s*\)\s*\{\s*x\s*=\s*-"
+            };
+            foreach (string file in Directory.GetFiles(dllFolder, "*.cs", SearchOption.AllDirectories))
+            {
+                if (Path.GetFileName(file) == "HbpCoreValueTypes.cs")
+                {
+                    continue;
+                }
+
+                string contents = File.ReadAllText(file);
+                foreach (string pattern in forbiddenManualFlipPatterns)
+                {
+                    Assert.That(Regex.IsMatch(contents, pattern), Is.False, $"{file} still performs a manual hbp_core Vec3 X flip matching {pattern}");
+                }
+            }
         }
 
         [Test]
@@ -164,6 +232,36 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        public void HbpCoreTransformation_LoadsTrmFileNatively_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            string transformPath = Path.Combine(Path.GetTempPath(), "hbp_core_transformation_from_file_test.trm");
+            File.WriteAllText(transformPath, string.Join(Environment.NewLine,
+                "10 20 30",
+                "0 -1 0",
+                "1 0 0",
+                "0 0 1"));
+            try
+            {
+                using Transformation3 transformation = Transformation3.FromFile(transformPath);
+                AssertVector(transformation.ApplyPoint(new Vector3(-1, 2, 3)), new Vector3(-8, 21, 33));
+            }
+            finally
+            {
+                if (File.Exists(transformPath))
+                {
+                    File.Delete(transformPath);
+                }
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
         public void HbpCoreBBox_ReturnsBoundsAndPlaneIntersections_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -204,26 +302,36 @@ namespace HBP.Tests.Serialization
             HbpSegment3 segment = bbox.IntersectionSegmentBetweenTwoPlanes(planeA, planeB);
 
             Assert.That(segment, Is.Not.Null);
-            AssertVector(segment.End1, new Vector3(1, 1, -3));
-            AssertVector(segment.End2, new Vector3(1, 1, 5));
+            AssertSameVectorSet(
+                new[] { segment.End1, segment.End2 },
+                new[] { new Vector3(1, 1, -3), new Vector3(1, 1, 5) });
             Assert.That(segment.Length, Is.EqualTo(8.0f).Within(0.0001f));
             segment.Dispose();
             Assert.That(bbox.SizeOffsetCutPlane(planeA, 4), Is.InRange(1.0f, 1.01f));
 
-            using Transformation3 transformation = new(
-                new[]
-                {
-                    0.0f, -1.0f, 0.0f,
-                    1.0f, 0.0f, 0.0f,
-                    0.0f, 0.0f, 1.0f
-                },
-                new Vector3(10, 20, 30));
-            AssertVector(transformation.ApplyPoint(new Vector3(1, 2, 3)), new Vector3(8, 21, 33));
+            string transformPath = Path.Combine(Path.GetTempPath(), "hbp_core_bbox_transform_test.trm");
+            File.WriteAllText(transformPath, string.Join(Environment.NewLine,
+                "10 20 30",
+                "1 0 0",
+                "0 1 0",
+                "0 0 1"));
+            try
+            {
+                using Transformation3 transformation = Transformation3.FromFile(transformPath);
+                AssertVector(transformation.ApplyPoint(new Vector3(1, 2, 3)), new Vector3(-9, 22, 33));
 
-            using BBox transformed = BBox.CreateHbpCore(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
-            transformed.Transform(transformation);
-            AssertVector(transformed.Min, new Vector3(9, 19, 29));
-            AssertVector(transformed.Max, new Vector3(11, 21, 31));
+                using BBox transformed = BBox.CreateHbpCore(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
+                transformed.Transform(transformation);
+                AssertVector(transformed.Min, new Vector3(-11, 19, 29));
+                AssertVector(transformed.Max, new Vector3(-9, 21, 31));
+            }
+            finally
+            {
+                if (File.Exists(transformPath))
+                {
+                    File.Delete(transformPath);
+                }
+            }
         }
 
         [Test]
@@ -240,33 +348,37 @@ namespace HBP.Tests.Serialization
             Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
 
             using BBox hbpExportBBox = volume.BoundingBox;
-            using BBox hbpCoreBBox = BBox.CreateHbpCore(hbpExportBBox.Min, hbpExportBBox.Max);
+            NativeBBoxToUnityMinMax(hbpExportBBox, out Vector3 expectedMin, out Vector3 expectedMax);
+            using BBox hbpCoreBBox = BBox.CreateHbpCore(expectedMin, expectedMax);
 
-            AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min);
-            AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max);
-            AssertVector(hbpCoreBBox.Center, hbpExportBBox.Center);
-            AssertSameVectorSet(hbpCoreBBox.Points, hbpExportBBox.Points);
+            AssertVector(hbpCoreBBox.Min, expectedMin);
+            AssertVector(hbpCoreBBox.Max, expectedMax);
+            AssertVector(hbpCoreBBox.Center, NativeToUnity(hbpExportBBox.Center));
+            AssertSameVectorSet(hbpCoreBBox.Points, NativeToUnity(hbpExportBBox.Points));
             List<HbpSegment3> hbpCoreSegments = hbpCoreBBox.Segments;
             List<HbpSegment3> hbpExportSegments = hbpExportBBox.Segments;
             Assert.That(hbpCoreSegments, Has.Count.EqualTo(hbpExportSegments.Count));
             DisposeSegments(hbpCoreSegments);
             DisposeSegments(hbpExportSegments);
 
-            using HbpPlane plane = new(hbpExportBBox.Center, Vector3.forward);
+            using HbpPlane hbpCorePlane = new(NativeToUnity(hbpExportBBox.Center), Vector3.forward);
+            using HbpPlane hbpExportPlane = new(hbpExportBBox.Center, Vector3.forward);
             AssertSameVectorSet(
-                hbpCoreBBox.IntersectionPointsWithPlane(plane),
-                hbpExportBBox.IntersectionPointsWithPlane(plane));
+                hbpCoreBBox.IntersectionPointsWithPlane(hbpCorePlane),
+                NativeToUnity(hbpExportBBox.IntersectionPointsWithPlane(hbpExportPlane)));
 
-            using HbpPlane hbpCorePlaneA = new(hbpExportBBox.Center, Vector3.right);
-            using HbpPlane hbpCorePlaneB = new(hbpExportBBox.Center, Vector3.up);
+            using HbpPlane hbpCorePlaneA = new(NativeToUnity(hbpExportBBox.Center), Vector3.right);
+            using HbpPlane hbpCorePlaneB = new(NativeToUnity(hbpExportBBox.Center), Vector3.up);
+            using HbpPlane hbpExportPlaneA = new(hbpExportBBox.Center, Vector3.right);
+            using HbpPlane hbpExportPlaneB = new(hbpExportBBox.Center, Vector3.up);
             HbpSegment3 hbpCoreSegment = hbpCoreBBox.IntersectionSegmentBetweenTwoPlanes(hbpCorePlaneA, hbpCorePlaneB);
-            HbpSegment3 hbpExportSegment = hbpExportBBox.IntersectionSegmentBetweenTwoPlanes(hbpCorePlaneA, hbpCorePlaneB);
+            HbpSegment3 hbpExportSegment = hbpExportBBox.IntersectionSegmentBetweenTwoPlanes(hbpExportPlaneA, hbpExportPlaneB);
 
             Assert.That(hbpCoreSegment, Is.Not.Null);
             Assert.That(hbpExportSegment, Is.Not.Null);
             AssertSameVectorSet(
                 new[] { hbpCoreSegment.End1, hbpCoreSegment.End2 },
-                new[] { hbpExportSegment.End1, hbpExportSegment.End2 });
+                NativeToUnity(new[] { hbpExportSegment.End1, hbpExportSegment.End2 }));
             hbpCoreSegment.Dispose();
             hbpExportSegment.Dispose();
         }
@@ -290,14 +402,15 @@ namespace HBP.Tests.Serialization
                 using Volume hbpCoreVolume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
                 Assert.That(hbpCoreVolume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
                 Assert.That(hbpCoreVolume.IsLoaded, Is.True);
-                AssertVector(hbpCoreVolume.Center, hbpExportVolume.Center);
+                AssertVector(hbpCoreVolume.Center, NativeToUnity(hbpExportVolume.Center));
                 AssertVector(hbpCoreVolume.Spacing, hbpExportVolume.Spacing);
                 Assert.That(hbpCoreVolume.GetValueFromPosition(new Vector3(-2, 3, 4)), Is.EqualTo(69.0f).Within(0.0001f));
 
                 using BBox hbpExportBBox = hbpExportVolume.BoundingBox;
                 using BBox hbpCoreBBox = hbpCoreVolume.BoundingBox;
-                AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min);
-                AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max);
+                NativeBBoxToUnityMinMax(hbpExportBBox, out Vector3 expectedMin, out Vector3 expectedMax);
+                AssertVector(hbpCoreBBox.Min, expectedMin);
+                AssertVector(hbpCoreBBox.Max, expectedMax);
 
                 using HbpPlane cutPlane = new(hbpCoreVolume.Center, Vector3.forward);
                 Assert.That(hbpCoreVolume.SizeOffsetCutPlane(cutPlane, 10), Is.GreaterThan(0.0f));
@@ -507,7 +620,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(textureSize.x, Is.LessThanOrEqualTo(8));
                 Assert.That(textureSize.y, Is.LessThanOrEqualTo(8));
 
-                Vector2 ratio = geometryGenerator.GetPositionRatioOnTexture(new Vector3(-volume.Center.x, volume.Center.y, volume.Center.z));
+                Vector2 ratio = geometryGenerator.GetPositionRatioOnTexture(volume.Center);
                 Assert.That(ratio.x, Is.InRange(0.45f, 0.55f));
                 Assert.That(ratio.y, Is.InRange(0.45f, 0.55f));
 
@@ -532,7 +645,7 @@ namespace HBP.Tests.Serialization
                 using DensityGenerator densityGenerator = ExecuteNativeOrIgnore(() => new DensityGenerator(), "hbp_core DensityGenerator wrapper");
                 densityGenerator.Initialize(generatorSurface);
                 using RawSiteList rawSites = new();
-                rawSites.AddSite("S1", new Vector3(1, 1, 2), 0, 0);
+                rawSites.AddSite("S1", new Vector3(-1, 1, 2), 0, 0);
                 rawSites.UpdateMask(0, false);
                 densityGenerator.ComputeActivity(rawSites, 10.0f, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
 
@@ -599,6 +712,103 @@ namespace HBP.Tests.Serialization
             }
             finally
             {
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void PatientSiteLoader_LoadsPtsSitesWithoutPatientElectrodesList()
+        {
+            string ptsPath = Path.Combine(Path.GetTempPath(), "hbp_core_patient_sites_loader.pts");
+            File.WriteAllText(
+                ptsPath,
+                string.Join(
+                    Environment.NewLine,
+                    "ptsfile",
+                    "2",
+                    "A1 1 2 3",
+                    "B2 4 5 6"));
+
+            try
+            {
+                List<HBP.Core.Data.Site> sites = HBP.Core.Data.Site.LoadSitesFromPTSFile("Patient", ptsPath);
+
+                Assert.That(sites, Has.Count.EqualTo(2));
+                Assert.That(sites[0].Name, Is.EqualTo("A1"));
+                Assert.That(sites[0].Coordinates, Has.Count.EqualTo(1));
+                AssertVector(sites[0].Coordinates[0].Position.ToVector3(), new Vector3(1, 2, 3));
+                Assert.That(sites[1].Name, Is.EqualTo("B2"));
+                AssertVector(sites[1].Coordinates[0].Position.ToVector3(), new Vector3(4, 5, 6));
+            }
+            finally
+            {
+                if (File.Exists(ptsPath))
+                {
+                    File.Delete(ptsPath);
+                }
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreImplantation3D_BuildsRawSiteListFromManagedSites_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            HBP.Core.Object3D.Implantation3D implantation = null;
+            try
+            {
+                HBP.Core.Data.Patient patient = new(
+                    "Patient A",
+                    Array.Empty<HBP.Core.Data.BaseMesh>(),
+                    Array.Empty<HBP.Core.Data.MRI>(),
+                    Array.Empty<HBP.Core.Data.Site>(),
+                    Array.Empty<HBP.Core.Data.BaseTagValue>(),
+                    "",
+                    "patient-a");
+
+                List<HBP.Core.Object3D.Implantation3D.SiteInfo> siteInfos = new()
+                {
+                    new()
+                    {
+                        Name = "A1",
+                        NativePosition = new Vector3(1, 2, 3),
+                        PatientIndex = 0,
+                        Patient = patient,
+                        Electrode = "A",
+                        Index = 0
+                    },
+                    new()
+                    {
+                        Name = "B2",
+                        NativePosition = new Vector3(4, 5, 6),
+                        PatientIndex = 0,
+                        Patient = patient,
+                        Electrode = "B",
+                        Index = 1
+                    }
+                };
+
+                implantation = new HBP.Core.Object3D.Implantation3D("Patient", siteInfos, new[] { patient });
+
+                Assert.That(implantation.IsLoaded, Is.True);
+                Assert.That(implantation.SiteInfos, Has.Count.EqualTo(2));
+                Assert.That(implantation.SiteInfos[0].Electrode, Is.EqualTo("A"));
+                Assert.That(implantation.RawSiteList.NumberOfSites, Is.EqualTo(2));
+
+                using HbpPlane secondSitePlane = new(new Vector3(0, 0, 6), Vector3.forward);
+                implantation.RawSiteList.GetSitesOnPlane(secondSitePlane, 0.01f, out int[] sitesOnPlane);
+                Assert.That(sitesOnPlane, Is.EqualTo(new[] { 0, 1 }));
+            }
+            finally
+            {
+                implantation?.Clean();
                 NativeBackendOptions.Reset();
             }
         }
@@ -827,12 +1037,13 @@ namespace HBP.Tests.Serialization
                 Assert.That(hbpCoreSurface.NumberOfTriangles, Is.EqualTo(hbpExportSurface.NumberOfTriangles));
                 using BBox hbpExportBBox = hbpExportSurface.BoundingBox;
                 using BBox hbpCoreBBox = hbpCoreSurface.BoundingBox;
-                AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min);
-                AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max);
+                NativeBBoxToUnityMinMax(hbpExportBBox, out Vector3 expectedMin, out Vector3 expectedMax);
+                AssertVector(hbpCoreBBox.Min, expectedMin);
+                AssertVector(hbpCoreBBox.Max, expectedMax);
                 Assert.That(hbpCoreMesh.vertexCount, Is.EqualTo(hbpExportMesh.vertexCount));
-                Assert.That(hbpCoreMesh.triangles.Length, Is.EqualTo(hbpExportMesh.triangles.Length));
-                AssertVector(hbpCoreMesh.vertices[6], hbpExportMesh.vertices[6]);
-                AssertVector(hbpCoreMesh.normals[0], hbpExportMesh.normals[0]);
+                Assert.That(hbpCoreMesh.triangles, Is.EqualTo(ReverseTriangleWinding(hbpExportMesh.triangles)));
+                AssertVector(hbpCoreMesh.vertices[6], NativeToUnity(hbpExportMesh.vertices[6]));
+                AssertVector(hbpCoreMesh.normals[0], NativeToUnity(hbpExportMesh.normals[0]));
             }
             finally
             {
@@ -1021,6 +1232,42 @@ namespace HBP.Tests.Serialization
             Assert.That(actual.x, Is.EqualTo(expected.x).Within(0.0001f));
             Assert.That(actual.y, Is.EqualTo(expected.y).Within(0.0001f));
             Assert.That(actual.z, Is.EqualTo(expected.z).Within(0.0001f));
+        }
+
+        private static Vector3 NativeToUnity(Vector3 value)
+        {
+            return new Vector3(-value.x, value.y, value.z);
+        }
+
+        private static List<Vector3> NativeToUnity(IEnumerable<Vector3> values)
+        {
+            return values.Select(NativeToUnity).ToList();
+        }
+
+        private static void NativeBBoxToUnityMinMax(BBox bbox, out Vector3 min, out Vector3 max)
+        {
+            Vector3 first = NativeToUnity(bbox.Min);
+            Vector3 second = NativeToUnity(bbox.Max);
+            min = Vector3.Min(first, second);
+            max = Vector3.Max(first, second);
+        }
+
+        private static int[] ReverseTriangleWinding(int[] triangles)
+        {
+            int[] result = new int[triangles.Length];
+            triangles.CopyTo(result, 0);
+            for (int i = 0; i + 2 < result.Length; i += 3)
+            {
+                (result[i + 1], result[i + 2]) = (result[i + 2], result[i + 1]);
+            }
+            return result;
+        }
+
+        private static float ReadVec3Field(object vec3, string fieldName)
+        {
+            FieldInfo field = vec3.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.Instance);
+            Assert.That(field, Is.Not.Null, $"Vec3.{fieldName} field is required for native marshalling.");
+            return (float)field.GetValue(vec3);
         }
 
         private static void AssertSameVectorSet(IReadOnlyCollection<Vector3> actual, IReadOnlyCollection<Vector3> expected)

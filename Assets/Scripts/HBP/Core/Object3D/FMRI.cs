@@ -27,7 +27,6 @@ namespace HBP.Core.Object3D
         public string TimeUnit { get; private set; } = "dt";
         public MRICalValues ExtremeValues { get; private set; }
         public int[] HistogramBins { get; private set; }
-        public Texture HistogramTexture { get; private set; }
         #endregion
 
         #region Constructors
@@ -73,10 +72,6 @@ namespace HBP.Core.Object3D
             }
             ExtremeValues = nifti.ExtremeValues;
             HistogramBins = nifti.GetHistogramBins(UnityTextureFactory.HistogramBinCount);
-            if (HistogramBins == null)
-            {
-                HistogramTexture = Texture.GenerateDistributionHistogram(nifti, 440, 440, false);
-            }
             if (nifti.NumberOfVolumes > 0)
             {
                 StartTime = nifti.StartTime;

@@ -1,6 +1,6 @@
 using System;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
@@ -189,33 +189,11 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
-        public void LegacyTextureBridge_DoesNotExposeRemovedNativeRenderingImports()
+        public void RuntimeTextureBridge_IsRemovedFromCoreDllWrappers()
         {
-            string[] removedTextureEntryPoints =
-            {
-                "clone_Texture",
-                "load_Texture",
-                "save_to_png_Texture",
-                "get_data_Texture",
-                "write_text_Texture",
-                "generate_distribution_histogram_with_data_Texture",
-                "apply_blur_Texture",
-                "rotate_with_cut_plane_Texture",
-                "copy_from_and_rotate_Texture",
-                "resize_to_square_Texture",
-                "draw_sites_Texture",
-                "generate_1D_color_Texture",
-                "generate_2D_color_Texture"
-            };
-
-            string[] entryPoints = typeof(HBP.Core.DLL.Texture)
-                .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
-                .Select(method => method.GetCustomAttribute<DllImportAttribute>())
-                .Where(attribute => attribute != null)
-                .Select(attribute => attribute.EntryPoint ?? string.Empty)
-                .ToArray();
-
-            Assert.That(entryPoints.Intersect(removedTextureEntryPoints), Is.Empty);
+            Assert.That(Type.GetType("HBP.Core.DLL.Texture, Assembly-CSharp"), Is.Null);
+            string wrapperPath = Path.Combine(Application.dataPath, "Scripts", "HBP", "Core", "DLL", "Texture.cs");
+            Assert.That(File.Exists(wrapperPath), Is.False);
         }
 
         [Test]

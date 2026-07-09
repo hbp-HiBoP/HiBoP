@@ -744,6 +744,13 @@ namespace HBP.Core.DLL
         /// <returns>True if the site is inside the surface</returns>
         public bool IsPointInside(Vector3 point)
         {
+            if (m_Backend == NativeBackend.HbpCore)
+            {
+                Vec3 nativePoint = Vec3.FromVector3(point);
+                ThrowIfFailed(hbp_surface_is_point_inside(_handle.Handle, ref nativePoint, out int inside));
+                return inside != 0;
+            }
+
             EnsureHbpExport(nameof(IsPointInside));
             return is_point_inside_Surface(_handle, -point.x, point.y, point.z);
         }
@@ -788,7 +795,7 @@ namespace HBP.Core.DLL
                 nativeVertices[i] = Vec3.FromVector3(vertices[i]);
             }
             ThrowIfFailed(hbp_surface_set_vertices(_handle.Handle, nativeVertices, nativeVertices.Length));
-            ThrowIfFailed(hbp_surface_set_triangles(_handle.Handle, triangles, triangles.Length));
+            ThrowIfFailed(hbp_surface_set_triangles(_handle.Handle, ReverseTriangleWinding(triangles), triangles.Length));
 
             if (normals != null)
             {
@@ -966,6 +973,7 @@ namespace HBP.Core.DLL
             if (visibleTriangleIndexCount > 0)
             {
                 ThrowIfFailed(hbp_surface_copy_visible_triangles(_handle.Handle, m_TriangleIndices, m_TriangleIndices.Length));
+                m_TriangleIndices = ReverseTriangleWinding(m_TriangleIndices);
             }
 
             mesh.Clear();
@@ -999,6 +1007,17 @@ namespace HBP.Core.DLL
             }
 
             return clone_Surface(other.getHandle());
+        }
+
+        private static int[] ReverseTriangleWinding(int[] triangles)
+        {
+            int[] result = new int[triangles.Length];
+            triangles.CopyTo(result, 0);
+            for (int i = 0; i + 2 < result.Length; i += 3)
+            {
+                (result[i + 1], result[i + 2]) = (result[i + 2], result[i + 1]);
+            }
+            return result;
         }
 
         private static void ThrowIfFailed(HbpCoreStatus status)
@@ -1147,6 +1166,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_update_visibility_mask_with_ray(IntPtr surface, ref Vec3 rayDirection, ref Vec3 hitPoint, int mode, float degrees, out IntPtr invisibleSurface);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_simplify", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_simplify(IntPtr surface, int targetTriangleCount, int aggressiveness, out IntPtr outSurface);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_is_point_inside", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_is_point_inside(IntPtr surface, ref Vec3 point, out int inside);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_apply_mars_atlas_parcels", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_apply_mars_atlas_parcels(IntPtr surface, IntPtr marsAtlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string parcelsPath);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_cut", CallingConvention = CallingConvention.Cdecl)]

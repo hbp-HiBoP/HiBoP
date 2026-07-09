@@ -36,7 +36,7 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                Vec3 nativePosition = new() { x = -position.x, y = position.y, z = position.z };
+                Vec3 nativePosition = Vec3.FromVector3(position);
                 ThrowIfFailed(hbp_brain_atlas_get_closest_area_index(_handle.Handle, ref nativePosition, radius, out int label));
                 return label;
             }
@@ -133,8 +133,7 @@ namespace HBP.Core.DLL
                 Vector3[] hbpCoreResult = new Vector3[coordinateCount];
                 for (int i = 0; i < coordinateCount; ++i)
                 {
-                    Vector3 coordinate = nativeCoordinates[i].ToVector3();
-                    hbpCoreResult[i] = new Vector3(-coordinate.x, coordinate.y, coordinate.z);
+                    hbpCoreResult[i] = nativeCoordinates[i].ToVector3();
                 }
                 return hbpCoreResult;
             }

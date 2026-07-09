@@ -108,7 +108,7 @@ namespace HBP.UI.Toolbar
             else
             {
                 if (m_MRIHistogram == null) m_MRIHistogram = new(1, 1);
-                fmri.HistogramTexture.UpdateTexture2D(m_MRIHistogram);
+                UnityTextureFactory.UpdateSolidTexture(m_MRIHistogram, 440, 440, new Color32(0, 0, 0, 255));
             }
             m_Histogram.texture = m_MRIHistogram;
         }

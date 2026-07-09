@@ -204,7 +204,7 @@ namespace HBP.Data.Module3D
                     for (int ii = 0; ii < maskROI.Length; ++ii)
                         maskROI[ii] = column.Sites[ii].State.IsOutOfROI;
 
-                    SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
+                    SelectedROI.UpdateMask(column.Sites, maskROI);
                     for (int ii = 0; ii < column.Sites.Count; ++ii)
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }

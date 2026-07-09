@@ -47,10 +47,6 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
-        /// Pointer to the DLL object corresponding to this ROI
-        /// </summary>
-        private Core.DLL.ROI m_DLLROI;
-        /// <summary>
         /// List of this spheres of this ROI
         /// </summary>
         public List<Sphere> Spheres { get; private set; } = new List<Sphere>();
@@ -83,12 +79,7 @@ namespace HBP.Data.Module3D
         #region Private Methods
         void Awake()
         {
-            m_DLLROI = new Core.DLL.ROI();
             SelectedSphereID = -1;
-        }
-        private void OnDestroy()
-        {
-            m_DLLROI?.Dispose();
         }
         /// <summary>
         /// Unselect the currently selected sphere of this ROI
@@ -136,11 +127,30 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Update the ROI mask of the sites using this ROI
         /// </summary>
-        /// <param name="plots">Raw list of the sites of the scene</param>
+        /// <param name="sites">List of the sites of the scene</param>
         /// <param name="mask">ROI mask for the sites (true if a site is not in this ROI)</param>
-        public void UpdateMask(Core.DLL.RawSiteList plots, bool[] mask)
+        public void UpdateMask(IReadOnlyList<Core.Object3D.Site> sites, bool[] mask)
         {
-            m_DLLROI.UpdateMask(plots, mask);
+            for (int ii = 0; ii < sites.Count; ++ii)
+            {
+                mask[ii] = !Contains(sites[ii].Information.DefaultPosition);
+            }
+        }
+        /// <summary>
+        /// Return true if the input position is inside this ROI.
+        /// </summary>
+        /// <param name="position">Position to test in Unity space</param>
+        /// <returns>True if the position is inside at least one ROI sphere</returns>
+        public bool Contains(Vector3 position)
+        {
+            for (int ii = 0; ii < Spheres.Count; ++ii)
+            {
+                if (Spheres[ii].Contains(position))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         /// <summary>
         /// Select the closest sphere from a raycast
@@ -206,11 +216,6 @@ namespace HBP.Data.Module3D
             });
             Spheres.Add(sphere);
 
-            // DLL
-            Vector3 positionSphere = sphere.transform.localPosition;
-            positionSphere.x = -positionSphere.x;
-            m_DLLROI.AddSphere(radius, positionSphere);
-
             OnChangeNumberOfSpheres.Invoke();
             SelectSphere(Spheres.Count - 1);
         }
@@ -223,11 +228,6 @@ namespace HBP.Data.Module3D
             if (SelectedSphereID != -1)
             {
                 SelectedSphere.Position += translation;
-
-                // DLL
-                Vector3 positionSphere = SelectedSphere.Position;
-                positionSphere.x = -positionSphere.x;
-                m_DLLROI.UpdateSpherePosition(SelectedSphereID, positionSphere);
 
                 OnChangeSphereParameters.Invoke();
             }
@@ -243,9 +243,6 @@ namespace HBP.Data.Module3D
             // remove the sphere
             Destroy(Spheres[sphereID].gameObject);
             Spheres.RemoveAt(sphereID);
-
-            // remove dll sphere
-            m_DLLROI.RemoveSphere(sphereID);
 
             OnChangeNumberOfSpheres.Invoke();
             
@@ -275,10 +272,7 @@ namespace HBP.Data.Module3D
 
             if (Mathf.Abs(direction) > 0.2f)
             {
-                SelectedSphere.Radius *= direction < 0 ? 0.9f : 1.1f;
-
-                // DLL
-                m_DLLROI.UpdateSphereRadius(SelectedSphereID, SelectedSphere.Radius);
+                SelectedSphere.SetInfluenceRadius(SelectedSphere.InfluenceRadius * (direction < 0 ? 0.9f : 1.1f));
 
                 OnChangeSphereParameters.Invoke();
             }

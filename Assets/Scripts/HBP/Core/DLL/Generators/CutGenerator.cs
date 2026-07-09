@@ -39,17 +39,6 @@ namespace HBP.Core.DLL
             initialize_CutGenerator(_handle, activityGenerator.getHandle(), cutGeometryGenerator.getHandle(), blurFactor);
         }
 
-        public void FillTextureWithVolume(Texture colorScheme, float calMin, float calMax)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                FillTextureWithVolume(colorScheme.GetManagedPixels(), calMin, calMax);
-                return;
-            }
-
-            fill_texture_with_volume_CutGenerator(_handle, colorScheme.getHandle(), calMin, calMax);
-        }
-
         public void FillTextureWithVolume(Color32[] colorScheme, float calMin, float calMax)
         {
             EnsureHbpCore(nameof(FillTextureWithVolume));
@@ -64,25 +53,9 @@ namespace HBP.Core.DLL
 
         public void FillTextureWithAtlas(BrainAtlas atlas, float alpha, int selectedArea)
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                EnsureHbpCoreAtlas(atlas, nameof(FillTextureWithAtlas));
-                ThrowIfFailed(hbp_cut_generator_fill_atlas_rgba(_handle.Handle, atlas.getHandle().Handle, alpha, selectedArea));
-                return;
-            }
-
-            fill_texture_with_atlas_CutGenerator(_handle, atlas.getHandle(), alpha, selectedArea);
-        }
-
-        public void FillTextureWithActivity(Texture colorScheme, int timelineIndex, float alpha)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                FillTextureWithActivity(colorScheme.GetManagedPixels(), timelineIndex, alpha);
-                return;
-            }
-
-            fill_texture_with_activity_CutGenerator(_handle, colorScheme.getHandle(), timelineIndex, alpha);
+            EnsureHbpCore(nameof(FillTextureWithAtlas));
+            EnsureHbpCoreAtlas(atlas, nameof(FillTextureWithAtlas));
+            ThrowIfFailed(hbp_cut_generator_fill_atlas_rgba(_handle.Handle, atlas.getHandle().Handle, alpha, selectedArea));
         }
 
         public void FillTextureWithActivity(Color32[] colorScheme, int timelineIndex, float alpha)
@@ -94,25 +67,9 @@ namespace HBP.Core.DLL
 
         public void FillTextureWithFMRI(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                EnsureHbpCoreVolume(volume, nameof(FillTextureWithFMRI));
-                ThrowIfFailed(hbp_cut_generator_fill_fmri_rgba(_handle.Handle, volume.getHandle().Handle, negativeMin, negativeMax, positiveMin, positiveMax, alpha));
-                return;
-            }
-
-            fill_texture_with_fmri_CutGenerator(_handle, volume.getHandle(), negativeMin, negativeMax, positiveMin, positiveMax, alpha);
-        }
-
-        public void FillTextureWithLocalizer(Volume volume, float min, float middle, float max, Volume mask, Texture texture)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                FillTextureWithLocalizer(volume, min, middle, max, mask, texture.GetManagedPixels());
-                return;
-            }
-
-            fill_texture_with_localizer_CutGenerator(_handle, volume.getHandle(), mask.getHandle(), min, middle, max, texture.getHandle());
+            EnsureHbpCore(nameof(FillTextureWithFMRI));
+            EnsureHbpCoreVolume(volume, nameof(FillTextureWithFMRI));
+            ThrowIfFailed(hbp_cut_generator_fill_fmri_rgba(_handle.Handle, volume.getHandle().Handle, negativeMin, negativeMax, positiveMin, positiveMax, alpha));
         }
 
         public void FillTextureWithLocalizer(Volume volume, float min, float middle, float max, Volume mask, Color32[] colorScheme)
@@ -127,36 +84,6 @@ namespace HBP.Core.DLL
             Color4[] nativeColorScheme = colorScheme.ToNativeColor4Array();
             IntPtr maskHandle = mask == null ? IntPtr.Zero : mask.getHandle().Handle;
             ThrowIfFailed(hbp_cut_generator_fill_localizer_rgba(_handle.Handle, volume.getHandle().Handle, maskHandle, min, middle, max, nativeColorScheme, nativeColorScheme.Length));
-        }
-
-        public void UpdateTextureWithVolume(Texture texture)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                throw new NotSupportedException("hbp_core cut textures are copied with CopyBasePixels.");
-            }
-
-            update_texture_with_volume_CutGenerator(_handle, texture.getHandle());
-        }
-
-        public void UpdateTextureWithAtlas(Texture texture)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                throw new NotSupportedException("hbp_core cut textures are copied with CopyOverlayPixels.");
-            }
-
-            update_texture_with_atlas_CutGenerator(_handle, texture.getHandle());
-        }
-
-        public void UpdateTextureWithActivity(Texture texture)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                throw new NotSupportedException("hbp_core cut textures are copied with CopyOverlayPixels.");
-            }
-
-            update_texture_with_activity_CutGenerator(_handle, texture.getHandle());
         }
 
         public Color32[] CopyBasePixels()
@@ -289,22 +216,6 @@ namespace HBP.Core.DLL
         static private extern void delete_CutGenerator(HandleRef generator);
         [DllImport(NativeDll.HbpExport, EntryPoint = "initialize_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void initialize_CutGenerator(HandleRef generator, HandleRef activityGenerator, HandleRef geometryGenerator, int blurFactor);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "fill_texture_with_volume_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void fill_texture_with_volume_CutGenerator(HandleRef generator, HandleRef colorScheme, float calMin, float calMax);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "fill_texture_with_atlas_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void fill_texture_with_atlas_CutGenerator(HandleRef generator, HandleRef atlas, float alpha, int highlightedLabelIndex);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "fill_texture_with_activity_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void fill_texture_with_activity_CutGenerator(HandleRef generator, HandleRef colorScheme, int timelineIndex, float alpha);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "fill_texture_with_fmri_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void fill_texture_with_fmri_CutGenerator(HandleRef generator, HandleRef volumeHandle, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "fill_texture_with_localizer_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void fill_texture_with_localizer_CutGenerator(HandleRef generator, HandleRef volumeHandle, HandleRef maskHandle, float min, float middle, float max, HandleRef textureHandle);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "update_texture_with_volume_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void update_texture_with_volume_CutGenerator(HandleRef generator, HandleRef texture);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "update_texture_with_atlas_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void update_texture_with_atlas_CutGenerator(HandleRef generator, HandleRef texture);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "update_texture_with_activity_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void update_texture_with_activity_CutGenerator(HandleRef generator, HandleRef texture);
 
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_create(out IntPtr generator);

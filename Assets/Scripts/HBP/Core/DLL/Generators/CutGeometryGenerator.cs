@@ -85,7 +85,7 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                Vec3 nativePoint = new() { x = -point.x, y = point.y, z = point.z };
+                Vec3 nativePoint = Vec3.FromVector3(point);
                 ThrowIfFailed(hbp_cut_geometry_generator_get_position_ratio_on_texture(_handle.Handle, ref nativePoint, out Vec2 ratio));
                 return ratio.ToVector2();
             }

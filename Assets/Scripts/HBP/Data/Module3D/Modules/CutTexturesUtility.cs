@@ -18,17 +18,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         public Column3D Column { get; set; }
         /// <summary>
-        /// Color scheme for the cut
-        /// </summary>
-        public Core.DLL.Texture DLLCutColorScheme;
-        /// <summary>
         /// Generator for the MRI textures of the cuts
         /// </summary>
         public List<Core.DLL.CutGenerator> CutGenerators = new();
-        /// <summary>
-        /// DLL textures for the cuts for the 3D
-        /// </summary>
-        public List<Core.DLL.Texture> DLLBrainCutTextures = new();
         /// <summary>
         /// Unity textures for the anatomical cuts.
         /// </summary>
@@ -61,7 +53,6 @@ namespace HBP.Data.Module3D
                 BaseBrainCutTextures.Add(Texture2DExtension.Generate());
                 BrainCutTextures.Add(Texture2DExtension.Generate());
                 GUIBrainCutTextures.Add(Texture2DExtension.Generate(1, 1, -10, 9, FilterMode.Point));
-                DLLBrainCutTextures.Add(new Core.DLL.Texture());
                 CutGenerators.Add(new Core.DLL.CutGenerator());
                 Size++;
             }
@@ -73,8 +64,6 @@ namespace HBP.Data.Module3D
                 BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
                 UnityEngine.Object.Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
                 GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
-                DLLBrainCutTextures[DLLBrainCutTextures.Count - 1].Dispose();
-                DLLBrainCutTextures.RemoveAt(DLLBrainCutTextures.Count - 1);
                 CutGenerators[CutGenerators.Count - 1].Dispose();
                 CutGenerators.RemoveAt(CutGenerators.Count - 1);
                 Size--;
@@ -95,19 +84,9 @@ namespace HBP.Data.Module3D
         {
             Core.DLL.CutGenerator cutGenerator = CutGenerators[indexCut];
             UnityEngine.Profiling.Profiler.BeginSample("FillTextureWithVolume");
-            if (cutGenerator.UsesHbpCore)
-            {
-                cutGenerator.FillTextureWithVolume(m_BrainCutColorSchemePixels, MRICalMinFactor, MRICalMaxFactor);
-                UnityEngine.Profiling.Profiler.EndSample();
-                ApplyPixels(BaseBrainCutTextures[indexCut], cutGenerator.CopyBasePixels(), cutGenerator.CutGeometryGenerator.TextureSize);
-                CopyTexture(BaseBrainCutTextures[indexCut], BrainCutTextures[indexCut]);
-                return;
-            }
-
-            cutGenerator.FillTextureWithVolume(DLLCutColorScheme, MRICalMinFactor, MRICalMaxFactor);
+            cutGenerator.FillTextureWithVolume(m_BrainCutColorSchemePixels, MRICalMinFactor, MRICalMaxFactor);
             UnityEngine.Profiling.Profiler.EndSample();
-            cutGenerator.UpdateTextureWithVolume(DLLBrainCutTextures[indexCut]);
-            DLLBrainCutTextures[indexCut].UpdateTexture2D(BaseBrainCutTextures[indexCut]);
+            ApplyPixels(BaseBrainCutTextures[indexCut], cutGenerator.CopyBasePixels(), cutGenerator.CutGeometryGenerator.TextureSize);
             CopyTexture(BaseBrainCutTextures[indexCut], BrainCutTextures[indexCut]);
         }
         /// <summary>
@@ -183,7 +162,7 @@ namespace HBP.Data.Module3D
                 projectedSites.Clear();
                 foreach (Core.Object3D.Implantation3D.SiteInfo siteInfo in siteInfos)
                 {
-                    if (siteInfo == null || !IsSiteOnCut(siteInfo.Position, cut, precisionSquared))
+                    if (siteInfo == null || !IsSiteOnCut(siteInfo.NativePosition, cut, precisionSquared))
                     {
                         continue;
                     }
@@ -228,18 +207,8 @@ namespace HBP.Data.Module3D
             for (int i = 0; i < CutGenerators.Count; ++i)
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
-                if (generator.UsesHbpCore)
-                {
-                    generator.FillTextureWithActivity(m_CutActivityColorSchemePixels, timelineIndex, Column.ActivityAlpha);
-                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
-                    continue;
-                }
-
-                generator.FillTextureWithActivity(DLLCutColorScheme, timelineIndex, Column.ActivityAlpha);
-
-                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
-                generator.UpdateTextureWithActivity(cutTexture);
-                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+                generator.FillTextureWithActivity(m_CutActivityColorSchemePixels, timelineIndex, Column.ActivityAlpha);
+                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }
         public void ColorCutsTexturesWithBrainAtlas(Core.DLL.BrainAtlas selectedAtlas, float alpha, int selectedArea)
@@ -248,16 +217,7 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithAtlas(selectedAtlas, alpha, selectedArea);
-
-                if (generator.UsesHbpCore)
-                {
-                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
-                    continue;
-                }
-
-                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
-                generator.UpdateTextureWithAtlas(cutTexture);
-                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }
         public void ColorCutsTexturesWithFMRIAtlas(Core.DLL.Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
@@ -266,37 +226,19 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithFMRI(volume, negativeMin, negativeMax, positiveMin, positiveMax, alpha);
-
-                if (generator.UsesHbpCore)
-                {
-                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
-                    continue;
-                }
-
-                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
-                generator.UpdateTextureWithAtlas(cutTexture);
-                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }
         /// <summary>
         /// Color cuts with Localizers atlas using min, middle, max parameters (with mask)
         /// </summary>
-        public void ColorCutsTexturesWithLocalizersAtlas(Core.DLL.Volume volume, float min, float middle, float max, Core.DLL.Volume mask, Core.DLL.Texture texture)
+        public void ColorCutsTexturesWithLocalizersAtlas(Core.DLL.Volume volume, float min, float middle, float max, Core.DLL.Volume mask, Color32[] colorScheme)
         {
             for (int i = 0; i < CutGenerators.Count; i++)
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
-                generator.FillTextureWithLocalizer(volume, min, middle, max, mask, texture);
-
-                if (generator.UsesHbpCore)
-                {
-                    ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
-                    continue;
-                }
-
-                Core.DLL.Texture cutTexture = DLLBrainCutTextures[i];
-                generator.UpdateTextureWithAtlas(cutTexture);
-                cutTexture.UpdateTexture2D(BrainCutTextures[i]);
+                generator.FillTextureWithLocalizer(volume, min, middle, max, mask, colorScheme);
+                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }
         /// <summary>
@@ -306,11 +248,8 @@ namespace HBP.Data.Module3D
         /// <param name="colorBrainCut">Cut color to be used</param>
         public void ResetColorSchemes(ColorType colormap, ColorType colorBrainCut)
         {
-            DLLCutColorScheme?.Dispose();
             m_BrainCutColorSchemePixels = UnityTextureFactory.Generate1DColorPixels(colorBrainCut);
             m_CutActivityColorSchemePixels = UnityTextureFactory.Generate1DColorPixels(colormap);
-            Color32[] colorSchemePixels = UnityTextureFactory.Generate2DColorPixels(colorBrainCut, colormap, out int colorSchemeWidth, out int colorSchemeHeight);
-            DLLCutColorScheme = Core.DLL.Texture.CreateFromPixels(colorSchemePixels, colorSchemeWidth, colorSchemeHeight);
         }
         /// <summary>
         /// Clean the Cut Textures Utility class
@@ -318,8 +257,6 @@ namespace HBP.Data.Module3D
         public void Clean()
         {
             foreach (var dllMRITextureCutGenerator in CutGenerators) dllMRITextureCutGenerator?.Dispose();
-            DLLCutColorScheme?.Dispose();
-            foreach (var texture in DLLBrainCutTextures) texture?.Dispose();
         }
         #endregion
 

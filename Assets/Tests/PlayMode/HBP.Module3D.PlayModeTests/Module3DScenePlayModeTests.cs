@@ -549,6 +549,65 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [UnityTest]
         [Category("PlayMode.Module3DScene")]
+        [Category("NativeMigration")]
+        public IEnumerator ROI_ContainsUsesStrictSphereUnion()
+        {
+            using PlayModeSceneScope scene = new("Module3DSceneManagedROIGeometry");
+            CreateRuntimeModule3DMain(scene, "Managed ROI Geometry Module");
+            ROI roi = CreateRuntimeROI(scene, "Managed ROI Geometry");
+
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere A", Vector3.zero, 1.0f);
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere B", new Vector3(3, 0, 0), 0.5f);
+
+            yield return null;
+
+            Assert.That(roi.Contains(Vector3.zero), Is.True);
+            Assert.That(roi.Contains(new Vector3(0.5f, 0, 0)), Is.True);
+            Assert.That(roi.Contains(new Vector3(1.0f, 0, 0)), Is.False);
+            Assert.That(roi.Contains(new Vector3(2.0f, 0, 0)), Is.False);
+            Assert.That(roi.Contains(new Vector3(3.0f, 0, 0)), Is.True);
+        }
+
+        [UnityTest]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeMigration")]
+        public IEnumerator ROI_UpdateMaskTracksSphereAddResizeMoveAndRemove()
+        {
+            using PlayModeSceneScope scene = new("Module3DSceneManagedROIMask");
+            CreateRuntimeModule3DMain(scene, "Managed ROI Mask Module");
+            ROI roi = CreateRuntimeROI(scene, "Managed ROI Mask");
+            List<HBP.Core.Object3D.Site> sites = new()
+            {
+                CreateRuntimeSite(scene, "Center", Vector3.zero),
+                CreateRuntimeSite(scene, "ResizeTarget", new Vector3(1.05f, 0, 0)),
+                CreateRuntimeSite(scene, "MoveTarget", new Vector3(3.0f, 0, 0))
+            };
+            bool[] mask = new bool[sites.Count];
+
+            roi.UpdateMask(sites, mask);
+            Assert.That(mask, Is.EqualTo(new[] { true, true, true }));
+
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", Vector3.zero, 1.0f);
+            roi.UpdateMask(sites, mask);
+            Assert.That(mask, Is.EqualTo(new[] { false, true, true }));
+
+            roi.ChangeSelectedSphereSize(1.0f);
+            roi.UpdateMask(sites, mask);
+            Assert.That(mask, Is.EqualTo(new[] { false, false, true }));
+
+            roi.MoveSelectedSphere(new Vector3(3.0f, 0, 0));
+            roi.UpdateMask(sites, mask);
+            Assert.That(mask, Is.EqualTo(new[] { true, true, false }));
+
+            roi.RemoveSelectedSphere();
+            yield return null;
+
+            roi.UpdateMask(sites, mask);
+            Assert.That(mask, Is.EqualTo(new[] { true, true, true }));
+        }
+
+        [UnityTest]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator ImplantationManager_ComparingSitesTracksSelectedSiteUntilDisabled()
         {
             using PlayModeSceneScope scene = new("Module3DSceneModule3DImplantationManager");
@@ -1190,12 +1249,55 @@ namespace HBP.Tests.PlayMode.Module3D
             GameObject prefab = new("ROI Prefab");
             prefab.SetActive(false);
             ROI roi = prefab.AddComponent<ROI>();
-            GameObject spherePrefab = new("ROI Sphere Prefab");
-            spherePrefab.SetActive(false);
+            GameObject spherePrefab = CreateROISpherePrefab();
             spherePrefab.transform.SetParent(prefab.transform, false);
-            spherePrefab.AddComponent<HBP.Data.Module3D.Sphere>();
             SetPrivateField(roi, "m_SpherePrefab", spherePrefab);
             return prefab;
+        }
+
+        private static GameObject CreateROISpherePrefab()
+        {
+            GameObject spherePrefab = CreateMeshPrefab("ROI Sphere Prefab");
+            spherePrefab.AddComponent<SphereCollider>();
+            spherePrefab.AddComponent<HBP.Data.Module3D.Sphere>();
+            return spherePrefab;
+        }
+
+        private static void CreateRuntimeModule3DMain(PlayModeSceneScope scene, string name)
+        {
+            GameObject moduleObject = new(name);
+            moduleObject.SetActive(false);
+            SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
+            Module3DMain module = moduleObject.AddComponent<Module3DMain>();
+            SetPrivateField(module, "m_SharedMaterials", CreateSharedMaterials());
+            SetModule3DMainInstance(module);
+        }
+
+        private static ROI CreateRuntimeROI(PlayModeSceneScope scene, string name)
+        {
+            GameObject roiObject = new(name);
+            SceneManager.MoveGameObjectToScene(roiObject, scene.Scene);
+            ROI roi = roiObject.AddComponent<ROI>();
+            SetPrivateField(roi, "m_SpherePrefab", CreateROISpherePrefab());
+            return roi;
+        }
+
+        private static HBP.Core.Object3D.Site CreateRuntimeSite(PlayModeSceneScope scene, string name, Vector3 position)
+        {
+            GameObject siteObject = new(name);
+            SceneManager.MoveGameObjectToScene(siteObject, scene.Scene);
+            HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+            Patient patient = new("roi-test-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, "roi-test-patient");
+            site.Information = new SiteInformation
+            {
+                Patient = patient,
+                Name = name,
+                Index = 0,
+                DefaultPosition = position
+            };
+            site.State = new SiteState();
+            site.Configuration = new SiteConfiguration();
+            return site;
         }
 
         private static SharedMaterials CreateSharedMaterials()
