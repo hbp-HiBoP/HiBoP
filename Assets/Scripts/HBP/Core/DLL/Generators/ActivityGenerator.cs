@@ -9,7 +9,7 @@ namespace HBP.Core.DLL
 {
     public abstract class ActivityGenerator : CppDLLImportBase
     {
-        protected NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
+        private protected NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
 
         #region Properties
         internal NativeBackend Backend => m_Backend;

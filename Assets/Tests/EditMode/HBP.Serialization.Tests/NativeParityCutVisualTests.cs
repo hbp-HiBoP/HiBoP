@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace HBP.Tests.Serialization
 {
+    [LegacyParityOnly]
     public class NativeParityCutVisualTests
     {
         [Test]

@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.IO;
 using HBP.Core.Tools;
 using HBP.Core.DLL.HbpCore;
 using AOT;
@@ -50,6 +51,7 @@ namespace HBP.Core.DLL
         /// List of all DLL objects created during this instance of the program
         /// </summary>
         public List<DLLObject> DLLObjects { get; private set; } = new List<DLLObject>();
+        public static string CurrentLogFilePath { get; private set; } = string.Empty;
         #endregion;
 
         #region Private Methods
@@ -58,12 +60,21 @@ namespace HBP.Core.DLL
             base.Initialization();
             if (m_LogDLLToUnity)
             {
-                set_debug_callback_Logger(s_LogCallback);
                 TryAttachHbpCoreLogger(out _);
             }
             if (m_LogDLLToFile)
             {
-                redirect_standard_output_to_file_Logger(string.Format("HiBoP_DLL_LOG_{0}_{1}_{2}__{3}_{4}_{5}.log", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second));
+                string logDirectory = Path.Combine(Application.persistentDataPath, "Logs");
+                Directory.CreateDirectory(logDirectory);
+                string logPath = Path.Combine(logDirectory, $"HiBoP_hbp_core_{DateTime.Now:yyyy_MM_dd__HH_mm_ss_fff}.log");
+                if (HbpCoreRuntime.TrySetLogFile(logPath, out string error))
+                {
+                    CurrentLogFilePath = logPath;
+                }
+                else
+                {
+                    Debug.LogWarning($"Unable to initialize the hbp_core log file: {error}");
+                }
             }
         }
         private void OnDestroy()
@@ -139,13 +150,8 @@ namespace HBP.Core.DLL
         public static void ResetNativeLoggers()
         {
             TryResetHbpCoreLogger(out _);
-            try
-            {
-                reset_Logger();
-            }
-            catch (Exception exception) when (exception is DllNotFoundException || exception is EntryPointNotFoundException || exception is BadImageFormatException)
-            {
-            }
+            HbpCoreRuntime.TryResetLogFile(out _);
+            CurrentLogFilePath = string.Empty;
         }
 
         #endregion
@@ -153,12 +159,6 @@ namespace HBP.Core.DLL
         #region DllImport
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void LoggerDelegate([MarshalAs(UnmanagedType.LPUTF8Str)] string str, int type);
-        [DllImport("hbp_export", EntryPoint = "set_debug_callback_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void set_debug_callback_Logger(LoggerDelegate logCallback);
-        [DllImport("hbp_export", EntryPoint = "redirect_standard_output_to_file_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void redirect_standard_output_to_file_Logger([MarshalAs(UnmanagedType.LPUTF8Str)] string pathToFile);
-        [DllImport("hbp_export", EntryPoint = "reset_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void reset_Logger();
         #endregion
     }
 }

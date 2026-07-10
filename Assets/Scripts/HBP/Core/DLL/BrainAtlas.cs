@@ -21,7 +21,7 @@ namespace HBP.Core.DLL
         public bool Loading { get; protected set; }
         protected List<string> m_AreaNames = new();
         public ReadOnlyCollection<string> AreaNames => new(m_AreaNames);
-        protected NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
+        private protected NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
         internal NativeBackend Backend => m_Backend;
         #endregion
 

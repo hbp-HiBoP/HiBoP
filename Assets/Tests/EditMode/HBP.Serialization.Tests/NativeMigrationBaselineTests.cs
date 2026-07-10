@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using HBP.Core.DLL;
 using HBP.Core.DLL.HbpCore;
@@ -26,36 +28,46 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
-        public void NativeBackendConstants_DeclareHistoricalAndCoreDllNames()
+        public void NativeBackendDefaultsToCoreWhileLegacyNameRemainsAvailableToParityTests()
         {
             NativeBackendOptions.Reset();
             Assert.That(NativeDll.HbpExport, Is.EqualTo("hbp_export"));
             Assert.That(NativeDll.HbpCore, Is.EqualTo("hbp_core"));
             Assert.That(NativeBackend.HbpExport.ToString(), Is.EqualTo("HbpExport"));
             Assert.That(NativeBackend.HbpCore.ToString(), Is.EqualTo("HbpCore"));
-            Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpExport));
-            Assert.That(NativeBackendOptions.UsesHbpCore, Is.False);
+            Assert.That(typeof(NativeBackend).IsNotPublic, Is.True);
+            Assert.That(typeof(NativeBackendOptions).IsNotPublic, Is.True,
+                "Only the test assemblies may access the temporary legacy backend selector.");
+            Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpCore));
+            Assert.That(NativeBackendOptions.UsesHbpCore, Is.True);
         }
 
         [Test]
         [Category("NativeMigration")]
-        public void NativeBackendOptions_ParseBackendNamesForCommandLineSelection()
+        public void NativeBackendResetAlwaysReturnsProductionRuntimeToCore()
+        {
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpExport;
+            NativeBackendOptions.Reset();
+
+            Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpCore));
+            Assert.That(NativeBackendOptions.UsesHbpCore, Is.True);
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("HbpCoreOnly")]
+        public void HbpCoreOnlyRun_DoesNotRequireLegacyDllOnDisk()
         {
             NativeBackendOptions.Reset();
-            try
-            {
-                Assert.That(NativeBackendOptions.TrySetExperimentalBackend("hbp_core"), Is.True);
-                Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpCore));
-                Assert.That(NativeBackendOptions.UsesHbpCore, Is.True);
+            Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpCore));
 
-                Assert.That(NativeBackendOptions.TrySetExperimentalBackend("hbp-export"), Is.True);
-                Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpExport));
-                Assert.That(NativeBackendOptions.TrySetExperimentalBackend("unknown"), Is.False);
-                Assert.That(NativeBackendOptions.ExperimentalBackend, Is.EqualTo(NativeBackend.HbpExport));
-            }
-            finally
+            if (Environment.GetEnvironmentVariable("HBP_EXPECT_NO_LEGACY_DLL") == "1")
             {
-                NativeBackendOptions.Reset();
+                string legacyDllPath = Path.Combine(
+                    TestPathUtility.ProjectRoot,
+                    "Assets", "Plugins", "x86_64", "Windows", "hbp_export.dll");
+                Assert.That(File.Exists(legacyDllPath), Is.False,
+                    "The no-legacy validation must physically remove hbp_export.dll from the project.");
             }
         }
 
@@ -65,8 +77,8 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(395));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(155));
+            Assert.That(imports, Has.Count.EqualTo(394));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(152));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports
@@ -75,13 +87,68 @@ namespace HBP.Tests.Serialization
                 .Distinct()
                 .ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(186));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpCore), Is.EqualTo(188));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
             Assert.That(imports.Any(imported => imported.Entry.Contains("PatientElectrodesList")), Is.False);
             Assert.That(imports.Any(imported => imported.RelativeFile == "ROI.cs"), Is.False);
             Assert.That(imports.Any(imported => imported.Entry.EndsWith("_ROI", StringComparison.Ordinal)), Is.False);
             Assert.That(imports.Any(imported => imported.RelativeFile == "Texture.cs"), Is.False);
             Assert.That(imports.Any(imported => imported.Entry.EndsWith("_Texture", StringComparison.Ordinal)), Is.False);
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void RuntimeHbpExportImports_AreFrozenForTheTemporaryParityBackend()
+        {
+            string baseline = string.Join("\n", ReadCurrentDllImports()
+                .Where(imported => imported.Dll == NativeDll.HbpExport)
+                .Select(imported => $"{imported.RelativeFile}|{imported.Entry}"));
+            using SHA256 sha256 = SHA256.Create();
+            string hash = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes(baseline)))
+                .Replace("-", string.Empty)
+                .ToLowerInvariant();
+
+            Assert.That(hash, Is.EqualTo("ea882bb11ce08926473572d4f11857fb30fb9a4a85a1af842dd1ca6d2012ebc6"),
+                "The temporary runtime parity bridge changed. New hbp_export imports are forbidden; planned removals must update this baseline deliberately.");
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void RuntimeHbpExportImports_RemainConfinedToTheAuditedWrapperFolder()
+        {
+            string scriptsFolder = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Scripts");
+            string auditedFolder = Path.Combine(scriptsFolder, "HBP", "Core", "DLL") + Path.DirectorySeparatorChar;
+            string[] unexpectedFiles = Directory
+                .GetFiles(scriptsFolder, "*.cs", SearchOption.AllDirectories)
+                .Where(file => !file.StartsWith(auditedFolder, StringComparison.OrdinalIgnoreCase))
+                .Where(file => Regex.IsMatch(
+                    File.ReadAllText(file),
+                    "DllImport\\s*\\(\\s*(?:\"hbp_export\"|NativeDll\\.HbpExport)"))
+                .Select(file => file.Substring(scriptsFolder.Length).TrimStart('\\', '/').Replace('\\', '/'))
+                .ToArray();
+
+            Assert.That(unexpectedFiles, Is.Empty,
+                "hbp_export imports are allowed only in the frozen wrapper parity bridge or under Assets/Tests.");
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void HbpExportPlugins_AreEditorOnlyAndExcludedFromPlayerBuilds()
+        {
+            string[] metadataPaths =
+            {
+                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "Windows", "hbp_export.dll.meta"),
+                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "Linux", "libhbp_export.so.meta"),
+                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "MacOS", "hbp_export.bundle.meta")
+            };
+
+            foreach (string metadataPath in metadataPaths)
+            {
+                string metadata = File.ReadAllText(metadataPath);
+                Assert.That(Regex.IsMatch(metadata, @"Editor(?s:.{0,120})enabled:\s*1"), Is.True, metadataPath);
+                Assert.That(Regex.IsMatch(metadata, @"Standalone(?s:.{0,120})enabled:\s*1"), Is.False, metadataPath);
+                Assert.That(Regex.IsMatch(metadata, @"(?m)^\s+(Linux64|OSXUniversal|Win|Win64):\s*\r?$\n\s+enabled:\s*1"), Is.False, metadataPath);
+            }
         }
 
         [Test]
@@ -216,9 +283,13 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("NativeParity")]
+        [LegacyParityOnly]
         public void HistoricalWrapper_LoadsThroughHbpExportWithoutHbpCoreMigration()
         {
-            BBox bbox = ExecuteNativeOrIgnore(() => new BBox(), "historical BBox wrapper");
+            BBox bbox = ExecuteNativeOrIgnore(
+                () => NativeParityAssert.WithBackend(NativeBackend.HbpExport, () => new BBox()),
+                "historical BBox wrapper");
             try
             {
                 Assert.That(bbox.getHandle().Handle, Is.Not.EqualTo(IntPtr.Zero));
@@ -405,6 +476,8 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("NativeParity")]
+        [LegacyParityOnly]
         public void HbpCoreBBox_MatchesHbpExportBoundingBox_WhenUsingSameVolumeBounds()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -412,7 +485,9 @@ namespace HBP.Tests.Serialization
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
 
-            using Volume volume = ExecuteNativeOrIgnore(() => new Volume(), "historical Volume wrapper");
+            using Volume volume = ExecuteNativeOrIgnore(
+                () => NativeParityAssert.WithBackend(NativeBackend.HbpExport, () => new Volume()),
+                "historical Volume wrapper");
             Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
 
             using BBox hbpExportBBox = volume.BoundingBox;
@@ -451,6 +526,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreVolumeAndNifti_LoadReadOnlyFixtures_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -458,25 +534,19 @@ namespace HBP.Tests.Serialization
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
 
-            using Volume hbpExportVolume = ExecuteNativeOrIgnore(() => new Volume(), "historical Volume wrapper");
-            Assert.That(hbpExportVolume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
-
-            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            NativeBackendOptions.Reset();
             try
             {
                 using Volume hbpCoreVolume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
                 Assert.That(hbpCoreVolume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
                 Assert.That(hbpCoreVolume.IsLoaded, Is.True);
-                AssertVector(hbpCoreVolume.Center, NativeToUnity(hbpExportVolume.Center));
-                AssertVector(hbpCoreVolume.Spacing, hbpExportVolume.Spacing);
-                Assert.That(hbpCoreVolume.Spacing.x, Is.GreaterThan(0.0f));
+                AssertVector(hbpCoreVolume.Center, new Vector3(-2, 2, 2));
+                AssertVector(hbpCoreVolume.Spacing, Vector3.one);
                 Assert.That(hbpCoreVolume.GetValueFromPosition(new Vector3(-2, 3, 4)), Is.EqualTo(69.0f).Within(0.0001f));
 
-                using BBox hbpExportBBox = hbpExportVolume.BoundingBox;
                 using BBox hbpCoreBBox = hbpCoreVolume.BoundingBox;
-                NativeBBoxToUnityMinMax(hbpExportBBox, out Vector3 expectedMin, out Vector3 expectedMax);
-                AssertVector(hbpCoreBBox.Min, expectedMin);
-                AssertVector(hbpCoreBBox.Max, expectedMax);
+                AssertVector(hbpCoreBBox.Min, new Vector3(-4, 0, 0));
+                AssertVector(hbpCoreBBox.Max, new Vector3(0, 4, 4));
 
                 using HbpPlane cutPlane = new(hbpCoreVolume.Center, Vector3.forward);
                 Assert.That(hbpCoreVolume.SizeOffsetCutPlane(cutPlane, 10), Is.GreaterThan(0.0f));
@@ -500,6 +570,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreSurface_CreatesUnityMeshFromBuffers_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -629,6 +700,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreSurface_LoadsGiftiFixture_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -810,6 +882,33 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
+        public void HbpCoreLogger_WritesAndClosesConfiguredFile_WhenLibraryIsPresent()
+        {
+            using TempDirectoryScope temp = new();
+            string logPath = temp.GetPath("hbp_core.log");
+            if (!HbpCoreRuntime.TrySetLogFile(logPath, out string attachError))
+            {
+                Assert.Ignore($"hbp_core file logger is not available yet: {attachError}");
+            }
+
+            const string message = "hbp_core unity file logger";
+            try
+            {
+                Assert.That(HbpCoreRuntime.DebugMessage(message, HbpCoreLogType.Warning), Is.EqualTo(HbpCoreStatus.Ok));
+            }
+            finally
+            {
+                Assert.That(HbpCoreRuntime.TryResetLogFile(out string resetError), Is.True, resetError);
+            }
+
+            Assert.That(File.ReadAllText(logPath), Does.Contain($"[WARNING] {message}"));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreRawSiteList_StoresSitesAndQueriesPlanes_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -879,6 +978,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreImplantation3D_BuildsRawSiteListFromManagedSites_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -996,6 +1096,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreMarsAtlas_UsesBrainAtlasMethodsAndColorsSurface_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -1059,6 +1160,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreJuBrainAtlas_UsesBrainAtlasMethods_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -1108,6 +1210,8 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        [Category("NativeParity")]
+        [LegacyParityOnly]
         public void HbpCoreSurfaceRejectsHbpExportMarsAtlas_WhenUpdatingParcelColors()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -1115,8 +1219,9 @@ namespace HBP.Tests.Serialization
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
 
-            NativeBackendOptions.Reset();
-            using MarsAtlas hbpExportAtlas = ExecuteNativeOrIgnore(() => new MarsAtlas(), "hbp_export MarsAtlas wrapper");
+            using MarsAtlas hbpExportAtlas = ExecuteNativeOrIgnore(
+                () => NativeParityAssert.WithBackend(NativeBackend.HbpExport, () => new MarsAtlas()),
+                "hbp_export MarsAtlas wrapper");
 
             NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
             try
@@ -1135,6 +1240,8 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("NativeParity")]
+        [LegacyParityOnly]
         public void HbpCoreSurface_MatchesHbpExportObjCube_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -1149,8 +1256,9 @@ namespace HBP.Tests.Serialization
             Mesh hbpCoreMesh = new();
             try
             {
-                NativeBackendOptions.Reset();
-                using Surface hbpExportSurface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_export Surface wrapper");
+                using Surface hbpExportSurface = ExecuteNativeOrIgnore(
+                    () => NativeParityAssert.WithBackend(NativeBackend.HbpExport, () => new Surface()),
+                    "hbp_export Surface wrapper");
                 Assert.That(hbpExportSurface.LoadOBJFile(objPath), Is.True);
                 hbpExportSurface.UpdateMeshFromDLL(hbpExportMesh);
 

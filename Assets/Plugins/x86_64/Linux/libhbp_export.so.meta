@@ -12,10 +12,10 @@ PluginImporter:
   validateReferences: 1
   platformData:
     Any:
-      enabled: 1
+      enabled: 0
       settings:
         Exclude Editor: 0
-        Exclude Linux64: 0
+        Exclude Linux64: 1
         Exclude OSXUniversal: 1
         Exclude Win: 0
         Exclude Win64: 0
@@ -26,7 +26,7 @@ PluginImporter:
         DefaultValueInitialized: true
         OS: Linux
     Linux64:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: x86_64
     OSXUniversal:
@@ -34,11 +34,11 @@ PluginImporter:
       settings:
         CPU: None
     Win:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: None
     Win64:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: x86_64
   userData: 

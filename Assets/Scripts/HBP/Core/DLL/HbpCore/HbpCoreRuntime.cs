@@ -57,6 +57,16 @@ namespace HBP.Core.DLL.HbpCore
             return status;
         }
 
+        public static HbpCoreStatus SetLogFile(string path)
+        {
+            return hbp_core_set_log_file(path);
+        }
+
+        public static HbpCoreStatus ResetLogFile()
+        {
+            return hbp_core_reset_log_file();
+        }
+
         public static HbpCoreStatus DebugMessage(string message, HbpCoreLogType type)
         {
             return hbp_core_debug_message(message, type);
@@ -108,6 +118,36 @@ namespace HBP.Core.DLL.HbpCore
             }
         }
 
+        public static bool TrySetLogFile(string path, out string error)
+        {
+            try
+            {
+                HbpCoreStatus status = SetLogFile(path);
+                error = status == HbpCoreStatus.Ok ? string.Empty : LastError;
+                return status == HbpCoreStatus.Ok;
+            }
+            catch (Exception exception) when (IsNativeLoadException(exception))
+            {
+                error = exception.Message;
+                return false;
+            }
+        }
+
+        public static bool TryResetLogFile(out string error)
+        {
+            try
+            {
+                HbpCoreStatus status = ResetLogFile();
+                error = status == HbpCoreStatus.Ok ? string.Empty : LastError;
+                return status == HbpCoreStatus.Ok;
+            }
+            catch (Exception exception) when (IsNativeLoadException(exception))
+            {
+                error = exception.Message;
+                return false;
+            }
+        }
+
         private static string MarshalString(IntPtr value)
         {
             return Marshal.PtrToStringAnsi(value) ?? string.Empty;
@@ -135,6 +175,12 @@ namespace HBP.Core.DLL.HbpCore
 
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_reset_debug_callback", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_core_reset_debug_callback();
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_set_log_file", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_core_set_log_file([MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_reset_log_file", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_core_reset_log_file();
 
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_core_debug_message", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_core_debug_message([MarshalAs(UnmanagedType.LPUTF8Str)] string message, HbpCoreLogType type);

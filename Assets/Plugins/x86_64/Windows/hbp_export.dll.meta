@@ -14,12 +14,12 @@ PluginImporter:
   - first:
       Any: 
     second:
-      enabled: 1
+      enabled: 0
       settings: {}
   - first:
       Editor: Editor
     second:
-      enabled: 0
+      enabled: 1
       settings:
         CPU: x86_64
         DefaultValueInitialized: true
@@ -32,7 +32,7 @@ PluginImporter:
   - first:
       Facebook: Win64
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: AnyCPU
   - first:
@@ -44,13 +44,13 @@ PluginImporter:
   - first:
       Standalone: Linux64
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: AnyCPU
   - first:
       Standalone: LinuxUniversal
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: x86_64
   - first:
@@ -68,7 +68,7 @@ PluginImporter:
   - first:
       Standalone: Win64
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: AnyCPU
   userData: 

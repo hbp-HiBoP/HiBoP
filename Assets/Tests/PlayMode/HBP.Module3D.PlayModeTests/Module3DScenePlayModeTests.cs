@@ -659,6 +659,7 @@ namespace HBP.Tests.PlayMode.Module3D
         [Category("PlayMode.Module3DScene")]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public async Task Base3DScene_HbpCoreBackendComputesRuntimeCutTexturesAndSurfaceActivity()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))

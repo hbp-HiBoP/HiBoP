@@ -12,6 +12,7 @@ using HbpSegment3 = HBP.Core.DLL.Segment3;
 
 namespace HBP.Tests.Serialization
 {
+    [LegacyParityOnly]
     public class NativeParityGeometryVolumeTests
     {
         [Test]
