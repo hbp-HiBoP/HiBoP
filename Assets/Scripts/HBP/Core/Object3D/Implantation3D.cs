@@ -20,7 +20,8 @@ namespace HBP.Core.Object3D
             /// </summary>
             public string Name { get; set; }
             /// <summary>
-            /// Position of the site
+            /// Position of the site in the native right-handed reference system.
+            /// This is an intentional exception to the rule that Vector3 values are in Unity space.
             /// </summary>
             public Vector3 NativePosition { get; set; }
             /// <summary>
@@ -28,13 +29,13 @@ namespace HBP.Core.Object3D
             /// </summary>
             public int Index { get; set; }
             /// <summary>
-            /// Position of the site in the Unity reference
+            /// Position of the site in the Unity left-handed reference system.
             /// </summary>
             public Vector3 UnityPosition
             {
                 get
                 {
-                    return new Vector3(-NativePosition.x, NativePosition.y, NativePosition.z);
+                    return new Vector3(DLL.ReferenceSystemConversion.ConvertX(NativePosition.x), NativePosition.y, NativePosition.z);
                 }
             }
             /// <summary>

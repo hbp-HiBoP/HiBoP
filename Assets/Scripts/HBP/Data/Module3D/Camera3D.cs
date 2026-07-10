@@ -271,11 +271,8 @@ namespace HBP.Data.Module3D
                 m_PlanesCutsCirclesVertices = new List<Vector3[]>();
                 for (int ii = 0; ii < m_AssociatedScene.Cuts.Count; ++ii)
                 {
-                    Vector3 point = m_AssociatedScene.Cuts[ii].Point;
-                    point.x *= -1;
-                    point += m_AssociatedView.transform.position;
+                    Vector3 point = m_AssociatedScene.Cuts[ii].Point + m_AssociatedView.transform.position;
                     Vector3 normal = m_AssociatedScene.Cuts[ii].Normal;
-                    normal.x *= -1;
                     Quaternion q = Quaternion.FromToRotation(new Vector3(0, 0, 1), normal);
                     m_PlanesCutsCirclesVertices.Add(Core.Object3D.Geometry.Create3DCirclePoints(new Vector3(0, 0, 0), 100, 150));
                     for (int jj = 0; jj < m_PlanesCutsCirclesVertices[ii].Length; ++jj)

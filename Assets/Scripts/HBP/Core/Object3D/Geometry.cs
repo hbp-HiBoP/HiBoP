@@ -151,12 +151,8 @@ namespace HBP.Core.Object3D
 
             for (int ii = 0; ii < normals.Length; ++ii)
             {
-                Vector3 invPos = obj.transform.position + vertices[ii];
-                invPos.x = -invPos.x;
-                Vector3 norm = normals[ii];
-                norm.x = -norm.x;
-
-                Debug.DrawRay(invPos, 3 * norm, Color.green);
+                Vector3 position = obj.transform.position + vertices[ii];
+                Debug.DrawRay(position, 3 * normals[ii], Color.green);
             }
         }
         /// <summary>
@@ -171,8 +167,13 @@ namespace HBP.Core.Object3D
             List<DLL.Segment3> rawSegments = bbox.Segments;
             foreach (var s in rawSegments)
             {
-                Vector3 end1 = new(-s.End1.x, s.End1.y, s.End1.z);
-                Vector3 end2 = new(-s.End2.x, s.End2.y, s.End2.z);
+                Vector3 end1 = s.End1;
+                Vector3 end2 = s.End2;
+                if (!bbox.UsesHbpCore)
+                {
+                    end1.x = -end1.x;
+                    end2.x = -end2.x;
+                }
                 Debug.DrawRay(offset + end1, end2 - end1, color, duration);
                 s.Dispose();
             }
@@ -188,8 +189,13 @@ namespace HBP.Core.Object3D
             List<DLL.Segment3> rawSegments = bbox.IntersectionLinesWithPlane(plane);
             foreach (var s in rawSegments)
             {
-                Vector3 end1 = new(-s.End1.x, s.End1.y, s.End1.z);
-                Vector3 end2 = new(-s.End2.x, s.End2.y, s.End2.z);
+                Vector3 end1 = s.End1;
+                Vector3 end2 = s.End2;
+                if (!bbox.UsesHbpCore)
+                {
+                    end1.x = -end1.x;
+                    end2.x = -end2.x;
+                }
                 Debug.DrawRay(offset + end1, end2 - end1, Color.green);
                 s.Dispose();
             }

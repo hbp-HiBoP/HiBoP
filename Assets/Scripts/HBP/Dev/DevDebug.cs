@@ -147,9 +147,12 @@ namespace HBP.Dev
             {
                 m_FinalPositions.Clear();
                 Vector3 orientation = Module3DMain.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
-                orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
                 Vector3 center = Module3DMain.SelectedScene.MeshManager.MeshCenter;
-                center = new Vector3(-center.x, center.y, center.z);
+                if (!Module3DMain.SelectedScene.MRIManager.SelectedMRI.Volume.UsesHbpCore)
+                {
+                    orientation.x = -orientation.x;
+                    center.x = -center.x;
+                }
                 foreach (var site in Module3DMain.SelectedColumn.Sites)
                 {
                     Vector3 vector = site.transform.localPosition - center;
@@ -370,7 +373,10 @@ namespace HBP.Dev
         {
             Vector3 orientation = Module3DMain.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
             Vector3 center = Module3DMain.SelectedScene.MeshManager.MeshCenter;
-            center = new Vector3(-center.x, center.y, center.z);
+            if (!Module3DMain.SelectedScene.MRIManager.SelectedMRI.Volume.UsesHbpCore)
+            {
+                center.x = -center.x;
+            }
             foreach (var site in Module3DMain.SelectedColumn.Sites)
             {
                 Vector3 vector = site.transform.localPosition - center;

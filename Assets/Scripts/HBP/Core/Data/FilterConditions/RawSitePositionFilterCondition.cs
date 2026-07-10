@@ -86,7 +86,8 @@ namespace HBP.Core.Data
         {
             if (obj is Object3D.Site site)
             {
-                float axisValue = Axis switch
+                // Filter values are persisted in the original native coordinate convention.
+                float nativeAxisValue = Axis switch
                 {
                     AxisType.X => -site.Information.DefaultPosition.x,
                     AxisType.Y => site.Information.DefaultPosition.y,
@@ -94,17 +95,17 @@ namespace HBP.Core.Data
                     _ => float.MinValue
                 };
 
-                if (axisValue == float.MinValue)
+                if (nativeAxisValue == float.MinValue)
                     return false;
 
                 bool result = ComparisonType switch
                 {
-                    NumberComparisonType.Equal => axisValue == Value,
-                    NumberComparisonType.Greater => axisValue > Value,
-                    NumberComparisonType.GreaterOrEqual => axisValue >= Value,
-                    NumberComparisonType.Lower => axisValue < Value,
-                    NumberComparisonType.LowerOrEqual => axisValue <= Value,
-                    NumberComparisonType.Range => axisValue >= Min && axisValue <= Max,
+                    NumberComparisonType.Equal => nativeAxisValue == Value,
+                    NumberComparisonType.Greater => nativeAxisValue > Value,
+                    NumberComparisonType.GreaterOrEqual => nativeAxisValue >= Value,
+                    NumberComparisonType.Lower => nativeAxisValue < Value,
+                    NumberComparisonType.LowerOrEqual => nativeAxisValue <= Value,
+                    NumberComparisonType.Range => nativeAxisValue >= Min && nativeAxisValue <= Max,
                     _ => false
                 };
 

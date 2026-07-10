@@ -49,6 +49,7 @@ namespace HBP.Core.DLL
                 if (m_Backend == NativeBackend.HbpCore)
                 {
                     ThrowIfFailed(hbp_volume_get_spacing(_handle.Handle, out Vec3 value));
+                    // Spacing is an unsigned magnitude, not an oriented spatial vector.
                     return value.ToVector3(convertReferenceSystem: false);
                 }
 

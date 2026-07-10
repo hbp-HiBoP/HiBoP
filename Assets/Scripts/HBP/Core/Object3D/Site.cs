@@ -73,7 +73,7 @@ namespace HBP.Core.Object3D
         }
 
         /// <summary>
-        /// Initial position of this site
+        /// Initial position of this site in the Unity left-handed reference system.
         /// </summary>
         public Vector3 DefaultPosition { get; set; }
         #endregion

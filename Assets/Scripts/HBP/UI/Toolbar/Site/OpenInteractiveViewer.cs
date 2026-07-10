@@ -25,7 +25,7 @@ namespace HBP.UI.Toolbar
         private void Open()
         {
             // TODO : replace by correct values
-            Vector3 sitePosition = SelectedColumn.SelectedSite.transform.localPosition;
+            Vector3 unitySitePosition = SelectedColumn.SelectedSite.transform.localPosition;
             Quaternion quaternion = new(-0.3f, 0.7f, -0.5f, 0.2f);
             View3D view = SelectedView;
             if (view)
@@ -36,7 +36,7 @@ namespace HBP.UI.Toolbar
                 0, 0, 0, 1,
                 quaternion.x.ToString("0.00", new CultureInfo("en-US")), (-quaternion.y).ToString("0.00", new CultureInfo("en-US")), (-quaternion.z).ToString("0.00", new CultureInfo("en-US")), quaternion.w.ToString("0.00", new CultureInfo("en-US")),
                 3000000,
-                (-sitePosition.x * 1000000).ToString("0.00", new CultureInfo("en-US")), (sitePosition.y * 1000000).ToString("0.00", new CultureInfo("en-US")), (sitePosition.z * 1000000).ToString("0.00", new CultureInfo("en-US")),
+                (-unitySitePosition.x * 1000000).ToString("0.00", new CultureInfo("en-US")), (unitySitePosition.y * 1000000).ToString("0.00", new CultureInfo("en-US")), (unitySitePosition.z * 1000000).ToString("0.00", new CultureInfo("en-US")),
                 150000);
             ToolbarExternalActions.OpenURL(url);
         }

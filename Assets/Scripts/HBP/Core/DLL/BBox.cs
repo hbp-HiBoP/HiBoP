@@ -12,6 +12,8 @@ namespace HBP.Core.DLL
     public class BBox : CppDLLImportBase
     {
         private NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
+        internal NativeBackend Backend => m_Backend;
+        public bool UsesHbpCore => m_Backend == NativeBackend.HbpCore;
 
         #region Properties
         /// <summary>

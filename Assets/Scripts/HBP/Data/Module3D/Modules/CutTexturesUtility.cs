@@ -162,7 +162,7 @@ namespace HBP.Data.Module3D
                 projectedSites.Clear();
                 foreach (Core.Object3D.Implantation3D.SiteInfo siteInfo in siteInfos)
                 {
-                    if (siteInfo == null || !IsSiteOnCut(siteInfo.NativePosition, cut, precisionSquared))
+                    if (siteInfo == null || !IsSiteOnCut(siteInfo.UnityPosition, cut, precisionSquared))
                     {
                         continue;
                     }
@@ -261,7 +261,7 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Private Methods
-        private static bool IsSiteOnCut(Vector3 sitePosition, Core.Object3D.Cut cut, float precisionSquared)
+        private static bool IsSiteOnCut(Vector3 unitySitePosition, Core.Object3D.Cut cut, float precisionSquared)
         {
             Vector3 normal = cut.Normal;
             float normalSquaredMagnitude = normal.sqrMagnitude;
@@ -270,7 +270,7 @@ namespace HBP.Data.Module3D
                 return false;
             }
 
-            float distance = Vector3.Dot(sitePosition - cut.Point, normal);
+            float distance = Vector3.Dot(unitySitePosition - cut.Point, normal);
             return (distance * distance / normalSquaredMagnitude) < precisionSquared;
         }
 

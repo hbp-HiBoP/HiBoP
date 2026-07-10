@@ -102,8 +102,9 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Set the cuts to the materials (to clip the vertices depending on the cuts)
         /// </summary>
-        /// <param name="cuts">Cuts to be considered</param>
-        public void SetCuts(List<Cut> cuts, float scale, Quaternion rotation)
+        /// <param name="cuts">Cuts to be considered in Unity space.</param>
+        /// <param name="meshUsesNativeCoordinates">True only for the transitional hbp_export mesh path.</param>
+        public void SetCuts(List<Cut> cuts, float scale, Quaternion rotation, bool meshUsesNativeCoordinates)
         {
             m_Brain.SetInt("_CutCount", cuts.Count);
             m_TransparentBrain.SetInt("_CutCount", cuts.Count);
@@ -114,7 +115,12 @@ namespace HBP.Core.Object3D
                 {
                     if (i < cuts.Count)
                     {
-                        Vector3 point = rotation * new Vector3(-cuts[i].Point.x * scale, cuts[i].Point.y * scale, cuts[i].Point.z * scale);
+                        Vector3 point = cuts[i].Point;
+                        if (meshUsesNativeCoordinates)
+                        {
+                            point.x = -point.x;
+                        }
+                        point = rotation * (point * scale);
                         cutPoints.Add(new Vector4(point.x, point.y, point.z));
                     }
                     else
@@ -129,7 +135,12 @@ namespace HBP.Core.Object3D
                 {
                     if (i < cuts.Count)
                     {
-                        Vector3 normal = rotation * new Vector3(-cuts[i].Normal.x, cuts[i].Normal.y, cuts[i].Normal.z);
+                        Vector3 normal = cuts[i].Normal;
+                        if (meshUsesNativeCoordinates)
+                        {
+                            normal.x = -normal.x;
+                        }
+                        normal = rotation * normal;
                         cutNormals.Add(new Vector4(normal.x, normal.y, normal.z));
                     }
                     else

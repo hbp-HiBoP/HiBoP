@@ -41,8 +41,11 @@ namespace HBP.UI.Toolbar
 
                 Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
                 Vector3 center = SelectedScene.MeshManager.MeshCenter;
-                orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
-                center = new Vector3(-center.x, center.y, center.z);
+                if (!SelectedScene.MRIManager.SelectedMRI.Volume.UsesHbpCore)
+                {
+                    orientation.x = -orientation.x;
+                    center.x = -center.x;
+                }
                 foreach (var column in SelectedScene.Columns)
                 {
                     column.MoveAllSitesToTheSameSideOfAPlane(center, orientation);
@@ -54,8 +57,11 @@ namespace HBP.UI.Toolbar
 
                 Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, true);
                 Vector3 center = SelectedScene.MeshManager.MeshCenter;
-                orientation = new Vector3(-orientation.x, orientation.y, orientation.z);
-                center = new Vector3(-center.x, center.y, center.z);
+                if (!SelectedScene.MRIManager.SelectedMRI.Volume.UsesHbpCore)
+                {
+                    orientation.x = -orientation.x;
+                    center.x = -center.x;
+                }
                 foreach (var column in SelectedScene.Columns)
                 {
                     column.MoveAllSitesToTheSameSideOfAPlane(center, orientation);

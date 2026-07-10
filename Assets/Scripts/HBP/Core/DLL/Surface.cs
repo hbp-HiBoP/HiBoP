@@ -63,6 +63,7 @@ namespace HBP.Core.DLL
         /// </summary>
         public bool IsMarsAtlasLoaded { get; private set; }
         internal NativeBackend Backend => m_Backend;
+        public bool UsesHbpCore => m_Backend == NativeBackend.HbpCore;
 
         /// <summary>
         /// Center of this surface
@@ -371,8 +372,8 @@ namespace HBP.Core.DLL
         /// <summary>
         /// Update the visibility triangle mask of the surface depending the input triangle erasing action
         /// </summary>
-        /// <param name="rayDirection">Direction of the triangle erasing action</param>
-        /// <param name="hitPoint">Position of the hit of the raycast</param>
+        /// <param name="rayDirection">Direction of the triangle erasing action in Unity space</param>
+        /// <param name="hitPoint">Position of the hit of the raycast in Unity space</param>
         /// <param name="mode">Currently selected triangle erasing mode</param>
         /// <param name="degrees">Maximum angle in degrees for the area mode</param>
         /// <returns>New surface made with invisible triangles</returns>
@@ -388,10 +389,11 @@ namespace HBP.Core.DLL
 
             EnsureHbpExport(nameof(UpdateVisibilityMask));
             float[] hitPointArray = new float[3], rayDirectionArray = new float[3];
-            hitPointArray[0] = hitPoint.x;
+            // hbp_export expects native coordinates but the public C# contract is Unity space.
+            hitPointArray[0] = -hitPoint.x;
             hitPointArray[1] = hitPoint.y;
             hitPointArray[2] = hitPoint.z;
-            rayDirectionArray[0] = rayDirection.x;
+            rayDirectionArray[0] = -rayDirection.x;
             rayDirectionArray[1] = rayDirection.y;
             rayDirectionArray[2] = rayDirection.z;
 
@@ -795,7 +797,7 @@ namespace HBP.Core.DLL
                 nativeVertices[i] = Vec3.FromVector3(vertices[i]);
             }
             ThrowIfFailed(hbp_surface_set_vertices(_handle.Handle, nativeVertices, nativeVertices.Length));
-            ThrowIfFailed(hbp_surface_set_triangles(_handle.Handle, ReverseTriangleWinding(triangles), triangles.Length));
+            ThrowIfFailed(hbp_surface_set_triangles(_handle.Handle, ReferenceSystemConversion.ConvertTriangleWinding(triangles), triangles.Length));
 
             if (normals != null)
             {
@@ -973,7 +975,7 @@ namespace HBP.Core.DLL
             if (visibleTriangleIndexCount > 0)
             {
                 ThrowIfFailed(hbp_surface_copy_visible_triangles(_handle.Handle, m_TriangleIndices, m_TriangleIndices.Length));
-                m_TriangleIndices = ReverseTriangleWinding(m_TriangleIndices);
+                m_TriangleIndices = ReferenceSystemConversion.ConvertTriangleWinding(m_TriangleIndices);
             }
 
             mesh.Clear();
@@ -1007,17 +1009,6 @@ namespace HBP.Core.DLL
             }
 
             return clone_Surface(other.getHandle());
-        }
-
-        private static int[] ReverseTriangleWinding(int[] triangles)
-        {
-            int[] result = new int[triangles.Length];
-            triangles.CopyTo(result, 0);
-            for (int i = 0; i + 2 < result.Length; i += 3)
-            {
-                (result[i + 1], result[i + 2]) = (result[i + 2], result[i + 1]);
-            }
-            return result;
         }
 
         private static void ThrowIfFailed(HbpCoreStatus status)

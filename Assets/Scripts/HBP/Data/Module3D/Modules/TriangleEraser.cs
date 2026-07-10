@@ -194,9 +194,6 @@ namespace HBP.Data.Module3D
         /// <param name="hitPoint">Hitpoint of the raycast triggered from a mouse click</param>
         public void EraseTriangles(Vector3 rayDirection, Vector3 hitPoint)
         {
-            rayDirection.x = -rayDirection.x;
-            hitPoint.x = -hitPoint.x;
-
             // Save current masks
             m_MasksStack.Push(m_Scene.MeshManager.BrainSurface.VisibilityMask);
             m_SimplifiedMasksStack.Push(m_Scene.MeshManager.SimplifiedMeshToUse.VisibilityMask);

@@ -112,7 +112,7 @@ namespace HBP.Data.Module3D
 
             InvisibleBrain = Instantiate(m_InvisibleBrainPrefab, BrainSurfaceMeshesParent);
             InvisibleBrain.layer = LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
-            InvisibleBrain.transform.localScale = new Vector3(-1, 1, 1);
+            InvisibleBrain.transform.localScale = Vector3.one;
             InvisibleBrain.transform.localPosition = new Vector3(0, 0, 0);
             InvisibleBrain.SetActive(visible);
         }

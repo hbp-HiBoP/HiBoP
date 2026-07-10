@@ -10,6 +10,7 @@ using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using HbpPlane = HBP.Core.DLL.Plane;
@@ -101,6 +102,72 @@ namespace HBP.Tests.Serialization
             Assert.That(ReadVec3Field(native, "x"), Is.EqualTo(1).Within(0.0001f));
             AssertVector((Vector3)toVector3.Invoke(native, new object[] { false }), new Vector3(1, 2, 3));
             AssertVector((Vector3)toVector3.Invoke(native, new object[] { true }), new Vector3(-1, 2, 3));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void ReferenceSystemConversion_CouplesXReflectionAndTriangleWinding()
+        {
+            Type conversionType = typeof(Volume).Assembly.GetType("HBP.Core.DLL.ReferenceSystemConversion", throwOnError: true);
+            FieldInfo invertXField = conversionType.GetField("InvertX", BindingFlags.NonPublic | BindingFlags.Static);
+            FieldInfo flipsHandednessField = conversionType.GetField("FlipsHandedness", BindingFlags.NonPublic | BindingFlags.Static);
+            MethodInfo convertTriangleWinding = conversionType.GetMethod("ConvertTriangleWinding", BindingFlags.NonPublic | BindingFlags.Static);
+
+            Assert.That(invertXField, Is.Not.Null);
+            Assert.That(flipsHandednessField, Is.Not.Null);
+            Assert.That(convertTriangleWinding, Is.Not.Null);
+            bool invertX = (bool)invertXField.GetRawConstantValue();
+            bool flipsHandedness = (bool)flipsHandednessField.GetRawConstantValue();
+            Assert.That(flipsHandedness, Is.EqualTo(invertX));
+
+            int[] triangles = { 0, 1, 2, 3, 4, 5 };
+            int[] converted = (int[])convertTriangleWinding.Invoke(null, new object[] { triangles, true });
+            int[] unconverted = (int[])convertTriangleWinding.Invoke(null, new object[] { triangles, false });
+            Assert.That(converted, Is.EqualTo(flipsHandedness ? new[] { 0, 2, 1, 3, 5, 4 } : triangles));
+            Assert.That(unconverted, Is.EqualTo(triangles));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void AnatomicalMeshPrefabs_UseIdentityScale()
+        {
+            string[] prefabPaths =
+            {
+                "Assets/Prefabs/3D/Objects/Brain.prefab",
+                "Assets/Prefabs/3D/Objects/SimplifiedBrain.prefab",
+                "Assets/Prefabs/3D/Objects/Cut.prefab"
+            };
+
+            foreach (string prefabPath in prefabPaths)
+            {
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                Assert.That(prefab, Is.Not.Null, prefabPath);
+                AssertVector(prefab.transform.localScale, Vector3.one);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void Camera3DCutMarker_DoesNotApplyManualReferenceSystemFlip()
+        {
+            string camera3DPath = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Scripts", "HBP", "Data", "Module3D", "Camera3D.cs");
+            string contents = File.ReadAllText(camera3DPath);
+
+            Assert.That(Regex.IsMatch(contents, @"point\.x\s*\*=\s*-1"), Is.False);
+            Assert.That(Regex.IsMatch(contents, @"normal\.x\s*\*=\s*-1"), Is.False);
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void SiteInfo_ExplicitNativeVector3ExposesReflectedUnityPosition()
+        {
+            HBP.Core.Object3D.Implantation3D.SiteInfo site = new()
+            {
+                NativePosition = new Vector3(4, -5, 6)
+            };
+
+            AssertVector(site.NativePosition, new Vector3(4, -5, 6));
+            AssertVector(site.UnityPosition, new Vector3(-4, -5, 6));
         }
 
         [Test]
@@ -404,6 +471,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(hbpCoreVolume.IsLoaded, Is.True);
                 AssertVector(hbpCoreVolume.Center, NativeToUnity(hbpExportVolume.Center));
                 AssertVector(hbpCoreVolume.Spacing, hbpExportVolume.Spacing);
+                Assert.That(hbpCoreVolume.Spacing.x, Is.GreaterThan(0.0f));
                 Assert.That(hbpCoreVolume.GetValueFromPosition(new Vector3(-2, 3, 4)), Is.EqualTo(69.0f).Within(0.0001f));
 
                 using BBox hbpExportBBox = hbpExportVolume.BoundingBox;
@@ -677,6 +745,66 @@ namespace HBP.Tests.Serialization
             finally
             {
                 UnityEngine.Object.DestroyImmediate(cutMesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void HbpCoreCutTextures_FilterNativeSiteAgainstCutInUnitySpace_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            Texture2D texture = null;
+            try
+            {
+                using Volume volume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
+                Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+
+                Vector3 unityCenter = volume.Center;
+                using HBP.Core.Object3D.Cut cut = new(unityCenter, Vector3.right)
+                {
+                    ID = 0,
+                    Orientation = CutOrientation.Sagittal
+                };
+                using CutGeometryGenerator geometryGenerator = ExecuteNativeOrIgnore(() => new CutGeometryGenerator(), "hbp_core CutGeometryGenerator wrapper");
+                geometryGenerator.Initialize(volume, cut, 16);
+                using CutGenerator cutGenerator = ExecuteNativeOrIgnore(() => new CutGenerator(), "hbp_core CutGenerator wrapper");
+                cutGenerator.Initialize(null, geometryGenerator, 0);
+
+                Vector2Int textureSize = geometryGenerator.TextureSize;
+                Assert.That(textureSize.x, Is.GreaterThan(0));
+                Assert.That(textureSize.y, Is.GreaterThan(0));
+                texture = new Texture2D(textureSize.x, textureSize.y, TextureFormat.RGBA32, false);
+                texture.SetPixels32(Enumerable.Repeat(new Color32(0, 0, 0, 255), textureSize.x * textureSize.y).ToArray());
+                texture.Apply(false, false);
+
+                HBP.Data.Module3D.CutTexturesUtility utility = new();
+                utility.BaseBrainCutTextures.Add(texture);
+                utility.CutGenerators.Add(cutGenerator);
+                Assert.That(Mathf.Abs(unityCenter.x), Is.GreaterThan(0.01f));
+                Vector3 nativeCenter = new(-unityCenter.x, unityCenter.y, unityCenter.z);
+                HBP.Core.Object3D.Implantation3D.SiteInfo site = new()
+                {
+                    NativePosition = nativeCenter
+                };
+                AssertVector(site.UnityPosition, unityCenter);
+
+                utility.DrawSitesOnMRITextures(new List<HBP.Core.Object3D.Cut> { cut }, new[] { site }, precision: 0.01f);
+
+                Assert.That(texture.GetPixels32().Any(pixel => pixel.r == 255 && pixel.g == 0 && pixel.b == 0), Is.True);
+            }
+            finally
+            {
+                if (texture != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(texture);
+                }
                 NativeBackendOptions.Reset();
             }
         }

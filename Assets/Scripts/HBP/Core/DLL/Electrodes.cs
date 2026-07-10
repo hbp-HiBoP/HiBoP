@@ -57,19 +57,19 @@ namespace HBP.Core.DLL
         /// Add a site to this raw site list
         /// </summary>
         /// <param name="name">Name of the site</param>
-        /// <param name="position">Position of the site in the native/classical reference system.</param>
+        /// <param name="nativePosition">Position of the site in the native right-handed reference system.</param>
         /// <param name="patientIndex">Index of the patient of the site</param>
         /// <param name="index">Index of the site within the parent electrode</param>
-        public void AddSite(string name, Vector3 position, int patientIndex, int index)
+        public void AddSite(string name, Vector3 nativePosition, int patientIndex, int index)
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                Vec3 nativePosition = Vec3.FromVector3(position, convertReferenceSystem: false);
-                ThrowIfFailed(hbp_raw_site_list_add_site(_handle.Handle, name, ref nativePosition, patientIndex, index));
+                Vec3 nativeValue = Vec3.FromVector3(nativePosition, convertReferenceSystem: false);
+                ThrowIfFailed(hbp_raw_site_list_add_site(_handle.Handle, name, ref nativeValue, patientIndex, index));
             }
             else
             {
-                add_site_RawSiteList(_handle, name, position.x, position.y, position.z, patientIndex, index);
+                add_site_RawSiteList(_handle, name, nativePosition.x, nativePosition.y, nativePosition.z, patientIndex, index);
             }
         }
         /// <summary>
