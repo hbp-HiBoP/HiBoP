@@ -12,6 +12,18 @@ namespace HBP.Tests.Serialization
 {
     public class UnityTextureFactoryTests
     {
+        [OneTimeTearDown]
+        public void CollectDestroyedUnityObjectWrappersBeforeSceneRestore()
+        {
+            // DestroyImmediate releases the native textures, but their managed wrappers remain
+            // eligible for collection. Collect them before the Unity Test Framework restores a
+            // loaded project scene: Unity 6000.5.2f1 can otherwise crash in its liveness scan
+            // after this class runs behind the native migration/parity suites.
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
         [Test]
         [Category("NativeMigration")]
         public void Generate1DColorTexture_UsesUnityPixelsWithoutNativeTextureHandle()

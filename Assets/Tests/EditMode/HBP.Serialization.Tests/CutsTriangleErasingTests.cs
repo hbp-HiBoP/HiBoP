@@ -35,7 +35,8 @@ namespace HBP.Tests.Serialization
             Assert.That(runtimeCut.Flip, Is.False);
             Assert.That(runtimeCut.NumberOfCuts, Is.EqualTo(500));
             Assert.That(runtimeCut.Position, Is.EqualTo(0.5f));
-            Assert.That(runtimeCut.ConvertToArray(), Is.EqualTo(new[] { 4f, 5f, 6f, 0f, 1f, 0f }));
+            Assert.That(runtimeCut.ConvertToArray(), Is.EqualTo(new[] { -4f, 5f, 6f, 0f, 1f, 0f }),
+                "The serialized native plane layout must reflect Unity X through the centralized reference-system conversion.");
         }
 
         [Test]

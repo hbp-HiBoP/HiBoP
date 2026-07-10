@@ -3,17 +3,17 @@ using UnityEngine;
 
 namespace HBP.Core.DLL
 {
-    internal static class ReferenceSystemConversion
+    public static class ReferenceSystemConversion
     {
-        internal const bool InvertX = true;
-        internal const bool FlipsHandedness = InvertX;
+        public const bool InvertX = true;
+        public const bool FlipsHandedness = InvertX;
 
-        internal static float ConvertX(float value)
+        public static float ConvertX(float value)
         {
             return InvertX ? -value : value;
         }
 
-        internal static int[] ConvertTriangleWinding(int[] triangles, bool convertReferenceSystem = true)
+        public static int[] ConvertTriangleWinding(int[] triangles, bool convertReferenceSystem = true)
         {
             if (!convertReferenceSystem || !FlipsHandedness)
             {

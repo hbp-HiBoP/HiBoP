@@ -57,12 +57,14 @@ namespace HBP.Core.DLL
 
         #region Public Methods
         /// <summary>
-        /// Convert to float array for DLL use.
+        /// Convert the Unity-space plane to the native/right-handed float layout used by hbp_export.
         /// </summary>
         /// <returns>Array of values [PointX, PointY, PointZ, NormalX, NormalY, NormalZ]</returns>
         public float[] ConvertToArray()
         {
-            return new float[] { Point[0], Point[1], Point[2], Normal[0], Normal[1], Normal[2] };
+            Vec3 nativePoint = Vec3.FromVector3(Point);
+            Vec3 nativeNormal = Vec3.FromVector3(Normal);
+            return new[] { nativePoint.x, nativePoint.y, nativePoint.z, nativeNormal.x, nativeNormal.y, nativeNormal.z };
         }
 
         public void Normalize()

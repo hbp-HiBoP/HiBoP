@@ -13,6 +13,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.IndependentOracle)]
         public void SinglePlaneCutOutputs_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -34,6 +35,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.IndependentOracle)]
         public void GeneratedCutCapsAndRawCuts_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -60,6 +62,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.IndependentOracle)]
         public void MultiPlaneStrongCutsModes_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -139,7 +142,11 @@ namespace HBP.Tests.Serialization
 
         private static HBP.Core.Object3D.Cut CreateHalfXCut()
         {
-            return new HBP.Core.Object3D.Cut(new Vector3(0.5f, 0.0f, 0.0f), Vector3.right);
+            // The OBJ fixture is native/right-handed. Construct its plane from the
+            // converted Unity bounds instead of reusing native X=+0.5 as Unity X.
+            NativeParityAssert.NativeBoundsToUnity(Vector3.zero, Vector3.one, out Vector3 unityMin, out Vector3 unityMax);
+            Vector3 unityCenter = (unityMin + unityMax) * 0.5f;
+            return new HBP.Core.Object3D.Cut(unityCenter, NativeParityAssert.NativeToUnity(Vector3.right));
         }
 
         private static HBP.Core.Object3D.Cut CreateHalfYCut()
@@ -162,16 +169,14 @@ namespace HBP.Tests.Serialization
 
                 using BBox actualBBox = actual[i].BoundingBox;
                 using BBox expectedBBox = expected[i].BoundingBox;
-                AssertVector(actualBBox.Min, expectedBBox.Min, 0.0005f, $"bbox min {i}");
-                AssertVector(actualBBox.Max, expectedBBox.Max, 0.0005f, $"bbox max {i}");
+                NativeParityAssert.AssertUnityBoundsMatchLegacyNative(
+                    actualBBox.Min,
+                    actualBBox.Max,
+                    expectedBBox.Min,
+                    expectedBBox.Max,
+                    0.0005f,
+                    $"cut surface {i}");
             }
-        }
-
-        private static void AssertVector(Vector3 actual, Vector3 expected, float tolerance, string context)
-        {
-            Assert.That(actual.x, Is.EqualTo(expected.x).Within(tolerance), $"{context}.x");
-            Assert.That(actual.y, Is.EqualTo(expected.y).Within(tolerance), $"{context}.y");
-            Assert.That(actual.z, Is.EqualTo(expected.z).Within(tolerance), $"{context}.z");
         }
 
         private static void DisposeSurfaces(IEnumerable<Surface> surfaces)

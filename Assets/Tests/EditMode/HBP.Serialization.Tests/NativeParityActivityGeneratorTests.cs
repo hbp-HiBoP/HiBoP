@@ -17,6 +17,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
         public void DensityActivitySurfaceUvs_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -32,6 +33,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
         public void IEEGActivitySurfaceUvs_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -50,6 +52,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
         public void IEEGNiftiExports_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -86,6 +89,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
         public void FmriAndMegActivitySurfaceUvs_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();

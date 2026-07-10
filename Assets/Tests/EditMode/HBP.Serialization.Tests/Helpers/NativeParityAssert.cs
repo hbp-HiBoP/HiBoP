@@ -13,6 +13,23 @@ namespace HBP.Tests.Serialization.Helpers
     internal static class NativeParityAssert
     {
         public const float DefaultTolerance = 0.0001f;
+        public const string StrictParity = "NativeParity.Strict";
+        public const string NormalizedCoordinateParity = "NativeParity.NormalizedCoordinates";
+        public const string IntentionalCorrection = "NativeParity.IntentionalCorrection";
+        public const string IndependentOracle = "NativeParity.IndependentOracle";
+
+        public static Vector3 NativeToUnity(Vector3 nativeValue)
+        {
+            return new Vector3(ReferenceSystemConversion.ConvertX(nativeValue.x), nativeValue.y, nativeValue.z);
+        }
+
+        public static void NativeBoundsToUnity(Vector3 nativeMin, Vector3 nativeMax, out Vector3 unityMin, out Vector3 unityMax)
+        {
+            Vector3 first = NativeToUnity(nativeMin);
+            Vector3 second = NativeToUnity(nativeMax);
+            unityMin = Vector3.Min(first, second);
+            unityMax = Vector3.Max(first, second);
+        }
 
         public static void RequireHbpCore()
         {
@@ -70,11 +87,35 @@ namespace HBP.Tests.Serialization.Helpers
             return path;
         }
 
-        public static void AssertVector(Vector3 actual, Vector3 expected, float tolerance = DefaultTolerance)
+        public static void AssertVector(Vector3 actual, Vector3 expected, float tolerance = DefaultTolerance, string context = null)
         {
-            Assert.That(actual.x, Is.EqualTo(expected.x).Within(tolerance));
-            Assert.That(actual.y, Is.EqualTo(expected.y).Within(tolerance));
-            Assert.That(actual.z, Is.EqualTo(expected.z).Within(tolerance));
+            Assert.That(actual.x, Is.EqualTo(expected.x).Within(tolerance), $"{context ?? "Vector3"}.x");
+            Assert.That(actual.y, Is.EqualTo(expected.y).Within(tolerance), $"{context ?? "Vector3"}.y");
+            Assert.That(actual.z, Is.EqualTo(expected.z).Within(tolerance), $"{context ?? "Vector3"}.z");
+        }
+
+        public static void AssertUnityVectorMatchesLegacyNative(Vector3 actualUnity, Vector3 legacyNative, float tolerance = DefaultTolerance, string context = null)
+        {
+            Vector3 expectedUnity = NativeToUnity(legacyNative);
+            AssertVector(
+                actualUnity,
+                expectedUnity,
+                tolerance,
+                $"{context ?? "coordinate"} (actual=hbp_core Unity; expected=R*hbp_export native; R=diag({(ReferenceSystemConversion.InvertX ? "-1" : "1")},1,1))");
+        }
+
+        public static void AssertUnityBoundsMatchLegacyNative(
+            Vector3 actualUnityMin,
+            Vector3 actualUnityMax,
+            Vector3 legacyNativeMin,
+            Vector3 legacyNativeMax,
+            float tolerance = DefaultTolerance,
+            string context = null)
+        {
+            NativeBoundsToUnity(legacyNativeMin, legacyNativeMax, out Vector3 expectedUnityMin, out Vector3 expectedUnityMax);
+            string conversion = $"{context ?? "bounds"} (actual=hbp_core Unity; expected=R*hbp_export native with min/max reordered)";
+            AssertVector(actualUnityMin, expectedUnityMin, tolerance, $"{conversion}.min");
+            AssertVector(actualUnityMax, expectedUnityMax, tolerance, $"{conversion}.max");
         }
 
         public static void AssertVector(Vector2 actual, Vector2 expected, float tolerance = DefaultTolerance)
@@ -155,6 +196,18 @@ namespace HBP.Tests.Serialization.Helpers
             }
         }
 
+        public static void AssertUnityVectorSetMatchesLegacyNative(IEnumerable<Vector3> actualUnity, IEnumerable<Vector3> legacyNative, float tolerance = DefaultTolerance)
+        {
+            AssertSameVectorSet(actualUnity, legacyNative.Select(NativeToUnity), tolerance);
+        }
+
+        public static void NormalizeLegacyMeshToUnity(Mesh mesh)
+        {
+            mesh.vertices = mesh.vertices.Select(NativeToUnity).ToArray();
+            mesh.normals = mesh.normals.Select(NativeToUnity).ToArray();
+            mesh.triangles = ReferenceSystemConversion.ConvertTriangleWinding(mesh.triangles);
+        }
+
         public static void AssertSameSegmentSet(IEnumerable<Segment3> actual, IEnumerable<Segment3> expected, float tolerance = DefaultTolerance)
         {
             List<Segment3> actualSegments = actual.ToList();
@@ -168,6 +221,23 @@ namespace HBP.Tests.Serialization.Helpers
                 Assert.That(foundIndex, Is.GreaterThanOrEqualTo(0), $"Missing segment {expectedSegment.End1} -> {expectedSegment.End2}");
                 remaining.RemoveAt(foundIndex);
             }
+        }
+
+        public static void AssertUnitySegmentSetMatchesLegacyNative(IEnumerable<Segment3> actualUnity, IEnumerable<Segment3> legacyNative, float tolerance = DefaultTolerance)
+        {
+            List<Segment3> actualSegments = actualUnity.ToList();
+            List<Segment3> remaining = new(actualSegments);
+            foreach (Segment3 legacySegment in legacyNative)
+            {
+                Vector3 expectedEnd1 = NativeToUnity(legacySegment.End1);
+                Vector3 expectedEnd2 = NativeToUnity(legacySegment.End2);
+                int foundIndex = remaining.FindIndex(actualSegment =>
+                    VectorsEqual(actualSegment.End1, expectedEnd1, tolerance) && VectorsEqual(actualSegment.End2, expectedEnd2, tolerance)
+                    || VectorsEqual(actualSegment.End1, expectedEnd2, tolerance) && VectorsEqual(actualSegment.End2, expectedEnd1, tolerance));
+                Assert.That(foundIndex, Is.GreaterThanOrEqualTo(0), $"Missing Unity segment converted from legacy native {legacySegment.End1} -> {legacySegment.End2}");
+                remaining.RemoveAt(foundIndex);
+            }
+            Assert.That(remaining, Is.Empty, "Unexpected additional Unity segments");
         }
 
         public static void AssertMriCalValues(MRICalValues actual, MRICalValues expected, float tolerance = DefaultTolerance)

@@ -109,9 +109,10 @@ namespace HBP.Tests.Serialization
         public void ReferenceSystemConversion_CouplesXReflectionAndTriangleWinding()
         {
             Type conversionType = typeof(Volume).Assembly.GetType("HBP.Core.DLL.ReferenceSystemConversion", throwOnError: true);
-            FieldInfo invertXField = conversionType.GetField("InvertX", BindingFlags.NonPublic | BindingFlags.Static);
-            FieldInfo flipsHandednessField = conversionType.GetField("FlipsHandedness", BindingFlags.NonPublic | BindingFlags.Static);
-            MethodInfo convertTriangleWinding = conversionType.GetMethod("ConvertTriangleWinding", BindingFlags.NonPublic | BindingFlags.Static);
+            const BindingFlags staticMembers = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            FieldInfo invertXField = conversionType.GetField("InvertX", staticMembers);
+            FieldInfo flipsHandednessField = conversionType.GetField("FlipsHandedness", staticMembers);
+            MethodInfo convertTriangleWinding = conversionType.GetMethod("ConvertTriangleWinding", staticMembers);
 
             Assert.That(invertXField, Is.Not.Null);
             Assert.That(flipsHandednessField, Is.Not.Null);
@@ -428,18 +429,15 @@ namespace HBP.Tests.Serialization
             DisposeSegments(hbpCoreSegments);
             DisposeSegments(hbpExportSegments);
 
-            using HbpPlane hbpCorePlane = new(NativeToUnity(hbpExportBBox.Center), Vector3.forward);
-            using HbpPlane hbpExportPlane = new(hbpExportBBox.Center, Vector3.forward);
+            using HbpPlane plane = new(NativeToUnity(hbpExportBBox.Center), Vector3.forward);
             AssertSameVectorSet(
-                hbpCoreBBox.IntersectionPointsWithPlane(hbpCorePlane),
-                NativeToUnity(hbpExportBBox.IntersectionPointsWithPlane(hbpExportPlane)));
+                hbpCoreBBox.IntersectionPointsWithPlane(plane),
+                NativeToUnity(hbpExportBBox.IntersectionPointsWithPlane(plane)));
 
-            using HbpPlane hbpCorePlaneA = new(NativeToUnity(hbpExportBBox.Center), Vector3.right);
-            using HbpPlane hbpCorePlaneB = new(NativeToUnity(hbpExportBBox.Center), Vector3.up);
-            using HbpPlane hbpExportPlaneA = new(hbpExportBBox.Center, Vector3.right);
-            using HbpPlane hbpExportPlaneB = new(hbpExportBBox.Center, Vector3.up);
-            HbpSegment3 hbpCoreSegment = hbpCoreBBox.IntersectionSegmentBetweenTwoPlanes(hbpCorePlaneA, hbpCorePlaneB);
-            HbpSegment3 hbpExportSegment = hbpExportBBox.IntersectionSegmentBetweenTwoPlanes(hbpExportPlaneA, hbpExportPlaneB);
+            using HbpPlane planeA = new(NativeToUnity(hbpExportBBox.Center), Vector3.right);
+            using HbpPlane planeB = new(NativeToUnity(hbpExportBBox.Center), Vector3.up);
+            HbpSegment3 hbpCoreSegment = hbpCoreBBox.IntersectionSegmentBetweenTwoPlanes(planeA, planeB);
+            HbpSegment3 hbpExportSegment = hbpExportBBox.IntersectionSegmentBetweenTwoPlanes(planeA, planeB);
 
             Assert.That(hbpCoreSegment, Is.Not.Null);
             Assert.That(hbpExportSegment, Is.Not.Null);

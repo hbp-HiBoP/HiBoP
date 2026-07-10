@@ -56,12 +56,7 @@ namespace HBP.Core.DLL
                 return;
             }
 
-            float[] planeCut = new float[6];
-            for (int ii = 0; ii < 3; ++ii)
-            {
-                planeCut[ii] = cut.Point[ii];
-                planeCut[ii + 3] = cut.Normal[ii];
-            }
+            float[] planeCut = cut.ConvertToArray();
             initialize_CutGeometryGenerator(_handle, volume.getHandle(), planeCut, (int)cut.Orientation, cut.Flip, maxTextureSize);
         }
 

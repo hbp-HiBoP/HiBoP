@@ -13,6 +13,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.IndependentOracle)]
         public void ObjAndTriSurfaceBuffers_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -26,8 +27,8 @@ namespace HBP.Tests.Serialization
 
             try
             {
-                AssertLoadedSurfaceMatches(objPath, surface => surface.LoadOBJFile(objPath));
-                AssertLoadedSurfaceMatches(triPath, surface => surface.LoadTRIFile(triPath));
+                AssertLoadedSurfaceMatches(objPath, surface => surface.LoadOBJFile(objPath), nativeFixtureMin: Vector3.zero, nativeFixtureMax: Vector3.one);
+                AssertTriSurfaceMatchesFixtureOracle(triPath);
             }
             finally
             {
@@ -39,6 +40,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.IntentionalCorrection)]
         public void ClosedSurfacePointContainment_MatchesAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -53,16 +55,19 @@ namespace HBP.Tests.Serialization
                 using Surface hbpExportSurface = LoadSurface(NativeBackend.HbpExport, surface => surface.LoadOBJFile(objPath));
                 using Surface hbpCoreSurface = LoadSurface(NativeBackend.HbpCore, surface => surface.LoadOBJFile(objPath));
 
-                foreach ((Vector3 point, string name) in new[]
+                foreach ((Vector3 point, bool expectedInside, string name) in new[]
                 {
-                    (new Vector3(0.5f, 0.5f, 0.5f), "center"),
-                    (new Vector3(0.1f, 0.5f, 0.5f), "inside near face"),
-                    (new Vector3(1.5f, 0.5f, 0.5f), "outside x"),
-                    (new Vector3(0.5f, 1.5f, 0.5f), "outside y"),
-                    (new Vector3(0.5f, 0.5f, 1.5f), "outside z")
+                    (new Vector3(-0.5f, 0.5f, 0.5f), true, "center"),
+                    (new Vector3(-0.1f, 0.5f, 0.5f), true, "inside near face"),
+                    (new Vector3(-1.5f, 0.5f, 0.5f), false, "outside x"),
+                    (new Vector3(-0.5f, 1.5f, 0.5f), false, "outside y"),
+                    (new Vector3(-0.5f, 0.5f, 1.5f), false, "outside z")
                 })
                 {
-                    Assert.That(hbpCoreSurface.IsPointInside(point), Is.EqualTo(hbpExportSurface.IsPointInside(point)), name);
+                    bool hbpCoreInside = hbpCoreSurface.IsPointInside(point);
+                    bool hbpExportInside = hbpExportSurface.IsPointInside(point);
+                    Assert.That(hbpCoreInside, Is.EqualTo(expectedInside), $"{name}: independent unit-cube oracle in Unity space");
+                    TestContext.Progress.WriteLine($"point containment {name} at Unity {point}: oracle={expectedInside}, hbp_core={hbpCoreInside}, hbp_export={hbpExportInside}");
                 }
             }
             finally
@@ -74,6 +79,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.NormalizedCoordinateParity)]
         public void GiftiSurfaceBuffersAndTransform_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -89,6 +95,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.NormalizedCoordinateParity)]
         public void MarsAtlasMetadataColorsAndSurfaceLabels_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -155,6 +162,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.NormalizedCoordinateParity)]
         public void JuBrainAtlasMetadataColorsAndSpatialQueries_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -184,7 +192,12 @@ namespace HBP.Tests.Serialization
             Assert.That(hbpCoreAtlas.GetInformation(1), Is.EqualTo(hbpExportAtlas.GetInformation(1)));
         }
 
-        private static void AssertLoadedSurfaceMatches(string path, Func<Surface, bool> load, float tolerance = NativeParityAssert.DefaultTolerance)
+        private static void AssertLoadedSurfaceMatches(
+            string path,
+            Func<Surface, bool> load,
+            float tolerance = NativeParityAssert.DefaultTolerance,
+            Vector3? nativeFixtureMin = null,
+            Vector3? nativeFixtureMax = null)
         {
             bool isGifti = Path.GetExtension(path).Equals(".gii", StringComparison.OrdinalIgnoreCase);
             bool isObj = Path.GetExtension(path).Equals(".obj", StringComparison.OrdinalIgnoreCase);
@@ -200,8 +213,19 @@ namespace HBP.Tests.Serialization
 
             using BBox hbpExportBBox = hbpExportSurface.BoundingBox;
             using BBox hbpCoreBBox = hbpCoreSurface.BoundingBox;
-            NativeParityAssert.AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min, tolerance);
-            NativeParityAssert.AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max, tolerance);
+            NativeParityAssert.AssertUnityBoundsMatchLegacyNative(
+                hbpCoreBBox.Min,
+                hbpCoreBBox.Max,
+                hbpExportBBox.Min,
+                hbpExportBBox.Max,
+                tolerance,
+                path);
+            if (nativeFixtureMin.HasValue && nativeFixtureMax.HasValue)
+            {
+                NativeParityAssert.NativeBoundsToUnity(nativeFixtureMin.Value, nativeFixtureMax.Value, out Vector3 expectedMin, out Vector3 expectedMax);
+                NativeParityAssert.AssertVector(hbpCoreBBox.Min, expectedMin, tolerance, $"{path} fixture oracle min");
+                NativeParityAssert.AssertVector(hbpCoreBBox.Max, expectedMax, tolerance, $"{path} fixture oracle max");
+            }
 
             Mesh hbpExportMesh = new();
             Mesh hbpCoreMesh = new();
@@ -211,6 +235,7 @@ namespace HBP.Tests.Serialization
                 hbpCoreMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
                 hbpExportSurface.UpdateMeshFromDLL(hbpExportMesh);
                 hbpCoreSurface.UpdateMeshFromDLL(hbpCoreMesh);
+                NativeParityAssert.NormalizeLegacyMeshToUnity(hbpExportMesh);
                 AssertMesh(hbpCoreMesh, hbpExportMesh, path, tolerance, compareColors, compareTriangles);
             }
             finally
@@ -238,6 +263,39 @@ namespace HBP.Tests.Serialization
                         throw;
                     }
                 });
+        }
+
+        private static void AssertTriSurfaceMatchesFixtureOracle(string triPath)
+        {
+            using Surface surface = LoadSurface(NativeBackend.HbpCore, value => value.LoadTRIFile(triPath));
+            Assert.That(surface.NumberOfVertices, Is.EqualTo(4));
+            Assert.That(surface.NumberOfTriangles, Is.EqualTo(2));
+
+            using BBox bbox = surface.BoundingBox;
+            NativeParityAssert.AssertVector(bbox.Min, new Vector3(-1.0f, 0.0f, 0.0f), context: "TRI fixture bbox min in Unity");
+            NativeParityAssert.AssertVector(bbox.Max, new Vector3(0.0f, 1.0f, 0.0f), context: "TRI fixture bbox max in Unity");
+
+            Mesh mesh = new();
+            try
+            {
+                surface.UpdateMeshFromDLL(mesh);
+                NativeParityAssert.AssertSameVectorArray(
+                    mesh.vertices,
+                    new[]
+                    {
+                        new Vector3(0.0f, 0.0f, 0.0f),
+                        new Vector3(-1.0f, 0.0f, 0.0f),
+                        new Vector3(-1.0f, 1.0f, 0.0f),
+                        new Vector3(0.0f, 1.0f, 0.0f)
+                    });
+                NativeParityAssert.AssertSameVectorArray(mesh.normals, Enumerable.Repeat(Vector3.forward, 4).ToArray());
+                Assert.That(mesh.triangles, Is.EqualTo(new[] { 0, 2, 1, 0, 3, 2 }), "TRI fixture winding after right-handed to left-handed conversion");
+                TestContext.Progress.WriteLine("TRI: hbp_core validated against fixture oracle; hbp_export comparison unavailable because the installed DLL has no load_TRI_file_Surface entry point.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
         }
 
         private static MarsAtlas LoadMarsAtlas(NativeBackend backend)

@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using HBP.Data.Module3D;
+using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -11,6 +12,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.IntentionalCorrection)]
         public void ManagedROI_SphereMaskMatchesLegacyHbpExport()
         {
             Vector3[] unitySpheres = { Vector3.zero, new Vector3(3, 0, 0) };

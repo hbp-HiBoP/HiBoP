@@ -13,6 +13,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.NormalizedCoordinateParity)]
         public void CutGeometryBoundingBoxesAndPositionRatios_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -30,8 +31,13 @@ namespace HBP.Tests.Serialization
 
                     using BBox hbpExportBBox = hbpExportGeometry.BoundingBox;
                     using BBox hbpCoreBBox = hbpCoreGeometry.BoundingBox;
-                    NativeParityAssert.AssertVector(hbpCoreBBox.Min, hbpExportBBox.Min, 0.0002f);
-                    NativeParityAssert.AssertVector(hbpCoreBBox.Max, hbpExportBBox.Max, 0.0002f);
+                    NativeParityAssert.AssertUnityBoundsMatchLegacyNative(
+                        hbpCoreBBox.Min,
+                        hbpCoreBBox.Max,
+                        hbpExportBBox.Min,
+                        hbpExportBBox.Max,
+                        0.0002f,
+                        $"{orientation} flip={flip} cut geometry");
 
                     Vector2Int textureSize = hbpCoreGeometry.TextureSize;
                     Assert.That(textureSize.x, Is.GreaterThan(0), $"{orientation} {flip}");
@@ -39,12 +45,13 @@ namespace HBP.Tests.Serialization
                     Assert.That(textureSize.x, Is.LessThanOrEqualTo(8), $"{orientation} {flip}");
                     Assert.That(textureSize.y, Is.LessThanOrEqualTo(8), $"{orientation} {flip}");
 
-                    foreach (Vector3 point in new[] { hbpExportBBox.Center, hbpExportBBox.Min, hbpExportBBox.Max })
+                    foreach (Vector3 legacyNativePoint in new[] { hbpExportBBox.Center, hbpExportBBox.Min, hbpExportBBox.Max })
                     {
-                        Vector2 hbpCoreRatio = hbpCoreGeometry.GetPositionRatioOnTexture(point);
-                        Vector2 hbpExportRatio = hbpExportGeometry.GetPositionRatioOnTexture(point);
-                        Assert.That(hbpCoreRatio.x, Is.EqualTo(hbpExportRatio.x).Within(0.0002f), $"{orientation} {flip} {point} ratio.x");
-                        Assert.That(hbpCoreRatio.y, Is.EqualTo(hbpExportRatio.y).Within(0.0002f), $"{orientation} {flip} {point} ratio.y");
+                        Vector3 unityPoint = NativeParityAssert.NativeToUnity(legacyNativePoint);
+                        Vector2 hbpCoreRatio = hbpCoreGeometry.GetPositionRatioOnTexture(unityPoint);
+                        Vector2 hbpExportRatio = hbpExportGeometry.GetPositionRatioOnTexture(unityPoint);
+                        Assert.That(hbpCoreRatio.x, Is.EqualTo(hbpExportRatio.x).Within(0.0002f), $"{orientation} {flip} Unity {unityPoint} (legacy native {legacyNativePoint}) ratio.x");
+                        Assert.That(hbpCoreRatio.y, Is.EqualTo(hbpExportRatio.y).Within(0.0002f), $"{orientation} {flip} Unity {unityPoint} (legacy native {legacyNativePoint}) ratio.y");
                     }
                 }
             }
@@ -53,6 +60,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
         public void CutGeometrySurfaceUvs_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -87,6 +95,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
         public void CutVolumeBasePixels_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -195,7 +204,15 @@ namespace HBP.Tests.Serialization
 
         private static HBP.Core.Object3D.Cut CreateCut(Volume volume, CutOrientation orientation, bool flip)
         {
-            return new HBP.Core.Object3D.Cut(volume.Center, volume.GetOrientationVector(orientation, flip))
+            Vector3 center = volume.Center;
+            Vector3 normal = volume.GetOrientationVector(orientation, flip);
+            if (!volume.UsesHbpCore)
+            {
+                center = NativeParityAssert.NativeToUnity(center);
+                normal = NativeParityAssert.NativeToUnity(normal);
+            }
+
+            return new HBP.Core.Object3D.Cut(center, normal)
             {
                 Orientation = orientation,
                 Flip = flip,

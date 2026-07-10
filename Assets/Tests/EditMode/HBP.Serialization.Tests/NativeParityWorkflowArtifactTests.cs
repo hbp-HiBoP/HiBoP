@@ -15,6 +15,7 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
+        [Category(NativeParityAssert.NormalizedCoordinateParity)]
         public void RepresentativeNativeWorkflowArtifact_MatchesAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
@@ -22,7 +23,8 @@ namespace HBP.Tests.Serialization
             WorkflowArtifact hbpExportArtifact = CaptureWorkflowArtifact(NativeBackend.HbpExport);
             WorkflowArtifact hbpCoreArtifact = CaptureWorkflowArtifact(NativeBackend.HbpCore);
 
-            NativeParityAssert.AssertVector(hbpCoreArtifact.VolumeCenter, hbpExportArtifact.VolumeCenter);
+            NativeParityAssert.AssertVector(hbpCoreArtifact.VolumeCenter, hbpExportArtifact.VolumeCenter, context: "workflow normalized Unity volume center");
+            NativeParityAssert.AssertVector(hbpCoreArtifact.VolumeCenter, new Vector3(-2.0f, 2.0f, 2.0f), context: "workflow fmri_3d fixture center in Unity");
             NativeParityAssert.AssertVector(hbpCoreArtifact.VolumeSpacing, hbpExportArtifact.VolumeSpacing);
             NativeParityAssert.AssertMriCalValues(hbpCoreArtifact.VolumeExtrema, hbpExportArtifact.VolumeExtrema);
 
@@ -64,7 +66,22 @@ namespace HBP.Tests.Serialization
                         uvMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
                         surface.UpdateMeshFromDLL(mesh);
 
-                        using HBP.Core.Object3D.Cut cut = new(volume.Center, volume.GetOrientationVector(CutOrientation.Axial, flip: false))
+                        Vector3 rawVolumeCenter = volume.Center;
+                        Vector3 unityVolumeCenter = backend == NativeBackend.HbpCore
+                            ? rawVolumeCenter
+                            : NativeParityAssert.NativeToUnity(rawVolumeCenter);
+                        Vector3 rawOrientation = volume.GetOrientationVector(CutOrientation.Axial, flip: false);
+                        Vector3 unityOrientation = backend == NativeBackend.HbpCore
+                            ? rawOrientation
+                            : NativeParityAssert.NativeToUnity(rawOrientation);
+                        TestContext.Progress.WriteLine(
+                            $"workflow {backend}: raw center={rawVolumeCenter}; normalized Unity center={unityVolumeCenter}; conversion=R=diag({(ReferenceSystemConversion.InvertX ? "-1" : "1")},1,1)");
+                        if (backend == NativeBackend.HbpExport)
+                        {
+                            NativeParityAssert.NormalizeLegacyMeshToUnity(mesh);
+                        }
+
+                        using HBP.Core.Object3D.Cut cut = new(unityVolumeCenter, unityOrientation)
                         {
                             Orientation = CutOrientation.Axial,
                             Flip = false,
@@ -80,7 +97,7 @@ namespace HBP.Tests.Serialization
                         ActivityUvs fmriUvs = ComputeFmriUvs(surface, volume, activityVolume, maskVolume);
 
                         return new WorkflowArtifact(
-                            volume.Center,
+                            unityVolumeCenter,
                             volume.Spacing,
                             volume.ExtremeValues,
                             mesh.vertexCount,

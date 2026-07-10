@@ -426,15 +426,7 @@ namespace HBP.Core.DLL
             }
 
             // init plane
-            float[] planes = new float[cutPlanes.Length * 6];
-            for (int ii = 0; ii < cutPlanes.Length; ++ii)
-            {
-                for (int jj = 0; jj < 3; ++jj)
-                {
-                    planes[ii * 6 + jj] = cutPlanes[ii].Point[jj];
-                    planes[ii * 6 + jj + 3] = cutPlanes[ii].Normal[jj];
-                }
-            }
+            float[] planes = ToLegacyNativePlanes(cutPlanes);
 
             // do the cut            
             HandleRef pCutMultiSurface = new(this, cut_Surface(_handle, planes, cutPlanes.Length, noHoles?1:0, strongCuts?1:0));
@@ -474,15 +466,7 @@ namespace HBP.Core.DLL
             }
 
             // init plane
-            float[] planes = new float[cutPlanes.Count * 6];
-            for (int ii = 0; ii < cutPlanes.Count; ++ii)
-            {
-                for (int jj = 0; jj < 3; ++jj)
-                {
-                    planes[ii * 6 + jj] = cutPlanes[ii].Point[jj];
-                    planes[ii * 6 + jj + 3] = cutPlanes[ii].Normal[jj];
-                }
-            }
+            float[] planes = ToLegacyNativePlanes(cutPlanes);
 
             // do the cut            
             HandleRef pCutMultiSurface = new(this, generate_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
@@ -522,15 +506,7 @@ namespace HBP.Core.DLL
             }
 
             // init plane
-            float[] planes = new float[cutPlanes.Count * 6];
-            for (int ii = 0; ii < cutPlanes.Count; ++ii)
-            {
-                for (int jj = 0; jj < 3; ++jj)
-                {
-                    planes[ii * 6 + jj] = cutPlanes[ii].Point[jj];
-                    planes[ii * 6 + jj + 3] = cutPlanes[ii].Normal[jj];
-                }
-            }
+            float[] planes = ToLegacyNativePlanes(cutPlanes);
 
             // do the cut            
             HandleRef pCutMultiSurface = new(this, generate_raw_cuts_Surface(_handle, planes, cutPlanes.Count, noHoles ? 1 : 0, strongCuts ? 1 : 0));
@@ -544,6 +520,23 @@ namespace HBP.Core.DLL
             // clean the multi surface
             delete_MultiSurface(pCutMultiSurface);
             return cuts;
+        }
+
+        /// <summary>
+        /// Serializes Unity-space cut planes for the legacy native API.
+        /// Keeping this conversion here makes the hbp_export boundary follow the
+        /// same reference-system contract as hbp_core's Plane wrapper.
+        /// </summary>
+        private static float[] ToLegacyNativePlanes(IReadOnlyList<Object3D.Cut> cutPlanes)
+        {
+            float[] planes = new float[cutPlanes.Count * 6];
+            for (int i = 0; i < cutPlanes.Count; ++i)
+            {
+                float[] nativePlane = cutPlanes[i].ConvertToArray();
+                int offset = i * 6;
+                Array.Copy(nativePlane, 0, planes, offset, nativePlane.Length);
+            }
+            return planes;
         }
         /// <summary>
         /// Merge the surface with the input one
@@ -770,11 +763,8 @@ namespace HBP.Core.DLL
             {
                 if (cuts[ii].Orientation != CutOrientation.Custom)
                 {
-                    for (int jj = 0; jj < 3; ++jj)
-                    {
-                        planes[ii * 6 + jj] = cuts[ii].Point[jj];
-                        planes[ii * 6 + jj + 3] = cuts[ii].Normal[jj];
-                    }
+                    float[] nativePlane = cuts[ii].ConvertToArray();
+                    Array.Copy(nativePlane, 0, planes, planesCount * 6, nativePlane.Length);
                     planesCount++;
                 }
             }

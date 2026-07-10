@@ -177,11 +177,8 @@ namespace HBP.Core.DLL
             {
                 if (cuts[ii].Orientation != CutOrientation.Custom)
                 {
-                    for (int jj = 0; jj < 3; ++jj)
-                    {
-                        planes[ii * 6 + jj] = cuts[ii].Point[jj];
-                        planes[ii * 6 + jj + 3] = cuts[ii].Normal[jj];
-                    }
+                    float[] nativePlane = cuts[ii].ConvertToArray();
+                    Array.Copy(nativePlane, 0, planes, planesCount * 6, nativePlane.Length);
                     planesCount++;
                 }
             }
