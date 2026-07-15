@@ -53,6 +53,33 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        [Category("NativeMigration")]
+        [Category("MigrationFunctional")]
+        public void RegionOfInterest_ManagedSerializationRoundTripPreservesEverySphere()
+        {
+            using TempDirectoryScope temp = new();
+            VisualizationConfiguration source = new();
+            source.RegionsOfInterest.Add(
+                new RegionOfInterest(
+                    "roi-round-trip",
+                    new List<DataSphere>
+                    {
+                        new(new Vector3(-7.5f, 2.25f, 0.125f), 3.5f),
+                        new(new Vector3(11, -13, 17), 0.25f)
+                    }));
+
+            VisualizationConfiguration loaded = RoundTrip(temp, source, "module3d-roi-round-trip.json");
+
+            Assert.That(loaded.RegionsOfInterest, Has.Count.EqualTo(1));
+            Assert.That(loaded.RegionsOfInterest[0].Name, Is.EqualTo("roi-round-trip"));
+            Assert.That(loaded.RegionsOfInterest[0].Spheres, Has.Count.EqualTo(2));
+            Assert.That(loaded.RegionsOfInterest[0].Spheres[0].Position.ToVector3(), Is.EqualTo(new Vector3(-7.5f, 2.25f, 0.125f)));
+            Assert.That(loaded.RegionsOfInterest[0].Spheres[0].Radius, Is.EqualTo(3.5f));
+            Assert.That(loaded.RegionsOfInterest[0].Spheres[1].Position.ToVector3(), Is.EqualTo(new Vector3(11, -13, 17)));
+            Assert.That(loaded.RegionsOfInterest[0].Spheres[1].Radius, Is.EqualTo(0.25f));
+        }
+
+        [Test]
         public void VisualizationColumns_AllCurrentVariants_CloneRoundTripAndCompatibilityAreStable()
         {
             using TempDirectoryScope temp = new();

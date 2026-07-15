@@ -37,6 +37,7 @@ namespace HBP.Tests.Serialization
             try
             {
                 Assert.That(hbpCoreSegments, Has.Count.EqualTo(hbpExportSegments.Count));
+                AssertBBoxEdgesUseDistinctBufferPairs(hbpExportBBox.Points, hbpExportSegments);
             }
             finally
             {
@@ -265,6 +266,41 @@ namespace HBP.Tests.Serialization
                         throw;
                     }
                 });
+        }
+
+        private static void AssertBBoxEdgesUseDistinctBufferPairs(IReadOnlyList<Vector3> corners, IReadOnlyList<HbpSegment3> segments)
+        {
+            HashSet<string> uniqueEdges = new();
+            foreach (HbpSegment3 segment in segments)
+            {
+                int first = FindCorner(corners, segment.End1);
+                int second = FindCorner(corners, segment.End2);
+                Assert.That(first, Is.GreaterThanOrEqualTo(0), $"Legacy bbox segment start {segment.End1} is not a bbox corner");
+                Assert.That(second, Is.GreaterThanOrEqualTo(0), $"Legacy bbox segment end {segment.End2} is not a bbox corner");
+                Assert.That(first, Is.Not.EqualTo(second), "Legacy bbox segment must not be degenerate");
+
+                Vector3 delta = segment.End2 - segment.End1;
+                int differingAxes = (Mathf.Abs(delta.x) > 0.0001f ? 1 : 0)
+                    + (Mathf.Abs(delta.y) > 0.0001f ? 1 : 0)
+                    + (Mathf.Abs(delta.z) > 0.0001f ? 1 : 0);
+                Assert.That(differingAxes, Is.EqualTo(1), "Every bbox edge must be axis aligned");
+
+                uniqueEdges.Add(first < second ? $"{first}:{second}" : $"{second}:{first}");
+            }
+
+            Assert.That(uniqueEdges, Has.Count.EqualTo(12), "The legacy wrapper must consume each six-float segment pair exactly once");
+        }
+
+        private static int FindCorner(IReadOnlyList<Vector3> corners, Vector3 candidate)
+        {
+            for (int i = 0; i < corners.Count; ++i)
+            {
+                if (Vector3.Distance(corners[i], candidate) <= 0.0001f)
+                {
+                    return i;
+                }
+            }
+            return -1;
         }
     }
 }

@@ -126,7 +126,8 @@ namespace HBP.Core.DLL
 
                 for (int ii = 0; ii < 12; ii++)
                 {
-                    linesPoints.Add(new Segment3(new Vector3(pointsF[3 * ii], pointsF[3 * ii + 1], pointsF[3 * ii + 2]), new Vector3(pointsF[3 * ii + 3], pointsF[3 * ii + 4], pointsF[3 * ii + 5])));
+                    int offset = 6 * ii;
+                    linesPoints.Add(new Segment3(new Vector3(pointsF[offset], pointsF[offset + 1], pointsF[offset + 2]), new Vector3(pointsF[offset + 3], pointsF[offset + 4], pointsF[offset + 5])));
                 }
 
                 return linesPoints;
@@ -183,7 +184,8 @@ namespace HBP.Core.DLL
 
             for (int ii = 0; ii < 4; ++ii)
             {
-                intersecLines.Add(new Segment3(new Vector3(pointsF[3 * ii], pointsF[3 * ii + 1], pointsF[3 * ii + 2]), new Vector3(pointsF[3 * ii + 3], pointsF[3 * ii + 4], pointsF[3 * ii + 5])));
+                int offset = 6 * ii;
+                intersecLines.Add(new Segment3(new Vector3(pointsF[offset], pointsF[offset + 1], pointsF[offset + 2]), new Vector3(pointsF[offset + 3], pointsF[offset + 4], pointsF[offset + 5])));
             }
 
             return intersecLines;
