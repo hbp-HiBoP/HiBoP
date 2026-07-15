@@ -5,6 +5,7 @@ using HBP.Core.Preferences;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -299,6 +300,54 @@ namespace HBP.Core.Data
                 }
             }
             return sites;
+        }
+
+        /// <summary>
+        /// Save sites to the historical PTS text format.
+        /// </summary>
+        /// <param name="sites">Sites to save.</param>
+        /// <param name="referenceSystem">Reference system of the coordinates to save.</param>
+        /// <param name="ptsFile">Destination PTS file path.</param>
+        public static void SaveSitesToPTSFile(IEnumerable<Site> sites, string referenceSystem, string ptsFile)
+        {
+            if (sites == null) throw new ArgumentNullException(nameof(sites));
+            if (string.IsNullOrWhiteSpace(referenceSystem)) throw new ArgumentException("The reference system is empty.", nameof(referenceSystem));
+            if (string.IsNullOrWhiteSpace(ptsFile)) throw new ArgumentException("The PTS file path is empty.", nameof(ptsFile));
+
+            List<(Site Site, Coordinate Coordinate)> entries = sites
+                .Select(site =>
+                {
+                    if (site == null) throw new ArgumentException("The site collection contains a null entry.", nameof(sites));
+                    Coordinate coordinate = site.Coordinates.FirstOrDefault(value => value.ReferenceSystem == referenceSystem);
+                    if (coordinate == null)
+                    {
+                        throw new InvalidDataException($"Site '{site.Name}' has no coordinate in reference system '{referenceSystem}'.");
+                    }
+                    return (site, coordinate);
+                })
+                .ToList();
+
+            string directory = Path.GetDirectoryName(ptsFile);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            using StreamWriter writer = new(ptsFile, false);
+            writer.WriteLine("ptsfile");
+            writer.WriteLine("1\t1\t1");
+            writer.WriteLine(entries.Count.ToString(CultureInfo.InvariantCulture));
+            foreach ((Site site, Coordinate coordinate) in entries)
+            {
+                UnityEngine.Vector3 position = coordinate.Position.ToVector3();
+                writer.Write(site.Name);
+                writer.Write('\t');
+                writer.Write(position.x.ToString("F6", CultureInfo.InvariantCulture));
+                writer.Write('\t');
+                writer.Write(position.y.ToString("F6", CultureInfo.InvariantCulture));
+                writer.Write('\t');
+                writer.WriteLine(position.z.ToString("F6", CultureInfo.InvariantCulture));
+            }
         }
         /// <summary>
         /// Load all sites from csv file.

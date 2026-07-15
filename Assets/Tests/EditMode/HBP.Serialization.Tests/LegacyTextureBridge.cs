@@ -13,6 +13,21 @@ namespace HBP.Tests.Serialization
             Handle = create_Texture();
         }
 
+        private LegacyTextureBridge(IntPtr handle)
+        {
+            Handle = handle;
+        }
+
+        public static LegacyTextureBridge Generate1D(int colorType)
+        {
+            return new LegacyTextureBridge(generate_1D_color_Texture(colorType));
+        }
+
+        public static LegacyTextureBridge Generate2D(int horizontalColorType, int verticalColorType)
+        {
+            return new LegacyTextureBridge(generate_2D_color_Texture(horizontalColorType, verticalColorType));
+        }
+
         public static LegacyTextureBridge CreateFromPixels(Color32[] pixels, int width, int height)
         {
             LegacyTextureBridge texture = new();
@@ -81,5 +96,11 @@ namespace HBP.Tests.Serialization
 
         [DllImport("hbp_export", EntryPoint = "set_colors_Texture", CallingConvention = CallingConvention.Cdecl)]
         private static extern void set_colors_Texture(IntPtr texture, byte[] colors, int length);
+
+        [DllImport("hbp_export", EntryPoint = "generate_1D_color_Texture", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr generate_1D_color_Texture(int colorType);
+
+        [DllImport("hbp_export", EntryPoint = "generate_2D_color_Texture", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr generate_2D_color_Texture(int horizontalColorType, int verticalColorType);
     }
 }

@@ -228,19 +228,21 @@ namespace HBP.Core.Tools
             Color32[] target = new Color32[size * size];
             Fill(target, new Color32(0, 0, 0, 255));
 
-            int offsetX = (size - texture.width) / 2;
-            int offsetY = (size - texture.height) / 2;
             int copyWidth = Mathf.Min(texture.width, size);
             int copyHeight = Mathf.Min(texture.height, size);
+            int sourceStartX = Mathf.Max(0, (texture.width - size) / 2);
+            int sourceStartY = Mathf.Max(0, (texture.height - size) / 2);
+            int targetStartX = Mathf.Max(0, (size - texture.width) / 2);
+            int targetStartY = Mathf.Max(0, (size - texture.height) / 2);
             for (int y = 0; y < copyHeight; y++)
             {
-                int targetY = y + offsetY;
-                if (targetY < 0 || targetY >= size) continue;
+                int sourceY = y + sourceStartY;
+                int targetY = y + targetStartY;
                 for (int x = 0; x < copyWidth; x++)
                 {
-                    int targetX = x + offsetX;
-                    if (targetX < 0 || targetX >= size) continue;
-                    target[targetY * size + targetX] = source[y * texture.width + x];
+                    int sourceX = x + sourceStartX;
+                    int targetX = x + targetStartX;
+                    target[targetY * size + targetX] = source[sourceY * texture.width + sourceX];
                 }
             }
 

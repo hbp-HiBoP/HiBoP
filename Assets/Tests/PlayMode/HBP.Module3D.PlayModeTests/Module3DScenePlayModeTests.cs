@@ -608,6 +608,106 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [UnityTest]
         [Category("PlayMode.Module3DScene")]
+        [Category("NativeMigration")]
+        public IEnumerator ROI_PublicEditingVisibilityRenderingAndEventsUpdateObservableState()
+        {
+            using PlayModeSceneScope scene = new("Module3DSceneManagedROIPublicOperations");
+            CreateRuntimeModule3DMain(scene, "Managed ROI Public Operations Module");
+            ROI roi = CreateRuntimeROI(scene, "Managed ROI Public Operations");
+            int nameChanges = 0;
+            int numberChanges = 0;
+            int parameterChanges = 0;
+            int selectionChanges = 0;
+            roi.OnUpdateROIName.AddListener(() => ++nameChanges);
+            roi.OnChangeNumberOfSpheres.AddListener(() => ++numberChanges);
+            roi.OnChangeSphereParameters.AddListener(() => ++parameterChanges);
+            roi.OnChangeSphereSelectionState.AddListener(() => ++selectionChanges);
+
+            roi.Name = "Language ROI";
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere A", Vector3.zero, 1.0f);
+            HBP.Data.Module3D.Sphere sphere = roi.SelectedSphere;
+
+            Assert.That(roi.Name, Is.EqualTo("Language ROI"));
+            Assert.That(nameChanges, Is.EqualTo(1));
+            Assert.That(numberChanges, Is.EqualTo(1));
+            Assert.That(selectionChanges, Is.EqualTo(2), "AddSphere selects through the public selection path.");
+            Assert.That(sphere, Is.Not.Null);
+            Assert.That(sphere.Selected, Is.True);
+
+            roi.MoveSelectedSphere(new Vector3(1, 2, 3));
+            Assert.That(sphere.Position, Is.EqualTo(new Vector3(1, 2, 3)));
+            Assert.That(parameterChanges, Is.EqualTo(1));
+
+            roi.ChangeSelectedSphereSize(0.2f);
+            Assert.That(sphere.InfluenceRadius, Is.EqualTo(1.0f));
+            Assert.That(parameterChanges, Is.EqualTo(1), "The public dead zone must not resize the sphere.");
+
+            roi.ChangeSelectedSphereSize(-1.0f);
+            Assert.That(sphere.InfluenceRadius, Is.EqualTo(0.9f).Within(0.0001f));
+            Assert.That(parameterChanges, Is.EqualTo(3), "Radius synchronization and ROI notification each raise their documented event.");
+
+            roi.SetVisibility(false);
+            Assert.That(sphere.gameObject.activeSelf, Is.False);
+            roi.SetVisibility(true);
+            Assert.That(sphere.gameObject.activeSelf, Is.True);
+
+            int activeLayer = sphere.gameObject.layer;
+            int inactiveLayer = LayerMask.NameToLayer("Inactive");
+            Assert.That(inactiveLayer, Is.GreaterThanOrEqualTo(0), "The project must define its historical Inactive layer.");
+            roi.SetRenderingState(false);
+            Assert.That(sphere.gameObject.layer, Is.EqualTo(inactiveLayer));
+            roi.SetRenderingState(true);
+            Assert.That(sphere.gameObject.layer, Is.EqualTo(activeLayer));
+
+            yield return null;
+        }
+
+        [UnityTest]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeMigration")]
+        public IEnumerator ROI_PublicSelectionAndRemovalOperationsChooseClosestAndKeepValidSelection()
+        {
+            using PlayModeSceneScope scene = new("Module3DSceneManagedROISelectionOperations");
+            CreateRuntimeModule3DMain(scene, "Managed ROI Selection Operations Module");
+            ROI roi = CreateRuntimeROI(scene, "Managed ROI Selection Operations");
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Near", Vector3.zero, 1.0f);
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Far", new Vector3(3, 0, 0), 1.0f);
+            yield return null;
+
+            roi.SelectSphere(-1);
+            Assert.That(roi.SelectedSphereID, Is.EqualTo(-1));
+            Assert.That(roi.SelectedSphere, Is.Null);
+            Assert.That(roi.Spheres, Has.All.Matches<HBP.Data.Module3D.Sphere>(sphere => !sphere.Selected));
+
+            Physics.SyncTransforms();
+            roi.SelectClosestSphere(new Ray(new Vector3(-5, 0, 0), Vector3.right));
+            Assert.That(roi.SelectedSphereID, Is.EqualTo(0));
+            Assert.That(roi.SelectedSphere, Is.SameAs(roi.Spheres[0]));
+
+            roi.SelectSphere(1);
+            Assert.That(roi.SelectedSphereID, Is.EqualTo(1));
+            roi.SelectSphere(99);
+            Assert.That(roi.SelectedSphereID, Is.EqualTo(1), "An out-of-range public selection is ignored.");
+
+            roi.RemoveSphere(0);
+            Assert.That(roi.Spheres, Has.Count.EqualTo(1));
+            Assert.That(roi.SelectedSphereID, Is.EqualTo(0));
+            Assert.That(roi.SelectedSphere, Is.SameAs(roi.Spheres[0]));
+
+            roi.RemoveSelectedSphere();
+            Assert.That(roi.Spheres, Is.Empty);
+            Assert.That(roi.SelectedSphereID, Is.EqualTo(-1));
+
+            roi.MoveSelectedSphere(Vector3.one);
+            roi.ChangeSelectedSphereSize(1.0f);
+            roi.RemoveSelectedSphere();
+            Assert.That(roi.Spheres, Is.Empty);
+
+            yield return null;
+        }
+
+        [UnityTest]
+        [Category("PlayMode.Module3DScene")]
         public IEnumerator ImplantationManager_ComparingSitesTracksSelectedSiteUntilDisabled()
         {
             using PlayModeSceneScope scene = new("Module3DSceneModule3DImplantationManager");

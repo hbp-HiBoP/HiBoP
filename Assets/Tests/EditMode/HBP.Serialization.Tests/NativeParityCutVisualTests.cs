@@ -97,16 +97,22 @@ namespace HBP.Tests.Serialization
         [Category("NativeMigration")]
         [Category("NativeParity")]
         [Category(NativeParityAssert.StrictParity)]
-        public void CutVolumeBasePixels_MatchAcrossBackends()
+        public void CutVolumeBasePixels_MatchAcrossBackendsForEveryOrientationAndFlip()
         {
             NativeParityAssert.RequireHbpCore();
 
-            CutPixels hbpExportPixels = RenderVolumeCut(NativeBackend.HbpExport, CutOrientation.Axial, flip: false);
-            CutPixels hbpCorePixels = RenderVolumeCut(NativeBackend.HbpCore, CutOrientation.Axial, flip: false);
+            foreach (CutOrientation orientation in new[] { CutOrientation.Axial, CutOrientation.Coronal, CutOrientation.Sagittal })
+            {
+                foreach (bool flip in new[] { false, true })
+                {
+                    CutPixels hbpExportPixels = RenderVolumeCut(NativeBackend.HbpExport, orientation, flip);
+                    CutPixels hbpCorePixels = RenderVolumeCut(NativeBackend.HbpCore, orientation, flip);
 
-            Assert.That(hbpCorePixels.Width, Is.EqualTo(hbpExportPixels.Width));
-            Assert.That(hbpCorePixels.Height, Is.EqualTo(hbpExportPixels.Height));
-            NativeParityAssert.AssertSameColor32Array(hbpCorePixels.Pixels, hbpExportPixels.Pixels, tolerance: 1);
+                    Assert.That(hbpCorePixels.Width, Is.EqualTo(hbpExportPixels.Width), $"{orientation} flip={flip}");
+                    Assert.That(hbpCorePixels.Height, Is.EqualTo(hbpExportPixels.Height), $"{orientation} flip={flip}");
+                    NativeParityAssert.AssertSameColor32Array(hbpCorePixels.Pixels, hbpExportPixels.Pixels, tolerance: 1);
+                }
+            }
         }
 
         private static CutPixels RenderVolumeCut(NativeBackend backend, CutOrientation orientation, bool flip)

@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using NUnit.Framework;
@@ -12,6 +11,8 @@ namespace HBP.Tests.Serialization
 {
     public class UnityTextureFactoryTests
     {
+        private static readonly ColorType[] AllColorTypes = (ColorType[])Enum.GetValues(typeof(ColorType));
+
         [Test]
         [Category("NativeMigration")]
         public void Generate1DColorTexture_UsesUnityPixelsWithoutNativeTextureHandle()
@@ -67,6 +68,21 @@ namespace HBP.Tests.Serialization
             AssertPixelsWithinTolerance(legacyPixels, unityPixels, 1);
         }
 
+        [TestCaseSource(nameof(AllColorTypes))]
+        [Category("NativeMigration")]
+        public void Generate1DColorPixels_EveryColormapHasExpectedOpaqueEndpoints(ColorType colorType)
+        {
+            Color32[] pixels = UnityTextureFactory.Generate1DColorPixels(colorType);
+            (Color32 start, Color32 end) = ExpectedColormapEndpoints(colorType);
+
+            Assert.That(pixels, Has.Length.EqualTo(UnityTextureFactory.ColormapSize));
+            Assert.That(pixels[0], Is.EqualTo(start));
+            Assert.That(pixels[^1].r, Is.EqualTo(end.r).Within(5), $"{colorType} final red");
+            Assert.That(pixels[^1].g, Is.EqualTo(end.g).Within(5), $"{colorType} final green");
+            Assert.That(pixels[^1].b, Is.EqualTo(end.b).Within(5), $"{colorType} final blue");
+            Assert.That(pixels, Has.All.Matches<Color32>(pixel => pixel.a == 255));
+        }
+
         [Test]
         [Category("NativeMigration")]
         public void Generate2DColorTexture_CombinesHorizontalAndVerticalColormapsInUnity()
@@ -105,6 +121,24 @@ namespace HBP.Tests.Serialization
             Color32[] legacyPixels = GenerateLegacy2DTexturePixelsOrIgnore(ColorType.Default, ColorType.MatLab);
 
             AssertPixelsWithinTolerance(legacyPixels, unityPixels, 1);
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void Generate2DColorPixels_AcceptsEveryColormapOnBothAxesWithOpaqueOutput()
+        {
+            foreach (ColorType colorType in AllColorTypes)
+            {
+                Color32[] horizontal = UnityTextureFactory.Generate2DColorPixels(colorType, ColorType.Grayscale, out int horizontalWidth, out int horizontalHeight);
+                Assert.That(horizontal, Has.Length.EqualTo(horizontalWidth * horizontalHeight), $"horizontal {colorType}");
+                Assert.That(horizontalHeight, Is.EqualTo(UnityTextureFactory.ColormapSize), $"horizontal {colorType}");
+                Assert.That(horizontal, Has.All.Matches<Color32>(pixel => pixel.a == 255), $"horizontal {colorType}");
+
+                Color32[] vertical = UnityTextureFactory.Generate2DColorPixels(ColorType.Grayscale, colorType, out int verticalWidth, out int verticalHeight);
+                Assert.That(vertical, Has.Length.EqualTo(verticalWidth * verticalHeight), $"vertical {colorType}");
+                Assert.That(verticalHeight, Is.EqualTo(UnityTextureFactory.ColormapSize), $"vertical {colorType}");
+                Assert.That(vertical, Has.All.Matches<Color32>(pixel => pixel.a == 255), $"vertical {colorType}");
+            }
         }
 
         [Test]
@@ -165,6 +199,58 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        public void GenerateDistributionHistogramPixels_BinsUseSquareRootScalingAndGreyAreaOption()
+        {
+            int[] bins = { 0, 4, 0 };
+
+            Color32[] lineOnly = UnityTextureFactory.GenerateDistributionHistogramPixels(bins, 5, 5, false);
+            Assert.That(lineOnly[0], Is.EqualTo(new Color32(255, 0, 0, 255)), "left zero endpoint");
+            Assert.That(lineOnly[4 * 5 + 2], Is.EqualTo(new Color32(255, 0, 0, 255)), "maximum endpoint");
+            Assert.That(lineOnly[4], Is.EqualTo(new Color32(255, 0, 0, 255)), "right zero endpoint");
+            Assert.That(lineOnly, Has.Some.EqualTo(new Color32(40, 40, 40, 255)));
+
+            Color32[] grey = UnityTextureFactory.GenerateDistributionHistogramPixels(new int[3], 3, 4, true);
+            Assert.That(grey, Has.All.EqualTo(new Color32(90, 90, 90, 255)));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void GenerateDistributionHistogramPixels_FloatAutoRangeMatchesExplicitRangeAndHandlesEmptyData()
+        {
+            float[] data = { -2, -1, 0, 1, 2, 2 };
+
+            Color32[] automatic = UnityTextureFactory.GenerateDistributionHistogramPixels(data, 16, 32, withGreyArea: false);
+            Color32[] explicitRange = UnityTextureFactory.GenerateDistributionHistogramPixels(data, 16, 32, -2, 2, false);
+            Color32[] empty = UnityTextureFactory.GenerateDistributionHistogramPixels(Array.Empty<float>(), 2, 3, withGreyArea: true);
+
+            Assert.That(automatic, Is.EqualTo(explicitRange));
+            Assert.That(empty, Has.All.EqualTo(new Color32(40, 40, 40, 255)));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void UpdateDistributionHistogram_ReinitializesTextureAndRejectsInvalidInputs()
+        {
+            Texture2D texture = new(1, 1, TextureFormat.RGBA32, false);
+            try
+            {
+                UnityTextureFactory.UpdateDistributionHistogram(texture, new[] { 0, 1, 0 }, 7, 9, false);
+                Assert.That(texture.width, Is.EqualTo(9));
+                Assert.That(texture.height, Is.EqualTo(7));
+                Assert.That(texture.GetPixels32(), Has.Some.EqualTo(new Color32(255, 0, 0, 255)));
+
+                Assert.That(() => UnityTextureFactory.GenerateDistributionHistogramPixels((float[])null, 1, 1), Throws.ArgumentNullException);
+                Assert.That(() => UnityTextureFactory.GenerateDistributionHistogramPixels(new[] { 1.0f }, 0, 1), Throws.TypeOf<ArgumentOutOfRangeException>());
+                Assert.That(() => UnityTextureFactory.GenerateDistributionHistogramPixels(new[] { 1 }, 1, 0), Throws.TypeOf<ArgumentOutOfRangeException>());
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         public void Texture2DEncodeToPNG_ReplacesNativeTexturePngExport()
         {
             Texture2D texture = new(2, 2, TextureFormat.RGBA32, false);
@@ -188,6 +274,66 @@ namespace HBP.Tests.Serialization
             finally
             {
                 UnityObject.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void Texture2DPng_RoundTripPreservesDimensionsBottomLeftOrientationRgbaAndColorType()
+        {
+            Texture2D source = new(2, 2, TextureFormat.RGBA32, false, linear: true);
+            Texture2D decoded = new(1, 1, TextureFormat.RGBA32, false, linear: true);
+            Color32[] expected =
+            {
+                new(255, 0, 0, 17),
+                new(0, 255, 0, 64),
+                new(0, 0, 255, 128),
+                new(240, 180, 120, 255)
+            };
+            source.SetPixels32(expected);
+            source.Apply(false, false);
+
+            try
+            {
+                byte[] png = source.EncodeToPNG();
+                Assert.That(ReadBigEndianInt32(png, 16), Is.EqualTo(2), "IHDR width");
+                Assert.That(ReadBigEndianInt32(png, 20), Is.EqualTo(2), "IHDR height");
+                Assert.That(png[24], Is.EqualTo(8), "IHDR bit depth");
+                Assert.That(png[25], Is.EqualTo(6), "IHDR RGBA color type");
+                Assert.That(ImageConversion.LoadImage(decoded, png, markNonReadable: false), Is.True);
+                Assert.That(decoded.width, Is.EqualTo(2));
+                Assert.That(decoded.height, Is.EqualTo(2));
+                Assert.That(decoded.GetPixels32(), Is.EqualTo(expected));
+                Assert.That((Color32)decoded.GetPixel(0, 0), Is.EqualTo(expected[0]), "Unity bottom-left pixel");
+                Assert.That((Color32)decoded.GetPixel(1, 1), Is.EqualTo(expected[3]), "Unity top-right pixel");
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(source);
+                UnityObject.DestroyImmediate(decoded);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void Texture2DPng_Rgb24UsesRgbColorTypeAndDecodesOpaque()
+        {
+            Texture2D source = new(1, 1, TextureFormat.RGB24, false, linear: false);
+            Texture2D decoded = new(1, 1, TextureFormat.RGBA32, false, linear: false);
+            source.SetPixel(0, 0, new Color32(12, 34, 56, 255));
+            source.Apply(false, false);
+
+            try
+            {
+                byte[] png = source.EncodeToPNG();
+                Assert.That(png[25], Is.EqualTo(2), "IHDR RGB color type");
+                Assert.That(ImageConversion.LoadImage(decoded, png), Is.True);
+                Assert.That((Color32)decoded.GetPixel(0, 0), Is.EqualTo(new Color32(12, 34, 56, 255)));
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(source);
+                UnityObject.DestroyImmediate(decoded);
             }
         }
 
@@ -270,6 +416,94 @@ namespace HBP.Tests.Serialization
             Assert.That(pixels.Count(pixel => pixel.r == 255 && pixel.g == 0 && pixel.b == 0), Is.EqualTo(1));
         }
 
+        [Test]
+        [Category("NativeMigration")]
+        public void DrawSiteMarkers_ClampsFinitePositionsClipsRadiusAndIgnoresNonFinitePositions()
+        {
+            Color32[] pixels = Enumerable.Repeat(new Color32(0, 0, 0, 255), 25).ToArray();
+
+            UnityTextureFactory.DrawSiteMarkers(
+                pixels,
+                5,
+                5,
+                new[]
+                {
+                    new Vector2(-2, -3),
+                    new Vector2(2, 3),
+                    new Vector2(float.NaN, 0.5f),
+                    new Vector2(float.PositiveInfinity, 0.5f)
+                },
+                radius: 1);
+
+            Color32 red = new(255, 0, 0, 255);
+            Assert.That(pixels[0], Is.EqualTo(red));
+            Assert.That(pixels[1], Is.EqualTo(red));
+            Assert.That(pixels[5], Is.EqualTo(red));
+            Assert.That(pixels[24], Is.EqualTo(red));
+            Assert.That(pixels[23], Is.EqualTo(red));
+            Assert.That(pixels[19], Is.EqualTo(red));
+            Assert.That(pixels.Count(pixel => pixel.Equals(red)), Is.EqualTo(6));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void ResizeToSquare_CentersPaddingAndCropsSymmetricallyWithOpaqueBlackBackground()
+        {
+            Texture2D padded = new(2, 1, TextureFormat.RGBA32, false);
+            Texture2D cropped = new(4, 2, TextureFormat.RGBA32, false);
+            padded.SetPixels32(new[] { Pixel(1), Pixel(2) });
+            cropped.SetPixels32(new[] { Pixel(1), Pixel(2), Pixel(3), Pixel(4), Pixel(5), Pixel(6), Pixel(7), Pixel(8) });
+            padded.Apply(false, false);
+            cropped.Apply(false, false);
+
+            try
+            {
+                UnityTextureFactory.ResizeToSquare(padded, 4);
+                Assert.That(padded.width, Is.EqualTo(4));
+                Assert.That(padded.height, Is.EqualTo(4));
+                Color32[] paddedPixels = padded.GetPixels32();
+                Assert.That(paddedPixels[1 * 4 + 1], Is.EqualTo(Pixel(1)));
+                Assert.That(paddedPixels[1 * 4 + 2], Is.EqualTo(Pixel(2)));
+                Assert.That(paddedPixels.Where((_, index) => index != 5 && index != 6), Has.All.EqualTo(new Color32(0, 0, 0, 255)));
+
+                UnityTextureFactory.ResizeToSquare(cropped, 2);
+                Assert.That(cropped.GetPixels32().Select(pixel => pixel.r), Is.EqualTo(new byte[] { 2, 3, 6, 7 }));
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(padded);
+                UnityObject.DestroyImmediate(cropped);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void RotateCutPixels_CoversEveryOrientationAndFlipCombination()
+        {
+            (CutOrientation Orientation, bool Flip, int Width, int Height, byte[] Expected)[] cases =
+            {
+                (CutOrientation.Sagittal, false, 2, 3, new byte[] { 1, 2, 3, 4, 5, 6 }),
+                (CutOrientation.Sagittal, true, 2, 3, new byte[] { 6, 5, 4, 3, 2, 1 }),
+                (CutOrientation.Axial, false, 3, 2, new byte[] { 2, 4, 6, 1, 3, 5 }),
+                (CutOrientation.Axial, true, 3, 2, new byte[] { 6, 4, 2, 5, 3, 1 }),
+                (CutOrientation.Coronal, false, 3, 2, new byte[] { 2, 4, 6, 1, 3, 5 }),
+                (CutOrientation.Coronal, true, 3, 2, new byte[] { 5, 3, 1, 6, 4, 2 }),
+                (CutOrientation.Custom, false, 2, 3, new byte[] { 1, 2, 3, 4, 5, 6 }),
+                (CutOrientation.Custom, true, 2, 3, new byte[] { 1, 2, 3, 4, 5, 6 })
+            };
+
+            foreach ((CutOrientation orientation, bool flip, int expectedWidth, int expectedHeight, byte[] expected) in cases)
+            {
+                Color32[] rotated = UnityTextureFactory.RotateCutPixels(TestPixels2x3(), 2, 3, orientation, flip, out int width, out int height);
+                byte[] actual = Enumerable.Range(0, height)
+                    .SelectMany(row => Enumerable.Range(0, width).Select(column => PixelId(rotated, width, height, row, column)))
+                    .ToArray();
+                Assert.That(width, Is.EqualTo(expectedWidth), $"{orientation} flip={flip}");
+                Assert.That(height, Is.EqualTo(expectedHeight), $"{orientation} flip={flip}");
+                Assert.That(actual, Is.EqualTo(expected), $"{orientation} flip={flip}");
+            }
+        }
+
         private static Texture2D CreateBlackTexture(int width, int height)
         {
             Texture2D texture = new(width, height, TextureFormat.RGBA32, false);
@@ -346,6 +580,31 @@ namespace HBP.Tests.Serialization
             return new Color32(id, 0, 0, 255);
         }
 
+        private static (Color32 Start, Color32 End) ExpectedColormapEndpoints(ColorType colorType)
+        {
+            return colorType switch
+            {
+                ColorType.Hot => (new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255)),
+                ColorType.Winter => (new Color32(0, 0, 255, 255), new Color32(0, 255, 128, 255)),
+                ColorType.Warm => (new Color32(255, 165, 0, 255), new Color32(255, 255, 0, 255)),
+                ColorType.Surface => (new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255)),
+                ColorType.Cool => (new Color32(0, 127, 255, 255), new Color32(0, 255, 255, 255)),
+                ColorType.RedYellow => (new Color32(255, 0, 0, 255), new Color32(255, 255, 0, 255)),
+                ColorType.BlueGreen => (new Color32(0, 0, 255, 255), new Color32(0, 255, 0, 255)),
+                ColorType.ACTC => (new Color32(0, 0, 0, 255), new Color32(255, 0, 0, 255)),
+                ColorType.Bone => (new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255)),
+                ColorType.GEColor => (new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255)),
+                ColorType.Gold => (new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255)),
+                ColorType.XRain => (new Color32(0, 0, 0, 255), new Color32(255, 0, 0, 255)),
+                ColorType.MatLab => (new Color32(0, 0, 255, 255), new Color32(255, 0, 0, 255)),
+                ColorType.Default => (new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255)),
+                ColorType.BrainColor => (new Color32(235, 181, 120, 255), new Color32(235, 181, 120, 255)),
+                ColorType.White => (new Color32(255, 255, 255, 255), new Color32(255, 255, 255, 255)),
+                ColorType.SoftGrayscale => (new Color32(150, 150, 150, 255), new Color32(100, 100, 100, 255)),
+                _ => (new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255))
+            };
+        }
+
         private static bool IsHistoricalBrainColor(Color32 pixel)
         {
             return pixel.r == 235 && pixel.g == 181 && pixel.b == 120 && pixel.a == 255;
@@ -370,6 +629,11 @@ namespace HBP.Tests.Serialization
             return pixels[(height - 1 - rowFromTop) * width + column].r;
         }
 
+        private static int ReadBigEndianInt32(byte[] bytes, int offset)
+        {
+            return bytes[offset] << 24 | bytes[offset + 1] << 16 | bytes[offset + 2] << 8 | bytes[offset + 3];
+        }
+
         private static void AssertPixelsWithinTolerance(Color32[] actual, Color32[] expected, byte tolerance)
         {
             Assert.That(actual.Length, Is.EqualTo(expected.Length));
@@ -386,39 +650,25 @@ namespace HBP.Tests.Serialization
 
         private static Color32[] GenerateLegacy1DTexturePixelsOrIgnore(ColorType colorType)
         {
-            return GenerateLegacyTexturePixelsOrIgnore(() => generate_1D_color_Texture((int)colorType));
+            return GenerateLegacyTexturePixelsOrIgnore(() => LegacyTextureBridge.Generate1D((int)colorType));
         }
 
         private static Color32[] GenerateLegacy2DTexturePixelsOrIgnore(ColorType horizontalColorType, ColorType verticalColorType)
         {
-            return GenerateLegacyTexturePixelsOrIgnore(() => generate_2D_color_Texture((int)horizontalColorType, (int)verticalColorType));
+            return GenerateLegacyTexturePixelsOrIgnore(() => LegacyTextureBridge.Generate2D((int)horizontalColorType, (int)verticalColorType));
         }
 
-        private static Color32[] GenerateLegacyTexturePixelsOrIgnore(Func<IntPtr> createTexture)
+        private static Color32[] GenerateLegacyTexturePixelsOrIgnore(Func<LegacyTextureBridge> createTexture)
         {
-            IntPtr texture = IntPtr.Zero;
+            LegacyTextureBridge texture = null;
             try
             {
                 texture = createTexture();
-                if (texture == IntPtr.Zero)
+                if (texture.Handle == IntPtr.Zero)
                 {
                     Assert.Ignore("hbp_export returned a null legacy texture.");
                 }
-
-                int width = get_width_Texture(texture);
-                int height = get_height_Texture(texture);
-                Color32[] pixels = new Color32[width * height];
-                GCHandle handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
-                try
-                {
-                    update_Texture(texture, handle.AddrOfPinnedObject(), 255);
-                }
-                finally
-                {
-                    handle.Free();
-                }
-
-                return pixels;
+                return texture.GetPixels(out _, out _);
             }
             catch (Exception exception) when (IsMissingLegacyTextureDependency(exception))
             {
@@ -427,10 +677,7 @@ namespace HBP.Tests.Serialization
             }
             finally
             {
-                if (texture != IntPtr.Zero)
-                {
-                    delete_Texture(texture);
-                }
+                texture?.Dispose();
             }
         }
 
@@ -441,23 +688,5 @@ namespace HBP.Tests.Serialization
                 or BadImageFormatException
                 || exception.InnerException != null && IsMissingLegacyTextureDependency(exception.InnerException);
         }
-
-        [DllImport("hbp_export", EntryPoint = "generate_1D_color_Texture", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr generate_1D_color_Texture(int idColor);
-
-        [DllImport("hbp_export", EntryPoint = "generate_2D_color_Texture", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr generate_2D_color_Texture(int idColor1, int idColor2);
-
-        [DllImport("hbp_export", EntryPoint = "delete_Texture", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void delete_Texture(IntPtr texture);
-
-        [DllImport("hbp_export", EntryPoint = "get_width_Texture", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int get_width_Texture(IntPtr texture);
-
-        [DllImport("hbp_export", EntryPoint = "get_height_Texture", CallingConvention = CallingConvention.Cdecl)]
-        private static extern int get_height_Texture(IntPtr texture);
-
-        [DllImport("hbp_export", EntryPoint = "update_Texture", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void update_Texture(IntPtr texture, IntPtr colors, int alpha);
     }
 }
