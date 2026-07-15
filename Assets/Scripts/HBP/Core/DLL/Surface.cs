@@ -254,15 +254,16 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                if (!string.IsNullOrEmpty(transformation))
+                IsLoaded = hbp_surface_load_tri(_handle.Handle, tri) == HbpCoreStatus.Ok;
+                if (IsLoaded && !string.IsNullOrEmpty(transformation))
                 {
-                    throw new NotSupportedException("hbp_core does not expose TRI transform loading in step 7.");
+                    using Transformation3 hbpCoreTransformation = Transformation3.FromFile(transformation);
+                    ThrowIfFailed(hbp_surface_transform(_handle.Handle, hbpCoreTransformation.getHandle().Handle));
                 }
 
-                IsLoaded = hbp_surface_load_tri(_handle.Handle, tri) == HbpCoreStatus.Ok;
                 if (!IsLoaded)
                 {
-                    Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + tri);
+                    Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + tri + " " + transformation);
                 }
                 return IsLoaded;
             }
@@ -749,28 +750,6 @@ namespace HBP.Core.DLL
             EnsureHbpExport(nameof(IsPointInside));
             return is_point_inside_Surface(_handle, -point.x, point.y, point.z);
         }
-        /// <summary>
-        /// Returns a cube bbox around the mesh depending on the cuts used
-        /// </summary>
-        /// <param name="cuts">Cuts to consider when computing the bounding box</param>
-        /// <returns>The cube bounding box created</returns>
-        public BBox GetCubeBoundingBox(Object3D.Cut[] cuts)
-        {
-            EnsureHbpExport(nameof(GetCubeBoundingBox));
-            float[] planes = new float[cuts.Length * 6];
-            int planesCount = 0;
-            for (int ii = 0; ii < cuts.Length; ++ii)
-            {
-                if (cuts[ii].Orientation != CutOrientation.Custom)
-                {
-                    float[] nativePlane = cuts[ii].ConvertToArray();
-                    Array.Copy(nativePlane, 0, planes, planesCount * 6, nativePlane.Length);
-                    planesCount++;
-                }
-            }
-            return new BBox(cube_bounding_box_Surface(_handle, planes, planesCount));
-        }
-
         public void SetBuffers(Vector3[] vertices, int[] triangles, Vector3[] normals = null, Vector2[] uv = null, Color[] colors = null)
         {
             if (m_Backend != NativeBackend.HbpCore)
@@ -1074,8 +1053,6 @@ namespace HBP.Core.DLL
         static private extern void UV_Surface(HandleRef handleSurface, float[] texturesUVArray);
         [DllImport("hbp_export", EntryPoint = "bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr bounding_box_Surface(HandleRef handleSurface);
-        [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr cube_bounding_box_Surface(HandleRef handleSurface, float[] planes, int planesCount);
         [DllImport("hbp_export", EntryPoint = "get_mesh_from_bounding_box_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr get_mesh_from_bounding_box_Surface(HandleRef handleSurface, int precision);
         [DllImport("hbp_export", EntryPoint = "delete_MultiSurface", CallingConvention = CallingConvention.Cdecl)]

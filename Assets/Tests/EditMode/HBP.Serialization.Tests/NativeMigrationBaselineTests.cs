@@ -55,6 +55,19 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        public void RemovedStep4LegacyApis_AreAbsentFromManagedRuntime()
+        {
+            const BindingFlags publicInstance = BindingFlags.Public | BindingFlags.Instance;
+
+            Assert.That(typeof(Volume).GetMethod("GetCubeBoundingBox", publicInstance), Is.Null);
+            Assert.That(typeof(Surface).GetMethod("GetCubeBoundingBox", publicInstance), Is.Null);
+            Assert.That(typeof(MarsAtlas).GetMethod("GenerateAtlasRawSiteList", publicInstance), Is.Null);
+            Assert.That(typeof(RawSiteList).GetMethod("SaveToObj", publicInstance), Is.Null);
+            Assert.That(typeof(Transformation3).GetMethod("Inverse", publicInstance), Is.Null);
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         [Category("HbpCoreOnly")]
         public void HbpCoreOnlyRun_DoesNotRequireLegacyDllOnDisk()
         {
@@ -77,8 +90,8 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(394));
-            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(152));
+            Assert.That(imports, Has.Count.EqualTo(390));
+            Assert.That(imports.Count(imported => imported.Dll == NativeDll.HbpExport), Is.EqualTo(148));
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports
@@ -108,7 +121,7 @@ namespace HBP.Tests.Serialization
                 .Replace("-", string.Empty)
                 .ToLowerInvariant();
 
-            Assert.That(hash, Is.EqualTo("ea882bb11ce08926473572d4f11857fb30fb9a4a85a1af842dd1ca6d2012ebc6"),
+            Assert.That(hash, Is.EqualTo("d3cc5db13b3b6117cd99906b144e6ae27a5f813cfbed96cd419293b2490687af"),
                 "The temporary runtime parity bridge changed. New hbp_export imports are forbidden; planned removals must update this baseline deliberately.");
         }
 
@@ -724,6 +737,54 @@ namespace HBP.Tests.Serialization
             finally
             {
                 UnityEngine.Object.DestroyImmediate(mesh);
+                NativeBackendOptions.Reset();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
+        public void HbpCoreSurface_LoadsTriFixtureAndAppliesTransformation_WhenLibraryIsPresent()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
+            }
+
+            using TempDirectoryScope temp = new();
+            string triPath = temp.GetPath("transformed_surface.tri");
+            string transformationPath = temp.GetPath("transformed_surface.trm");
+            File.WriteAllText(triPath, string.Join(
+                Environment.NewLine,
+                "4 2",
+                "0 0 0 0 0 1 1 0 0",
+                "1 0 0 0 0 1 0 1 0",
+                "1 1 0 0 0 1 0 0 1",
+                "0 1 0 0 0 1 1 1 1",
+                "- 2 0 0",
+                "0 1 2",
+                "0 2 3",
+                string.Empty));
+            File.WriteAllText(transformationPath, string.Join(
+                Environment.NewLine,
+                "10 20 30",
+                "1 0 0",
+                "0 1 0",
+                "0 0 1"));
+
+            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
+            try
+            {
+                using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core transformed TRI Surface wrapper");
+                Assert.That(surface.LoadTRIFile(triPath, transformationPath), Is.True);
+
+                using BBox bbox = surface.BoundingBox;
+                AssertVector(bbox.Min, new Vector3(-11, 20, 30));
+                AssertVector(bbox.Max, new Vector3(-10, 21, 30));
+            }
+            finally
+            {
                 NativeBackendOptions.Reset();
             }
         }

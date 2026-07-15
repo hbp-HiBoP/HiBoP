@@ -73,20 +73,6 @@ namespace HBP.Core.DLL
             }
         }
         /// <summary>
-        /// Save the raw site list to an obj file
-        /// </summary>
-        /// <param name="pathObjNameFile">Path to the obj file to be saved</param>
-        /// <returns>True if the obj file has been correctly saved</returns>
-        public bool SaveToObj(string pathObjNameFile)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                throw new NotSupportedException("hbp_core RawSiteList.SaveToObj is not implemented in step 12.");
-            }
-            bool success = saveToObj_RawPlotList(_handle, pathObjNameFile) == 1;
-            return success;
-        }
-        /// <summary>
         /// Update the mask of a given site in the list
         /// </summary>
         /// <param name="idSite">Global ID of the site in the list</param>
@@ -240,8 +226,6 @@ namespace HBP.Core.DLL
         static private extern void add_site_RawSiteList(HandleRef handleRawSiteLst, string name, float x, float y, float z, int patientIndex, int index);
         [DllImport("hbp_export", EntryPoint = "update_mask_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_mask_RawSiteList(HandleRef handleRawSiteLst, int plotId, int mask);
-        [DllImport("hbp_export", EntryPoint = "saveToObj_RawPlotList", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int saveToObj_RawPlotList(HandleRef handleRawSiteLst, string pathObjNameFile);
         [DllImport("hbp_export", EntryPoint = "sites_nb_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
         static private extern int sites_nb_RawSiteList(HandleRef handleRawSiteLst);
         [DllImport("hbp_export", EntryPoint = "is_site_on_plane_RawSiteList", CallingConvention = CallingConvention.Cdecl)]

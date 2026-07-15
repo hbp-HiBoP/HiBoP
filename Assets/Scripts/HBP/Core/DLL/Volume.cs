@@ -160,31 +160,6 @@ namespace HBP.Core.DLL
             return new Vector3(normal[0], normal[1], normal[2]);
         }
         /// <summary>
-        /// Returns a cube bbox around the volume depending on the used cuts
-        /// </summary>
-        /// <param name="cuts">List of the cuts of the scene</param>
-        /// <returns>The cube bounding box around the volume</returns>
-        public BBox GetCubeBoundingBox(List<Object3D.Cut> cuts)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                throw new NotSupportedException("hbp_core does not expose Volume.GetCubeBoundingBox in step 6.");
-            }
-
-            float[] planes = new float[cuts.Count * 6];
-            int planesCount = 0;
-            for (int ii = 0; ii < cuts.Count; ++ii)
-            {
-                if (cuts[ii].Orientation != CutOrientation.Custom)
-                {
-                    float[] nativePlane = cuts[ii].ConvertToArray();
-                    Array.Copy(nativePlane, 0, planes, planesCount * 6, nativePlane.Length);
-                    planesCount++;
-                }
-            }
-            return new BBox(cube_bounding_box_Volume(_handle, planes, planesCount));
-        }
-        /// <summary>
         /// Get values of the closest voxel of the Volume for each vertex of the input surface
         /// </summary>
         /// <param name="surface"></param>
@@ -395,8 +370,6 @@ namespace HBP.Core.DLL
         static private extern float sizeOffsetCutPlane_Volume(HandleRef handleVolume, float[] planeCut, int nbCuts);
         [DllImport("hbp_export", EntryPoint = "retrieveExtremeValues_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern void retrieveExtremeValues_Volume(HandleRef handleVolume, float[] extremeValues);
-        [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
         [DllImport("hbp_export", EntryPoint = "loadNiiFile_Volume", CallingConvention = CallingConvention.Cdecl)]
         static private extern int loadNiiFile_Volume(HandleRef handleNii, string pathFile);
         [DllImport("hbp_export", EntryPoint = "get_vertices_values_Volume", CallingConvention = CallingConvention.Cdecl)]

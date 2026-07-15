@@ -225,19 +225,6 @@ namespace HBP.Core.DLL
                 return Marshal.PtrToStringAnsi(result);
             }
         }
-        /// <summary>
-        /// Generate a sites list for group CCEP depending on the MarsAtlas
-        /// </summary>
-        /// <param name="dimension">Maximum dimension of one direction</param>
-        public RawSiteList GenerateAtlasRawSiteList(int dimension)
-        {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                throw new NotSupportedException("hbp_core does not expose MarsAtlas.GenerateAtlasRawSiteList in step 8.");
-            }
-
-            return new RawSiteList(generate_atlas_sites_list_MarsAtlasIndex(_handle, dimension));
-        }
         public override void Load()
         {
             string indexPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "mars_atlas_index.csv");
@@ -482,8 +469,6 @@ namespace HBP.Core.DLL
         static private extern IntPtr fullName_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
         [DllImport(NativeDll.HbpExport, EntryPoint = "BA_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr BA_MarsAtlasIndex(HandleRef marsAtlasIndex, int label);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "generate_atlas_sites_list_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr generate_atlas_sites_list_MarsAtlasIndex(HandleRef marsAtlasIndex, int dimension);
         [DllImport(NativeDll.HbpExport, EntryPoint = "apply_offset_MarsAtlasIndex", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr apply_offset_MarsAtlasIndex(HandleRef marsAtlasIndex, float x, float y, float z);
 
