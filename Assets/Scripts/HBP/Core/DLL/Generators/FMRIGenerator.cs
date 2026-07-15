@@ -23,8 +23,8 @@ namespace HBP.Core.DLL
                 return;
             }
 
-            MultiVolume multiVolume = new();
-            MultiVolume maskMultiVolume = new();
+            using MultiVolume multiVolume = new();
+            using MultiVolume maskMultiVolume = new();
             foreach (var volumeAndMask in volumesAndMasks)
             {
                 multiVolume.AddVolume(volumeAndMask.Item1);

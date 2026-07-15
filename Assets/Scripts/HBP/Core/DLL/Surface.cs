@@ -895,68 +895,59 @@ namespace HBP.Core.DLL
         {
             SurfaceSizes sizes = GetHbpCoreSizes();
 
-            m_Vertices = new Vector3[sizes.vertexCount];
-            if (sizes.vertexCount > 0)
+            if (m_Vertices.Length != sizes.vertexCount || (sizes.vertexCount > 0 && !m_verticesHandle.IsAllocated))
             {
-                Vec3[] nativeVertices = new Vec3[sizes.vertexCount];
-                ThrowIfFailed(hbp_surface_copy_vertices(_handle.Handle, nativeVertices, nativeVertices.Length));
-                for (int i = 0; i < nativeVertices.Length; ++i)
-                {
-                    m_Vertices[i] = nativeVertices[i].ToVector3();
-                }
+                if (m_verticesHandle.IsAllocated) m_verticesHandle.Free();
+                m_Vertices = new Vector3[sizes.vertexCount];
+                if (m_Vertices.Length > 0) m_verticesHandle = GCHandle.Alloc(m_Vertices, GCHandleType.Pinned);
             }
-
-            m_Normals = new Vector3[sizes.normalCount];
-            if (sizes.normalCount > 0)
+            if (m_Normals.Length != sizes.normalCount || (sizes.normalCount > 0 && !m_normalsHandle.IsAllocated))
             {
-                Vec3[] nativeNormals = new Vec3[sizes.normalCount];
-                ThrowIfFailed(hbp_surface_copy_normals(_handle.Handle, nativeNormals, nativeNormals.Length));
-                for (int i = 0; i < nativeNormals.Length; ++i)
-                {
-                    m_Normals[i] = nativeNormals[i].ToVector3();
-                }
+                if (m_normalsHandle.IsAllocated) m_normalsHandle.Free();
+                m_Normals = new Vector3[sizes.normalCount];
+                if (m_Normals.Length > 0) m_normalsHandle = GCHandle.Alloc(m_Normals, GCHandleType.Pinned);
             }
-
-            m_UV = new Vector2[sizes.uvCount];
-            if (sizes.uvCount > 0)
+            if (m_UV.Length != sizes.uvCount || (sizes.uvCount > 0 && !m_uvHandle.IsAllocated))
             {
-                Vec2[] nativeUv = new Vec2[sizes.uvCount];
-                ThrowIfFailed(hbp_surface_copy_uvs(_handle.Handle, nativeUv, nativeUv.Length));
-                for (int i = 0; i < nativeUv.Length; ++i)
-                {
-                    m_UV[i] = nativeUv[i].ToVector2();
-                }
+                if (m_uvHandle.IsAllocated) m_uvHandle.Free();
+                m_UV = new Vector2[sizes.uvCount];
+                if (m_UV.Length > 0) m_uvHandle = GCHandle.Alloc(m_UV, GCHandleType.Pinned);
             }
-
-            m_Colors = new Color[sizes.colorCount];
-            if (sizes.colorCount > 0)
+            if (m_Colors.Length != sizes.colorCount || (sizes.colorCount > 0 && !m_colorHandle.IsAllocated))
             {
-                Color4[] nativeColors = new Color4[sizes.colorCount];
-                ThrowIfFailed(hbp_surface_copy_colors(_handle.Handle, nativeColors, nativeColors.Length));
-                for (int i = 0; i < nativeColors.Length; ++i)
-                {
-                    m_Colors[i] = nativeColors[i].ToColor();
-                }
+                if (m_colorHandle.IsAllocated) m_colorHandle.Free();
+                m_Colors = new Color[sizes.colorCount];
+                if (m_Colors.Length > 0) m_colorHandle = GCHandle.Alloc(m_Colors, GCHandleType.Pinned);
             }
-
             int visibleTriangleIndexCount = NumberOfVisibleTriangles * 3;
-            m_TriangleIndices = new int[visibleTriangleIndexCount];
-            if (visibleTriangleIndexCount > 0)
+            if (m_TriangleIndices.Length != visibleTriangleIndexCount || (visibleTriangleIndexCount > 0 && !m_triIdHandle.IsAllocated))
             {
-                ThrowIfFailed(hbp_surface_copy_visible_triangles(_handle.Handle, m_TriangleIndices, m_TriangleIndices.Length));
-                m_TriangleIndices = ReferenceSystemConversion.ConvertTriangleWinding(m_TriangleIndices);
+                if (m_triIdHandle.IsAllocated) m_triIdHandle.Free();
+                m_TriangleIndices = new int[visibleTriangleIndexCount];
+                if (m_TriangleIndices.Length > 0) m_triIdHandle = GCHandle.Alloc(m_TriangleIndices, GCHandleType.Pinned);
             }
+            ThrowIfFailed(hbp_surface_copy_unity_mesh(
+                _handle.Handle,
+                m_verticesHandle.IsAllocated ? m_verticesHandle.AddrOfPinnedObject() : IntPtr.Zero, m_Vertices.Length,
+                m_normalsHandle.IsAllocated ? m_normalsHandle.AddrOfPinnedObject() : IntPtr.Zero, m_Normals.Length,
+                m_uvHandle.IsAllocated ? m_uvHandle.AddrOfPinnedObject() : IntPtr.Zero, m_UV.Length,
+                m_colorHandle.IsAllocated ? m_colorHandle.AddrOfPinnedObject() : IntPtr.Zero, m_Colors.Length,
+                m_triIdHandle.IsAllocated ? m_triIdHandle.AddrOfPinnedObject() : IntPtr.Zero, m_TriangleIndices.Length));
 
-            mesh.Clear();
+            if (mesh.vertexCount != m_Vertices.Length)
+            {
+                mesh.Clear();
+            }
             if (all || vertices) mesh.vertices = m_Vertices;
             if (all || normals) mesh.normals = m_Normals;
             if (all || uv) mesh.uv = m_UV;
             if ((all || colors) && m_Colors.Length > 0) mesh.colors = m_Colors;
             if (all || triangles)
             {
-                mesh.indexFormat = m_Vertices.Length > 65535
-                    ? UnityEngine.Rendering.IndexFormat.UInt32
-                    : UnityEngine.Rendering.IndexFormat.UInt16;
+                if (m_Vertices.Length > 65535 && mesh.indexFormat != UnityEngine.Rendering.IndexFormat.UInt32)
+                {
+                    mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                }
                 mesh.triangles = m_TriangleIndices;
             }
         }
@@ -1108,6 +1099,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_surface_copy_triangles(IntPtr surface, [Out] int[] triangleIndices, int triangleIndexCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_visible_triangles", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_copy_visible_triangles(IntPtr surface, [Out] int[] triangleIndices, int triangleIndexCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_unity_mesh", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_copy_unity_mesh(IntPtr surface, IntPtr vertices, int vertexCapacity, IntPtr normals, int normalCapacity, IntPtr uv, int uvCapacity, IntPtr colors, int colorCapacity, IntPtr triangleIndices, int triangleIndexCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_copy_visibility_mask", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_copy_visibility_mask(IntPtr surface, [Out] int[] visibilityMask, int maskCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]

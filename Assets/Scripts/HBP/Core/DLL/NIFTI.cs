@@ -8,6 +8,10 @@ namespace HBP.Core.DLL
     public class NIFTI : CppDLLImportBase
     {
         private NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
+        private int[] m_CachedHistogramBins;
+        private int m_CachedHistogramBinCount;
+        private float m_CachedHistogramMin;
+        private float m_CachedHistogramMax;
 
         #region Properties
         /// <summary>
@@ -100,6 +104,7 @@ namespace HBP.Core.DLL
         #region Public Methods
         public bool Load(string path)
         {
+            m_CachedHistogramBins = null;
             if (m_Backend == NativeBackend.HbpCore)
             {
                 IsLoaded = hbp_nifti_load(_handle.Handle, path) == HbpCoreStatus.Ok;
@@ -149,9 +154,15 @@ namespace HBP.Core.DLL
                 return null;
             }
 
-            int[] bins = new int[binCount];
-            ThrowIfFailed(hbp_nifti_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
-            return bins;
+            if (m_CachedHistogramBins == null || m_CachedHistogramBinCount != binCount || m_CachedHistogramMin != min || m_CachedHistogramMax != max)
+            {
+                m_CachedHistogramBins = new int[binCount];
+                ThrowIfFailed(hbp_nifti_copy_histogram_bins(_handle.Handle, m_CachedHistogramBins, m_CachedHistogramBins.Length, min, max));
+                m_CachedHistogramBinCount = binCount;
+                m_CachedHistogramMin = min;
+                m_CachedHistogramMax = max;
+            }
+            return (int[])m_CachedHistogramBins.Clone();
         }
         #endregion
 

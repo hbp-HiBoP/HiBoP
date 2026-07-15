@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Unity.Collections;
 using UnityEngine;
 
 namespace HBP.Core.DLL
@@ -33,6 +34,7 @@ namespace HBP.Core.DLL
         private uint m_FrameRateRate;
         private bool m_IsOpen;
         private bool m_IsDisposed;
+        private byte[] m_FrameBuffer;
 
         public int FrameCount { get; private set; }
 
@@ -94,26 +96,39 @@ namespace HBP.Core.DLL
                 throw new ArgumentException($"The frame size must be {m_Width}x{m_Height}.", nameof(texture));
             }
 
-            byte[] frameBytes = ImageConversion.EncodeToJPG(texture, JpegQuality);
-            if (frameBytes == null || frameBytes.Length == 0)
+            NativeArray<byte> rawTextureData = texture.GetRawTextureData<byte>();
+            using NativeArray<byte> encodedFrame = ImageConversion.EncodeNativeArrayToJPG(
+                rawTextureData,
+                texture.graphicsFormat,
+                (uint)m_Width,
+                (uint)m_Height,
+                0,
+                JpegQuality);
+            int frameByteCount = encodedFrame.Length;
+            if (frameByteCount == 0)
             {
                 throw new InvalidOperationException("Failed to encode the video frame as JPEG.");
             }
-            m_MaxFrameByteSize = Math.Max(m_MaxFrameByteSize, frameBytes.Length);
+            if (m_FrameBuffer == null || m_FrameBuffer.Length < frameByteCount)
+            {
+                m_FrameBuffer = new byte[frameByteCount];
+            }
+            encodedFrame.CopyTo(m_FrameBuffer);
+            m_MaxFrameByteSize = Math.Max(m_MaxFrameByteSize, frameByteCount);
 
             long chunkStartPosition = m_Stream.Position;
             WriteFourCc("00dc");
-            m_Writer.Write((uint)frameBytes.Length);
-            m_Writer.Write(frameBytes);
+            m_Writer.Write((uint)frameByteCount);
+            m_Writer.Write(m_FrameBuffer, 0, frameByteCount);
 
-            if ((frameBytes.Length & 1) != 0)
+            if ((frameByteCount & 1) != 0)
             {
                 m_Writer.Write((byte)0);
             }
 
             m_IndexEntries.Add(new AviIndexEntry(
                 chunkStartPosition - m_MoviDataStartPosition,
-                (uint)frameBytes.Length));
+                (uint)frameByteCount));
             ++FrameCount;
         }
 

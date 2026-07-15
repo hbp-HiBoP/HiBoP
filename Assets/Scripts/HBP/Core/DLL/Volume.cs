@@ -174,7 +174,15 @@ namespace HBP.Core.DLL
                 }
 
                 float[] hbpCoreResult = new float[surface.NumberOfVertices];
-                ThrowIfFailed(hbp_volume_copy_surface_values(_handle.Handle, surface.getHandle().Handle, hbpCoreResult, hbpCoreResult.Length));
+                GCHandle resultHandle = GCHandle.Alloc(hbpCoreResult, GCHandleType.Pinned);
+                try
+                {
+                    ThrowIfFailed(hbp_volume_copy_surface_values_ptr(_handle.Handle, surface.getHandle().Handle, resultHandle.AddrOfPinnedObject(), hbpCoreResult.Length));
+                }
+                finally
+                {
+                    resultHandle.Free();
+                }
                 return hbpCoreResult;
             }
 
@@ -407,6 +415,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_volume_copy_surface_values(IntPtr volume, IntPtr surface, [Out] float[] values, int valueCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_volume_copy_surface_values_ptr(IntPtr volume, IntPtr surface, IntPtr values, int valueCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_fmri_colors_from_values", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_volume_copy_fmri_colors_from_values(IntPtr volume, [In] float[] values, int valueCount, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, [Out] Color4[] colors, int colorCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_volume_copy_localizer_colors_from_values", CallingConvention = CallingConvention.Cdecl)]

@@ -16,6 +16,7 @@ namespace HBP.Core.DLL
     public class MarsAtlas : BrainAtlas
     {
         private readonly Dictionary<int, MarsAtlasMetadata> m_MetadataByLabel = new();
+        private bool m_MetadataCacheBuilt;
 
         private readonly struct MarsAtlasMetadata
         {
@@ -243,13 +244,13 @@ namespace HBP.Core.DLL
         {
             Loading = true;
             m_MetadataByLabel.Clear();
+            m_MetadataCacheBuilt = false;
             if (m_Backend == NativeBackend.HbpCore)
             {
                 Loaded = hbp_mars_atlas_load(_handle.Handle, path, pathBrodmann, pathNifti) == HbpCoreStatus.Ok;
                 if (Loaded)
                 {
                     ThrowIfFailed(hbp_mars_atlas_apply_offset(_handle.Handle, 1.7f, 0f, 1f));
-                    BuildMetadataCache();
                 }
             }
             else
@@ -340,6 +341,7 @@ namespace HBP.Core.DLL
         protected override void delete_DLL_class()
         {
             m_MetadataByLabel.Clear();
+            m_MetadataCacheBuilt = false;
             if (m_Backend == NativeBackend.HbpCore)
             {
                 ThrowIfFailed(hbp_mars_atlas_destroy(_handle.Handle));
@@ -366,6 +368,7 @@ namespace HBP.Core.DLL
 
         protected override bool TryConvertCachedIndicesToColors(int[] indices, int selectedArea, Color[] colors)
         {
+            EnsureMetadataCache();
             if (m_Backend != NativeBackend.HbpCore || m_MetadataByLabel.Count == 0)
             {
                 return false;
@@ -388,8 +391,18 @@ namespace HBP.Core.DLL
 
         private bool TryGetMetadata(int label, out MarsAtlasMetadata metadata)
         {
+            EnsureMetadataCache();
             metadata = default;
             return m_Backend == NativeBackend.HbpCore && m_MetadataByLabel.TryGetValue(label, out metadata);
+        }
+
+        private void EnsureMetadataCache()
+        {
+            if (m_Backend == NativeBackend.HbpCore && Loaded && !m_MetadataCacheBuilt)
+            {
+                BuildMetadataCache();
+                m_MetadataCacheBuilt = true;
+            }
         }
 
         private void BuildMetadataCache()

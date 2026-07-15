@@ -42,12 +42,20 @@ namespace HBP.Core.DLL
         public void FillTextureWithVolume(Color32[] colorScheme, float calMin, float calMax)
         {
             EnsureHbpCore(nameof(FillTextureWithVolume));
-            Color4[] nativeColorScheme = colorScheme.ToNativeColor4Array();
-            HbpCoreStatus status = hbp_cut_generator_fill_volume_rgba(_handle.Handle, nativeColorScheme, nativeColorScheme.Length, calMin, calMax);
+            HbpCoreStatus status;
+            GCHandle colorSchemeHandle = GCHandle.Alloc(colorScheme, GCHandleType.Pinned);
+            try
+            {
+                status = hbp_cut_generator_fill_volume_rgba8(_handle.Handle, colorSchemeHandle.AddrOfPinnedObject(), colorScheme.Length, calMin, calMax);
+            }
+            finally
+            {
+                colorSchemeHandle.Free();
+            }
             if (status != HbpCoreStatus.Ok)
             {
                 Vector2Int size = CutGeometryGenerator != null ? CutGeometryGenerator.TextureSize : Vector2Int.zero;
-                throw new InvalidOperationException($"hbp_core CutGenerator.FillTextureWithVolume failed with status {status}: {HbpCoreRuntime.LastError} TextureSize={size.x}x{size.y} ColorCount={nativeColorScheme.Length}");
+                throw new InvalidOperationException($"hbp_core CutGenerator.FillTextureWithVolume failed with status {status}: {HbpCoreRuntime.LastError} TextureSize={size.x}x{size.y} ColorCount={colorScheme.Length}");
             }
         }
 
@@ -61,8 +69,15 @@ namespace HBP.Core.DLL
         public void FillTextureWithActivity(Color32[] colorScheme, int timelineIndex, float alpha)
         {
             EnsureHbpCore(nameof(FillTextureWithActivity));
-            Color4[] nativeColorScheme = colorScheme.ToNativeColor4Array();
-            ThrowIfFailed(hbp_cut_generator_fill_activity_rgba(_handle.Handle, nativeColorScheme, nativeColorScheme.Length, timelineIndex, alpha));
+            GCHandle colorSchemeHandle = GCHandle.Alloc(colorScheme, GCHandleType.Pinned);
+            try
+            {
+                ThrowIfFailed(hbp_cut_generator_fill_activity_rgba8(_handle.Handle, colorSchemeHandle.AddrOfPinnedObject(), colorScheme.Length, timelineIndex, alpha));
+            }
+            finally
+            {
+                colorSchemeHandle.Free();
+            }
         }
 
         public void FillTextureWithFMRI(Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
@@ -133,28 +148,21 @@ namespace HBP.Core.DLL
         {
             Vector2Int size = CutGeometryGenerator.TextureSize;
             int pixelCount = size.x * size.y;
-            Color4[] nativeColors = new Color4[pixelCount];
-            HbpCoreStatus status = overlay
-                ? hbp_cut_generator_copy_overlay_rgba(_handle.Handle, nativeColors, nativeColors.Length)
-                : hbp_cut_generator_copy_base_rgba(_handle.Handle, nativeColors, nativeColors.Length);
-            ThrowIfFailed(status);
-
             Color32[] pixels = new Color32[pixelCount];
-            for (int i = 0; i < nativeColors.Length; ++i)
+            HbpCoreStatus status;
+            GCHandle pixelsHandle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+            try
             {
-                pixels[i] = ToColor32(nativeColors[i]);
+                status = overlay
+                    ? hbp_cut_generator_copy_overlay_rgba8(_handle.Handle, pixelsHandle.AddrOfPinnedObject(), pixels.Length)
+                    : hbp_cut_generator_copy_base_rgba8(_handle.Handle, pixelsHandle.AddrOfPinnedObject(), pixels.Length);
             }
+            finally
+            {
+                pixelsHandle.Free();
+            }
+            ThrowIfFailed(status);
             return pixels;
-        }
-
-        private static Color32 ToColor32(Color4 color)
-        {
-            return new Color32(ToByte(color.r), ToByte(color.g), ToByte(color.b), ToByte(color.a));
-        }
-
-        private static byte ToByte(float value)
-        {
-            return (byte)Mathf.RoundToInt(Mathf.Clamp01(value) * 255.0f);
         }
 
         private void EnsureHbpCore(string methodName)
@@ -225,10 +233,14 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_cut_generator_initialize(IntPtr generator, IntPtr activityGenerator, IntPtr geometryGenerator, int blurFactor);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_fill_volume_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_volume_rgba(IntPtr generator, [In] Color4[] colorScheme, int colorCount, float calMin, float calMax);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_fill_volume_rgba8", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_cut_generator_fill_volume_rgba8(IntPtr generator, IntPtr colorScheme, int colorCount, float calMin, float calMax);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_fill_atlas_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_atlas_rgba(IntPtr generator, IntPtr atlas, float alpha, int selectedArea);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_fill_activity_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_activity_rgba(IntPtr generator, [In] Color4[] colorScheme, int colorCount, int timelineIndex, float alpha);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_fill_activity_rgba8", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_cut_generator_fill_activity_rgba8(IntPtr generator, IntPtr colorScheme, int colorCount, int timelineIndex, float alpha);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_fill_fmri_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_fmri_rgba(IntPtr generator, IntPtr volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_fill_localizer_rgba", CallingConvention = CallingConvention.Cdecl)]
@@ -237,6 +249,10 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_cut_generator_copy_base_rgba(IntPtr generator, [Out] Color4[] colors, int colorCapacity);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_copy_overlay_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_copy_overlay_rgba(IntPtr generator, [Out] Color4[] colors, int colorCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_copy_base_rgba8", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_cut_generator_copy_base_rgba8(IntPtr generator, IntPtr colors, int pixelCapacity);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_cut_generator_copy_overlay_rgba8", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_cut_generator_copy_overlay_rgba8(IntPtr generator, IntPtr colors, int pixelCapacity);
         #endregion
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using HBP.Core.Enums;
+using Unity.Collections;
 using UnityEngine;
 
 namespace HBP.Core.Tools
@@ -47,29 +49,41 @@ namespace HBP.Core.Tools
 
         public static Color32[] Generate2DColorPixels(ColorType horizontalColorType, ColorType verticalColorType, out int width, out int height)
         {
-            width = Mathf.Max(HistoricalColorMapWidth(horizontalColorType), HistoricalColorMapWidth(verticalColorType));
-            height = ColormapSize;
+            int resultWidth = Mathf.Max(HistoricalColorMapWidth(horizontalColorType), HistoricalColorMapWidth(verticalColorType));
+            int resultHeight = ColormapSize;
+            width = resultWidth;
+            height = resultHeight;
             Color32[] horizontal = GenerateHistorical1DColorPixels(horizontalColorType);
             Color32[] vertical = GenerateHistorical1DColorPixels(verticalColorType);
-            if (horizontal.Length != width)
+            if (horizontal.Length != resultWidth)
             {
-                horizontal = Resize1DColorPixels(horizontal, width);
+                horizontal = Resize1DColorPixels(horizontal, resultWidth);
             }
-            if (vertical.Length != width)
+            if (vertical.Length != resultWidth)
             {
-                vertical = Resize1DColorPixels(vertical, width);
+                vertical = Resize1DColorPixels(vertical, resultWidth);
             }
 
-            Color32[] pixels = new Color32[width * height];
+            Color32[] pixels = new Color32[resultWidth * resultHeight];
 
-            for (int y = 0; y < height; y++)
+            Parallel.For(0, resultHeight, y =>
             {
-                float t = (height - 1 - y) / (float)height;
-                for (int x = 0; x < width; x++)
+                float t = (resultHeight - 1 - y) / (float)resultHeight;
+                float inv = 1.0f - t;
+                int rowOffset = y * resultWidth;
+                for (int x = 0; x < resultWidth; x++)
                 {
-                    pixels[y * width + x] = LerpRgb(horizontal[x], vertical[x], t);
+                    Color32 left = horizontal[x];
+                    Color32 right = vertical[x];
+                    pixels[rowOffset + x] = left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a
+                        ? left
+                        : new Color32(
+                            (byte)(left.r * inv + right.r * t),
+                            (byte)(left.g * inv + right.g * t),
+                            (byte)(left.b * inv + right.b * t),
+                            255);
                 }
-            }
+            });
 
             return pixels;
         }
@@ -224,31 +238,55 @@ namespace HBP.Core.Tools
             if (texture == null) throw new ArgumentNullException(nameof(texture));
             if (size <= 0) throw new ArgumentOutOfRangeException(nameof(size));
 
-            Color32[] source = texture.GetPixels32();
-            Color32[] target = new Color32[size * size];
-            Fill(target, new Color32(0, 0, 0, 255));
-
-            int copyWidth = Mathf.Min(texture.width, size);
-            int copyHeight = Mathf.Min(texture.height, size);
-            int sourceStartX = Mathf.Max(0, (texture.width - size) / 2);
-            int sourceStartY = Mathf.Max(0, (texture.height - size) / 2);
-            int targetStartX = Mathf.Max(0, (size - texture.width) / 2);
-            int targetStartY = Mathf.Max(0, (size - texture.height) / 2);
-            for (int y = 0; y < copyHeight; y++)
+            NativeArray<Color32> rawSource = default;
+            Color32[] managedSource = null;
+            if (texture.format == TextureFormat.RGBA32)
             {
-                int sourceY = y + sourceStartY;
-                int targetY = y + targetStartY;
-                for (int x = 0; x < copyWidth; x++)
-                {
-                    int sourceX = x + sourceStartX;
-                    int targetX = x + targetStartX;
-                    target[targetY * size + targetX] = source[sourceY * texture.width + sourceX];
-                }
+                rawSource = texture.GetRawTextureData<Color32>();
             }
+            else
+            {
+                managedSource = texture.GetPixels32();
+            }
+            NativeArray<Color32> target = new(size * size, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            try
+            {
+                Color32 black = new(0, 0, 0, 255);
+                for (int i = 0; i < target.Length; ++i)
+                {
+                    target[i] = black;
+                }
 
-            texture.Reinitialize(size, size);
-            texture.SetPixels32(target);
-            texture.Apply(false, false);
+                int copyWidth = Mathf.Min(texture.width, size);
+                int copyHeight = Mathf.Min(texture.height, size);
+                int sourceStartX = Mathf.Max(0, (texture.width - size) / 2);
+                int sourceStartY = Mathf.Max(0, (texture.height - size) / 2);
+                int targetStartX = Mathf.Max(0, (size - texture.width) / 2);
+                int targetStartY = Mathf.Max(0, (size - texture.height) / 2);
+                for (int y = 0; y < copyHeight; y++)
+                {
+                    int sourceY = y + sourceStartY;
+                    int targetY = y + targetStartY;
+                    int sourceIndex = sourceY * texture.width + sourceStartX;
+                    int targetIndex = targetY * size + targetStartX;
+                    if (managedSource == null)
+                    {
+                        NativeArray<Color32>.Copy(rawSource, sourceIndex, target, targetIndex, copyWidth);
+                    }
+                    else
+                    {
+                        NativeArray<Color32>.Copy(managedSource, sourceIndex, target, targetIndex, copyWidth);
+                    }
+                }
+
+                texture.Reinitialize(size, size);
+                texture.SetPixelData(target, 0);
+                texture.Apply(false, false);
+            }
+            finally
+            {
+                target.Dispose();
+            }
         }
 
         public static void CopyAndRotateCutTexture(Texture2D source, Texture2D target, CutOrientation orientation, bool flip)
@@ -287,18 +325,38 @@ namespace HBP.Core.Tools
 
             TextureOrientation textureOrientation = ConvertOrientation(orientation, flip);
             bool transpose = textureOrientation is TextureOrientation.PosteriorToAnterior or TextureOrientation.AnteriorToPosterior or TextureOrientation.InferiorToSuperior or TextureOrientation.SuperiorToInferior;
-            targetWidth = transpose ? sourceHeight : sourceWidth;
-            targetHeight = transpose ? sourceWidth : sourceHeight;
-            Color32[] target = new Color32[targetWidth * targetHeight];
+            int resultWidth = transpose ? sourceHeight : sourceWidth;
+            int resultHeight = transpose ? sourceWidth : sourceHeight;
+            targetWidth = resultWidth;
+            targetHeight = resultHeight;
+            Color32[] target = new Color32[resultWidth * resultHeight];
 
-            for (int targetRow = 0; targetRow < targetHeight; targetRow++)
+            if (textureOrientation is TextureOrientation.LeftToRight or TextureOrientation.Custom)
             {
-                for (int targetColumn = 0; targetColumn < targetWidth; targetColumn++)
-                {
-                    SourceCoordinates(textureOrientation, sourceWidth, sourceHeight, targetRow, targetColumn, out int sourceRow, out int sourceColumn);
-                    target[UnityIndex(targetWidth, targetHeight, targetRow, targetColumn)] = source[UnityIndex(sourceWidth, sourceHeight, sourceRow, sourceColumn)];
-                }
+                Array.Copy(source, target, target.Length);
+                return target;
             }
+            if (textureOrientation == TextureOrientation.RightToLeft)
+            {
+                Array.Copy(source, target, target.Length);
+                Array.Reverse(target);
+                return target;
+            }
+
+            Parallel.For(0, resultHeight, targetRow =>
+            {
+                int targetRowOffset = (resultHeight - 1 - targetRow) * resultWidth;
+                for (int targetColumn = 0; targetColumn < resultWidth; ++targetColumn)
+                {
+                    int sourceIndex = textureOrientation switch
+                    {
+                        TextureOrientation.PosteriorToAnterior => targetColumn * sourceWidth + targetRow,
+                        TextureOrientation.SuperiorToInferior => targetColumn * sourceWidth + sourceWidth - 1 - targetRow,
+                        _ => (sourceHeight - 1 - targetColumn) * sourceWidth + sourceWidth - 1 - targetRow
+                    };
+                    target[targetRowOffset + targetColumn] = source[sourceIndex];
+                }
+            });
 
             return target;
         }

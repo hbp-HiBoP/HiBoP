@@ -1,5 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
+using HBP.Core.DLL;
+using HBP.Core.Enums;
 using UnityEngine;
 
 namespace HBP.Tests.Serialization
@@ -26,6 +28,28 @@ namespace HBP.Tests.Serialization
         public static LegacyTextureBridge Generate2D(int horizontalColorType, int verticalColorType)
         {
             return new LegacyTextureBridge(generate_2D_color_Texture(horizontalColorType, verticalColorType));
+        }
+
+        public static LegacyTextureBridge GenerateHistogram(NIFTI nifti, int height, int width, bool withGreyArea)
+        {
+            return new LegacyTextureBridge(generate_distribution_histogram_NIFTI_Texture(
+                nifti.getHandle().Handle, height, width, withGreyArea));
+        }
+
+        public void ApplyBlur()
+        {
+            apply_blur_Texture(Handle);
+        }
+
+        public LegacyTextureBridge Rotate(CutOrientation orientation, bool flip)
+        {
+            return new LegacyTextureBridge(rotate_with_cut_plane_Texture(
+                Handle, orientation.ToString(), flip ? 1 : 0));
+        }
+
+        public void ResizeToSquare(int size)
+        {
+            resize_to_square_Texture(Handle, size);
         }
 
         public static LegacyTextureBridge CreateFromPixels(Color32[] pixels, int width, int height)
@@ -102,5 +126,17 @@ namespace HBP.Tests.Serialization
 
         [DllImport("hbp_export", EntryPoint = "generate_2D_color_Texture", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr generate_2D_color_Texture(int horizontalColorType, int verticalColorType);
+
+        [DllImport("hbp_export", EntryPoint = "generate_distribution_histogram_NIFTI_Texture", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr generate_distribution_histogram_NIFTI_Texture(IntPtr nifti, int height, int width, bool withGreyArea);
+
+        [DllImport("hbp_export", EntryPoint = "apply_blur_Texture", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void apply_blur_Texture(IntPtr texture);
+
+        [DllImport("hbp_export", EntryPoint = "rotate_with_cut_plane_Texture", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr rotate_with_cut_plane_Texture(IntPtr texture, string orientation, int flip);
+
+        [DllImport("hbp_export", EntryPoint = "resize_to_square_Texture", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void resize_to_square_Texture(IntPtr texture, int size);
     }
 }
