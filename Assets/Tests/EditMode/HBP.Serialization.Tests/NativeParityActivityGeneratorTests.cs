@@ -109,7 +109,42 @@ namespace HBP.Tests.Serialization
             NativeParityAssert.AssertSameVectorArray(hbpCoreMeg.AlphaUV, hbpCoreFmri.AlphaUV, 0.0005f);
         }
 
-        private static ActivityUvs ComputeDensityUvs(NativeBackend backend)
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
+        public void DensityAndIeegEveryDistanceMode_MatchAcrossBackends()
+        {
+            NativeParityAssert.RequireHbpCore();
+
+            foreach (SiteInfluenceByDistanceType mode in Enum.GetValues(typeof(SiteInfluenceByDistanceType)))
+            {
+                ActivityUvs exportDensity = ComputeDensityUvs(NativeBackend.HbpExport, mode);
+                ActivityUvs coreDensity = ComputeDensityUvs(NativeBackend.HbpCore, mode);
+                Assert.That(coreDensity.MaxDensity, Is.EqualTo(exportDensity.MaxDensity).Within(0.0005f), $"density max, {mode}");
+                NativeParityAssert.AssertSameVectorArray(coreDensity.ActivityUV, exportDensity.ActivityUV, 0.0005f);
+                NativeParityAssert.AssertSameVectorArray(coreDensity.AlphaUV, exportDensity.AlphaUV, 0.0005f);
+
+                ActivityUvs exportIeeg = ComputeIeegUvs(NativeBackend.HbpExport, timelineIndex: 0, mode: mode);
+                ActivityUvs coreIeeg = ComputeIeegUvs(NativeBackend.HbpCore, timelineIndex: 0, mode: mode);
+                NativeParityAssert.AssertSameVectorArray(coreIeeg.ActivityUV, exportIeeg.ActivityUV, 0.0005f);
+                NativeParityAssert.AssertSameVectorArray(coreIeeg.AlphaUV, exportIeeg.AlphaUV, 0.0005f);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeParity")]
+        [Category(NativeParityAssert.StrictParity)]
+        public void SurfaceMainUvs_MatchAcrossBackends()
+        {
+            NativeParityAssert.RequireHbpCore();
+            Vector2[] exportUvs = ComputeMainUvs(NativeBackend.HbpExport);
+            Vector2[] coreUvs = ComputeMainUvs(NativeBackend.HbpCore);
+            NativeParityAssert.AssertSameVectorArray(coreUvs, exportUvs, 0.0005f);
+        }
+
+        private static ActivityUvs ComputeDensityUvs(NativeBackend backend, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Quadratic)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -121,14 +156,14 @@ namespace HBP.Tests.Serialization
                     using RawSiteList rawSites = CreateRawSites(surface);
                     using DensityGenerator density = new();
                     density.Initialize(generatorSurface);
-                    density.ComputeActivity(rawSites, influenceDistance: 80.0f, SiteInfluenceByDistanceType.Quadratic);
+                    density.ComputeActivity(rawSites, influenceDistance: 80.0f, mode);
                     using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density);
                     surfaceGenerator.ComputeActivityUV(timelineIndex: 0, alpha: 0.35f);
                     return new ActivityUvs(surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV, density.MaxDensity);
                 });
         }
 
-        private static ActivityUvs ComputeIeegUvs(NativeBackend backend, int timelineIndex)
+        private static ActivityUvs ComputeIeegUvs(NativeBackend backend, int timelineIndex, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Linear)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -147,7 +182,7 @@ namespace HBP.Tests.Serialization
                         -1.0f, 0.25f, 1.0f,
                         0.75f, -0.5f, 0.0f
                     };
-                    ieeg.ComputeActivity(rawSites, influenceDistance: 80.0f, activity, timelineLength, rawSites.NumberOfSites, SiteInfluenceByDistanceType.Linear);
+                    ieeg.ComputeActivity(rawSites, influenceDistance: 80.0f, activity, timelineLength, rawSites.NumberOfSites, mode);
                     ieeg.AdjustValues(middle: 0.0f, spanMin: -1.0f, spanMax: 1.0f);
 
                     using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
@@ -295,6 +330,32 @@ namespace HBP.Tests.Serialization
             };
         }
 
+        private static Vector2[] ComputeMainUvs(NativeBackend backend)
+        {
+            return NativeParityAssert.WithBackend(
+                backend,
+                () =>
+                {
+                    using Surface surface = LoadSurface();
+                    using Volume volume = LoadVolume("fmri_3d.nii");
+                    using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                    using DensityGenerator density = new();
+                    density.Initialize(generatorSurface);
+                    using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density);
+                    surfaceGenerator.ComputeMainUV(0.25f, 0.75f);
+                    Mesh mesh = new();
+                    try
+                    {
+                        surface.UpdateMeshFromDLL(mesh);
+                        return (Vector2[])mesh.uv.Clone();
+                    }
+                    finally
+                    {
+                        UnityEngine.Object.DestroyImmediate(mesh);
+                    }
+                });
+        }
+
         private static Surface LoadSurface()
         {
             Surface surface = new();
@@ -365,9 +426,14 @@ namespace HBP.Tests.Serialization
                 Assert.That(mesh.vertexCount, Is.GreaterThanOrEqualTo(3));
 
                 RawSiteList rawSites = new();
-                rawSites.AddSite("S1", mesh.vertices[0], patientIndex: 0, index: 0);
-                rawSites.AddSite("S2", mesh.vertices[1], patientIndex: 0, index: 1);
-                rawSites.AddSite("S3", mesh.vertices[2], patientIndex: 0, index: 2);
+                Vector3 first = ToNativePosition(surface, mesh.vertices[0]);
+                Vector3 second = ToNativePosition(surface, mesh.vertices[1]);
+                Vector3 third = ToNativePosition(surface, mesh.vertices[2]);
+                rawSites.AddSite("S1", first, patientIndex: 0, index: 0);
+                rawSites.AddSite("S2", second, patientIndex: 0, index: 1);
+                rawSites.AddSite("S3", third, patientIndex: 0, index: 2);
+                rawSites.UpdateMask(0, mask: false);
+                rawSites.UpdateMask(1, mask: false);
                 rawSites.UpdateMask(2, mask: true);
                 return rawSites;
             }
@@ -375,6 +441,13 @@ namespace HBP.Tests.Serialization
             {
                 UnityEngine.Object.DestroyImmediate(mesh);
             }
+        }
+
+        private static Vector3 ToNativePosition(Surface surface, Vector3 position)
+        {
+            return surface.Backend == NativeBackend.HbpCore
+                ? new Vector3(ReferenceSystemConversion.ConvertX(position.x), position.y, position.z)
+                : position;
         }
 
         private enum GeneratorKind
