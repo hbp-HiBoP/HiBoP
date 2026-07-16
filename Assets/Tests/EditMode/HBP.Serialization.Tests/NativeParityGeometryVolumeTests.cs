@@ -19,7 +19,7 @@ namespace HBP.Tests.Serialization
         [Category("NativeMigration")]
         [Category("NativeParity")]
         [Category(NativeParityAssert.NormalizedCoordinateParity)]
-        public void BBoxPlaneIntersectionsAndCutOffsets_MatchAcrossBackends()
+        public void BBoxPlaneIntersectionsMatchAndCutOffsetsUseExactBounds()
         {
             NativeParityAssert.RequireHbpCore();
 
@@ -76,9 +76,13 @@ namespace HBP.Tests.Serialization
                     NativeParityAssert.DisposeSegments(exportIntersectionSegments);
                 }
 
-                Assert.That(
+                AssertCorrectedCutOffset(
                     hbpCoreBBox.SizeOffsetCutPlane(plane, 4),
-                    Is.EqualTo(hbpExportBBox.SizeOffsetCutPlane(plane, 4)).Within(0.0002f),
+                    hbpExportBBox.SizeOffsetCutPlane(plane, 4),
+                    hbpCoreBBox.Min,
+                    hbpCoreBBox.Max,
+                    normal,
+                    4,
                     name);
             }
 
@@ -189,11 +193,51 @@ namespace HBP.Tests.Serialization
             foreach (Vector3 normal in new[] { Vector3.right, Vector3.up, Vector3.forward, new Vector3(1.0f, 1.0f, 1.0f).normalized })
             {
                 using HbpPlane plane = new(hbpExportVolume.Center, normal);
-                Assert.That(
+                AssertCorrectedCutOffset(
                     hbpCoreVolume.SizeOffsetCutPlane(plane, 8),
-                    Is.EqualTo(hbpExportVolume.SizeOffsetCutPlane(plane, 8)).Within(0.0002f),
+                    hbpExportVolume.SizeOffsetCutPlane(plane, 8),
+                    hbpCoreBBox.Min,
+                    hbpCoreBBox.Max,
+                    normal,
+                    8,
                     normal.ToString());
             }
+        }
+
+        private static void AssertCorrectedCutOffset(
+            float hbpCoreOffset,
+            float hbpExportOffset,
+            Vector3 min,
+            Vector3 max,
+            Vector3 normal,
+            int cutCount,
+            string context)
+        {
+            Vector3 direction = normal.normalized;
+            Vector3 center = (min + max) * 0.5f;
+            float exitDistance = float.PositiveInfinity;
+
+            for (int axis = 0; axis < 3; ++axis)
+            {
+                float component = direction[axis];
+                if (Mathf.Abs(component) <= 1e-6f)
+                {
+                    continue;
+                }
+
+                float boundary = component > 0.0f ? max[axis] : min[axis];
+                exitDistance = Mathf.Min(exitDistance, (boundary - center[axis]) / component);
+            }
+
+            float expected = 2.0f * exitDistance / cutCount;
+            Assert.That(hbpCoreOffset, Is.EqualTo(expected).Within(1e-5f), $"{context}: exact bbox exit");
+
+            // hbp_export advances by bboxDiagonal / 5000 and accumulates floating-point
+            // error. Retain that stepped result as a bounded diagnostic, not as the oracle.
+            float legacyStepBound = 2.0f * (max - min).magnitude / (5000.0f * cutCount) + 1e-5f;
+            Assert.That(hbpExportOffset, Is.EqualTo(expected).Within(legacyStepBound), $"{context}: bounded legacy stepping error");
+            TestContext.Progress.WriteLine(
+                $"{context} cut offset: exact hbp_core={hbpCoreOffset}; stepped hbp_export={hbpExportOffset}; oracle={expected}");
         }
 
         [Test]

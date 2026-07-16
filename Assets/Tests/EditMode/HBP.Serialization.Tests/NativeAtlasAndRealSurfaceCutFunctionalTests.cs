@@ -186,6 +186,62 @@ namespace HBP.Tests.Serialization
             }
         }
 
+        [Test]
+        [Category("NativeMigration")]
+        [Category("MigrationFunctional")]
+        public void CutGeometryGenerator_MniMergedBoundsEndpointsRemainValid()
+        {
+            NativeParityAssert.RequireHbpCore();
+            NativeParityAssert.WithBackend(
+                NativeBackend.HbpCore,
+                () =>
+                {
+                    string meshDirectory = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Meshes");
+                    using Surface left = new();
+                    using Surface right = new();
+                    using Volume volume = new();
+                    Assert.That(left.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Lhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+                    Assert.That(right.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Rhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+                    Assert.That(volume.LoadNIFTIFile(Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "IRM", "MNI.nii")), Is.True);
+                    left.FlipTriangles();
+                    right.FlipTriangles();
+                    left.Append(right);
+
+                    using BBox volumeBounds = volume.BoundingBox;
+                    using BBox surfaceBounds = left.BoundingBox;
+                    using BBox mergedBounds = BBox.Merge(volumeBounds, surfaceBounds);
+                    foreach (HBP.Core.Enums.CutOrientation orientation in new[]
+                    {
+                        HBP.Core.Enums.CutOrientation.Axial,
+                        HBP.Core.Enums.CutOrientation.Coronal,
+                        HBP.Core.Enums.CutOrientation.Sagittal
+                    })
+                    {
+                        using HBP.Core.DLL.Plane orientationPlane = new(Vector3.zero, Vector3.right);
+                        volume.SetPlaneWithOrientation(orientationPlane, orientation, false);
+                        float offset = mergedBounds.SizeOffsetCutPlane(orientationPlane, 500);
+                        foreach (float position in new[] { 0.0f, 1.0f })
+                        {
+                            using HBP.Core.Object3D.Cut cut = new(
+                                mergedBounds.Center + orientationPlane.Normal.normalized * (position - 0.5f) * offset * 500,
+                                orientationPlane.Normal)
+                            {
+                                Orientation = orientation,
+                                Position = position,
+                                NumberOfCuts = 500
+                            };
+                            using CutGeometryGenerator geometry = new();
+                            Assert.DoesNotThrow(
+                                () => geometry.Initialize(volume, cut, -1),
+                                $"{orientation} endpoint {position}");
+                            Assert.That(geometry.TextureSize.x, Is.GreaterThan(0), $"{orientation} endpoint {position} width");
+                            Assert.That(geometry.TextureSize.y, Is.GreaterThan(0), $"{orientation} endpoint {position} height");
+                        }
+                    }
+                    return true;
+                });
+        }
+
         private static void AssertFullSurfaceBuffers(Surface surface, bool requireColors, string context)
         {
             Assert.That(surface.NumberOfVertices, Is.GreaterThan(0), context);

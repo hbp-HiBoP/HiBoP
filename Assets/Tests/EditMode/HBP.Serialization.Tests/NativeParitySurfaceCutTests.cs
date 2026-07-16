@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using HBP.Core.DLL;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
@@ -85,6 +86,28 @@ namespace HBP.Tests.Serialization
             }
         }
 
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeParity")]
+        public void MniGreyMatterKnownAxialVertexCase_MatchesLegacyArea()
+        {
+            NativeParityAssert.RequireHbpCore();
+
+            List<Surface> hbpExportCuts = GenerateKnownMniAxialCut(NativeBackend.HbpExport);
+            List<Surface> hbpCoreCuts = GenerateKnownMniAxialCut(NativeBackend.HbpCore);
+            try
+            {
+                double expectedArea = MeasureSurfaceArea(hbpExportCuts.Single());
+                double actualArea = MeasureSurfaceArea(hbpCoreCuts.Single());
+                Assert.That(actualArea, Is.EqualTo(expectedArea).Within(expectedArea * 0.001), "known MNI axial cap area");
+            }
+            finally
+            {
+                DisposeSurfaces(hbpExportCuts);
+                DisposeSurfaces(hbpCoreCuts);
+            }
+        }
+
         private static Surface[] CutCube(NativeBackend backend, string objPath, bool strongCuts, params Func<HBP.Core.Object3D.Cut>[] cutFactories)
         {
             return NativeParityAssert.WithBackend(
@@ -124,6 +147,61 @@ namespace HBP.Tests.Serialization
                         ? surface.GenerateRawCutSurfaces(cuts, noHoles: false, strongCuts: true)
                         : surface.GenerateCutSurfaces(cuts, noHoles: false, strongCuts: true);
                 });
+        }
+
+        private static List<Surface> GenerateKnownMniAxialCut(NativeBackend backend)
+        {
+            return NativeParityAssert.WithBackend(
+                backend,
+                () =>
+                {
+                    string meshDirectory = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Meshes");
+                    using Surface left = new();
+                    using Surface right = new();
+                    using Volume volume = new();
+                    Assert.That(left.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Lhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+                    Assert.That(right.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Rhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+                    Assert.That(volume.LoadNIFTIFile(Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "IRM", "MNI.nii")), Is.True);
+                    left.FlipTriangles();
+                    right.FlipTriangles();
+                    left.Append(right);
+
+                    using HBP.Core.Object3D.Cut cut = new(
+                        new Vector3(0.47999573f, -15.199997f, -14.565386f),
+                        Vector3.forward);
+                    List<Surface> cuts = left.GenerateCutSurfaces(
+                        new List<HBP.Core.Object3D.Cut> { cut },
+                        noHoles: false,
+                        strongCuts: true);
+                    using CutGeometryGenerator geometry = new();
+                    geometry.Initialize(volume, cut, -1);
+                    geometry.UpdateSurfaceUV(cuts.Single());
+                    return cuts;
+                });
+        }
+
+        private static double MeasureSurfaceArea(Surface surface)
+        {
+            Mesh mesh = new() { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+            try
+            {
+                surface.UpdateMeshFromDLL(mesh);
+                Vector3[] vertices = mesh.vertices;
+                int[] triangles = mesh.triangles;
+                double area = 0;
+                for (int i = 0; i < triangles.Length; i += 3)
+                {
+                    Vector3 a = vertices[triangles[i]];
+                    Vector3 b = vertices[triangles[i + 1]];
+                    Vector3 c = vertices[triangles[i + 2]];
+                    area += Vector3.Cross(b - a, c - a).magnitude * 0.5;
+                }
+                return area;
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
         }
 
         private static Surface LoadSurface(string objPath)
