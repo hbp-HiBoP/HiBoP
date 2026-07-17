@@ -130,4 +130,19 @@ namespace HBP.Core.DLL
         public float recomputedCalMin;
         public float recomputedCalMax;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct IEEGComputeMetrics
+    {
+        public double totalMilliseconds;
+        public double allocationMilliseconds;
+        public double spatialIndexMilliseconds;
+        public double neighborQueryMilliseconds;
+        public double accumulationMilliseconds;
+        public double normalizationMilliseconds;
+        public long generatedPointCount;
+        public long activeSiteCount;
+        public long neighborLinkCount;
+        public int timelineLength;
+    }
 }

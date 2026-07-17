@@ -49,9 +49,18 @@ namespace HBP.Core.DLL
         {
             if (m_Backend == NativeBackend.HbpCore)
             {
-                return hbp_activity_generator_save_activity_nifti(_handle.Handle, path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description) == HbpCoreStatus.Ok;
+                return SaveActivityAsNifti(path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description);
             }
             return save_activity_as_nifti_ActivityGenerator(_handle, path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description);
+        }
+
+        internal bool SaveActivityAsNifti(string path, int timelineLength, float samplingFrequency, float startTime, string description)
+        {
+            if (m_Backend != NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("Raw activity NIfTI export parameters are only available with hbp_core.");
+            }
+            return hbp_activity_generator_save_activity_nifti(_handle.Handle, path, timelineLength, samplingFrequency, startTime, description) == HbpCoreStatus.Ok;
         }
 
         public bool SaveMaskAsNifti(string path, string description)

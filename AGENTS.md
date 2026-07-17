@@ -173,6 +173,24 @@ matching Unity Hub editor, currently:
 C:\Program Files\Unity\Hub\Editor\6000.5.2f1\Editor\Unity.exe
 ```
 
+### Mandatory Sandbox Rule
+
+Any command that starts `Unity.exe`, either directly or through a PowerShell
+launcher, must run outside the Codex sandbox with escalated execution. The Unity
+Personal license itself is valid in CLI and `-batchmode` is supported.
+
+This was verified on 2026-07-17: inside the sandbox, Windows named-pipe IPC with
+`Unity.Licensing.Client` was blocked, causing refused connections, repeated
+60-second timeouts, unknown package entitlements, and secondary
+`com.unity.editor.headless` messages. The same CLI command outside the sandbox
+initialized the Personal license and completed successfully.
+
+Do not reactivate the license, remove `-batchmode`, or conclude that Unity
+Personal is incompatible based on those symptoms. First rerun the exact command
+outside the sandbox. A healthy log contains
+`Successfully connected to LicensingClient`, resolves the license group, and
+registers packages without repeated connection-loss messages.
+
 Use `Start-Process -Wait -PassThru` from PowerShell. A direct call with `&` can
 return control to Codex while the Unity process is still running in the
 background, which makes the test result look complete too early.
