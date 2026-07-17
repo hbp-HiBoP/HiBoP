@@ -967,7 +967,11 @@ namespace HBP.Data.Module3D
         {
             m_GeneratorSurface?.Dispose();
             m_GeneratorSurface = new Core.DLL.GeneratorSurface();
-            m_GeneratorSurface.Initialize(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, 120);
+            m_GeneratorSurface.Initialize(
+                m_MeshManager.BrainSurface,
+                m_MRIManager.SelectedMRI.Volume,
+                Core.DLL.ActivityProjectionSettings.VolumeGridDimension,
+                Core.DLL.ActivityProjectionSettings.VolumeInterpolation);
             foreach (Column3D column in Columns)
             {
                 column.ActivityGenerator.Initialize(m_GeneratorSurface);

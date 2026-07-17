@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using HBP.Core.DLL;
+using HBP.Core.Enums;
 using UnityEngine;
 
 namespace HBP.Tests.Serialization
@@ -14,6 +15,7 @@ namespace HBP.Tests.Serialization
         private const string RepetitionsArgument = "-hbpProjectionRepetitions";
         private const string WorkerCountArgument = "-hbpProjectionWorkers";
         private const string BatchSizeArgument = "-hbpProjectionBatchSites";
+        private const string VolumeInterpolationArgument = "-hbpProjectionVolumeInterpolation";
         private const string FilterArgument = "-hbpProjectionFilter";
         private const string SurfaceArgument = "-hbpProjectionSurface";
         private const string VolumeArgument = "-hbpProjectionVolume";
@@ -39,6 +41,7 @@ namespace HBP.Tests.Serialization
                 int repetitions = ParsePositive(arguments, RepetitionsArgument);
                 int workerCount = ParseNonNegative(arguments, WorkerCountArgument);
                 int batchSize = ParseNonNegative(arguments, BatchSizeArgument);
+                VolumeInterpolation volumeInterpolation = ParseVolumeInterpolation(arguments);
                 string filter = OptionalArgument(arguments, FilterArgument);
                 string surfacePath = OptionalArgument(arguments, SurfaceArgument)
                     ?? Path.Combine(Application.dataPath, "Data", "Meshes", "MNI_single_hight_Bhemi.obj");
@@ -62,6 +65,7 @@ namespace HBP.Tests.Serialization
                 report.repetitions = repetitions;
                 report.requestedParallelWorkerCount = workerCount;
                 report.requestedNeighborBatchSize = batchSize;
+                report.requestedVolumeInterpolation = volumeInterpolation.ToString();
                 report.surfacePath = surfacePath;
                 report.volumePath = volumePath;
                 report.includeExport = includeExport;
@@ -71,6 +75,7 @@ namespace HBP.Tests.Serialization
                     profile,
                     timelineLength,
                     includeExport,
+                    volumeInterpolation,
                     filter);
                 if (scenarios.Count == 0)
                 {
@@ -130,6 +135,18 @@ namespace HBP.Tests.Serialization
                 throw new ArgumentException($"{name} must be a non-negative integer.");
             }
             return parsed;
+        }
+
+        private static VolumeInterpolation ParseVolumeInterpolation(string[] arguments)
+        {
+            string value = OptionalArgument(arguments, VolumeInterpolationArgument) ?? VolumeInterpolation.Nearest.ToString();
+            if (!Enum.TryParse(value, ignoreCase: true, out VolumeInterpolation interpolation)
+                || !Enum.IsDefined(typeof(VolumeInterpolation), interpolation))
+            {
+                throw new ArgumentException(
+                    $"{VolumeInterpolationArgument} must be Nearest or Trilinear.");
+            }
+            return interpolation;
         }
 
         private static string RequireArgument(string[] arguments, string name)

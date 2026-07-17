@@ -15,6 +15,7 @@ namespace HBP.Tests.Serialization
             string profile,
             int timelineLength,
             bool includeExport,
+            VolumeInterpolation volumeInterpolation,
             string filter)
         {
             List<NativeProjectionLoadScenarioDefinition> scenarios = new();
@@ -37,7 +38,8 @@ namespace HBP.Tests.Serialization
                     timelineLength,
                     radius,
                     columns,
-                    export));
+                    export,
+                    volumeInterpolation));
             }
 
             void AddRadii(string prefix, int dimension, int sites, params float[] radii)
@@ -59,6 +61,7 @@ namespace HBP.Tests.Serialization
                     radii[0],
                     radii.Length,
                     false,
+                    volumeInterpolation,
                     radii));
             }
 
@@ -116,7 +119,8 @@ namespace HBP.Tests.Serialization
                 influenceDistances = definition.InfluenceDistances,
                 columnCount = definition.ColumnCount,
                 exportMeasured = definition.MeasureExport,
-                workload = definition.Workload
+                workload = definition.Workload,
+                volumeInterpolation = definition.VolumeInterpolation.ToString()
             };
 
             for (int repetition = 0; repetition < repetitions; ++repetition)
@@ -151,10 +155,17 @@ namespace HBP.Tests.Serialization
             result.maxTemporaryNeighborPeakBytes = result.samples.Max(sample => sample.temporaryNeighborPeakBytes);
             result.temporaryNeighborBudgetBytes = first.temporaryNeighborBudgetBytes;
             result.estimatedCurrentValueAndWeightBytes = first.estimatedCurrentValueAndWeightBytes;
+            result.cutTexturePixelCount = first.cutTexturePixelCount;
+            result.estimatedCutStencilPayloadBytes = first.estimatedCutStencilPayloadBytes;
             result.medianTotalWallMilliseconds = Median(result.samples.Select(sample => sample.totalWallMilliseconds));
             result.medianTotalCpuMilliseconds = Median(result.samples.Select(sample => sample.totalCpuMilliseconds));
             result.medianComputeWallMilliseconds = Median(result.samples.Select(sample => sample.computeWallMilliseconds));
             result.medianComputeCpuMilliseconds = Median(result.samples.Select(sample => sample.computeCpuMilliseconds));
+            result.medianCutPreparationWallMilliseconds = Median(result.samples.Select(sample => sample.cutPreparationWallMilliseconds));
+            result.medianCutTimelineUpdateWallMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineUpdateWallMilliseconds));
+            result.medianCutTimelineUpdateCpuMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineUpdateCpuMilliseconds));
+            result.medianCutTimelineFillWallMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineFillWallMilliseconds));
+            result.medianCutTimelineCopyWallMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineCopyWallMilliseconds));
             result.maxPeakPrivateBytesDelta = result.samples.Max(sample => sample.peakPrivateBytesDelta);
             result.maxPeakWorkingSetBytesDelta = result.samples.Max(sample => sample.peakWorkingSetBytesDelta);
             result.maxRetainedPrivateBytesDelta = result.samples.Max(sample => sample.retainedPrivateBytesDelta);
@@ -188,8 +199,11 @@ namespace HBP.Tests.Serialization
             long totalEnd = totalStart;
             TimeSpan cpuEnd = cpuStart;
             GeneratorSurface generatorSurface = null;
+            HBP.Core.Object3D.Cut cut = null;
+            CutGeometryGenerator cutGeometry = null;
             List<IEEGGenerator> generators = new();
             List<SurfaceGenerator> outputs = new();
+            List<CutGenerator> cutOutputs = new();
             long exportFileBytes = 0;
             string exportPath = null;
 
@@ -199,6 +213,15 @@ namespace HBP.Tests.Serialization
             double computeCpu = 0.0;
             double displayWall = 0.0;
             double displayCpu = 0.0;
+            double cutPreparationWall = 0.0;
+            double cutPreparationCpu = 0.0;
+            double cutTimelineUpdatesWall = 0.0;
+            double cutTimelineUpdatesCpu = 0.0;
+            double cutTimelineFillsWall = 0.0;
+            double cutTimelineCopiesWall = 0.0;
+            int cutTimelineUpdateCount = 0;
+            int cutTexturePixelCount = 0;
+            long estimatedCutStencilPayloadBytes = 0;
             double exportWall = 0.0;
             double exportCpu = 0.0;
             double nativeTotal = 0.0;
@@ -238,8 +261,25 @@ namespace HBP.Tests.Serialization
                 try
                 {
                     generatorSurface = new GeneratorSurface();
-                    Measure(process, () => generatorSurface.Initialize(surface, volume, definition.Dimension),
+                    Measure(process, () => generatorSurface.Initialize(
+                            surface,
+                            volume,
+                            definition.Dimension,
+                            definition.VolumeInterpolation),
                         out generatorSurfaceWall, out generatorSurfaceCpu);
+
+                    cut = new HBP.Core.Object3D.Cut(volume.Center, Vector3.forward)
+                    {
+                        Orientation = CutOrientation.Axial,
+                        Position = 0.5f
+                    };
+                    cutGeometry = new CutGeometryGenerator();
+                    cutGeometry.Initialize(volume, cut, -1);
+                    cutTexturePixelCount = cutGeometry.TextureSize.x * cutGeometry.TextureSize.y;
+                    estimatedCutStencilPayloadBytes = (long)cutTexturePixelCount
+                        * (definition.VolumeInterpolation == VolumeInterpolation.Nearest ? sizeof(int) : 16L);
+                    Color32[] grayscale = CreateColorScheme(grayscale: true);
+                    Color32[] activityColors = CreateColorScheme(grayscale: false);
 
                     for (int column = 0; column < definition.ColumnCount; ++column)
                     {
@@ -320,6 +360,45 @@ namespace HBP.Tests.Serialization
                         Require(uvs.All(value => float.IsFinite(value.x) && float.IsFinite(value.y)),
                             "Activity UV output contains a non-finite value.");
                         checksum = Mix(checksum, Hash(uvs));
+
+                        CutGenerator cutOutput = new();
+                        cutOutputs.Add(cutOutput);
+                        cutOutput.Initialize(generator, cutGeometry, blurFactor: 0);
+                        cutOutput.FillTextureWithVolume(grayscale, 0.0f, 1.0f);
+                        Color32[] preparedPixels = null;
+                        Measure(process, () =>
+                            {
+                                cutOutput.FillTextureWithActivity(activityColors, 0, 0.25f);
+                                preparedPixels = cutOutput.CopyOverlayPixels();
+                            },
+                            out double columnCutPreparationWall,
+                            out double columnCutPreparationCpu);
+                        cutPreparationWall += columnCutPreparationWall;
+                        cutPreparationCpu += columnCutPreparationCpu;
+                        Require(preparedPixels.Length == cutGeometry.TextureSize.x * cutGeometry.TextureSize.y,
+                            "Unexpected prepared cut pixel count.");
+
+                        const int updateCount = 512;
+                        Color32[] updatedPixels = null;
+                        Measure(process, () =>
+                            {
+                                for (int update = 0; update < updateCount; ++update)
+                                {
+                                    int timelineIndex = update % definition.TimelineLength;
+                                    long fillStart = Stopwatch.GetTimestamp();
+                                    cutOutput.FillTextureWithActivity(activityColors, timelineIndex, 0.25f);
+                                    cutTimelineFillsWall += ElapsedMilliseconds(fillStart, Stopwatch.GetTimestamp());
+                                    long copyStart = Stopwatch.GetTimestamp();
+                                    updatedPixels = cutOutput.CopyOverlayPixels();
+                                    cutTimelineCopiesWall += ElapsedMilliseconds(copyStart, Stopwatch.GetTimestamp());
+                                }
+                            },
+                            out double columnCutUpdatesWall,
+                            out double columnCutUpdatesCpu);
+                        cutTimelineUpdatesWall += columnCutUpdatesWall;
+                        cutTimelineUpdatesCpu += columnCutUpdatesCpu;
+                        cutTimelineUpdateCount += updateCount;
+                        checksum = Mix(checksum, Hash(updatedPixels));
                     }
 
                     if (definition.MeasureExport)
@@ -350,12 +429,18 @@ namespace HBP.Tests.Serialization
                 finally
                 {
                     sampler.Stop();
+                    for (int i = cutOutputs.Count - 1; i >= 0; --i) cutOutputs[i].Dispose();
                     for (int i = outputs.Count - 1; i >= 0; --i) outputs[i].Dispose();
                     for (int i = generators.Count - 1; i >= 0; --i) generators[i].Dispose();
+                    cutGeometry?.Dispose();
+                    cut?.Dispose();
                     generatorSurface?.Dispose();
+                    cutOutputs.Clear();
                     outputs.Clear();
                     generators.Clear();
                     generatorSurface = null;
+                    cutGeometry = null;
+                    cut = null;
                 }
 
                 peakPrivate = sampler.PeakPrivateBytes;
@@ -384,6 +469,23 @@ namespace HBP.Tests.Serialization
                 computeCpuMilliseconds = computeCpu,
                 displayUpdateWallMilliseconds = displayWall,
                 displayUpdateCpuMilliseconds = displayCpu,
+                cutPreparationWallMilliseconds = cutPreparationWall,
+                cutPreparationCpuMilliseconds = cutPreparationCpu,
+                cutTimelineUpdatesWallMilliseconds = cutTimelineUpdatesWall,
+                cutTimelineUpdatesCpuMilliseconds = cutTimelineUpdatesCpu,
+                meanCutTimelineUpdateWallMilliseconds = cutTimelineUpdateCount > 0
+                    ? cutTimelineUpdatesWall / cutTimelineUpdateCount
+                    : 0.0,
+                meanCutTimelineUpdateCpuMilliseconds = cutTimelineUpdateCount > 0
+                    ? cutTimelineUpdatesCpu / cutTimelineUpdateCount
+                    : 0.0,
+                meanCutTimelineFillWallMilliseconds = cutTimelineUpdateCount > 0
+                    ? cutTimelineFillsWall / cutTimelineUpdateCount
+                    : 0.0,
+                meanCutTimelineCopyWallMilliseconds = cutTimelineUpdateCount > 0
+                    ? cutTimelineCopiesWall / cutTimelineUpdateCount
+                    : 0.0,
+                cutTimelineUpdateCount = cutTimelineUpdateCount,
                 exportWallMilliseconds = exportWall,
                 exportCpuMilliseconds = exportCpu,
                 nativeTotalMilliseconds = nativeTotal,
@@ -421,6 +523,8 @@ namespace HBP.Tests.Serialization
                 retainedWorkingSetBytesDelta = Math.Max(0L, retainedWorkingSet - baselineWorkingSet),
                 managedActivityInputBytes = checked((long)activity.Length * sizeof(float)),
                 estimatedCurrentValueAndWeightBytes = estimatedBytes,
+                cutTexturePixelCount = cutTexturePixelCount,
+                estimatedCutStencilPayloadBytes = estimatedCutStencilPayloadBytes,
                 exportFileBytes = exportFileBytes,
                 cacheFileBytes = 0,
                 checksum = checksum.ToString("X16"),
@@ -475,6 +579,19 @@ namespace HBP.Tests.Serialization
                 }
             }
             return activity;
+        }
+
+        private static Color32[] CreateColorScheme(bool grayscale)
+        {
+            Color32[] colors = new Color32[256];
+            for (int index = 0; index < colors.Length; ++index)
+            {
+                byte value = (byte)index;
+                colors[index] = grayscale
+                    ? new Color32(value, value, value, 255)
+                    : new Color32(value, (byte)(255 - value), (byte)(value / 2), 255);
+            }
+            return colors;
         }
 
         private static float Halton(int index, int radix)
@@ -553,6 +670,21 @@ namespace HBP.Tests.Serialization
             {
                 checksum = Mix(checksum, unchecked((ulong)(uint)Mathf.RoundToInt(values[i].x * 100000.0f)));
                 checksum = Mix(checksum, unchecked((ulong)(uint)Mathf.RoundToInt(values[i].y * 100000.0f)));
+            }
+            return checksum;
+        }
+
+        private static ulong Hash(Color32[] values)
+        {
+            ulong checksum = (ulong)values.Length;
+            int stride = Math.Max(1, values.Length / 64);
+            for (int i = 0; i < values.Length; i += stride)
+            {
+                Color32 value = values[i];
+                checksum = Mix(checksum, value.r);
+                checksum = Mix(checksum, value.g);
+                checksum = Mix(checksum, value.b);
+                checksum = Mix(checksum, value.a);
             }
             return checksum;
         }

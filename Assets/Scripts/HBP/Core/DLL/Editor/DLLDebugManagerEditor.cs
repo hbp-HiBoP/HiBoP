@@ -11,11 +11,20 @@ namespace HBP.Core.DLL
         private DLLDebugManager.DLLObject m_LastClickedObject = null;
         public override void OnInspectorGUI()
         {
+            EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
+            DLLDebugManager manager = (DLLDebugManager)target;
+            if (EditorGUI.EndChangeCheck())
+            {
+                manager.ApplyActivityProjectionSettings();
+            }
+            EditorGUILayout.HelpBox(
+                "Activity projection settings are used the next time a projection is created. " +
+                "Relaunch the projection after changing them; the current projection is not rebuilt automatically.",
+                MessageType.Info);
             m_DLLObjectsPanelOpen = EditorGUILayout.Foldout(m_DLLObjectsPanelOpen, "DLL Objects");
             if (m_DLLObjectsPanelOpen)
             {
-                DLLDebugManager manager = (DLLDebugManager)target;
                 var list = manager.DLLObjects.OrderBy(t => t.Type).ThenBy(t => t.CleanedBy).ToList();
                 GUIStyle normalStyle = new(EditorStyles.textField);
                 GUIStyle cleanedByGCStyle = new(EditorStyles.textField);

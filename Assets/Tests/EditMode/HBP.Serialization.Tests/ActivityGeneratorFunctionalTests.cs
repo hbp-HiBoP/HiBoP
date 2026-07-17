@@ -105,6 +105,85 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        [Category("HbpCoreOnly")]
+        public void VolumeInterpolation_PreservesNearestAndSurfaceValuesWhileChangingCutSampling()
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            (Vector3 first, Vector3 second, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+            using RawSiteList sites = new();
+            sites.AddSite("S1", ToNative(first), 0, 0);
+            sites.AddSite("S2", ToNative(second), 0, 1);
+            sites.UpdateMask(0, false);
+            sites.UpdateMask(1, false);
+            float[] activityValues = { -1.0f, 0.5f, 0.75f, -0.25f };
+
+            (Vector2[] activity, Vector2[] alpha, Color32[] cut) Render(
+                VolumeInterpolation interpolation,
+                bool historicalOverload)
+            {
+                using GeneratorSurface generatorSurface = new();
+                if (historicalOverload)
+                {
+                    generatorSurface.Initialize(surface, volume, 8);
+                }
+                else
+                {
+                    generatorSurface.Initialize(surface, volume, 8, interpolation);
+                }
+                using IEEGGenerator ieeg = new();
+                ieeg.Initialize(generatorSurface);
+                ieeg.ComputeActivity(
+                    sites,
+                    80.0f,
+                    activityValues,
+                    timelineLength: 2,
+                    numberOfSites: 2,
+                    siteInfluenceByDistance: SiteInfluenceByDistanceType.Linear);
+                ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
+
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
+                surfaceGenerator.ComputeActivityUV(timelineIndex: 1, alpha: 0.35f);
+
+                using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward)
+                {
+                    Orientation = CutOrientation.Axial
+                };
+                using CutGeometryGenerator geometry = new();
+                geometry.Initialize(volume, cut, 16);
+                using CutGenerator cutGenerator = new();
+                cutGenerator.Initialize(ieeg, geometry, blurFactor: 0);
+                cutGenerator.FillTextureWithVolume(
+                    HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.Grayscale),
+                    0.0f,
+                    1.0f);
+                cutGenerator.FillTextureWithActivity(
+                    HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.MatLab),
+                    timelineIndex: 1,
+                    alpha: 0.35f);
+                return (
+                    surfaceGenerator.ActivityUV,
+                    surfaceGenerator.AlphaUV,
+                    cutGenerator.CopyOverlayPixels());
+            }
+
+            var historical = Render(VolumeInterpolation.Nearest, historicalOverload: true);
+            var nearest = Render(VolumeInterpolation.Nearest, historicalOverload: false);
+            var trilinear = Render(VolumeInterpolation.Trilinear, historicalOverload: false);
+
+            Assert.That(nearest.activity, Is.EqualTo(historical.activity));
+            Assert.That(nearest.alpha, Is.EqualTo(historical.alpha));
+            Assert.That(nearest.cut, Is.EqualTo(historical.cut));
+            Assert.That(trilinear.activity, Is.EqualTo(nearest.activity),
+                "Surface values must remain independent from volume interpolation.");
+            Assert.That(trilinear.alpha, Is.EqualTo(nearest.alpha),
+                "Surface weights must remain independent from volume interpolation.");
+            Assert.That(trilinear.cut, Is.Not.EqualTo(nearest.cut),
+                "Trilinear interpolation should affect the sampled cut for this non-uniform fixture.");
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         public void IeegGenerator_HandlesEmptyIdenticalExtremeNegativeAndNonFiniteInputs()
         {
             using Surface surface = LoadSurface();

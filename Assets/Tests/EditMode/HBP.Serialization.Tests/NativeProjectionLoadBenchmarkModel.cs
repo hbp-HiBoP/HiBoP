@@ -10,7 +10,7 @@ namespace HBP.Tests.Serialization
     [Serializable]
     internal sealed class NativeProjectionLoadWorkerReport
     {
-        public string schemaVersion = "1.2";
+        public string schemaVersion = "1.3";
         public string backend = "hbp_core";
         public string profile;
         public string startedUtc;
@@ -24,6 +24,7 @@ namespace HBP.Tests.Serialization
         public int repetitions;
         public int requestedParallelWorkerCount;
         public int requestedNeighborBatchSize;
+        public string requestedVolumeInterpolation;
         public string surfacePath;
         public string volumePath;
         public bool includeExport;
@@ -44,6 +45,9 @@ namespace HBP.Tests.Serialization
         public int columnCount;
         public bool exportMeasured;
         public string workload;
+        public string volumeInterpolation;
+        public int cutTexturePixelCount;
+        public long estimatedCutStencilPayloadBytes;
         public int surfaceVertexCount;
         public long generatedPointCount;
         public long activeSiteCount;
@@ -65,6 +69,11 @@ namespace HBP.Tests.Serialization
         public double medianTotalCpuMilliseconds;
         public double medianComputeWallMilliseconds;
         public double medianComputeCpuMilliseconds;
+        public double medianCutPreparationWallMilliseconds;
+        public double medianCutTimelineUpdateWallMilliseconds;
+        public double medianCutTimelineUpdateCpuMilliseconds;
+        public double medianCutTimelineFillWallMilliseconds;
+        public double medianCutTimelineCopyWallMilliseconds;
         public long maxPeakPrivateBytesDelta;
         public long maxPeakWorkingSetBytesDelta;
         public long maxRetainedPrivateBytesDelta;
@@ -84,6 +93,15 @@ namespace HBP.Tests.Serialization
         public double computeCpuMilliseconds;
         public double displayUpdateWallMilliseconds;
         public double displayUpdateCpuMilliseconds;
+        public double cutPreparationWallMilliseconds;
+        public double cutPreparationCpuMilliseconds;
+        public double cutTimelineUpdatesWallMilliseconds;
+        public double cutTimelineUpdatesCpuMilliseconds;
+        public double meanCutTimelineUpdateWallMilliseconds;
+        public double meanCutTimelineUpdateCpuMilliseconds;
+        public double meanCutTimelineFillWallMilliseconds;
+        public double meanCutTimelineCopyWallMilliseconds;
+        public int cutTimelineUpdateCount;
         public double exportWallMilliseconds;
         public double exportCpuMilliseconds;
         public double nativeTotalMilliseconds;
@@ -121,6 +139,8 @@ namespace HBP.Tests.Serialization
         public long retainedWorkingSetBytesDelta;
         public long managedActivityInputBytes;
         public long estimatedCurrentValueAndWeightBytes;
+        public int cutTexturePixelCount;
+        public long estimatedCutStencilPayloadBytes;
         public long exportFileBytes;
         public long cacheFileBytes;
         public string cacheBackend = "none";
@@ -139,6 +159,7 @@ namespace HBP.Tests.Serialization
             float influenceDistance,
             int columnCount,
             bool measureExport,
+            HBP.Core.Enums.VolumeInterpolation volumeInterpolation,
             float[] influenceDistances = null)
         {
             Name = name;
@@ -148,6 +169,7 @@ namespace HBP.Tests.Serialization
             InfluenceDistance = influenceDistance;
             ColumnCount = columnCount;
             MeasureExport = measureExport;
+            VolumeInterpolation = volumeInterpolation;
             InfluenceDistances = influenceDistances ?? Enumerable.Repeat(influenceDistance, columnCount).ToArray();
             if (InfluenceDistances.Length != columnCount)
             {
@@ -163,11 +185,12 @@ namespace HBP.Tests.Serialization
         public float[] InfluenceDistances { get; }
         public int ColumnCount { get; }
         public bool MeasureExport { get; }
+        public HBP.Core.Enums.VolumeInterpolation VolumeInterpolation { get; }
 
         public string Workload =>
             $"MNI; dimension {Dimension}; {SiteCount:N0} sites; {TimelineLength} instants; " +
             $"linear radius/radii {string.Join(",", InfluenceDistances.Select(value => value.ToString("R")))}; " +
-            $"{ColumnCount} sequential column(s)";
+            $"{ColumnCount} sequential column(s); {VolumeInterpolation}";
     }
 
     internal sealed class NativeProjectionProcessMemorySampler : IDisposable

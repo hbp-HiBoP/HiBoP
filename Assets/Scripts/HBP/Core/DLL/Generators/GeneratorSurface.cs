@@ -1,4 +1,5 @@
 using HBP.Core.DLL.HbpCore;
+using HBP.Core.Enums;
 using System;
 using System.Runtime.InteropServices;
 
@@ -18,6 +19,15 @@ namespace HBP.Core.DLL
         #region Public Methods
         public void Initialize(Surface surface, Volume volume, int dimension)
         {
+            Initialize(surface, volume, dimension, VolumeInterpolation.Nearest);
+        }
+
+        public void Initialize(Surface surface, Volume volume, int dimension, VolumeInterpolation interpolation)
+        {
+            if (!Enum.IsDefined(typeof(VolumeInterpolation), interpolation))
+            {
+                throw new ArgumentOutOfRangeException(nameof(interpolation));
+            }
             Surface = surface;
             Volume = volume;
             if (m_Backend == NativeBackend.HbpCore)
@@ -27,7 +37,12 @@ namespace HBP.Core.DLL
                     throw new InvalidOperationException($"GeneratorSurface.Initialize cannot mix {surface.Backend} surface and {volume.Backend} volume with hbp_core.");
                 }
                 ThrowIfFailed(hbp_generator_surface_initialize(_handle.Handle, surface.getHandle().Handle, volume.getHandle().Handle, dimension));
+                ThrowIfFailed(hbp_generator_surface_set_volume_interpolation(_handle.Handle, interpolation));
                 return;
+            }
+            if (interpolation != VolumeInterpolation.Nearest)
+            {
+                throw new NotSupportedException("Trilinear volume interpolation is only available with hbp_core.");
             }
             initialize_GeneratorSurface(_handle, surface.getHandle(), volume.getHandle(), dimension);
         }
@@ -78,6 +93,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_generator_surface_destroy(IntPtr generatorSurface);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_generator_surface_initialize", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_generator_surface_initialize(IntPtr generatorSurface, IntPtr surface, IntPtr volume, int dimension);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_generator_surface_set_volume_interpolation", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_generator_surface_set_volume_interpolation(IntPtr generatorSurface, VolumeInterpolation interpolation);
         #endregion
     }
 }

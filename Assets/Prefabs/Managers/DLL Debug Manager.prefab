@@ -47,3 +47,5 @@ MonoBehaviour:
   m_LogDLLToUnity: 1
   m_LogDLLToFile: 0
   m_GetInformationAboutDLLObjects: 0
+  m_VolumeGridDimension: 80
+  m_VolumeInterpolation: 1

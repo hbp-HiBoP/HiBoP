@@ -218,7 +218,11 @@ namespace HBP.UI.Main
 
             // Initialize generator
             GeneratorSurface generatorSurface = new();
-            generatorSurface.Initialize(Object3DManager.MNI.GreyMatter.Both, Object3DManager.MNI.MRI.Volume, 120);
+            generatorSurface.Initialize(
+                Object3DManager.MNI.GreyMatter.Both,
+                Object3DManager.MNI.MRI.Volume,
+                Core.DLL.ActivityProjectionSettings.VolumeGridDimension,
+                Core.DLL.ActivityProjectionSettings.VolumeInterpolation);
             IEEGGenerator generator = new();
             generator.Initialize(generatorSurface);
 

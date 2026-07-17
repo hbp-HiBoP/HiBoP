@@ -5,6 +5,7 @@ namespace HBP.Core.Enums
     public enum AveragingType { Mean, Median }
     public enum NormalizationType { None, SubTrial, Trial, SubBloc, Bloc, Protocol, Auto }
     public enum SiteInfluenceByDistanceType { Constant, Linear, Quadratic }
+    public enum VolumeInterpolation { Nearest = 0, Trilinear = 1 }
     public enum BlocFormatType {[Description("Trial height")] TrialHeight, [Description("Trial ratio")] TrialRatio, [Description("Bloc ratio")] BlocRatio, [Description("Protocol ratio")] ProtocolRatio }
     public enum SceneType { SinglePatient, MultiPatients }
     public enum CameraControl { Trackball, Orbital }
