@@ -102,7 +102,9 @@ namespace HBP.Tests.Serialization
             string surfacePath,
             string volumePath,
             string exportRoot,
-            int repetitions)
+            int repetitions,
+            int workerCount,
+            int neighborBatchSize)
         {
             NativeProjectionLoadScenarioResult result = new()
             {
@@ -119,7 +121,14 @@ namespace HBP.Tests.Serialization
 
             for (int repetition = 0; repetition < repetitions; ++repetition)
             {
-                result.samples.Add(RunSample(definition, surfacePath, volumePath, exportRoot, repetition));
+                result.samples.Add(RunSample(
+                    definition,
+                    surfacePath,
+                    volumePath,
+                    exportRoot,
+                    repetition,
+                    workerCount,
+                    neighborBatchSize));
             }
 
             NativeProjectionLoadSampleResult first = result.samples[0];
@@ -136,6 +145,11 @@ namespace HBP.Tests.Serialization
             result.maxSpatialIndexCacheEntryCount = first.maxSpatialIndexCacheEntryCount;
             result.maxSpatialIndexCacheBytes = first.maxSpatialIndexCacheBytes;
             result.spatialIndexGeometryVersion = first.spatialIndexGeometryVersion;
+            result.parallelWorkerCount = first.parallelWorkerCount;
+            result.neighborBatchSize = first.neighborBatchSize;
+            result.neighborBatchCount = first.neighborBatchCount;
+            result.maxTemporaryNeighborPeakBytes = result.samples.Max(sample => sample.temporaryNeighborPeakBytes);
+            result.temporaryNeighborBudgetBytes = first.temporaryNeighborBudgetBytes;
             result.estimatedCurrentValueAndWeightBytes = first.estimatedCurrentValueAndWeightBytes;
             result.medianTotalWallMilliseconds = Median(result.samples.Select(sample => sample.totalWallMilliseconds));
             result.medianTotalCpuMilliseconds = Median(result.samples.Select(sample => sample.totalCpuMilliseconds));
@@ -153,7 +167,9 @@ namespace HBP.Tests.Serialization
             string surfacePath,
             string volumePath,
             string exportRoot,
-            int repetition)
+            int repetition,
+            int workerCount,
+            int neighborBatchSize)
         {
             using Surface surface = LoadSurface(surfacePath);
             using Volume volume = LoadVolume(volumePath);
@@ -203,6 +219,11 @@ namespace HBP.Tests.Serialization
             long maxSpatialIndexCacheEntries = 0;
             long maxSpatialIndexCacheBytes = 0;
             long spatialIndexGeometryVersion = 0;
+            long parallelWorkerCount = 0;
+            long actualNeighborBatchSize = 0;
+            long neighborBatchCount = 0;
+            long temporaryNeighborPeakBytes = 0;
+            long temporaryNeighborBudgetBytes = 0;
             ulong checksum = 1469598103934665603UL;
             long steadyPrivate = baselinePrivate;
             long steadyWorkingSet = baselineWorkingSet;
@@ -225,6 +246,7 @@ namespace HBP.Tests.Serialization
                         IEEGGenerator generator = new();
                         generators.Add(generator);
                         generator.Initialize(generatorSurface);
+                        generator.SetParallelOptions(workerCount, neighborBatchSize);
                         generator.EnablePerformanceMetrics(true);
 
                         Measure(process, () => generator.ComputeActivity(
@@ -260,6 +282,24 @@ namespace HBP.Tests.Serialization
                         if (spatialIndexGeometryVersion == 0) spatialIndexGeometryVersion = metrics.spatialIndexGeometryVersion;
                         Require(metrics.spatialIndexGeometryVersion == spatialIndexGeometryVersion,
                             "The geometry version changed during a scenario.");
+                        if (parallelWorkerCount == 0) parallelWorkerCount = metrics.parallelWorkerCount;
+                        Require(metrics.parallelWorkerCount == parallelWorkerCount,
+                            "The effective parallel worker count changed during a scenario.");
+                        if (actualNeighborBatchSize == 0) actualNeighborBatchSize = metrics.neighborBatchSize;
+                        Require(metrics.neighborBatchSize == actualNeighborBatchSize,
+                            "The effective neighbor batch size changed during a scenario.");
+                        neighborBatchCount += metrics.neighborBatchCount;
+                        temporaryNeighborPeakBytes = Math.Max(
+                            temporaryNeighborPeakBytes,
+                            metrics.temporaryNeighborPeakBytes);
+                        if (temporaryNeighborBudgetBytes == 0)
+                        {
+                            temporaryNeighborBudgetBytes = metrics.temporaryNeighborBudgetBytes;
+                        }
+                        Require(metrics.temporaryNeighborBudgetBytes == temporaryNeighborBudgetBytes,
+                            "The temporary-neighbor budget changed during a scenario.");
+                        Require(metrics.temporaryNeighborPeakBytes <= metrics.temporaryNeighborBudgetBytes * 2,
+                            "The temporary-neighbor allocation exceeded the bounded-capacity guard.");
                         Require(metrics.spatialIndexCacheEntryCount >= 1 && metrics.spatialIndexCacheEntryCount <= 2,
                             "The spatial-index cache must contain one or two entries.");
                         Require(metrics.storedValueCount == metrics.generatedPointCount * definition.TimelineLength,
@@ -366,6 +406,11 @@ namespace HBP.Tests.Serialization
                 maxSpatialIndexCacheEntryCount = maxSpatialIndexCacheEntries,
                 maxSpatialIndexCacheBytes = maxSpatialIndexCacheBytes,
                 spatialIndexGeometryVersion = spatialIndexGeometryVersion,
+                parallelWorkerCount = parallelWorkerCount,
+                neighborBatchSize = actualNeighborBatchSize,
+                neighborBatchCount = neighborBatchCount,
+                temporaryNeighborPeakBytes = temporaryNeighborPeakBytes,
+                temporaryNeighborBudgetBytes = temporaryNeighborBudgetBytes,
                 baselinePrivateBytes = baselinePrivate,
                 baselineWorkingSetBytes = baselineWorkingSet,
                 peakPrivateBytesDelta = Math.Max(0L, peakPrivate - baselinePrivate),

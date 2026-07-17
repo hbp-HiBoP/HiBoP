@@ -152,6 +152,11 @@ namespace HBP.Core.DLL
         public long spatialIndexCacheEntryCount;
         public long spatialIndexCacheBytes;
         public long spatialIndexGeometryVersion;
+        public long parallelWorkerCount;
+        public long neighborBatchSize;
+        public long neighborBatchCount;
+        public long temporaryNeighborPeakBytes;
+        public long temporaryNeighborBudgetBytes;
         public int timelineLength;
     }
 }

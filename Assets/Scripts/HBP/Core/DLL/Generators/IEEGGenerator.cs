@@ -7,6 +7,8 @@ namespace HBP.Core.DLL
 {
     public class IEEGGenerator : ActivityGenerator
     {
+        private const int MaximumParallelWorkerCount = 16;
+
         #region Public Methods
         public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, float[] activityValues, int timelineLength, int numberOfSites, SiteInfluenceByDistanceType siteInfluenceByDistance)
         {
@@ -80,6 +82,17 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_ieeg_generator_enable_performance_metrics(_handle.Handle, enabled ? 1 : 0));
         }
 
+        internal void SetParallelOptions(int workerCount, int neighborBatchSize)
+        {
+            if (m_Backend != NativeBackend.HbpCore)
+            {
+                throw new NotSupportedException("Parallel iEEG options are only available with hbp_core.");
+            }
+            if (workerCount < 0 || workerCount > MaximumParallelWorkerCount) throw new ArgumentOutOfRangeException(nameof(workerCount));
+            if (neighborBatchSize < 0) throw new ArgumentOutOfRangeException(nameof(neighborBatchSize));
+            ThrowIfFailed(hbp_ieeg_generator_set_parallel_options(_handle.Handle, workerCount, neighborBatchSize));
+        }
+
         internal IEEGComputeMetrics GetLastComputeMetrics()
         {
             if (m_Backend != NativeBackend.HbpCore)
@@ -130,6 +143,8 @@ namespace HBP.Core.DLL
         static private extern HbpCoreStatus hbp_ieeg_generator_create(out IntPtr generator);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_destroy(IntPtr generator);
+        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_set_parallel_options", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_ieeg_generator_set_parallel_options(IntPtr generator, int workerCount, int neighborBatchSize);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_enable_performance_metrics", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_enable_performance_metrics(IntPtr generator, int enabled);
         [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_ieeg_generator_get_last_compute_metrics", CallingConvention = CallingConvention.Cdecl)]

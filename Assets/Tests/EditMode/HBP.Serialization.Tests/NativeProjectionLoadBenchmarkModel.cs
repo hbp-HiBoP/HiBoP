@@ -10,7 +10,7 @@ namespace HBP.Tests.Serialization
     [Serializable]
     internal sealed class NativeProjectionLoadWorkerReport
     {
-        public string schemaVersion = "1.1";
+        public string schemaVersion = "1.2";
         public string backend = "hbp_core";
         public string profile;
         public string startedUtc;
@@ -22,6 +22,8 @@ namespace HBP.Tests.Serialization
         public int memorySamplingIntervalMilliseconds;
         public int timelineLength;
         public int repetitions;
+        public int requestedParallelWorkerCount;
+        public int requestedNeighborBatchSize;
         public string surfacePath;
         public string volumePath;
         public bool includeExport;
@@ -53,6 +55,11 @@ namespace HBP.Tests.Serialization
         public long maxSpatialIndexCacheEntryCount;
         public long maxSpatialIndexCacheBytes;
         public long spatialIndexGeometryVersion;
+        public long parallelWorkerCount;
+        public long neighborBatchSize;
+        public long neighborBatchCount;
+        public long maxTemporaryNeighborPeakBytes;
+        public long temporaryNeighborBudgetBytes;
         public long estimatedCurrentValueAndWeightBytes;
         public double medianTotalWallMilliseconds;
         public double medianTotalCpuMilliseconds;
@@ -99,6 +106,11 @@ namespace HBP.Tests.Serialization
         public long maxSpatialIndexCacheEntryCount;
         public long maxSpatialIndexCacheBytes;
         public long spatialIndexGeometryVersion;
+        public long parallelWorkerCount;
+        public long neighborBatchSize;
+        public long neighborBatchCount;
+        public long temporaryNeighborPeakBytes;
+        public long temporaryNeighborBudgetBytes;
         public long baselinePrivateBytes;
         public long baselineWorkingSetBytes;
         public long peakPrivateBytesDelta;

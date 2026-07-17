@@ -12,6 +12,8 @@ namespace HBP.Tests.Serialization
         private const string ProfileArgument = "-hbpProjectionProfile";
         private const string TimelineArgument = "-hbpProjectionTimeline";
         private const string RepetitionsArgument = "-hbpProjectionRepetitions";
+        private const string WorkerCountArgument = "-hbpProjectionWorkers";
+        private const string BatchSizeArgument = "-hbpProjectionBatchSites";
         private const string FilterArgument = "-hbpProjectionFilter";
         private const string SurfaceArgument = "-hbpProjectionSurface";
         private const string VolumeArgument = "-hbpProjectionVolume";
@@ -35,6 +37,8 @@ namespace HBP.Tests.Serialization
 
                 int timelineLength = ParsePositive(arguments, TimelineArgument);
                 int repetitions = ParsePositive(arguments, RepetitionsArgument);
+                int workerCount = ParseNonNegative(arguments, WorkerCountArgument);
+                int batchSize = ParseNonNegative(arguments, BatchSizeArgument);
                 string filter = OptionalArgument(arguments, FilterArgument);
                 string surfacePath = OptionalArgument(arguments, SurfaceArgument)
                     ?? Path.Combine(Application.dataPath, "Data", "Meshes", "MNI_single_hight_Bhemi.obj");
@@ -56,6 +60,8 @@ namespace HBP.Tests.Serialization
                 report.memorySamplingIntervalMilliseconds = NativeProjectionProcessMemorySampler.SampleIntervalMilliseconds;
                 report.timelineLength = timelineLength;
                 report.repetitions = repetitions;
+                report.requestedParallelWorkerCount = workerCount;
+                report.requestedNeighborBatchSize = batchSize;
                 report.surfacePath = surfacePath;
                 report.volumePath = volumePath;
                 report.includeExport = includeExport;
@@ -80,7 +86,9 @@ namespace HBP.Tests.Serialization
                         surfacePath,
                         volumePath,
                         exportRoot,
-                        repetitions);
+                        repetitions,
+                        workerCount,
+                        batchSize);
                     report.scenarios.Add(result);
                     WriteReport(outputPath, report);
                 }
@@ -110,6 +118,16 @@ namespace HBP.Tests.Serialization
             if (!int.TryParse(value, out int parsed) || parsed <= 0)
             {
                 throw new ArgumentException($"{name} must be a positive integer.");
+            }
+            return parsed;
+        }
+
+        private static int ParseNonNegative(string[] arguments, string name)
+        {
+            string value = RequireArgument(arguments, name);
+            if (!int.TryParse(value, out int parsed) || parsed < 0)
+            {
+                throw new ArgumentException($"{name} must be a non-negative integer.");
             }
             return parsed;
         }
