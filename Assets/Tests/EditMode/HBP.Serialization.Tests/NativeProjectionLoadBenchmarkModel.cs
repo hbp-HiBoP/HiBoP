@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -9,7 +10,7 @@ namespace HBP.Tests.Serialization
     [Serializable]
     internal sealed class NativeProjectionLoadWorkerReport
     {
-        public string schemaVersion = "1.0";
+        public string schemaVersion = "1.1";
         public string backend = "hbp_core";
         public string profile;
         public string startedUtc;
@@ -37,6 +38,7 @@ namespace HBP.Tests.Serialization
         public int siteCount;
         public int timelineLength;
         public float influenceDistance;
+        public float[] influenceDistances;
         public int columnCount;
         public bool exportMeasured;
         public string workload;
@@ -46,6 +48,11 @@ namespace HBP.Tests.Serialization
         public long neighborLinkCount;
         public long storedValueCount;
         public long storedWeightCount;
+        public long spatialIndexCacheHitCount;
+        public long spatialIndexCacheMissCount;
+        public long maxSpatialIndexCacheEntryCount;
+        public long maxSpatialIndexCacheBytes;
+        public long spatialIndexGeometryVersion;
         public long estimatedCurrentValueAndWeightBytes;
         public double medianTotalWallMilliseconds;
         public double medianTotalCpuMilliseconds;
@@ -75,6 +82,8 @@ namespace HBP.Tests.Serialization
         public double nativeTotalMilliseconds;
         public double allocationMilliseconds;
         public double spatialIndexMilliseconds;
+        public double spatialIndexBuildMilliseconds;
+        public double spatialIndexLookupMilliseconds;
         public double neighborQueryMilliseconds;
         public double accumulationMilliseconds;
         public double normalizationMilliseconds;
@@ -85,6 +94,11 @@ namespace HBP.Tests.Serialization
         public long neighborLinkCount;
         public long storedValueCount;
         public long storedWeightCount;
+        public long spatialIndexCacheHitCount;
+        public long spatialIndexCacheMissCount;
+        public long maxSpatialIndexCacheEntryCount;
+        public long maxSpatialIndexCacheBytes;
+        public long spatialIndexGeometryVersion;
         public long baselinePrivateBytes;
         public long baselineWorkingSetBytes;
         public long peakPrivateBytesDelta;
@@ -112,7 +126,8 @@ namespace HBP.Tests.Serialization
             int timelineLength,
             float influenceDistance,
             int columnCount,
-            bool measureExport)
+            bool measureExport,
+            float[] influenceDistances = null)
         {
             Name = name;
             Dimension = dimension;
@@ -121,6 +136,11 @@ namespace HBP.Tests.Serialization
             InfluenceDistance = influenceDistance;
             ColumnCount = columnCount;
             MeasureExport = measureExport;
+            InfluenceDistances = influenceDistances ?? Enumerable.Repeat(influenceDistance, columnCount).ToArray();
+            if (InfluenceDistances.Length != columnCount)
+            {
+                throw new ArgumentException("One influence distance is required per sequential column.");
+            }
         }
 
         public string Name { get; }
@@ -128,12 +148,14 @@ namespace HBP.Tests.Serialization
         public int SiteCount { get; }
         public int TimelineLength { get; }
         public float InfluenceDistance { get; }
+        public float[] InfluenceDistances { get; }
         public int ColumnCount { get; }
         public bool MeasureExport { get; }
 
         public string Workload =>
             $"MNI; dimension {Dimension}; {SiteCount:N0} sites; {TimelineLength} instants; " +
-            $"linear radius {InfluenceDistance:R}; {ColumnCount} sequential column(s)";
+            $"linear radius/radii {string.Join(",", InfluenceDistances.Select(value => value.ToString("R")))}; " +
+            $"{ColumnCount} sequential column(s)";
     }
 
     internal sealed class NativeProjectionProcessMemorySampler : IDisposable

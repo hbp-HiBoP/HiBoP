@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using HBP.Core.DLL;
-using UnityEditor;
 using UnityEngine;
 
 namespace HBP.Tests.Serialization
@@ -22,7 +21,6 @@ namespace HBP.Tests.Serialization
         {
             string outputPath = null;
             NativeProjectionLoadWorkerReport report = new();
-            int exitCode = 0;
             try
             {
                 string[] arguments = Environment.GetCommandLineArgs();
@@ -94,7 +92,6 @@ namespace HBP.Tests.Serialization
             }
             catch (Exception exception)
             {
-                exitCode = 1;
                 report.succeeded = false;
                 report.error = exception.ToString();
                 Debug.LogException(exception);
@@ -104,7 +101,6 @@ namespace HBP.Tests.Serialization
                 report.finishedUtc = DateTime.UtcNow.ToString("O");
                 NativeBackendOptions.Reset();
                 if (!string.IsNullOrWhiteSpace(outputPath)) WriteReport(outputPath, report);
-                EditorApplication.Exit(exitCode);
             }
         }
 

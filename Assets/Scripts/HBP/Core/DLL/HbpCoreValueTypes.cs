@@ -137,6 +137,8 @@ namespace HBP.Core.DLL
         public double totalMilliseconds;
         public double allocationMilliseconds;
         public double spatialIndexMilliseconds;
+        public double spatialIndexBuildMilliseconds;
+        public double spatialIndexLookupMilliseconds;
         public double neighborQueryMilliseconds;
         public double accumulationMilliseconds;
         public double normalizationMilliseconds;
@@ -145,6 +147,11 @@ namespace HBP.Core.DLL
         public long neighborLinkCount;
         public long storedValueCount;
         public long storedWeightCount;
+        public long spatialIndexCacheHitCount;
+        public long spatialIndexCacheMissCount;
+        public long spatialIndexCacheEntryCount;
+        public long spatialIndexCacheBytes;
+        public long spatialIndexGeometryVersion;
         public int timelineLength;
     }
 }

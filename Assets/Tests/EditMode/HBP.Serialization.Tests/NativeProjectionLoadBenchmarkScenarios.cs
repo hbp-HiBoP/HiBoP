@@ -40,6 +40,28 @@ namespace HBP.Tests.Serialization
                     export));
             }
 
+            void AddRadii(string prefix, int dimension, int sites, params float[] radii)
+            {
+                string radiusSlug = string.Join("-", radii.Select(value => value.ToString("R")));
+                string name = $"{prefix}.d{dimension}.s{sites}.t{timelineLength}.r{radiusSlug}.c{radii.Length}";
+                if (!string.IsNullOrWhiteSpace(filter)
+                    && name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    return;
+                }
+                string key = $"{dimension}:{sites}:{timelineLength}:{radiusSlug}:{radii.Length}:false";
+                if (!keys.Add(key)) return;
+                scenarios.Add(new NativeProjectionLoadScenarioDefinition(
+                    name,
+                    dimension,
+                    sites,
+                    timelineLength,
+                    radii[0],
+                    radii.Length,
+                    false,
+                    radii));
+            }
+
             if (profile.Equals("Smoke", StringComparison.OrdinalIgnoreCase))
             {
                 Add("projection.smoke", 24, 1000, 15.0f);
@@ -66,6 +88,8 @@ namespace HBP.Tests.Serialization
             if (profile.Equals("Extreme", StringComparison.OrdinalIgnoreCase))
             {
                 Add("projection.memory-reference", 120, 1000, 15.0f);
+                Add("projection.cache-reference", 120, 1000, 15.0f, columns: 3);
+                AddRadii("projection.cache-churn", 120, 1000, 5.0f, 15.0f, 30.0f, 15.0f, 5.0f);
                 Add("projection.extreme-radius", 120, 25000, 30.0f);
                 Add("projection.extreme-radius", 120, 25000, 50.0f);
                 Add("projection.extreme-multicolumn", 120, 25000, 15.0f, columns: 3);
@@ -87,6 +111,7 @@ namespace HBP.Tests.Serialization
                 siteCount = definition.SiteCount,
                 timelineLength = definition.TimelineLength,
                 influenceDistance = definition.InfluenceDistance,
+                influenceDistances = definition.InfluenceDistances,
                 columnCount = definition.ColumnCount,
                 exportMeasured = definition.MeasureExport,
                 workload = definition.Workload
@@ -106,6 +131,11 @@ namespace HBP.Tests.Serialization
             result.neighborLinkCount = first.neighborLinkCount;
             result.storedValueCount = first.storedValueCount;
             result.storedWeightCount = first.storedWeightCount;
+            result.spatialIndexCacheHitCount = first.spatialIndexCacheHitCount;
+            result.spatialIndexCacheMissCount = first.spatialIndexCacheMissCount;
+            result.maxSpatialIndexCacheEntryCount = first.maxSpatialIndexCacheEntryCount;
+            result.maxSpatialIndexCacheBytes = first.maxSpatialIndexCacheBytes;
+            result.spatialIndexGeometryVersion = first.spatialIndexGeometryVersion;
             result.estimatedCurrentValueAndWeightBytes = first.estimatedCurrentValueAndWeightBytes;
             result.medianTotalWallMilliseconds = Median(result.samples.Select(sample => sample.totalWallMilliseconds));
             result.medianTotalCpuMilliseconds = Median(result.samples.Select(sample => sample.totalCpuMilliseconds));
@@ -158,6 +188,8 @@ namespace HBP.Tests.Serialization
             double nativeTotal = 0.0;
             double allocation = 0.0;
             double spatialIndex = 0.0;
+            double spatialIndexBuild = 0.0;
+            double spatialIndexLookup = 0.0;
             double neighborQuery = 0.0;
             double accumulation = 0.0;
             double normalization = 0.0;
@@ -166,6 +198,11 @@ namespace HBP.Tests.Serialization
             long neighborLinks = 0;
             long storedValues = 0;
             long storedWeights = 0;
+            long spatialIndexCacheHits = 0;
+            long spatialIndexCacheMisses = 0;
+            long maxSpatialIndexCacheEntries = 0;
+            long maxSpatialIndexCacheBytes = 0;
+            long spatialIndexGeometryVersion = 0;
             ulong checksum = 1469598103934665603UL;
             long steadyPrivate = baselinePrivate;
             long steadyWorkingSet = baselineWorkingSet;
@@ -192,7 +229,7 @@ namespace HBP.Tests.Serialization
 
                         Measure(process, () => generator.ComputeActivity(
                                 sites,
-                                definition.InfluenceDistance,
+                                definition.InfluenceDistances[column],
                                 activity,
                                 definition.TimelineLength,
                                 definition.SiteCount,
@@ -206,6 +243,8 @@ namespace HBP.Tests.Serialization
                         nativeTotal += metrics.totalMilliseconds;
                         allocation += metrics.allocationMilliseconds;
                         spatialIndex += metrics.spatialIndexMilliseconds;
+                        spatialIndexBuild += metrics.spatialIndexBuildMilliseconds;
+                        spatialIndexLookup += metrics.spatialIndexLookupMilliseconds;
                         neighborQuery += metrics.neighborQueryMilliseconds;
                         accumulation += metrics.accumulationMilliseconds;
                         normalization += metrics.normalizationMilliseconds;
@@ -214,6 +253,15 @@ namespace HBP.Tests.Serialization
                         neighborLinks += metrics.neighborLinkCount;
                         storedValues += metrics.storedValueCount;
                         storedWeights += metrics.storedWeightCount;
+                        spatialIndexCacheHits += metrics.spatialIndexCacheHitCount;
+                        spatialIndexCacheMisses += metrics.spatialIndexCacheMissCount;
+                        maxSpatialIndexCacheEntries = Math.Max(maxSpatialIndexCacheEntries, metrics.spatialIndexCacheEntryCount);
+                        maxSpatialIndexCacheBytes = Math.Max(maxSpatialIndexCacheBytes, metrics.spatialIndexCacheBytes);
+                        if (spatialIndexGeometryVersion == 0) spatialIndexGeometryVersion = metrics.spatialIndexGeometryVersion;
+                        Require(metrics.spatialIndexGeometryVersion == spatialIndexGeometryVersion,
+                            "The geometry version changed during a scenario.");
+                        Require(metrics.spatialIndexCacheEntryCount >= 1 && metrics.spatialIndexCacheEntryCount <= 2,
+                            "The spatial-index cache must contain one or two entries.");
                         Require(metrics.storedValueCount == metrics.generatedPointCount * definition.TimelineLength,
                             "The contiguous value buffer has an unexpected size.");
                         Require(metrics.storedWeightCount == metrics.generatedPointCount,
@@ -283,6 +331,8 @@ namespace HBP.Tests.Serialization
             double phaseSum = allocation + spatialIndex + neighborQuery + accumulation + normalization;
             double unattributed = Math.Max(0.0, nativeTotal - phaseSum);
             long estimatedBytes = checked((storedValues + storedWeights) * sizeof(float));
+            Require(spatialIndexCacheHits + spatialIndexCacheMisses == definition.ColumnCount,
+                "Every spatial-index lookup must be reported as a hit or miss.");
             return new NativeProjectionLoadSampleResult
             {
                 repetition = repetition,
@@ -299,6 +349,8 @@ namespace HBP.Tests.Serialization
                 nativeTotalMilliseconds = nativeTotal,
                 allocationMilliseconds = allocation,
                 spatialIndexMilliseconds = spatialIndex,
+                spatialIndexBuildMilliseconds = spatialIndexBuild,
+                spatialIndexLookupMilliseconds = spatialIndexLookup,
                 neighborQueryMilliseconds = neighborQuery,
                 accumulationMilliseconds = accumulation,
                 normalizationMilliseconds = normalization,
@@ -309,6 +361,11 @@ namespace HBP.Tests.Serialization
                 neighborLinkCount = neighborLinks,
                 storedValueCount = storedValues,
                 storedWeightCount = storedWeights,
+                spatialIndexCacheHitCount = spatialIndexCacheHits,
+                spatialIndexCacheMissCount = spatialIndexCacheMisses,
+                maxSpatialIndexCacheEntryCount = maxSpatialIndexCacheEntries,
+                maxSpatialIndexCacheBytes = maxSpatialIndexCacheBytes,
+                spatialIndexGeometryVersion = spatialIndexGeometryVersion,
                 baselinePrivateBytes = baselinePrivate,
                 baselineWorkingSetBytes = baselineWorkingSet,
                 peakPrivateBytesDelta = Math.Max(0L, peakPrivate - baselinePrivate),
