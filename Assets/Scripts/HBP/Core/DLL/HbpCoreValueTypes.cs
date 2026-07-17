@@ -143,6 +143,8 @@ namespace HBP.Core.DLL
         public long generatedPointCount;
         public long activeSiteCount;
         public long neighborLinkCount;
+        public long storedValueCount;
+        public long storedWeightCount;
         public int timelineLength;
     }
 }

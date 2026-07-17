@@ -65,6 +65,7 @@ namespace HBP.Tests.Serialization
 
             if (profile.Equals("Extreme", StringComparison.OrdinalIgnoreCase))
             {
+                Add("projection.memory-reference", 120, 1000, 15.0f);
                 Add("projection.extreme-radius", 120, 25000, 30.0f);
                 Add("projection.extreme-radius", 120, 25000, 50.0f);
                 Add("projection.extreme-multicolumn", 120, 25000, 15.0f, columns: 3);
@@ -103,6 +104,8 @@ namespace HBP.Tests.Serialization
             result.generatedPointCount = first.generatedPointCount;
             result.activeSiteCount = first.activeSiteCount;
             result.neighborLinkCount = first.neighborLinkCount;
+            result.storedValueCount = first.storedValueCount;
+            result.storedWeightCount = first.storedWeightCount;
             result.estimatedCurrentValueAndWeightBytes = first.estimatedCurrentValueAndWeightBytes;
             result.medianTotalWallMilliseconds = Median(result.samples.Select(sample => sample.totalWallMilliseconds));
             result.medianTotalCpuMilliseconds = Median(result.samples.Select(sample => sample.totalCpuMilliseconds));
@@ -161,6 +164,8 @@ namespace HBP.Tests.Serialization
             long generatedPoints = 0;
             long activeSites = 0;
             long neighborLinks = 0;
+            long storedValues = 0;
+            long storedWeights = 0;
             ulong checksum = 1469598103934665603UL;
             long steadyPrivate = baselinePrivate;
             long steadyWorkingSet = baselineWorkingSet;
@@ -207,6 +212,12 @@ namespace HBP.Tests.Serialization
                         generatedPoints = metrics.generatedPointCount;
                         activeSites += metrics.activeSiteCount;
                         neighborLinks += metrics.neighborLinkCount;
+                        storedValues += metrics.storedValueCount;
+                        storedWeights += metrics.storedWeightCount;
+                        Require(metrics.storedValueCount == metrics.generatedPointCount * definition.TimelineLength,
+                            "The contiguous value buffer has an unexpected size.");
+                        Require(metrics.storedWeightCount == metrics.generatedPointCount,
+                            "Weights must be stored once per generated point.");
 
                         SurfaceGenerator output = new();
                         outputs.Add(output);
@@ -271,7 +282,7 @@ namespace HBP.Tests.Serialization
 
             double phaseSum = allocation + spatialIndex + neighborQuery + accumulation + normalization;
             double unattributed = Math.Max(0.0, nativeTotal - phaseSum);
-            long estimatedBytes = checked(2L * generatedPoints * definition.TimelineLength * sizeof(float) * definition.ColumnCount);
+            long estimatedBytes = checked((storedValues + storedWeights) * sizeof(float));
             return new NativeProjectionLoadSampleResult
             {
                 repetition = repetition,
@@ -296,6 +307,8 @@ namespace HBP.Tests.Serialization
                 generatedPointCount = generatedPoints,
                 activeSiteCount = activeSites,
                 neighborLinkCount = neighborLinks,
+                storedValueCount = storedValues,
+                storedWeightCount = storedWeights,
                 baselinePrivateBytes = baselinePrivate,
                 baselineWorkingSetBytes = baselineWorkingSet,
                 peakPrivateBytesDelta = Math.Max(0L, peakPrivate - baselinePrivate),

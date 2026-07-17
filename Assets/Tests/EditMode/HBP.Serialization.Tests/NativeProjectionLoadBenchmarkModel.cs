@@ -44,6 +44,8 @@ namespace HBP.Tests.Serialization
         public long generatedPointCount;
         public long activeSiteCount;
         public long neighborLinkCount;
+        public long storedValueCount;
+        public long storedWeightCount;
         public long estimatedCurrentValueAndWeightBytes;
         public double medianTotalWallMilliseconds;
         public double medianTotalCpuMilliseconds;
@@ -81,6 +83,8 @@ namespace HBP.Tests.Serialization
         public long generatedPointCount;
         public long activeSiteCount;
         public long neighborLinkCount;
+        public long storedValueCount;
+        public long storedWeightCount;
         public long baselinePrivateBytes;
         public long baselineWorkingSetBytes;
         public long peakPrivateBytesDelta;
