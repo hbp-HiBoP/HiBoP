@@ -56,17 +56,6 @@ namespace HBP.Core.DLL
         #endregion
 
         #region Public Methods
-        /// <summary>
-        /// Convert the Unity-space plane to the native/right-handed float layout used by hbp_export.
-        /// </summary>
-        /// <returns>Array of values [PointX, PointY, PointZ, NormalX, NormalY, NormalZ]</returns>
-        public float[] ConvertToArray()
-        {
-            Vec3 nativePoint = Vec3.FromVector3(Point);
-            Vec3 nativeNormal = Vec3.FromVector3(Normal);
-            return new[] { nativePoint.x, nativePoint.y, nativePoint.z, nativeNormal.x, nativeNormal.y, nativeNormal.z };
-        }
-
         public void Normalize()
         {
             ThrowIfFailed(hbp_plane_normalize(_handle.Handle));
@@ -137,25 +126,25 @@ namespace HBP.Core.DLL
             }
         }
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_plane_create", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_plane_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_plane_create(ref Vec3 point, ref Vec3 normal, out IntPtr plane);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_plane_destroy", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_plane_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_plane_destroy(IntPtr plane);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_plane_set", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_plane_set", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_plane_set(IntPtr plane, ref Vec3 point, ref Vec3 normal);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_plane_normalize", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_plane_normalize", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_plane_normalize(IntPtr plane);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_plane_point_side", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_plane_point_side", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_plane_point_side(IntPtr plane, ref Vec3 point, out int side);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_plane_project_point", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_plane_project_point", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_plane_project_point(IntPtr plane, ref Vec3 point, out Vec3 outPoint);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_plane_intersect_segment", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_plane_intersect_segment", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_plane_intersect_segment(IntPtr plane, ref Vec3 start, ref Vec3 end, out Vec3 outPoint, out int intersects);
     }
 }

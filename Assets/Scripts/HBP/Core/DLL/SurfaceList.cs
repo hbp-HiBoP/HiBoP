@@ -26,7 +26,7 @@ namespace HBP.Core.DLL
         public Surface TakeSurface(int index)
         {
             ThrowIfFailed(hbp_surface_list_take_surface(_handle.Handle, index, out IntPtr surface));
-            return new Surface(surface, NativeBackend.HbpCore);
+            return new Surface(surface);
         }
 
         public List<Surface> TakeAllSurfaces()
@@ -57,13 +57,13 @@ namespace HBP.Core.DLL
             }
         }
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_list_destroy", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_list_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_list_destroy(IntPtr surfaces);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_list_get_count", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_list_get_count", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_list_get_count(IntPtr surfaces, out int count);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_surface_list_take_surface", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_list_take_surface", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_list_take_surface(IntPtr surfaces, int index, out IntPtr surface);
     }
 }

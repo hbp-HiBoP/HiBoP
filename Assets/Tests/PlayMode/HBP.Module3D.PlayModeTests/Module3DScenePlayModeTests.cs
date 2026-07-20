@@ -22,8 +22,6 @@ using UnityEngine.Events;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using NativeBackend = HBP.Core.DLL.NativeBackend;
-using NativeBackendOptions = HBP.Core.DLL.NativeBackendOptions;
 
 namespace HBP.Tests.PlayMode.Module3D
 {
@@ -760,17 +758,14 @@ namespace HBP.Tests.PlayMode.Module3D
         [Category("NativeMigration")]
         [Category("NativeDll")]
         [Category("HbpCoreOnly")]
-        public async Task Base3DScene_HbpCoreBackendComputesRuntimeCutTexturesAndSurfaceActivity()
+        public async Task Base3DScene_HbpCoreComputesRuntimeCutTexturesAndSurfaceActivity()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
 
-            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
-            try
-            {
-                using PlayModeTempDirectoryScope temp = new();
+            using PlayModeTempDirectoryScope temp = new();
                 using SyntheticMNIScope mni = new(temp);
                 using PlayModeApplicationStateScope appState = new(temp.Path);
                 using PlayModePersistentDataScope persistentData = new(temp.Path);
@@ -787,9 +782,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 Base3DScene baseScene = initialized.BaseScene;
                 Column3D column = baseScene.Columns.Single();
 
-                Assert.That(baseScene.MRIManager.SelectedMRI.Volume.UsesHbpCore, Is.True);
-                Assert.That(column.ActivityGenerator.UsesHbpCore, Is.True);
-                Assert.That(column.SurfaceGenerator.UsesHbpCore, Is.True);
+                Assert.That(baseScene.MRIManager.SelectedMRI.Volume.IsLoaded, Is.True);
 
                 await WaitForConditionAsync(() =>
                     baseScene.MeshManager.BrainSurface != null
@@ -807,7 +800,7 @@ namespace HBP.Tests.PlayMode.Module3D
                     "hbp_core cut geometry and base cut texture update",
                     () => FormatCutUpdateDiagnostics(baseScene, column));
 
-                Assert.That(column.CutTextures.CutGenerators[0].UsesHbpCore, Is.True);
+                Assert.That(column.CutTextures.CutGenerators[0].CutGeometryGenerator, Is.Not.Null);
                 Assert.That(column.CutTextures.BaseBrainCutTextures[0].width, Is.GreaterThan(1));
                 Assert.That(column.CutTextures.BaseBrainCutTextures[0].height, Is.GreaterThan(1));
                 Assert.That(column.CutTextures.BaseBrainCutTextures[0].GetPixels32().Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
@@ -819,6 +812,8 @@ namespace HBP.Tests.PlayMode.Module3D
                     && !baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate,
                     "hbp_core functional cut and surface update");
 
+                Assert.That(column.ActivityGenerator.GeneratorSurface, Is.Not.Null);
+                Assert.That(column.SurfaceGenerator.ActivityGenerator, Is.SameAs(column.ActivityGenerator));
                 Assert.That(column.CutTextures.BrainCutTextures[0].width, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].width));
                 Assert.That(column.CutTextures.BrainCutTextures[0].height, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].height));
                 Assert.That(column.SurfaceGenerator.ActivityUV, Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfVertices));
@@ -826,11 +821,6 @@ namespace HBP.Tests.PlayMode.Module3D
                 Mesh brainMesh = column.BrainMesh.GetComponent<MeshFilter>().mesh;
                 Assert.That(brainMesh.uv2, Has.Length.EqualTo(brainMesh.vertexCount));
                 Assert.That(brainMesh.uv3, Has.Length.EqualTo(brainMesh.vertexCount));
-            }
-            finally
-            {
-                NativeBackendOptions.Reset();
-            }
         }
 
         [Test]
@@ -1595,16 +1585,9 @@ namespace HBP.Tests.PlayMode.Module3D
             {
                 HBP.Core.DLL.Volume volume = new();
                 Vector3 center = Vector3.zero;
-                if (NativeBackendOptions.UsesHbpCore)
-                {
-                    Assert.That(volume.LoadNIFTIFile(NativeFixturePath("Nifti", "fmri_3d.nii")), Is.True);
-                    using HBP.Core.DLL.BBox bbox = volume.BoundingBox;
-                    center = bbox.Center;
-                }
-                else
-                {
-                    SetAutoProperty(volume, "IsLoaded", true);
-                }
+                Assert.That(volume.LoadNIFTIFile(NativeFixturePath("Nifti", "fmri_3d.nii")), Is.True);
+                using HBP.Core.DLL.BBox bbox = volume.BoundingBox;
+                center = bbox.Center;
 
                 const float halfSize = 100.0f;
                 File.WriteAllLines(objPath, new[]

@@ -904,7 +904,7 @@ namespace HBP.Data.Module3D
 
             // Fill parameters in shader
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Fill shader");
-            BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, !MeshManager.BrainSurface.UsesHbpCore);
+            BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Update cut generators
@@ -1458,11 +1458,6 @@ namespace HBP.Data.Module3D
             if (!site) return;
             
             Vector3 sitePosition = site.transform.localPosition;
-            if (!m_MRIManager.SelectedMRI.Volume.UsesHbpCore)
-            {
-                // Legacy bounding boxes expose native coordinates; keep this compatibility conversion out of hbp_core paths.
-                sitePosition.x = -sitePosition.x;
-            }
 
             Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
             Vector3 center = bbox.Center;

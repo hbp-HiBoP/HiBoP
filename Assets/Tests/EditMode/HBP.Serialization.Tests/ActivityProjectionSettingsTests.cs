@@ -20,8 +20,10 @@ namespace HBP.Tests.Serialization
         public void DefaultsAndOverrides_AreCentralizedAndValidated()
         {
             ActivityProjectionSettings.ResetDefaults();
-            Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(120));
-            Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Nearest));
+            Assert.That(ActivityProjectionSettings.VolumeGridDimension,
+                Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
+            Assert.That(ActivityProjectionSettings.VolumeInterpolation,
+                Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
 
             ActivityProjectionSettings.VolumeGridDimension = 80;
             ActivityProjectionSettings.VolumeInterpolation = VolumeInterpolation.Trilinear;

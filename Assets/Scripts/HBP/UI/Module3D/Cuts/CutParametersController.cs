@@ -522,12 +522,7 @@ namespace HBP.UI.Module3D
                         void addRatioOfPoint(Vector3 point)
                         {
                             Core.DLL.CutGeometryGenerator geometryGenerator = m_Scene.CutGeometryGenerators[Cut.ID];
-                            Vector3 unityPoint = point;
-                            if (!geometryGenerator.UsesHbpCore)
-                            {
-                                unityPoint.x = -unityPoint.x;
-                            }
-                            Vector2 ratio = geometryGenerator.GetPositionRatioOnTexture(unityPoint);
+                            Vector2 ratio = geometryGenerator.GetPositionRatioOnTexture(point);
                             float horizontalRatio = 0, verticalRatio = 0;
                             switch (Cut.Orientation)
                             {

@@ -1,159 +1,95 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
-
 using HBP.Core.DLL.HbpCore;
 
 namespace HBP.Core.DLL
 {
     public class NIFTI : CppDLLImportBase
     {
-        private NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
         private int[] m_CachedHistogramBins;
         private int m_CachedHistogramBinCount;
         private float m_CachedHistogramMin;
         private float m_CachedHistogramMax;
 
-        #region Properties
-        /// <summary>
-        /// Get the calibration values of the loaded MRI
-        /// </summary>
         public Tools.MRICalValues ExtremeValues
         {
             get
             {
-                if (m_Backend == NativeBackend.HbpCore)
+                ThrowIfFailed(hbp_nifti_get_extrema(_handle.Handle, out VolumeExtrema values));
+                return new Tools.MRICalValues
                 {
-                    ThrowIfFailed(hbp_nifti_get_extrema(_handle.Handle, out VolumeExtrema nativeValues));
-                    return ToMRICalValues(nativeValues);
-                }
-
-                Tools.MRICalValues values = new();
-
-                float[] valuesF = new float[6];
-                retrieveExtremeValues_NIFTI(_handle, valuesF);
-
-                values.Min = valuesF[0];
-                values.Max = valuesF[1];
-                values.LoadedCalMin = valuesF[2];
-                values.LoadedCalMax = valuesF[3];
-                values.ComputedCalMin = valuesF[4];
-                values.ComputedCalMax = valuesF[5];
-
-                return values;
+                    Min = values.min,
+                    Max = values.max,
+                    LoadedCalMin = values.loadedCalMin,
+                    LoadedCalMax = values.loadedCalMax,
+                    ComputedCalMin = values.recomputedCalMin,
+                    ComputedCalMax = values.recomputedCalMax
+                };
             }
         }
+
         public int NumberOfVolumes
         {
             get
             {
-                if (m_Backend == NativeBackend.HbpCore)
-                {
-                    ThrowIfFailed(hbp_nifti_get_number_of_volumes(_handle.Handle, out int count));
-                    return count;
-                }
-
-                return number_of_volumes_NIFTI(_handle);
+                ThrowIfFailed(hbp_nifti_get_number_of_volumes(_handle.Handle, out int count));
+                return count;
             }
         }
+
         public float StartTime
         {
             get
             {
-                if (m_Backend == NativeBackend.HbpCore)
-                {
-                    ThrowIfFailed(hbp_nifti_get_start_time(_handle.Handle, out float startTime));
-                    return startTime;
-                }
-
-                return get_start_time_NIFTI(_handle);
+                ThrowIfFailed(hbp_nifti_get_start_time(_handle.Handle, out float value));
+                return value;
             }
         }
+
         public float TimeStep
         {
             get
             {
-                if (m_Backend == NativeBackend.HbpCore)
-                {
-                    ThrowIfFailed(hbp_nifti_get_time_step(_handle.Handle, out float timeStep));
-                    return timeStep;
-                }
-
-                return get_time_step_NIFTI(_handle);
+                ThrowIfFailed(hbp_nifti_get_time_step(_handle.Handle, out float value));
+                return value;
             }
         }
+
         public string TimeUnit
         {
             get
             {
-                if (m_Backend == NativeBackend.HbpCore)
-                {
-                    ThrowIfFailed(hbp_nifti_get_time_unit(_handle.Handle, out IntPtr ptr));
-                    return Marshal.PtrToStringAnsi(ptr);
-                }
-
-                lock (typeof(Marshal))
-                {
-                    IntPtr ptr = get_time_unit_NIFTI(_handle);
-                    return Marshal.PtrToStringAnsi(ptr);
-                }
+                ThrowIfFailed(hbp_nifti_get_time_unit(_handle.Handle, out IntPtr value));
+                return Marshal.PtrToStringAnsi(value);
             }
         }
-        public bool IsLoaded { get; private set; }
-        #endregion
 
-        #region Public Methods
+        public bool IsLoaded { get; private set; }
+
         public bool Load(string path)
         {
             m_CachedHistogramBins = null;
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                IsLoaded = hbp_nifti_load(_handle.Handle, path) == HbpCoreStatus.Ok;
-                return IsLoaded;
-            }
-
-            IsLoaded = (loadNiiFile_NIFTI(_handle, path) == 1);
+            IsLoaded = hbp_nifti_load(_handle.Handle, path) == HbpCoreStatus.Ok;
             return IsLoaded;
         }
+
         public Volume ExtractVolume(int t)
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                Volume coreVolume = Volume.CreateHbpCore();
-                FillVolumeWithNifti(coreVolume, t);
-                return coreVolume;
-            }
-
-            Volume exportedVolume = new();
-            convertToVolume_NIFTI(_handle, exportedVolume.getHandle(), t);
-            return exportedVolume;
+            Volume volume = new();
+            FillVolumeWithNifti(volume, t);
+            return volume;
         }
+
         public void FillVolumeWithNifti(Volume volume, int t)
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                if (volume.Backend != NativeBackend.HbpCore)
-                {
-                    throw new InvalidOperationException("Cannot fill a hbp_export Volume from a hbp_core NIFTI.");
-                }
-
-                ThrowIfFailed(hbp_nifti_convert_to_volume(_handle.Handle, volume.getHandle().Handle, t));
-                volume.MarkLoaded();
-                return;
-            }
-
-            fill_volume_NIFTI(_handle, volume.getHandle(), t);
+            if (volume == null) throw new ArgumentNullException(nameof(volume));
+            ThrowIfFailed(hbp_nifti_convert_to_volume(_handle.Handle, volume.getHandle().Handle, t));
+            volume.MarkLoaded();
         }
+
         public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f)
         {
-            if (binCount <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(binCount));
-            }
-            if (m_Backend != NativeBackend.HbpCore)
-            {
-                return null;
-            }
-
+            if (binCount <= 0) throw new ArgumentOutOfRangeException(nameof(binCount));
             if (m_CachedHistogramBins == null || m_CachedHistogramBinCount != binCount || m_CachedHistogramMin != min || m_CachedHistogramMax != max)
             {
                 m_CachedHistogramBins = new int[binCount];
@@ -164,53 +100,16 @@ namespace HBP.Core.DLL
             }
             return (int[])m_CachedHistogramBins.Clone();
         }
-        #endregion
 
-        #region Memory Management
-        public NIFTI()
-        {
-        }
-
-        /// <summary>
-        /// Allocate DLL memory
-        /// </summary>
         protected override void create_DLL_class()
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                ThrowIfFailed(hbp_nifti_create(out IntPtr nifti));
-                _handle = new HandleRef(this, nifti);
-                return;
-            }
-
-            _handle = new HandleRef(this, create_NIFTI());
+            ThrowIfFailed(hbp_nifti_create(out IntPtr nifti));
+            _handle = new HandleRef(this, nifti);
         }
-        /// <summary>
-        /// Clean DLL memory
-        /// </summary>
+
         protected override void delete_DLL_class()
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                ThrowIfFailed(hbp_nifti_destroy(_handle.Handle));
-                return;
-            }
-
-            delete_NIFTI(_handle);
-        }
-        #endregion
-
-        private static Tools.MRICalValues ToMRICalValues(VolumeExtrema nativeValues)
-        {
-            return new Tools.MRICalValues
-            {
-                Min = nativeValues.min,
-                Max = nativeValues.max,
-                LoadedCalMin = nativeValues.loadedCalMin,
-                LoadedCalMax = nativeValues.loadedCalMax,
-                ComputedCalMin = nativeValues.recomputedCalMin,
-                ComputedCalMax = nativeValues.recomputedCalMax
-            };
+            ThrowIfFailed(hbp_nifti_destroy(_handle.Handle));
         }
 
         private static void ThrowIfFailed(HbpCoreStatus status)
@@ -221,48 +120,25 @@ namespace HBP.Core.DLL
             }
         }
 
-        #region DLLimport
-        [DllImport("hbp_export", EntryPoint = "create_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr create_NIFTI();
-        [DllImport("hbp_export", EntryPoint = "delete_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void delete_NIFTI(HandleRef handleVolume);
-        [DllImport("hbp_export", EntryPoint = "loadNiiFile_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int loadNiiFile_NIFTI(HandleRef handleNii, string pathFile);
-        [DllImport("hbp_export", EntryPoint = "number_of_volumes_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int number_of_volumes_NIFTI(HandleRef handleNii);
-        [DllImport("hbp_export", EntryPoint = "fill_volume_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void fill_volume_NIFTI(HandleRef handleNii, HandleRef handleVolume, int t);
-        [DllImport("hbp_export", EntryPoint = "convertToVolume_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void convertToVolume_NIFTI(HandleRef handleNii, HandleRef handleVolume, int t);
-        [DllImport("hbp_export", EntryPoint = "retrieveExtremeValues_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void retrieveExtremeValues_NIFTI(HandleRef handleNii, float[] extremeValues);
-        [DllImport("hbp_export", EntryPoint = "get_start_time_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float get_start_time_NIFTI(HandleRef handleNii);
-        [DllImport("hbp_export", EntryPoint = "get_time_step_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float get_time_step_NIFTI(HandleRef handleNii);
-        [DllImport("hbp_export", EntryPoint = "get_time_unit_NIFTI", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr get_time_unit_NIFTI(HandleRef handleNii);
-
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_create", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_create(out IntPtr nifti);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_destroy", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_destroy(IntPtr nifti);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_load", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_load(IntPtr nifti, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_convert_to_volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_convert_to_volume(IntPtr nifti, IntPtr volume, int t);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_get_number_of_volumes", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_get_number_of_volumes(IntPtr nifti, out int count);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_get_extrema", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_get_extrema(IntPtr nifti, out VolumeExtrema extrema);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_get_start_time", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_get_start_time(IntPtr nifti, out float startTime);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_get_time_step", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_get_time_step(IntPtr nifti, out float timeStep);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_get_time_unit", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_get_time_unit(IntPtr nifti, out IntPtr timeUnit);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_nifti_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_nifti_copy_histogram_bins(IntPtr nifti, int[] bins, int binCount, float minValue, float maxValue);
-        #endregion
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_create", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_create(out IntPtr nifti);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_destroy", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_destroy(IntPtr nifti);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_load", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_load(IntPtr nifti, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_convert_to_volume", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_convert_to_volume(IntPtr nifti, IntPtr volume, int t);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_number_of_volumes", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_get_number_of_volumes(IntPtr nifti, out int count);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_extrema", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_get_extrema(IntPtr nifti, out VolumeExtrema extrema);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_start_time", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_get_start_time(IntPtr nifti, out float startTime);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_time_step", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_get_time_step(IntPtr nifti, out float timeStep);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_time_unit", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_get_time_unit(IntPtr nifti, out IntPtr timeUnit);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_copy_histogram_bins(IntPtr nifti, int[] bins, int binCount, float minValue, float maxValue);
     }
 }

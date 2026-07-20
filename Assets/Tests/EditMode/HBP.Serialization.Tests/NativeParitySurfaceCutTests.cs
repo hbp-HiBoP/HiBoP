@@ -6,6 +6,10 @@ using HBP.Core.DLL;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
+using BBox = HBP.Tests.Serialization.LegacyNative.BBox;
+using CutGeometryGenerator = HBP.Tests.Serialization.LegacyNative.CutGeometryGenerator;
+using Surface = HBP.Tests.Serialization.LegacyNative.Surface;
+using Volume = HBP.Tests.Serialization.LegacyNative.Volume;
 
 namespace HBP.Tests.Serialization
 {
@@ -21,8 +25,8 @@ namespace HBP.Tests.Serialization
             NativeParityAssert.RequireHbpCore();
 
             using TempSurfaceFixture fixture = new();
-            Surface[] hbpExportCuts = CutCube(NativeBackend.HbpExport, fixture.ObjPath, strongCuts: true, CreateHalfXCut);
-            Surface[] hbpCoreCuts = CutCube(NativeBackend.HbpCore, fixture.ObjPath, strongCuts: true, CreateHalfXCut);
+            Surface[] hbpExportCuts = CutCube(BenchmarkBackend.HbpExport, fixture.ObjPath, strongCuts: true, CreateHalfXCut);
+            Surface[] hbpCoreCuts = CutCube(BenchmarkBackend.HbpCore, fixture.ObjPath, strongCuts: true, CreateHalfXCut);
             try
             {
                 AssertSurfaceCollectionsMatch(hbpCoreCuts, hbpExportCuts, compareExactCounts: true);
@@ -43,10 +47,10 @@ namespace HBP.Tests.Serialization
             NativeParityAssert.RequireHbpCore();
 
             using TempSurfaceFixture fixture = new();
-            List<Surface> hbpExportCaps = GenerateCuts(NativeBackend.HbpExport, fixture.ObjPath, raw: false);
-            List<Surface> hbpCoreCaps = GenerateCuts(NativeBackend.HbpCore, fixture.ObjPath, raw: false);
-            List<Surface> hbpExportRaw = GenerateCuts(NativeBackend.HbpExport, fixture.ObjPath, raw: true);
-            List<Surface> hbpCoreRaw = GenerateCuts(NativeBackend.HbpCore, fixture.ObjPath, raw: true);
+            List<Surface> hbpExportCaps = GenerateCuts(BenchmarkBackend.HbpExport, fixture.ObjPath, raw: false);
+            List<Surface> hbpCoreCaps = GenerateCuts(BenchmarkBackend.HbpCore, fixture.ObjPath, raw: false);
+            List<Surface> hbpExportRaw = GenerateCuts(BenchmarkBackend.HbpExport, fixture.ObjPath, raw: true);
+            List<Surface> hbpCoreRaw = GenerateCuts(BenchmarkBackend.HbpCore, fixture.ObjPath, raw: true);
             try
             {
                 AssertSurfaceCollectionsMatch(hbpCoreCaps, hbpExportCaps, compareExactCounts: false);
@@ -72,8 +76,8 @@ namespace HBP.Tests.Serialization
             using TempSurfaceFixture fixture = new();
             foreach (bool strongCuts in new[] { true, false })
             {
-                Surface[] hbpExportCuts = CutCube(NativeBackend.HbpExport, fixture.ObjPath, strongCuts, CreateHalfXCut, CreateHalfYCut);
-                Surface[] hbpCoreCuts = CutCube(NativeBackend.HbpCore, fixture.ObjPath, strongCuts, CreateHalfXCut, CreateHalfYCut);
+                Surface[] hbpExportCuts = CutCube(BenchmarkBackend.HbpExport, fixture.ObjPath, strongCuts, CreateHalfXCut, CreateHalfYCut);
+                Surface[] hbpCoreCuts = CutCube(BenchmarkBackend.HbpCore, fixture.ObjPath, strongCuts, CreateHalfXCut, CreateHalfYCut);
                 try
                 {
                     AssertSurfaceCollectionsMatch(hbpCoreCuts, hbpExportCuts, compareExactCounts: false);
@@ -93,8 +97,8 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            List<Surface> hbpExportCuts = GenerateKnownMniAxialCut(NativeBackend.HbpExport);
-            List<Surface> hbpCoreCuts = GenerateKnownMniAxialCut(NativeBackend.HbpCore);
+            List<Surface> hbpExportCuts = GenerateKnownMniAxialCut(BenchmarkBackend.HbpExport);
+            List<Surface> hbpCoreCuts = GenerateKnownMniAxialCut(BenchmarkBackend.HbpCore);
             try
             {
                 double expectedArea = MeasureSurfaceArea(hbpExportCuts.Single());
@@ -108,7 +112,7 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static Surface[] CutCube(NativeBackend backend, string objPath, bool strongCuts, params Func<HBP.Core.Object3D.Cut>[] cutFactories)
+        private static Surface[] CutCube(BenchmarkBackend backend, string objPath, bool strongCuts, params Func<HBP.Core.Object3D.Cut>[] cutFactories)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -134,7 +138,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static List<Surface> GenerateCuts(NativeBackend backend, string objPath, bool raw)
+        private static List<Surface> GenerateCuts(BenchmarkBackend backend, string objPath, bool raw)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -149,7 +153,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static List<Surface> GenerateKnownMniAxialCut(NativeBackend backend)
+        private static List<Surface> GenerateKnownMniAxialCut(BenchmarkBackend backend)
         {
             return NativeParityAssert.WithBackend(
                 backend,

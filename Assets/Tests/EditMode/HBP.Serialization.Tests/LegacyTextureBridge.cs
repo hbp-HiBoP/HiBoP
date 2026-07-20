@@ -30,7 +30,7 @@ namespace HBP.Tests.Serialization
             return new LegacyTextureBridge(generate_2D_color_Texture(horizontalColorType, verticalColorType));
         }
 
-        public static LegacyTextureBridge GenerateHistogram(NIFTI nifti, int height, int width, bool withGreyArea)
+        public static LegacyTextureBridge GenerateHistogram(LegacyNative.NIFTI nifti, int height, int width, bool withGreyArea)
         {
             return new LegacyTextureBridge(generate_distribution_histogram_NIFTI_Texture(
                 nifti.getHandle().Handle, height, width, withGreyArea));

@@ -5,6 +5,10 @@ using HBP.Core.DLL;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
+using BBox = HBP.Tests.Serialization.LegacyNative.BBox;
+using JuBrainAtlas = HBP.Tests.Serialization.LegacyNative.JuBrainAtlas;
+using MarsAtlas = HBP.Tests.Serialization.LegacyNative.MarsAtlas;
+using Surface = HBP.Tests.Serialization.LegacyNative.Surface;
 
 namespace HBP.Tests.Serialization
 {
@@ -53,8 +57,8 @@ namespace HBP.Tests.Serialization
 
             try
             {
-                using Surface hbpExportSurface = LoadSurface(NativeBackend.HbpExport, surface => surface.LoadOBJFile(objPath));
-                using Surface hbpCoreSurface = LoadSurface(NativeBackend.HbpCore, surface => surface.LoadOBJFile(objPath));
+                using Surface hbpExportSurface = LoadSurface(BenchmarkBackend.HbpExport, surface => surface.LoadOBJFile(objPath));
+                using Surface hbpCoreSurface = LoadSurface(BenchmarkBackend.HbpCore, surface => surface.LoadOBJFile(objPath));
 
                 foreach ((Vector3 point, bool expectedInside, string name) in new[]
                 {
@@ -101,8 +105,8 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            using MarsAtlas hbpExportAtlas = LoadMarsAtlas(NativeBackend.HbpExport);
-            using MarsAtlas hbpCoreAtlas = LoadMarsAtlas(NativeBackend.HbpCore);
+            using MarsAtlas hbpExportAtlas = LoadMarsAtlas(BenchmarkBackend.HbpExport);
+            using MarsAtlas hbpCoreAtlas = LoadMarsAtlas(BenchmarkBackend.HbpCore);
 
             Assert.That(hbpCoreAtlas.Label("L_VCcm"), Is.EqualTo(hbpExportAtlas.Label("L_VCcm")));
             Assert.That(hbpCoreAtlas.Labels(), Is.EqualTo(hbpExportAtlas.Labels()));
@@ -132,8 +136,8 @@ namespace HBP.Tests.Serialization
             Assert.That(hbpCoreAtlas.GetClosestAreaIndex(hbpExportCoordinates[0], 0), Is.EqualTo(hbpExportAtlas.GetClosestAreaIndex(hbpExportCoordinates[0], 0)));
 
             string surfacePath = NativeParityAssert.NativePath("Meshes", "single_surface.gii");
-            using Surface hbpExportSurface = LoadSurface(NativeBackend.HbpExport, surface => surface.LoadGIIFile(surfacePath));
-            using Surface hbpCoreSurface = LoadSurface(NativeBackend.HbpCore, surface => surface.LoadGIIFile(surfacePath));
+            using Surface hbpExportSurface = LoadSurface(BenchmarkBackend.HbpExport, surface => surface.LoadGIIFile(surfacePath));
+            using Surface hbpCoreSurface = LoadSurface(BenchmarkBackend.HbpCore, surface => surface.LoadGIIFile(surfacePath));
             Assert.That(hbpCoreAtlas.GetSurfaceAreaLabels(hbpCoreSurface), Is.EqualTo(hbpExportAtlas.GetSurfaceAreaLabels(hbpExportSurface)));
 
             string tempDirectory = Path.Combine(Path.GetTempPath(), "hibop_native_parity_surface");
@@ -168,8 +172,8 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            using JuBrainAtlas hbpExportAtlas = LoadJuBrainAtlas(NativeBackend.HbpExport);
-            using JuBrainAtlas hbpCoreAtlas = LoadJuBrainAtlas(NativeBackend.HbpCore);
+            using JuBrainAtlas hbpExportAtlas = LoadJuBrainAtlas(BenchmarkBackend.HbpExport);
+            using JuBrainAtlas hbpCoreAtlas = LoadJuBrainAtlas(BenchmarkBackend.HbpCore);
 
             Assert.That(hbpCoreAtlas.Loaded, Is.EqualTo(hbpExportAtlas.Loaded));
             Assert.That(hbpCoreAtlas.AreaNames, Is.EqualTo(hbpExportAtlas.AreaNames));
@@ -204,8 +208,8 @@ namespace HBP.Tests.Serialization
             bool isObj = Path.GetExtension(path).Equals(".obj", StringComparison.OrdinalIgnoreCase);
             bool compareColors = !isGifti && !isObj;
             bool compareTriangles = !isGifti && !isObj;
-            using Surface hbpExportSurface = LoadSurface(NativeBackend.HbpExport, load);
-            using Surface hbpCoreSurface = LoadSurface(NativeBackend.HbpCore, load);
+            using Surface hbpExportSurface = LoadSurface(BenchmarkBackend.HbpExport, load);
+            using Surface hbpCoreSurface = LoadSurface(BenchmarkBackend.HbpCore, load);
 
             Assert.That(hbpCoreSurface.NumberOfVertices, Is.EqualTo(hbpExportSurface.NumberOfVertices), path);
             Assert.That(hbpCoreSurface.NumberOfTriangles, Is.EqualTo(hbpExportSurface.NumberOfTriangles), path);
@@ -246,7 +250,7 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static Surface LoadSurface(NativeBackend backend, Func<Surface, bool> load)
+        private static Surface LoadSurface(BenchmarkBackend backend, Func<Surface, bool> load)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -268,7 +272,7 @@ namespace HBP.Tests.Serialization
 
         private static void AssertTriSurfaceMatchesFixtureOracle(string triPath)
         {
-            using Surface surface = LoadSurface(NativeBackend.HbpCore, value => value.LoadTRIFile(triPath));
+            using Surface surface = LoadSurface(BenchmarkBackend.HbpCore, value => value.LoadTRIFile(triPath));
             Assert.That(surface.NumberOfVertices, Is.EqualTo(4));
             Assert.That(surface.NumberOfTriangles, Is.EqualTo(2));
 
@@ -299,7 +303,7 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static MarsAtlas LoadMarsAtlas(NativeBackend backend)
+        private static MarsAtlas LoadMarsAtlas(BenchmarkBackend backend)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -319,7 +323,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static JuBrainAtlas LoadJuBrainAtlas(NativeBackend backend)
+        private static JuBrainAtlas LoadJuBrainAtlas(BenchmarkBackend backend)
         {
             return NativeParityAssert.WithBackend(
                 backend,

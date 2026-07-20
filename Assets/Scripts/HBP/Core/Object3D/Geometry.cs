@@ -169,11 +169,6 @@ namespace HBP.Core.Object3D
             {
                 Vector3 end1 = s.End1;
                 Vector3 end2 = s.End2;
-                if (!bbox.UsesHbpCore)
-                {
-                    end1.x = -end1.x;
-                    end2.x = -end2.x;
-                }
                 Debug.DrawRay(offset + end1, end2 - end1, color, duration);
                 s.Dispose();
             }
@@ -191,11 +186,6 @@ namespace HBP.Core.Object3D
             {
                 Vector3 end1 = s.End1;
                 Vector3 end2 = s.End2;
-                if (!bbox.UsesHbpCore)
-                {
-                    end1.x = -end1.x;
-                    end2.x = -end2.x;
-                }
                 Debug.DrawRay(offset + end1, end2 - end1, Color.green);
                 s.Dispose();
             }

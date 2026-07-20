@@ -32,9 +32,9 @@ namespace HBP.Tests.Serialization
                 int warmup = ParsePositive(arguments, WarmupArgument, minimum: 1);
                 int iterations = ParsePositive(arguments, IterationsArgument, minimum: 20);
                 HashSet<string> filters = ParseFilters(OptionalArgument(arguments, FilterArgument));
-                NativeBackend backend = ParseBackend(backendValue);
+                BenchmarkBackend backend = ParseBackend(backendValue);
 
-                report.backend = backend == NativeBackend.HbpCore ? "hbp_core" : "hbp_export";
+                report.backend = backend == BenchmarkBackend.HbpCore ? "hbp_core" : "hbp_export";
                 report.startedUtc = DateTime.UtcNow.ToString("O");
                 report.unityVersion = Application.unityVersion;
                 report.operatingSystem = SystemInfo.operatingSystem;
@@ -44,7 +44,7 @@ namespace HBP.Tests.Serialization
                 report.measuredIterations = iterations;
                 report.fixtureRoot = Path.GetFullPath(fixtureRoot);
 
-                NativeBackendOptions.ExperimentalBackend = backend;
+                OracleBackendContext.Current = backend;
                 NativePerformanceBenchmarkFixtures fixtures = new(fixtureRoot);
                 fixtures.Ensure();
                 bool includeVideo = HasArgument(arguments, IncludeVideoArgument);
@@ -98,7 +98,7 @@ namespace HBP.Tests.Serialization
             finally
             {
                 report.finishedUtc = DateTime.UtcNow.ToString("O");
-                NativeBackendOptions.Reset();
+                OracleBackendContext.Reset();
                 if (!string.IsNullOrWhiteSpace(outputPath))
                 {
                     WriteReport(outputPath, report);
@@ -130,17 +130,17 @@ namespace HBP.Tests.Serialization
                 StringComparer.OrdinalIgnoreCase);
         }
 
-        private static NativeBackend ParseBackend(string value)
+        private static BenchmarkBackend ParseBackend(string value)
         {
             if (value.Equals("hbp_core", StringComparison.OrdinalIgnoreCase)
-                || value.Equals(nameof(NativeBackend.HbpCore), StringComparison.OrdinalIgnoreCase))
+                || value.Equals(nameof(BenchmarkBackend.HbpCore), StringComparison.OrdinalIgnoreCase))
             {
-                return NativeBackend.HbpCore;
+                return BenchmarkBackend.HbpCore;
             }
             if (value.Equals("hbp_export", StringComparison.OrdinalIgnoreCase)
-                || value.Equals(nameof(NativeBackend.HbpExport), StringComparison.OrdinalIgnoreCase))
+                || value.Equals(nameof(BenchmarkBackend.HbpExport), StringComparison.OrdinalIgnoreCase))
             {
-                return NativeBackend.HbpExport;
+                return BenchmarkBackend.HbpExport;
             }
             throw new ArgumentException($"Unsupported benchmark backend: {value}.", BackendArgument);
         }

@@ -6,13 +6,28 @@ using HBP.Core.DLL;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using UnityEngine;
+using ActivityGenerator = HBP.Tests.Serialization.LegacyNative.ActivityGenerator;
+using BBox = HBP.Tests.Serialization.LegacyNative.BBox;
+using CutGenerator = HBP.Tests.Serialization.LegacyNative.CutGenerator;
+using CutGeometryGenerator = HBP.Tests.Serialization.LegacyNative.CutGeometryGenerator;
+using DensityGenerator = HBP.Tests.Serialization.LegacyNative.DensityGenerator;
+using FMRIGenerator = HBP.Tests.Serialization.LegacyNative.FMRIGenerator;
+using GeneratorSurface = HBP.Tests.Serialization.LegacyNative.GeneratorSurface;
+using IEEGGenerator = HBP.Tests.Serialization.LegacyNative.IEEGGenerator;
+using MarsAtlas = HBP.Tests.Serialization.LegacyNative.MarsAtlas;
+using MEGGenerator = HBP.Tests.Serialization.LegacyNative.MEGGenerator;
+using NIFTI = HBP.Tests.Serialization.LegacyNative.NIFTI;
+using RawSiteList = HBP.Tests.Serialization.LegacyNative.RawSiteList;
+using Surface = HBP.Tests.Serialization.LegacyNative.Surface;
+using SurfaceGenerator = HBP.Tests.Serialization.LegacyNative.SurfaceGenerator;
+using Volume = HBP.Tests.Serialization.LegacyNative.Volume;
 
 namespace HBP.Tests.Serialization
 {
     internal static class NativePerformanceBenchmarkScenarios
     {
         public static List<Func<NativePerformanceScenario>> Build(
-            NativeBackend backend,
+            BenchmarkBackend backend,
             NativePerformanceBenchmarkFixtures fixtures,
             bool includeVideo = false,
             Func<string, string, bool> include = null)
@@ -161,7 +176,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static NativePerformanceScenario HistogramScenario(NativeBackend backend, string path)
+        private static NativePerformanceScenario HistogramScenario(BenchmarkBackend backend, string path)
         {
             const int operations = 100;
             NIFTI nifti = new();
@@ -180,7 +195,7 @@ namespace HBP.Tests.Serialization
                     for (int operation = 0; operation < operations; ++operation)
                     {
                         Color32[] pixels;
-                        if (backend == NativeBackend.HbpExport)
+                        if (backend == BenchmarkBackend.HbpExport)
                         {
                             using LegacyTextureBridge texture = LegacyTextureBridge.GenerateHistogram(nifti, height, width, true);
                             pixels = texture.GetPixels(out int actualWidth, out int actualHeight);
@@ -202,7 +217,7 @@ namespace HBP.Tests.Serialization
                 dispose: nifti.Dispose);
         }
 
-        private static NativePerformanceScenario ColormapScenario(NativeBackend backend, bool twoDimensional)
+        private static NativePerformanceScenario ColormapScenario(BenchmarkBackend backend, bool twoDimensional)
         {
             const int operations = 5;
             return new NativePerformanceScenario(
@@ -217,7 +232,7 @@ namespace HBP.Tests.Serialization
                     for (int operation = 0; operation < operations; ++operation)
                     {
                         Color32[] pixels;
-                        if (backend == NativeBackend.HbpExport)
+                        if (backend == BenchmarkBackend.HbpExport)
                         {
                             using LegacyTextureBridge texture = twoDimensional
                                 ? LegacyTextureBridge.Generate2D((int)ColorType.RedYellow, (int)ColorType.BlueGreen)
@@ -238,11 +253,11 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static NativePerformanceScenario RotateTextureScenario(NativeBackend backend, int size)
+        private static NativePerformanceScenario RotateTextureScenario(BenchmarkBackend backend, int size)
         {
             const int operations = 10;
             Color32[] sourcePixels = CreateTexturePixels(size, size);
-            LegacyTextureBridge legacySource = backend == NativeBackend.HbpExport
+            LegacyTextureBridge legacySource = backend == BenchmarkBackend.HbpExport
                 ? LegacyTextureBridge.CreateFromPixels(sourcePixels, size, size)
                 : null;
             return new NativePerformanceScenario(
@@ -257,7 +272,7 @@ namespace HBP.Tests.Serialization
                     for (int operation = 0; operation < operations; ++operation)
                     {
                         Color32[] pixels;
-                        if (backend == NativeBackend.HbpExport)
+                        if (backend == BenchmarkBackend.HbpExport)
                         {
                             using LegacyTextureBridge rotated = legacySource.Rotate(CutOrientation.Sagittal, true);
                             pixels = rotated.GetPixels(out int width, out int height);
@@ -276,7 +291,7 @@ namespace HBP.Tests.Serialization
                 dispose: () => legacySource?.Dispose());
         }
 
-        private static NativePerformanceScenario ResizeTextureScenario(NativeBackend backend, int targetSize)
+        private static NativePerformanceScenario ResizeTextureScenario(BenchmarkBackend backend, int targetSize)
         {
             int sourceWidth = targetSize * 3 / 4;
             int sourceHeight = targetSize / 2;
@@ -290,7 +305,7 @@ namespace HBP.Tests.Serialization
                 () =>
                 {
                     Color32[] pixels;
-                    if (backend == NativeBackend.HbpExport)
+                    if (backend == BenchmarkBackend.HbpExport)
                     {
                         using LegacyTextureBridge texture = LegacyTextureBridge.CreateFromPixels(sourcePixels, sourceWidth, sourceHeight);
                         texture.ResizeToSquare(targetSize);
@@ -325,7 +340,7 @@ namespace HBP.Tests.Serialization
         }
 
         private static NativePerformanceScenario VideoScenario(
-            NativeBackend backend,
+            BenchmarkBackend backend,
             string root,
             int width,
             int height,
@@ -333,10 +348,10 @@ namespace HBP.Tests.Serialization
             string name)
         {
             Color32[] sourcePixels = CreateTexturePixels(width, height);
-            LegacyTextureBridge legacyFrame = backend == NativeBackend.HbpExport
+            LegacyTextureBridge legacyFrame = backend == BenchmarkBackend.HbpExport
                 ? LegacyTextureBridge.CreateFromPixels(sourcePixels, width, height)
                 : null;
-            Texture2D coreFrame = backend == NativeBackend.HbpCore
+            Texture2D coreFrame = backend == BenchmarkBackend.HbpCore
                 ? CreateUnityTexture(sourcePixels, width, height)
                 : null;
             string path = Path.Combine(root, $"{name}-{backend}.avi");
@@ -348,7 +363,7 @@ namespace HBP.Tests.Serialization
                 frameCount,
                 () =>
                 {
-                    if (backend == NativeBackend.HbpExport)
+                    if (backend == BenchmarkBackend.HbpExport)
                     {
                         using LegacyVideoStreamBridge stream = new();
                         stream.Open(path, width, height, 25.0f);
@@ -875,7 +890,7 @@ namespace HBP.Tests.Serialization
         }
 
         private static NativePerformanceScenario CutTextureScenario(
-            NativeBackend backend,
+            BenchmarkBackend backend,
             NativePerformanceBenchmarkFixtures fixtures,
             bool activityOverlay)
         {
@@ -898,16 +913,16 @@ namespace HBP.Tests.Serialization
             geometry.Initialize(volume, cut, 512);
             CutGenerator generator = new();
             generator.Initialize(activity, geometry, 4);
-            LegacyTextureBridge legacyColorScheme = backend == NativeBackend.HbpExport
+            LegacyTextureBridge legacyColorScheme = backend == BenchmarkBackend.HbpExport
                 ? LegacyTextureBridge.Generate1D((int)(activityOverlay ? ColorType.MatLab : ColorType.Grayscale))
                 : null;
-            Color32[] coreColorScheme = backend == NativeBackend.HbpCore
+            Color32[] coreColorScheme = backend == BenchmarkBackend.HbpCore
                 ? UnityTextureFactory.Generate1DColorPixels(activityOverlay ? ColorType.MatLab : ColorType.Grayscale)
                 : null;
             LegacyTextureBridge legacyBaseColorScheme = null;
             if (activityOverlay)
             {
-                if (backend == NativeBackend.HbpExport)
+                if (backend == BenchmarkBackend.HbpExport)
                 {
                     legacyBaseColorScheme = LegacyTextureBridge.Generate1D((int)ColorType.Grayscale);
                     LegacyCutGeneratorBridge.FillTextureWithVolume(generator, legacyBaseColorScheme, -2.0f, 2.0f);
@@ -933,7 +948,7 @@ namespace HBP.Tests.Serialization
                     for (int operation = 0; operation < operations; ++operation)
                     {
                         Color32[] pixels;
-                        if (backend == NativeBackend.HbpExport)
+                        if (backend == BenchmarkBackend.HbpExport)
                         {
                             using LegacyTextureBridge output = new();
                             if (activityOverlay)

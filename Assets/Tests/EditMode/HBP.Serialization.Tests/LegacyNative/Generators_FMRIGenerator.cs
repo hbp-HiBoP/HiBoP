@@ -1,0 +1,106 @@
+using HBP.Core.DLL;
+using HBP.Tests.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using HBP.Core.DLL.HbpCore;
+
+namespace HBP.Tests.Serialization.LegacyNative
+{
+    public class FMRIGenerator : ActivityGenerator
+    {
+        #region Public Methods
+        public void ComputeActivity(IEnumerable<(Volume, Volume)> volumesAndMasks)
+        {
+            if (m_Backend == BenchmarkBackend.HbpCore)
+            {
+                List<Volume> volumes = new();
+                List<Volume> masks = new();
+                foreach (var volumeAndMask in volumesAndMasks)
+                {
+                    volumes.Add(volumeAndMask.Item1);
+                    masks.Add(volumeAndMask.Item2);
+                }
+                ThrowIfFailed(hbp_fmri_generator_compute_activity(_handle.Handle, ToNativeVolumeHandles(volumes, nameof(ComputeActivity)), ToNativeVolumeHandles(masks, nameof(ComputeActivity)), volumes.Count));
+                return;
+            }
+
+            using MultiVolume multiVolume = new();
+            using MultiVolume maskMultiVolume = new();
+            foreach (var volumeAndMask in volumesAndMasks)
+            {
+                multiVolume.AddVolume(volumeAndMask.Item1);
+                maskMultiVolume.AddVolume(volumeAndMask.Item2);
+            }
+            compute_activity_FMRIGenerator(_handle, multiVolume.getHandle(), maskMultiVolume.getHandle());
+        }
+
+        public void AdjustValues(float fmriNegativeCalMinFactor, float fmriNegativeCalMaxFactor, float fmriPositiveCalMinFactor, float fmriPositiveCalMaxFactor)
+        {
+            if (m_Backend == BenchmarkBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_fmri_generator_adjust_values(_handle.Handle, fmriNegativeCalMinFactor, fmriNegativeCalMaxFactor, fmriPositiveCalMinFactor, fmriPositiveCalMaxFactor));
+                return;
+            }
+            adjust_values_FMRIGenerator(_handle, fmriNegativeCalMinFactor, fmriNegativeCalMaxFactor, fmriPositiveCalMinFactor, fmriPositiveCalMaxFactor);
+        }
+
+        public void HideExtremeValues(bool hideLower, bool hideMiddle, bool hideHigher)
+        {
+            if (m_Backend == BenchmarkBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_fmri_generator_set_hide_values(_handle.Handle, hideLower ? 1 : 0, hideMiddle ? 1 : 0, hideHigher ? 1 : 0));
+                return;
+            }
+            set_hide_values_FMRIGenerator(_handle, hideLower, hideMiddle, hideHigher);
+        }
+        #endregion
+
+        #region Memory Management
+        protected override void create_DLL_class()
+        {
+            if (m_Backend == BenchmarkBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_fmri_generator_create(out IntPtr generator));
+                _handle = new HandleRef(this, generator);
+                return;
+            }
+            _handle = new HandleRef(this, create_FMRIGenerator());
+        }
+
+        protected override void delete_DLL_class()
+        {
+            if (m_Backend == BenchmarkBackend.HbpCore)
+            {
+                ThrowIfFailed(hbp_fmri_generator_destroy(_handle.Handle));
+                return;
+            }
+            delete_FMRIGenerator(_handle);
+        }
+        #endregion
+
+        #region DLLImport
+        [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "create_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern IntPtr create_FMRIGenerator();
+        [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "delete_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void delete_FMRIGenerator(HandleRef generator);
+        [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "compute_activity_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void compute_activity_FMRIGenerator(HandleRef generator, HandleRef multiVolume, HandleRef maskMultiVolume);
+        [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "adjust_values_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void adjust_values_FMRIGenerator(HandleRef generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
+        [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "set_hide_values_FMRIGenerator", CallingConvention = CallingConvention.Cdecl)]
+        static private extern void set_hide_values_FMRIGenerator(HandleRef generator, bool lower, bool middle, bool higher);
+
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_fmri_generator_create", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_fmri_generator_create(out IntPtr generator);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_fmri_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_fmri_generator_destroy(IntPtr generator);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_fmri_generator_compute_activity", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_fmri_generator_compute_activity(IntPtr generator, [In] IntPtr[] volumes, [In] IntPtr[] masks, int volumeCount);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_fmri_generator_adjust_values", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_fmri_generator_adjust_values(IntPtr generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_fmri_generator_set_hide_values", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_fmri_generator_set_hide_values(IntPtr generator, int lower, int middle, int higher);
+        #endregion
+    }
+}

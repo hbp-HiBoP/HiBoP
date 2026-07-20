@@ -9,69 +9,39 @@ namespace HBP.Core.DLL
 {
     public abstract class ActivityGenerator : CppDLLImportBase
     {
-        private protected NativeBackend m_Backend = NativeBackendOptions.ExperimentalBackend;
-
-        #region Properties
-        internal NativeBackend Backend => m_Backend;
-        public bool UsesHbpCore => m_Backend == NativeBackend.HbpCore;
         public float Progress
         {
             get
             {
-                if (m_Backend == NativeBackend.HbpCore)
-                {
-                    ThrowIfFailed(hbp_activity_generator_get_progress(_handle.Handle, out float progress));
-                    return progress;
-                }
-                return get_progress_ActivityGenerator(_handle);
+                ThrowIfFailed(hbp_activity_generator_get_progress(_handle.Handle, out float progress));
+                return progress;
             }
         }
-        public GeneratorSurface GeneratorSurface { get; private set; }
-        #endregion
 
-        #region Public Methods
+        public GeneratorSurface GeneratorSurface { get; private set; }
+
         public void Initialize(GeneratorSurface generatorSurface)
         {
+            if (generatorSurface == null) throw new ArgumentNullException(nameof(generatorSurface));
             GeneratorSurface = generatorSurface;
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                if (generatorSurface.Backend != NativeBackend.HbpCore)
-                {
-                    throw new InvalidOperationException($"ActivityGenerator.Initialize cannot use a {generatorSurface.Backend} generator surface with hbp_core.");
-                }
-                ThrowIfFailed(hbp_activity_generator_initialize(_handle.Handle, generatorSurface.getHandle().Handle));
-                return;
-            }
-            initialize_ActivityGenerator(_handle, generatorSurface.getHandle());
+            ThrowIfFailed(hbp_activity_generator_initialize(_handle.Handle, generatorSurface.getHandle().Handle));
         }
 
         public bool SaveActivityAsNifti(string path, SubTimeline timeline, string description)
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                return SaveActivityAsNifti(path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description);
-            }
-            return save_activity_as_nifti_ActivityGenerator(_handle, path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description);
+            if (timeline == null) throw new ArgumentNullException(nameof(timeline));
+            return SaveActivityAsNifti(path, timeline.Length, timeline.Frequency.RawValue, timeline.MinTime, description);
         }
 
         internal bool SaveActivityAsNifti(string path, int timelineLength, float samplingFrequency, float startTime, string description)
         {
-            if (m_Backend != NativeBackend.HbpCore)
-            {
-                throw new NotSupportedException("Raw activity NIfTI export parameters are only available with hbp_core.");
-            }
             return hbp_activity_generator_save_activity_nifti(_handle.Handle, path, timelineLength, samplingFrequency, startTime, description) == HbpCoreStatus.Ok;
         }
 
         public bool SaveMaskAsNifti(string path, string description)
         {
-            if (m_Backend == NativeBackend.HbpCore)
-            {
-                return hbp_activity_generator_save_mask_nifti(_handle.Handle, path, description) == HbpCoreStatus.Ok;
-            }
-            return save_mask_as_nifti(_handle, path, description);
+            return hbp_activity_generator_save_mask_nifti(_handle.Handle, path, description) == HbpCoreStatus.Ok;
         }
-        #endregion
 
         internal static Vec3[] ToNativePositions(Vector3[] positions)
         {
@@ -89,16 +59,7 @@ namespace HBP.Core.DLL
             for (int i = 0; i < volumes.Count; ++i)
             {
                 Volume volume = volumes[i];
-                if (volume == null)
-                {
-                    result[i] = IntPtr.Zero;
-                    continue;
-                }
-                if (volume.Backend != NativeBackend.HbpCore)
-                {
-                    throw new InvalidOperationException($"{methodName} cannot use a {volume.Backend} volume with hbp_core.");
-                }
-                result[i] = volume.getHandle().Handle;
+                result[i] = volume == null ? IntPtr.Zero : volume.getHandle().Handle;
             }
             return result;
         }
@@ -111,23 +72,13 @@ namespace HBP.Core.DLL
             }
         }
 
-        #region DLLImport
-        [DllImport(NativeDll.HbpExport, EntryPoint = "initialize_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void initialize_ActivityGenerator(HandleRef generator, HandleRef generatorSurface);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "get_progress_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float get_progress_ActivityGenerator(HandleRef generator);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "save_activity_as_nifti_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static public extern bool save_activity_as_nifti_ActivityGenerator(HandleRef generator, string path, int timelineLength, float samplingFrequency, float startTime, string description);
-        [DllImport(NativeDll.HbpExport, EntryPoint = "save_mask_as_nifti_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
-        static public extern bool save_mask_as_nifti(HandleRef generator, string path, string description);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_activity_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_activity_generator_initialize(IntPtr generator, IntPtr generatorSurface);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_activity_generator_get_progress", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_activity_generator_get_progress(IntPtr generator, out float progress);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_activity_generator_save_activity_nifti", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_activity_generator_save_activity_nifti(IntPtr generator, string path, int timelineLength, float samplingFrequency, float startTime, string description);
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_activity_generator_save_mask_nifti", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_activity_generator_save_mask_nifti(IntPtr generator, string path, string description);
-        #endregion
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_activity_generator_initialize(IntPtr generator, IntPtr generatorSurface);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_get_progress", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_activity_generator_get_progress(IntPtr generator, out float progress);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_save_activity_nifti", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_activity_generator_save_activity_nifti(IntPtr generator, string path, int timelineLength, float samplingFrequency, float startTime, string description);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_save_mask_nifti", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_activity_generator_save_mask_nifti(IntPtr generator, string path, string description);
     }
 }

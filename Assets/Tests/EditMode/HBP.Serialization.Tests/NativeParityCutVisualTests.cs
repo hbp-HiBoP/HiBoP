@@ -5,6 +5,13 @@ using HBP.Core.Tools;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
+using BBox = HBP.Tests.Serialization.LegacyNative.BBox;
+using CutGenerator = HBP.Tests.Serialization.LegacyNative.CutGenerator;
+using CutGeometryGenerator = HBP.Tests.Serialization.LegacyNative.CutGeometryGenerator;
+using DensityGenerator = HBP.Tests.Serialization.LegacyNative.DensityGenerator;
+using GeneratorSurface = HBP.Tests.Serialization.LegacyNative.GeneratorSurface;
+using Surface = HBP.Tests.Serialization.LegacyNative.Surface;
+using Volume = HBP.Tests.Serialization.LegacyNative.Volume;
 
 namespace HBP.Tests.Serialization
 {
@@ -23,12 +30,12 @@ namespace HBP.Tests.Serialization
             {
                 foreach (bool flip in new[] { false, true })
                 {
-                    using Volume hbpExportVolume = LoadVolume(NativeBackend.HbpExport);
-                    using Volume hbpCoreVolume = LoadVolume(NativeBackend.HbpCore);
+                    using Volume hbpExportVolume = LoadVolume(BenchmarkBackend.HbpExport);
+                    using Volume hbpCoreVolume = LoadVolume(BenchmarkBackend.HbpCore);
                     using HBP.Core.Object3D.Cut hbpExportCut = CreateCut(hbpExportVolume, orientation, flip);
                     using HBP.Core.Object3D.Cut hbpCoreCut = CreateCut(hbpCoreVolume, orientation, flip);
-                    using CutGeometryGenerator hbpExportGeometry = InitializeCutGeometry(NativeBackend.HbpExport, hbpExportVolume, hbpExportCut, 8);
-                    using CutGeometryGenerator hbpCoreGeometry = InitializeCutGeometry(NativeBackend.HbpCore, hbpCoreVolume, hbpCoreCut, 8);
+                    using CutGeometryGenerator hbpExportGeometry = InitializeCutGeometry(BenchmarkBackend.HbpExport, hbpExportVolume, hbpExportCut, 8);
+                    using CutGeometryGenerator hbpCoreGeometry = InitializeCutGeometry(BenchmarkBackend.HbpCore, hbpCoreVolume, hbpCoreCut, 8);
 
                     using BBox hbpExportBBox = hbpExportGeometry.BoundingBox;
                     using BBox hbpCoreBBox = hbpCoreGeometry.BoundingBox;
@@ -66,14 +73,14 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            using Volume hbpExportVolume = LoadVolume(NativeBackend.HbpExport);
-            using Volume hbpCoreVolume = LoadVolume(NativeBackend.HbpCore);
+            using Volume hbpExportVolume = LoadVolume(BenchmarkBackend.HbpExport);
+            using Volume hbpCoreVolume = LoadVolume(BenchmarkBackend.HbpCore);
             using HBP.Core.Object3D.Cut hbpExportCut = CreateCut(hbpExportVolume, CutOrientation.Axial, flip: false);
             using HBP.Core.Object3D.Cut hbpCoreCut = CreateCut(hbpCoreVolume, CutOrientation.Axial, flip: false);
-            using CutGeometryGenerator hbpExportGeometry = InitializeCutGeometry(NativeBackend.HbpExport, hbpExportVolume, hbpExportCut, 8);
-            using CutGeometryGenerator hbpCoreGeometry = InitializeCutGeometry(NativeBackend.HbpCore, hbpCoreVolume, hbpCoreCut, 8);
-            using Surface hbpExportSurface = LoadSurface(NativeBackend.HbpExport);
-            using Surface hbpCoreSurface = LoadSurface(NativeBackend.HbpCore);
+            using CutGeometryGenerator hbpExportGeometry = InitializeCutGeometry(BenchmarkBackend.HbpExport, hbpExportVolume, hbpExportCut, 8);
+            using CutGeometryGenerator hbpCoreGeometry = InitializeCutGeometry(BenchmarkBackend.HbpCore, hbpCoreVolume, hbpCoreCut, 8);
+            using Surface hbpExportSurface = LoadSurface(BenchmarkBackend.HbpExport);
+            using Surface hbpCoreSurface = LoadSurface(BenchmarkBackend.HbpCore);
 
             hbpExportGeometry.UpdateSurfaceUV(hbpExportSurface);
             hbpCoreGeometry.UpdateSurfaceUV(hbpCoreSurface);
@@ -105,8 +112,8 @@ namespace HBP.Tests.Serialization
             {
                 foreach (bool flip in new[] { false, true })
                 {
-                    CutPixels hbpExportPixels = RenderVolumeCut(NativeBackend.HbpExport, orientation, flip);
-                    CutPixels hbpCorePixels = RenderVolumeCut(NativeBackend.HbpCore, orientation, flip);
+                    CutPixels hbpExportPixels = RenderVolumeCut(BenchmarkBackend.HbpExport, orientation, flip);
+                    CutPixels hbpCorePixels = RenderVolumeCut(BenchmarkBackend.HbpCore, orientation, flip);
 
                     Assert.That(hbpCorePixels.Width, Is.EqualTo(hbpExportPixels.Width), $"{orientation} flip={flip}");
                     Assert.That(hbpCorePixels.Height, Is.EqualTo(hbpExportPixels.Height), $"{orientation} flip={flip}");
@@ -115,7 +122,7 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static CutPixels RenderVolumeCut(NativeBackend backend, CutOrientation orientation, bool flip)
+        private static CutPixels RenderVolumeCut(BenchmarkBackend backend, CutOrientation orientation, bool flip)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -133,7 +140,7 @@ namespace HBP.Tests.Serialization
                     cutGenerator.Initialize(activity, geometry, 0);
 
                     Color32[] colorScheme = UnityTextureFactory.Generate1DColorPixels(ColorType.BrainColor);
-                    if (backend == NativeBackend.HbpCore)
+                    if (backend == BenchmarkBackend.HbpCore)
                     {
                         cutGenerator.FillTextureWithVolume(colorScheme, 0.0f, 124.0f);
                         Vector2Int size = geometry.TextureSize;
@@ -149,7 +156,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static Volume LoadVolume(NativeBackend backend)
+        private static Volume LoadVolume(BenchmarkBackend backend)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -169,7 +176,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static Surface LoadSurface(NativeBackend backend)
+        private static Surface LoadSurface(BenchmarkBackend backend)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -189,7 +196,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static CutGeometryGenerator InitializeCutGeometry(NativeBackend backend, Volume volume, HBP.Core.Object3D.Cut cut, int maxTextureSize)
+        private static CutGeometryGenerator InitializeCutGeometry(BenchmarkBackend backend, Volume volume, HBP.Core.Object3D.Cut cut, int maxTextureSize)
         {
             return NativeParityAssert.WithBackend(
                 backend,

@@ -99,16 +99,16 @@ namespace HBP.Core.DLL
             }
         }
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_segment_create", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_segment_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_segment_create(ref Vec3 end1, ref Vec3 end2, out IntPtr segment);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_segment_destroy", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_segment_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_segment_destroy(IntPtr segment);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_segment_set", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_segment_set", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_segment_set(IntPtr segment, ref Vec3 end1, ref Vec3 end2);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_segment_get_length", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_segment_get_length", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_segment_get_length(IntPtr segment, out float length);
     }
 }

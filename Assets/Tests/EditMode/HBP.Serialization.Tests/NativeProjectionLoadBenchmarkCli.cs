@@ -69,8 +69,6 @@ namespace HBP.Tests.Serialization
                 report.surfacePath = surfacePath;
                 report.volumePath = volumePath;
                 report.includeExport = includeExport;
-
-                NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
                 List<NativeProjectionLoadScenarioDefinition> scenarios = NativeProjectionLoadBenchmarkScenarios.Build(
                     profile,
                     timelineLength,
@@ -112,7 +110,6 @@ namespace HBP.Tests.Serialization
             finally
             {
                 report.finishedUtc = DateTime.UtcNow.ToString("O");
-                NativeBackendOptions.Reset();
                 if (!string.IsNullOrWhiteSpace(outputPath)) WriteReport(outputPath, report);
             }
         }

@@ -103,8 +103,7 @@ namespace HBP.Core.Object3D
         /// Set the cuts to the materials (to clip the vertices depending on the cuts)
         /// </summary>
         /// <param name="cuts">Cuts to be considered in Unity space.</param>
-        /// <param name="meshUsesNativeCoordinates">True only for the transitional hbp_export mesh path.</param>
-        public void SetCuts(List<Cut> cuts, float scale, Quaternion rotation, bool meshUsesNativeCoordinates)
+        public void SetCuts(List<Cut> cuts, float scale, Quaternion rotation)
         {
             m_Brain.SetInt("_CutCount", cuts.Count);
             m_TransparentBrain.SetInt("_CutCount", cuts.Count);
@@ -116,10 +115,6 @@ namespace HBP.Core.Object3D
                     if (i < cuts.Count)
                     {
                         Vector3 point = cuts[i].Point;
-                        if (meshUsesNativeCoordinates)
-                        {
-                            point.x = -point.x;
-                        }
                         point = rotation * (point * scale);
                         cutPoints.Add(new Vector4(point.x, point.y, point.z));
                     }
@@ -136,10 +131,6 @@ namespace HBP.Core.Object3D
                     if (i < cuts.Count)
                     {
                         Vector3 normal = cuts[i].Normal;
-                        if (meshUsesNativeCoordinates)
-                        {
-                            normal.x = -normal.x;
-                        }
                         normal = rotation * normal;
                         cutNormals.Add(new Vector4(normal.x, normal.y, normal.z));
                     }

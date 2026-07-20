@@ -30,14 +30,8 @@ namespace HBP.Tests.Serialization
                 .Select(ParseMarsRecord)
                 .ToArray();
 
-            using MarsAtlas atlas = NativeParityAssert.WithBackend(
-                NativeBackend.HbpCore,
-                () =>
-                {
-                    MarsAtlas value = new();
-                    Assert.That(value.Load(indexPath, brodmannPath, niftiPath), Is.True);
-                    return value;
-                });
+            using MarsAtlas atlas = new();
+            Assert.That(atlas.Load(indexPath, brodmannPath, niftiPath), Is.True);
 
             Assert.That(atlas.Labels(), Is.EquivalentTo(records.Select(record => record.Label)));
             Assert.That(atlas.AreaNames, Is.EquivalentTo(records.Where(record => record.Label != 0).Select(record => record.FullName.Trim()).Distinct()));
@@ -87,15 +81,9 @@ namespace HBP.Tests.Serialization
             string jsonPath = Path.Combine(atlasDirectory, "jubrain_labels_3.1.json");
             JuBrainRecord[] records = ParseJuBrainRecords(File.ReadAllText(jsonPath));
 
-            using JuBrainAtlas atlas = NativeParityAssert.WithBackend(
-                NativeBackend.HbpCore,
-                () =>
-                {
-                    JuBrainAtlas value = new();
-                    value.Load();
-                    Assert.That(value.Loaded, Is.True);
-                    return value;
-                });
+            using JuBrainAtlas atlas = new();
+            atlas.Load();
+            Assert.That(atlas.Loaded, Is.True);
 
             Assert.That(atlas.AreaNames, Is.EquivalentTo(records.Select(record => record.Name).Distinct()));
             foreach (JuBrainRecord record in records)
@@ -130,41 +118,36 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
             string path = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Meshes", "MNI_single_hight_Lwhite.obj");
-            Surface[] outputs = NativeParityAssert.WithBackend(
-                NativeBackend.HbpCore,
-                () =>
+            using Surface source = new();
+            Assert.That(source.LoadOBJFile(path), Is.True);
+            using Surface simplified = source.Simplify(numberOfTriangles: 4000, agressiveness: 7);
+            Mesh simplifiedMesh = new() { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+            try
+            {
+                simplified.UpdateMeshFromDLL(simplifiedMesh);
+                if (simplifiedMesh.normals.Length != simplifiedMesh.vertexCount)
                 {
-                    using Surface source = new();
-                    Assert.That(source.LoadOBJFile(path), Is.True);
-                    using Surface simplified = source.Simplify(numberOfTriangles: 4000, agressiveness: 7);
-                    Mesh simplifiedMesh = new() { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
-                    try
-                    {
-                        simplified.UpdateMeshFromDLL(simplifiedMesh);
-                        if (simplifiedMesh.normals.Length != simplifiedMesh.vertexCount)
-                        {
-                            simplifiedMesh.RecalculateNormals();
-                        }
-                        Color[] colors = simplifiedMesh.colors.Length == simplifiedMesh.vertexCount
-                            ? simplifiedMesh.colors
-                            : Enumerable.Repeat(Color.white, simplifiedMesh.vertexCount).ToArray();
-                        simplified.SetBuffers(
-                            simplifiedMesh.vertices,
-                            simplifiedMesh.triangles,
-                            simplifiedMesh.normals,
-                            simplifiedMesh.uv.Length == simplifiedMesh.vertexCount ? simplifiedMesh.uv : null,
-                            colors);
-                    }
-                    finally
-                    {
-                        UnityEngine.Object.DestroyImmediate(simplifiedMesh);
-                    }
+                    simplifiedMesh.RecalculateNormals();
+                }
+                Color[] colors = simplifiedMesh.colors.Length == simplifiedMesh.vertexCount
+                    ? simplifiedMesh.colors
+                    : Enumerable.Repeat(Color.white, simplifiedMesh.vertexCount).ToArray();
+                simplified.SetBuffers(
+                    simplifiedMesh.vertices,
+                    simplifiedMesh.triangles,
+                    simplifiedMesh.normals,
+                    simplifiedMesh.uv.Length == simplifiedMesh.vertexCount ? simplifiedMesh.uv : null,
+                    colors);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(simplifiedMesh);
+            }
 
-                    using BBox bbox = simplified.BoundingBox;
-                    Vector3 center = (bbox.Min + bbox.Max) * 0.5f;
-                    using HBP.Core.Object3D.Cut cut = new(center, Vector3.right);
-                    return simplified.Cut(new[] { cut }, noHoles: false, strongCuts: true);
-                });
+            using BBox bbox = simplified.BoundingBox;
+            Vector3 center = (bbox.Min + bbox.Max) * 0.5f;
+            using HBP.Core.Object3D.Cut cut = new(center, Vector3.right);
+            Surface[] outputs = simplified.Cut(new[] { cut }, noHoles: false, strongCuts: true);
 
             try
             {
@@ -192,54 +175,48 @@ namespace HBP.Tests.Serialization
         public void CutGeometryGenerator_MniMergedBoundsEndpointsRemainValid()
         {
             NativeParityAssert.RequireHbpCore();
-            NativeParityAssert.WithBackend(
-                NativeBackend.HbpCore,
-                () =>
-                {
-                    string meshDirectory = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Meshes");
-                    using Surface left = new();
-                    using Surface right = new();
-                    using Volume volume = new();
-                    Assert.That(left.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Lhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
-                    Assert.That(right.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Rhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
-                    Assert.That(volume.LoadNIFTIFile(Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "IRM", "MNI.nii")), Is.True);
-                    left.FlipTriangles();
-                    right.FlipTriangles();
-                    left.Append(right);
+            string meshDirectory = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Meshes");
+            using Surface left = new();
+            using Surface right = new();
+            using Volume volume = new();
+            Assert.That(left.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Lhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+            Assert.That(right.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Rhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+            Assert.That(volume.LoadNIFTIFile(Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "IRM", "MNI.nii")), Is.True);
+            left.FlipTriangles();
+            right.FlipTriangles();
+            left.Append(right);
 
-                    using BBox volumeBounds = volume.BoundingBox;
-                    using BBox surfaceBounds = left.BoundingBox;
-                    using BBox mergedBounds = BBox.Merge(volumeBounds, surfaceBounds);
-                    foreach (HBP.Core.Enums.CutOrientation orientation in new[]
+            using BBox volumeBounds = volume.BoundingBox;
+            using BBox surfaceBounds = left.BoundingBox;
+            using BBox mergedBounds = BBox.Merge(volumeBounds, surfaceBounds);
+            foreach (HBP.Core.Enums.CutOrientation orientation in new[]
+            {
+                HBP.Core.Enums.CutOrientation.Axial,
+                HBP.Core.Enums.CutOrientation.Coronal,
+                HBP.Core.Enums.CutOrientation.Sagittal
+            })
+            {
+                using HBP.Core.DLL.Plane orientationPlane = new(Vector3.zero, Vector3.right);
+                volume.SetPlaneWithOrientation(orientationPlane, orientation, false);
+                float offset = mergedBounds.SizeOffsetCutPlane(orientationPlane, 500);
+                foreach (float position in new[] { 0.0f, 1.0f })
+                {
+                    using HBP.Core.Object3D.Cut cut = new(
+                        mergedBounds.Center + orientationPlane.Normal.normalized * (position - 0.5f) * offset * 500,
+                        orientationPlane.Normal)
                     {
-                        HBP.Core.Enums.CutOrientation.Axial,
-                        HBP.Core.Enums.CutOrientation.Coronal,
-                        HBP.Core.Enums.CutOrientation.Sagittal
-                    })
-                    {
-                        using HBP.Core.DLL.Plane orientationPlane = new(Vector3.zero, Vector3.right);
-                        volume.SetPlaneWithOrientation(orientationPlane, orientation, false);
-                        float offset = mergedBounds.SizeOffsetCutPlane(orientationPlane, 500);
-                        foreach (float position in new[] { 0.0f, 1.0f })
-                        {
-                            using HBP.Core.Object3D.Cut cut = new(
-                                mergedBounds.Center + orientationPlane.Normal.normalized * (position - 0.5f) * offset * 500,
-                                orientationPlane.Normal)
-                            {
-                                Orientation = orientation,
-                                Position = position,
-                                NumberOfCuts = 500
-                            };
-                            using CutGeometryGenerator geometry = new();
-                            Assert.DoesNotThrow(
-                                () => geometry.Initialize(volume, cut, -1),
-                                $"{orientation} endpoint {position}");
-                            Assert.That(geometry.TextureSize.x, Is.GreaterThan(0), $"{orientation} endpoint {position} width");
-                            Assert.That(geometry.TextureSize.y, Is.GreaterThan(0), $"{orientation} endpoint {position} height");
-                        }
-                    }
-                    return true;
-                });
+                        Orientation = orientation,
+                        Position = position,
+                        NumberOfCuts = 500
+                    };
+                    using CutGeometryGenerator geometry = new();
+                    Assert.DoesNotThrow(
+                        () => geometry.Initialize(volume, cut, -1),
+                        $"{orientation} endpoint {position}");
+                    Assert.That(geometry.TextureSize.x, Is.GreaterThan(0), $"{orientation} endpoint {position} width");
+                    Assert.That(geometry.TextureSize.y, Is.GreaterThan(0), $"{orientation} endpoint {position} height");
+                }
+            }
         }
 
         private static void AssertFullSurfaceBuffers(Surface surface, bool requireColors, string context)

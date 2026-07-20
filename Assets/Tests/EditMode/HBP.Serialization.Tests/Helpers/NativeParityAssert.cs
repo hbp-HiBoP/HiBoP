@@ -39,21 +39,21 @@ namespace HBP.Tests.Serialization.Helpers
             }
         }
 
-        public static T WithBackend<T>(NativeBackend backend, Func<T> action)
+        public static T WithBackend<T>(BenchmarkBackend backend, Func<T> action)
         {
-            NativeBackend previousBackend = NativeBackendOptions.ExperimentalBackend;
-            NativeBackendOptions.ExperimentalBackend = backend;
+            BenchmarkBackend previousBackend = OracleBackendContext.Current;
+            OracleBackendContext.Current = backend;
             try
             {
                 return ExecuteNativeOrIgnore(action, $"{backend} backend");
             }
             finally
             {
-                NativeBackendOptions.ExperimentalBackend = previousBackend;
+                OracleBackendContext.Current = previousBackend;
             }
         }
 
-        public static void WithBackend(NativeBackend backend, Action action)
+        public static void WithBackend(BenchmarkBackend backend, Action action)
         {
             WithBackend(
                 backend,

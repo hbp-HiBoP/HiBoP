@@ -52,16 +52,16 @@ namespace HBP.Core.DLL
             }
         }
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_transform_create_identity", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_transform_create_identity", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_transform_create_identity(out IntPtr transformation);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_transform_create_from_file", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_transform_create_from_file", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_transform_create_from_file(string path, out IntPtr transformation);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_transform_destroy", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_transform_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_transform_destroy(IntPtr transformation);
 
-        [DllImport(NativeDll.HbpCore, EntryPoint = "hbp_transform_apply_point", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_transform_apply_point", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_transform_apply_point(IntPtr transformation, ref Vec3 point, out Vec3 outPoint);
     }
 }

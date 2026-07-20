@@ -6,22 +6,22 @@ namespace HBP.Tests.Serialization
 {
     internal static class LegacyCutGeneratorBridge
     {
-        public static void FillTextureWithVolume(CutGenerator generator, LegacyTextureBridge colorScheme, float calMin, float calMax)
+        public static void FillTextureWithVolume(LegacyNative.CutGenerator generator, LegacyTextureBridge colorScheme, float calMin, float calMax)
         {
             fill_texture_with_volume_CutGenerator(generator.getHandle().Handle, colorScheme.Handle, calMin, calMax);
         }
 
-        public static void UpdateTextureWithVolume(CutGenerator generator, LegacyTextureBridge texture)
+        public static void UpdateTextureWithVolume(LegacyNative.CutGenerator generator, LegacyTextureBridge texture)
         {
             update_texture_with_volume_CutGenerator(generator.getHandle().Handle, texture.Handle);
         }
 
-        public static void FillTextureWithActivity(CutGenerator generator, LegacyTextureBridge colorScheme, int timelineIndex, float alpha)
+        public static void FillTextureWithActivity(LegacyNative.CutGenerator generator, LegacyTextureBridge colorScheme, int timelineIndex, float alpha)
         {
             fill_texture_with_activity_CutGenerator(generator.getHandle().Handle, colorScheme.Handle, timelineIndex, alpha);
         }
 
-        public static void UpdateTextureWithActivity(CutGenerator generator, LegacyTextureBridge texture)
+        public static void UpdateTextureWithActivity(LegacyNative.CutGenerator generator, LegacyTextureBridge texture)
         {
             update_texture_with_activity_CutGenerator(generator.getHandle().Handle, texture.Handle);
         }

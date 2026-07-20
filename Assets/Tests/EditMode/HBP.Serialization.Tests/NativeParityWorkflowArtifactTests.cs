@@ -7,6 +7,15 @@ using HBP.Core.Tools;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
+using CutGenerator = HBP.Tests.Serialization.LegacyNative.CutGenerator;
+using CutGeometryGenerator = HBP.Tests.Serialization.LegacyNative.CutGeometryGenerator;
+using DensityGenerator = HBP.Tests.Serialization.LegacyNative.DensityGenerator;
+using FMRIGenerator = HBP.Tests.Serialization.LegacyNative.FMRIGenerator;
+using GeneratorSurface = HBP.Tests.Serialization.LegacyNative.GeneratorSurface;
+using MarsAtlas = HBP.Tests.Serialization.LegacyNative.MarsAtlas;
+using Surface = HBP.Tests.Serialization.LegacyNative.Surface;
+using SurfaceGenerator = HBP.Tests.Serialization.LegacyNative.SurfaceGenerator;
+using Volume = HBP.Tests.Serialization.LegacyNative.Volume;
 
 namespace HBP.Tests.Serialization
 {
@@ -21,8 +30,8 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            WorkflowArtifact hbpExportArtifact = CaptureWorkflowArtifact(NativeBackend.HbpExport);
-            WorkflowArtifact hbpCoreArtifact = CaptureWorkflowArtifact(NativeBackend.HbpCore);
+            WorkflowArtifact hbpExportArtifact = CaptureWorkflowArtifact(BenchmarkBackend.HbpExport);
+            WorkflowArtifact hbpCoreArtifact = CaptureWorkflowArtifact(BenchmarkBackend.HbpCore);
 
             NativeParityAssert.AssertVector(hbpCoreArtifact.VolumeCenter, hbpExportArtifact.VolumeCenter, context: "workflow normalized Unity volume center");
             NativeParityAssert.AssertVector(hbpCoreArtifact.VolumeCenter, new Vector3(-2.0f, 2.0f, 2.0f), context: "workflow fmri_3d fixture center in Unity");
@@ -47,7 +56,7 @@ namespace HBP.Tests.Serialization
             Assert.That(hbpCoreArtifact.MarsLabelOneName, Is.EqualTo(hbpExportArtifact.MarsLabelOneName));
         }
 
-        private static WorkflowArtifact CaptureWorkflowArtifact(NativeBackend backend)
+        private static WorkflowArtifact CaptureWorkflowArtifact(BenchmarkBackend backend)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -68,16 +77,16 @@ namespace HBP.Tests.Serialization
                         surface.UpdateMeshFromDLL(mesh);
 
                         Vector3 rawVolumeCenter = volume.Center;
-                        Vector3 unityVolumeCenter = backend == NativeBackend.HbpCore
+                        Vector3 unityVolumeCenter = backend == BenchmarkBackend.HbpCore
                             ? rawVolumeCenter
                             : NativeParityAssert.NativeToUnity(rawVolumeCenter);
                         Vector3 rawOrientation = volume.GetOrientationVector(CutOrientation.Axial, flip: false);
-                        Vector3 unityOrientation = backend == NativeBackend.HbpCore
+                        Vector3 unityOrientation = backend == BenchmarkBackend.HbpCore
                             ? rawOrientation
                             : NativeParityAssert.NativeToUnity(rawOrientation);
                         TestContext.Progress.WriteLine(
                             $"workflow {backend}: raw center={rawVolumeCenter}; normalized Unity center={unityVolumeCenter}; conversion=R=diag({(ReferenceSystemConversion.InvertX ? "-1" : "1")},1,1)");
-                        if (backend == NativeBackend.HbpExport)
+                        if (backend == BenchmarkBackend.HbpExport)
                         {
                             NativeParityAssert.NormalizeLegacyMeshToUnity(mesh);
                         }
@@ -123,7 +132,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static CutPixels RenderVolumeCut(NativeBackend backend, Volume volume, Surface surface, CutGeometryGenerator cutGeometry)
+        private static CutPixels RenderVolumeCut(BenchmarkBackend backend, Volume volume, Surface surface, CutGeometryGenerator cutGeometry)
         {
             using GeneratorSurface generatorSurface = new();
             generatorSurface.Initialize(surface, volume, 8);
@@ -133,7 +142,7 @@ namespace HBP.Tests.Serialization
             cutGenerator.Initialize(activity, cutGeometry, 0);
 
             Color32[] colorScheme = UnityTextureFactory.Generate1DColorPixels(ColorType.BrainColor);
-            if (backend == NativeBackend.HbpCore)
+            if (backend == BenchmarkBackend.HbpCore)
             {
                 cutGenerator.FillTextureWithVolume(colorScheme, 0.0f, 124.0f);
                 Vector2Int size = cutGeometry.TextureSize;

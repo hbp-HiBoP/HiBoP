@@ -7,6 +7,9 @@ using HBP.Core.Enums;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
+using BBox = HBP.Tests.Serialization.LegacyNative.BBox;
+using NIFTI = HBP.Tests.Serialization.LegacyNative.NIFTI;
+using Volume = HBP.Tests.Serialization.LegacyNative.Volume;
 using HbpPlane = HBP.Core.DLL.Plane;
 using HbpSegment3 = HBP.Core.DLL.Segment3;
 
@@ -23,7 +26,7 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            using Volume hbpExportVolume = LoadVolume(NativeBackend.HbpExport, "fmri_3d.nii");
+            using Volume hbpExportVolume = LoadVolume(BenchmarkBackend.HbpExport, "fmri_3d.nii");
             using BBox hbpExportBBox = hbpExportVolume.BoundingBox;
             NativeParityAssert.NativeBoundsToUnity(hbpExportBBox.Min, hbpExportBBox.Max, out Vector3 unityMin, out Vector3 unityMax);
             using BBox hbpCoreBBox = BBox.CreateHbpCore(unityMin, unityMax);
@@ -111,8 +114,8 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            using Volume hbpExportVolume = LoadVolume(NativeBackend.HbpExport, "fmri_3d.nii");
-            using Volume hbpCoreVolume = LoadVolume(NativeBackend.HbpCore, "fmri_3d.nii");
+            using Volume hbpExportVolume = LoadVolume(BenchmarkBackend.HbpExport, "fmri_3d.nii");
+            using Volume hbpCoreVolume = LoadVolume(BenchmarkBackend.HbpCore, "fmri_3d.nii");
 
             NativeParityAssert.AssertUnityVectorMatchesLegacyNative(hbpCoreVolume.Center, hbpExportVolume.Center, context: "fmri_3d center");
             NativeParityAssert.AssertVector(hbpCoreVolume.Center, new Vector3(-2.0f, 2.0f, 2.0f), context: "fmri_3d fixture center in Unity");
@@ -148,8 +151,8 @@ namespace HBP.Tests.Serialization
                 }
             }
 
-            using Volume hbpExportMaskVolume = LoadVolume(NativeBackend.HbpExport, "fmri_3d.nii");
-            using Volume hbpCoreMaskVolume = LoadVolume(NativeBackend.HbpCore, "fmri_3d.nii");
+            using Volume hbpExportMaskVolume = LoadVolume(BenchmarkBackend.HbpExport, "fmri_3d.nii");
+            using Volume hbpCoreMaskVolume = LoadVolume(BenchmarkBackend.HbpCore, "fmri_3d.nii");
             float[] hbpExportRawValues = new float[27];
             float[] hbpCoreRawValues = new float[27];
             int hbpExportActualLength = 0;
@@ -248,8 +251,8 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            using NIFTI hbpExportNifti = LoadNifti(NativeBackend.HbpExport, "fmri_4d.nii.gz");
-            using NIFTI hbpCoreNifti = LoadNifti(NativeBackend.HbpCore, "fmri_4d.nii.gz");
+            using NIFTI hbpExportNifti = LoadNifti(BenchmarkBackend.HbpExport, "fmri_4d.nii.gz");
+            using NIFTI hbpCoreNifti = LoadNifti(BenchmarkBackend.HbpCore, "fmri_4d.nii.gz");
 
             Assert.That(hbpCoreNifti.NumberOfVolumes, Is.EqualTo(hbpExportNifti.NumberOfVolumes));
             Assert.That(hbpCoreNifti.StartTime, Is.EqualTo(hbpExportNifti.StartTime).Within(0.0001f));
@@ -257,7 +260,7 @@ namespace HBP.Tests.Serialization
             Assert.That(hbpCoreNifti.TimeUnit, Is.EqualTo(hbpExportNifti.TimeUnit));
             NativeParityAssert.AssertMriCalValues(hbpCoreNifti.ExtremeValues, hbpExportNifti.ExtremeValues);
 
-            using Volume hbpExportFirstVolume = LoadVolume(NativeBackend.HbpExport, "fmri_4d.nii.gz");
+            using Volume hbpExportFirstVolume = LoadVolume(BenchmarkBackend.HbpExport, "fmri_4d.nii.gz");
             using Volume hbpCoreFirstVolume = hbpCoreNifti.ExtractVolume(0);
             Assert.That(hbpCoreFirstVolume.IsLoaded, Is.True);
             NativeParityAssert.AssertUnityVectorMatchesLegacyNative(hbpCoreFirstVolume.Center, hbpExportFirstVolume.Center, context: "fmri_4d volume[0] center");
@@ -272,7 +275,7 @@ namespace HBP.Tests.Serialization
             Assert.That(hbpCoreSecondVolume.IsLoaded, Is.True);
         }
 
-        private static Volume LoadVolume(NativeBackend backend, string fixtureName)
+        private static Volume LoadVolume(BenchmarkBackend backend, string fixtureName)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -292,7 +295,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static NIFTI LoadNifti(NativeBackend backend, string fixtureName)
+        private static NIFTI LoadNifti(BenchmarkBackend backend, string fixtureName)
         {
             return NativeParityAssert.WithBackend(
                 backend,

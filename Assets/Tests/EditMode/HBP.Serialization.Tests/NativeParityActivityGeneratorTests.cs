@@ -9,6 +9,17 @@ using HBP.Core.Enums;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEngine;
+using ActivityGenerator = HBP.Tests.Serialization.LegacyNative.ActivityGenerator;
+using DensityGenerator = HBP.Tests.Serialization.LegacyNative.DensityGenerator;
+using FMRIGenerator = HBP.Tests.Serialization.LegacyNative.FMRIGenerator;
+using GeneratorSurface = HBP.Tests.Serialization.LegacyNative.GeneratorSurface;
+using IEEGGenerator = HBP.Tests.Serialization.LegacyNative.IEEGGenerator;
+using MarsAtlas = HBP.Tests.Serialization.LegacyNative.MarsAtlas;
+using MEGGenerator = HBP.Tests.Serialization.LegacyNative.MEGGenerator;
+using RawSiteList = HBP.Tests.Serialization.LegacyNative.RawSiteList;
+using Surface = HBP.Tests.Serialization.LegacyNative.Surface;
+using SurfaceGenerator = HBP.Tests.Serialization.LegacyNative.SurfaceGenerator;
+using Volume = HBP.Tests.Serialization.LegacyNative.Volume;
 
 namespace HBP.Tests.Serialization
 {
@@ -23,8 +34,8 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            ActivityUvs hbpExportUvs = ComputeDensityUvs(NativeBackend.HbpExport);
-            ActivityUvs hbpCoreUvs = ComputeDensityUvs(NativeBackend.HbpCore);
+            ActivityUvs hbpExportUvs = ComputeDensityUvs(BenchmarkBackend.HbpExport);
+            ActivityUvs hbpCoreUvs = ComputeDensityUvs(BenchmarkBackend.HbpCore);
 
             Assert.That(hbpCoreUvs.MaxDensity, Is.EqualTo(hbpExportUvs.MaxDensity).Within(0.0005f));
             NativeParityAssert.AssertSameVectorArray(hbpCoreUvs.ActivityUV, hbpExportUvs.ActivityUV, 0.0005f);
@@ -39,10 +50,10 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            ActivityUvs hbpExportTimeline0 = ComputeIeegUvs(NativeBackend.HbpExport, timelineIndex: 0);
-            ActivityUvs hbpCoreTimeline0 = ComputeIeegUvs(NativeBackend.HbpCore, timelineIndex: 0);
-            ActivityUvs hbpExportTimeline1 = ComputeIeegUvs(NativeBackend.HbpExport, timelineIndex: 1);
-            ActivityUvs hbpCoreTimeline1 = ComputeIeegUvs(NativeBackend.HbpCore, timelineIndex: 1);
+            ActivityUvs hbpExportTimeline0 = ComputeIeegUvs(BenchmarkBackend.HbpExport, timelineIndex: 0);
+            ActivityUvs hbpCoreTimeline0 = ComputeIeegUvs(BenchmarkBackend.HbpCore, timelineIndex: 0);
+            ActivityUvs hbpExportTimeline1 = ComputeIeegUvs(BenchmarkBackend.HbpExport, timelineIndex: 1);
+            ActivityUvs hbpCoreTimeline1 = ComputeIeegUvs(BenchmarkBackend.HbpCore, timelineIndex: 1);
 
             NativeParityAssert.AssertSameVectorArray(hbpCoreTimeline0.ActivityUV, hbpExportTimeline0.ActivityUV, 0.0005f);
             NativeParityAssert.AssertSameVectorArray(hbpCoreTimeline0.AlphaUV, hbpExportTimeline0.AlphaUV, 0.0005f);
@@ -67,8 +78,8 @@ namespace HBP.Tests.Serialization
                 string hbpCoreActivityPath = Path.Combine(tempDirectory, "hbp_core_activity.nii.gz");
                 string hbpCoreMaskPath = Path.Combine(tempDirectory, "hbp_core_mask.nii.gz");
 
-                ExportIeegNifti(NativeBackend.HbpExport, hbpExportActivityPath, hbpExportMaskPath);
-                ExportIeegNifti(NativeBackend.HbpCore, hbpCoreActivityPath, hbpCoreMaskPath);
+                ExportIeegNifti(BenchmarkBackend.HbpExport, hbpExportActivityPath, hbpExportMaskPath);
+                ExportIeegNifti(BenchmarkBackend.HbpCore, hbpCoreActivityPath, hbpCoreMaskPath);
 
                 NiftiFileSnapshot hbpExportActivity = NiftiFileSnapshot.Read(hbpExportActivityPath);
                 NiftiFileSnapshot hbpCoreActivity = NiftiFileSnapshot.Read(hbpCoreActivityPath);
@@ -95,10 +106,10 @@ namespace HBP.Tests.Serialization
         {
             NativeParityAssert.RequireHbpCore();
 
-            ActivityUvs hbpExportFmri = ComputeVolumeActivityUvs(NativeBackend.HbpExport, GeneratorKind.Fmri);
-            ActivityUvs hbpCoreFmri = ComputeVolumeActivityUvs(NativeBackend.HbpCore, GeneratorKind.Fmri);
-            ActivityUvs hbpExportMeg = ComputeVolumeActivityUvs(NativeBackend.HbpExport, GeneratorKind.Meg);
-            ActivityUvs hbpCoreMeg = ComputeVolumeActivityUvs(NativeBackend.HbpCore, GeneratorKind.Meg);
+            ActivityUvs hbpExportFmri = ComputeVolumeActivityUvs(BenchmarkBackend.HbpExport, GeneratorKind.Fmri);
+            ActivityUvs hbpCoreFmri = ComputeVolumeActivityUvs(BenchmarkBackend.HbpCore, GeneratorKind.Fmri);
+            ActivityUvs hbpExportMeg = ComputeVolumeActivityUvs(BenchmarkBackend.HbpExport, GeneratorKind.Meg);
+            ActivityUvs hbpCoreMeg = ComputeVolumeActivityUvs(BenchmarkBackend.HbpCore, GeneratorKind.Meg);
 
             NativeParityAssert.AssertSameVectorArray(hbpCoreFmri.ActivityUV, hbpExportFmri.ActivityUV, 0.0005f);
             NativeParityAssert.AssertSameVectorArray(hbpCoreFmri.AlphaUV, hbpExportFmri.AlphaUV, 0.0005f);
@@ -119,14 +130,14 @@ namespace HBP.Tests.Serialization
 
             foreach (SiteInfluenceByDistanceType mode in Enum.GetValues(typeof(SiteInfluenceByDistanceType)))
             {
-                ActivityUvs exportDensity = ComputeDensityUvs(NativeBackend.HbpExport, mode);
-                ActivityUvs coreDensity = ComputeDensityUvs(NativeBackend.HbpCore, mode);
+                ActivityUvs exportDensity = ComputeDensityUvs(BenchmarkBackend.HbpExport, mode);
+                ActivityUvs coreDensity = ComputeDensityUvs(BenchmarkBackend.HbpCore, mode);
                 Assert.That(coreDensity.MaxDensity, Is.EqualTo(exportDensity.MaxDensity).Within(0.0005f), $"density max, {mode}");
                 NativeParityAssert.AssertSameVectorArray(coreDensity.ActivityUV, exportDensity.ActivityUV, 0.0005f);
                 NativeParityAssert.AssertSameVectorArray(coreDensity.AlphaUV, exportDensity.AlphaUV, 0.0005f);
 
-                ActivityUvs exportIeeg = ComputeIeegUvs(NativeBackend.HbpExport, timelineIndex: 0, mode: mode);
-                ActivityUvs coreIeeg = ComputeIeegUvs(NativeBackend.HbpCore, timelineIndex: 0, mode: mode);
+                ActivityUvs exportIeeg = ComputeIeegUvs(BenchmarkBackend.HbpExport, timelineIndex: 0, mode: mode);
+                ActivityUvs coreIeeg = ComputeIeegUvs(BenchmarkBackend.HbpCore, timelineIndex: 0, mode: mode);
                 NativeParityAssert.AssertSameVectorArray(coreIeeg.ActivityUV, exportIeeg.ActivityUV, 0.0005f);
                 NativeParityAssert.AssertSameVectorArray(coreIeeg.AlphaUV, exportIeeg.AlphaUV, 0.0005f);
             }
@@ -139,12 +150,12 @@ namespace HBP.Tests.Serialization
         public void SurfaceMainUvs_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();
-            Vector2[] exportUvs = ComputeMainUvs(NativeBackend.HbpExport);
-            Vector2[] coreUvs = ComputeMainUvs(NativeBackend.HbpCore);
+            Vector2[] exportUvs = ComputeMainUvs(BenchmarkBackend.HbpExport);
+            Vector2[] coreUvs = ComputeMainUvs(BenchmarkBackend.HbpCore);
             NativeParityAssert.AssertSameVectorArray(coreUvs, exportUvs, 0.0005f);
         }
 
-        private static ActivityUvs ComputeDensityUvs(NativeBackend backend, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Quadratic)
+        private static ActivityUvs ComputeDensityUvs(BenchmarkBackend backend, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Quadratic)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -163,7 +174,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static ActivityUvs ComputeIeegUvs(NativeBackend backend, int timelineIndex, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Linear)
+        private static ActivityUvs ComputeIeegUvs(BenchmarkBackend backend, int timelineIndex, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Linear)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -191,7 +202,7 @@ namespace HBP.Tests.Serialization
                 });
         }
 
-        private static void ExportIeegNifti(NativeBackend backend, string activityPath, string maskPath)
+        private static void ExportIeegNifti(BenchmarkBackend backend, string activityPath, string maskPath)
         {
             NativeParityAssert.WithBackend(
                 backend,
@@ -225,7 +236,7 @@ namespace HBP.Tests.Serialization
             HBP.Core.Object3D.FMRI fmri = new();
             try
             {
-                fmri.Volumes.Add(new Volume());
+                fmri.Volumes.Add(new HBP.Core.DLL.Volume());
                 return new SubTimeline(fmri);
             }
             finally
@@ -283,7 +294,7 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static ActivityUvs ComputeVolumeActivityUvs(NativeBackend backend, GeneratorKind generatorKind)
+        private static ActivityUvs ComputeVolumeActivityUvs(BenchmarkBackend backend, GeneratorKind generatorKind)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -330,7 +341,7 @@ namespace HBP.Tests.Serialization
             };
         }
 
-        private static Vector2[] ComputeMainUvs(NativeBackend backend)
+        private static Vector2[] ComputeMainUvs(BenchmarkBackend backend)
         {
             return NativeParityAssert.WithBackend(
                 backend,
@@ -445,7 +456,7 @@ namespace HBP.Tests.Serialization
 
         private static Vector3 ToNativePosition(Surface surface, Vector3 position)
         {
-            return surface.Backend == NativeBackend.HbpCore
+            return surface.Backend == BenchmarkBackend.HbpCore
                 ? new Vector3(ReferenceSystemConversion.ConvertX(position.x), position.y, position.z)
                 : position;
         }

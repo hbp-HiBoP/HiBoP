@@ -17,13 +17,6 @@ namespace HBP.Tests.Serialization
         public void SetUp()
         {
             NativeParityAssert.RequireHbpCore();
-            NativeBackendOptions.ExperimentalBackend = NativeBackend.HbpCore;
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            NativeBackendOptions.Reset();
         }
 
         [Test]
