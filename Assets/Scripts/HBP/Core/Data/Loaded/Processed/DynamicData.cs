@@ -5,6 +5,7 @@
         #region Properties
         public virtual IconicScenario IconicScenario { get; set; }
         public virtual Timeline Timeline { get; set; }
+        public virtual Timeline ProjectionTimeline { get; set; }
         #endregion
 
         public override void Unload()
@@ -12,6 +13,7 @@
             base.Unload();
             IconicScenario = null;
             Timeline = null;
+            ProjectionTimeline = null;
         }
     }
 }

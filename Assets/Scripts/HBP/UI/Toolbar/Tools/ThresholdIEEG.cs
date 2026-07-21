@@ -119,14 +119,14 @@ namespace HBP.UI.Toolbar
             string histogramID = GenerateHistogramID(column);
             if (!m_Histograms.TryGetValue(histogramID, out m_IEEGHistogram))
             {
-                float[] iEEGValues = column.ActivityValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
                 {
                     m_IEEGHistogram = new Texture2D(1, 1);
                 }
-                if (iEEGValues.Length > 0)
+                if (column.ActivityStatistics.Count > 0)
                 {
-                    m_IEEGHistogram = UnityTextureFactory.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
+                    int[] bins = column.GetUnmaskedHistogramBins(m_MinAmplitude, m_MaxAmplitude, UnityTextureFactory.HistogramBinCount);
+                    m_IEEGHistogram = UnityTextureFactory.GenerateDistributionHistogram(bins, 440, 440);
                 }
                 else
                 {

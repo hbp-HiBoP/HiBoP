@@ -41,24 +41,13 @@ namespace HBP.Data.Informations.TrialMatrix
         #region Private Methods
         Vector2 CalculateLimits(IEnumerable<Bloc> blocs)
         {
-            List<float> values = new();
-            foreach (var bloc in blocs)
-            {
-                foreach(var channelBloc in bloc.ChannelBlocs)
-                {
-                    if(channelBloc.IsFound)
-                    {
-                        foreach (var subBloc in channelBloc.SubBlocs)
-                        {
-                            foreach (var subTrial in subBloc.SubTrials)
-                            {
-                                values.AddRange(subTrial.Data.Values);
-                            }
-                        }
-                    }
-                }
-            }
-            return values.ToArray().CalculateValueLimit();
+            IEnumerable<float[]> values = blocs
+                .SelectMany(bloc => bloc.ChannelBlocs)
+                .Where(channelBloc => channelBloc.IsFound)
+                .SelectMany(channelBloc => channelBloc.SubBlocs)
+                .SelectMany(subBloc => subBloc.SubTrials)
+                .Select(subTrial => subTrial.Data.Values);
+            return Core.Data.StreamingStatistics.CalculateValueLimit(values);
         }
         #endregion
     }

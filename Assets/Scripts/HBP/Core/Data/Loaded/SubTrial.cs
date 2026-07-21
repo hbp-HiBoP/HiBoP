@@ -194,14 +194,17 @@ namespace HBP.Core.Data
 
         internal void GetBaselineStatistics(string channel, EpochCompatibilityBuffer compatibilityBuffer, out float average, out float standardDeviation)
         {
-            float[] baseline = MaterializeProcessedBaseline(channel, compatibilityBuffer);
-            average = baseline.Mean();
-            standardDeviation = baseline.StandardDeviation();
+            RunningStatistics statistics = new();
+            AccumulateBaselineStatistics(channel, compatibilityBuffer, ref statistics);
+            average = statistics.Mean;
+            standardDeviation = statistics.StandardDeviation;
         }
 
-        internal void AppendBaselineValues(string channel, List<float> destination, EpochCompatibilityBuffer compatibilityBuffer)
+        internal void AccumulateBaselineStatistics(string channel, EpochCompatibilityBuffer compatibilityBuffer, ref RunningStatistics statistics)
         {
-            destination.AddRange(MaterializeProcessedBaseline(channel, compatibilityBuffer));
+            float[] baseline = MaterializeProcessedBaseline(channel, compatibilityBuffer);
+            for (int i = 0; i < Descriptor.Baseline.Length; ++i)
+                statistics.Add(baseline[i]);
         }
         #endregion
 
@@ -211,7 +214,7 @@ namespace HBP.Core.Data
             GetWindow(channel).CopyTo(values);
             float[] baseline = compatibilityBuffer.GetBaselineBuffer(Descriptor.Baseline.Length);
             GetBaseline(channel).CopyTo(baseline);
-            ApplyTreatments(ref values, ref baseline);
+            ApplyTreatments(ref values, ref baseline, compatibilityBuffer);
             return values;
         }
 
@@ -221,16 +224,17 @@ namespace HBP.Core.Data
             float[] baseline = compatibilityBuffer.GetBaselineBuffer(Descriptor.Baseline.Length);
             GetWindow(channel).CopyTo(values);
             GetBaseline(channel).CopyTo(baseline);
-            ApplyTreatments(ref values, ref baseline);
+            ApplyTreatments(ref values, ref baseline, compatibilityBuffer);
             return baseline;
         }
 
-        private void ApplyTreatments(ref float[] values, ref float[] baseline)
+        private void ApplyTreatments(ref float[] values, ref float[] baseline, EpochCompatibilityBuffer compatibilityBuffer)
         {
             int windowMainEventIndex = Descriptor.MainEventIndex - Descriptor.Window.StartIndex;
             int baselineMainEventIndex = Descriptor.MainEventIndex - Descriptor.Baseline.StartIndex;
+            float[] treatmentBuffer = compatibilityBuffer.GetTreatmentBuffer(Descriptor.Window.Length + Descriptor.Baseline.Length);
             foreach (Treatment treatment in m_Treatments)
-                treatment.Apply(ref values, ref baseline, windowMainEventIndex, baselineMainEventIndex, m_Frequency);
+                treatment.Apply(ref values, ref baseline, windowMainEventIndex, baselineMainEventIndex, m_Frequency, treatmentBuffer);
         }
 
         private void ValidateRanges()

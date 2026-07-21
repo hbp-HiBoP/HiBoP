@@ -78,6 +78,8 @@ namespace HBP.UI.Informations.Graphs
         [SerializeField, HideInInspector] protected float m_yRatio;
         [SerializeField, HideInInspector] protected RectTransform m_RectTransform;
         protected bool m_NeedSetPoints;
+        protected Vector2[] m_RenderPointBuffer = System.Array.Empty<Vector2>();
+        protected int m_RenderPointCount;
         #endregion
        
         #region Private Methods
@@ -122,85 +124,97 @@ namespace HBP.UI.Informations.Graphs
         protected virtual void SetPoints()
         {
             Profiler.BeginSample("SetPoints");
-            if (m_Data != null)
+            if (m_Data != null && TryGetVisibleRange(out int startIndex, out int endIndex))
             {
                 Profiler.BeginSample("Points");
-                Profiler.BeginSample("First-Last");
-
-                int startIndex = 0;
-                int endIndex = m_Data.Points.Length - 1;
-                if (m_Data.Points[startIndex].x < m_AbscissaDisplayRange.x)
-                {
-                    int min = startIndex;
-                    int max = endIndex;
-                    int i = 0;
-                    while(min + 1 != max && i < 20)
-                    {
-                        i++;
-                        int medium = (max + min)/2;
-                        float xValue = m_Data.Points[medium].x;
-                        if(xValue < m_AbscissaDisplayRange.x)
-                        {
-                            min = medium;
-                        }
-                        else if(xValue > m_AbscissaDisplayRange.x)
-                        {
-                            max = medium;
-                        }
-                        else
-                        {
-                            startIndex = medium;
-                            break;
-                        }
-                    }
-                    startIndex = min;
-                }
-
-                if (m_Data.Points[endIndex].x > m_AbscissaDisplayRange.y)
-                {
-                    int min = startIndex;
-                    int max = endIndex;
-                    int i = 0;
-                    while (min + 1 != max && i < 100)
-                    {
-                        i++;
-                        int medium = (max + min) / 2;
-                        float xValue = m_Data.Points[medium].x;
-                        if (xValue < m_AbscissaDisplayRange.y)
-                        {
-                            min = medium;
-                        }
-                        else if (xValue > m_AbscissaDisplayRange.y)
-                        {
-                            max = medium;
-                        }
-                        else
-                        {
-                            max = medium;
-                            break;
-                        }
-                    }
-                    endIndex = max;
-                }
-                Profiler.EndSample();
-
                 Profiler.BeginSample("DownSampling");
                 int length = endIndex + 1 - startIndex;
-                int downSampling = Mathf.Max(1,Mathf.CeilToInt(m_NumberOfPixelsByPoint * length / (m_RectTransform.rect.width)));
-                Vector2[] points = new Vector2[length / downSampling];
-                for (int i = 0; i < points.Length; i++)
+                int downSampling = GetDownSampling(length);
+                m_RenderPointCount = length / downSampling;
+                EnsurePointCapacity(m_RenderPointCount);
+                for (int i = 0; i < m_RenderPointCount; i++)
                 {
                     int v = i * downSampling + startIndex;
-                    points[i] = new Vector2(m_xRatio * (m_Data.Points[v].x - m_AbscissaDisplayRange.x), m_yRatio * (m_Data.Points[v].y - m_OrdinateDisplayRange.x));
+                    Vector2 point = m_Data.GetPoint(v);
+                    m_RenderPointBuffer[i] = new Vector2(m_xRatio * (point.x - m_AbscissaDisplayRange.x), m_yRatio * (point.y - m_OrdinateDisplayRange.x));
                 }
                 Profiler.EndSample();
-            
                 Profiler.EndSample();
-                m_CurveRenderer.Points = points;
-
+                m_CurveRenderer.SetPoints(m_RenderPointBuffer, m_RenderPointCount);
+            }
+            else
+            {
+                m_RenderPointCount = 0;
+                m_CurveRenderer.SetPoints(m_RenderPointBuffer, 0);
             }
             m_NeedSetPoints = false;
             Profiler.EndSample();
+        }
+
+        protected bool TryGetVisibleRange(out int startIndex, out int endIndex)
+        {
+            startIndex = 0;
+            endIndex = m_Data?.Count - 1 ?? -1;
+            if (endIndex < 0)
+                return false;
+
+            if (startIndex < endIndex && m_Data.GetPoint(startIndex).x < m_AbscissaDisplayRange.x)
+            {
+                int min = startIndex;
+                int max = endIndex;
+                int iterations = 0;
+                while (min + 1 != max && iterations++ < 20)
+                {
+                    int medium = (max + min) / 2;
+                    float xValue = m_Data.GetPoint(medium).x;
+                    if (xValue < m_AbscissaDisplayRange.x)
+                        min = medium;
+                    else if (xValue > m_AbscissaDisplayRange.x)
+                        max = medium;
+                    else
+                    {
+                        break;
+                    }
+                }
+                startIndex = min;
+            }
+
+            if (startIndex < endIndex && m_Data.GetPoint(endIndex).x > m_AbscissaDisplayRange.y)
+            {
+                int min = startIndex;
+                int max = endIndex;
+                int iterations = 0;
+                while (min + 1 != max && iterations++ < 100)
+                {
+                    int medium = (max + min) / 2;
+                    float xValue = m_Data.GetPoint(medium).x;
+                    if (xValue < m_AbscissaDisplayRange.y)
+                        min = medium;
+                    else if (xValue > m_AbscissaDisplayRange.y)
+                        max = medium;
+                    else
+                    {
+                        max = medium;
+                        break;
+                    }
+                }
+                endIndex = max;
+            }
+            return endIndex >= startIndex;
+        }
+
+        protected int GetDownSampling(int length)
+        {
+            float width = Mathf.Max(1, m_RectTransform.rect.width);
+            return Mathf.Max(1, Mathf.CeilToInt(m_NumberOfPixelsByPoint * length / width));
+        }
+
+        protected void EnsurePointCapacity(int required)
+        {
+            if (m_RenderPointBuffer.Length >= required)
+                return;
+            int capacity = Mathf.NextPowerOfTwo(required);
+            System.Array.Resize(ref m_RenderPointBuffer, capacity);
         }
 
         private void LateUpdate()

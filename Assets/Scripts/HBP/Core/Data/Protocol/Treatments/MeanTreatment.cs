@@ -1,7 +1,5 @@
 ﻿using HBP.Core.Tools;
-using System;
 using System.ComponentModel;
-using HBP.Core.DLL;
 
 namespace HBP.Core.Data
 {
@@ -43,6 +41,7 @@ namespace HBP.Core.Data
     [DisplayName("Mean")]
     public class MeanTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Scalar;
         #region Constructors
         /// <summary>
         /// Create a new MeanTreatment instance with default values.
@@ -75,26 +74,32 @@ namespace HBP.Core.Data
         #region Public Methods
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
-            float[] windowSubArray = new float[0];
-            float[] baselineSubArray = new float[0];
             int startWindow = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
             int endWindow = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
             int startBaseline = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
             int endBaseline = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+            double sum = 0;
+            int count = 0;
             if (UseOnWindow)
             {
-                windowSubArray = new float[endWindow - startWindow + 1];
-                Array.Copy(values, startWindow, windowSubArray, 0, windowSubArray.Length);
+                for (int i = startWindow; i <= endWindow; ++i)
+                {
+                    sum += values[i];
+                    count++;
+                }
             }
             if (UseOnBaseline)
             {
-                baselineSubArray = new float[endBaseline - startBaseline + 1];
-                Array.Copy(baseline, startBaseline, baselineSubArray, 0, baselineSubArray.Length);
+                for (int i = startBaseline; i <= endBaseline; ++i)
+                {
+                    sum += baseline[i];
+                    count++;
+                }
             }
-            float[] subArray = new float[windowSubArray.Length + baselineSubArray.Length];
-            windowSubArray.CopyTo(subArray, 0);
-            baselineSubArray.CopyTo(subArray, windowSubArray.Length);
-            float mean = subArray.Mean();
+            if (count == 0)
+                throw new System.Exception("Array is empty");
+
+            float mean = (float)(sum / count);
             if(UseOnWindow)
             {
                 for (int i = startWindow; i <= endWindow; i++) values[i] = mean;

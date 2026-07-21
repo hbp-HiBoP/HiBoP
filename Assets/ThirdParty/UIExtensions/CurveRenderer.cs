@@ -39,6 +39,7 @@ namespace UnityEngine.UI.Extensions
 
         [SerializeField, Tooltip("Points to draw lines between\n Can be improved using the Resolution Option")]
         private Vector2[] m_points;
+        [System.NonSerialized] private int m_PointCount = -1;
         /// <summary>
         /// Points to be drawn in the line.
         /// </summary>
@@ -53,9 +54,21 @@ namespace UnityEngine.UI.Extensions
             {
                 if (SetPropertyUtility.SetClass(ref m_points, value))
                 {
+                    m_PointCount = value?.Length ?? 0;
                     SetAllDirty();
                 }
             }
+        }
+
+        public void SetPoints(Vector2[] points, int count)
+        {
+            if (points == null)
+                count = 0;
+            else if (count < 0 || count > points.Length)
+                throw new System.ArgumentOutOfRangeException(nameof(count));
+            m_points = points;
+            m_PointCount = count;
+            SetAllDirty();
         }
 
         [SerializeField, Tooltip("Thickness of the line")]
@@ -84,14 +97,29 @@ namespace UnityEngine.UI.Extensions
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
-            if (m_points == null || m_points.Length < 2) return;
+            int pointCount = m_points == null ? 0 : (m_PointCount < 0 ? m_points.Length : System.Math.Min(m_PointCount, m_points.Length));
+            if (pointCount < 2)
+            {
+                vh.Clear();
+                return;
+            }
 
-            Vector2[] pointsToDraw = ImproveResolution == ResolutionMode.None ? m_points : IncreaseResolution(m_points);
+            Vector2[] pointsToDraw = m_points;
+            if (ImproveResolution != ResolutionMode.None)
+            {
+                if (pointCount != m_points.Length)
+                {
+                    pointsToDraw = new Vector2[pointCount];
+                    System.Array.Copy(m_points, pointsToDraw, pointCount);
+                }
+                pointsToDraw = IncreaseResolution(pointsToDraw);
+                pointCount = pointsToDraw.Length;
+            }
 
             // Generate the quads that make up the wide line
             var segments = new List<UIVertex[]>();
             Vector2 start, end;
-            if (pointsToDraw.Length == 2)
+            if (pointCount == 2)
             {
                 start = pointsToDraw[0] - rectTransform.pivot;
                 end = pointsToDraw[1] - rectTransform.pivot;
@@ -102,14 +130,14 @@ namespace UnityEngine.UI.Extensions
                 start = pointsToDraw[0] - rectTransform.pivot;
                 end = pointsToDraw[1] - rectTransform.pivot;
                 segments.Add(CreateLineSegment(start, end, SegmentType.Start));
-                for (var i = 2; i < pointsToDraw.Length - 1; i++)
+                for (var i = 2; i < pointCount - 1; i++)
                 {
                     start = pointsToDraw[i - 1] - rectTransform.pivot;
                     end = pointsToDraw[i] - rectTransform.pivot;
                     segments.Add(CreateLineSegment(start, end, SegmentType.Middle));
                 }
-                start = pointsToDraw[pointsToDraw.Length - 2] - rectTransform.pivot;
-                end = pointsToDraw[pointsToDraw.Length - 1] - rectTransform.pivot;
+                start = pointsToDraw[pointCount - 2] - rectTransform.pivot;
+                end = pointsToDraw[pointCount - 1] - rectTransform.pivot;
                 segments.Add(CreateLineSegment(start, end, SegmentType.End));
             }
 

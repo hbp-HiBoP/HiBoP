@@ -146,7 +146,7 @@ namespace HBP.Data.Module3D
                 if (column is Column3DDynamic columnIEEG)
                 {
                     iEEGUnit = columnIEEG.ActivityUnitsBySiteID[siteID];
-                    iEEGActivity = columnIEEG.ActivityValuesBySiteID[siteID][columnIEEG.Timeline.CurrentIndex];
+                    iEEGActivity = columnIEEG.CurrentProjectionSample.Evaluate(columnIEEG.ActivityValuesBySiteID[siteID]);
                 }
                 else if (column is Column3DStatic columnStatic)
                 {

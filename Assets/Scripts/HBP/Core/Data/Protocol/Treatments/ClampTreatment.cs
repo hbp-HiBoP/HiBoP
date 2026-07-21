@@ -47,6 +47,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Clamp")]
     public class ClampTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
         #region Properties
         /// <summary>
         /// True to floor by a minimum value, False otherwise.

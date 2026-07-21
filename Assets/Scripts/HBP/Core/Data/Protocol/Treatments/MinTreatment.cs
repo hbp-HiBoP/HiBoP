@@ -41,6 +41,7 @@ namespace HBP.Core.Data
     [DisplayName("Min")]
     public class MinTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Scalar;
         #region Constructors
         /// <summary>
         /// Create a new MinTreatment instance with default values.

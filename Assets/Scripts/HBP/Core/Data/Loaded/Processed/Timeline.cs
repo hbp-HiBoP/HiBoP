@@ -1,5 +1,6 @@
 ﻿using HBP.Core.Tools;
 using System.Collections.Generic;
+using HBP.Core.Enums;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -180,7 +181,45 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             TimeLength = SubTimelinesBySubBloc.Sum(s => s.Value.TimeLength);
         }
         #endregion
+
+        public TemporalSample GetProjectionSample(Timeline projectionTimeline, int navigationIndex, TemporalSamplingPolicy policy)
+        {
+            if (projectionTimeline == null)
+                throw new System.ArgumentNullException(nameof(projectionTimeline));
+
+            KeyValuePair<SubBloc, SubTimeline> navigationPair = SubTimelinesBySubBloc.FirstOrDefault(
+                pair => pair.Value.GlobalMinIndex - pair.Value.Before <= navigationIndex
+                    && pair.Value.GlobalMaxIndex + pair.Value.After >= navigationIndex);
+            if (navigationPair.Value == null
+                || !projectionTimeline.SubTimelinesBySubBloc.TryGetValue(navigationPair.Key, out SubTimeline projectionSubTimeline))
+            {
+                return new TemporalSample(Mathf.Clamp(navigationIndex, 0, projectionTimeline.Length - 1), 0f);
+            }
+
+            return projectionSubTimeline.GetSampleAtTime(navigationPair.Value.GetLocalTime(navigationIndex), policy);
+        }
     }
+    public readonly struct TemporalSample
+    {
+        public int Index { get; }
+        public float Alpha { get; }
+
+        public TemporalSample(int index, float alpha)
+        {
+            Index = index;
+            Alpha = alpha;
+        }
+
+        public float Evaluate(float[] values)
+        {
+            if (values == null || values.Length == 0)
+                return 0f;
+            int lower = Mathf.Clamp(Index, 0, values.Length - 1);
+            int upper = Mathf.Min(lower + 1, values.Length - 1);
+            return Mathf.Lerp(values[lower], values[upper], Alpha);
+        }
+    }
+
     public class FMRITimeline : BasicTimeline
     {
         #region Properties
@@ -333,6 +372,25 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         public int GetLocalIndex(int globalIndex)
         {
             return Mathf.Clamp(globalIndex - GlobalMinIndex, 0, Length - 1);
+        }
+
+        public TemporalSample GetSampleAtTime(float time, TemporalSamplingPolicy policy)
+        {
+            if (Length <= 1 || TimeStep == 0f)
+                return new TemporalSample(GlobalMinIndex, 0f);
+
+            float samplePosition = Mathf.Clamp((time - FirstSampleTime) / TimeStep, 0f, Length - 1);
+            int lowerLocalIndex = Mathf.FloorToInt(samplePosition);
+            switch (policy)
+            {
+                case TemporalSamplingPolicy.Floor:
+                    return new TemporalSample(GlobalMinIndex + lowerLocalIndex, 0f);
+                case TemporalSamplingPolicy.Round:
+                    return new TemporalSample(GlobalMinIndex + Mathf.RoundToInt(samplePosition), 0f);
+                default:
+                    float alpha = lowerLocalIndex >= Length - 1 ? 0f : samplePosition - lowerLocalIndex;
+                    return new TemporalSample(GlobalMinIndex + lowerLocalIndex, alpha);
+            }
         }
         #endregion
     }

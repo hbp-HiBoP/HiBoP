@@ -43,12 +43,10 @@ namespace HBP.UI.Informations.Graphs
                     {
                         foreach (var graph in Graphs)
                         {
-                            List<float> values = new();
+                            Core.Data.RunningStatistics statistics = new();
                             foreach (var curve in graph.Curves)
-                            {
-                                values.AddRange(GetValues(curve));
-                            }
-                            graph.OrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
+                                AddValues(curve, ref statistics);
+                            graph.OrdinateDisplayRange = Core.Data.StreamingStatistics.CalculateValueLimit(statistics, 5);
                         }
                     }
                     else
@@ -229,12 +227,10 @@ namespace HBP.UI.Informations.Graphs
             {
                 if (m_UseDefaultOrdinateRange)
                 {
-                    List<float> values = new();
+                    Core.Data.RunningStatistics statistics = new();
                     foreach (var curve in curveByColumn)
-                    {
-                        values.AddRange(GetValues(curve));
-                    }
-                    Vector2 defaultOrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
+                        AddValues(curve, ref statistics);
+                    Vector2 defaultOrdinateDisplayRange = Core.Data.StreamingStatistics.CalculateValueLimit(statistics, 5);
                     ordinateDisplayRangeByChannel.Add(defaultOrdinateDisplayRange);
                 }
                 else
@@ -353,60 +349,17 @@ namespace HBP.UI.Informations.Graphs
             {
                 Core.Data.ChannelSubTrial[] channelSubTrials = trials.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
 
-                float[] values = new float[channelSubTrials[0].Values.Length];
-                float[] standardDeviations = new float[values.Length];
-                switch (Core.Data.DataManager.DefaultAveraging)
-                {
-                    case Core.Enums.AveragingType.Mean:
-                        for (int i = 0; i < values.Length; i++)
-                        {
-                            List<float> sum = new();
-                            for (int l = 0; l < trials.Length; l++)
-                            {
-                                sum.Add(channelSubTrials[l].Values[i]);
-                            }
-                            values[i] = sum.ToArray().Mean();
-                            standardDeviations[i] = sum.ToArray().SEM();
-                        }
-                        break;
-                    case Core.Enums.AveragingType.Median:
-                        for (int i = 0; i < values.Length; i++)
-                        {
-                            List<float> sum = new();
-                            for (int l = 0; l < trials.Length; l++)
-                            {
-                                sum.Add(channelSubTrials[l].Values[i]);
-                            }
-                            values[i] = sum.ToArray().Median();
-                            standardDeviations[i] = sum.ToArray().SEM();
-                        }
-                        break;
-                }
+                float[][] series = channelSubTrials.Select(channelSubTrial => channelSubTrial.Values).ToArray();
+                Core.Data.StreamingStatistics.Calculate(series, Core.Data.DataManager.DefaultAveraging, out float[] values, out float[] standardDeviations);
 
-                // Generate points.
-                Vector2[] points = new Vector2[values.Length];
-                for (int i = 0; i < points.Length; i++)
-                {
-                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
-                    float ordinate = values[i];
-                    points[i] = new Vector2(abscissa, ordinate);
-                }
-                result = ShapedCurveData.CreateInstance(points, standardDeviations, color);
+                result = ShapedCurveData.CreateRegular(values, standardDeviations, start, end, color);
             }
             else if (trials.Length == 1)
             {
                 Core.Data.ChannelSubTrial channelSubTrial = trials[0].ChannelSubTrialBySubBloc[subBloc];
                 float[] values = channelSubTrial.Values;
 
-                // Generate points.
-                Vector2[] points = new Vector2[values.Length];
-                for (int i = 0; i < points.Length; i++)
-                {
-                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
-                    float ordinate = values[i];
-                    points[i] = new Vector2(abscissa, ordinate);
-                }
-                result = CurveData.CreateInstance(points, color);
+                result = CurveData.CreateRegular(values, start, end, color);
             }
             return result;
         }
@@ -430,36 +383,22 @@ namespace HBP.UI.Informations.Graphs
             {
                 end = megData.Frequency.ConvertNumberOfSamplesToMilliseconds(values.Length);
 
-                // Generate points.
-                Vector2[] points = new Vector2[values.Length];
-                for (int i = 0; i < points.Length; i++)
-                {
-                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
-                    float ordinate = values[i];
-                    points[i] = new Vector2(abscissa, ordinate);
-                }
-                result = CurveData.CreateInstance(points, color);
+                result = CurveData.CreateRegular(values, start, end, color);
             }
 
             return result;
         }
 
-        List<float> GetValues(Graph.Curve curve)
+        void AddValues(Graph.Curve curve, ref Core.Data.RunningStatistics statistics)
         {
-            List<float> result = new();
             if (curve.Data != null)
             {
-                int length = curve.Data.Points.Length;
+                int length = curve.Data.Count;
                 for (int i = 0; i < length; i++)
-                {
-                    result.Add(curve.Data.Points[i].y);
-                }
+                    statistics.Add(curve.Data.GetOrdinate(i));
             }
             foreach (var subCurve in curve.SubCurves)
-            {
-                result.AddRange(GetValues(subCurve));
-            }
-            return result;
+                AddValues(subCurve, ref statistics);
         }
         #endregion
     }

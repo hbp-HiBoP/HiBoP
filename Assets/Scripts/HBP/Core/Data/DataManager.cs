@@ -15,9 +15,12 @@ namespace HBP.Core.Data
         
         // General.
         static Dictionary<Request, Data> m_DataByRequest = new();
-        static readonly RawRecordingCache m_RawRecordingCache = new();
+        static readonly Dictionary<DataInfo, int> m_ActiveDataPinCounts = new();
+        static readonly MemoryCacheBudget m_MemoryBudget = new();
+        static readonly RawRecordingCache m_RawRecordingCache = new(m_MemoryBudget);
         internal static Func<EEGRecordingSource, DynamicData> RawRecordingLoader { get; set; } = source => new DynamicData(source);
         internal static int RawRecordingCacheCount => m_RawRecordingCache.Count;
+        public static MemoryCacheSnapshot MemoryCacheSnapshot => m_MemoryBudget.GetSnapshot();
 
         // iEEG
         static Dictionary<BlocRequest, BlocData> m_BlocDataByRequest = new();
@@ -37,10 +40,69 @@ namespace HBP.Core.Data
         // Normalize
         static Dictionary<BlocRequest, NormalizationType> m_NormalizeByRequest = new();
 
-        // Default values
-        public static NormalizationType DefaultNormalization = NormalizationType.None;
-        public static AveragingType DefaultAveraging = AveragingType.Mean;
-        public static AveragingType DefaultPositionAveraging = AveragingType.Mean;
+        // Default values and the derived-cache dimensions that depend on them.
+        static NormalizationType m_DefaultNormalization = NormalizationType.None;
+        static AveragingType m_DefaultAveraging = AveragingType.Mean;
+        static AveragingType m_DefaultPositionAveraging = AveragingType.Mean;
+        public static NormalizationType DefaultNormalization
+        {
+            get
+            {
+                m_DataLock.EnterReadLock();
+                try { return m_DefaultNormalization; }
+                finally { m_DataLock.ExitReadLock(); }
+            }
+            set
+            {
+                m_DataLock.EnterWriteLock();
+                try { m_DefaultNormalization = value; }
+                finally { m_DataLock.ExitWriteLock(); }
+            }
+        }
+        public static AveragingType DefaultAveraging
+        {
+            get
+            {
+                m_DataLock.EnterReadLock();
+                try { return m_DefaultAveraging; }
+                finally { m_DataLock.ExitReadLock(); }
+            }
+            set
+            {
+                m_DataLock.EnterWriteLock();
+                try
+                {
+                    if (m_DefaultAveraging == value)
+                        return;
+                    m_DefaultAveraging = value;
+                    m_ChannelStatisticsByRequest = new Dictionary<ChannelRequest, ChannelStatistics>();
+                    m_BlocChannelStatisticsByRequest = new Dictionary<BlocChannelRequest, BlocChannelStatistics>();
+                }
+                finally { m_DataLock.ExitWriteLock(); }
+            }
+        }
+        public static AveragingType DefaultPositionAveraging
+        {
+            get
+            {
+                m_DataLock.EnterReadLock();
+                try { return m_DefaultPositionAveraging; }
+                finally { m_DataLock.ExitReadLock(); }
+            }
+            set
+            {
+                m_DataLock.EnterWriteLock();
+                try
+                {
+                    if (m_DefaultPositionAveraging == value)
+                        return;
+                    m_DefaultPositionAveraging = value;
+                    m_EventsStatisticsByRequest = new Dictionary<Request, EventsStatistics>();
+                    m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
+                }
+                finally { m_DataLock.ExitWriteLock(); }
+            }
+        }
         public static bool HasData
         {
             get
@@ -64,6 +126,13 @@ namespace HBP.Core.Data
             }
         }
         #endregion
+
+        static DataManager()
+        {
+            m_MemoryBudget.BudgetExceeded += snapshot => UnityEngine.Debug.LogWarning(
+                $"Active time-series data exceed the memory cache budget: {snapshot.UsedBytes / (1024d * 1024d):N1} MiB used, "
+                + $"{snapshot.LimitBytes / (1024d * 1024d):N1} MiB allowed. Active exact data remain pinned; no downsampling was applied.");
+        }
 
         #region Public Methods
         // General.
@@ -90,9 +159,11 @@ namespace HBP.Core.Data
         }
         private static void Clear(bool clearRawRecordings)
         {
+            DataInfo[] trackedDataInfos;
             m_DataLock.EnterWriteLock();
             try
             {
+                trackedDataInfos = m_DataByRequest.Keys.Select(request => request.DataInfo).Distinct().ToArray();
                 foreach (var data in m_DataByRequest.Values)
                 {
                     data.Clear();
@@ -154,6 +225,8 @@ namespace HBP.Core.Data
 
                 m_BlocRequestsRequiringStatisticsReset.Clear();
                 m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>();
+                if (clearRawRecordings)
+                    m_ActiveDataPinCounts.Clear();
             }
             finally
             {
@@ -162,8 +235,54 @@ namespace HBP.Core.Data
 
             if (clearRawRecordings)
                 m_RawRecordingCache.Clear();
+            foreach (DataInfo dataInfo in trackedDataInfos)
+                m_MemoryBudget.Unregister(dataInfo);
             
-            GC.Collect();
+        }
+
+        public static void ConfigureMemoryBudget(int explicitLimitMiB, int totalPhysicalMemoryMiB)
+        {
+            m_MemoryBudget.Configure(explicitLimitMiB, totalPhysicalMemoryMiB);
+        }
+
+        public static void RegisterMemoryUsage(object owner, MemoryCacheCategory category, long bytes, bool pinned = true)
+        {
+            m_MemoryBudget.Register(owner, category, bytes, pinned, null);
+        }
+
+        public static void UnregisterMemoryUsage(object owner)
+        {
+            m_MemoryBudget.Unregister(owner);
+        }
+
+        internal static void PinRawRecording(DataInfo dataInfo)
+        {
+            m_DataLock.EnterWriteLock();
+            try
+            {
+                m_ActiveDataPinCounts.TryGetValue(dataInfo, out int count);
+                m_ActiveDataPinCounts[dataInfo] = count + 1;
+            }
+            finally { m_DataLock.ExitWriteLock(); }
+            m_MemoryBudget.SetPinned(dataInfo, true);
+            m_RawRecordingCache.Pin(RawRecordingSourceKey.From(EEGRecordingSource.From(dataInfo)));
+        }
+
+        internal static void UnpinRawRecording(DataInfo dataInfo)
+        {
+            m_RawRecordingCache.Unpin(RawRecordingSourceKey.From(EEGRecordingSource.From(dataInfo)));
+            bool pinned;
+            m_DataLock.EnterWriteLock();
+            try
+            {
+                m_ActiveDataPinCounts.TryGetValue(dataInfo, out int count);
+                count = Math.Max(0, count - 1);
+                pinned = count > 0;
+                if (pinned) m_ActiveDataPinCounts[dataInfo] = count;
+                else m_ActiveDataPinCounts.Remove(dataInfo);
+            }
+            finally { m_DataLock.ExitWriteLock(); }
+            m_MemoryBudget.SetPinned(dataInfo, pinned);
         }
 
         internal static void ResetRawRecordingLoader()
@@ -173,37 +292,53 @@ namespace HBP.Core.Data
 
         public static Data GetData(DataInfo dataInfo)
         {
-            return GetData(new Request(dataInfo));
+            Data result = GetData(new Request(dataInfo));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
         public static BlocData GetData(DataInfo dataInfo, Bloc bloc)
         {
-            return GetData(new BlocRequest(dataInfo, bloc));
+            BlocData result = GetData(new BlocRequest(dataInfo, bloc));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
         public static ChannelData GetData(DataInfo dataInfo, string channel)
         {
-            return GetData(new ChannelRequest(dataInfo, channel));
+            ChannelData result = GetData(new ChannelRequest(dataInfo, channel));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
         public static BlocChannelData GetData(DataInfo dataInfo, Bloc bloc, string channel)
         {
-            return GetData(new BlocChannelRequest(dataInfo, bloc, channel));
+            BlocChannelData result = GetData(new BlocChannelRequest(dataInfo, bloc, channel));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
 
         // Statistics.
         public static ChannelStatistics GetStatistics(DataInfo dataInfo, string channel)
         {
-            return GetStatistics(new ChannelRequest(dataInfo, channel));
+            ChannelStatistics result = GetStatistics(new ChannelRequest(dataInfo, channel));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
         public static BlocChannelStatistics GetStatistics(DataInfo dataInfo, Bloc bloc, string channel)
         {
-            return GetStatistics(new BlocChannelRequest(dataInfo, bloc, channel));
+            BlocChannelStatistics result = GetStatistics(new BlocChannelRequest(dataInfo, bloc, channel));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
         public static EventsStatistics GetEventsStatistics(DataInfo dataInfo)
         {
-            return GetEventsStatistics(new Request(dataInfo));
+            EventsStatistics result = GetEventsStatistics(new Request(dataInfo));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
         public static BlocEventsStatistics GetEventsStatistics(DataInfo dataInfo, Bloc bloc)
         {
-            return GetEventsStatistics(new BlocRequest(dataInfo, bloc));
+            BlocEventsStatistics result = GetEventsStatistics(new BlocRequest(dataInfo, bloc));
+            UpdateDerivedMemoryUsage(dataInfo);
+            return result;
         }
 
         public static void NormalizeiEEGData()
@@ -1120,21 +1255,20 @@ namespace HBP.Core.Data
             {
                 foreach (var trial in epochedData.Trials)
                 {
-                    Dictionary<string, List<float>> baselineByChannel = new();
+                    Dictionary<string, RunningStatistics> baselineByChannel = new();
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
                         foreach (string channel in subTrial.Channels)
                         {
-                            if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
+                            AccumulateBaseline(baselineByChannel, channel, subTrial, compatibilityBuffer);
                         }
                     }
 
                     float average, standardDeviation;
                     foreach (var channel in baselineByChannel.Keys)
                     {
-                        average = baselineByChannel[channel].ToArray().Mean();
-                        standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+                        average = baselineByChannel[channel].Mean;
+                        standardDeviation = baselineByChannel[channel].StandardDeviation;
                         foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                         {
                             subTrial.Normalize(average, standardDeviation, channel, compatibilityBuffer);
@@ -1157,28 +1291,27 @@ namespace HBP.Core.Data
         static void NormalizeBySubBloc(BlocRequest request)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
-            Dictionary<string, List<float>> baselineByChannel;
+            Dictionary<string, RunningStatistics> baselineByChannel;
             BlocData epochedData = GetData(request);
             if (epochedData != null)
             {
                 foreach (var subBloc in request.Bloc.SubBlocs)
                 {
-                    baselineByChannel = new Dictionary<string, List<float>>();
+                    baselineByChannel = new Dictionary<string, RunningStatistics>();
                     foreach (var trial in epochedData.Trials)
                     {
                         SubTrial subTrial = trial.SubTrialBySubBloc[subBloc];
                         foreach (string channel in subTrial.Channels)
                         {
-                            if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
+                            AccumulateBaseline(baselineByChannel, channel, subTrial, compatibilityBuffer);
                         }
                     }
 
                     float average, standardDeviation;
                     foreach (var channel in baselineByChannel.Keys)
                     {
-                        average = baselineByChannel[channel].ToArray().Mean();
-                        standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+                        average = baselineByChannel[channel].Mean;
+                        standardDeviation = baselineByChannel[channel].StandardDeviation;
                         foreach (var trial in epochedData.Trials)
                         {
                             SubTrial subTrial = trial.SubTrialBySubBloc[subBloc];
@@ -1202,7 +1335,7 @@ namespace HBP.Core.Data
         static void NormalizeByBloc(BlocRequest request)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
-            Dictionary<string, List<float>> baselineByChannel = new();
+            Dictionary<string, RunningStatistics> baselineByChannel = new();
             
             m_DataLock.EnterReadLock();
             BlocData epochedData;
@@ -1223,8 +1356,7 @@ namespace HBP.Core.Data
                     {
                         foreach (string channel in subTrial.Channels)
                         {
-                            if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
+                            AccumulateBaseline(baselineByChannel, channel, subTrial, compatibilityBuffer);
                         }
                     }
                 }
@@ -1232,8 +1364,8 @@ namespace HBP.Core.Data
                 float average, standardDeviation;
                 foreach (var channel in baselineByChannel.Keys)
                 {
-                    average = baselineByChannel[channel].ToArray().Mean();
-                    standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+                    average = baselineByChannel[channel].Mean;
+                    standardDeviation = baselineByChannel[channel].StandardDeviation;
                     foreach (var trial in epochedData.Trials)
                     {
                         foreach (var subTrial in trial.SubTrialBySubBloc.Values)
@@ -1258,7 +1390,7 @@ namespace HBP.Core.Data
         static void NormalizeByProtocol(IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
-            Dictionary<string, List<float>> baselineByChannel = new();
+            Dictionary<string, RunningStatistics> baselineByChannel = new();
 
             m_DataLock.EnterReadLock();
             var epochedDataList = new List<BlocData>();
@@ -1286,8 +1418,7 @@ namespace HBP.Core.Data
                     {
                         foreach (string channel in subTrial.Channels)
                         {
-                            if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
+                            AccumulateBaseline(baselineByChannel, channel, subTrial, compatibilityBuffer);
                         }
                     }
                 }
@@ -1297,8 +1428,8 @@ namespace HBP.Core.Data
             float average, standardDeviation;
             foreach (var channel in baselineByChannel.Keys)
             {
-                average = baselineByChannel[channel].ToArray().Mean();
-                standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
+                average = baselineByChannel[channel].Mean;
+                standardDeviation = baselineByChannel[channel].StandardDeviation;
                 
                 foreach (var tuple in dataRequestAndNeedToNormalize)
                 {
@@ -1346,6 +1477,100 @@ namespace HBP.Core.Data
             {
                 m_DataLock.ExitWriteLock();
             }
+        }
+
+        static void AccumulateBaseline(
+            Dictionary<string, RunningStatistics> baselineByChannel,
+            string channel,
+            SubTrial subTrial,
+            EpochCompatibilityBuffer compatibilityBuffer)
+        {
+            baselineByChannel.TryGetValue(channel, out RunningStatistics statistics);
+            subTrial.AccumulateBaselineStatistics(channel, compatibilityBuffer, ref statistics);
+            baselineByChannel[channel] = statistics;
+        }
+
+        static void UpdateDerivedMemoryUsage(DataInfo dataInfo)
+        {
+            if (dataInfo == null)
+                return;
+
+            HashSet<float[]> arrays = new();
+            bool pinned;
+            m_DataLock.EnterReadLock();
+            try
+            {
+                foreach (KeyValuePair<BlocRequest, BlocData> pair in m_BlocDataByRequest)
+                {
+                    if (pair.Key.DataInfo != dataInfo)
+                        continue;
+                    foreach (Trial trial in pair.Value.Trials)
+                    {
+                        foreach (SubTrial subTrial in trial.SubTrialBySubBloc.Values)
+                        {
+                            foreach (float[] values in subTrial.ValuesByChannel.Values)
+                                arrays.Add(values);
+                        }
+                    }
+                }
+                foreach (KeyValuePair<BlocChannelRequest, BlocChannelStatistics> pair in m_BlocChannelStatisticsByRequest)
+                {
+                    if (pair.Key.DataInfo == dataInfo)
+                        AddStatisticsArrays(pair.Value, arrays);
+                }
+                foreach (KeyValuePair<ChannelRequest, ChannelStatistics> pair in m_ChannelStatisticsByRequest)
+                {
+                    if (pair.Key.DataInfo != dataInfo)
+                        continue;
+                    foreach (BlocChannelStatistics statistics in pair.Value.StatisticsByBloc.Values)
+                        AddStatisticsArrays(statistics, arrays);
+                }
+                pinned = m_ActiveDataPinCounts.TryGetValue(dataInfo, out int count) && count > 0;
+            }
+            finally { m_DataLock.ExitReadLock(); }
+
+            long bytes = arrays.Sum(array => array.LongLength * sizeof(float));
+            m_MemoryBudget.Register(dataInfo, MemoryCacheCategory.ManagedDerived, bytes, pinned, () => EvictDerivedData(dataInfo));
+        }
+
+        static void AddStatisticsArrays(BlocChannelStatistics statistics, HashSet<float[]> arrays)
+        {
+            if (statistics == null || statistics.Trial.ChannelSubTrialBySubBloc == null)
+                return;
+            foreach (ChannelSubTrialStat subTrialStatistics in statistics.Trial.ChannelSubTrialBySubBloc.Values)
+            {
+                if (subTrialStatistics.Values != null) arrays.Add(subTrialStatistics.Values);
+                if (subTrialStatistics.SEM != null) arrays.Add(subTrialStatistics.SEM);
+            }
+        }
+
+        static void EvictDerivedData(DataInfo dataInfo)
+        {
+            m_DataLock.EnterWriteLock();
+            try
+            {
+                foreach (Request request in m_DataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_DataByRequest.Remove(request);
+                foreach (BlocRequest request in m_BlocDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_BlocDataByRequest.Remove(request);
+                foreach (ChannelRequest request in m_ChannelDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_ChannelDataByRequest.Remove(request);
+                foreach (BlocChannelRequest request in m_BlocChannelDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_BlocChannelDataByRequest.Remove(request);
+                foreach (ChannelRequest request in m_ChannelStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_ChannelStatisticsByRequest.Remove(request);
+                foreach (BlocChannelRequest request in m_BlocChannelStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_BlocChannelStatisticsByRequest.Remove(request);
+                foreach (Request request in m_EventsStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_EventsStatisticsByRequest.Remove(request);
+                foreach (BlocRequest request in m_BlocEventsStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_BlocEventsStatisticsByRequest.Remove(request);
+                foreach (BlocRequest request in m_NormalizeByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                    m_NormalizeByRequest.Remove(request);
+                m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>(
+                    m_BlocRequestsRequiringStatisticsReset.Where(request => request.DataInfo != dataInfo).Reverse());
+            }
+            finally { m_DataLock.ExitWriteLock(); }
         }
         #endregion
 

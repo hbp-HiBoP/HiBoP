@@ -12,6 +12,8 @@ namespace HBP.Core.DLL
         public Vector2[] ActivityUV { get; private set; } = Array.Empty<Vector2>();
         public Vector2[] AlphaUV { get; private set; } = Array.Empty<Vector2>();
         public Vector2[] NullUV { get; private set; } = Array.Empty<Vector2>();
+        private Vec2[] m_NativeActivityUV = Array.Empty<Vec2>();
+        private Vec2[] m_NativeAlphaUV = Array.Empty<Vec2>();
 
         public void Initialize(ActivityGenerator activityGenerator)
         {
@@ -30,20 +32,20 @@ namespace HBP.Core.DLL
             int nbVertices = ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices;
             EnsureUvArrays(nbVertices);
             ThrowIfFailed(hbp_surface_generator_compute_activity_uv(_handle.Handle, timelineIndex, alpha));
-            Vec2[] nativeActivity = new Vec2[nbVertices];
-            Vec2[] nativeAlpha = new Vec2[nbVertices];
-            ThrowIfFailed(hbp_surface_generator_copy_activity_uvs(_handle.Handle, nativeActivity, nativeActivity.Length));
-            ThrowIfFailed(hbp_surface_generator_copy_alpha_uvs(_handle.Handle, nativeAlpha, nativeAlpha.Length));
+            ThrowIfFailed(hbp_surface_generator_copy_activity_uvs(_handle.Handle, m_NativeActivityUV, m_NativeActivityUV.Length));
+            ThrowIfFailed(hbp_surface_generator_copy_alpha_uvs(_handle.Handle, m_NativeAlphaUV, m_NativeAlphaUV.Length));
             for (int i = 0; i < nbVertices; ++i)
             {
-                ActivityUV[i] = nativeActivity[i].ToVector2();
-                AlphaUV[i] = nativeAlpha[i].ToVector2();
+                ActivityUV[i] = m_NativeActivityUV[i].ToVector2();
+                AlphaUV[i] = m_NativeAlphaUV[i].ToVector2();
             }
         }
 
         public void ComputeNullUV()
         {
-            NullUV = new Vector2[ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices];
+            int vertexCount = ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices;
+            if (NullUV.Length != vertexCount)
+                NullUV = new Vector2[vertexCount];
             NullUV.Fill(new Vector2(0.01f, 1f));
         }
 
@@ -62,6 +64,8 @@ namespace HBP.Core.DLL
         {
             if (ActivityUV.Length != nbVertices) ActivityUV = new Vector2[nbVertices];
             if (AlphaUV.Length != nbVertices) AlphaUV = new Vector2[nbVertices];
+            if (m_NativeActivityUV.Length != nbVertices) m_NativeActivityUV = new Vec2[nbVertices];
+            if (m_NativeAlphaUV.Length != nbVertices) m_NativeAlphaUV = new Vec2[nbVertices];
         }
 
         private static void ThrowIfFailed(HbpCoreStatus status)

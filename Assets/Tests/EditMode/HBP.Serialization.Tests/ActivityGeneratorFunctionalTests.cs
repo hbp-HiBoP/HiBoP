@@ -190,6 +190,8 @@ namespace HBP.Tests.Serialization
             ieeg.ComputeActivity(noSites, 10.0f, Array.Empty<float>(), 1, 0, SiteInfluenceByDistanceType.Constant);
             using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
             surfaceGenerator.ComputeActivityUV();
+            object nativeActivityBuffer = typeof(SurfaceGenerator).GetField("m_NativeActivityUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator);
+            object nativeAlphaBuffer = typeof(SurfaceGenerator).GetField("m_NativeAlphaUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator);
             Assert.That(surfaceGenerator.ActivityUV, Has.All.EqualTo(new Vector2(0.5f, 1.0f)));
             Assert.That(ieeg.Progress, Is.EqualTo(1.0f));
 
@@ -199,6 +201,8 @@ namespace HBP.Tests.Serialization
             ieeg.ComputeActivity(oneSite, 1000.0f, new[] { 2.0f }, 1, 1, SiteInfluenceByDistanceType.Constant);
             ieeg.AdjustValues(2.0f, 2.0f, 2.0f);
             surfaceGenerator.ComputeActivityUV();
+            Assert.That(typeof(SurfaceGenerator).GetField("m_NativeActivityUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator), Is.SameAs(nativeActivityBuffer));
+            Assert.That(typeof(SurfaceGenerator).GetField("m_NativeAlphaUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator), Is.SameAs(nativeAlphaBuffer));
             Assert.That(surfaceGenerator.ActivityUV[firstIndex].x, Is.EqualTo(0.5f).Within(0.0005f));
 
             ieeg.ComputeActivity(oneSite, 1000.0f, new[] { -1.0e20f }, 1, 1, SiteInfluenceByDistanceType.Constant);

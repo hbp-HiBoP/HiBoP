@@ -16,6 +16,23 @@ namespace HBP.Data.Module3D
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
         public abstract Timeline Timeline { get; }
+        public abstract Timeline ProjectionTimeline { get; }
+        public abstract TemporalSamplingPolicy TemporalSampling { get; }
+        public TemporalSample CurrentProjectionSample => Timeline.GetProjectionSample(ProjectionTimeline, Timeline.CurrentIndex, TemporalSampling);
+        public SubTimeline CurrentProjectionSubtimeline
+        {
+            get
+            {
+                SubTimeline current = Timeline.CurrentSubtimeline;
+                foreach (KeyValuePair<SubBloc, SubTimeline> pair in Timeline.SubTimelinesBySubBloc)
+                {
+                    if (ReferenceEquals(pair.Value, current)
+                        && ProjectionTimeline.SubTimelinesBySubBloc.TryGetValue(pair.Key, out SubTimeline projection))
+                        return projection;
+                }
+                return ProjectionTimeline.CurrentSubtimeline;
+            }
+        }
 
         /// <summary>
         /// Parameters on how to display the activity on the column
@@ -29,7 +46,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Values of the signal of the sites that are not masked (and have correct values)
         /// </summary>
-        public float[] ActivityValuesOfUnmaskedSites { get; protected set; } = new float[0];
+        public RunningStatistics ActivityStatistics { get; protected set; }
         /// <summary>
         /// Signal values by site global ID
         /// </summary>
@@ -84,7 +101,7 @@ namespace HBP.Data.Module3D
                 if ((Sites[ii].State.IsOutOfROI && !showAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
-                float value = ActivityValuesBySiteID[ii][Timeline.CurrentIndex];
+                float value = CurrentProjectionSample.Evaluate(ActivityValuesBySiteID[ii]);
                 if (value < DynamicParameters.SpanMin)
                     value = DynamicParameters.SpanMin;
                 if (value > DynamicParameters.SpanMax)
@@ -212,7 +229,43 @@ namespace HBP.Data.Module3D
         /// <param name="brainSurface">Surface of the brain</param>
         public override void ComputeSurfaceBrainUVWithActivity()
         {
-            SurfaceGenerator.ComputeActivityUV(Timeline.CurrentIndex, ActivityAlpha);
+            TemporalSample sample = CurrentProjectionSample;
+            SurfaceGenerator.ComputeActivityUV(sample.Index, sample.Alpha);
+        }
+
+        public int[] GetUnmaskedHistogramBins(float minimum, float maximum, int binCount)
+        {
+            if (binCount <= 0)
+                throw new System.ArgumentOutOfRangeException(nameof(binCount));
+            int[] bins = new int[binCount];
+            float difference = maximum - minimum;
+            if (difference == 0f)
+            {
+                minimum -= 1f;
+                maximum += 1f;
+                difference = maximum - minimum;
+            }
+            for (int site = 0; site < Sites.Count; ++site)
+            {
+                if (Sites[site].State.IsMasked)
+                    continue;
+                float[] values = ActivityValuesBySiteID[site];
+                for (int index = 0; index < values.Length; ++index)
+                {
+                    float coefficient = Mathf.Abs((values[index] - minimum) / difference);
+                    int bin = Mathf.Clamp((int)(coefficient * (binCount - 1)), 0, binCount - 1);
+                    bins[bin]++;
+                }
+            }
+            return bins;
+        }
+
+        public void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics)
+        {
+            long managedBytes = ActivityValues?.LongLength * sizeof(float) ?? 0;
+            long nativeBytes = (metrics.storedValueCount + metrics.storedWeightCount) * sizeof(float)
+                + metrics.spatialIndexCacheBytes;
+            DataManager.RegisterMemoryUsage(this, MemoryCacheCategory.NativeProjection, managedBytes + nativeBytes, true);
         }
         #endregion
     }

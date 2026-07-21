@@ -202,6 +202,7 @@ namespace HBP.Data.Module3D
         #region Private Methods
         private void OnDestroy()
         {
+            Core.Data.DataManager.UnregisterMemoryUsage(this);
             RawElectrodes?.Dispose();
             SurfaceGenerator?.Dispose();
             ActivityGenerator?.Dispose();

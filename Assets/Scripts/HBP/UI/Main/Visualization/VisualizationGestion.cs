@@ -39,7 +39,7 @@ namespace HBP.UI.Main
             base.OK();
             UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
-        public async void Display()
+        public void Display()
         {
             Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
             var alreadyOpenedVisualizations = visualizations.Where(v => Module3DMain.Scenes.Any(s => s.Visualization == v));
@@ -48,17 +48,7 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n"))).Forget();
                 return;
             }
-            if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
-            {
-                int maxMemory = PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit == 0 ? SystemInfo.systemMemorySize : PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit;
-                float patientThreshold = ((float)maxMemory / 400) - 3f; // raw approximation
-                var maybeTooMuchMemoryVisualizations = visualizations.Where(v => v.Patients.Count > patientThreshold);
-                if (maybeTooMuchMemoryVisualizations.Count() > 0)
-                {
-                    int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Memory warning", "One of the visualizations you are trying to display has been detected as a potential memory issue.\nIt may contain too many patients in order to be visualized using the \"Preload all patient data in multi-patient visualizations\" option considering the maximum memory cache set in the user preferences.\n\nDo you still want to display it?", "Display", "Cancel");
-                    if (result == 1) return;
-                }
-            }
+            DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, SystemInfo.systemMemorySize);
             LoadingManager.Load((update, token) => Module3DMain.LoadAsync(m_ListGestion.List.ObjectsSelected, update, token));
             OK();
         }

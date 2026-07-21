@@ -41,6 +41,7 @@ namespace HBP.Core.Data
     [DisplayName("Max")]
     public class MaxTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Scalar;
         #region Constructors
         /// <summary>
         /// Create a new MaxTreatment instance with default values.

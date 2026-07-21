@@ -430,16 +430,16 @@ namespace HBP.UI.Informations.Graphs
                 if (curve is ShapedCurveData shapedCurve)
                 {
                     builder = new System.Text.StringBuilder();
-                    for (int i = 0; i < shapedCurve.Points.Length; ++i)
+                    for (int i = 0; i < shapedCurve.Count; ++i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y + (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                     }
-                    for (int i = shapedCurve.Points.Length - 1; i >= 0; --i)
+                    for (int i = shapedCurve.Count - 1; i >= 0; --i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y - (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
@@ -449,8 +449,9 @@ namespace HBP.UI.Informations.Graphs
 
                 // Write curve
                 builder = new System.Text.StringBuilder();
-                foreach (var point in curve.Points)
+                for (int i = 0; i < curve.Count; i++)
                 {
+                    Vector2 point = curve.GetPoint(i);
                     Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                     localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
                     builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
@@ -600,17 +601,17 @@ namespace HBP.UI.Informations.Graphs
                 csvBuilder.AppendLine("X\tY\tSEM");
                 if (curveData is ShapedCurveData shapedCurveData)
                 {
-                    for (int i = 0; i < shapedCurveData.Points.Length; ++i)
+                    for (int i = 0; i < shapedCurveData.Count; ++i)
                     {
-                        Vector2 point = shapedCurveData.Points[i];
+                        Vector2 point = shapedCurveData.GetPoint(i);
                         csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, shapedCurveData.Shapes[i]));
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < curveData.Points.Length; ++i)
+                    for (int i = 0; i < curveData.Count; ++i)
                     {
-                        Vector2 point = curveData.Points[i];
+                        Vector2 point = curveData.GetPoint(i);
                         csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, 0));
                     }
                 }

@@ -47,6 +47,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Factor")]
     public class FactorTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
         #region Properties
         /// <summary>
         /// Factor to multiply all the values with.

@@ -132,7 +132,7 @@ namespace HBP.Core.DLL
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IEEGComputeMetrics
+    public struct IEEGComputeMetrics
     {
         public double totalMilliseconds;
         public double allocationMilliseconds;

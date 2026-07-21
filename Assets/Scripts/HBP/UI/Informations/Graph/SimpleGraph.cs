@@ -244,16 +244,16 @@ namespace HBP.UI.Informations.Graphs
                 if (curve is ShapedCurveData shapedCurve)
                 {
                     builder = new System.Text.StringBuilder();
-                    for (int i = 0; i < shapedCurve.Points.Length; ++i)
+                    for (int i = 0; i < shapedCurve.Count; ++i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y + (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                     }
-                    for (int i = shapedCurve.Points.Length - 1; i >= 0; --i)
+                    for (int i = shapedCurve.Count - 1; i >= 0; --i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y - (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
@@ -263,8 +263,9 @@ namespace HBP.UI.Informations.Graphs
 
                 // Write curve
                 builder = new System.Text.StringBuilder();
-                foreach (var point in curve.Points)
+                for (int i = 0; i < curve.Count; i++)
                 {
+                    Vector2 point = curve.GetPoint(i);
                     Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                     localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
                     builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");

@@ -1,46 +1,17 @@
-﻿using System.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using HBP.Core.Enums;
-using HBP.Core.DLL;
 
 namespace HBP.Core.Data
 {
     /// <summary>
-    /// A Structure containing all the statistic data about subTrial in a specific channel.
+    /// Statistical data for one sub-trial and one channel.
     /// </summary>
-    /// <remarks>
-    /// <list type="table">
-    /// <listheader>
-    /// <term>Data</term>
-    /// <description>Description</description>
-    /// </listheader>
-    /// <item>
-    /// <term><b>InformationsByEvent</b></term>
-    /// <description>Informations by event.</description>
-    /// </item>
-    /// <item>
-    /// <term><b>Unit</b></term>
-    /// <description>Unit of data contained in this channel.</description>
-    /// </item>
-    /// <item>
-    /// <term><b>Values</b></term>
-    /// <description>Values for this sub-trial contained in this channel.</description>
-    /// </item>
-    /// <item>
-    /// <term><b>Found</b></term>
-    /// <description>True if the sub-trial is found, False otherwise.</description>
-    /// </item>
-    /// </list>
-    /// </remarks>
     public struct ChannelSubTrialStat
     {
         #region Properties
-        /// <summary>
-        /// Statistical Values for this sub-trial contained in this channel.
-        /// </summary>
         public float[] Values { get; set; }
-        /// <summary>
-        /// Standard error of the mean for this sub-trial contained in this channel.
-        /// </summary>
         public float[] SEM { get; set; }
         public int TotalNumberOfSubTrials { get; set; }
         public int NumberOfFoundSubTrials { get; set; }
@@ -52,64 +23,36 @@ namespace HBP.Core.Data
             Values = values;
             SEM = sem;
         }
-        public ChannelSubTrialStat(ChannelSubTrial[] subTrials,bool[] isValid, AveragingType averaging)
+
+        public ChannelSubTrialStat(ChannelSubTrial[] subTrials, bool[] isValid, AveragingType averaging)
         {
-            if (subTrials.Length > 0)
-            {
-                TotalNumberOfSubTrials = subTrials.Length;            
-                NumberOfFoundSubTrials = subTrials.Count(s => s.Found);
+            if (subTrials == null)
+                throw new ArgumentNullException(nameof(subTrials));
+            if (isValid == null)
+                throw new ArgumentNullException(nameof(isValid));
+            if (subTrials.Length != isValid.Length)
+                throw new ArgumentException("Validity flags must match the sub-trial count.", nameof(isValid));
 
-                int numberOfValidTrial = isValid.Count((v) => v);
-                int numberOfSamples = subTrials.FirstOrDefault((s) => s.Found).Values.Length;
-
-                Values = new float[numberOfSamples];
-                SEM = new float[numberOfSamples];
-                float[][] valuesMatrix = new float[numberOfSamples][];
-                for (int i = 0; i < numberOfSamples; i++)
-                {
-                    valuesMatrix[i] = new float[numberOfValidTrial];
-                    for (int t = 0, p=0; t < TotalNumberOfSubTrials; t++)
-                    {
-                        if(isValid[t])
-                        {
-                            valuesMatrix[i][p] = subTrials[t].Values[i];
-                            p++;
-                        }
-                    }
-                }
-                switch (averaging)
-                {
-                    case AveragingType.Mean:
-                        for (int i = 0; i < numberOfSamples; i++)
-                        {
-                            Values[i] = valuesMatrix[i].Mean();
-                            SEM[i] = valuesMatrix[i].SEM();
-                        }
-                        break;
-                    case AveragingType.Median:
-                        for (int i = 0; i < numberOfSamples; i++)
-                        {
-                            Values[i] = valuesMatrix[i].Median();
-                            SEM[i] = valuesMatrix[i].SEM();
-                        }
-                        break;
-                }
-            }
-            else
+            TotalNumberOfSubTrials = subTrials.Length;
+            NumberOfFoundSubTrials = subTrials.Count(subTrial => subTrial.Found);
+            List<float[]> validSeries = new(isValid.Count(valid => valid));
+            for (int trialIndex = 0; trialIndex < subTrials.Length; ++trialIndex)
             {
-                Values = new float[0];
-                SEM = new float[0];
-                NumberOfFoundSubTrials = 0;
-                TotalNumberOfSubTrials = 0;
+                if (isValid[trialIndex])
+                    validSeries.Add(subTrials[trialIndex].Values);
             }
+
+            StreamingStatistics.Calculate(validSeries, averaging, out float[] values, out float[] sem);
+            Values = values;
+            SEM = sem;
         }
         #endregion
 
         #region Public Methods
         public void Clear()
         {
-            Values = new float[0];
-            SEM = new float[0];
+            Values = Array.Empty<float>();
+            SEM = Array.Empty<float>();
             TotalNumberOfSubTrials = 0;
             NumberOfFoundSubTrials = 0;
         }

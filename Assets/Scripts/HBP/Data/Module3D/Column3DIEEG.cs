@@ -5,6 +5,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Preferences;
 using HBP.Core.DLL;
+using HBP.Core.Enums;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
@@ -36,6 +37,8 @@ namespace HBP.Data.Module3D
                 return ColumnIEEGData.Data.Timeline;
             }
         }
+        public override Timeline ProjectionTimeline => ColumnIEEGData.Data.ProjectionTimeline;
+        public override TemporalSamplingPolicy TemporalSampling => ColumnIEEGData.DynamicConfiguration.TemporalSampling;
         /// <summary>
         /// Correlation between two sites
         /// </summary>
@@ -58,32 +61,33 @@ namespace HBP.Data.Module3D
         {
             if (ColumnIEEGData == null) return;
 
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
             ActivityValuesBySiteID = new float[sitesCount][];
             ActivityUnitsBySiteID = new string[sitesCount];
-            int numberOfSitesWithValues = 0;
+            float[] zeroValues = new float[timelineLength];
+            bool[] maskedSites = new bool[sitesCount];
             foreach (Core.Object3D.Site site in Sites)
             {
                 if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
                 {
                     if (values.Length > 0)
                     {
-                        numberOfSitesWithValues++;
                         ActivityValuesBySiteID[site.Information.Index] = values;
                         site.State.IsMasked = false;
                     }
                     else
                     {
-                        ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.Index] = zeroValues;
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.Index] = zeroValues;
                     site.State.IsMasked = true;
                 }
+                maskedSites[site.Information.Index] = site.State.IsMasked;
                 if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullID, out string unit))
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = unit;
@@ -102,37 +106,16 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            DynamicParameters.MinimumAmplitude = float.MaxValue;
-            DynamicParameters.MaximumAmplitude = float.MinValue;
-
-            int length = timelineLength * sitesCount;
-            ActivityValues = new float[length];
-            List<float> iEEGNotMasked = new();
-            for (int s = 0; s < sitesCount; ++s)
-            {
-                for (int t = 0; t < timelineLength; ++t)
-                {
-                    float val = ActivityValuesBySiteID[s][t];
-                    ActivityValues[t * sitesCount + s] = val;
-                }
-                if (!Sites[s].State.IsMasked)
-                {
-                    for (int t = 0; t < timelineLength; ++t)
-                    {
-                        float val = ActivityValuesBySiteID[s][t];
-                        iEEGNotMasked.Add(val);
-
-                        if (val > DynamicParameters.MaximumAmplitude)
-                            DynamicParameters.MaximumAmplitude = val;
-                        else if (val < DynamicParameters.MinimumAmplitude)
-                            DynamicParameters.MinimumAmplitude = val;
-                    }
-                }
-            }
-
-            if (DynamicParameters.MinimumAmplitude == float.MaxValue) DynamicParameters.MinimumAmplitude = -1;
-            if (DynamicParameters.MaximumAmplitude == float.MinValue) DynamicParameters.MaximumAmplitude = 1;
-            ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            ActivityValues = ProjectionBufferBuilder.FlattenTimeMajor(
+                ActivityValuesBySiteID,
+                maskedSites,
+                timelineLength,
+                out RunningStatistics statistics,
+                out float minimum,
+                out float maximum);
+            ActivityStatistics = statistics;
+            DynamicParameters.MinimumAmplitude = minimum;
+            DynamicParameters.MaximumAmplitude = maximum;
         }
         #endregion
 

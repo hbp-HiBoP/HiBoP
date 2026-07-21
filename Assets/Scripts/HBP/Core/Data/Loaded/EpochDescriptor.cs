@@ -104,6 +104,7 @@ namespace HBP.Core.Data
     {
         private float[] m_WindowBuffer = Array.Empty<float>();
         private float[] m_BaselineBuffer = Array.Empty<float>();
+        private float[] m_TreatmentBuffer = Array.Empty<float>();
 
         public float[] GetWindowBuffer(int length)
         {
@@ -117,6 +118,13 @@ namespace HBP.Core.Data
             if (m_BaselineBuffer.Length != length)
                 m_BaselineBuffer = new float[length];
             return m_BaselineBuffer;
+        }
+
+        public float[] GetTreatmentBuffer(int length)
+        {
+            if (m_TreatmentBuffer.Length != length)
+                m_TreatmentBuffer = new float[length];
+            return m_TreatmentBuffer;
         }
     }
 }

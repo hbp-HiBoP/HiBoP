@@ -113,6 +113,13 @@ namespace HBP.Core.Data
     internal sealed class RawRecordingCache
     {
         private readonly ConcurrentDictionary<RawRecordingSourceKey, Lazy<DynamicData>> m_Entries = new();
+        private readonly ConcurrentDictionary<RawRecordingSourceKey, int> m_PinCounts = new();
+        private readonly MemoryCacheBudget m_Budget;
+
+        public RawRecordingCache(MemoryCacheBudget budget = null)
+        {
+            m_Budget = budget;
+        }
 
         public int Count => m_Entries.Count;
 
@@ -122,7 +129,13 @@ namespace HBP.Core.Data
             Lazy<DynamicData> entry = m_Entries.GetOrAdd(key, candidate);
             try
             {
-                return entry.Value;
+                DynamicData data = entry.Value;
+                if (m_Budget != null)
+                {
+                    bool pinned = m_PinCounts.TryGetValue(key, out int pinCount) && pinCount > 0;
+                    m_Budget.Register(key, MemoryCacheCategory.RawRecording, EstimateBytes(data), pinned, () => Remove(key, entry));
+                }
+                return data;
             }
             catch
             {
@@ -134,7 +147,51 @@ namespace HBP.Core.Data
 
         public void Clear()
         {
+            if (m_Budget != null)
+            {
+                foreach (RawRecordingSourceKey key in m_Entries.Keys)
+                    m_Budget.Unregister(key);
+            }
             m_Entries.Clear();
+            m_PinCounts.Clear();
+        }
+
+        public void Pin(RawRecordingSourceKey key)
+        {
+            m_PinCounts.AddOrUpdate(key, 1, (_, count) => count + 1);
+            m_Budget?.SetPinned(key, true);
+        }
+
+        public void Unpin(RawRecordingSourceKey key)
+        {
+            int count = m_PinCounts.AddOrUpdate(key, 0, (_, current) => Math.Max(0, current - 1));
+            if (count == 0)
+            {
+                m_PinCounts.TryRemove(key, out _);
+                m_Budget?.SetPinned(key, false);
+            }
+        }
+
+        private void Remove(RawRecordingSourceKey key, Lazy<DynamicData> expected)
+        {
+            if (m_Entries.TryGetValue(key, out Lazy<DynamicData> current) && ReferenceEquals(current, expected))
+                ((ICollection<KeyValuePair<RawRecordingSourceKey, Lazy<DynamicData>>>)m_Entries).Remove(new KeyValuePair<RawRecordingSourceKey, Lazy<DynamicData>>(key, expected));
+        }
+
+        private static long EstimateBytes(DynamicData data)
+        {
+            long bytes = 0;
+            foreach (KeyValuePair<string, float[]> pair in data.ValuesByChannel)
+            {
+                bytes += pair.Value?.LongLength * sizeof(float) ?? 0;
+                bytes += pair.Key?.Length * sizeof(char) ?? 0;
+            }
+            foreach (KeyValuePair<string, string> pair in data.UnitByChannel)
+            {
+                bytes += pair.Key?.Length * sizeof(char) ?? 0;
+                bytes += pair.Value?.Length * sizeof(char) ?? 0;
+            }
+            return bytes;
         }
     }
 }

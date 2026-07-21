@@ -42,6 +42,7 @@ namespace HBP.Core.Data
     [DisplayName("Absolute")]
     public class AbsTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
         #region Public Methods
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {

@@ -59,6 +59,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Rescale")]
     public class RescaleTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
         #region Properties
         /// <summary>
         /// Minimum Value before rescaled the values.

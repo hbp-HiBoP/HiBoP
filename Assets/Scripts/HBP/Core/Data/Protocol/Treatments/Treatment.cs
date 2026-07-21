@@ -4,6 +4,13 @@ using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
+    public enum TreatmentExecutionKind
+    {
+        Pointwise,
+        Scalar,
+        Buffer
+    }
+
     /// <summary>
     /// Class which define a treatment to apply at a subBloc.
     /// </summary>
@@ -63,6 +70,7 @@ namespace HBP.Core.Data
         /// Temporal window to apply the treatment on the baseline of the subBloc.
         /// </summary>
         [JsonProperty] public TimeWindow Baseline { get; set; }
+        public virtual TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Buffer;
         #endregion
 
         #region Constructors
@@ -126,6 +134,10 @@ namespace HBP.Core.Data
         /// <param name="frequency">Frequency of the data</param>
         public virtual void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
+        }
+        public virtual void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency, float[] workspace)
+        {
+            Apply(ref values, ref baseline, windowMainEventIndex, baselineMainEventIndex, frequency);
         }
         #endregion
 

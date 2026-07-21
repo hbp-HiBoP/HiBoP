@@ -13,8 +13,8 @@ namespace HBP.Tests.Serialization
 {
     public class SerializationContractAuditTests
     {
-        private const string ExpectedSerializedMembersSha256 = "6f5300c4c851ca37a4cc7d5d46995a14db1083c44a877df4eb392410aeccb3b1";
-        private const int ExpectedSerializedMembersCount = 515;
+        private const string ExpectedSerializedMembersSha256 = "c1e71696f7c7f1644e31d9da6aecc0b4226f86dc36d949ab62fd02cba44c80b3";
+        private const int ExpectedSerializedMembersCount = 516;
         private const string ExpectedLifecycleContractsSha256 = "b75727661fe988bbd817d7b86e9dd8e018aeccd2426a98c9cc03ad45430f26f3";
         private const int ExpectedLifecycleContractsCount = 376;
 

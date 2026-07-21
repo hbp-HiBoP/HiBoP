@@ -47,6 +47,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Offset")]
     public class OffsetTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
         #region Properties
         /// <summary>
         /// Offset to add to the values.

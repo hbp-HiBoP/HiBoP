@@ -7,7 +7,7 @@ namespace HBP.Core.Data
     public class ChannelStatistics
     {
         #region Properties
-        Dictionary<Bloc, BlocChannelStatistics> StatisticsByBloc { get; set; }
+        internal Dictionary<Bloc, BlocChannelStatistics> StatisticsByBloc { get; set; }
         #endregion
 
         #region Constructors

@@ -108,7 +108,7 @@ namespace HBP.Data.Module3D
                     return;
                 }
             }
-            if (column.ActivityValuesOfUnmaskedSites.Length == 0)
+            if (column.ActivityStatistics.Count == 0)
             {
                 SpanMin = 0;
                 Middle = 0;
@@ -116,8 +116,11 @@ namespace HBP.Data.Module3D
                 OnUpdateSpanValues.Invoke();
                 return;
             }
-            float middle = column.ActivityValuesOfUnmaskedSites.Mean();
-            Vector2 limits = column.ActivityValuesOfUnmaskedSites.CalculateValueLimit();
+            float middle = column.ActivityStatistics.Mean;
+            float offset = 1.959964f * Mathf.Abs(column.ActivityStatistics.StandardDeviation);
+            if (offset == 0f || float.IsNaN(offset) || float.IsInfinity(offset))
+                offset = 1f;
+            Vector2 limits = new(middle - offset, middle + offset);
             Middle = middle;
             SpanMin = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
             SpanMax = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);

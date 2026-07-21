@@ -15,6 +15,7 @@ namespace HBP.Data.Module3D
     /// </summary>
     public class Column3DCCEP : Column3DDynamic
     {
+        private float[] m_ZeroActivityValues = System.Array.Empty<float>();
         #region Properties
         /// <summary>
         /// CCEP data of this column (contains information about what to display)
@@ -36,6 +37,8 @@ namespace HBP.Data.Module3D
                 return ColumnCCEPData.Data.Timeline;
             }
         }
+        public override Timeline ProjectionTimeline => ColumnCCEPData.Data.ProjectionTimeline;
+        public override TemporalSamplingPolicy TemporalSampling => ColumnCCEPData.DynamicConfiguration.TemporalSampling;
 
         public enum CCEPMode { Site, MarsAtlas }
         private CCEPMode m_Mode = CCEPMode.Site;
@@ -165,13 +168,15 @@ namespace HBP.Data.Module3D
             if (ColumnCCEPData == null) return;
 
             // Reset values
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
             ActivityValuesBySiteID = new float[sitesCount][];
+            m_ZeroActivityValues = new float[timelineLength];
             for (int i = 0; i < sitesCount; i++)
             {
-                ActivityValuesBySiteID[i] = new float[timelineLength];
+                ActivityValuesBySiteID[i] = m_ZeroActivityValues;
             }
+            ActivityStatistics = new RunningStatistics();
             ActivityUnitsBySiteID = new string[sitesCount];
             Latencies = new float[sitesCount];
             Amplitudes = new float[sitesCount];
@@ -205,7 +210,7 @@ namespace HBP.Data.Module3D
         }
         private void SetActivityDataSourceSite()
         {
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
 
             // Retrieve values
@@ -227,13 +232,13 @@ namespace HBP.Data.Module3D
                     }
                     else
                     {
-                        ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.Index] = m_ZeroActivityValues;
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.Index] = m_ZeroActivityValues;
                     site.State.IsMasked = true;
                 }
                 if (unitByChannel.TryGetValue(site.Information.FullID, out string unit))
@@ -252,7 +257,7 @@ namespace HBP.Data.Module3D
                 {
                     site.Statistics = blocChannelStatistics;
                     ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
-                    SubTimeline mainSubTimeline = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
+                    SubTimeline mainSubTimeline = ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
                     int mainEventIndex = mainSubTimeline.Frequency.ConvertToFlooredNumberOfSamples(mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
                     for (int i = mainEventIndex + 2; i < mainSubTimeline.Length - 2; i++)
                     {
@@ -270,40 +275,22 @@ namespace HBP.Data.Module3D
                 throw new NoMatchingSitesException();
             }
 
-            DynamicParameters.MinimumAmplitude = float.MaxValue;
-            DynamicParameters.MaximumAmplitude = float.MinValue;
-
-            int length = timelineLength * sitesCount;
-            ActivityValues = new float[length];
-            List<float> iEEGNotMasked = new();
-            for (int s = 0; s < sitesCount; ++s)
-            {
-                for (int t = 0; t < timelineLength; ++t)
-                {
-                    float val = ActivityValuesBySiteID[s][t];
-                    ActivityValues[t * sitesCount + s] = val;
-                }
-                if (!Sites[s].State.IsMasked)
-                {
-                    for (int t = 0; t < timelineLength; ++t)
-                    {
-                        float val = ActivityValuesBySiteID[s][t];
-                        iEEGNotMasked.Add(val);
-
-                        //update min/ max values
-                        if (val > DynamicParameters.MaximumAmplitude)
-                            DynamicParameters.MaximumAmplitude = val;
-                        else if (val < DynamicParameters.MinimumAmplitude)
-                            DynamicParameters.MinimumAmplitude = val;
-                    }
-                }
-            }
-            ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            bool[] maskedSites = Sites.Select(site => site.State.IsMasked).ToArray();
+            ActivityValues = ProjectionBufferBuilder.FlattenTimeMajor(
+                ActivityValuesBySiteID,
+                maskedSites,
+                timelineLength,
+                out RunningStatistics statistics,
+                out float minimum,
+                out float maximum);
+            ActivityStatistics = statistics;
+            DynamicParameters.MinimumAmplitude = minimum;
+            DynamicParameters.MaximumAmplitude = maximum;
             DynamicParameters.ResetSpanValues(this);
         }
         private void SetActivityDataSourceArea()
         {
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
 
             foreach (var site in Sites)
@@ -401,7 +388,7 @@ namespace HBP.Data.Module3D
             int highestLabel = marsAtlasLabels.Max();
             ActivityValues = new float[timelineLength * (highestLabel + 1)];
             AreaMask = new int[highestLabel + 1];
-            List<float> unmaskedActivity = new();
+            RunningStatistics unmaskedStatistics = new();
             foreach(var label in marsAtlasLabels)
             {
                 float[] activityOfArea = activityByMarsAtlasArea[label];
@@ -413,20 +400,25 @@ namespace HBP.Data.Module3D
                     ActivityValues[label * timelineLength + t] = val;
                     if (!isMasked)
                     {
-                        unmaskedActivity.Add(val);
+                        unmaskedStatistics.Add(val);
                         if (val > DynamicParameters.MaximumAmplitude)
                             DynamicParameters.MaximumAmplitude = val;
-                        else if (val < DynamicParameters.MinimumAmplitude)
+                        if (val < DynamicParameters.MinimumAmplitude)
                             DynamicParameters.MinimumAmplitude = val;
                     }
                 }
             }
-            ActivityValuesOfUnmaskedSites = unmaskedActivity.ToArray();
+            ActivityStatistics = unmaskedStatistics;
+            if (unmaskedStatistics.Count == 0)
+            {
+                DynamicParameters.MinimumAmplitude = -1f;
+                DynamicParameters.MaximumAmplitude = 1f;
+            }
             DynamicParameters.ResetSpanValues(this);
 
             // Set value by site ID
-            int mainEventIndex = Timeline.Frequency.ConvertToFlooredNumberOfSamples(Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
-            int subTimelineLength = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
+            int mainEventIndex = ProjectionTimeline.Frequency.ConvertToFlooredNumberOfSamples(ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
+            int subTimelineLength = ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
             foreach (var kv in sitesByMarsAtlasLabel)
             {
                 float[] areaActivity = activityByMarsAtlasArea[kv.Key];
@@ -436,7 +428,7 @@ namespace HBP.Data.Module3D
                     if (areaActivity[i - 1] > areaActivity[i - 2] && areaActivity[i] > areaActivity[i - 1] && areaActivity[i] > areaActivity[i + 1] && areaActivity[i + 1] > areaActivity[i + 2]) // Maybe FIXME: method to compute amplitude and latency
                     {
                         amplitude = areaActivity[i];
-                        latency = Timeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainEventIndex);
+                        latency = ProjectionTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainEventIndex);
                         break;
                     }
                 }

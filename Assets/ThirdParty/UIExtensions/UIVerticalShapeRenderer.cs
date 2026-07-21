@@ -39,12 +39,14 @@
                 if (m_Points == value)
                     return;
                 m_Points = value;
+                m_PointCount = -1;
                 SetAllDirty();
             }
         }
 
         [SerializeField, Tooltip("Thickness of the shape")]
         internal float[] m_ShapeThickness;
+        [System.NonSerialized] private int m_PointCount = -1;
         /// <summary>
         /// Shapes thickness to be drawn in the line.
         /// </summary>
@@ -59,8 +61,21 @@
                 if (m_ShapeThickness == value)
                     return;
                 m_ShapeThickness = value;
+                m_PointCount = -1;
                 SetAllDirty();
             }
+        }
+
+        public void SetData(Vector2[] points, float[] shapeThickness, int count)
+        {
+            if (points == null || shapeThickness == null)
+                count = 0;
+            else if (count < 0 || count > points.Length || count > shapeThickness.Length)
+                throw new System.ArgumentOutOfRangeException(nameof(count));
+            m_Points = points;
+            m_ShapeThickness = shapeThickness;
+            m_PointCount = count;
+            SetAllDirty();
         }
 
         [SerializeField, Tooltip("Use the relative bounds of the Rect Transform (0,0 -> 0,1) or screen space coordinates")]
@@ -73,8 +88,14 @@
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
-            if (m_Points == null || m_ShapeThickness == null || m_Points.Length != m_ShapeThickness.Length)
+            int pointCount = m_Points == null || m_ShapeThickness == null
+                ? 0
+                : (m_PointCount < 0 ? System.Math.Min(m_Points.Length, m_ShapeThickness.Length) : System.Math.Min(m_PointCount, System.Math.Min(m_Points.Length, m_ShapeThickness.Length)));
+            if (pointCount < 2)
+            {
+                vh.Clear();
                 return;
+            }
 
             float width = !m_relativeSize ? 1 : rectTransform.rect.width;
             float height = !m_relativeSize ? 1 : rectTransform.rect.height;
@@ -84,7 +105,7 @@
             vh.Clear();
 
             // Generate the quads that make up the wide line
-            for (var i = 1; i < m_Points.Length; i++)
+            for (var i = 1; i < pointCount; i++)
             {
                 var start = m_Points[i - 1];
                 var end = m_Points[i];

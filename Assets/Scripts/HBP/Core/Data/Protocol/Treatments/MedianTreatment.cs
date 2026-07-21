@@ -1,7 +1,5 @@
 ﻿using HBP.Core.Tools;
-using System;
 using System.ComponentModel;
-using HBP.Core.DLL;
 
 namespace HBP.Core.Data
 {
@@ -43,6 +41,7 @@ namespace HBP.Core.Data
     [DisplayName("Median")]
     public class MedianTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Buffer;
         #region Constructors
         /// <summary>
         /// Create a new MedianTreatment instance with default values.
@@ -76,26 +75,28 @@ namespace HBP.Core.Data
         #region Public Methods
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
-            float[] windowSubArray = new float[0];
-            float[] baselineSubArray = new float[0];
+            float[] workspace = new float[values.Length + baseline.Length];
+            Apply(ref values, ref baseline, windowMainEventIndex, baselineMainEventIndex, frequency, workspace);
+        }
+
+        public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency, float[] workspace)
+        {
             int startWindow = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
             int endWindow = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
             int startBaseline = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
             int endBaseline = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+            int count = 0;
             if (UseOnWindow)
             {
-                windowSubArray = new float[endWindow - startWindow + 1];
-                Array.Copy(values, startWindow, windowSubArray, 0, windowSubArray.Length);
+                for (int i = startWindow; i <= endWindow; ++i)
+                    workspace[count++] = values[i];
             }
             if (UseOnBaseline)
             {
-                baselineSubArray = new float[endBaseline - startBaseline + 1];
-                Array.Copy(baseline, startBaseline, baselineSubArray, 0, baselineSubArray.Length);
+                for (int i = startBaseline; i <= endBaseline; ++i)
+                    workspace[count++] = baseline[i];
             }
-            float[] subArray = new float[windowSubArray.Length + baselineSubArray.Length];
-            windowSubArray.CopyTo(subArray, 0);
-            baselineSubArray.CopyTo(subArray, windowSubArray.Length);
-            float median = subArray.Median();
+            float median = StreamingStatistics.Median(workspace, count);
             if (UseOnWindow)
             {
                 for (int i = startWindow; i <= endWindow; i++) values[i] = median;

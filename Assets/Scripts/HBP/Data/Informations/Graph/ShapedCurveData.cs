@@ -27,15 +27,26 @@ namespace HBP.Data.Informations.Graphs
         public virtual void Init(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color, float width)
         {
             base.Init(points, color, width);
-            float[] shapeArray = shapes == null ? new float[0] : new List<float>(shapes).ToArray();
-            if (shapeArray.Length == Points.Length)
+            float[] shapeArray = shapes == null ? System.Array.Empty<float>() : shapes as float[] ?? new List<float>(shapes).ToArray();
+            if (shapeArray.Length == Count)
             {
                 Shapes = shapeArray;
             }
             else
             {
                 Debug.LogWarning("Wrong shape array length");
-                Shapes = new float[Points.Length];
+                Shapes = new float[Count];
+            }
+        }
+        public virtual void InitRegular(float[] values, float[] shapes, float start, float end, Color color, float width)
+        {
+            base.InitRegular(values, start, end, color, width);
+            if (shapes != null && shapes.Length == Count)
+                Shapes = shapes;
+            else
+            {
+                Debug.LogWarning("Wrong shape array length");
+                Shapes = new float[Count];
             }
         }
         public static CurveData CreateInstance(IEnumerable<Vector2> points, IEnumerable<float> shapes, Color color, float width = 3.0f)
@@ -50,6 +61,16 @@ namespace HBP.Data.Informations.Graphs
             {
                 return CreateInstance(points, color, width);
             }
+        }
+        public static CurveData CreateRegular(float[] values, float[] shapes, float start, float end, Color color, float width = 3.0f)
+        {
+            if (PersistentDataManager.UserPreferences.Visualization.Graph.ShowSEM)
+            {
+                ShapedCurveData result = CreateInstance<ShapedCurveData>();
+                result.InitRegular(values, shapes, start, end, color, width);
+                return result;
+            }
+            return CurveData.CreateRegular(values, start, end, color, width);
         }
         #endregion
     }

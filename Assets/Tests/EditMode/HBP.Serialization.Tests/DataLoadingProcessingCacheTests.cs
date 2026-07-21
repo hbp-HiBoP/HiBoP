@@ -160,6 +160,74 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void NormalizeiEEGData_AutoReevaluatesAfterDefaultPreferenceChanges()
+        {
+            DataManager.DefaultNormalization = NormalizationType.None;
+            EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.Auto);
+            Bloc bloc = fixture.Blocs[0];
+
+            TryNormalizeOrIgnore();
+            Assert.That(fixture.FirstSubTrial.ValuesByChannel[fixture.Channel], Is.EqualTo(new[] { 10f, 11f }));
+
+            DataManager.DefaultNormalization = NormalizationType.SubTrial;
+            TryNormalizeOrIgnore();
+
+            Assert.That(fixture.FirstSubTrial.ValuesByChannel[fixture.Channel], Is.EqualTo(new[] { 0f, 1f }).Within(0.0001f));
+            Assert.That(GetNormalizationState(fixture.DataInfo, bloc), Is.EqualTo(NormalizationType.SubTrial));
+        }
+
+        [Test]
+        public void ChangingDefaultAveraging_InvalidatesChannelStatisticsCache()
+        {
+            EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);
+            Bloc bloc = fixture.Blocs[0];
+            SubBloc subBloc = bloc.MainSubBloc;
+            BlocData blocData = fixture.BlocDataByBloc[bloc];
+            blocData.Trials = blocData.Trials.Concat(new[]
+            {
+                new Trial(new Dictionary<SubBloc, SubTrial>
+                {
+                    { subBloc, CreateSubTrial(subBloc, new[] { 100f, 100f }, 10f, 100f) }
+                })
+            }).ToArray();
+
+            DataManager.DefaultAveraging = AveragingType.Mean;
+            BlocChannelStatistics mean = DataManager.GetStatistics(fixture.DataInfo, bloc, fixture.Channel);
+            DataManager.DefaultAveraging = AveragingType.Median;
+            BlocChannelStatistics median = DataManager.GetStatistics(fixture.DataInfo, bloc, fixture.Channel);
+
+            Assert.That(median, Is.Not.SameAs(mean));
+            Assert.That(mean.Trial.ChannelSubTrialBySubBloc[subBloc].Values[0], Is.EqualTo(40.666667f).Within(0.0001f));
+            Assert.That(median.Trial.ChannelSubTrialBySubBloc[subBloc].Values[0], Is.EqualTo(12f).Within(0.0001f));
+        }
+
+        [Test]
+        public void ChangingDefaultPositionAveraging_InvalidatesEventStatisticsCache()
+        {
+            EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);
+            Bloc bloc = fixture.Blocs[0];
+            SubBloc subBloc = bloc.MainSubBloc;
+            BlocData blocData = fixture.BlocDataByBloc[bloc];
+            blocData.Trials = blocData.Trials.Concat(new[]
+            {
+                new Trial(new Dictionary<SubBloc, SubTrial>
+                {
+                    { subBloc, CreateSubTrial(subBloc, new[] { 100f, 100f }, 10f, 100f) }
+                })
+            }).ToArray();
+
+            DataManager.DefaultPositionAveraging = AveragingType.Mean;
+            BlocEventsStatistics mean = DataManager.GetEventsStatistics(fixture.DataInfo, bloc);
+            DataManager.DefaultPositionAveraging = AveragingType.Median;
+            BlocEventsStatistics median = DataManager.GetEventsStatistics(fixture.DataInfo, bloc);
+
+            Event mainEvent = subBloc.MainEvent;
+            Assert.That(median, Is.Not.SameAs(mean));
+            Assert.That(mean.EventsStatisticsBySubBloc[subBloc].StatisticsByEvent[mainEvent].TimeFromStart, Is.EqualTo(46.666667f).Within(0.0001f));
+            Assert.That(median.EventsStatisticsBySubBloc[subBloc].StatisticsByEvent[mainEvent].TimeFromStart, Is.EqualTo(30f).Within(0.0001f));
+        }
+
+        [Test]
         public void ConcurrentReads_ReturnSameCachedBlocChannelDataWithoutChangingValues()
         {
             EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);

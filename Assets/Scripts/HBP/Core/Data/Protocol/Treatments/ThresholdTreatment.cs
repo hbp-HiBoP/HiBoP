@@ -59,6 +59,7 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Threshold")]
     public class ThresholdTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
         #region Properties
         /// <summary>
         /// True to set a minimun treshold, False otherwise.

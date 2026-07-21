@@ -138,7 +138,7 @@ namespace HBP.UI.Toolbar
                     currentGenerator = column.ActivityGenerator;
                     currentMessage = new LoadingText($"Exporting activity of ", $"{column.Name}", $" [{currentColumn + 1}/{numberOfColumns}]");
                     string path = Path.Join(m_ExportFolderSelector.Folder, item.FileName);
-                    bool success = currentGenerator.SaveActivityAsNifti(path, column.Timeline.CurrentSubtimeline, $"IEEG Activity of {column.ColumnIEEGData.Dataset.Protocol.Name} - {column.ColumnIEEGData.Bloc.Name} - {column.ColumnIEEGData.DataName}");
+                    bool success = currentGenerator.SaveActivityAsNifti(path, column.CurrentProjectionSubtimeline, $"IEEG Activity of {column.ColumnIEEGData.Dataset.Protocol.Name} - {column.ColumnIEEGData.Bloc.Name} - {column.ColumnIEEGData.DataName}");
                     if (!success)
                     {
                         throw new HBPException("Export failed", $"The export of the activity for column {item.AssociatedColumn.Name} failed.");

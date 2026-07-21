@@ -65,7 +65,7 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_ieeg_generator_set_parallel_options(_handle.Handle, workerCount, neighborBatchSize));
         }
 
-        internal IEEGComputeMetrics GetLastComputeMetrics()
+        public IEEGComputeMetrics GetLastComputeMetrics()
         {
             ThrowIfFailed(hbp_ieeg_generator_get_last_compute_metrics(_handle.Handle, out IEEGComputeMetrics metrics));
             return metrics;
