@@ -350,6 +350,43 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        [Category("HbpCoreOnly")]
+        public void HbpCoreWrappers_RepeatedCreateUseDisposeCycles_ReleaseAllHandles()
+        {
+            const int cycleCount = 100;
+
+            for (int cycle = 0; cycle < cycleCount; ++cycle)
+            {
+                Assert.That(HbpCoreRuntime.Init(), Is.EqualTo(HbpCoreStatus.Ok), $"init cycle {cycle}");
+                CppDLLImportBase[] objects =
+                {
+                    BBox.FromMinMax(new Vector3(-4, -3, -2), new Vector3(5, 6, 7)),
+                    new HbpPlane(new Vector3(1, 2, 3), Vector3.forward),
+                    new HbpSegment3(new Vector3(-1, 0, 1), new Vector3(2, 4, 5)),
+                    new Surface(),
+                    new Volume()
+                };
+
+                try
+                {
+                    Assert.That(objects.All(item => item.getHandle().Handle != IntPtr.Zero), Is.True, $"live handles in cycle {cycle}");
+                    Assert.That(((HbpSegment3)objects[2]).Length, Is.GreaterThan(0));
+                    Assert.That(((Surface)objects[3]).NumberOfVertices, Is.Zero);
+                    Assert.That(((Volume)objects[4]).IsLoaded, Is.False);
+                }
+                finally
+                {
+                    foreach (CppDLLImportBase item in objects.Reverse()) item.Dispose();
+                }
+
+                Assert.That(objects.All(item => item.getHandle().Handle == IntPtr.Zero), Is.True, $"released handles in cycle {cycle}");
+                Assert.DoesNotThrow(objects[0].Dispose, $"Dispose must remain idempotent in cycle {cycle}");
+                Assert.That(HbpCoreRuntime.Shutdown(), Is.EqualTo(HbpCoreStatus.Ok), $"shutdown cycle {cycle}");
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         [Category("NativeDll")]
         public void HbpCoreSmoke_LoadsVersion_WhenLibraryIsPresent()
         {

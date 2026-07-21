@@ -964,6 +964,58 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        [Category("NativeMigration")]
+        [Category("HbpCoreOnly")]
+        public async Task Base3DScene_RepeatedInitializeCutCleanAndSceneReloadCyclesReleaseGeneratedObjects()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed: {error}");
+            }
+
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+
+            const int cycleCount = 3;
+            for (int cycle = 0; cycle < cycleCount; ++cycle)
+            {
+                using (PlayModeSceneScope scene = new($"Module3DSceneReloadCycle{cycle}"))
+                {
+                    CreateRuntimeModule3DMain(scene, $"Controlled Module3DMain Cycle {cycle}");
+                    string patientSuffix = cycle % 2 == 0 ? "alpha" : "beta";
+                    var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, patientSuffix: patientSuffix);
+                    Base3DScene baseScene = initialized.BaseScene;
+                    Column3D column = baseScene.Columns.Single();
+                    GameObject sceneObject = baseScene.gameObject;
+                    GameObject columnObject = column.gameObject;
+
+                    baseScene.AddCutPlane();
+                    await WaitForConditionAsync(() =>
+                        baseScene.Cuts.Count == 1
+                        && column.CutTextures.CutGenerators.Count == 1
+                        && !baseScene.SceneInformation.CutsNeedUpdate
+                        && !baseScene.SceneInformation.BaseCutTexturesNeedUpdate,
+                        $"cut update in reload cycle {cycle}",
+                        () => FormatCutUpdateDiagnostics(baseScene, column));
+
+                    GameObject cutObject = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects").BrainCutMeshes.Single();
+                    await baseScene.CleanAsync();
+                    await UniTask.Yield();
+
+                    Assert.That(sceneObject == null, Is.True, $"scene object in cycle {cycle}");
+                    Assert.That(columnObject == null, Is.True, $"column object in cycle {cycle}");
+                    Assert.That(cutObject == null, Is.True, $"cut object in cycle {cycle}");
+                }
+
+                await UniTask.Yield();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
         public async Task Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -1168,9 +1220,10 @@ namespace HBP.Tests.PlayMode.Module3D
         private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization, List<string> LoadingMessages)> InitializeSyntheticAnatomicSceneAsync(
             PlayModeTempDirectoryScope temp,
             PlayModeSceneScope scene,
-            int anatomyColumnCount = 1)
+            int anatomyColumnCount = 1,
+            string patientSuffix = "alpha")
         {
-            Project project = CreateMinimalAnatomicProject(anatomyColumnCount);
+            Project project = CreateMinimalAnatomicProject(anatomyColumnCount, patientSuffix);
             Base3DScene baseScene = CreateRuntimeBase3DScene(scene);
             Visualization visualization = project.Visualizations.Single();
             List<string> loadingMessages = new();
@@ -1422,21 +1475,21 @@ namespace HBP.Tests.PlayMode.Module3D
             return material;
         }
 
-        private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1)
+        private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1, string patientSuffix = "alpha")
         {
             HBP.Core.Data.Site site = new(
-                "module3d-scene-site-alpha",
-                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), "module3d-scene-coordinate-001") },
+                $"module3d-scene-site-{patientSuffix}",
+                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"module3d-scene-coordinate-{patientSuffix}") },
                 Array.Empty<BaseTagValue>(),
-                "module3d-scene-site-001");
+                $"module3d-scene-site-{patientSuffix}");
             Patient patient = new(
-                "module3d-scene-patient-alpha",
+                $"module3d-scene-patient-{patientSuffix}",
                 Array.Empty<BaseMesh>(),
                 Array.Empty<MRI>(),
                 new[] { site },
                 Array.Empty<BaseTagValue>(),
                 string.Empty,
-                "module3d-scene-patient-001");
+                $"module3d-scene-patient-{patientSuffix}");
             List<Column> columns = Enumerable.Range(0, anatomyColumnCount)
                 .Select(index => (Column)new AnatomicColumn(
                     $"module3d-scene-anatomy-{index}",
@@ -1445,14 +1498,14 @@ namespace HBP.Tests.PlayMode.Module3D
                     $"module3d-scene-column-anatomy-{index}"))
                 .ToList();
             Visualization visualization = new(
-                "module3d-scene-visualization-alpha",
+                $"module3d-scene-visualization-{patientSuffix}",
                 new[] { patient },
                 columns,
                 new VisualizationConfiguration(),
-                "module3d-scene-visualization-001");
+                $"module3d-scene-visualization-{patientSuffix}");
             Project project = new(
-                "module3d-scene-project-alpha",
-                new HBP.Core.Data.ProjectPreferences("module3d-scene-test", "module3d-scene-project-preferences-001"),
+                $"module3d-scene-project-{patientSuffix}",
+                new HBP.Core.Data.ProjectPreferences("module3d-scene-test", $"module3d-scene-project-preferences-{patientSuffix}"),
                 new[] { patient },
                 Array.Empty<Group>(),
                 Array.Empty<Dataset>(),
