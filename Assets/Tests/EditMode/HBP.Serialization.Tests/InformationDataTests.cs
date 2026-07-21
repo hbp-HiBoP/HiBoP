@@ -535,24 +535,30 @@ namespace HBP.Tests.Serialization
 
         private static HBP.Core.Data.SubTrial CreateCoreSubTrial(CoreSubBloc subBloc, string channel, float[] values, float eventTimeFromStart)
         {
-            Dictionary<string, float[]> valuesByChannel = new() { { channel, values.ToArray() } };
-            HBP.Core.Data.SubTrial subTrial = new(
-                new Dictionary<CoreEvent, EventInformation>
+            float[] baselineValues = { 0f, 0f };
+            var informationsByEvent = new Dictionary<CoreEvent, EventInformation>
+            {
                 {
+                    subBloc.MainEvent,
+                    new EventInformation(new[]
                     {
-                        subBloc.MainEvent,
-                        new EventInformation(new[]
-                        {
-                            new EventInformation.EventOccurence(subBloc.MainEvent.Codes[0], 0, 0, 0, eventTimeFromStart, eventTimeFromStart, 0)
-                        })
-                    }
-                },
+                        new EventInformation.EventOccurence(subBloc.MainEvent.Codes[0], 0, 0, 0, eventTimeFromStart, eventTimeFromStart, 0)
+                    })
+                }
+            };
+            EpochDescriptor descriptor = new(
+                new EpochRange(0, values.Length - 1),
+                new EpochRange(values.Length, values.Length + baselineValues.Length - 1),
+                0,
+                0,
+                0,
+                informationsByEvent);
+            return new HBP.Core.Data.SubTrial(
+                new Dictionary<string, float[]> { { channel, values.Concat(baselineValues).ToArray() } },
                 new Dictionary<string, string> { { channel, "uV" } },
-                valuesByChannel,
-                new Dictionary<string, float[]> { { channel, new[] { 0f, 0f } } },
-                true);
-            subTrial.ValuesByChannel = valuesByChannel.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
-            return subTrial;
+                descriptor,
+                subBloc,
+                new Frequency(1000));
         }
 
         private static void AddCacheEntry(string fieldName, object key, object value)

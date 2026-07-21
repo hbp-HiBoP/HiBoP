@@ -57,7 +57,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(loadCount, Is.EqualTo(1));
             Assert.That(DataManager.RawRecordingCacheCount, Is.EqualTo(1));
-            Assert.That(first.DataByBloc[firstInfo.Protocol.Blocs[0]].Trials[0].SubTrialBySubBloc[firstInfo.Protocol.Blocs[0].MainSubBloc].RawValuesByChannel["A1"], Is.EqualTo(new[] { 12f, 13f }));
+            Assert.That(first.DataByBloc[firstInfo.Protocol.Blocs[0]].Trials[0].SubTrialBySubBloc[firstInfo.Protocol.Blocs[0].MainSubBloc].GetWindow("A1").ToArray(), Is.EqualTo(new[] { 12f, 13f }));
             Assert.That(second, Is.Not.SameAs(first));
 
             firstInfo.Protocol = CreateProtocol("protocol-c");

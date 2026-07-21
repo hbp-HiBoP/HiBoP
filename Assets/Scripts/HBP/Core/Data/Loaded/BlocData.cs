@@ -29,6 +29,7 @@ namespace HBP.Core.Data
 
             // Initialize loop.
             List<Trial> trials = new(MainSubBlocMainEventOccurences.Length);
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             int startIndex, endIndex;
 
             // All main event position but the last one.
@@ -36,9 +37,17 @@ namespace HBP.Core.Data
             {
                 startIndex = (i - 1 < 0) ? 0 : MainSubBlocMainEventOccurences[i - 1].Index;
                 endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
-                trials.Add(new Trial(data.ValuesByChannel, data.UnitByChannel, startIndex, MainSubBlocMainEventOccurences[i], endIndex, occurencesByEvent, bloc, data.Frequency));
+                trials.Add(new Trial(data.ValuesByChannel, data.UnitByChannel, startIndex, MainSubBlocMainEventOccurences[i], endIndex, occurencesByEvent, bloc, data.Frequency, i, compatibilityBuffer));
             }
             Trials = SortTrials(bloc, trials);
+            for (int trialIndex = 0; trialIndex < Trials.Length; ++trialIndex)
+            {
+                foreach (SubTrial subTrial in Trials[trialIndex].SubTrialBySubBloc.Values)
+                {
+                    if (subTrial.Descriptor != null)
+                        subTrial.Descriptor.TrialIndex = trialIndex;
+                }
+            }
 
             Frequency = data.Frequency;
         }
@@ -131,4 +140,4 @@ namespace HBP.Core.Data
         }
         #endregion
     }
-} 
+}

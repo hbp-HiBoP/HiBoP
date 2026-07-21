@@ -1058,6 +1058,7 @@ namespace HBP.Core.Data
 
         static void NormalizeByNone(BlocRequest request)
         {
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             BlocData blocData = GetData(request);
             if (blocData != null)
             {
@@ -1065,7 +1066,7 @@ namespace HBP.Core.Data
                 {
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
-                        subTrial.Normalize(0, 1);
+                        subTrial.Normalize(0, 1, compatibilityBuffer);
                     }
                 }
                 
@@ -1083,6 +1084,7 @@ namespace HBP.Core.Data
         }
         static void NormalizeBySubTrial(BlocRequest request)
         {
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             BlocData blocData = GetData(request);
             if (blocData != null)
             {
@@ -1090,9 +1092,10 @@ namespace HBP.Core.Data
                 {
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
-                        foreach (var pair in subTrial.BaselineValuesByChannel)
+                        foreach (string channel in subTrial.Channels)
                         {
-                            subTrial.Normalize(pair.Value.Mean(), pair.Value.StandardDeviation(), pair.Key);
+                            subTrial.GetBaselineStatistics(channel, compatibilityBuffer, out float average, out float standardDeviation);
+                            subTrial.Normalize(average, standardDeviation, channel, compatibilityBuffer);
                         }
                     }
                 }
@@ -1111,6 +1114,7 @@ namespace HBP.Core.Data
         }
         static void NormalizeByTrial(BlocRequest request)
         {
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             BlocData epochedData = GetData(request);
             if (epochedData != null)
             {
@@ -1119,10 +1123,10 @@ namespace HBP.Core.Data
                     Dictionary<string, List<float>> baselineByChannel = new();
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
-                        foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
+                        foreach (string channel in subTrial.Channels)
                         {
                             if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
+                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
                         }
                     }
 
@@ -1133,7 +1137,7 @@ namespace HBP.Core.Data
                         standardDeviation = baselineByChannel[channel].ToArray().StandardDeviation();
                         foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                         {
-                            subTrial.Normalize(average, standardDeviation, channel);
+                            subTrial.Normalize(average, standardDeviation, channel, compatibilityBuffer);
                         }
                     }
                 }
@@ -1152,6 +1156,7 @@ namespace HBP.Core.Data
         }
         static void NormalizeBySubBloc(BlocRequest request)
         {
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             Dictionary<string, List<float>> baselineByChannel;
             BlocData epochedData = GetData(request);
             if (epochedData != null)
@@ -1162,10 +1167,10 @@ namespace HBP.Core.Data
                     foreach (var trial in epochedData.Trials)
                     {
                         SubTrial subTrial = trial.SubTrialBySubBloc[subBloc];
-                        foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
+                        foreach (string channel in subTrial.Channels)
                         {
                             if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
+                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
                         }
                     }
 
@@ -1177,7 +1182,7 @@ namespace HBP.Core.Data
                         foreach (var trial in epochedData.Trials)
                         {
                             SubTrial subTrial = trial.SubTrialBySubBloc[subBloc];
-                            subTrial.Normalize(average, standardDeviation, channel);
+                            subTrial.Normalize(average, standardDeviation, channel, compatibilityBuffer);
                         }
                     }
                 }
@@ -1196,6 +1201,7 @@ namespace HBP.Core.Data
         }
         static void NormalizeByBloc(BlocRequest request)
         {
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             Dictionary<string, List<float>> baselineByChannel = new();
             
             m_DataLock.EnterReadLock();
@@ -1215,10 +1221,10 @@ namespace HBP.Core.Data
                 {
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
-                        foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
+                        foreach (string channel in subTrial.Channels)
                         {
                             if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
+                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
                         }
                     }
                 }
@@ -1232,7 +1238,7 @@ namespace HBP.Core.Data
                     {
                         foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                         {
-                            subTrial.Normalize(average, standardDeviation, channel);
+                            subTrial.Normalize(average, standardDeviation, channel, compatibilityBuffer);
                         }
                     }
                 }
@@ -1251,6 +1257,7 @@ namespace HBP.Core.Data
         }
         static void NormalizeByProtocol(IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize)
         {
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             Dictionary<string, List<float>> baselineByChannel = new();
 
             m_DataLock.EnterReadLock();
@@ -1277,10 +1284,10 @@ namespace HBP.Core.Data
                 {
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
-                        foreach (var channel in subTrial.BaselineValuesByChannel.Keys)
+                        foreach (string channel in subTrial.Channels)
                         {
                             if (!baselineByChannel.ContainsKey(channel)) baselineByChannel[channel] = new List<float>();
-                            baselineByChannel[channel].AddRange(subTrial.BaselineValuesByChannel[channel]);
+                            subTrial.AppendBaselineValues(channel, baselineByChannel[channel], compatibilityBuffer);
                         }
                     }
                 }
@@ -1314,7 +1321,7 @@ namespace HBP.Core.Data
                             {
                                 foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                                 {
-                                    subTrial.Normalize(average, standardDeviation, channel);
+                                    subTrial.Normalize(average, standardDeviation, channel, compatibilityBuffer);
                                 }
                             }
                         }

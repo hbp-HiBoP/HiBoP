@@ -1327,24 +1327,30 @@ namespace HBP.Tests.PlayMode.UI
 
         private static HBP.Core.Data.SubTrial CreateCoreSubTrial(CoreSubBloc subBloc, float[] values)
         {
-            Dictionary<string, float[]> valuesByChannel = new() { { "A1", values.ToArray() } };
-            HBP.Core.Data.SubTrial subTrial = new(
-                new Dictionary<CoreEvent, EventInformation>
+            float[] baselineValues = { 0f, 0f };
+            var informationsByEvent = new Dictionary<CoreEvent, EventInformation>
+            {
                 {
+                    subBloc.MainEvent,
+                    new EventInformation(new[]
                     {
-                        subBloc.MainEvent,
-                        new EventInformation(new[]
-                        {
-                            new EventInformation.EventOccurence(subBloc.MainEvent.Codes[0], 0, 0, 0, 10f, 10f, 0)
-                        })
-                    }
-                },
+                        new EventInformation.EventOccurence(subBloc.MainEvent.Codes[0], 0, 0, 0, 10f, 10f, 0)
+                    })
+                }
+            };
+            EpochDescriptor descriptor = new(
+                new EpochRange(0, values.Length - 1),
+                new EpochRange(values.Length, values.Length + baselineValues.Length - 1),
+                0,
+                0,
+                0,
+                informationsByEvent);
+            return new HBP.Core.Data.SubTrial(
+                new Dictionary<string, float[]> { { "A1", values.Concat(baselineValues).ToArray() } },
                 new Dictionary<string, string> { { "A1", "uV" } },
-                valuesByChannel,
-                new Dictionary<string, float[]> { { "A1", new[] { 0f, 0f } } },
-                true);
-            subTrial.ValuesByChannel = valuesByChannel.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
-            return subTrial;
+                descriptor,
+                subBloc,
+                new Frequency(1000));
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)

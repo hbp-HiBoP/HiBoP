@@ -304,25 +304,30 @@ namespace HBP.Tests.Serialization
 
         private static SubTrial CreateSubTrial(SubBloc subBloc, float[] rawValues, float baselineValue, float eventTimeFromStart)
         {
-            var rawByChannel = new Dictionary<string, float[]> { { "A1", rawValues.ToArray() } };
-            var baselineByChannel = new Dictionary<string, float[]> { { "A1", new[] { baselineValue, baselineValue } } };
-            var subTrial = new SubTrial(
-                new Dictionary<Event, EventInformation>
+            float[] baselineValues = { baselineValue, baselineValue };
+            var informationsByEvent = new Dictionary<Event, EventInformation>
+            {
                 {
+                    subBloc.MainEvent,
+                    new EventInformation(new[]
                     {
-                        subBloc.MainEvent,
-                        new EventInformation(new[]
-                        {
-                            new EventInformation.EventOccurence(subBloc.MainEvent.Codes[0], 0, 0, 0, eventTimeFromStart, eventTimeFromStart, 0)
-                        })
-                    }
-                },
+                        new EventInformation.EventOccurence(subBloc.MainEvent.Codes[0], 0, 0, 0, eventTimeFromStart, eventTimeFromStart, 0)
+                    })
+                }
+            };
+            EpochDescriptor descriptor = new(
+                new EpochRange(0, rawValues.Length - 1),
+                new EpochRange(rawValues.Length, rawValues.Length + baselineValues.Length - 1),
+                0,
+                0,
+                0,
+                informationsByEvent);
+            return new SubTrial(
+                new Dictionary<string, float[]> { { "A1", rawValues.Concat(baselineValues).ToArray() } },
                 new Dictionary<string, string> { { "A1", "uV" } },
-                rawByChannel,
-                baselineByChannel,
-                true);
-            subTrial.ValuesByChannel = rawByChannel.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray());
-            return subTrial;
+                descriptor,
+                subBloc,
+                new Frequency(1000));
         }
 
         private static void TryNormalizeOrIgnore()
