@@ -10,7 +10,7 @@ namespace HBP.Tests.Serialization
     [Serializable]
     internal sealed class NativeProjectionLoadWorkerReport
     {
-        public string schemaVersion = "1.3";
+        public string schemaVersion = "1.4";
         public string backend = "hbp_core";
         public string profile;
         public string startedUtc;
@@ -40,6 +40,7 @@ namespace HBP.Tests.Serialization
         public int dimension;
         public int siteCount;
         public int timelineLength;
+        public int samplingFrequencyHz;
         public float influenceDistance;
         public float[] influenceDistances;
         public int columnCount;
@@ -65,12 +66,16 @@ namespace HBP.Tests.Serialization
         public long maxTemporaryNeighborPeakBytes;
         public long temporaryNeighborBudgetBytes;
         public long estimatedCurrentValueAndWeightBytes;
+        public NativeProjectionMemoryLayerResult memoryLayers;
         public double medianTotalWallMilliseconds;
+        public double p95TotalWallMilliseconds;
         public double medianTotalCpuMilliseconds;
         public double medianComputeWallMilliseconds;
+        public double p95ComputeWallMilliseconds;
         public double medianComputeCpuMilliseconds;
         public double medianCutPreparationWallMilliseconds;
         public double medianCutTimelineUpdateWallMilliseconds;
+        public double p95CutTimelineUpdateWallMilliseconds;
         public double medianCutTimelineUpdateCpuMilliseconds;
         public double medianCutTimelineFillWallMilliseconds;
         public double medianCutTimelineCopyWallMilliseconds;
@@ -79,6 +84,20 @@ namespace HBP.Tests.Serialization
         public long maxRetainedPrivateBytesDelta;
         public long maxRetainedWorkingSetBytesDelta;
         public List<NativeProjectionLoadSampleResult> samples = new();
+    }
+
+    [Serializable]
+    internal sealed class NativeProjectionMemoryLayerResult
+    {
+        public string syntheticManagedLayerBasis;
+        public long managedRawSignalBytes;
+        public long managedEpochBytes;
+        public long managedDerivedBytes;
+        public long managedColumnArrayBytes;
+        public long nativeProjectionBytes;
+        public long estimatedTextureBytes;
+        public long peakPrivateBytesDelta;
+        public long retainedPrivateBytesDelta;
     }
 
     [Serializable]
@@ -160,7 +179,9 @@ namespace HBP.Tests.Serialization
             int columnCount,
             bool measureExport,
             HBP.Core.Enums.VolumeInterpolation volumeInterpolation,
-            float[] influenceDistances = null)
+            float[] influenceDistances = null,
+            int samplingFrequencyHz = 0,
+            SyntheticTimeSeriesDefinition syntheticTimeSeries = null)
         {
             Name = name;
             Dimension = dimension;
@@ -170,6 +191,8 @@ namespace HBP.Tests.Serialization
             ColumnCount = columnCount;
             MeasureExport = measureExport;
             VolumeInterpolation = volumeInterpolation;
+            SamplingFrequencyHz = samplingFrequencyHz;
+            SyntheticTimeSeries = syntheticTimeSeries;
             InfluenceDistances = influenceDistances ?? Enumerable.Repeat(influenceDistance, columnCount).ToArray();
             if (InfluenceDistances.Length != columnCount)
             {
@@ -181,15 +204,18 @@ namespace HBP.Tests.Serialization
         public int Dimension { get; }
         public int SiteCount { get; }
         public int TimelineLength { get; }
+        public int SamplingFrequencyHz { get; }
         public float InfluenceDistance { get; }
         public float[] InfluenceDistances { get; }
         public int ColumnCount { get; }
         public bool MeasureExport { get; }
         public HBP.Core.Enums.VolumeInterpolation VolumeInterpolation { get; }
+        public SyntheticTimeSeriesDefinition SyntheticTimeSeries { get; }
 
         public string Workload =>
             $"MNI; dimension {Dimension}; {SiteCount:N0} sites; {TimelineLength} instants; " +
             $"linear radius/radii {string.Join(",", InfluenceDistances.Select(value => value.ToString("R")))}; " +
+            (SamplingFrequencyHz > 0 ? $"{SamplingFrequencyHz} Hz; " : string.Empty) +
             $"{ColumnCount} sequential column(s); {VolumeInterpolation}";
     }
 

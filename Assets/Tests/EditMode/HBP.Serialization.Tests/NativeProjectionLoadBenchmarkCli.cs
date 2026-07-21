@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using HBP.Core.DLL;
 using HBP.Core.Enums;
+using UnityEditor;
 using UnityEngine;
 
 namespace HBP.Tests.Serialization
@@ -32,6 +33,7 @@ namespace HBP.Tests.Serialization
                 string profile = RequireArgument(arguments, ProfileArgument);
                 if (!profile.Equals("Smoke", StringComparison.OrdinalIgnoreCase)
                     && !profile.Equals("Typical", StringComparison.OrdinalIgnoreCase)
+                    && !profile.Equals("Product", StringComparison.OrdinalIgnoreCase)
                     && !profile.Equals("Extreme", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new ArgumentException($"Unsupported projection profile: {profile}.", ProfileArgument);
@@ -111,6 +113,7 @@ namespace HBP.Tests.Serialization
             {
                 report.finishedUtc = DateTime.UtcNow.ToString("O");
                 if (!string.IsNullOrWhiteSpace(outputPath)) WriteReport(outputPath, report);
+                EditorApplication.Exit(report.succeeded ? 0 : 1);
             }
         }
 

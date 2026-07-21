@@ -241,7 +241,7 @@ namespace HBP.UI.Main
                 }
 
                 // Try to load the file
-                Core.DLL.EEG.File file = new(type, false, files);
+                using Core.DLL.EEG.File file = new(type, false, files);
 
                 // Format header information
                 System.Text.StringBuilder headerInfo = new();

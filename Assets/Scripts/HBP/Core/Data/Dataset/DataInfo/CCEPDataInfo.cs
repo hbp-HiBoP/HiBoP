@@ -162,7 +162,7 @@ namespace HBP.Core.Data
                 {
                     throw new Exception("Invalid data container type");
                 }
-                DLL.EEG.File file = new(type, false, files);
+                using DLL.EEG.File file = new(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
                 if (Protocol.IsVisualizable && !Protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {

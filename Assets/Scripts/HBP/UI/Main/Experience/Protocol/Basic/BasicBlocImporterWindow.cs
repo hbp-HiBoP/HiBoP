@@ -102,7 +102,7 @@ namespace HBP.UI.Main
                 throw new Exception("Invalid data container type");
             }
             
-            Core.DLL.EEG.File file = new(type, false, files);
+            using Core.DLL.EEG.File file = new(type, false, files);
             List<Core.DLL.EEG.Trigger> triggers = file.Triggers;
 
             if (triggers.Count == 0)

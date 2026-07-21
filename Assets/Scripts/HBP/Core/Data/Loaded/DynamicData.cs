@@ -76,7 +76,7 @@ namespace HBP.Core.Data
             {
                 throw new DataFileNotFoundException(missingFiles);
             }
-            DLL.EEG.File file = new(type, true, files);
+            using DLL.EEG.File file = new(type, true, files);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");
@@ -105,7 +105,6 @@ namespace HBP.Core.Data
                 if (!m_OccurencesByCode.ContainsKey(code)) m_OccurencesByCode[code] = new List<EventOccurence>();
                 m_OccurencesByCode[code].Add(new EventOccurence(code, sample, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(sample)));
             }
-            file.Dispose();
         }
         #endregion
     }

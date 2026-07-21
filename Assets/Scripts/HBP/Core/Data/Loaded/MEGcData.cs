@@ -53,7 +53,7 @@ namespace HBP.Core.Data
             {
                 throw new DataFileNotFoundException(missingFiles);
             }
-            DLL.EEG.File file = new(type, true, files);
+            using DLL.EEG.File file = new(type, true, files);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");
@@ -65,7 +65,6 @@ namespace HBP.Core.Data
                 UnitByChannel.Add(channel.Label, channel.Unit);
             }
             Frequency = file.SamplingFrequency;
-            file.Dispose();
         }
         #endregion
 

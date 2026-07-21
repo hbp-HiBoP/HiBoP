@@ -21,25 +21,37 @@ namespace HBP.Tests.Serialization
             List<NativeProjectionLoadScenarioDefinition> scenarios = new();
             HashSet<string> keys = new(StringComparer.OrdinalIgnoreCase);
 
-            void Add(string prefix, int dimension, int sites, float radius, int columns = 1, bool export = false)
+            void Add(
+                string prefix,
+                int dimension,
+                int sites,
+                float radius,
+                int columns = 1,
+                bool export = false,
+                int timeline = 0,
+                int samplingFrequencyHz = 0,
+                SyntheticTimeSeriesDefinition syntheticTimeSeries = null)
             {
-                string name = $"{prefix}.d{dimension}.s{sites}.t{timelineLength}.r{radius:R}.c{columns}";
+                int scenarioTimelineLength = timeline > 0 ? timeline : timelineLength;
+                string name = $"{prefix}.d{dimension}.s{sites}.t{scenarioTimelineLength}.r{radius:R}.c{columns}";
                 if (!string.IsNullOrWhiteSpace(filter)
                     && name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
                 {
                     return;
                 }
-                string key = $"{dimension}:{sites}:{timelineLength}:{radius:R}:{columns}:{export}";
+                string key = $"{dimension}:{sites}:{scenarioTimelineLength}:{radius:R}:{columns}:{export}";
                 if (!keys.Add(key)) return;
                 scenarios.Add(new NativeProjectionLoadScenarioDefinition(
                     name,
                     dimension,
                     sites,
-                    timelineLength,
+                    scenarioTimelineLength,
                     radius,
                     columns,
                     export,
-                    volumeInterpolation));
+                    volumeInterpolation,
+                    samplingFrequencyHz: samplingFrequencyHz,
+                    syntheticTimeSeries: syntheticTimeSeries ?? DefaultSyntheticLayout(sites, scenarioTimelineLength, samplingFrequencyHz)));
             }
 
             void AddRadii(string prefix, int dimension, int sites, params float[] radii)
@@ -62,7 +74,8 @@ namespace HBP.Tests.Serialization
                     radii.Length,
                     false,
                     volumeInterpolation,
-                    radii));
+                    radii,
+                    syntheticTimeSeries: DefaultSyntheticLayout(sites, timelineLength, 0)));
             }
 
             if (profile.Equals("Smoke", StringComparison.OrdinalIgnoreCase))
@@ -84,12 +97,31 @@ namespace HBP.Tests.Serialization
             {
                 Add("projection.dimension-scale", dimension, 5000, 15.0f);
             }
-            Add("projection.product-reference", 120, 25000, 15.0f);
+            SyntheticTimeSeriesDefinition productTimeSeries = new(
+                250,
+                120,
+                100,
+                100 * 2001,
+                2001,
+                501,
+                1000);
+            Add("projection.product-reference", 80, 30000, 15.0f,
+                timeline: 100, syntheticTimeSeries: productTimeSeries);
+            Add("projection.product-reference-multicolumn", 80, 30000, 15.0f,
+                columns: 3, timeline: 100, syntheticTimeSeries: productTimeSeries);
             Add("projection.multicolumn", 96, 5000, 15.0f, columns: 3);
             if (includeExport) Add("projection.export", 96, 5000, 15.0f, export: true);
 
             if (profile.Equals("Extreme", StringComparison.OrdinalIgnoreCase))
             {
+                int lowFrequencyLength = SyntheticTimeSeriesFactory.InclusiveSampleCount(1500, 64);
+                int highFrequencyLength = SyntheticTimeSeriesFactory.InclusiveSampleCount(1500, 2048);
+                Add("projection.high-frequency", 24, 1000, 15.0f,
+                    timeline: lowFrequencyLength,
+                    samplingFrequencyHz: 64);
+                Add("projection.high-frequency", 24, 1000, 15.0f,
+                    timeline: highFrequencyLength,
+                    samplingFrequencyHz: 2048);
                 Add("projection.memory-reference", 120, 1000, 15.0f);
                 Add("projection.cache-reference", 120, 1000, 15.0f, columns: 3);
                 AddRadii("projection.cache-churn", 120, 1000, 5.0f, 15.0f, 30.0f, 15.0f, 5.0f);
@@ -115,6 +147,7 @@ namespace HBP.Tests.Serialization
                 dimension = definition.Dimension,
                 siteCount = definition.SiteCount,
                 timelineLength = definition.TimelineLength,
+                samplingFrequencyHz = definition.SamplingFrequencyHz,
                 influenceDistance = definition.InfluenceDistance,
                 influenceDistances = definition.InfluenceDistances,
                 columnCount = definition.ColumnCount,
@@ -158,11 +191,14 @@ namespace HBP.Tests.Serialization
             result.cutTexturePixelCount = first.cutTexturePixelCount;
             result.estimatedCutStencilPayloadBytes = first.estimatedCutStencilPayloadBytes;
             result.medianTotalWallMilliseconds = Median(result.samples.Select(sample => sample.totalWallMilliseconds));
+            result.p95TotalWallMilliseconds = Percentile95(result.samples.Select(sample => sample.totalWallMilliseconds));
             result.medianTotalCpuMilliseconds = Median(result.samples.Select(sample => sample.totalCpuMilliseconds));
             result.medianComputeWallMilliseconds = Median(result.samples.Select(sample => sample.computeWallMilliseconds));
+            result.p95ComputeWallMilliseconds = Percentile95(result.samples.Select(sample => sample.computeWallMilliseconds));
             result.medianComputeCpuMilliseconds = Median(result.samples.Select(sample => sample.computeCpuMilliseconds));
             result.medianCutPreparationWallMilliseconds = Median(result.samples.Select(sample => sample.cutPreparationWallMilliseconds));
             result.medianCutTimelineUpdateWallMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineUpdateWallMilliseconds));
+            result.p95CutTimelineUpdateWallMilliseconds = Percentile95(result.samples.Select(sample => sample.meanCutTimelineUpdateWallMilliseconds));
             result.medianCutTimelineUpdateCpuMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineUpdateCpuMilliseconds));
             result.medianCutTimelineFillWallMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineFillWallMilliseconds));
             result.medianCutTimelineCopyWallMilliseconds = Median(result.samples.Select(sample => sample.meanCutTimelineCopyWallMilliseconds));
@@ -170,7 +206,39 @@ namespace HBP.Tests.Serialization
             result.maxPeakWorkingSetBytesDelta = result.samples.Max(sample => sample.peakWorkingSetBytesDelta);
             result.maxRetainedPrivateBytesDelta = result.samples.Max(sample => sample.retainedPrivateBytesDelta);
             result.maxRetainedWorkingSetBytesDelta = result.samples.Max(sample => sample.retainedWorkingSetBytesDelta);
+            SyntheticTimeSeriesDefinition timeSeries = definition.SyntheticTimeSeries;
+            result.memoryLayers = new NativeProjectionMemoryLayerResult
+            {
+                syntheticManagedLayerBasis = timeSeries == null
+                    ? "not measured"
+                    : $"{timeSeries.PatientCount} patients; {timeSeries.ChannelsPerPatient} channels/patient; " +
+                      $"{timeSeries.TrialCount} trials; {timeSeries.RecordingSampleCount} raw samples/channel; " +
+                      $"{timeSeries.WindowSampleCount} window samples; {timeSeries.BaselineSampleCount} baseline samples",
+                managedRawSignalBytes = timeSeries?.ManagedRawSignalBytes ?? 0L,
+                managedEpochBytes = timeSeries?.ManagedEpochBytes ?? 0L,
+                managedDerivedBytes = timeSeries?.ManagedDerivedBytes ?? 0L,
+                managedColumnArrayBytes = first.managedActivityInputBytes,
+                nativeProjectionBytes = first.estimatedCurrentValueAndWeightBytes,
+                estimatedTextureBytes = first.estimatedCutStencilPayloadBytes,
+                peakPrivateBytesDelta = result.maxPeakPrivateBytesDelta,
+                retainedPrivateBytesDelta = result.maxRetainedPrivateBytesDelta
+            };
             return result;
+        }
+
+        private static SyntheticTimeSeriesDefinition DefaultSyntheticLayout(
+            int channels,
+            int samples,
+            int samplingFrequencyHz)
+        {
+            return new SyntheticTimeSeriesDefinition(
+                1,
+                channels,
+                1,
+                samples,
+                samples,
+                0,
+                samplingFrequencyHz > 0 ? samplingFrequencyHz : 1000);
         }
 
         private static NativeProjectionLoadSampleResult RunSample(
@@ -574,8 +642,7 @@ namespace HBP.Tests.Serialization
                 for (int site = 0; site < siteCount; ++site)
                 {
                     activity[timeline * siteCount + site] =
-                        (float)Math.Sin(site * 0.017 + timeline * 0.13)
-                        + 0.25f * (float)Math.Cos(site * 0.007 - timeline * 0.19);
+                        SyntheticTimeSeriesFactory.ValueAt(0, site, 0, timeline);
                 }
             }
             return activity;
@@ -660,6 +727,13 @@ namespace HBP.Tests.Serialization
             return sorted.Length % 2 == 0
                 ? (sorted[middle - 1] + sorted[middle]) * 0.5
                 : sorted[middle];
+        }
+
+        private static double Percentile95(IEnumerable<double> values)
+        {
+            double[] sorted = values.OrderBy(value => value).ToArray();
+            int index = Math.Max(0, (int)Math.Ceiling(sorted.Length * 0.95) - 1);
+            return sorted[index];
         }
 
         private static ulong Hash(Vector2[] values)
