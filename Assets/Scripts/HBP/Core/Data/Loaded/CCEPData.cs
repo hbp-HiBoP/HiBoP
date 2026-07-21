@@ -11,6 +11,10 @@
         {
             StimulatedChannel = dataInfo.StimulatedChannel;
         }
+        internal CCEPData(CCEPDataInfo dataInfo, DynamicData rawData) : base(dataInfo, rawData)
+        {
+            StimulatedChannel = dataInfo.StimulatedChannel;
+        }
         #endregion
 
         #region Public Methods

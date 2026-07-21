@@ -15,6 +15,9 @@ namespace HBP.Core.Data
         
         // General.
         static Dictionary<Request, Data> m_DataByRequest = new();
+        static readonly RawRecordingCache m_RawRecordingCache = new();
+        internal static Func<EEGRecordingSource, DynamicData> RawRecordingLoader { get; set; } = source => new DynamicData(source);
+        internal static int RawRecordingCacheCount => m_RawRecordingCache.Count;
 
         // iEEG
         static Dictionary<BlocRequest, BlocData> m_BlocDataByRequest = new();
@@ -79,6 +82,14 @@ namespace HBP.Core.Data
         }
         public static void Clear()
         {
+            Clear(true);
+        }
+        public static void ClearDerivedData()
+        {
+            Clear(false);
+        }
+        private static void Clear(bool clearRawRecordings)
+        {
             m_DataLock.EnterWriteLock();
             try
             {
@@ -140,13 +151,24 @@ namespace HBP.Core.Data
 
                 m_NormalizeByRequest.Clear();
                 m_NormalizeByRequest = new Dictionary<BlocRequest, NormalizationType>();
+
+                m_BlocRequestsRequiringStatisticsReset.Clear();
+                m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>();
             }
             finally
             {
                 m_DataLock.ExitWriteLock();
             }
+
+            if (clearRawRecordings)
+                m_RawRecordingCache.Clear();
             
             GC.Collect();
+        }
+
+        internal static void ResetRawRecordingLoader()
+        {
+            RawRecordingLoader = source => new DynamicData(source);
         }
 
         public static Data GetData(DataInfo dataInfo)
@@ -464,6 +486,12 @@ namespace HBP.Core.Data
             if (alreadyExists)
                 return;
 
+            if (request.DataInfo is IEEGDataInfo || request.DataInfo is CCEPDataInfo || request.DataInfo is MEGcDataInfo)
+            {
+                LoadRawBackedData(request);
+                return;
+            }
+
             m_DataLock.EnterWriteLock();
             try
             {
@@ -471,29 +499,7 @@ namespace HBP.Core.Data
                 if (m_DataByRequest.ContainsKey(request))
                     return;
 
-                if (request.DataInfo is IEEGDataInfo iEEGDataInfo)
-                {
-                    IEEGData data = new(iEEGDataInfo);
-                    m_DataByRequest.Add(request, data);
-
-                    foreach (var bloc in request.DataInfo.Protocol.Blocs)
-                    {
-                        m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
-                        m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), NormalizationType.None);
-                    }
-                }
-                else if (request.DataInfo is CCEPDataInfo CCEPDataInfo)
-                {
-                    CCEPData data = new(CCEPDataInfo);
-                    m_DataByRequest.Add(request, data);
-
-                    foreach (var bloc in request.DataInfo.Protocol.Blocs)
-                    {
-                        m_BlocDataByRequest.Add(new BlocRequest(request.DataInfo, bloc), data.DataByBloc[bloc]);
-                        m_NormalizeByRequest.Add(new BlocRequest(request.DataInfo, bloc), NormalizationType.None);
-                    }
-                }
-                else if (request.DataInfo is FMRIDataInfo FMRIDataInfo)
+                if (request.DataInfo is FMRIDataInfo FMRIDataInfo)
                 {
                     FMRIData data = new(FMRIDataInfo);
                     m_DataByRequest.Add(request, data);
@@ -513,10 +519,56 @@ namespace HBP.Core.Data
                     MEGvData data = new(MEGvDataInfo);
                     m_DataByRequest.Add(request, data);
                 }
-                else if (request.DataInfo is MEGcDataInfo MEGcDataInfo)
+            }
+            finally
+            {
+                m_DataLock.ExitWriteLock();
+            }
+        }
+        static void LoadRawBackedData(Request request)
+        {
+            EEGRecordingSource source = EEGRecordingSource.From(request.DataInfo);
+            RawRecordingSourceKey sourceKey = RawRecordingSourceKey.From(source);
+            DynamicData rawData = m_RawRecordingCache.GetOrLoad(sourceKey, () => RawRecordingLoader(source));
+
+            Data data;
+            if (request.DataInfo is IEEGDataInfo iEEGDataInfo)
+                data = new IEEGData(iEEGDataInfo, rawData);
+            else if (request.DataInfo is CCEPDataInfo ccepDataInfo)
+                data = new CCEPData(ccepDataInfo, rawData);
+            else
+                data = new MEGcData(rawData);
+
+            m_DataLock.EnterWriteLock();
+            try
+            {
+                if (m_DataByRequest.ContainsKey(request))
+                    return;
+
+                List<BlocRequest> publishedBlocRequests = new();
+                try
                 {
-                    MEGcData data = new(MEGcDataInfo);
                     m_DataByRequest.Add(request, data);
+                    if (data is EpochedData epochedData)
+                    {
+                        foreach (Bloc bloc in request.DataInfo.Protocol.Blocs)
+                        {
+                            BlocRequest blocRequest = new(request.DataInfo, bloc);
+                            publishedBlocRequests.Add(blocRequest);
+                            m_BlocDataByRequest.Add(blocRequest, epochedData.DataByBloc[bloc]);
+                            m_NormalizeByRequest.Add(blocRequest, NormalizationType.None);
+                        }
+                    }
+                }
+                catch
+                {
+                    m_DataByRequest.Remove(request);
+                    foreach (BlocRequest blocRequest in publishedBlocRequests)
+                    {
+                        m_BlocDataByRequest.Remove(blocRequest);
+                        m_NormalizeByRequest.Remove(blocRequest);
+                    }
+                    throw;
                 }
             }
             finally
@@ -567,6 +619,38 @@ namespace HBP.Core.Data
                     {
                         m_BlocDataByRequest.Remove(blocDataRequest);
                     }
+
+                    var normalizationRequestsToRemove = m_NormalizeByRequest.Keys.Where(k => k.DataInfo == request.DataInfo).ToList();
+                    foreach (var normalizationRequest in normalizationRequestsToRemove)
+                    {
+                        m_NormalizeByRequest.Remove(normalizationRequest);
+                    }
+
+                    var channelStatisticsToRemove = m_ChannelStatisticsByRequest.Keys.Where(k => k.DataInfo == request.DataInfo).ToList();
+                    foreach (var channelStatisticsRequest in channelStatisticsToRemove)
+                    {
+                        m_ChannelStatisticsByRequest.Remove(channelStatisticsRequest);
+                    }
+
+                    var blocChannelStatisticsToRemove = m_BlocChannelStatisticsByRequest.Keys.Where(k => k.DataInfo == request.DataInfo).ToList();
+                    foreach (var blocChannelStatisticsRequest in blocChannelStatisticsToRemove)
+                    {
+                        m_BlocChannelStatisticsByRequest.Remove(blocChannelStatisticsRequest);
+                    }
+
+                    var eventStatisticsToRemove = m_EventsStatisticsByRequest.Keys.Where(k => k.DataInfo == request.DataInfo).ToList();
+                    foreach (var eventStatisticsRequest in eventStatisticsToRemove)
+                    {
+                        m_EventsStatisticsByRequest.Remove(eventStatisticsRequest);
+                    }
+
+                    var blocEventStatisticsToRemove = m_BlocEventsStatisticsByRequest.Keys.Where(k => k.DataInfo == request.DataInfo).ToList();
+                    foreach (var blocEventStatisticsRequest in blocEventStatisticsToRemove)
+                    {
+                        m_BlocEventsStatisticsByRequest.Remove(blocEventStatisticsRequest);
+                    }
+
+                    m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>(m_BlocRequestsRequiringStatisticsReset.Where(k => k.DataInfo != request.DataInfo).Reverse());
                 }
             }
             finally

@@ -66,13 +66,16 @@ namespace HBP.Core.Data
             }
             Frequency = file.SamplingFrequency;
         }
+        internal MEGcData(DynamicData rawData) : this(rawData.ValuesByChannel, new Dictionary<string, string>(rawData.UnitByChannel), rawData.Frequency)
+        {
+        }
         #endregion
 
         #region Public Methods
         public override void Clear()
         {
-            ValuesByChannel.Clear();
-            UnitByChannel.Clear();
+            ValuesByChannel = new Dictionary<string, float[]>();
+            UnitByChannel = new Dictionary<string, string>();
             Frequency = new Tools.Frequency(0);
         }
         #endregion

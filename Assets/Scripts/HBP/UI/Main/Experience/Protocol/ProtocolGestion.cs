@@ -65,7 +65,7 @@ namespace HBP.UI.Main
             await UniTask.SwitchToMainThread();
             if (requiresReload)
             {
-                DataManager.Clear();
+                DataManager.ClearDerivedData();
             }
             if (ApplicationState.LoadedProject != null)
             {

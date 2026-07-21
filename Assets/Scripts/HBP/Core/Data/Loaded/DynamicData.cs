@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using HBP.Core.Exceptions;
 using UnityEngine;
@@ -37,46 +36,18 @@ namespace HBP.Core.Data
             UnitByChannel = unitBySite;
             Frequency = frequency;
         }
-        public DynamicData(DataInfo dataInfo) : this()
+        public DynamicData(DataInfo dataInfo) : this(EEGRecordingSource.From(dataInfo))
+        {
+        }
+        internal DynamicData(EEGRecordingSource source) : this()
         {
             // Read Data.
-            DLL.EEG.File.FileType type;
-            string[] files;
-            if (dataInfo.DataContainer is Container.BrainVision brainVisionDataContainer)
-            {
-                type = DLL.EEG.File.FileType.BrainVision;
-                files = new string[] { brainVisionDataContainer.Header };
-            }
-            else if (dataInfo.DataContainer is Container.EDF edfDataContainer)
-            {
-                type = DLL.EEG.File.FileType.EDF;
-                files = new string[] { edfDataContainer.File };
-            }
-            else if (dataInfo.DataContainer is Container.Elan elanDataContainer)
-            {
-                type = DLL.EEG.File.FileType.ELAN;
-                files = new string[] { elanDataContainer.EEG, elanDataContainer.POS, elanDataContainer.Notes };
-            }
-            else if (dataInfo.DataContainer is Container.Micromed micromedDataContainer)
-            {
-                type = DLL.EEG.File.FileType.Micromed;
-                files = new string[] { micromedDataContainer.Path };
-            }
-            else if (dataInfo.DataContainer is Container.FIF fifDataContainer)
-            {
-                type = DLL.EEG.File.FileType.FIF;
-                files = new string[] { fifDataContainer.File };
-            }
-            else
-            {
-                throw new Exception("Invalid data container type");
-            }
-            string[] missingFiles = files.Where(filePath => !string.IsNullOrWhiteSpace(filePath) && !File.Exists(filePath)).ToArray();
+            string[] missingFiles = source.ReaderFiles.Where(filePath => !string.IsNullOrWhiteSpace(filePath) && !System.IO.File.Exists(filePath)).ToArray();
             if (missingFiles.Length > 0)
             {
                 throw new DataFileNotFoundException(missingFiles);
             }
-            using DLL.EEG.File file = new(type, true, files);
+            using DLL.EEG.File file = new(source.FileType, true, source.ReaderFiles);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");

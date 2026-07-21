@@ -11,12 +11,13 @@ namespace HBP.Core.Data
         #endregion
 
         #region Constructors
-        public EpochedData(DataInfo dataInfo)
+        public EpochedData(DataInfo dataInfo) : this(dataInfo, new DynamicData(dataInfo))
         {
-            DynamicData rawData = new(dataInfo);
-
+        }
+        internal EpochedData(DataInfo dataInfo, DynamicData rawData)
+        {
             // Get UnitByChannel.
-            UnitByChannel = rawData.UnitByChannel;
+            UnitByChannel = new Dictionary<string, string>(rawData.UnitByChannel);
 
             // Get Frequency.
             Frequency = rawData.Frequency;
