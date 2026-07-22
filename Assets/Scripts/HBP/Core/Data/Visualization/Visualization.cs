@@ -199,10 +199,11 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public async UniTask LoadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
-            await UniTask.SwitchToThreadPool();
+            await UniTask.SwitchToMainThread();
             DataManager.ConfigureMemoryBudget(
                 PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit,
                 UnityEngine.SystemInfo.systemMemorySize);
+            await UniTask.SwitchToThreadPool();
 
             int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
             int nbFMRIColumns = FMRIColumns.Count;
