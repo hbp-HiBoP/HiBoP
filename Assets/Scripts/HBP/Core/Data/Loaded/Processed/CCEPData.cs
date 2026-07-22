@@ -32,7 +32,7 @@ namespace HBP.Core.Data.Processed
                 Core.Data.CCEPData data;
                 try
                 {
-                    data = DataManager.GetData(dataInfo) as Core.Data.CCEPData;
+                    data = DataManager.GetData(dataInfo, updateMemoryUsage: false) as Core.Data.CCEPData;
                 }
                 catch
                 {
@@ -53,8 +53,8 @@ namespace HBP.Core.Data.Processed
                 foreach (var channel in data.UnitByChannel.Keys)
                 {
                     string channelID = dataInfo.Patient.ID + "_" + channel;
-                    if (!dataByChannelID.ContainsKey(channelID)) dataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
-                    if (!statisticsByChannelID.ContainsKey(channelID)) statisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    if (!dataByChannelID.ContainsKey(channelID)) dataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel, updateMemoryUsage: false));
+                    if (!statisticsByChannelID.ContainsKey(channelID)) statisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel, updateMemoryUsage: false));
                     if (!frequencyByChannelID.ContainsKey(channelID)) frequencyByChannelID.Add(channelID, data.Frequency);
                     if (!unitByChannelID.ContainsKey(channelID)) unitByChannelID.Add(channelID, data.UnitByChannel[channel]);
                 }
@@ -65,7 +65,9 @@ namespace HBP.Core.Data.Processed
                 if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
 
                 // Events
-                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc));
+                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc, updateMemoryUsage: false));
+                // Refresh once after all channel-level derived data have been created.
+                DataManager.RefreshDerivedMemoryUsage(dataInfo);
             }
         }
         public override void Unload()

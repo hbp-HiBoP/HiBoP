@@ -292,8 +292,13 @@ namespace HBP.Core.Data
 
         public static Data GetData(DataInfo dataInfo)
         {
+            return GetData(dataInfo, true);
+        }
+        public static Data GetData(DataInfo dataInfo, bool updateMemoryUsage)
+        {
             Data result = GetData(new Request(dataInfo));
-            UpdateDerivedMemoryUsage(dataInfo);
+            if (updateMemoryUsage)
+                UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
         public static BlocData GetData(DataInfo dataInfo, Bloc bloc)
@@ -310,8 +315,13 @@ namespace HBP.Core.Data
         }
         public static BlocChannelData GetData(DataInfo dataInfo, Bloc bloc, string channel)
         {
+            return GetData(dataInfo, bloc, channel, true);
+        }
+        public static BlocChannelData GetData(DataInfo dataInfo, Bloc bloc, string channel, bool updateMemoryUsage)
+        {
             BlocChannelData result = GetData(new BlocChannelRequest(dataInfo, bloc, channel));
-            UpdateDerivedMemoryUsage(dataInfo);
+            if (updateMemoryUsage)
+                UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
 
@@ -324,8 +334,13 @@ namespace HBP.Core.Data
         }
         public static BlocChannelStatistics GetStatistics(DataInfo dataInfo, Bloc bloc, string channel)
         {
+            return GetStatistics(dataInfo, bloc, channel, true);
+        }
+        public static BlocChannelStatistics GetStatistics(DataInfo dataInfo, Bloc bloc, string channel, bool updateMemoryUsage)
+        {
             BlocChannelStatistics result = GetStatistics(new BlocChannelRequest(dataInfo, bloc, channel));
-            UpdateDerivedMemoryUsage(dataInfo);
+            if (updateMemoryUsage)
+                UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
         public static EventsStatistics GetEventsStatistics(DataInfo dataInfo)
@@ -336,9 +351,19 @@ namespace HBP.Core.Data
         }
         public static BlocEventsStatistics GetEventsStatistics(DataInfo dataInfo, Bloc bloc)
         {
+            return GetEventsStatistics(dataInfo, bloc, true);
+        }
+        public static BlocEventsStatistics GetEventsStatistics(DataInfo dataInfo, Bloc bloc, bool updateMemoryUsage)
+        {
             BlocEventsStatistics result = GetEventsStatistics(new BlocRequest(dataInfo, bloc));
-            UpdateDerivedMemoryUsage(dataInfo);
+            if (updateMemoryUsage)
+                UpdateDerivedMemoryUsage(dataInfo);
             return result;
+        }
+
+        public static void RefreshDerivedMemoryUsage(DataInfo dataInfo)
+        {
+            UpdateDerivedMemoryUsage(dataInfo);
         }
 
         public static void NormalizeiEEGData()

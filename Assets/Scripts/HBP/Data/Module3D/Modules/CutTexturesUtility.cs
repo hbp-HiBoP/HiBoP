@@ -187,12 +187,10 @@ namespace HBP.Data.Module3D
         public void ColorCutsTexturesWithActivity()
         {
             int timelineIndex = 0;
-            float temporalAlpha = 0f;
             if (Column is Column3DDynamic dynamicColumn)
             {
                 Core.Data.TemporalSample sample = dynamicColumn.CurrentProjectionSample;
                 timelineIndex = sample.Index;
-                temporalAlpha = sample.Alpha;
             }
             else if (Column is Column3DFMRI fmriColumn)
             {
@@ -210,7 +208,7 @@ namespace HBP.Data.Module3D
             for (int i = 0; i < CutGenerators.Count; ++i)
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
-                generator.FillTextureWithActivity(m_CutActivityColorSchemePixels, timelineIndex, temporalAlpha);
+                generator.FillTextureWithActivity(m_CutActivityColorSchemePixels, timelineIndex, Column.ActivityAlpha);
                 ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }

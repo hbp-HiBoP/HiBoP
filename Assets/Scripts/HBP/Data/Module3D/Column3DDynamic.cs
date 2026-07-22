@@ -230,7 +230,7 @@ namespace HBP.Data.Module3D
         public override void ComputeSurfaceBrainUVWithActivity()
         {
             TemporalSample sample = CurrentProjectionSample;
-            SurfaceGenerator.ComputeActivityUV(sample.Index, sample.Alpha);
+            SurfaceGenerator.ComputeActivityUV(sample.Index, ActivityAlpha);
         }
 
         public int[] GetUnmaskedHistogramBins(float minimum, float maximum, int binCount)

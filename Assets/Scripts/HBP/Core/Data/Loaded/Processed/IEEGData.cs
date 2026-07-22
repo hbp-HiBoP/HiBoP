@@ -33,7 +33,7 @@ namespace HBP.Core.Data.Processed
                 Core.Data.IEEGData data;
                 try
                 {
-                    data = DataManager.GetData(dataInfo) as Core.Data.IEEGData;
+                    data = DataManager.GetData(dataInfo, updateMemoryUsage: false) as Core.Data.IEEGData;
                 }
                 catch
                 {
@@ -48,14 +48,16 @@ namespace HBP.Core.Data.Processed
                 foreach (var channel in data.UnitByChannel.Keys) 
                 {
                     string channelID = dataInfo.Patient.ID + "_" + channel;
-                    if (!DataByChannelID.ContainsKey(channelID)) DataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
-                    if (!StatisticsByChannelID.ContainsKey(channelID)) StatisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    if (!DataByChannelID.ContainsKey(channelID)) DataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel, updateMemoryUsage: false));
+                    if (!StatisticsByChannelID.ContainsKey(channelID)) StatisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel, updateMemoryUsage: false));
                     if (!m_FrequencyByChannelID.ContainsKey(channelID)) m_FrequencyByChannelID.Add(channelID, data.Frequency);
                     if (!UnitByChannelID.ContainsKey(channelID)) UnitByChannelID.Add(channelID, data.UnitByChannel[channel]);
                 }
                 if (!m_Frequencies.Contains(data.Frequency)) m_Frequencies.Add(data.Frequency);
                 // Events
-                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc));
+                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc, updateMemoryUsage: false));
+                // Refresh once after all channel-level derived data have been created.
+                DataManager.RefreshDerivedMemoryUsage(dataInfo);
             }
         }
         public override void Unload()
