@@ -85,7 +85,73 @@ namespace HBP.Tests.Serialization
             DataManager.Reload(dataInfo);
 
             Assert.That(loadCount, Is.EqualTo(2));
-            Assert.That(DataManager.RawRecordingCacheCount, Is.EqualTo(2));
+            Assert.That(DataManager.RawRecordingCacheCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void CompactEpochs_DoNotDependOnRawArraysAfterConstruction()
+        {
+            StubDynamicData raw = new();
+            DataManager.RawRecordingLoader = _ => raw;
+            IEEGDataInfo dataInfo = CreateDataInfo("recording.edf", CreateProtocol("protocol"), "data");
+
+            IEEGData data = (IEEGData)DataManager.GetData(dataInfo);
+            SubTrial subTrial = data.DataByBloc[dataInfo.Protocol.Blocs[0]].Trials[0]
+                .SubTrialBySubBloc[dataInfo.Protocol.Blocs[0].MainSubBloc];
+            raw.ValuesByChannel["A1"][2] = 999f;
+            raw.ValuesByChannel["A1"][3] = 1000f;
+
+            Assert.That(subTrial.GetWindow("A1").ToArray(), Is.EqualTo(new[] { 12f, 13f }));
+            Assert.That(subTrial.ValuesByChannel["A1"], Is.EqualTo(new[] { 12f, 13f }));
+        }
+
+        [Test]
+        public void EvictedRawRecording_IsReloadedWhenProtocolRequiresNewEpochs()
+        {
+            int loadCount = 0;
+            DataManager.RawRecordingLoader = _ =>
+            {
+                Interlocked.Increment(ref loadCount);
+                return new StubDynamicData();
+            };
+            IEEGDataInfo first = CreateDataInfo("recording-a.edf", CreateProtocol("protocol-a"), "data-a");
+            IEEGDataInfo second = CreateDataInfo("recording-b.edf", CreateProtocol("protocol-b"), "data-b");
+
+            DataManager.GetData(first);
+            DataManager.GetData(second);
+            Assert.That(loadCount, Is.EqualTo(2));
+            Assert.That(DataManager.RawRecordingCacheCount, Is.EqualTo(1));
+
+            first.Protocol = CreateProtocol("protocol-c");
+            DataManager.ClearDerivedData();
+            IEEGData rebuilt = (IEEGData)DataManager.GetData(first);
+
+            Assert.That(loadCount, Is.EqualTo(3));
+            Assert.That(rebuilt.DataByBloc[first.Protocol.Blocs[0]].Trials[0]
+                .SubTrialBySubBloc[first.Protocol.Blocs[0].MainSubBloc]
+                .GetWindow("A1").ToArray(), Is.EqualTo(new[] { 12f, 13f }));
+        }
+
+        [Test]
+        public void NormalizationCompletion_ReleasesLastCompactRecordingRawCache()
+        {
+            int loadCount = 0;
+            DataManager.RawRecordingLoader = _ =>
+            {
+                Interlocked.Increment(ref loadCount);
+                return new StubDynamicData();
+            };
+            IEEGDataInfo dataInfo = CreateDataInfo("recording.edf", CreateProtocol("protocol"), "data");
+
+            DataManager.GetData(dataInfo);
+            Assert.That(DataManager.RawRecordingCacheCount, Is.EqualTo(1));
+
+            DataManager.NormalizeiEEGData();
+            Assert.That(DataManager.RawRecordingCacheCount, Is.Zero);
+
+            DataManager.ClearDerivedData();
+            DataManager.GetData(dataInfo);
+            Assert.That(loadCount, Is.EqualTo(2));
         }
 
         [Test]

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HBP.Core.Data
 {
@@ -105,6 +106,31 @@ namespace HBP.Core.Data
         private float[] m_WindowBuffer = Array.Empty<float>();
         private float[] m_BaselineBuffer = Array.Empty<float>();
         private float[] m_TreatmentBuffer = Array.Empty<float>();
+        private Dictionary<string, float[]> m_ChannelLayoutSource;
+        private EpochChannelLayout m_ChannelLayout;
+        private readonly Dictionary<SubBloc, Treatment[]> m_TreatmentsBySubBloc = new();
+
+        public EpochChannelLayout GetChannelLayout(Dictionary<string, float[]> sourceByChannel)
+        {
+            if (!ReferenceEquals(m_ChannelLayoutSource, sourceByChannel))
+            {
+                m_ChannelLayoutSource = sourceByChannel;
+                m_ChannelLayout = new EpochChannelLayout(sourceByChannel.Keys);
+            }
+            return m_ChannelLayout;
+        }
+
+        public Treatment[] GetOrderedTreatments(SubBloc subBloc)
+        {
+            if (subBloc == null)
+                return Array.Empty<Treatment>();
+            if (!m_TreatmentsBySubBloc.TryGetValue(subBloc, out Treatment[] treatments))
+            {
+                treatments = subBloc.Treatments.OrderBy(treatment => treatment.Order).ToArray();
+                m_TreatmentsBySubBloc.Add(subBloc, treatments);
+            }
+            return treatments;
+        }
 
         public float[] GetWindowBuffer(int length)
         {
@@ -126,5 +152,21 @@ namespace HBP.Core.Data
                 m_TreatmentBuffer = new float[length];
             return m_TreatmentBuffer;
         }
+    }
+
+    internal sealed class EpochChannelLayout
+    {
+        private readonly Dictionary<string, int> m_IndexByChannel;
+        public string[] Channels { get; }
+
+        public EpochChannelLayout(IEnumerable<string> channels)
+        {
+            Channels = new List<string>(channels).ToArray();
+            m_IndexByChannel = new Dictionary<string, int>(Channels.Length);
+            for (int i = 0; i < Channels.Length; ++i)
+                m_IndexByChannel.Add(Channels[i], i);
+        }
+
+        public bool TryGetIndex(string channel, out int index) => m_IndexByChannel.TryGetValue(channel, out index);
     }
 }

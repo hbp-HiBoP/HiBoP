@@ -114,6 +114,7 @@ namespace HBP.Core.Data
     {
         private readonly ConcurrentDictionary<RawRecordingSourceKey, Lazy<DynamicData>> m_Entries = new();
         private readonly ConcurrentDictionary<RawRecordingSourceKey, int> m_PinCounts = new();
+        private readonly ConcurrentDictionary<RawRecordingSourceKey, byte> m_DiscardableKeys = new();
         private readonly MemoryCacheBudget m_Budget;
 
         public RawRecordingCache(MemoryCacheBudget budget = null)
@@ -154,6 +155,7 @@ namespace HBP.Core.Data
             }
             m_Entries.Clear();
             m_PinCounts.Clear();
+            m_DiscardableKeys.Clear();
         }
 
         public void Pin(RawRecordingSourceKey key)
@@ -169,6 +171,38 @@ namespace HBP.Core.Data
             {
                 m_PinCounts.TryRemove(key, out _);
                 m_Budget?.SetPinned(key, false);
+            }
+        }
+
+        public void RetainOnlyUnpinned(RawRecordingSourceKey keyToKeep)
+        {
+            m_DiscardableKeys.TryAdd(keyToKeep, 0);
+            foreach (KeyValuePair<RawRecordingSourceKey, Lazy<DynamicData>> pair in m_Entries.ToArray())
+            {
+                if (pair.Key.Equals(keyToKeep))
+                    continue;
+                if (!m_DiscardableKeys.ContainsKey(pair.Key))
+                    continue;
+                if (m_PinCounts.TryGetValue(pair.Key, out int pinCount) && pinCount > 0)
+                    continue;
+                if (((ICollection<KeyValuePair<RawRecordingSourceKey, Lazy<DynamicData>>>)m_Entries).Remove(pair))
+                {
+                    m_DiscardableKeys.TryRemove(pair.Key, out _);
+                    m_Budget?.Unregister(pair.Key);
+                }
+            }
+        }
+
+        public void DiscardUnpinnedCompactRecordings()
+        {
+            foreach (RawRecordingSourceKey key in m_DiscardableKeys.Keys.ToArray())
+            {
+                if (m_PinCounts.TryGetValue(key, out int pinCount) && pinCount > 0)
+                    continue;
+                if (!m_Entries.TryRemove(key, out _))
+                    continue;
+                m_DiscardableKeys.TryRemove(key, out _);
+                m_Budget?.Unregister(key);
             }
         }
 

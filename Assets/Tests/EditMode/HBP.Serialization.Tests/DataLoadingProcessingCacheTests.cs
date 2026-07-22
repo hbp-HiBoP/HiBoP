@@ -177,6 +177,47 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void NormalizeiEEGData_RestoresExactProcessedEpochBeforeChangingMode()
+        {
+            EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.SubTrial);
+
+            TryNormalizeOrIgnore();
+            Assert.That(fixture.FirstSubTrial.ValuesByChannel[fixture.Channel], Is.EqualTo(new[] { 0f, 1f }).Within(0.0001f));
+
+            fixture.DataInfo.Normalization = NormalizationType.None;
+            TryNormalizeOrIgnore();
+
+            Assert.That(fixture.FirstSubTrial.ValuesByChannel[fixture.Channel], Is.EqualTo(new[] { 10f, 11f }));
+            Assert.That(GetNormalizationState(fixture.DataInfo, fixture.Blocs[0]), Is.EqualTo(NormalizationType.None));
+        }
+
+        [Test]
+        public void NormalizeiEEGData_ParallelPatientsProduceExpectedValues()
+        {
+            EpochCacheFixture first = CreateInjectedEpochCache(NormalizationType.Bloc, blocCount: 2, idSuffix: "-parallel-a");
+            EpochCacheFixture second = CreateInjectedEpochCache(NormalizationType.Bloc, blocCount: 2, idSuffix: "-parallel-b");
+
+            TryNormalizeOrIgnore(useParallelProcessing: true);
+
+            Assert.That(first.FirstSubTrial.ValuesByChannel[first.Channel], Is.EqualTo(new[] { 0f, 1f }).Within(0.0001f));
+            Assert.That(second.FirstSubTrial.ValuesByChannel[second.Channel], Is.EqualTo(new[] { 0f, 1f }).Within(0.0001f));
+            Assert.That(first.Blocs.All(bloc => GetNormalizationState(first.DataInfo, bloc) == NormalizationType.Bloc), Is.True);
+            Assert.That(second.Blocs.All(bloc => GetNormalizationState(second.DataInfo, bloc) == NormalizationType.Bloc), Is.True);
+        }
+
+        [Test]
+        public void DerivedMemoryAccounting_MatchesCompactEpochsAndStatistics()
+        {
+            EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);
+
+            DataManager.RefreshDerivedMemoryUsage(fixture.DataInfo);
+            Assert.That(DataManager.MemoryCacheSnapshot.UsedBytes, Is.EqualTo(48));
+
+            DataManager.GetStatistics(fixture.DataInfo, fixture.Blocs[0], fixture.Channel);
+            Assert.That(DataManager.MemoryCacheSnapshot.UsedBytes, Is.EqualTo(64));
+        }
+
+        [Test]
         public void ChangingDefaultAveraging_InvalidatesChannelStatisticsCache()
         {
             EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);
@@ -291,12 +332,12 @@ namespace HBP.Tests.Serialization
                 "data-loading-cache-static-data-001");
         }
 
-        private static EpochCacheFixture CreateInjectedEpochCache(NormalizationType normalization, int blocCount = 1)
+        private static EpochCacheFixture CreateInjectedEpochCache(NormalizationType normalization, int blocCount = 1, string idSuffix = "")
         {
             Protocol protocol = CreateProtocol(blocCount);
-            Patient patient = new("data-loading-cache-ieeg-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-ieeg-patient-001");
+            Patient patient = new("data-loading-cache-ieeg-patient" + idSuffix, Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-ieeg-patient-001" + idSuffix);
             IEEGDataInfo dataInfo = new(
-                "data-loading-cache-ieeg",
+                "data-loading-cache-ieeg" + idSuffix,
                 protocol,
                 new Elan(),
                 Array.Empty<Error>(),
@@ -304,7 +345,7 @@ namespace HBP.Tests.Serialization
                 patient,
                 normalization,
                 "data-loading-cache-db",
-                "data-loading-cache-ieeg-data-001");
+                "data-loading-cache-ieeg-data-001" + idSuffix);
             Dictionary<Bloc, BlocData> blocDataByBloc = protocol.Blocs.ToDictionary(bloc => bloc, CreateBlocData);
 
             IEEGData data = (IEEGData)FormatterServices.GetUninitializedObject(typeof(IEEGData));
@@ -398,11 +439,11 @@ namespace HBP.Tests.Serialization
                 new Frequency(1000));
         }
 
-        private static void TryNormalizeOrIgnore()
+        private static void TryNormalizeOrIgnore(bool useParallelProcessing = false)
         {
             try
             {
-                DataManager.NormalizeiEEGData();
+                DataManager.NormalizeiEEGData(useParallelProcessing);
             }
             catch (DllNotFoundException exception)
             {

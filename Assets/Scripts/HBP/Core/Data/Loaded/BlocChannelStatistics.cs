@@ -13,6 +13,22 @@ namespace HBP.Core.Data
         {
             Trial = new ChannelTrialStat(data.Trials, averaging);
         }
+
+        internal long ManagedBytes
+        {
+            get
+            {
+                long bytes = 0;
+                if (Trial.ChannelSubTrialBySubBloc == null)
+                    return bytes;
+                foreach (ChannelSubTrialStat statistics in Trial.ChannelSubTrialBySubBloc.Values)
+                {
+                    bytes += statistics.Values?.LongLength * sizeof(float) ?? 0;
+                    bytes += statistics.SEM?.LongLength * sizeof(float) ?? 0;
+                }
+                return bytes;
+            }
+        }
         #endregion
 
         #region Public Methods

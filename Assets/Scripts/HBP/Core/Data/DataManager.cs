@@ -2,6 +2,7 @@
 using System.Linq;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.DLL;
 
@@ -255,7 +256,7 @@ namespace HBP.Core.Data
             m_MemoryBudget.Unregister(owner);
         }
 
-        internal static void PinRawRecording(DataInfo dataInfo)
+        internal static void PinData(DataInfo dataInfo)
         {
             m_DataLock.EnterWriteLock();
             try
@@ -265,12 +266,10 @@ namespace HBP.Core.Data
             }
             finally { m_DataLock.ExitWriteLock(); }
             m_MemoryBudget.SetPinned(dataInfo, true);
-            m_RawRecordingCache.Pin(RawRecordingSourceKey.From(EEGRecordingSource.From(dataInfo)));
         }
 
-        internal static void UnpinRawRecording(DataInfo dataInfo)
+        internal static void UnpinData(DataInfo dataInfo)
         {
-            m_RawRecordingCache.Unpin(RawRecordingSourceKey.From(EEGRecordingSource.From(dataInfo)));
             bool pinned;
             m_DataLock.EnterWriteLock();
             try
@@ -303,8 +302,13 @@ namespace HBP.Core.Data
         }
         public static BlocData GetData(DataInfo dataInfo, Bloc bloc)
         {
+            return GetData(dataInfo, bloc, true);
+        }
+        public static BlocData GetData(DataInfo dataInfo, Bloc bloc, bool updateMemoryUsage)
+        {
             BlocData result = GetData(new BlocRequest(dataInfo, bloc));
-            UpdateDerivedMemoryUsage(dataInfo);
+            if (updateMemoryUsage)
+                UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
         public static ChannelData GetData(DataInfo dataInfo, string channel)
@@ -366,10 +370,10 @@ namespace HBP.Core.Data
             UpdateDerivedMemoryUsage(dataInfo);
         }
 
-        public static void NormalizeiEEGData()
+        public static void NormalizeiEEGData(bool useParallelProcessing = false)
         {
             m_DataLock.EnterReadLock();
-            IEnumerable<IEEGDataInfo> dataInfoCollection;
+            List<IEEGDataInfo> dataInfoCollection;
             try
             {
                 dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).OfType<IEEGDataInfo>().Distinct().ToList();
@@ -379,7 +383,7 @@ namespace HBP.Core.Data
                 m_DataLock.ExitReadLock();
             }
 
-            foreach (var dataInfo in dataInfoCollection)
+            Action<IEEGDataInfo> normalizeDataInfo = dataInfo =>
             {
                 m_DataLock.EnterReadLock();
                 IEnumerable<BlocRequest> dataRequestCollection;
@@ -596,6 +600,22 @@ namespace HBP.Core.Data
                         }
                         break;
                 }
+            };
+
+            int normalizationDegree = useParallelProcessing && dataInfoCollection.Count > 1
+                ? Math.Min(5, dataInfoCollection.Count)
+                : 1;
+            if (normalizationDegree > 1)
+            {
+                Parallel.ForEach(
+                    dataInfoCollection,
+                    new ParallelOptions { MaxDegreeOfParallelism = normalizationDegree },
+                    normalizeDataInfo);
+            }
+            else
+            {
+                foreach (IEEGDataInfo dataInfo in dataInfoCollection)
+                    normalizeDataInfo(dataInfo);
             }
             List<BlocRequest> blocRequestsRequiringStatisticsReset = new();
             m_DataLock.EnterWriteLock();
@@ -614,6 +634,7 @@ namespace HBP.Core.Data
             {
                 UnloadStatistics(request);
             }
+            m_RawRecordingCache.DiscardUnpinnedCompactRecordings();
         }
 
         /// <summary>
@@ -735,6 +756,11 @@ namespace HBP.Core.Data
             {
                 m_DataLock.ExitWriteLock();
             }
+            // Compact epoch backing is self-contained. Keep only the most recently
+            // used unpinned recording to preserve cheap immediate reuse without
+            // retaining every patient's full raw file for the visualization lifetime.
+            if (data is EpochedData)
+                m_RawRecordingCache.RetainOnlyUnpinned(sourceKey);
         }
         static void UnLoad(Request request)
         {
@@ -1198,7 +1224,8 @@ namespace HBP.Core.Data
             }
 
             // Statistics not found, create them
-            BlocEventsStatistics blocEventsStatistics = new(request.DataInfo, request.Bloc, DefaultPositionAveraging);
+            BlocData blocData = GetData(request);
+            BlocEventsStatistics blocEventsStatistics = new(blocData, request.Bloc, DefaultPositionAveraging);
             
             m_DataLock.EnterWriteLock();
             try
@@ -1226,7 +1253,8 @@ namespace HBP.Core.Data
                 {
                     foreach (var subTrial in trial.SubTrialBySubBloc.Values)
                     {
-                        subTrial.Normalize(0, 1, compatibilityBuffer);
+                        foreach (string channel in subTrial.Channels)
+                            subTrial.Normalize(0, 1, channel, compatibilityBuffer, normalizedResult: false);
                     }
                 }
                 
@@ -1399,7 +1427,7 @@ namespace HBP.Core.Data
                         }
                     }
                 }
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1520,53 +1548,61 @@ namespace HBP.Core.Data
             if (dataInfo == null)
                 return;
 
-            HashSet<float[]> arrays = new();
+            long bytes = 0;
+            HashSet<BlocChannelStatistics> statisticsObjects = new();
             bool pinned;
             m_DataLock.EnterReadLock();
             try
             {
-                foreach (KeyValuePair<BlocRequest, BlocData> pair in m_BlocDataByRequest)
+                EpochedData epochedData = null;
+                if (m_DataByRequest.TryGetValue(new Request(dataInfo), out Data data))
+                    epochedData = data as EpochedData;
+                if (epochedData != null)
                 {
-                    if (pair.Key.DataInfo != dataInfo)
-                        continue;
-                    foreach (Trial trial in pair.Value.Trials)
+                    foreach (BlocData blocData in epochedData.DataByBloc.Values)
                     {
-                        foreach (SubTrial subTrial in trial.SubTrialBySubBloc.Values)
+                        foreach (Trial trial in blocData.Trials)
                         {
-                            foreach (float[] values in subTrial.ValuesByChannel.Values)
-                                arrays.Add(values);
+                            foreach (SubTrial subTrial in trial.SubTrialBySubBloc.Values)
+                            {
+                                bytes += subTrial.ManagedBytes;
+                            }
                         }
                     }
                 }
-                foreach (KeyValuePair<BlocChannelRequest, BlocChannelStatistics> pair in m_BlocChannelStatisticsByRequest)
+                if (epochedData != null)
                 {
-                    if (pair.Key.DataInfo == dataInfo)
-                        AddStatisticsArrays(pair.Value, arrays);
+                    foreach (Bloc bloc in epochedData.DataByBloc.Keys)
+                    {
+                        foreach (string channel in epochedData.UnitByChannel.Keys)
+                        {
+                            if (m_BlocChannelStatisticsByRequest.TryGetValue(
+                                new BlocChannelRequest(dataInfo, bloc, channel),
+                                out BlocChannelStatistics statistics))
+                                statisticsObjects.Add(statistics);
+                        }
+                    }
                 }
-                foreach (KeyValuePair<ChannelRequest, ChannelStatistics> pair in m_ChannelStatisticsByRequest)
+                if (epochedData != null)
                 {
-                    if (pair.Key.DataInfo != dataInfo)
-                        continue;
-                    foreach (BlocChannelStatistics statistics in pair.Value.StatisticsByBloc.Values)
-                        AddStatisticsArrays(statistics, arrays);
+                    foreach (string channel in epochedData.UnitByChannel.Keys)
+                    {
+                        if (!m_ChannelStatisticsByRequest.TryGetValue(
+                            new ChannelRequest(dataInfo, channel),
+                            out ChannelStatistics channelStatistics))
+                            continue;
+                        foreach (BlocChannelStatistics statistics in channelStatistics.StatisticsByBloc.Values)
+                            statisticsObjects.Add(statistics);
+                    }
                 }
                 pinned = m_ActiveDataPinCounts.TryGetValue(dataInfo, out int count) && count > 0;
             }
             finally { m_DataLock.ExitReadLock(); }
 
-            long bytes = arrays.Sum(array => array.LongLength * sizeof(float));
-            m_MemoryBudget.Register(dataInfo, MemoryCacheCategory.ManagedDerived, bytes, pinned, () => EvictDerivedData(dataInfo));
-        }
+            foreach (BlocChannelStatistics statistics in statisticsObjects)
+                bytes += statistics.ManagedBytes;
 
-        static void AddStatisticsArrays(BlocChannelStatistics statistics, HashSet<float[]> arrays)
-        {
-            if (statistics == null || statistics.Trial.ChannelSubTrialBySubBloc == null)
-                return;
-            foreach (ChannelSubTrialStat subTrialStatistics in statistics.Trial.ChannelSubTrialBySubBloc.Values)
-            {
-                if (subTrialStatistics.Values != null) arrays.Add(subTrialStatistics.Values);
-                if (subTrialStatistics.SEM != null) arrays.Add(subTrialStatistics.SEM);
-            }
+            m_MemoryBudget.Register(dataInfo, MemoryCacheCategory.ManagedDerived, bytes, pinned, () => EvictDerivedData(dataInfo));
         }
 
         static void EvictDerivedData(DataInfo dataInfo)

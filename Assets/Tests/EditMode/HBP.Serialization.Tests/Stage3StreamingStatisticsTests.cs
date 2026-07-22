@@ -53,6 +53,36 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void MedianSelection_IsBitwiseEquivalentToSortedMedian()
+        {
+            Random random = new(73021);
+            for (int count = 1; count <= 64; ++count)
+            {
+                for (int iteration = 0; iteration < 100; ++iteration)
+                {
+                    float[] input = Enumerable.Range(0, count)
+                        .Select(_ => (float)(random.NextDouble() * 2000d - 1000d))
+                        .ToArray();
+                    if (iteration % 10 == 0)
+                        input[random.Next(count)] = float.NaN;
+                    if (iteration % 13 == 0)
+                        input[random.Next(count)] = float.PositiveInfinity;
+
+                    float[] sorted = (float[])input.Clone();
+                    Array.Sort(sorted);
+                    int middle = count / 2;
+                    float expected = count % 2 == 0
+                        ? (sorted[middle - 1] + sorted[middle]) * 0.5f
+                        : sorted[middle];
+
+                    float actual = StreamingStatistics.Median((float[])input.Clone(), count);
+                    Assert.That(BitConverter.SingleToInt32Bits(actual), Is.EqualTo(BitConverter.SingleToInt32Bits(expected)),
+                        $"count={count}, iteration={iteration}");
+                }
+            }
+        }
+
+        [Test]
         public void ChannelSubTrialStat_UsesOnlyValidSeriesAndTracksFoundCounts()
         {
             ChannelSubTrial[] subTrials =

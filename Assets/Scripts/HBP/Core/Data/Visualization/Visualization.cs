@@ -435,7 +435,11 @@ namespace HBP.Core.Data
                 try
                 {
                     // PROBABLY FIXME
-                    Data data = DataManager.GetData(dataInfo);
+                    // Epoched data are accounted after their processed column has built
+                    // the complete derived graph (channel and event statistics included).
+                    Data data = dataInfo is IEpochable
+                        ? DataManager.GetData(dataInfo, updateMemoryUsage: false)
+                        : DataManager.GetData(dataInfo);
                     if (data is EpochedData epochedData)
                     {
                         foreach (var column in dataInfoByColumn.Keys)
@@ -458,7 +462,7 @@ namespace HBP.Core.Data
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
-            DataManager.NormalizeiEEGData();
+            DataManager.NormalizeiEEGData(PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
         private async UniTask LoadColumnsAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {

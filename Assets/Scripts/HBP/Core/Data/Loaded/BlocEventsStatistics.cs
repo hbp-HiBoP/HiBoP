@@ -12,8 +12,12 @@ namespace HBP.Core.Data
 
         #region Constructors
         public BlocEventsStatistics(DataInfo dataInfo, Bloc bloc, AveragingType averaging)
+            : this(DataManager.GetData(dataInfo, bloc, updateMemoryUsage: false), bloc, averaging)
         {
-            BlocData blocData = DataManager.GetData(dataInfo, bloc);
+        }
+
+        internal BlocEventsStatistics(BlocData blocData, Bloc bloc, AveragingType averaging)
+        {
             EventsStatisticsBySubBloc = bloc.SubBlocs.ToDictionary(s => s, s => new SubBlocEventsStatistics(blocData, s, averaging));
         }
         #endregion

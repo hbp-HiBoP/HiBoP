@@ -27,7 +27,7 @@ namespace HBP.Core.Data.Processed
                 bool pinAdded = !m_PinnedDataInfos.Contains(dataInfo);
                 if (pinAdded)
                 {
-                    DataManager.PinRawRecording(dataInfo);
+                    DataManager.PinData(dataInfo);
                     m_PinnedDataInfos.Add(dataInfo);
                 }
                 Core.Data.IEEGData data;
@@ -40,7 +40,7 @@ namespace HBP.Core.Data.Processed
                     if (pinAdded)
                     {
                         m_PinnedDataInfos.Remove(dataInfo);
-                        DataManager.UnpinRawRecording(dataInfo);
+                        DataManager.UnpinData(dataInfo);
                     }
                     throw;
                 }
@@ -64,7 +64,7 @@ namespace HBP.Core.Data.Processed
         {
             DataManager.UnregisterMemoryUsage(this);
             foreach (IEEGDataInfo dataInfo in m_PinnedDataInfos)
-                DataManager.UnpinRawRecording(dataInfo);
+                DataManager.UnpinData(dataInfo);
             m_PinnedDataInfos.Clear();
             base.Unload();
             EventStatistics.Clear();

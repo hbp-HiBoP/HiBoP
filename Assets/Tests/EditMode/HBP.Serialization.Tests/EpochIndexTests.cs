@@ -63,7 +63,7 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
-        public void ViewsReferenceCanonicalRecording_AndDescriptorIsSharedAcrossChannels()
+        public void ViewsUseCompactEpochCopy_AndDescriptorIsSharedAcrossChannels()
         {
             Event mainEvent = new("main", new[] { 1 }, MainSecondaryEnum.Main, "main-event");
             SubBloc subBloc = CreateSubBloc("main", 0, MainSecondaryEnum.Main, new TimeWindow(-1, 1), new TimeWindow(-1, 0), mainEvent);
@@ -79,7 +79,7 @@ namespace HBP.Tests.Serialization
 
             recording.ValuesByChannel["A1"][4] = 123f;
 
-            Assert.That(subTrial.GetWindow("A1")[1], Is.EqualTo(123f));
+            Assert.That(subTrial.GetWindow("A1")[1], Is.EqualTo(4f));
             Assert.That(subTrial.GetWindow("A2").Count, Is.EqualTo(subTrial.Descriptor.Window.Length));
             Assert.That(typeof(SubTrial).GetProperty("RawValuesByChannel"), Is.Null);
             Assert.That(typeof(SubTrial).GetProperty("BaselineValuesByChannel"), Is.Null);

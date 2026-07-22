@@ -85,7 +85,6 @@ namespace HBP.Core.Data
                 if (series[i].Length != sampleCount)
                     throw new ArgumentException("All series must have the same number of samples.", nameof(series));
             }
-
             values = new float[sampleCount];
             standardErrors = new float[sampleCount];
             float[] medianBuffer = averaging == AveragingType.Median
@@ -124,11 +123,53 @@ namespace HBP.Core.Data
             if (count <= 0 || count > buffer.Length)
                 throw new ArgumentOutOfRangeException(nameof(count));
 
-            Array.Sort(buffer, 0, count);
             int middle = count / 2;
-            return count % 2 == 0
-                ? (buffer[middle - 1] + buffer[middle]) * 0.5f
-                : buffer[middle];
+            float upper = Select(buffer, count, middle);
+            if (count % 2 != 0)
+                return upper;
+
+            float lower = buffer[0];
+            for (int i = 1; i < middle; ++i)
+            {
+                if (buffer[i].CompareTo(lower) > 0)
+                    lower = buffer[i];
+            }
+            return (lower + upper) * 0.5f;
+        }
+
+        private static float Select(float[] buffer, int count, int target)
+        {
+            int left = 0;
+            int right = count - 1;
+            while (left < right)
+            {
+                int pivot = Partition(buffer, left, right, left + ((right - left) >> 1));
+                if (pivot == target)
+                    break;
+                if (target < pivot) right = pivot - 1;
+                else left = pivot + 1;
+            }
+            return buffer[target];
+        }
+
+        private static int Partition(float[] buffer, int left, int right, int pivotIndex)
+        {
+            float pivot = buffer[pivotIndex];
+            Swap(buffer, pivotIndex, right);
+            int store = left;
+            for (int i = left; i < right; ++i)
+            {
+                if (buffer[i].CompareTo(pivot) <= 0)
+                    Swap(buffer, store++, i);
+            }
+            Swap(buffer, store, right);
+            return store;
+        }
+
+        private static void Swap(float[] buffer, int left, int right)
+        {
+            if (left == right) return;
+            (buffer[left], buffer[right]) = (buffer[right], buffer[left]);
         }
 
         public static int Median(int[] buffer, int count)
