@@ -38,7 +38,6 @@ namespace HBP.Data.Module3D
             }
         }
         public override Timeline ProjectionTimeline => ColumnCCEPData.Data.ProjectionTimeline;
-        public override TemporalSamplingPolicy TemporalSampling => ColumnCCEPData.DynamicConfiguration.TemporalSampling;
 
         public enum CCEPMode { Site, MarsAtlas }
         private CCEPMode m_Mode = CCEPMode.Site;

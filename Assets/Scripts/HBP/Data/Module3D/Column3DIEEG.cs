@@ -38,7 +38,6 @@ namespace HBP.Data.Module3D
             }
         }
         public override Timeline ProjectionTimeline => ColumnIEEGData.Data.ProjectionTimeline;
-        public override TemporalSamplingPolicy TemporalSampling => ColumnIEEGData.DynamicConfiguration.TemporalSampling;
         /// <summary>
         /// Correlation between two sites
         /// </summary>

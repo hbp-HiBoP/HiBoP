@@ -13,11 +13,13 @@ Une colonne 64 Hz affichée avec une colonne 2 048 Hz conserve donc les 3 073 po
 
 Le mapping passe par le temps physique du sous-bloc courant. Il ne suppose pas que les fréquences sont commensurables et respecte les fenêtres négatives, les origines décalées, les bornes inclusives et les segments de sous-blocs alignés.
 
-Le nouveau paramètre sérialisé `Temporal Sampling` appartient à `DynamicConfiguration` :
+Le paramètre sérialisé `TemporalSampling` appartient désormais à `EEGPreferences` et se règle dans les préférences utilisateur :
 
 - `Floor` sélectionne l’index inférieur ;
 - `Round` sélectionne l’index le plus proche selon `Mathf.RoundToInt` ;
-- `Interpolate`, valeur par défaut et valeur des anciens fichiers, transmet l’index inférieur et le coefficient linéaire au moteur natif.
+- `Interpolate`, valeur par défaut, transmet l’index inférieur et le coefficient linéaire au moteur natif.
+
+`DynamicConfiguration` ne contient plus ce paramètre. Il n’existe volontairement aucune lecture, migration ou valeur de repli depuis l’ancien champ `Temporal Sampling` des configurations dynamiques : un éventuel champ présent dans un ancien fichier est ignoré et la préférence utilisateur courante s’applique.
 
 Le même couple `(index, alpha)` est utilisé par les surfaces, les coupes, les valeurs affichées sur les sites et l’implantation. L’export NIfTI reste sur la grille discrète de projection et n’applique pas de reconstruction supplémentaire.
 
@@ -34,16 +36,16 @@ La classe `Stage4TemporalGridTests` contient 14 scénarios couvrant :
 - sous-bloc court aligné sur le segment temporel d’un sous-bloc plus long ;
 - colonne basse fréquence séparée : navigation 3 073, projection et série persistante 97 ;
 - colonne mixte : projection à sa fréquence interne maximale ;
-- sérialisation, clonage et valeur par défaut de la politique.
+- sérialisation, clonage et valeur par défaut de la politique dans les préférences utilisateur, ainsi que l’absence du champ dans `DynamicConfiguration`.
 
-Le manifeste de contrat de sérialisation a été mis à jour de 515 à 516 membres avec l’empreinte correspondant uniquement au nouveau champ approuvé.
+Le manifeste de contrat de sérialisation contient désormais 521 entrées : `EEGPreferences` est explicitement audité en mode `OptIn` avec ses cinq propriétés sérialisées, tandis que `DynamicConfiguration` ne déclare plus `Temporal Sampling`.
 
 ## Tests manuels conseillés
 
 1. afficher côte à côte une colonne 64 Hz et une colonne 2 048 Hz, parcourir les 3 073 positions et vérifier que la colonne haute fréquence ne saute aucun échantillon ;
 2. tester successivement `Floor`, `Round` et `Interpolate` autour d’un demi-échantillon et aux deux bornes ;
 3. comparer surfaces, coupes et valeur de tooltip d’un même site au même instant ;
-4. rouvrir une visualisation sauvegardée avec chaque politique et un ancien fichier sans le champ ;
+4. sélectionner chaque politique dans les préférences utilisateur, relancer l’application et confirmer que la valeur est conservée ; vérifier qu’un ancien champ `Temporal Sampling` dans une visualisation n’est pas repris ;
 5. exporter un NIfTI 4D de la colonne 64 Hz et confirmer fréquence, nombre de volumes et temps initial ;
 6. mesurer le P95 de scrubbing sur un mélange 64/2 048 Hz et vérifier une régression inférieure à 5 %.
 

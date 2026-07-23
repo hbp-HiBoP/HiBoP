@@ -17,6 +17,7 @@ namespace HBP.Core.Data
         // General.
         static Dictionary<Request, Data> m_DataByRequest = new();
         static readonly Dictionary<DataInfo, int> m_ActiveDataPinCounts = new();
+        static readonly Dictionary<DataInfo, Stack<RawRecordingSourceKey>> m_ActiveRawSourceKeys = new();
         static readonly MemoryCacheBudget m_MemoryBudget = new();
         static readonly RawRecordingCache m_RawRecordingCache = new(m_MemoryBudget);
         internal static Func<EEGRecordingSource, DynamicData> RawRecordingLoader { get; set; } = source => new DynamicData(source);
@@ -227,7 +228,10 @@ namespace HBP.Core.Data
                 m_BlocRequestsRequiringStatisticsReset.Clear();
                 m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>();
                 if (clearRawRecordings)
+                {
                     m_ActiveDataPinCounts.Clear();
+                    m_ActiveRawSourceKeys.Clear();
+                }
             }
             finally
             {
@@ -258,11 +262,19 @@ namespace HBP.Core.Data
 
         internal static void PinData(DataInfo dataInfo)
         {
+            RawRecordingSourceKey sourceKey = RawRecordingSourceKey.From(EEGRecordingSource.From(dataInfo));
+            m_RawRecordingCache.Pin(sourceKey);
             m_DataLock.EnterWriteLock();
             try
             {
                 m_ActiveDataPinCounts.TryGetValue(dataInfo, out int count);
                 m_ActiveDataPinCounts[dataInfo] = count + 1;
+                if (!m_ActiveRawSourceKeys.TryGetValue(dataInfo, out Stack<RawRecordingSourceKey> sourceKeys))
+                {
+                    sourceKeys = new Stack<RawRecordingSourceKey>();
+                    m_ActiveRawSourceKeys[dataInfo] = sourceKeys;
+                }
+                sourceKeys.Push(sourceKey);
             }
             finally { m_DataLock.ExitWriteLock(); }
             m_MemoryBudget.SetPinned(dataInfo, true);
@@ -271,6 +283,8 @@ namespace HBP.Core.Data
         internal static void UnpinData(DataInfo dataInfo)
         {
             bool pinned;
+            bool hasSourceKey = false;
+            RawRecordingSourceKey sourceKey = default;
             m_DataLock.EnterWriteLock();
             try
             {
@@ -279,9 +293,19 @@ namespace HBP.Core.Data
                 pinned = count > 0;
                 if (pinned) m_ActiveDataPinCounts[dataInfo] = count;
                 else m_ActiveDataPinCounts.Remove(dataInfo);
+                if (m_ActiveRawSourceKeys.TryGetValue(dataInfo, out Stack<RawRecordingSourceKey> sourceKeys)
+                    && sourceKeys.Count > 0)
+                {
+                    sourceKey = sourceKeys.Pop();
+                    hasSourceKey = true;
+                    if (sourceKeys.Count == 0)
+                        m_ActiveRawSourceKeys.Remove(dataInfo);
+                }
             }
             finally { m_DataLock.ExitWriteLock(); }
             m_MemoryBudget.SetPinned(dataInfo, pinned);
+            if (hasSourceKey)
+                m_RawRecordingCache.Unpin(sourceKey);
         }
 
         internal static void ResetRawRecordingLoader()
@@ -1607,31 +1631,81 @@ namespace HBP.Core.Data
 
         static void EvictDerivedData(DataInfo dataInfo)
         {
+            HashSet<Data> dataToClear = new();
+            HashSet<BlocData> blocDataToClear = new();
+            HashSet<ChannelData> channelDataToClear = new();
+            HashSet<BlocChannelData> blocChannelDataToClear = new();
+            HashSet<ChannelStatistics> channelStatisticsToClear = new();
+            HashSet<BlocChannelStatistics> blocChannelStatisticsToClear = new();
+            HashSet<EventsStatistics> eventStatisticsToClear = new();
+            HashSet<BlocEventsStatistics> blocEventStatisticsToClear = new();
+
             m_DataLock.EnterWriteLock();
             try
             {
                 foreach (Request request in m_DataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    dataToClear.Add(m_DataByRequest[request]);
                     m_DataByRequest.Remove(request);
+                }
                 foreach (BlocRequest request in m_BlocDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    blocDataToClear.Add(m_BlocDataByRequest[request]);
                     m_BlocDataByRequest.Remove(request);
+                }
                 foreach (ChannelRequest request in m_ChannelDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    channelDataToClear.Add(m_ChannelDataByRequest[request]);
                     m_ChannelDataByRequest.Remove(request);
+                }
                 foreach (BlocChannelRequest request in m_BlocChannelDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    blocChannelDataToClear.Add(m_BlocChannelDataByRequest[request]);
                     m_BlocChannelDataByRequest.Remove(request);
+                }
                 foreach (ChannelRequest request in m_ChannelStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    channelStatisticsToClear.Add(m_ChannelStatisticsByRequest[request]);
                     m_ChannelStatisticsByRequest.Remove(request);
+                }
                 foreach (BlocChannelRequest request in m_BlocChannelStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    blocChannelStatisticsToClear.Add(m_BlocChannelStatisticsByRequest[request]);
                     m_BlocChannelStatisticsByRequest.Remove(request);
+                }
                 foreach (Request request in m_EventsStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    eventStatisticsToClear.Add(m_EventsStatisticsByRequest[request]);
                     m_EventsStatisticsByRequest.Remove(request);
+                }
                 foreach (BlocRequest request in m_BlocEventsStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
+                {
+                    blocEventStatisticsToClear.Add(m_BlocEventsStatisticsByRequest[request]);
                     m_BlocEventsStatisticsByRequest.Remove(request);
+                }
                 foreach (BlocRequest request in m_NormalizeByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                     m_NormalizeByRequest.Remove(request);
                 m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>(
                     m_BlocRequestsRequiringStatisticsReset.Where(request => request.DataInfo != dataInfo).Reverse());
             }
             finally { m_DataLock.ExitWriteLock(); }
+
+            foreach (Data data in dataToClear)
+                data.Clear();
+            foreach (BlocData blocData in blocDataToClear)
+                blocData.Clear();
+            foreach (ChannelData channelData in channelDataToClear)
+                channelData.Clear();
+            foreach (BlocChannelData blocChannelData in blocChannelDataToClear)
+                blocChannelData.Clear();
+            foreach (ChannelStatistics channelStatistics in channelStatisticsToClear)
+                channelStatistics.Clear();
+            foreach (BlocChannelStatistics blocChannelStatistics in blocChannelStatisticsToClear)
+                blocChannelStatistics.Clear();
+            foreach (EventsStatistics eventStatistics in eventStatisticsToClear)
+                eventStatistics.Clear();
+            foreach (BlocEventsStatistics blocEventStatistics in blocEventStatisticsToClear)
+                blocEventStatistics.Clear();
         }
         #endregion
 

@@ -38,6 +38,7 @@ namespace HBP.Core.Preferences
         #endregion
     }
 
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class EEGPreferences : ICloneable
     {
         #region Properties
@@ -60,31 +61,40 @@ namespace HBP.Core.Preferences
             }
             set
             {
-                DataManager.DefaultNormalization = value;
+                DataManager.DefaultNormalization = value == NormalizationType.Auto
+                    ? NormalizationType.None
+                    : value;
             }
         }
+        [JsonProperty] public TemporalSamplingPolicy TemporalSampling { get; set; }
         [JsonProperty] public float CorrelationAlpha { get; set; }
         [JsonProperty] public bool BonferroniCorrection { get; set; }
         #endregion
 
         #region Constructors
-        public EEGPreferences() : this(AveragingType.Median, NormalizationType.None, 0.05f, true)
+        public EEGPreferences() : this(AveragingType.Median, NormalizationType.None, 0.05f, true, TemporalSamplingPolicy.Interpolate)
         {
 
         }
-        public EEGPreferences(AveragingType averaging, NormalizationType normalization, float correlationAlpha, bool bonferroniCorrection)
+        public EEGPreferences(
+            AveragingType averaging,
+            NormalizationType normalization,
+            float correlationAlpha,
+            bool bonferroniCorrection,
+            TemporalSamplingPolicy temporalSampling = TemporalSamplingPolicy.Interpolate)
         {
             Averaging = averaging;
             Normalization = normalization;
             CorrelationAlpha = correlationAlpha;
             BonferroniCorrection = bonferroniCorrection;
+            TemporalSampling = temporalSampling;
         }
         #endregion
 
         #region Public Methods
         public object Clone()
         {
-            return new EEGPreferences(Averaging, Normalization, CorrelationAlpha, BonferroniCorrection);
+            return new EEGPreferences(Averaging, Normalization, CorrelationAlpha, BonferroniCorrection, TemporalSampling);
         }
         #endregion
     }

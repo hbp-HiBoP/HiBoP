@@ -167,12 +167,25 @@ namespace HBP.Tests.PlayMode.Workflow
             DatabaseManager.Database.SetDatabaseReferences(new[] { reference });
             await UniTask.Yield();
 
+            NormalizationType initialNormalization = DataManager.DefaultNormalization;
             UserPreferencesModifier userPreferences = InstantiateWindow<UserPreferencesModifier>(UserPreferencesResource, window.Root.transform);
             userPreferences.Object = UserPersistentDataManager.UserPreferences;
             userPreferences.Interactable = false;
             userPreferences.Interactable = true;
             Assert.That(GetPrivateField<object>(userPreferences, "m_ProjectPreferencesSubModifier"), Is.Not.Null);
             Assert.That(GetPrivateField<object>(userPreferences, "m_GraphPreferencesSubModifier"), Is.Not.Null);
+            EEGPreferencesSubModifier eegPreferences = GetPrivateField<EEGPreferencesSubModifier>(userPreferences, "m_EEGPreferencesSubModifier");
+            Dropdown normalizationDropdown = GetPrivateField<Dropdown>(eegPreferences, "m_EEGNormalizationDropdown");
+            Dropdown temporalSamplingDropdown = GetPrivateField<Dropdown>(eegPreferences, "m_TemporalSamplingDropdown");
+            Assert.That(normalizationDropdown.options.Select(option => option.text), Does.Not.Contain("Auto"));
+            Assert.That(temporalSamplingDropdown, Is.Not.Null);
+            Assert.That(temporalSamplingDropdown.options.Select(option => option.text),
+                Is.EqualTo(new[] { "Floor", "Round", "Interpolate" }));
+            normalizationDropdown.value = normalizationDropdown.options.FindIndex(option => option.text == "Protocol");
+            Assert.That(DataManager.DefaultNormalization, Is.EqualTo(NormalizationType.Protocol));
+            userPreferences.Close();
+            await UniTask.Yield();
+            Assert.That(DataManager.DefaultNormalization, Is.EqualTo(initialNormalization));
 
             ProjectPreferencesModifier projectPreferences = InstantiateWindow<ProjectPreferencesModifier>(ProjectPreferencesResource, window.Root.transform);
             projectPreferences.Object = project.Preferences;

@@ -23,7 +23,6 @@ namespace HBP.Core.Data
         /// IEEG Span Max
         /// </summary>
         [JsonProperty("Span Max")] public float SpanMax { get; set; }
-        [JsonProperty("Temporal Sampling")] public Enums.TemporalSamplingPolicy TemporalSampling { get; set; } = Enums.TemporalSamplingPolicy.Interpolate;
         #endregion
 
         #region Constructor
@@ -49,10 +48,7 @@ namespace HBP.Core.Data
         #region Public Methods
         public override object Clone()
         {
-            return new DynamicConfiguration(MaximumInfluence, SpanMin, Middle, SpanMax, ID)
-            {
-                TemporalSampling = TemporalSampling
-            };
+            return new DynamicConfiguration(MaximumInfluence, SpanMin, Middle, SpanMax, ID);
         }
         public override void Copy(object copy)
         {
@@ -63,7 +59,6 @@ namespace HBP.Core.Data
                 SpanMin = dynamicConfiguration.SpanMin;
                 Middle = dynamicConfiguration.Middle;
                 SpanMax = dynamicConfiguration.SpanMax;
-                TemporalSampling = dynamicConfiguration.TemporalSampling;
             }
         }
         #endregion

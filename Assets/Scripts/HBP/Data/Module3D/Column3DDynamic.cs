@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Data;
+using HBP.Core.Preferences;
 
 namespace HBP.Data.Module3D
 {
@@ -17,7 +18,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public abstract Timeline Timeline { get; }
         public abstract Timeline ProjectionTimeline { get; }
-        public abstract TemporalSamplingPolicy TemporalSampling { get; }
+        public TemporalSamplingPolicy TemporalSampling => PersistentDataManager.UserPreferences.Data.EEG.TemporalSampling;
         public TemporalSample CurrentProjectionSample => Timeline.GetProjectionSample(ProjectionTimeline, Timeline.CurrentIndex, TemporalSampling);
         public SubTimeline CurrentProjectionSubtimeline
         {

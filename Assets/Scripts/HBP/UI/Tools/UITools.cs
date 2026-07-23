@@ -12,6 +12,23 @@ namespace HBP.UI.Tools
 {
     public static class UITools
     {
+        public static bool ShowMemoryCacheBudgetWarningIfNeeded()
+        {
+            MemoryCacheSnapshot snapshot = DataManager.MemoryCacheSnapshot;
+            if (!snapshot.IsOverBudget)
+                return false;
+
+            const double bytesPerMiB = 1024d * 1024d;
+            DialogBoxManager.Open(
+                Core.Enums.DialogBoxType.Warning,
+                "Memory cache limit exceeded",
+                $"The active visualization uses {snapshot.UsedBytes / bytesPerMiB:N1} MiB of HiBoP-managed memory, "
+                + $"which exceeds the configured limit of {snapshot.LimitBytes / bytesPerMiB:N1} MiB.\n\n"
+                + "Active data remain exact and are not downsampled. Inactive cached data have been evicted where possible.")
+                .Forget();
+            return true;
+        }
+
         public static void SetIEnumerableFieldInItem(this UnityEngine.UI.Text text, string title, IEnumerable<string> values, State emptyState, int max = 3)
         {
             var stringBuilder = new StringBuilder();

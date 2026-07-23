@@ -1,5 +1,14 @@
 # Codex Notes For HiBoP
 
+## Prefab-First GameObject Workflow
+
+When adding or changing UI elements or other GameObjects, edit or create the
+appropriate prefab and serialize the required references there. Runtime
+`new GameObject(...)` construction should be exceptional and used only when the
+object is inherently dynamic and a prefab is not appropriate. Do not use
+runtime object creation to compensate for a missing element or reference in a
+prefab.
+
 ## Unity MCP Workflow
 
 This Unity project is expected to be driven through MCP for Unity when Unity is open.

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
@@ -39,7 +40,7 @@ namespace HBP.UI.Main
             base.OK();
             UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
-        public void Display()
+        public async void Display()
         {
             Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
             var alreadyOpenedVisualizations = visualizations.Where(v => Module3DMain.Scenes.Any(s => s.Visualization == v));
@@ -49,8 +50,11 @@ namespace HBP.UI.Main
                 return;
             }
             DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, SystemInfo.systemMemorySize);
-            LoadingManager.Load((update, token) => Module3DMain.LoadAsync(m_ListGestion.List.ObjectsSelected, update, token));
+            UniTask loading = LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
             OK();
+            await loading;
+            await UniTask.SwitchToMainThread();
+            UITools.ShowMemoryCacheBudgetWarningIfNeeded();
         }
         public override void Close()
         {

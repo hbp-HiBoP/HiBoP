@@ -34,6 +34,7 @@ namespace HBP.Tests.Serialization
         {
             DataManager.ResetRawRecordingLoader();
             DataManager.Clear();
+            DataManager.ConfigureMemoryBudget(1024 * 1024, 0);
             m_PersistentData.Dispose();
             m_ApplicationState.Dispose();
             m_Temp.Dispose();
@@ -155,6 +156,29 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void ActiveDataPin_KeepsRawRecordingUntilVisualizationReleasesIt()
+        {
+            DataManager.RawRecordingLoader = _ => new LargeStubDynamicData();
+            IEEGDataInfo dataInfo = CreateDataInfo("large-recording.edf", CreateProtocol("large-protocol"), "large-data");
+            DataManager.ConfigureMemoryBudget(1, 0);
+
+            DataManager.PinData(dataInfo);
+            try
+            {
+                DataManager.GetData(dataInfo);
+
+                Assert.That(DataManager.RawRecordingCacheCount, Is.EqualTo(1));
+                Assert.That(DataManager.MemoryCacheSnapshot.IsOverBudget, Is.True);
+            }
+            finally
+            {
+                DataManager.UnpinData(dataInfo);
+            }
+
+            Assert.That(DataManager.RawRecordingCacheCount, Is.Zero);
+        }
+
+        [Test]
         public void ConcurrentRequestsForSameSource_RunOneLoader()
         {
             RawRecordingCache cache = new();
@@ -238,6 +262,20 @@ namespace HBP.Tests.Serialization
         {
             public StubDynamicData() : base(
                 new Dictionary<string, float[]> { { "A1", new[] { 10f, 11f, 12f, 13f, 14f } } },
+                new Dictionary<string, string> { { "A1", "uV" } },
+                new Frequency(1000))
+            {
+                m_OccurencesByCode = new Dictionary<int, List<EventOccurence>>
+                {
+                    { 1, new List<EventOccurence> { new(1, 2, 2) } }
+                };
+            }
+        }
+
+        private sealed class LargeStubDynamicData : DynamicData
+        {
+            public LargeStubDynamicData() : base(
+                new Dictionary<string, float[]> { { "A1", new float[400000] } },
                 new Dictionary<string, string> { { "A1", "uV" } },
                 new Frequency(1000))
             {

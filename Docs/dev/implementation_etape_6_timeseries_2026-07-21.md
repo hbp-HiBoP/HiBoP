@@ -16,7 +16,9 @@ Le gestionnaire de budget :
 
 Les visualisations iEEG et CCEP épinglent leur enregistrement brut pendant leur cycle de vie. Le déchargement le désépingle et permet son éviction si le budget est dépassé. Les tableaux préparés des visualisations actives et les buffers natifs des colonnes 3D sont également enregistrés comme actifs puis retirés lors de leur destruction.
 
-Les époques, statistiques et événements conservés par `DataManager` sont comptabilisés comme dérivés. Leur éviction retire l’entrée du cache, mais ne modifie pas un objet déjà remis à un appelant actif. Le prochain accès reconstruit alors le dérivé à partir du brut encore chaud, ou recharge le brut si celui-ci a lui aussi été évincé.
+Les époques, statistiques et événements conservés par `DataManager` sont comptabilisés comme dérivés. L’éviction d’une entrée inactive la retire du cache et vide explicitement ses tableaux afin de libérer leurs références. Les objets utilisés par une visualisation active restent épinglés et ne sont donc jamais vidés. Le prochain accès à une entrée évincée reconstruit le dérivé à partir du brut encore chaud, ou recharge le brut si celui-ci a lui aussi été évincé.
+
+Après l’ouverture d’une visualisation, un dépassement dû aux seules données actives affiche maintenant une boîte de dialogue avec la mémoire HiBoP comptabilisée et la limite configurée. Les données restent exactes. Lors d’un rechargement provoqué par un changement de normalisation, l’éviction est suspendue pendant la transition afin que le brut ne soit pas relu depuis le disque.
 
 Le `GC.Collect()` synchrone a été retiré du chemin normal de `DataManager.Clear` : la limite est désormais appliquée par une politique explicite plutôt que par une collecte forcée.
 

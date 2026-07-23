@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using HBP.Core.Data;
 using HBP.Core.Enums;
+using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
 using NUnit.Framework;
@@ -147,17 +148,23 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
-        public void TemporalPolicy_IsSerializedClonedAndDefaultsToInterpolation()
+        public void TemporalPolicy_IsSerializedClonedAndDefaultsToInterpolationInUserPreferences()
         {
-            DynamicConfiguration configuration = new() { TemporalSampling = TemporalSamplingPolicy.Round };
-            string json = JsonConvert.SerializeObject(configuration);
-            DynamicConfiguration restored = JsonConvert.DeserializeObject<DynamicConfiguration>(json);
-            DynamicConfiguration clone = (DynamicConfiguration)configuration.Clone();
-            DynamicConfiguration legacy = JsonConvert.DeserializeObject<DynamicConfiguration>("{}");
+            EEGPreferences preferences = new(
+                AveragingType.Mean,
+                NormalizationType.None,
+                0.05f,
+                true,
+                TemporalSamplingPolicy.Round);
+            string json = JsonConvert.SerializeObject(preferences);
+            EEGPreferences restored = JsonConvert.DeserializeObject<EEGPreferences>(json);
+            EEGPreferences clone = (EEGPreferences)preferences.Clone();
+            EEGPreferences defaults = JsonConvert.DeserializeObject<EEGPreferences>("{}");
 
             Assert.That(restored.TemporalSampling, Is.EqualTo(TemporalSamplingPolicy.Round));
             Assert.That(clone.TemporalSampling, Is.EqualTo(TemporalSamplingPolicy.Round));
-            Assert.That(legacy.TemporalSampling, Is.EqualTo(TemporalSamplingPolicy.Interpolate));
+            Assert.That(defaults.TemporalSampling, Is.EqualTo(TemporalSamplingPolicy.Interpolate));
+            Assert.That(JsonConvert.SerializeObject(new DynamicConfiguration()), Does.Not.Contain("Temporal Sampling"));
         }
 
         private static Timeline CreateTimeline(TimeWindow window, float frequency, out Bloc bloc, out SubBloc subBloc)

@@ -218,6 +218,22 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void MemoryBudgetEviction_ClearsEvictedDerivedArrays()
+        {
+            EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);
+            fixture.FirstSubTrial.ValuesByChannel[fixture.Channel] = new float[400000];
+            typeof(SubTrial)
+                .GetField("m_ManagedBytes", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(fixture.FirstSubTrial, 400000L * sizeof(float));
+            DataManager.ConfigureMemoryBudget(1, 0);
+
+            DataManager.RefreshDerivedMemoryUsage(fixture.DataInfo);
+
+            Assert.That(fixture.FirstSubTrial.ValuesByChannel, Is.Empty);
+            Assert.That(DataManager.MemoryCacheSnapshot.UsedBytes, Is.Zero);
+        }
+
+        [Test]
         public void ChangingDefaultAveraging_InvalidatesChannelStatisticsCache()
         {
             EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);

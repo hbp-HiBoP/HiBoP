@@ -19,6 +19,8 @@ Les changements principaux sont les suivants :
 - invalidation automatique des caches statistiques lorsque l’averaging des valeurs ou des événements change ;
 - réévaluation de `Auto` au prochain chargement/normalisation après changement de préférence.
 
+`Auto` reste une valeur valide sur un `DataInfo`, où elle signifie « utiliser la préférence utilisateur ». Elle n’est plus proposée ni acceptée comme valeur de la préférence utilisateur elle-même ; une valeur `Auto` affectée à cette préférence est ramenée à `None`. Lorsqu’une visualisation est ouverte, modifier la normalisation utilisateur propose désormais de la recharger. Ce rechargement invalide les dérivés normalisés mais conserve le cache des enregistrements bruts.
+
 L’écart-type et le SEM conservent la convention historique de la DLL native : écart-type d’échantillon, division par `n - 1`, puis SEM divisé par `sqrt(n)`. La tolérance numérique des tests est de `1e-6` pour les calculs analytiques et de `1e-4` pour les chemins complets de normalisation.
 
 ## Tests automatisés
@@ -44,7 +46,7 @@ Validation Unity EditMode : **310 tests réussis sur 310** dans `HBP.Serializati
 Les tests automatisés couvrent les résultats numériques. Avant diffusion produit, vérifier aussi :
 
 1. ouvrir une visualisation iEEG avec moyenne, passer à médiane dans les préférences, fermer puis rouvrir la visualisation et comparer courbes/SEM ;
-2. répéter avec chaque normalisation, notamment `Auto`, puis revenir à `None` ;
+2. répéter avec chaque normalisation proposée dans les préférences ; vérifier séparément qu’un `DataInfo` réglé sur `Auto` suit bien cette préférence et que `Auto` n’apparaît pas dans la liste des préférences ;
 3. ouvrir un protocole contenant plusieurs traitements dans un ordre non trivial et comparer les valeurs exportées à la version de référence ;
 4. profiler un protocole de 250 patients pendant normalisation et construction des graphes, en relevant pic managé, octets alloués et temps CPU ;
 5. effectuer dix cycles ouverture/fermeture afin de confirmer l’absence de rétention des tableaux loués.

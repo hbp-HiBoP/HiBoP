@@ -151,7 +151,7 @@ namespace HBP.Tests.Serialization
                         new SystemPreferences(false, 512, 7, 24),
                         new MiscPreferences(true)),
                     new DataPreferences(
-                        new EEGPreferences(AveragingType.Mean, NormalizationType.Protocol, 0.01f, false),
+                        new EEGPreferences(AveragingType.Mean, NormalizationType.Protocol, 0.01f, false, TemporalSamplingPolicy.Round),
                         new ProtocolPreferences(AveragingType.Mean, -42, 43, 17),
                         new AnatomicPreferences(false, true, true, false, true),
                         new AtlasesPreferences(false, true, false, true, false, true, false, true, true, false, true, false, true, false, true, false)),
@@ -174,6 +174,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(loadedUserPreferences.General.Misc.AdvancedFeatures, Is.True);
                 Assert.That(loadedUserPreferences.Data.EEG.Averaging, Is.EqualTo(AveragingType.Mean));
                 Assert.That(loadedUserPreferences.Data.EEG.Normalization, Is.EqualTo(NormalizationType.Protocol));
+                Assert.That(loadedUserPreferences.Data.EEG.TemporalSampling, Is.EqualTo(TemporalSamplingPolicy.Round));
                 Assert.That(loadedUserPreferences.Data.Protocol.Step, Is.EqualTo(17));
                 Assert.That(loadedUserPreferences.Data.Anatomic.MeshPreloading, Is.True);
                 Assert.That(loadedUserPreferences.Data.Atlases.PreloadDiFuMo64, Is.True);
@@ -190,6 +191,14 @@ namespace HBP.Tests.Serialization
                 DataManager.DefaultNormalization = defaultNormalization;
                 DataManager.DefaultPositionAveraging = defaultPositionAveraging;
             }
+        }
+
+        [Test]
+        public void UserPreferences_AutoNormalizationFallsBackToNone()
+        {
+            EEGPreferences preferences = new(AveragingType.Mean, NormalizationType.Auto, 0.05f, true);
+
+            Assert.That(preferences.Normalization, Is.EqualTo(NormalizationType.None));
         }
 
         [Test]
