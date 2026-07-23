@@ -2,6 +2,8 @@
 using Ionic.Zip;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
+using LoadingOperation = HBP.Core.Tools.LoadingDiagnostics.Operation;
+using LoadingPhase = HBP.Core.Tools.LoadingDiagnostics.Phase;
 
 namespace HBP.Core.Data
 {
@@ -32,51 +34,73 @@ namespace HBP.Core.Data
         }
         public ProjectInfo(string path) : base()
         {
-            if (Project.IsProject(path))
+            // TEMP-LOADING-PROFILING
+            using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Project);
+            try
             {
-                Path = path;
-                Name = System.IO.Path.GetFileNameWithoutExtension(path);
-                using ZipFile zip = ZipFile.Read(path);
-                foreach (ZipEntry entry in zip)
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.ProjectManifest,
+                    fileCount: 1,
+                    byteCount: LoadingDiagnostics.GetFileLength(path)))
                 {
-                    if (entry.FileName.EndsWith(Patient.EXTENSION))
+                    if (Project.IsProject(path))
                     {
-                        Patients++;
-                    }
-                    else if (entry.FileName.EndsWith(Group.EXTENSION))
-                    {
-                        Groups++;
-                    }
-                    else if (entry.FileName.EndsWith(Dataset.EXTENSION))
-                    {
-                        Datasets++;
-                    }
-                    else if (entry.FileName.EndsWith(Visualization.EXTENSION))
-                    {
-                        Visualizations++;
-                    }
-                    else if (entry.FileName.EndsWith(ProjectPreferences.EXTENSION))
-                    {
-                        FileInfo settingsFile = new(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
-                        if (settingsFile.Exists) settingsFile.Delete();
-                        entry.Extract(ApplicationState.TMPFolder);
-                        try
+                        Path = path;
+                        Name = System.IO.Path.GetFileNameWithoutExtension(path);
+                        using ZipFile zip = ZipFile.Read(path);
+                        foreach (ZipEntry entry in zip)
                         {
-                            Settings = ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFile.FullName);
+                            if (entry.FileName.EndsWith(Patient.EXTENSION))
+                            {
+                                Patients++;
+                            }
+                            else if (entry.FileName.EndsWith(Group.EXTENSION))
+                            {
+                                Groups++;
+                            }
+                            else if (entry.FileName.EndsWith(Dataset.EXTENSION))
+                            {
+                                Datasets++;
+                            }
+                            else if (entry.FileName.EndsWith(Visualization.EXTENSION))
+                            {
+                                Visualizations++;
+                            }
+                            else if (entry.FileName.EndsWith(ProjectPreferences.EXTENSION))
+                            {
+                                FileInfo settingsFile = new(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
+                                if (settingsFile.Exists) settingsFile.Delete();
+                                entry.Extract(ApplicationState.TMPFolder);
+                                try
+                                {
+                                    Settings = ClassLoaderSaver.LoadFromJson<ProjectPreferences>(
+                                        settingsFile.FullName,
+                                        LoadingPhase.ProjectSettings,
+                                        LoadingPhase.ProjectSettings,
+                                        1);
+                                }
+                                catch (System.Exception exception)
+                                {
+                                    session.MarkFailed(exception);
+                                    SettingsLoadException = exception;
+                                    Settings = new ProjectPreferences();
+                                    Settings.CanLoadProject = false;
+                                }
+                                settingsFile.Directory.Delete(true);
+                            }
                         }
-                        catch (System.Exception e)
-                        {
-                            SettingsLoadException = e;
-                            Settings = new ProjectPreferences();
-                            Settings.CanLoadProject = false;
-                        }
-                        settingsFile.Directory.Delete(true);
+                    }
+                    else
+                    {
+                        throw new DirectoryNotProjectException(path);
                     }
                 }
+                session.MarkSucceeded();
             }
-            else
+            catch (System.Exception exception)
             {
-                throw new DirectoryNotProjectException(path);
+                session.MarkFailed(exception);
+                throw;
             }
         }
         #endregion

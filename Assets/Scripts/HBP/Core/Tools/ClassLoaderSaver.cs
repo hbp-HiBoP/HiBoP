@@ -24,19 +24,47 @@ namespace HBP.Core.Tools
 
         public static T LoadFromJson<T>(string path) where T : new()
         {
+            return LoadFromJson<T>(path, LoadingDiagnostics.Phase.None, LoadingDiagnostics.Phase.None);
+        }
+        public static T LoadFromJson<T>(string path, LoadingDiagnostics.Phase readPhase, LoadingDiagnostics.Phase deserializePhase, int concurrency = 0) where T : new()
+        {
             T result = new();
-            using (StreamReader streamReader = new(path))
+            string jsonContent;
+            long fileLength = LoadingDiagnostics.GetFileLength(path);
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(readPhase, 1, fileLength, concurrency: concurrency))
             {
-                string jsonContent = streamReader.ReadToEnd();
+                using StreamReader streamReader = new(path);
+                jsonContent = streamReader.ReadToEnd();
+            }
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(deserializePhase, objectCount: 1, concurrency: concurrency))
+            {
                 result = JsonConvert.DeserializeObject<T>(jsonContent, m_Settings);
             }
             return result;
         }
         public static async UniTask<T> LoadFromJsonAsync<T>(string path) where T : new()
         {
+            return await LoadFromJsonAsync<T>(path, LoadingDiagnostics.Phase.None, LoadingDiagnostics.Phase.None);
+        }
+        public static async UniTask<T> LoadFromJsonAsync<T>(string path, LoadingDiagnostics.Phase readPhase, LoadingDiagnostics.Phase deserializePhase, int concurrency = 0) where T : new()
+        {
             await UniTask.SwitchToThreadPool();
-            using StreamReader streamReader = new(path);
-            T result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), m_Settings);
+            string jsonContent;
+            long fileLength = LoadingDiagnostics.GetFileLength(path);
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(readPhase, 1, fileLength, concurrency: concurrency))
+            {
+                using StreamReader streamReader = new(path);
+                jsonContent = streamReader.ReadToEnd();
+            }
+            T result;
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(deserializePhase, objectCount: 1, concurrency: concurrency))
+            {
+                result = JsonConvert.DeserializeObject<T>(jsonContent, m_Settings);
+            }
             return result;
         }
         public static bool SaveToJSon<T>(T instance, string path, bool overwrite = false) where T : new()

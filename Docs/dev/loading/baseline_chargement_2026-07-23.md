@@ -10,6 +10,8 @@ optimisations.
 
 Les résultats de cette page ne sont pas des timings du player HiBoP. Ils
 isolent les volumes, l'I/O et le parsing JSON générique sur la même machine.
+La capture runtime Editor Mono effectuée ensuite est documentée dans
+[`baseline_runtime_editor_mono_2026-07-23.md`](baseline_runtime_editor_mono_2026-07-23.md).
 
 ## 2. Jeux de données observés
 
@@ -204,7 +206,9 @@ Loading.Database.LinkReferences
 Loading.Project.Manifest
 Loading.Project.ArchiveRead
 Loading.Project.Settings
-Loading.Project.Patients
+Loading.Project.Patients.Read
+Loading.Project.Patients.Deserialize
+Loading.Project.Patients.BindTags
 Loading.Project.Groups
 Loading.Project.Datasets
 Loading.Project.Visualizations

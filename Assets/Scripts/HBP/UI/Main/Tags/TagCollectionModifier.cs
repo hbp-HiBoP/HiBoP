@@ -80,10 +80,12 @@ namespace HBP.UI.Main
         }
         private List<Func<UniTask>> CreateCheckPatientsTagsTasks(IEnumerable<Core.Data.Patient> patients, IEnumerable<Core.Data.BaseTag> tags)
         {
-            Core.Data.BaseTag[] tagsToCheck = tags.ToArray();
+            ISet<string> tagIds = new HashSet<string>(
+                tags.Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID)).Select(tag => tag.ID),
+                StringComparer.Ordinal);
             return patients.Select(patient => (Func<UniTask>)(async () =>
             {
-                await patient.CheckTagsAsync(tagsToCheck);
+                await patient.CheckTagsAsync(tagIds);
             })).ToList();
         }
         private async UniTask RunCheckPatientsTagsTasksAsync(IEnumerable<Func<UniTask>> tasks, Action<float, float, LoadingText> update)

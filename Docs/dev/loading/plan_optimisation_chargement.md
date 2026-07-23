@@ -22,6 +22,16 @@ Ce plan vise des gains progressifs sans abandonner :
 
 ## Étape 0 — Verrouiller la baseline
 
+Statut : implémentée et première capture analysée le 23 juillet 2026. Voir
+[`instrumentation_et_benchmark_etape_0.md`](instrumentation_et_benchmark_etape_0.md)
+et
+[`baseline_runtime_editor_mono_2026-07-23.md`](baseline_runtime_editor_mono_2026-07-23.md).
+
+La capture confirme l'étape 1 comme prochaine priorité : 1 112 754 recherches
+de tags ont été observées sur 370 918 valeurs, avec 156,6 s de
+désérialisation patient et 32,5 s supplémentaires dans `CheckTagsAsync`,
+cumulées sur les workers.
+
 ### Changements
 
 - ajouter des `ProfilerMarker` ou un équivalent aux phases listées dans
@@ -45,6 +55,11 @@ Ce plan vise des gains progressifs sans abandonner :
 - aucune donnée patient dans les logs.
 
 ## Étape 1 — Corriger l'index des tags
+
+**Statut au 23 juillet 2026 : terminée et validée sur la base et le projet de
+référence.** Voir
+[`etape_1_index_tags_2026-07-23.md`](etape_1_index_tags_2026-07-23.md) et
+[`resultats_etape_1_2026-07-23.md`](resultats_etape_1_2026-07-23.md).
 
 ### Conception minimale
 
@@ -94,7 +109,7 @@ linéaire de recherches de dictionnaire, sans différence fonctionnelle.
 
 ## Étape 2 — Supprimer les GUID temporaires
 
-### Option recommandée
+### Option retenue et implémentée
 
 Introduire un champ d'ID avec génération paresseuse :
 
@@ -102,7 +117,7 @@ Introduire un champ d'ID avec génération paresseuse :
 [JsonProperty]
 public string ID
 {
-    get => string.IsNullOrEmpty(m_ID) ? m_ID = NewId() : m_ID;
+    get => m_ID ??= NewId();
     set => m_ID = value;
 }
 ```
@@ -111,6 +126,13 @@ Le constructeur sans paramètre n'appelle plus `NewId`. Un objet créé par le
 produit obtient toujours un ID dès le premier accès, la sérialisation ou une
 opération qui en dépend. Un objet désérialisé reçoit directement l'ID du
 fichier.
+
+L'implémentation réelle utilise `Volatile.Read` et
+`Interlocked.CompareExchange` pour rendre le premier accès concurrent sûr. Le
+getter ne traite que `null` comme « jamais assigné » : une chaîne vide
+explicitement affectée reste observable par les contrôles d'intégrité.
+`OnDeserialized` continue en revanche de réparer les anciens JSON sans ID ou
+avec un ID vide.
 
 ### Points à vérifier
 
@@ -130,15 +152,32 @@ les invariants et augmente le risque IL2CPP.
 
 Aucun GUID n'est créé pour un objet dont le JSON contient déjà un ID.
 
+**État : validé le 23 juillet 2026.** Voir
+[`etape_2_ids_paresseux_2026-07-23.md`](etape_2_ids_paresseux_2026-07-23.md)
+et
+[`resultats_etape_2_2026-07-23.md`](resultats_etape_2_2026-07-23.md).
+
 ## Étape 3 — Séparer validation de chemins et désérialisation
+
+**Statut au 23 juillet 2026 : implémentée et validée fonctionnellement.** Voir
+[`etape_3_validation_references_2026-07-23.md`](etape_3_validation_references_2026-07-23.md)
+et
+[`resultats_etape_3_2026-07-23.md`](resultats_etape_3_2026-07-23.md).
+
+La séparation est effective, mais cette étape isolée ne démontre pas de gain
+mural sur la campagne Editor Mono. La médiane augmente de 15,3 % sur la base
+et de 7,5 % sur le projet par rapport à l'étape 2 ; le coût explicite de
+validation reste pourtant limité à 32 ms et 19 ms.
 
 ### Conception
 
 Les callbacks se limitent à :
 
 - restaurer les champs ;
-- normaliser les séparateurs ;
-- enregistrer les chemins à valider.
+- normaliser les séparateurs.
+
+Le validateur collecte ensuite les chemins depuis le graphe patient complet.
+Ce choix évite un registre transitoire global pendant les callbacks.
 
 Un `AssetReferenceValidator` :
 

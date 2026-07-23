@@ -84,7 +84,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(Path) && File.Exists(Path) && new FileInfo(Path).Extension == MESH_EXTENSION;
+                return !string.IsNullOrEmpty(Path) && LoadingDiagnostics.FileExists(Path) && new FileInfo(Path).Extension == MESH_EXTENSION;
             }
         }
         /// <summary>
@@ -94,7 +94,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(MarsAtlasPath) && File.Exists(MarsAtlasPath) && new FileInfo(MarsAtlasPath).Extension == MESH_EXTENSION;
+                return !string.IsNullOrEmpty(MarsAtlasPath) && LoadingDiagnostics.FileExists(MarsAtlasPath) && new FileInfo(MarsAtlasPath).Extension == MESH_EXTENSION;
             }
         }
         #endregion

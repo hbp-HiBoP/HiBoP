@@ -174,13 +174,35 @@ namespace HBP.Core.Data
                     site.Tags.Remove(tag);
             }
         }
-        public async UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
+        public UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
         {
+            if (tags == null)
+            {
+                throw new ArgumentNullException(nameof(tags));
+            }
+
+            HashSet<string> tagIds = new(
+                tags.Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID)).Select(tag => tag.ID),
+                StringComparer.Ordinal);
+            return CheckTagsAsync(tagIds);
+        }
+        public async UniTask CheckTagsAsync(ISet<string> tagIds)
+        {
+            if (tagIds == null)
+            {
+                throw new ArgumentNullException(nameof(tagIds));
+            }
+
             await UniTask.SwitchToThreadPool();
-            Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-            foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !PersistentDataManager.Tags.AllTags.Contains(t.Tag));
-            List<BaseTagValue> tagsToUpdate = Tags.Where(t => tags.Contains(t.Tag)).ToList();
-            tagsToUpdate.AddRange(Sites.SelectMany(s => s.Tags).Where(t => tags.Contains(t.Tag)));
+            TagCollection tagCollection = PersistentDataManager.Tags;
+            // TEMP-LOADING-PROFILING
+            LoadingDiagnostics.RecordTagLookups(Tags.Count + Sites.Sum(site => site.Tags.Count));
+            Tags.RemoveAll(t => t.Tag == null || !tagCollection.ContainsTagId(t.Tag.ID));
+            foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !tagCollection.ContainsTagId(t.Tag.ID));
+            // TEMP-LOADING-PROFILING
+            LoadingDiagnostics.RecordTagLookups(Tags.Count + Sites.Sum(site => site.Tags.Count));
+            List<BaseTagValue> tagsToUpdate = Tags.Where(t => t.Tag != null && tagIds.Contains(t.Tag.ID)).ToList();
+            tagsToUpdate.AddRange(Sites.SelectMany(s => s.Tags).Where(t => t.Tag != null && tagIds.Contains(t.Tag.ID)));
             foreach (var tagValue in tagsToUpdate)
             {
                 if (tagValue.Tag is IntTag && tagValue is not IntTagValue)

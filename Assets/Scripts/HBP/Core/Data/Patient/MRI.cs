@@ -84,7 +84,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && EXTENSIONS.Any(e => e == new FileInfo(File).Extension);
+                return !string.IsNullOrEmpty(File) && LoadingDiagnostics.FileExists(File) && EXTENSIONS.Any(e => e == new FileInfo(File).Extension);
             }
         }
         #endregion
@@ -127,6 +127,10 @@ namespace HBP.Core.Data
         public bool RecalculateIsUsable()
         {
             return IsUsable;
+        }
+        internal void ApplyUsabilityValidation(bool usable)
+        {
+            WasUsable = usable;
         }
         #endregion
 
@@ -248,7 +252,6 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             SavedFile = SavedFile.StandardizeToEnvironement();
-            RecalculateIsUsable();
             base.OnDeserialized();
         }
         #endregion

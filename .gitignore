@@ -10,6 +10,8 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 /[Uu]ser[Ss]ettings/
+/.test-results/
+/LoadingBenchmarks/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta

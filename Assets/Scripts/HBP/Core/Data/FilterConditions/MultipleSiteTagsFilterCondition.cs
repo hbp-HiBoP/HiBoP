@@ -204,7 +204,8 @@ namespace HBP.Core.Data
         {
             if (!string.IsNullOrEmpty(m_TagID))
             {
-                Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
+                PersistentDataManager.Tags.TryGetTag(m_TagID, out BaseTag tag);
+                Tag = tag;
             }
         }
         public void PrepareForSerialization()

@@ -1,0 +1,22 @@
+{
+    "name": "HBP.Loading.PerformanceTests",
+    "rootNamespace": "HBP.Tests.LoadingPerformance",
+    "references": [
+        "HBP.Core.Runtime",
+        "UniTask"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

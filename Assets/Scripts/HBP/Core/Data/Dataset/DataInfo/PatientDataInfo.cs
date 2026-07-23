@@ -159,10 +159,14 @@ namespace HBP.Core.Data
         #region Public Methods
         public void UpdatePatient()
         {
-            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
-                m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-            else
-                m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginReferenceLink(1))
+            {
+                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
+                    m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+                else
+                    m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            }
         }
         #endregion
 

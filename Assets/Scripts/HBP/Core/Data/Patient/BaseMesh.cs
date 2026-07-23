@@ -79,7 +79,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == TRANSFORMATION_EXTENSION || new FileInfo(Transformation).Extension == ".txt");
+                return !string.IsNullOrEmpty(Transformation) && LoadingDiagnostics.FileExists(Transformation) && (new FileInfo(Transformation).Extension == TRANSFORMATION_EXTENSION || new FileInfo(Transformation).Extension == ".txt");
             }
         }
         [JsonProperty("Transformation", Order = 5)] public string SavedTransformation { get; protected set; }
@@ -138,6 +138,10 @@ namespace HBP.Core.Data
         public bool RecalculateUsable()
         {
             return IsUsable;
+        }
+        internal void ApplyUsabilityValidation(bool usable)
+        {
+            WasUsable = usable;
         }
         /// <summary>
         /// Loads meshes from a directory.
@@ -258,7 +262,6 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             SavedTransformation = SavedTransformation.StandardizeToEnvironement();
-            RecalculateUsable();
             base.OnDeserialized();
         }
         #endregion

@@ -338,6 +338,8 @@ namespace HBP.Core.Data
         }
         public void UpdatePatients()
         {
+            // TEMP-LOADING-PROFILING
+            using LoadingDiagnostics.PhaseScope phase = LoadingDiagnostics.BeginReferenceLink(m_PatientsID?.Count ?? 0);
             if (ApplicationState.LoadedProject != null)
             {
                 m_Patients = (m_PatientsID ?? new List<string>())

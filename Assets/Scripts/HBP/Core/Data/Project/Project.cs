@@ -12,6 +12,8 @@ using HBP.Core.Preferences;
 using HBP.Core.Database;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using LoadingOperation = HBP.Core.Tools.LoadingDiagnostics.Operation;
+using LoadingPhase = HBP.Core.Tools.LoadingDiagnostics.Phase;
 
 namespace HBP.Core.Data
 {
@@ -433,6 +435,8 @@ namespace HBP.Core.Data
 
         public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            // TEMP-LOADING-PROFILING
+            using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Project);
             try
             {
                 // Initialize progress.
@@ -453,11 +457,18 @@ namespace HBP.Core.Data
 
                 // Unzipping
                 await UniTask.SwitchToThreadPool();
-                if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-                using ZipFile zip = ZipFile.Read(projectInfo.Path);
-                zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
-                if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
-                if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
+                // TEMP-LOADING-PROFILING
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.ProjectArchiveRead,
+                    fileCount: 1,
+                    byteCount: LoadingDiagnostics.GetFileLength(projectInfo.Path)))
+                {
+                    if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
+                    using ZipFile zip = ZipFile.Read(projectInfo.Path);
+                    zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
+                    if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
+                    if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
+                }
                 DirectoryInfo projectDirectory = new(ApplicationState.ExtractProjectFolder);
 
                 Name = projectInfo.Name;
@@ -494,9 +505,16 @@ namespace HBP.Core.Data
 
                 token.ThrowIfCancellationRequested();
                 updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully"));
+                session.MarkSucceeded();
             }
-            catch
+            catch (OperationCanceledException)
             {
+                session.MarkCanceled();
+                throw;
+            }
+            catch (Exception exception)
+            {
+                session.MarkFailed(exception);
                 throw;
             }
             finally
@@ -598,7 +616,12 @@ namespace HBP.Core.Data
             else if (settingsFiles.Length > 1) throw new MultipleSettingsFilesFoundException(); // Test if multiple settings files found.
             try
             {
-                Preferences = await ClassLoaderSaver.LoadFromJsonAsync<ProjectPreferences>(settingsFiles[0].FullName);
+                Preferences = await ClassLoaderSaver.LoadFromJsonAsync<ProjectPreferences>(
+                    settingsFiles[0].FullName,
+                    LoadingPhase.ProjectSettings,
+                    LoadingPhase.ProjectSettings,
+                    1);
+                LoadingDiagnostics.RecordObjects("ProjectPreferences", 1);
             }
             catch (Exception e)
             {
@@ -640,12 +663,26 @@ namespace HBP.Core.Data
             List<Patient> patients = new();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
+            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
+            ISet<string> tagIds = new HashSet<string>(
+                PersistentDataManager.Tags.AllTags
+                    .Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID))
+                    .Select(tag => tag.ID),
+                StringComparer.Ordinal);
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
             {
                 try
                 {
-                    var patient = await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
-                    await patient.CheckTagsAsync(PersistentDataManager.Tags.AllTags);
+                    var patient = await ClassLoaderSaver.LoadFromJsonAsync<Patient>(
+                        file.FullName,
+                        LoadingPhase.ProjectPatientsRead,
+                        LoadingPhase.ProjectPatientsDeserialize,
+                        concurrency);
+                    LoadingDiagnostics.RecordPatientGraph(patient);
+                    using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectPatientsBindTags, concurrency: concurrency))
+                    {
+                        await patient.CheckTagsAsync(tagIds);
+                    }
                     return patient;
                 }
                 catch (Exception e)
@@ -654,7 +691,22 @@ namespace HBP.Core.Data
                 }
             }));
             patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            SetPatients(patients.ToArray());
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(
+                LoadingPhase.ProjectValidateFiles,
+                objectCount: patients.Count,
+                concurrency: concurrency))
+            {
+                await new AssetReferenceValidator().ValidatePatientsAsync(
+                    patients,
+                    concurrency,
+                    token);
+            }
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: patients.Count))
+            {
+                SetPatients(patients.ToArray());
+            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
         private async UniTask LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -662,11 +714,16 @@ namespace HBP.Core.Data
             List<Group> groups = new();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
+            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = groupFiles.Select(file => (Func<UniTask<Group>>)(async () =>
             {
                 try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Group>(file.FullName);
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Group>(
+                        file.FullName,
+                        LoadingPhase.ProjectGroups,
+                        LoadingPhase.ProjectGroups,
+                        concurrency);
                 }
                 catch (Exception e)
                 {
@@ -674,7 +731,12 @@ namespace HBP.Core.Data
                 }
             }));
             groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            SetGroups(groups.ToArray());
+            LoadingDiagnostics.RecordObjects("Group", groups.Count);
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: groups.Count))
+            {
+                SetGroups(groups.ToArray());
+            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
         }
         private async UniTask LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -682,11 +744,16 @@ namespace HBP.Core.Data
             List<Dataset> datasets = new();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
+            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = datasetFiles.Select(file => (Func<UniTask<Dataset>>)(async () =>
             {
                 try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(file.FullName);
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(
+                        file.FullName,
+                        LoadingPhase.ProjectDatasets,
+                        LoadingPhase.ProjectDatasets,
+                        concurrency);
                 }
                 catch (Exception e)
                 {
@@ -694,7 +761,12 @@ namespace HBP.Core.Data
                 }
             }));
             datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            SetDatasets(datasets.ToArray());
+            LoadingDiagnostics.RecordObjects("Dataset", datasets.Count);
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: datasets.Count))
+            {
+                SetDatasets(datasets.ToArray());
+            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
         }
         private async UniTask LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -702,11 +774,16 @@ namespace HBP.Core.Data
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
             List<Visualization> visualizations = new();
             FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
+            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = visualizationFiles.Select(file => (Func<UniTask<Visualization>>)(async () =>
             {
                 try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(file.FullName);
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(
+                        file.FullName,
+                        LoadingPhase.ProjectVisualizations,
+                        LoadingPhase.ProjectVisualizations,
+                        concurrency);
                 }
                 catch (Exception e)
                 {
@@ -714,7 +791,12 @@ namespace HBP.Core.Data
                 }
             }));
             visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            SetVisualizations(visualizations.ToArray());
+            LoadingDiagnostics.RecordObjects("Visualization", visualizations.Count);
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: visualizations.Count))
+            {
+                SetVisualizations(visualizations.ToArray());
+            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
         }
 

@@ -1,6 +1,6 @@
 using HBP.Core.Preferences;
+using HBP.Core.Tools;
 using Newtonsoft.Json;
-using System.Linq;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -125,7 +125,10 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
+            // TEMP-LOADING-PROFILING
+            LoadingDiagnostics.RecordTagLookups(1);
+            PersistentDataManager.Tags.TryGetTag(m_TagID, out BaseTag tag);
+            Tag = tag;
         }
         protected override void OnSerializing()
         {

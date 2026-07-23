@@ -119,7 +119,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new Dataset instance with default values.
         /// </summary>
-        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0])
         {
         }
         #endregion
@@ -339,8 +339,12 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
-            Protocol = protocol;
+            // TEMP-LOADING-PROFILING
+            using (LoadingDiagnostics.BeginReferenceLink(1))
+            {
+                var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
+                Protocol = protocol;
+            }
         }
         #endregion
 

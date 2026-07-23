@@ -119,7 +119,8 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
+            PersistentDataManager.Tags.TryGetTag(m_TagID, out BaseTag tag);
+            Tag = tag;
         }
         protected override void OnSerializing()
         {

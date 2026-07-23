@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Threading;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -27,16 +28,40 @@ namespace HBP.Core.Data
     {
         #region Properties
         /// <summary>
-        /// Unique identifier to identify the data.
+        /// Unique identifier to identify the data. New objects generate it on
+        /// first access; deserialized objects keep the value read from JSON.
         /// </summary>
-        [JsonProperty] public string ID { get; set; }
+        private string m_ID;
+        [JsonProperty]
+        public string ID
+        {
+            get
+            {
+                while (true)
+                {
+                    string currentID = Volatile.Read(ref m_ID);
+                    if (currentID != null)
+                    {
+                        return currentID;
+                    }
+
+                    string generatedID = Guid.NewGuid().ToString();
+                    string observedID = Interlocked.CompareExchange(ref m_ID, generatedID, currentID);
+                    if (ReferenceEquals(observedID, currentID))
+                    {
+                        return generatedID;
+                    }
+                }
+            }
+            set => Volatile.Write(ref m_ID, value);
+        }
         #endregion
 
         #region Constructors
         /// <summary>
         /// Create a new BaseData instance.
         /// </summary>
-        public BaseData() : this(Guid.NewGuid().ToString())
+        public BaseData()
         {
         }
         /// <summary>
@@ -167,7 +192,7 @@ namespace HBP.Core.Data
         /// </summary>
         protected virtual void OnDeserialized()
         {
-            if (string.IsNullOrEmpty(ID))
+            if (string.IsNullOrEmpty(Volatile.Read(ref m_ID)))
             {
                 GenerateID();
             }

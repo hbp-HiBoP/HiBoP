@@ -29,17 +29,16 @@ tableaux internes successifs des listes. L'ordre de grandeur des tableaux
 transitoires associés approche le gigaoctet alloué sur toute l'opération, même
 si cette mémoire n'est pas retenue simultanément.
 
-Le second coût structurel est la construction des objets. Le constructeur sans
-paramètre de `BaseData` génère systématiquement un GUID, alors que Json.NET
-remplace ensuite `ID` par la valeur du fichier. Le graphe mesuré contient au
-moins 476 738 objets dérivés de `BaseData` : autant de GUID et de chaînes
-temporaires inutiles.
+Le second coût structurel initial était la construction des objets. Avant
+l'étape 2, le constructeur sans paramètre de `BaseData` générait
+systématiquement un GUID, alors que Json.NET remplaçait ensuite `ID` par la
+valeur du fichier. Le graphe mesuré contient au moins 476 738 objets dérivés de
+`BaseData` : autant de GUID et de chaînes temporaires désormais supprimés.
 
-Enfin, certains callbacks `OnDeserialized` vérifient immédiatement l'existence
-des fichiers de meshes et d'IRM. Le chargement mesuré inclut donc des accès au
-système de fichiers, éventuellement à des partages réseau indisponibles. Ce
-travail doit être présenté et instrumenté comme une phase de validation, pas
-comme du parsing JSON.
+Enfin, la baseline montrait que certains callbacks `OnDeserialized`
+vérifiaient immédiatement l'existence des fichiers de meshes et d'IRM. Ce
+travail est maintenant séparé et instrumenté comme une phase de validation par
+l'étape 3.
 
 La priorité n'est donc ni de remplacer Json.NET, ni d'augmenter immédiatement
 le nombre de threads. Les deux premières corrections doivent être :
@@ -174,6 +173,10 @@ désérialisés en parallèle. C'est le premier candidat à la lenteur extrême.
 
 **Correction recommandée.**
 
+Cette correction a été implémentée dans l'étape 1. Le détail des contrats,
+tests et limites est dans
+[`etape_1_index_tags_2026-07-23.md`](etape_1_index_tags_2026-07-23.md).
+
 - conserver une vue `IReadOnlyList<BaseTag>` reconstruite uniquement lors
   d'une mutation de la collection ;
 - maintenir un `Dictionary<string, BaseTag>` indexé par ID ;
@@ -187,11 +190,16 @@ désérialisés en parallèle. C'est le premier candidat à la lenteur extrême.
 Cette correction ne modifie pas le format de fichier et reste totalement
 compatible avec IL2CPP.
 
-### P0 — Un GUID temporaire est généré pour presque chaque objet
+### P0 — Un GUID temporaire était généré pour presque chaque objet
 
-**Preuve.** `BaseData()` appelle `Guid.NewGuid().ToString()`
-(`BaseData.cs:39-47`). Json.NET appelle les constructeurs sans paramètre des
-types HiBoP, puis affecte l'`ID` lu.
+**État : corrigé et validé dans l'étape 2.** Voir
+[`etape_2_ids_paresseux_2026-07-23.md`](etape_2_ids_paresseux_2026-07-23.md)
+et
+[`resultats_etape_2_2026-07-23.md`](resultats_etape_2_2026-07-23.md).
+
+**Preuve initiale.** Avant la correction, `BaseData()` appelait
+`Guid.NewGuid().ToString()`. Json.NET appelait les constructeurs sans paramètre
+des types HiBoP, puis affectait l'`ID` lu.
 
 Le workspace mesuré contient au minimum :
 
@@ -211,7 +219,7 @@ total.
 **Impact.** Génération cryptographique de GUID, création de chaînes de
 36 caractères et collecte de ces chaînes après remplacement.
 
-**Correction recommandée.** Rendre l'ID paresseux :
+**Correction implémentée.** L'ID est maintenant paresseux :
 
 - le constructeur sans paramètre laisse le champ interne nul ;
 - le getter `ID` génère un GUID uniquement lors du premier accès ;
@@ -219,14 +227,23 @@ total.
 - `OnDeserialized` conserve la génération de secours pour les anciens objets
   réellement sans ID.
 
-Une autre option est un DTO ou un `JsonConstructor` par type, mais elle demande
-beaucoup plus de changements. La variante paresseuse doit être caractérisée
-par des tests sur `Equals`, `GetHashCode`, `Clone`, création UI et
-désérialisation d'un ancien objet sans ID.
+Une autre option aurait été un DTO ou un `JsonConstructor` par type, avec
+beaucoup plus de changements. La variante paresseuse a été caractérisée sur
+`Equals`, `GetHashCode`, `Clone`, la création/duplication et la
+désérialisation d'anciens objets sans ID.
 
-### P1 — Des accès aux fichiers sont exécutés dans les callbacks JSON
+Ces contrats sont couverts par neuf nouveaux tests, complétés par les suites
+de sérialisation, rétrocompatibilité et projet. Les 94 tests ciblés passent.
 
-Les callbacks des meshes et IRM recalculent leur utilisabilité :
+### P1 — Des accès aux fichiers étaient exécutés dans les callbacks JSON
+
+**État : corrigé et validé dans l'étape 3.** Voir
+[`etape_3_validation_references_2026-07-23.md`](etape_3_validation_references_2026-07-23.md)
+et
+[`resultats_etape_3_2026-07-23.md`](resultats_etape_3_2026-07-23.md).
+
+Dans la baseline, les callbacks des meshes et IRM recalculaient leur
+utilisabilité :
 
 - `BaseMesh.OnDeserialized` appelle `RecalculateUsable`
   (`BaseMesh.cs:258-262`) ;
@@ -243,16 +260,16 @@ des disques externes ou des partages réseau.
 « chargement JSON ». Le coût varie fortement selon la machine et rend le
 parallélisme imprévisible.
 
-**Correction recommandée.**
+**Correction implémentée.**
 
 1. désérialiser et normaliser les chemins sans I/O ;
-2. publier les métadonnées ;
+2. collecter et dédupliquer les chemins depuis le graphe local ;
 3. valider l'existence des fichiers dans une phase explicite, instrumentée,
    annulable et à concurrence bornée ;
-4. dédupliquer les vérifications par chemin normalisé ;
-5. ne calculer qu'une fois chaque chemin développé avec les aliases.
+4. ne calculer qu'une fois chaque chemin développé avec les aliases ;
+5. publier les patients après la réussite de la validation.
 
-Le comportement visible peut rester identique si la fin du chargement attend
+Le comportement visible reste identique, car la fin du chargement attend
 toujours la phase de validation. Une évolution ultérieure peut permettre
 l'affichage anticipé des métadonnées.
 
