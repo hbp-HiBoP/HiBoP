@@ -24,6 +24,7 @@ namespace HBP.Dev
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, bool connectProfiler = false)
         {
+            SerializationTypeRegistryGenerator.EnsureUpToDateForBuild();
             PrepareBuildTarget(target);
 
             string os = "";

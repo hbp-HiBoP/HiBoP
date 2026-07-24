@@ -81,6 +81,18 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void LoadFromJsonString_RejectsUnknownSerializedTypeWithExplicitError()
+        {
+            const string json = "{\"$type\":\"Untrusted.Payload, Untrusted.Assembly\"}";
+
+            JsonSerializationException exception = Assert.Throws<JsonSerializationException>(
+                () => ClassLoaderSaver.LoadFromJsonString<object>(json));
+
+            Assert.That(exception.Message, Does.Contain("Untrusted.Payload"));
+            Assert.That(exception.Message, Does.Contain("generated HiBoP type registry"));
+        }
+
+        [Test]
         public async Task JsonMethods_DoNotRequireParameterlessConstructor()
         {
             using TempDirectoryScope temp = new();

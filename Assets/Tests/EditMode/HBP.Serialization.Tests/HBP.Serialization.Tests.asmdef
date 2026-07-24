@@ -4,6 +4,7 @@
     "references": [
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
+        "HBP.Dev.Editor",
         "UniTask"
     ],
     "includePlatforms": [

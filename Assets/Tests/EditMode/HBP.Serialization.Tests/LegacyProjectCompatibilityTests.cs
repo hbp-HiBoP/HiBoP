@@ -33,7 +33,7 @@ namespace HBP.Tests.Serialization
 
             Exception exception = Assert.Catch(() => ClassLoaderSaver.LoadFromJsonString<object>(json));
             Assert.That(exception.GetType().FullName, Is.EqualTo("Newtonsoft.Json.JsonSerializationException"));
-            Assert.That(exception.Message, Does.Contain("was not resolved"));
+            Assert.That(exception.Message, Does.Contain("generated HiBoP type registry"));
         }
 
         [Test]

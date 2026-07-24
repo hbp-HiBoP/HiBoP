@@ -45,6 +45,9 @@ base locale et les projets `.hibop`.
   entrées.
 - [Résultats de l'étape 6](resultats_etape_6_2026-07-24.md) : comparaison des
   médianes chaudes et analyse séparée de l'incident Unity.
+- [Registre de types explicite et IL2CPP — étape 7](etape_7_registre_types_il2cpp_2026-07-24.md) :
+  génération Editor, alias historiques, gardes Play/build et interaction avec
+  `link.xml`.
 
 ## Conclusion courte
 
@@ -112,3 +115,9 @@ n'est plus utilisé pendant le chargement. Les anciens dossiers `Protocols/`
 sont acceptés mais entièrement ignorés. Sur `full_test`, la médiane chaude
 passe de 2 929,8 ms à 1 792,5 ms (-38,8 %) et la lecture de l'archive de
 1 082,9 ms à 105,2 ms (-90,3 %).
+
+L'étape 7 remplace la découverte runtime et le fallback `Type.GetType` par un
+registre généré de 154 types concrets. Les anciennes migrations de namespaces
+sont décrites dans un JSON versionné puis compilées en correspondances
+`string -> typeof(...)`. Le passage en Play et tous les chemins de build
+refusent un registre périmé. Le `link.xml` existant reste inchangé.

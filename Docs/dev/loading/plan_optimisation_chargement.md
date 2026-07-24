@@ -357,29 +357,37 @@ projet. Les protocoles de la base restent l'unique source canonique.
 
 ## Étape 7 — Registre de types explicite et IL2CPP
 
+**Statut au 24 juillet 2026 : implémentée et validée en Editor et dans un
+player Windows IL2CPP.** Voir
+[`etape_7_registre_types_il2cpp_2026-07-24.md`](etape_7_registre_types_il2cpp_2026-07-24.md).
+
 ### Génération Editor
 
-Générer un fichier C# versionné contenant :
+Le générateur Editor produit deux fragments C# versionnés contenant :
 
 ```csharp
 ["HBP.Core.Data.StringTagValue"] = typeof(StringTagValue)
 ```
 
+Le découpage Core/Data évite une dépendance circulaire entre les assemblies.
 La table contient :
 
 - tous les types sérialisables actuels ;
-- les noms d'assemblies actuels ;
-- `Assembly-CSharp` et autres aliases historiques ;
-- les migrations de namespace ;
+- leurs noms actuels ;
+- les migrations de namespaces décrites dans
+  `Assets/SerializationTypeAliases.json` ;
 - à terme, les discriminants courts du format v2.
 
 Le générateur peut utiliser la réflexion dans l'Editor. Le player n'en a pas
-besoin.
+besoin. Une garde annule le passage en Play lorsque le registre est périmé.
+`HBPBuilder` exécute le générateur avant chaque build et un préprocesseur
+valide également les builds lancés par un autre chemin.
 
 ### Sécurité
 
-Supprimer le fallback général `Type.GetType`. Un fichier ne peut demander que
-les types explicitement autorisés.
+Le fallback général `Type.GetType` est supprimé. Un fichier ne peut demander
+que les types explicitement autorisés. Un nom inconnu produit une erreur
+Json.NET explicite avec le `$type` concerné.
 
 ### Validation IL2CPP
 
@@ -392,8 +400,8 @@ Créer un test player qui :
 5. compare types concrets, IDs et références ;
 6. s'exécute en Windows IL2CPP et Linux IL2CPP.
 
-Le registre `typeof` et les attributs `[Preserve]` fournissent ensemble des
-racines claires au linker.
+Le registre `typeof`, les attributs `[Preserve]` et le `Assets/link.xml`
+existant fournissent ensemble des racines claires au linker.
 
 ## Étape 8 — Ajuster le parallélisme
 

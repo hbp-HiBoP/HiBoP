@@ -266,7 +266,7 @@ namespace HBP.Tests.Serialization
         public void TestAssemblyReferences_KeepEditModeAndPlayModeBoundariesExplicit()
         {
             AsmdefDefinition serialization = LoadAsmdef("Assets/Tests/EditMode/HBP.Serialization.Tests/HBP.Serialization.Tests.asmdef");
-            Assert.That(serialization.references, Is.EquivalentTo(new[] { "HBP.Core.Runtime", "HBP.Data.Runtime", "UniTask" }));
+            Assert.That(serialization.references, Is.EquivalentTo(new[] { "HBP.Core.Runtime", "HBP.Data.Runtime", "HBP.Dev.Editor", "UniTask" }));
             Assert.That(serialization.includePlatforms, Is.EquivalentTo(new[] { "Editor" }));
 
             AsmdefDefinition projectWorkflow = LoadAsmdef("Assets/Tests/EditMode/HBP.ProjectWorkflow.Tests/HBP.ProjectWorkflow.Tests.asmdef");

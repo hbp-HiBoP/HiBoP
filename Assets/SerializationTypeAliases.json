@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "namespaceAliases": [
+    {
+      "serializedPrefix": "HBP.Data.Database.",
+      "currentPrefix": "HBP.Core.Database."
+    },
+    {
+      "serializedPrefix": "HBP.Data.Preferences.",
+      "currentPrefix": "HBP.Core.Preferences."
+    }
+  ],
+  "typeAliases": []
+}
