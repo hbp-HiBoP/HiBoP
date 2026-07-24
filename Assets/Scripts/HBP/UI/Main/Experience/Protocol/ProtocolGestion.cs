@@ -6,6 +6,7 @@ using HBP.UI.Tools;
 using HBP.Core.Database;
 using HBP.UI.Database;
 using Cysharp.Threading.Tasks;
+using System.Linq;
 
 namespace HBP.UI.Main
 {
@@ -32,7 +33,6 @@ namespace HBP.UI.Main
         public override async void OK()
         {
             bool requiresReload = false;
-            bool requiresCheck = false;
 
             if (DataManager.HasData)
             {
@@ -44,23 +44,19 @@ namespace HBP.UI.Main
                     return;
             }
 
-            if (m_ListGestion.ModifiedProtocols.Count > 0)
-            {
-                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Data check required", "Some protocols have been modified. A data integrity check is required to ensure there are no errors.\n\nWould you like to proceed with the check?", "Check", "Cancel");
-
-                if (result == 0)
-                    requiresCheck = true;
-                else
-                    return;
-            }
-
+            Protocol[] modifiedProtocols = m_ListGestion.ModifiedProtocols.ToArray();
             base.OK();
             DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
+            ApplicationState.LoadedProject?.InvalidateValidation();
             await DatabaseWorkflow.SaveProtocolsAsync();
             InteractableStateManager.SetInteractables();
-            if (requiresCheck)
+            if (modifiedProtocols.Length > 0)
             {
-                await LoadingManager.LoadAsync(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, true, update));
+                DataInfo[] dataInfos = DatabaseManager.Database.DataInfos
+                    .Where(dataInfo => modifiedProtocols.Contains(dataInfo.Protocol))
+                    .ToArray();
+                await LoadingManager.LoadAsync(
+                    update => Dataset.CheckDatasetsAsync(dataInfos, true, update));
             }
             await UniTask.SwitchToMainThread();
             if (requiresReload)

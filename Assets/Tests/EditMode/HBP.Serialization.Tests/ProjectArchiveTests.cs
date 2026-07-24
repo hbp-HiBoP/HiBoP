@@ -286,9 +286,32 @@ namespace HBP.Tests.Serialization
         }
 
         [Test, Timeout(5000)]
-        public async Task LoadAsync_WhenCancelledDuringFileValidation_CleansExtraction()
+        public async Task LoadAsync_FileValidationRunsSilentlyAfterReady()
         {
-            await AssertLoadCancellationFromProgress("Validating patient file references");
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+
+            Project source = SyntheticProjectFactory.CreateCompleteProject();
+            string archivePath = await SaveProject(temp, source);
+            ProjectInfo info = new(archivePath);
+            Project loaded = new(source.Name, new ProjectPreferences("load-placeholder"));
+            ApplicationState.LoadedProject = loaded;
+            ApplicationState.LoadedProjectLocation = Path.GetDirectoryName(archivePath);
+            DatabaseManager.Database.SetProtocols(new[] { SyntheticProjectFactory.CreateProtocol() });
+            bool initialLoaderSawValidation = false;
+
+            await loaded.LoadAsync(
+                info,
+                (progress, duration, text) =>
+                    initialLoaderSawValidation |=
+                        text.ToString().StartsWith("Validating"),
+                CancellationToken.None);
+
+            Assert.That(initialLoaderSawValidation, Is.False);
+            Assert.That(loaded.CurrentLoadingOperation.Ready.IsCompleted, Is.True);
+            await loaded.CurrentLoadingOperation.Validated;
+            Assert.That(loaded.NeedsValidationWait, Is.False);
         }
 
         [Test, Timeout(5000)]
@@ -557,7 +580,7 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
-        public async Task LoadAsync_ProgressCallbacksAreMonotonicAndReachSuccess()
+        public async Task LoadAsync_ReadyProgressIsMonotonicAndExcludesValidation()
         {
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope appState = new(temp.Path);
@@ -586,7 +609,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(previousProgress, Is.EqualTo(1.0f));
             Assert.That(lastText.ToString(), Is.EqualTo("Project loaded successfully"));
-            Assert.That(validationProgressReported, Is.True);
+            Assert.That(validationProgressReported, Is.False);
         }
 
         [Test]

@@ -94,10 +94,15 @@ namespace HBP.Tests.Serialization
                     objectCount: 1,
                     concurrency: 4))
                 {
-                    await new AssetReferenceValidator().ValidatePatientsAsync(
+                    PatientAssetValidationResult result =
+                        await new AssetReferenceValidator().ValidatePatientsAsync(
                         new[] { loaded },
                         4,
-                        CancellationToken.None);
+                        CancellationToken.None,
+                        generation: 12);
+                    Assert.That(loaded.Meshes.All(mesh => !mesh.WasUsable), Is.True);
+                    Assert.That(loaded.MRIs.All(MRI => !MRI.WasUsable), Is.True);
+                    Assert.That(result.TryApply(12), Is.True);
                 }
                 session.MarkSucceeded();
             }
@@ -164,11 +169,12 @@ namespace HBP.Tests.Serialization
                 return !path.Contains("network", StringComparison.OrdinalIgnoreCase);
             });
 
-            await validator.ValidatePatientsAsync(
+            PatientAssetValidationResult result = await validator.ValidatePatientsAsync(
                 new[] { patient },
                 2,
                 CancellationToken.None,
-                (completed, total) => progressUpdates.Add((completed, total)));
+                (completed, total) => progressUpdates.Add((completed, total)),
+                generation: 24);
             await UniTask.SwitchToMainThread();
 
             Assert.That(checkedPaths, Has.Count.EqualTo(4));
@@ -182,6 +188,10 @@ namespace HBP.Tests.Serialization
             Assert.That(checkedPaths, Does.Contain(
                 (ApplicationState.ExtractProjectFolder + Path.DirectorySeparatorChar + "project.gii")
                     .StandardizeToEnvironement()));
+            Assert.That(windows.WasUsable, Is.False);
+            Assert.That(result.TryApply(23), Is.False);
+            Assert.That(windows.WasUsable, Is.False);
+            Assert.That(result.TryApply(24), Is.True);
             Assert.That(windows.WasUsable, Is.True);
             Assert.That(windowsDuplicate.WasUsable, Is.True);
             Assert.That(linux.WasUsable, Is.True);

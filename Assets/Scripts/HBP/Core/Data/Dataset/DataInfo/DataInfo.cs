@@ -173,6 +173,31 @@ namespace HBP.Core.Data
                 RequireErrorCheck = false;
             }
         }
+
+        internal DataInfo CreateValidationSnapshot(bool force)
+        {
+            if (!RequireErrorCheck && !force)
+            {
+                return null;
+            }
+
+            DataInfo snapshot = Clone() as DataInfo;
+            if (snapshot == null)
+            {
+                throw new InvalidOperationException(
+                    $"{GetType().Name}.Clone() did not return a DataInfo.");
+            }
+            snapshot.CheckErrorsAndWarnings(true);
+            return snapshot;
+        }
+
+        internal virtual void ApplyValidationState(DataInfo validatedSnapshot)
+        {
+            m_Errors = validatedSnapshot.m_Errors.ToArray();
+            m_Warnings = validatedSnapshot.m_Warnings.ToArray();
+            m_DataContainer.ApplyValidationState(validatedSnapshot.m_DataContainer);
+            RequireErrorCheck = false;
+        }
         /// <summary>
         /// Get all message errors in a readable form.
         /// </summary>

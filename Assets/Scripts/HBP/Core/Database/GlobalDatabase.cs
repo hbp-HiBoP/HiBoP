@@ -34,6 +34,21 @@ namespace HBP.Core.Database
     public class GlobalDatabase
     {
         #region Properties
+        private readonly object m_LoadingOperationLock = new();
+        private SharedLoadingOperation<GlobalDatabase> m_LoadingOperation;
+        private long m_LoadingGeneration;
+
+        public SharedLoadingOperation<GlobalDatabase> CurrentLoadingOperation
+        {
+            get
+            {
+                lock (m_LoadingOperationLock)
+                {
+                    return m_LoadingOperation;
+                }
+            }
+        }
+
         private GlobalDatabaseSettings m_Settings = new();
         public GlobalDatabaseSettings Settings => m_Settings;
 
@@ -96,7 +111,10 @@ namespace HBP.Core.Database
         }
         public async UniTask CheckIntegrityAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            await Dataset.CheckDatasetsAsync(Protocols, true, updateProgress, token);
+            DataInfo[] snapshot = m_DataInfos
+                .Where(dataInfo => Protocols.Contains(dataInfo.Protocol))
+                .ToArray();
+            await Dataset.CheckDatasetsAsync(snapshot, true, updateProgress, token);
 
             updateProgress(1, 0, new LoadingText("Writing report"));
 
@@ -233,6 +251,32 @@ namespace HBP.Core.Database
 
         public async UniTask LoadDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
+            SharedLoadingOperation<GlobalDatabase> operation;
+            lock (m_LoadingOperationLock)
+            {
+                if (m_LoadingOperation == null || m_LoadingOperation.IsTerminal)
+                {
+                    long generation = ++m_LoadingGeneration;
+                    m_LoadingOperation = new SharedLoadingOperation<GlobalDatabase>(
+                        generation,
+                        async (progress, token) =>
+                        {
+                            await LoadDatabaseCoreAsync(progress, generation);
+                            return this;
+                        });
+                }
+                operation = m_LoadingOperation;
+            }
+
+            using IDisposable progressSubscription = operation.SubscribeProgress(
+                progress => updateProgress.Invoke(progress.Value, progress.Duration, progress.Text));
+            await operation.EnsureValidatedAsync();
+        }
+
+        private async UniTask LoadDatabaseCoreAsync(
+            Action<float, float, LoadingText> updateProgress,
+            long generation)
+        {
             // TEMP-LOADING-PROFILING
             using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Database);
             try
@@ -291,7 +335,8 @@ namespace HBP.Core.Database
                     objectCount: patients.Count,
                     concurrency: concurrency))
                 {
-                    await new AssetReferenceValidator().ValidatePatientsAsync(
+                    PatientAssetValidationResult validationResult =
+                        await new AssetReferenceValidator().ValidatePatientsAsync(
                         patients,
                         concurrency,
                         CancellationToken.None,
@@ -303,7 +348,17 @@ namespace HBP.Core.Database
                                 : new LoadingText(
                                     "Validating patient file references",
                                     " ",
-                                    completed + "/" + total)));
+                                    completed + "/" + total)),
+                        generation);
+                    await UniTask.SwitchToMainThread();
+                    lock (m_LoadingOperationLock)
+                    {
+                        if (!validationResult.TryApply(m_LoadingGeneration))
+                        {
+                            throw new OperationCanceledException(
+                                "The database validation generation is obsolete.");
+                        }
+                    }
                 }
                 progress += validationProgress;
 

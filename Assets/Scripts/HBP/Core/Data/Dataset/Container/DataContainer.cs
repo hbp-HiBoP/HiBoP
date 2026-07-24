@@ -101,6 +101,12 @@ namespace HBP.Core.Data.Container
         public abstract Warning[] GetWarnings();
 
         public abstract void ConvertAllPathsToFullPaths();
+
+        internal void ApplyValidationState(DataContainer validatedSnapshot)
+        {
+            m_Errors = validatedSnapshot.m_Errors.ToArray();
+            m_Warnings = validatedSnapshot.m_Warnings.ToArray();
+        }
         #endregion
     }
 }

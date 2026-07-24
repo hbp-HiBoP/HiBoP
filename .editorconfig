@@ -1,0 +1,45 @@
+root = true
+
+[*.cs]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+csharp_space_between_method_call_parameter_list_parentheses = false
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+
+csharp_indent_block_contents = true
+csharp_indent_braces = false
+csharp_indent_case_contents = true
+csharp_indent_case_contents_when_block = true
+csharp_indent_switch_labels = true
+
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+
+dotnet_diagnostic.IDE0055.severity = warning
+
+max_line_length = 10000
+resharper_csharp_max_line_length = 10000
+
+resharper_csharp_keep_existing_linebreaks = false
+
+resharper_csharp_keep_existing_invocation_parens_arrangement = false
+resharper_csharp_wrap_arguments_style = wrap_if_long
+resharper_csharp_max_invocation_arguments_on_line = 1000
+resharper_csharp_wrap_before_invocation_lpar = false
+resharper_csharp_wrap_after_invocation_lpar = false
+resharper_csharp_wrap_before_invocation_rpar = false
+
+resharper_csharp_wrap_ternary_expr_style = wrap_if_long
+
+csharp_new_line_between_query_expression_clauses = false
+resharper_csharp_wrap_linq_expressions = wrap_if_long
+resharper_csharp_wrap_before_linq_expression = false

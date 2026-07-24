@@ -48,6 +48,9 @@ base locale et les projets `.hibop`.
 - [Registre de types explicite et IL2CPP — étape 7](etape_7_registre_types_il2cpp_2026-07-24.md) :
   génération Editor, alias historiques, gardes Play/build et interaction avec
   `link.xml`.
+- [Chargements asynchrones et validations différées — étape 8](etape_8_chargements_asynchrones_validation_2026-07-24.md) :
+  états `Ready` et `Validated`, chargement silencieux, orchestration du loader,
+  sécurité de publication, stratégie de migration et parallélisme adaptatif.
 
 ## Conclusion courte
 

@@ -36,6 +36,37 @@ namespace HBP.Core.Data
     public class Project
     {
         #region Properties
+        private const float READY_PROGRESS_WEIGHT = 0.7f;
+        private readonly object m_LoadingOperationLock = new();
+        private SharedLoadingOperation<Project> m_LoadingOperation;
+        private string m_LoadingProjectPath;
+        private long m_LoadingGeneration;
+        private bool m_ValidationPublished;
+
+        public SharedLoadingOperation<Project> CurrentLoadingOperation
+        {
+            get
+            {
+                lock (m_LoadingOperationLock)
+                {
+                    return m_LoadingOperation;
+                }
+            }
+        }
+
+        public bool NeedsValidationWait
+        {
+            get
+            {
+                lock (m_LoadingOperationLock)
+                {
+                    return !m_ValidationPublished;
+                }
+            }
+        }
+
+        public event Action OnValidationStateChanged;
+
         /// <summary>
         /// Project extension.
         /// </summary>
@@ -170,13 +201,15 @@ namespace HBP.Core.Data
         public void AddPatient(Patient patient)
         {
             m_Patients.Add(patient);
+            InvalidateValidation();
         }
         public void AddPatient(IEnumerable<Patient> patients)
         {
             foreach (Patient patient in patients)
             {
-                AddPatient(patient);
+                m_Patients.Add(patient);
             }
+            InvalidateValidation();
         }
         public void RemovePatient(Patient patient)
         {
@@ -193,6 +226,7 @@ namespace HBP.Core.Data
                 visualization.Patients.Remove(patient);
             }
             m_Patients.Remove(patient);
+            InvalidateValidation();
         }
         public void RemovePatient(IEnumerable<Patient> patients)
         {
@@ -246,13 +280,15 @@ namespace HBP.Core.Data
         public void AddDataset(Dataset dataset)
         {
             m_Datasets.Add(dataset);
+            InvalidateValidation();
         }
         public void AddDataset(IEnumerable<Dataset> datasets)
         {
             foreach (Dataset dataset in datasets)
             {
-                AddDataset(dataset);
+                m_Datasets.Add(dataset);
             }
+            InvalidateValidation();
         }
         public void RemoveDataset(Dataset dataset)
         {
@@ -261,6 +297,7 @@ namespace HBP.Core.Data
                 visualization.Columns.RemoveAll(column => ReferencesDataset(column, dataset));
             }
             m_Datasets.Remove(dataset);
+            InvalidateValidation();
         }
         public void RemoveDataset(IEnumerable<Dataset> datasets)
         {
@@ -418,6 +455,73 @@ namespace HBP.Core.Data
 
         public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            await UniTask.SwitchToMainThread();
+            SharedLoadingOperation<Project> operation;
+            lock (m_LoadingOperationLock)
+            {
+                if (m_LoadingOperation == null || m_LoadingOperation.IsTerminal)
+                {
+                    m_LoadingProjectPath = projectInfo.Path;
+                    long generation = ++m_LoadingGeneration;
+                    m_LoadingOperation = new SharedLoadingOperation<Project>(
+                        generation,
+                        async (progress, operationToken) =>
+                        {
+                            await LoadCoreAsync(
+                                projectInfo,
+                                (value, duration, text) => progress(
+                                    value * READY_PROGRESS_WEIGHT,
+                                    duration,
+                                    text),
+                                operationToken);
+                            return this;
+                        },
+                        (project, progress, operationToken) =>
+                            ValidateProjectCoreAsync(
+                                (value, duration, text) => progress(
+                                    READY_PROGRESS_WEIGHT +
+                                        value * (1 - READY_PROGRESS_WEIGHT),
+                                    duration,
+                                    text),
+                                operationToken,
+                                generation));
+                }
+                else if (!string.Equals(m_LoadingProjectPath, projectInfo.Path, StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException("A different project is already loading into this instance.");
+                }
+                operation = m_LoadingOperation;
+            }
+
+            using IDisposable progressSubscription = operation.SubscribeProgress(progress =>
+            {
+                if (progress.State == LoadingOperationState.Validating ||
+                    progress.Value > READY_PROGRESS_WEIGHT)
+                {
+                    return;
+                }
+
+                updateProgress.Invoke(
+                    Math.Min(1, progress.Value / READY_PROGRESS_WEIGHT),
+                    progress.Duration,
+                    progress.Text);
+            });
+            using CancellationTokenRegistration cancellationRegistration = token.Register(operation.Cancel);
+            try
+            {
+                await operation.EnsureReadyAsync();
+            }
+            catch (OperationCanceledException)
+            {
+                throw operation.Exception ?? new OperationCanceledException(token);
+            }
+        }
+
+        private async UniTask LoadCoreAsync(
+            ProjectInfo projectInfo,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token)
+        {
             // TEMP-LOADING-PROFILING
             using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Project);
             try
@@ -450,16 +554,14 @@ namespace HBP.Core.Data
                 float datasetsProgress = manifest.Datasets;
                 float visualizationsProgress = manifest.Visualizations;
                 float linkingProgress = 1;
-                float validationProgress = manifest.Patients;
                 float steps = settingsProgress + groupsProgress + patientsProgress + datasetsProgress
-                    + visualizationsProgress + linkingProgress + validationProgress;
+                    + visualizationsProgress + linkingProgress;
                 settingsProgress /= steps;
                 patientsProgress /= steps;
                 groupsProgress /= steps;
                 datasetsProgress /= steps;
                 visualizationsProgress /= steps;
                 linkingProgress /= steps;
-                validationProgress /= steps;
 
                 Name = manifest.Name;
 
@@ -555,33 +657,16 @@ namespace HBP.Core.Data
                 token.ThrowIfCancellationRequested();
                 progress += linkingProgress;
 
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingPhase.ProjectValidateFiles,
-                    objectCount: patients.Count,
-                    concurrency: concurrency))
-                {
-                    await new AssetReferenceValidator().ValidatePatientsAsync(
-                        patients,
-                        concurrency,
-                        token,
-                        (completed, total) => updateProgress.Invoke(
-                            progress + (total == 0 ? 1 : (float)completed / total) * validationProgress,
-                            completed == 0 ? 0 : 0.2f,
-                            total == 0
-                                ? new LoadingText("Validating patient file references")
-                                : new LoadingText(
-                                    "Validating patient file references",
-                                    " ",
-                                    completed + "/" + total)));
-                }
-                token.ThrowIfCancellationRequested();
-                progress += validationProgress;
-
+                await UniTask.SwitchToMainThread();
                 Preferences = preferences;
                 m_Patients = patients;
                 m_Groups = groups;
                 m_Datasets = datasets;
                 m_Visualizations = visualizations;
+                lock (m_LoadingOperationLock)
+                {
+                    m_ValidationPublished = false;
+                }
 
                 token.ThrowIfCancellationRequested();
                 updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully"));
@@ -602,7 +687,223 @@ namespace HBP.Core.Data
                 await UniTask.SwitchToMainThread();
             }
         }
+
+        public virtual async UniTask EnsureProjectValidatedAsync(
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token = default)
+        {
+            await UniTask.SwitchToMainThread();
+            SharedLoadingOperation<Project> operation;
+            lock (m_LoadingOperationLock)
+            {
+                if (m_LoadingOperation == null)
+                {
+                    long generation = ++m_LoadingGeneration;
+                    m_LoadingOperation = CreateValidationOperation(generation);
+                }
+                operation = m_LoadingOperation;
+            }
+
+            if (operation.State == LoadingOperationState.Validated ||
+                operation.State == LoadingOperationState.ValidatedWithIssues)
+            {
+                await operation.EnsureValidatedAsync(token);
+                return;
+            }
+
+            updateProgress?.Invoke(0, 0, new LoadingText("Validating project"));
+            using IDisposable progressSubscription = operation.SubscribeProgress(progress =>
+            {
+                if (progress.Value < READY_PROGRESS_WEIGHT)
+                {
+                    return;
+                }
+
+                float validationProgress = Math.Min(
+                    1,
+                    (progress.Value - READY_PROGRESS_WEIGHT) /
+                        (1 - READY_PROGRESS_WEIGHT));
+                updateProgress?.Invoke(
+                    validationProgress,
+                    progress.Duration,
+                    progress.Text);
+            });
+            await operation.EnsureValidatedAsync(token);
+        }
+
+        public void InvalidateValidation()
+        {
+            SharedLoadingOperation<Project> operation;
+            SharedLoadingOperation<Project> replacement;
+            lock (m_LoadingOperationLock)
+            {
+                if (m_LoadingOperation == null)
+                {
+                    return;
+                }
+
+                operation = m_LoadingOperation;
+                m_LoadingProjectPath = null;
+                long generation = ++m_LoadingGeneration;
+                m_ValidationPublished = false;
+                replacement = CreateValidationOperation(generation);
+                m_LoadingOperation = replacement;
+            }
+
+            operation.Cancel();
+            _ = replacement.EnsureReadyAsync();
+            OnValidationStateChanged?.Invoke();
+        }
+
+        private SharedLoadingOperation<Project> CreateValidationOperation(
+            long generation)
+        {
+            return new SharedLoadingOperation<Project>(
+                generation,
+                (progress, operationToken) => UniTask.FromResult(this),
+                (project, progress, operationToken) =>
+                    ValidateProjectCoreAsync(
+                        (value, duration, text) => progress(
+                            READY_PROGRESS_WEIGHT +
+                                value * (1 - READY_PROGRESS_WEIGHT),
+                            duration,
+                            text),
+                        operationToken,
+                        generation));
+        }
+
+        private async UniTask<bool> ValidateProjectCoreAsync(
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token,
+            long generation)
+        {
+            try
+            {
+                await UniTask.SwitchToMainThread();
+                Patient[] patients = m_Patients.ToArray();
+                DataInfo[] dataInfos = m_Datasets
+                    .SelectMany(dataset => dataset.Data)
+                    .Where(dataInfo => dataInfo != null)
+                    .ToArray();
+                float pathWeight = patients.Length == 0
+                    ? 0
+                    : dataInfos.Length == 0
+                        ? 1
+                        : (float)patients.Length / (patients.Length + dataInfos.Length);
+                int pathConcurrency =
+                    PersistentDataManager.UserPreferences.General.System.MultiThreading
+                        ? 20
+                        : 1;
+                int dataInfoConcurrency =
+                    PersistentDataManager.UserPreferences.General.System.MultiThreading
+                        ? 2
+                        : 1;
+
+                PatientAssetValidationResult assetResult;
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.ProjectValidateFiles,
+                    objectCount: patients.Length,
+                    concurrency: pathConcurrency))
+                {
+                    assetResult = await new AssetReferenceValidator().ValidatePatientsAsync(
+                        patients,
+                        pathConcurrency,
+                        token,
+                        (completed, total) => updateProgress(
+                            (total == 0 ? 1 : (float)completed / total) * pathWeight,
+                            completed == 0 ? 0 : 0.2f,
+                            total == 0
+                                ? new LoadingText("Validating patient file references")
+                                : new LoadingText(
+                                    "Validating patient file references",
+                                    " ",
+                                    completed + "/" + total)),
+                        generation);
+                }
+
+                DataInfoValidationResult dataInfoResult =
+                    await new DataInfoValidator().ValidateAsync(
+                        dataInfos,
+                        true,
+                        dataInfoConcurrency,
+                        token,
+                        (completed, total) => updateProgress(
+                            pathWeight +
+                                (total == 0 ? 1 : (float)completed / total) *
+                                (1 - pathWeight),
+                            completed == 0 ? 0 : 0.2f,
+                            total == 0
+                                ? new LoadingText("Validating project data")
+                                : new LoadingText(
+                                    "Validating project data",
+                                    " ",
+                                    completed + "/" + total)),
+                        generation);
+
+                token.ThrowIfCancellationRequested();
+                await UniTask.SwitchToMainThread();
+                lock (m_LoadingOperationLock)
+                {
+                    if (generation != m_LoadingGeneration ||
+                        !assetResult.TryApply(m_LoadingGeneration) ||
+                        !dataInfoResult.TryApply(m_LoadingGeneration))
+                    {
+                        throw new OperationCanceledException(
+                            "The project validation generation is obsolete.",
+                            token);
+                    }
+                    m_ValidationPublished = true;
+                }
+
+                OnValidationStateChanged?.Invoke();
+                return assetResult.HasIssues || dataInfoResult.HasIssues;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                throw;
+            }
+        }
+
         public async UniTask SaveAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                throw new Exceptions.DirectoryNotFoundException("");
+            }
+            if (!Directory.Exists(path))
+            {
+                throw new Exceptions.DirectoryNotFoundException(path);
+            }
+
+            float validationWeight = NeedsValidationWait ? 0.2f : 0;
+            if (validationWeight > 0)
+            {
+                await EnsureProjectValidatedAsync(
+                    (progress, duration, text) => updateProgress(
+                        progress * validationWeight,
+                        duration,
+                        text),
+                    token);
+            }
+
+            await SaveCoreAsync(
+                path,
+                (progress, duration, text) => updateProgress(
+                    validationWeight + progress * (1 - validationWeight),
+                    duration,
+                    text),
+                token);
+        }
+
+        private async UniTask SaveCoreAsync(
+            string path,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token)
         {
             try
             {
@@ -621,8 +922,6 @@ namespace HBP.Core.Data
                 // Initialization.
                 updateProgress.Invoke(progress, 0, new LoadingText("Initialization"));
 
-                if (string.IsNullOrEmpty(path)) throw new Exceptions.DirectoryNotFoundException("");
-                if (!Directory.Exists(path)) throw new Exceptions.DirectoryNotFoundException(path);
                 DirectoryInfo projectDirectory = Directory.Exists(ApplicationState.ExtractProjectFolder) ? new DirectoryInfo(ApplicationState.ExtractProjectFolder) : Directory.CreateDirectory(ApplicationState.ExtractProjectFolder);
                 progress += initializationProgress;
 

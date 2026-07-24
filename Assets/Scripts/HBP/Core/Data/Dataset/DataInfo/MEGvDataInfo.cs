@@ -113,6 +113,13 @@ namespace HBP.Core.Data
                 m_MaskDataContainer = dataInfo.m_MaskDataContainer;
             }
         }
+
+        internal override void ApplyValidationState(DataInfo validatedSnapshot)
+        {
+            base.ApplyValidationState(validatedSnapshot);
+            m_MaskDataContainer.ApplyValidationState(
+                ((MEGvDataInfo)validatedSnapshot).m_MaskDataContainer);
+        }
         #endregion
 
         #region Private Methods

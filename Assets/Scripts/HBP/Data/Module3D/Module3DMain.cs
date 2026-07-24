@@ -304,20 +304,49 @@ namespace HBP.Data.Module3D
         /// <returns></returns>
         public static async UniTask LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
-            Dictionary<Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count + v.StaticColumns.Count);
+            Visualization[] visualizationSnapshot = visualizations.ToArray();
+            Project project = ApplicationState.LoadedProject;
+            float validationWeight = project != null && project.NeedsValidationWait ? 0.25f : 0;
+            if (project != null)
+            {
+                await project.EnsureProjectValidatedAsync(
+                    (progress, duration, text) => onChangeProgress(
+                        progress * validationWeight,
+                        duration,
+                        text),
+                    token);
+            }
+            token.ThrowIfCancellationRequested();
+
+            Dictionary<Visualization, int> weightByVisualization = visualizationSnapshot.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count + v.StaticColumns.Count);
             int totalWeight = weightByVisualization.Values.Sum();
             float progress = 0;
             const float LOADING_VISUALIZATION_PROGRESS = 0.5f;
             const float LOADING_SCENE_PROGRESS = 0.5f;
-            foreach (Visualization visualization in visualizations)
+            foreach (Visualization visualization in visualizationSnapshot)
             {
                 try
                 {
                     token.ThrowIfCancellationRequested();
                     float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                     if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
-                    await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text), token);
-                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text), token);
+                    await visualization.LoadAsync(
+                        (localProgress, duration, text) => onChangeProgress(
+                            validationWeight +
+                                (progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS) *
+                                (1 - validationWeight),
+                            duration,
+                            text),
+                        token);
+                    await LoadSceneAsync(
+                        visualization,
+                        (localProgress, duration, text) => onChangeProgress(
+                            validationWeight +
+                                (progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight) *
+                                (1 - validationWeight),
+                            duration,
+                            text),
+                        token);
                     progress += visualizationWeight;
                 }
                 catch (OperationCanceledException e)

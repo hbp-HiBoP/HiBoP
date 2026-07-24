@@ -8,6 +8,69 @@ using System.Threading;
 
 namespace HBP.Core.Tools
 {
+    public sealed class PatientAssetValidationResult
+    {
+        private readonly IReadOnlyList<MeshValidation> m_Meshes;
+        private readonly IReadOnlyList<MRIValidation> m_MRIs;
+
+        public long Generation { get; }
+        public bool HasIssues =>
+            m_Meshes.Any(validation => !validation.IsUsable) ||
+            m_MRIs.Any(validation => !validation.IsUsable);
+
+        internal PatientAssetValidationResult(
+            long generation,
+            IReadOnlyList<MeshValidation> meshes,
+            IReadOnlyList<MRIValidation> MRIs)
+        {
+            Generation = generation;
+            m_Meshes = meshes;
+            m_MRIs = MRIs;
+        }
+
+        public bool TryApply(long currentGeneration)
+        {
+            if (Generation != currentGeneration)
+            {
+                return false;
+            }
+
+            foreach (MeshValidation validation in m_Meshes)
+            {
+                validation.Mesh.ApplyUsabilityValidation(validation.IsUsable);
+            }
+            foreach (MRIValidation validation in m_MRIs)
+            {
+                validation.MRI.ApplyUsabilityValidation(validation.IsUsable);
+            }
+            return true;
+        }
+
+        internal sealed class MeshValidation
+        {
+            public BaseMesh Mesh { get; }
+            public bool IsUsable { get; }
+
+            public MeshValidation(BaseMesh mesh, bool isUsable)
+            {
+                Mesh = mesh;
+                IsUsable = isUsable;
+            }
+        }
+
+        internal sealed class MRIValidation
+        {
+            public MRI MRI { get; }
+            public bool IsUsable { get; }
+
+            public MRIValidation(MRI MRI, bool isUsable)
+            {
+                this.MRI = MRI;
+                IsUsable = isUsable;
+            }
+        }
+    }
+
     /// <summary>
     /// Validates patient asset paths after JSON deserialization.
     /// </summary>
@@ -24,11 +87,12 @@ namespace HBP.Core.Tools
             m_FileExists = fileExists ?? throw new ArgumentNullException(nameof(fileExists));
         }
 
-        public async UniTask ValidatePatientsAsync(
+        public async UniTask<PatientAssetValidationResult> ValidatePatientsAsync(
             IEnumerable<Patient> patients,
             int maxConcurrency,
             CancellationToken token,
-            Action<int, int> updateProgress = null)
+            Action<int, int> updateProgress = null,
+            long generation = 0)
         {
             if (patients == null)
             {
@@ -80,34 +144,40 @@ namespace HBP.Core.Tools
                 updateProgress);
             token.ThrowIfCancellationRequested();
 
-            foreach (BaseMesh mesh in meshes)
-            {
-                bool hasMesh = mesh switch
+            PatientAssetValidationResult.MeshValidation[] meshResults = meshes
+                .Select(mesh =>
                 {
-                    SingleMesh singleMesh => IsValid(
+                    bool hasMesh = mesh switch
+                    {
+                        SingleMesh singleMesh => IsValid(
                         singleMesh.SavedPath,
                         BaseMesh.MESH_EXTENSION,
                         validationBySavedPath),
-                    LeftRightMesh leftRightMesh =>
-                        IsValid(
+                        LeftRightMesh leftRightMesh =>
+                            IsValid(
                             leftRightMesh.SavedLeftHemisphere,
                             BaseMesh.MESH_EXTENSION,
                             validationBySavedPath) &&
-                        IsValid(
+                            IsValid(
                             leftRightMesh.SavedRightHemisphere,
                             BaseMesh.MESH_EXTENSION,
                             validationBySavedPath),
-                    _ => false
-                };
-                mesh.ApplyUsabilityValidation(!string.IsNullOrEmpty(mesh.Name) && hasMesh);
-            }
+                        _ => false
+                    };
+                    return new PatientAssetValidationResult.MeshValidation(
+                        mesh,
+                        !string.IsNullOrEmpty(mesh.Name) && hasMesh);
+                })
+                .ToArray();
+            PatientAssetValidationResult.MRIValidation[] MRIResults = MRIs
+                .Select(MRI => new PatientAssetValidationResult.MRIValidation(
+                    MRI,
+                    !string.IsNullOrEmpty(MRI.Name) &&
+                    MRI.EXTENSIONS.Any(extension =>
+                        IsValid(MRI.SavedFile, extension, validationBySavedPath))))
+                .ToArray();
 
-            foreach (MRI MRI in MRIs)
-            {
-                bool hasMRI = MRI.EXTENSIONS.Any(extension =>
-                    IsValid(MRI.SavedFile, extension, validationBySavedPath));
-                MRI.ApplyUsabilityValidation(!string.IsNullOrEmpty(MRI.Name) && hasMRI);
-            }
+            return new PatientAssetValidationResult(generation, meshResults, MRIResults);
         }
 
         private static void RegisterPath(

@@ -46,9 +46,18 @@ namespace HBP.UI.Main
             base.OK();
             Object.SetAliases(m_AliasListGestion.List.Objects.ToList());
             PersistentDataManager.Aliases.Save();
+            ApplicationState.LoadedProject?.InvalidateValidation();
 
             if (requiresCheck)
-                LoadingManager.Load(update => Dataset.CheckDatasetsAsync(DatabaseManager.Database.Protocols, true, update));
+            {
+                DataInfo[] dataInfos = DatabaseManager.Database.DataInfos
+                    .Concat(
+                        ApplicationState.LoadedProject?.Datasets.SelectMany(dataset => dataset.Data)
+                        ?? Enumerable.Empty<DataInfo>())
+                    .ToArray();
+                LoadingManager.Load(
+                    update => Dataset.CheckDatasetsAsync(dataInfos, true, update));
+            }
         }
         #endregion
 

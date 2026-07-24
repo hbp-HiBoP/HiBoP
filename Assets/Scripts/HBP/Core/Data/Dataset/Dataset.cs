@@ -322,16 +322,42 @@ namespace HBP.Core.Data
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
-        public static async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, bool force, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
+        public static async UniTask<DataInfoValidationResult> ValidateDataInfosAsync(
+            IEnumerable<DataInfo> dataInfos,
+            bool force,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token = default,
+            long generation = 0)
         {
-            List<DataInfo> dataInfos = DatabaseManager.Database.DataInfos.Where(d => protocols.Contains(d.Protocol)).ToList();
-            if (ApplicationState.LoadedProject != null) dataInfos.AddRange(ApplicationState.LoadedProject.Datasets.Where(d => protocols.Contains(d.Protocol)).SelectMany(d => d.Data));
-            var tasks = dataInfos.Select(d => (Func<UniTask>)(async () =>
-            {
-                await UniTask.SwitchToThreadPool();
-                d.CheckErrorsAndWarnings(force);
-            }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
+            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
+            return await new DataInfoValidator().ValidateAsync(
+                dataInfos,
+                force,
+                concurrency,
+                token,
+                (completed, total) => updateProgress(
+                    total == 0 ? 1 : (float)completed / total,
+                    completed == 0 ? 0 : 0.2f,
+                    total == 0
+                        ? new LoadingText("Checking data")
+                        : new LoadingText("Checking data", " ", completed + "/" + total)),
+                generation);
+        }
+
+        public static async UniTask CheckDatasetsAsync(
+            IEnumerable<DataInfo> dataInfos,
+            bool force,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token = default)
+        {
+            DataInfoValidationResult result = await ValidateDataInfosAsync(
+                dataInfos,
+                force,
+                updateProgress,
+                token);
+            token.ThrowIfCancellationRequested();
+            await UniTask.SwitchToMainThread();
+            result.TryApply(0);
         }
         #endregion
 
