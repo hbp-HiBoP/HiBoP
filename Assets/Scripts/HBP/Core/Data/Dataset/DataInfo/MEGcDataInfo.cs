@@ -79,7 +79,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public MEGcDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, "")
+        public MEGcDataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], null, "")
         {
 
         }

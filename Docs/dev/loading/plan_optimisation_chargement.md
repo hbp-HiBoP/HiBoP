@@ -203,6 +203,12 @@ l'opération terminée. La sémantique visible reste alors identique.
 
 ## Étape 4 — Introduire un contexte de liaison
 
+**Statut au 24 juillet 2026 : implémentée, validée et benchmarkée.**
+Voir
+[`etape_4_contexte_liaison_2026-07-24.md`](etape_4_contexte_liaison_2026-07-24.md).
+Les résultats sur le workspace `Default` et le projet `full_test` sont dans
+[`resultats_etape_4_2026-07-24.md`](resultats_etape_4_2026-07-24.md).
+
 ### Objectif
 
 Retirer les recherches dans les singletons et les parcours répétés des

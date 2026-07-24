@@ -151,6 +151,7 @@ namespace HBP.Tests.Serialization
                 "patient-aliases");
 
             ConcurrentBag<string> checkedPaths = new();
+            List<(int Completed, int Total)> progressUpdates = new();
             int active = 0;
             int maximumActive = 0;
             AssetReferenceValidator validator = new(path =>
@@ -163,10 +164,17 @@ namespace HBP.Tests.Serialization
                 return !path.Contains("network", StringComparison.OrdinalIgnoreCase);
             });
 
-            await validator.ValidatePatientsAsync(new[] { patient }, 2, CancellationToken.None);
+            await validator.ValidatePatientsAsync(
+                new[] { patient },
+                2,
+                CancellationToken.None,
+                (completed, total) => progressUpdates.Add((completed, total)));
             await UniTask.SwitchToMainThread();
 
             Assert.That(checkedPaths, Has.Count.EqualTo(4));
+            Assert.That(
+                progressUpdates,
+                Is.EqualTo(new[] { (0, 4), (1, 4), (2, 4), (3, 4), (4, 4) }));
             Assert.That(maximumActive, Is.LessThanOrEqualTo(2));
             Assert.That(checkedPaths, Does.Contain(@"C:\validation-root\windows.gii".StandardizeToEnvironement()));
             Assert.That(checkedPaths, Does.Contain(@"\mnt\validation-root\linux.gii".StandardizeToEnvironement()));

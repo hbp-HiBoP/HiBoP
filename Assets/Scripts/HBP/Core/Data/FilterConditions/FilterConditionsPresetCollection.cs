@@ -40,7 +40,6 @@ namespace HBP.Core.Data
                     presetsCollection = new FilterConditionsPresetCollection();
                 }
             }
-            presetsCollection.Save();
             return presetsCollection;
         }
         public override void GenerateID()
@@ -57,6 +56,22 @@ namespace HBP.Core.Data
         public void Save()
         {
             ClassLoaderSaver.SaveToJSon(this, PATH, true);
+        }
+        internal void ResolveReferences(LoadingContext context)
+        {
+            IEnumerable<FilterConditionsPreset> presets = m_PresetsByType.Values
+                .SelectMany(value => value)
+                .Concat(m_CurrentPresetByType.Values)
+                .Where(preset => preset != null)
+                .Distinct();
+
+            foreach (FilterConditionsPreset preset in presets)
+            {
+                foreach (BaseFilterCondition condition in preset.Conditions ?? Enumerable.Empty<BaseFilterCondition>())
+                {
+                    context.ResolveFilterCondition(condition);
+                }
+            }
         }
         public override object Clone()
         {

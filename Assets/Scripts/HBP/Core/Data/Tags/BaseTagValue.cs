@@ -1,5 +1,3 @@
-using HBP.Core.Preferences;
-using HBP.Core.Tools;
 using Newtonsoft.Json;
 using UnityEngine.Scripting;
 
@@ -32,7 +30,11 @@ namespace HBP.Core.Data
         /// <summary>
         /// Tag associated with the value.
         /// </summary>
-        public BaseTag Tag { get; set; }
+        public BaseTag Tag
+        {
+            get;
+            set;
+        }
 
         [JsonProperty("Value")] protected object m_Value;
         /// <summary>
@@ -111,6 +113,11 @@ namespace HBP.Core.Data
             m_Value = null;
             Value = currentValue;
         }
+        internal void ResolveReferences(LoadingContext context)
+        {
+            string tagID = m_TagID ?? Tag?.ID;
+            Tag = context.ResolveOptional(context.TagById, tagID);
+        }
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -125,15 +132,11 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            // TEMP-LOADING-PROFILING
-            LoadingDiagnostics.RecordTagLookups(1);
-            PersistentDataManager.Tags.TryGetTag(m_TagID, out BaseTag tag);
-            Tag = tag;
         }
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_TagID = Tag.ID;
+            m_TagID = Tag?.ID;
         }
         #endregion
     }

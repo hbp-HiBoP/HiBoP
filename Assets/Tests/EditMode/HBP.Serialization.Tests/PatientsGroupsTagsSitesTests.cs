@@ -90,6 +90,15 @@ namespace HBP.Tests.Serialization
             Group group = new("patients-groups-tags-sites-group", new[] { firstPatient, secondPatient }, "patients-groups-tags-sites-group-001");
 
             Group loaded = RoundTrip(temp, group, "patients-groups-tags-sites-group.json");
+            LoadingContext context = new(
+                PersistentDataManager.Tags.AllTags,
+                Array.Empty<Protocol>(),
+                new[] { firstPatient, secondPatient });
+            context.ResolveProject(
+                new[] { firstPatient, secondPatient },
+                new[] { loaded },
+                Array.Empty<Dataset>(),
+                Array.Empty<Visualization>());
 
             Assert.That(loaded.PatientsID, Is.EquivalentTo(new[] { firstPatient.ID, secondPatient.ID }));
             Assert.That(loaded.Patients.Select(patient => patient.ID), Is.EquivalentTo(new[] { firstPatient.ID, secondPatient.ID }));

@@ -90,7 +90,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public FMRIDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Nifti(), new Container.Nifti(), new Error[0], new Warning[0], null, "")
+        public FMRIDataInfo() : this("Data", null, new Container.Nifti(), new Container.Nifti(), new Error[0], new Warning[0], null, "")
         {
 
         }

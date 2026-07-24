@@ -27,6 +27,8 @@ namespace HBP.Core.Data
         [JsonProperty("Patient")]
         string m_PatientID;
         Patient m_Patient;
+        [JsonIgnore]
+        public Patient Patient => m_Patient;
 
         [JsonProperty("ConfigurationByElectrode")]
         Dictionary <string, ElectrodeConfiguration> m_ConfigurationByElectrodeName;
@@ -64,6 +66,14 @@ namespace HBP.Core.Data
             }
             return new PatientConfiguration(configurationByElectrodeClone, Color, m_Patient);
         }
+        internal void ResolveReferences(LoadingContext context)
+        {
+            m_Patient = context.ResolveRequired(
+                context.PatientById,
+                m_PatientID ?? m_Patient?.ID,
+                "patient",
+                nameof(PatientConfiguration));
+        }
         #endregion
 
         #region Serialization
@@ -77,7 +87,8 @@ namespace HBP.Core.Data
         void OnDeserialized(StreamingContext streamingContext)
         {
             Color = m_Color.ToColor();
-            m_Patient = ApplicationState.LoadedProject.Patients.First((p) => p.ID == m_PatientID);
+            ConfigurationByElectrode = m_ConfigurationByElectrodeName
+                ?? new Dictionary<string, ElectrodeConfiguration>();
         }
         #endregion
     }

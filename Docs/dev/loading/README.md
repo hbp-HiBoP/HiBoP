@@ -30,6 +30,11 @@ base locale et les projets `.hibop`.
   architecture, concurrence, annulation, compatibilité et limites.
 - [Résultats de l'étape 3](resultats_etape_3_2026-07-23.md) : séparation
   confirmée, mesures de validation et régression murale observée.
+- [Contexte explicite de liaison — étape 4](etape_4_contexte_liaison_2026-07-24.md) :
+  index canoniques, scopes base/projet, erreurs regroupées et publication
+  atomique.
+- [Résultats de l'étape 4](resultats_etape_4_2026-07-24.md) : comparaison
+  avant/après sur la nouvelle machine avec `Default` et `full_test`.
 
 ## Conclusion courte
 
@@ -71,3 +76,12 @@ n'a lieu dans les callbacks JSON et la validation est bornée, annulable et
 mesurée séparément. Elle ne réduit toutefois pas le temps total dans la
 campagne actuelle : +15,3 % sur la base et +7,5 % sur le projet par rapport à
 l'étape 2. Ce résultat est conservé explicitement dans l'audit.
+
+L'étape 4 est implémentée et validée fonctionnellement : les callbacks JSON ne
+consultent plus les singletons pour relier les objets, les colonnes conservent
+leurs références résolues et la base comme le projet ne publient le nouveau
+graphe qu'après liaison et validation. Sur la nouvelle machine, le coût
+instrumenté de liaison baisse de 80,2 % sur la base et de 87,2 % sur le projet.
+Sur la médiane de trois passes chaudes après implémentation, le temps mural
+baisse de 5,1 % sur la base et de 17,1 % sur le projet par rapport à la capture
+de référence.

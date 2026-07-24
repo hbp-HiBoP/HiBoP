@@ -91,7 +91,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new iEEG dataInfo instance.
         /// </summary>
-        public IEEGDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, NormalizationType.Auto, "")
+        public IEEGDataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], null, NormalizationType.Auto, "")
         {
         }
         #endregion

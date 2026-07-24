@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Core.Database;
 using HBP.Core.Data;
 using HBP.Core.Enums;
+using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Tests.Serialization.Helpers;
@@ -110,6 +112,16 @@ namespace HBP.Tests.Serialization
             Assert.That(clones.Zip(source.Columns, (clone, original) => ReferenceEquals(clone.BaseConfiguration, original.BaseConfiguration)), Is.All.False);
 
             Visualization loaded = RoundTrip(temp, source, "module3d-configuration-visualization.json");
+            LoadingContext context = new(
+                PersistentDataManager.Tags.AllTags,
+                new[] { sourceProject.Datasets[0].Protocol },
+                sourceProject.Patients,
+                sourceProject.Datasets);
+            context.ResolveProject(
+                sourceProject.Patients,
+                Array.Empty<Group>(),
+                sourceProject.Datasets,
+                new[] { loaded });
 
             Assert.That(loaded.Columns.Select(column => column.GetType()), Is.EquivalentTo(source.Columns.Select(column => column.GetType())));
             Assert.That(loaded.Columns.Select(column => column.ID), Is.EquivalentTo(source.Columns.Select(column => column.ID)));

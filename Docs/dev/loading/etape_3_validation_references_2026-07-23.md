@@ -10,7 +10,8 @@ callbacks Json.NET.
 Le chargement suit maintenant cette séquence :
 
 ```text
-lecture -> désérialisation -> liaison des tags -> validation des fichiers -> publication
+lecture -> désérialisation -> liaison explicite des références
+        -> validation des fichiers -> publication
 ```
 
 La base et le projet attendent toujours la validation avant de publier la
@@ -55,8 +56,16 @@ n'expose pas de token. Le projet transmet son token existant.
 Dans `GlobalDatabase`, les patients restent dans une liste locale pendant la
 validation. `m_Patients` n'est remplacé qu'une fois celle-ci terminée.
 
-Dans `Project`, les patients restent également locaux jusqu'à la validation,
-puis `SetPatients` effectue la liaison et la publication comme auparavant.
+Dans `Project`, le graphe complet reste également local jusqu'à la liaison
+explicite et la validation. Il est ensuite publié en une seule fois.
+
+### Progression utilisateur
+
+Depuis l'étape 4, la validation est une sous-phase dédiée après la liaison du
+graphe complet. Elle affiche `Validating patient file references` et progresse
+selon le nombre de chemins complets uniques validés. Son poids est proportionnel
+au nombre de patients, séparément de la lecture et de la désérialisation. Une
+validation sans chemin atteint directement la fin de la sous-phase.
 
 ## Compatibilité
 

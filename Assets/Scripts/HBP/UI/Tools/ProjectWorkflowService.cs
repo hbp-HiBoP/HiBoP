@@ -177,10 +177,10 @@ namespace HBP.UI.Tools
             try
             {
                 m_Runtime.ClearData();
-                m_Runtime.LoadedProject = projectToLoad;
-                m_Runtime.LoadedProjectLocation = Directory.GetParent(info.Path).FullName;
                 await m_Runtime.LoadProjectWithProgressAsync(projectToLoad, info);
                 await UniTask.SwitchToMainThread();
+                m_Runtime.LoadedProject = projectToLoad;
+                m_Runtime.LoadedProjectLocation = Directory.GetParent(info.Path).FullName;
                 m_Runtime.SetInteractables();
                 m_Runtime.CheckProjectIDsAndAskForRegeneration();
                 return ProjectWorkflowResult.Succeeded();

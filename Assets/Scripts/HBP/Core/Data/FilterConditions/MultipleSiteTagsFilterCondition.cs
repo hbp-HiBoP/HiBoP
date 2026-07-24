@@ -120,16 +120,22 @@ namespace HBP.Core.Data
         #endregion
 
         #region Serialization
+        internal void ResolveReferences(LoadingContext context)
+        {
+            if (TagFilters == null)
+            {
+                return;
+            }
+
+            foreach (SingleTagFilter tagFilter in TagFilters)
+            {
+                tagFilter.ResolveReferences(context);
+            }
+        }
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            if (TagFilters != null)
-            {
-                foreach (var tagFilter in TagFilters)
-                {
-                    tagFilter.ResolveTag();
-                }
-            }
         }
         protected override void OnSerializing()
         {
@@ -200,13 +206,9 @@ namespace HBP.Core.Data
         #endregion
 
         #region Serialization
-        public void ResolveTag()
+        internal void ResolveReferences(LoadingContext context)
         {
-            if (!string.IsNullOrEmpty(m_TagID))
-            {
-                PersistentDataManager.Tags.TryGetTag(m_TagID, out BaseTag tag);
-                Tag = tag;
-            }
+            Tag = context.ResolveOptional(context.TagById, m_TagID ?? Tag?.ID);
         }
         public void PrepareForSerialization()
         {

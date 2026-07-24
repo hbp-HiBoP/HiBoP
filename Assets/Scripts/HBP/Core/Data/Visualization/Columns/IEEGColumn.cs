@@ -25,17 +25,16 @@ namespace HBP.Core.Data
     {
         #region Properties
         [JsonProperty("Dataset")] string datasetID;
+        Dataset m_Dataset;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
         public Dataset Dataset
         {
-            get
-            {
-                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
-            }
+            get => m_Dataset;
             set
             {
+                m_Dataset = value;
                 if (value == null)
                 {
                     datasetID = string.Empty;
@@ -53,24 +52,16 @@ namespace HBP.Core.Data
         [JsonProperty] public string DataName { get; set; }
 
         [JsonProperty("Bloc")] string blocID;
+        Bloc m_Bloc;
         /// <summary>
         /// Protocol bloc of the column.
         /// </summary>
         public Bloc Bloc
         {
-            get
-            {
-                if (Dataset != null && Dataset.Protocol != null && Dataset.Protocol.Blocs != null)
-                {
-                    return Dataset.Protocol.Blocs.FirstOrDefault(p => p.ID == blocID);
-                }
-                else
-                {
-                    return null;
-                }
-            }
+            get => m_Bloc;
             set
             {
+                m_Bloc = value;
                 if (value == null)
                 {
                     blocID = string.Empty;
@@ -136,6 +127,18 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        internal void ResolveReferences(LoadingContext context)
+        {
+            m_Dataset = context.ResolveRequired(
+                context.DatasetById,
+                datasetID,
+                "dataset",
+                $"IEEGColumn '{ID}'");
+            m_Bloc = m_Dataset == null
+                ? null
+                : context.ResolveBloc(m_Dataset.Protocol?.ID, blocID, $"IEEGColumn '{ID}'");
+        }
+
         public override void GenerateID()
         {
             base.GenerateID();

@@ -244,6 +244,12 @@ namespace HBP.Tests.Serialization
         }
 
         [Test, Timeout(5000)]
+        public async Task LoadAsync_WhenCancelledDuringFileValidation_CleansExtraction()
+        {
+            await AssertLoadCancellationFromProgress("Validating patient file references");
+        }
+
+        [Test, Timeout(5000)]
         public async Task LoadAsync_WhenCancelledDuringGroupsLoad_CleansExtraction()
         {
             await AssertLoadCancellationFromProgress("Loading groups");
@@ -504,18 +510,22 @@ namespace HBP.Tests.Serialization
             ApplicationState.LoadedProjectLocation = Path.GetDirectoryName(archivePath);
             float previousProgress = -1;
             LoadingText lastText = null;
+            bool validationProgressReported = false;
 
             void TrackProgress(float progress, float duration, LoadingText text)
             {
                 Assert.That(progress, Is.GreaterThanOrEqualTo(previousProgress));
                 previousProgress = progress;
                 lastText = text;
+                validationProgressReported |=
+                    text.ToString().StartsWith("Validating patient file references");
             }
 
             await loaded.LoadAsync(info, TrackProgress, CancellationToken.None);
 
             Assert.That(previousProgress, Is.EqualTo(1.0f));
             Assert.That(lastText.ToString(), Is.EqualTo("Project loaded successfully"));
+            Assert.That(validationProgressReported, Is.True);
         }
 
         [Test]

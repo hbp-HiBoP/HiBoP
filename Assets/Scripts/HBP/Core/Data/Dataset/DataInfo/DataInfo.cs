@@ -149,12 +149,21 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new DataInfo instance with default value.
         /// </summary>
-        public DataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], "")
+        public DataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], "")
         {
         }
         #endregion
 
         #region Public Methods
+        internal virtual void ResolveReferences(LoadingContext context)
+        {
+            m_Protocol = context.ResolveRequired(
+                context.ProtocolById,
+                m_ProtocolID ?? m_Protocol?.ID,
+                "protocol",
+                $"{GetType().Name} '{ID}'");
+        }
+
         public virtual void CheckErrorsAndWarnings(bool force = false)
         {
             if (RequireErrorCheck || force)
@@ -488,12 +497,6 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginReferenceLink(1))
-            {
-                var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
-                Protocol = protocol;
-            }
         }
         #endregion
 

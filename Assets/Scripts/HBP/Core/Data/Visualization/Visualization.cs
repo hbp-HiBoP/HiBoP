@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using HBP.Core.Database;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
@@ -178,7 +179,25 @@ namespace HBP.Core.Data
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Visualization>(path);
-                return result != null;
+                if (result == null)
+                {
+                    return false;
+                }
+                Project project = ApplicationState.LoadedProject;
+                if (project != null)
+                {
+                    LoadingContext context = new(
+                        Array.Empty<BaseTag>(),
+                        DatabaseManager.Database.Protocols,
+                        project.Patients,
+                        project.Datasets);
+                    context.ResolveProject(
+                        project.Patients,
+                        Array.Empty<Group>(),
+                        project.Datasets,
+                        new[] { result });
+                }
+                return true;
             }
             catch (Exception e)
             {
@@ -336,21 +355,45 @@ namespace HBP.Core.Data
                 column.Unload();
             }
         }
-        public void UpdatePatients()
+        internal void ResolveReferences(LoadingContext context)
         {
-            // TEMP-LOADING-PROFILING
-            using LoadingDiagnostics.PhaseScope phase = LoadingDiagnostics.BeginReferenceLink(m_PatientsID?.Count ?? 0);
-            if (ApplicationState.LoadedProject != null)
+            ResolvePatientReferences(context, true);
+
+            foreach (Column column in Columns ?? Enumerable.Empty<Column>())
             {
-                m_Patients = (m_PatientsID ?? new List<string>())
-                    .Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id))
-                    .Where(p => p != null)
-                    .ToList();
+                switch (column)
+                {
+                    case IEEGColumn ieeg:
+                        ieeg.ResolveReferences(context);
+                        break;
+                    case CCEPColumn ccep:
+                        ccep.ResolveReferences(context);
+                        break;
+                    case FMRIColumn fmri:
+                        fmri.ResolveReferences(context);
+                        break;
+                    case MEGColumn meg:
+                        meg.ResolveReferences(context);
+                        break;
+                    case StaticColumn @static:
+                        @static.ResolveReferences(context);
+                        break;
+                }
             }
-            else
-            {
-                m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
-            }
+        }
+
+        internal void ResolvePatientReferences(LoadingContext context, bool required)
+        {
+            m_Patients = (m_PatientsID ?? new List<string>())
+                .Select(id => required
+                    ? context.ResolveRequired(
+                        context.PatientById,
+                        id,
+                        "patient",
+                        $"Visualization '{ID}'")
+                    : context.ResolveOptional(context.PatientById, id))
+                .Where(patient => patient != null)
+                .ToList();
         }
         #endregion
 
@@ -631,7 +674,9 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            UpdatePatients();
+            m_PatientsID ??= new List<string>();
+            m_Patients = new List<Patient>();
+            Columns ??= new List<Column>();
         }
         #endregion
     }

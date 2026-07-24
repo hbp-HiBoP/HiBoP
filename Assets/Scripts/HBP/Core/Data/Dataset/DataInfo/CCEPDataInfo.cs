@@ -89,7 +89,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public CCEPDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, "Unknown", "")
+        public CCEPDataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], null, "Unknown", "")
         {
 
         }

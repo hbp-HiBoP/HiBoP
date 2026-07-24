@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Core.Database;
@@ -100,21 +101,18 @@ namespace HBP.Tests.Serialization
             Protocol loadedProtocol = RoundTrip(temp, sourceProject.Datasets[0].Protocol, "protocol.json");
             Patient loadedPatient = RoundTrip(temp, sourceProject.Patients[0], "patient.json");
 
-            DatabaseManager.Database.SetProtocols(new[] { loadedProtocol });
-            Project contextProject = new(
-                sourceProject.Name,
-                sourceProject.Preferences.Clone() as HBP.Core.Data.ProjectPreferences,
-                new[] { loadedPatient },
-                new Group[0],
-                new Dataset[0],
-                new Visualization[0]);
-            ApplicationState.LoadedProject = contextProject;
-
             Dataset loadedDataset = RoundTrip(temp, sourceProject.Datasets[0], "dataset.json");
-            contextProject.SetDatasets(new[] { loadedDataset });
-
             Visualization loadedVisualization = RoundTrip(temp, sourceProject.Visualizations[0], "visualization.json");
-            contextProject.SetVisualizations(new[] { loadedVisualization });
+            LoadingContext context = new(
+                PersistentDataManager.Tags.AllTags,
+                new[] { loadedProtocol },
+                new[] { loadedPatient },
+                new[] { loadedDataset });
+            context.ResolveProject(
+                new[] { loadedPatient },
+                Array.Empty<Group>(),
+                new[] { loadedDataset },
+                new[] { loadedVisualization });
 
             Assert.That(loadedProtocol.ID, Is.EqualTo(SyntheticProjectFactory.ProtocolId));
             Assert.That(loadedProtocol.Blocs.Select(b => b.ID), Is.EquivalentTo(sourceProject.Datasets[0].Protocol.Blocs.Select(b => b.ID)));
@@ -359,23 +357,26 @@ namespace HBP.Tests.Serialization
             Protocol loadedProtocol = RoundTrip(temp, sourceProject.Datasets[0].Protocol, $"{prefix}-protocol.json");
             Patient loadedPatient = RoundTrip(temp, sourceProject.Patients[0], $"{prefix}-patient.json");
 
-            DatabaseManager.Database.SetProtocols(new[] { loadedProtocol });
-            Project contextProject = new(
+            Dataset loadedDataset = RoundTrip(temp, sourceProject.Datasets[0], $"{prefix}-dataset.json");
+            Visualization loadedVisualization = RoundTrip(temp, sourceProject.Visualizations[0], $"{prefix}-visualization.json");
+            LoadingContext context = new(
+                PersistentDataManager.Tags.AllTags,
+                new[] { loadedProtocol },
+                new[] { loadedPatient },
+                new[] { loadedDataset });
+            context.ResolveProject(
+                new[] { loadedPatient },
+                Array.Empty<Group>(),
+                new[] { loadedDataset },
+                new[] { loadedVisualization });
+
+            return new Project(
                 sourceProject.Name,
                 sourceProject.Preferences.Clone() as DataProjectPreferences,
                 new[] { loadedPatient },
-                new Group[0],
-                new Dataset[0],
-                new Visualization[0]);
-            ApplicationState.LoadedProject = contextProject;
-
-            Dataset loadedDataset = RoundTrip(temp, sourceProject.Datasets[0], $"{prefix}-dataset.json");
-            contextProject.SetDatasets(new[] { loadedDataset });
-
-            Visualization loadedVisualization = RoundTrip(temp, sourceProject.Visualizations[0], $"{prefix}-visualization.json");
-            contextProject.SetVisualizations(new[] { loadedVisualization });
-
-            return contextProject;
+                Array.Empty<Group>(),
+                new[] { loadedDataset },
+                new[] { loadedVisualization });
         }
 
         private static IEnumerable<string> CollectPersistedIds(Project project)

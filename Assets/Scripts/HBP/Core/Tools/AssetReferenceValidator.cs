@@ -27,7 +27,8 @@ namespace HBP.Core.Tools
         public async UniTask ValidatePatientsAsync(
             IEnumerable<Patient> patients,
             int maxConcurrency,
-            CancellationToken token)
+            CancellationToken token,
+            Action<int, int> updateProgress = null)
         {
             if (patients == null)
             {
@@ -72,7 +73,11 @@ namespace HBP.Core.Tools
                 RegisterPath(MRI.SavedFile, validationBySavedPath, validationByFullPath);
             }
 
-            await ValidatePathsAsync(validationByFullPath.Values.ToArray(), maxConcurrency, token);
+            await ValidatePathsAsync(
+                validationByFullPath.Values.ToArray(),
+                maxConcurrency,
+                token,
+                updateProgress);
             token.ThrowIfCancellationRequested();
 
             foreach (BaseMesh mesh in meshes)
@@ -127,17 +132,36 @@ namespace HBP.Core.Tools
         private async UniTask ValidatePathsAsync(
             PathValidation[] validations,
             int maxConcurrency,
-            CancellationToken token)
+            CancellationToken token,
+            Action<int, int> updateProgress)
         {
+            updateProgress?.Invoke(0, validations.Length);
             if (validations.Length == 0)
             {
                 return;
             }
 
             int nextIndex = -1;
+            int completedCount = 0;
+            object progressLock = new();
             int workerCount = Math.Min(Math.Max(1, maxConcurrency), validations.Length);
             UniTask[] workers = Enumerable.Range(0, workerCount)
-                .Select(_ => ValidateWorkerAsync(validations, () => Interlocked.Increment(ref nextIndex), token))
+                .Select(_ => ValidateWorkerAsync(
+                    validations,
+                    () => Interlocked.Increment(ref nextIndex),
+                    () =>
+                    {
+                        if (updateProgress == null)
+                        {
+                            return;
+                        }
+
+                        lock (progressLock)
+                        {
+                            updateProgress(++completedCount, validations.Length);
+                        }
+                    },
+                    token))
                 .ToArray();
             await UniTask.WhenAll(workers);
         }
@@ -145,6 +169,7 @@ namespace HBP.Core.Tools
         private async UniTask ValidateWorkerAsync(
             IReadOnlyList<PathValidation> validations,
             Func<int> nextIndex,
+            Action pathValidated,
             CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -159,6 +184,7 @@ namespace HBP.Core.Tools
 
                 PathValidation validation = validations[index];
                 validation.Exists = m_FileExists(validation.FullPath);
+                pathValidated();
             }
         }
 

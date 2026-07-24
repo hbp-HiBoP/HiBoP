@@ -241,6 +241,10 @@ namespace HBP.Core.Database
                 var dataInfoFiles = GetDataInfoFiles();
                 if (patientFiles.Length == 0 && dataInfoFiles.Length == 0)
                 {
+                    new LoadingContext(
+                        PersistentDataManager.Tags.AllTags,
+                        m_Protocols)
+                        .ResolveDatabase(Array.Empty<Patient>(), Array.Empty<DataInfo>());
                     m_Patients.Clear();
                     m_DataInfos.Clear();
                     updateProgress(1, 0, new LoadingText("Finalizing"));
@@ -251,14 +255,60 @@ namespace HBP.Core.Database
 
                 float patientProgress = patientFiles.Length;
                 float dataInfoProgress = dataInfoFiles.Length;
-                float steps = patientProgress + dataInfoProgress;
+                float linkingProgress = 1;
+                float validationProgress = patientFiles.Length;
+                float steps = patientProgress + dataInfoProgress + linkingProgress + validationProgress;
                 patientProgress /= steps;
                 dataInfoProgress /= steps;
+                linkingProgress /= steps;
+                validationProgress /= steps;
                 float progress = 0;
-                await LoadPatientsAsync(patientFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text));
+                List<Patient> patients = await LoadPatientsAsync(patientFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text));
                 progress += patientProgress;
-                await LoadDataInfosAsync(dataInfoFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text));
+                List<DataInfo> dataInfos = await LoadDataInfosAsync(dataInfoFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text));
                 progress += dataInfoProgress;
+
+                updateProgress(progress, 0, new LoadingText("Linking database references"));
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.DatabaseLinkReferences,
+                    objectCount: patients.Count + dataInfos.Count))
+                {
+                    LoadingContext context = new(
+                        PersistentDataManager.Tags.AllTags,
+                        m_Protocols,
+                        patients);
+                    context.ResolveDatabase(patients, dataInfos);
+                    ISet<string> tagIds = new HashSet<string>(
+                        context.TagById.Keys,
+                        StringComparer.Ordinal);
+                    await UniTask.WhenAll(patients.Select(patient => patient.CheckTagsAsync(tagIds)));
+                }
+                progress += linkingProgress;
+
+                int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.DatabasePatientsValidateFiles,
+                    objectCount: patients.Count,
+                    concurrency: concurrency))
+                {
+                    await new AssetReferenceValidator().ValidatePatientsAsync(
+                        patients,
+                        concurrency,
+                        CancellationToken.None,
+                        (completed, total) => updateProgress(
+                            progress + (total == 0 ? 1 : (float)completed / total) * validationProgress,
+                            completed == 0 ? 0 : 0.2f,
+                            total == 0
+                                ? new LoadingText("Validating patient file references")
+                                : new LoadingText(
+                                    "Validating patient file references",
+                                    " ",
+                                    completed + "/" + total)));
+                }
+                progress += validationProgress;
+
+                m_Patients = patients;
+                m_DataInfos = dataInfos;
                 updateProgress(1, 0, new LoadingText("Finalizing"));
                 IsLoaded = true;
                 session.MarkSucceeded();
@@ -424,14 +474,9 @@ namespace HBP.Core.Database
             if (!patientsDirectory.Exists) patientsDirectory.Create();
             return patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
         }
-        private async UniTask LoadPatientsAsync(FileInfo[] patientFiles, Action<float, float, LoadingText> updateProgress)
+        private async UniTask<List<Patient>> LoadPatientsAsync(FileInfo[] patientFiles, Action<float, float, LoadingText> updateProgress)
         {
             int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
-            ISet<string> tagIds = new HashSet<string>(
-                PersistentDataManager.Tags.AllTags
-                    .Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID))
-                    .Select(tag => tag.ID),
-                StringComparer.Ordinal);
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
             {
                 var patient = await ClassLoaderSaver.LoadFromJsonAsync<Patient>(
@@ -440,11 +485,6 @@ namespace HBP.Core.Database
                     LoadingPhase.DatabasePatientsDeserialize,
                     concurrency);
                 LoadingDiagnostics.RecordPatientGraph(patient);
-                // TEMP-LOADING-PROFILING
-                using (LoadingDiagnostics.BeginPhase(LoadingPhase.DatabasePatientsBindTags, concurrency: concurrency))
-                {
-                    await patient.CheckTagsAsync(tagIds);
-                }
                 return patient;
             }));
             List<Patient> patients = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(
@@ -457,18 +497,7 @@ namespace HBP.Core.Database
                 PersistentDataManager.UserPreferences.General.System.MultiThreading))
                 .OrderBy(patient => patient.Name)
                 .ToList();
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginPhase(
-                LoadingPhase.DatabasePatientsValidateFiles,
-                objectCount: patients.Count,
-                concurrency: concurrency))
-            {
-                await new AssetReferenceValidator().ValidatePatientsAsync(
-                    patients,
-                    concurrency,
-                    CancellationToken.None);
-            }
-            m_Patients = patients;
+            return patients;
         }
         private async UniTask SavePatientsAsync(Action<float, float, LoadingText> updateProgress)
         {
@@ -489,7 +518,7 @@ namespace HBP.Core.Database
             if (!dataInfosDirectory.Exists) dataInfosDirectory.Create();
             return dataInfosDirectory.GetFiles("*" + DataInfo.EXTENSION, SearchOption.TopDirectoryOnly);
         }
-        private async UniTask LoadDataInfosAsync(FileInfo[] dataInfoFiles, Action<float, float, LoadingText> updateProgress)
+        private async UniTask<List<DataInfo>> LoadDataInfosAsync(FileInfo[] dataInfoFiles, Action<float, float, LoadingText> updateProgress)
         {
             int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = dataInfoFiles.Select(file => (Func<UniTask<List<DataInfo>>>)(async () =>
@@ -502,7 +531,7 @@ namespace HBP.Core.Database
                 LoadingDiagnostics.RecordObjects("DataInfo", dataInfos.Count);
                 return dataInfos;
             }));
-            m_DataInfos = (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database functional data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).SelectMany(d => d).ToList();
+            return (await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading database functional data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading)).SelectMany(d => d).ToList();
         }
         private async UniTask SaveDataInfosAsync(Action<float, float, LoadingText> updateProgress)
         {
@@ -608,17 +637,6 @@ namespace HBP.Core.Database
             return report;
         }
 
-        private void FixDatasets()
-        {
-            foreach (var dataInfo in m_DataInfos)
-            {
-                dataInfo.Protocol = m_Protocols.FirstOrDefault(p => p.ID == dataInfo.Protocol.ID);
-                if (dataInfo is PatientDataInfo patientDataInfo)
-                {
-                    patientDataInfo.Patient = m_Patients.FirstOrDefault(p => p.ID == patientDataInfo.Patient.ID);
-                }
-            }
-        }
         private DatabaseUpdateReport FindChanges(List<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients)
         {
             var removedPatients = oldPatients.Except(newPatients).ToList();

@@ -55,6 +55,8 @@ namespace HBP.Tests.ProjectWorkflow
             Assert.That(runtime.LoadProjectCalls, Is.EqualTo(1));
             Assert.That(runtime.SetInteractablesCalls, Is.EqualTo(1));
             Assert.That(runtime.CheckProjectIDsCalls, Is.EqualTo(1));
+            Assert.That(runtime.LoadedProjectDuringLoad.Name, Is.EqualTo("previous"));
+            Assert.That(runtime.LoadedProjectLocationDuringLoad, Is.EqualTo("previous-location"));
             Assert.That(runtime.LoadedProject, Is.SameAs(runtime.LoadProjectArgument));
             Assert.That(runtime.LoadedProjectLocation, Is.EqualTo(folder));
         }
@@ -311,6 +313,8 @@ namespace HBP.Tests.ProjectWorkflow
             public Exception LoadProjectException { get; set; }
             public Exception SaveProjectException { get; set; }
             public Project LoadProjectArgument { get; private set; }
+            public Project LoadedProjectDuringLoad { get; private set; }
+            public string LoadedProjectLocationDuringLoad { get; private set; }
             public string SavedPath { get; private set; }
 
             public void ClearData()
@@ -357,6 +361,8 @@ namespace HBP.Tests.ProjectWorkflow
             {
                 LoadProjectCalls++;
                 LoadProjectArgument = project;
+                LoadedProjectDuringLoad = LoadedProject;
+                LoadedProjectLocationDuringLoad = LoadedProjectLocation;
                 if (LoadProjectException != null)
                 {
                     throw LoadProjectException;

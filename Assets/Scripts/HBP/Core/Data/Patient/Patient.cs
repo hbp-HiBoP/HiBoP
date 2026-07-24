@@ -194,11 +194,10 @@ namespace HBP.Core.Data
             }
 
             await UniTask.SwitchToThreadPool();
-            TagCollection tagCollection = PersistentDataManager.Tags;
             // TEMP-LOADING-PROFILING
             LoadingDiagnostics.RecordTagLookups(Tags.Count + Sites.Sum(site => site.Tags.Count));
-            Tags.RemoveAll(t => t.Tag == null || !tagCollection.ContainsTagId(t.Tag.ID));
-            foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !tagCollection.ContainsTagId(t.Tag.ID));
+            Tags.RemoveAll(t => t.Tag == null || !tagIds.Contains(t.Tag.ID));
+            foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !tagIds.Contains(t.Tag.ID));
             // TEMP-LOADING-PROFILING
             LoadingDiagnostics.RecordTagLookups(Tags.Count + Sites.Sum(site => site.Tags.Count));
             List<BaseTagValue> tagsToUpdate = Tags.Where(t => t.Tag != null && tagIds.Contains(t.Tag.ID)).ToList();
@@ -392,8 +391,17 @@ namespace HBP.Core.Data
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Patient>(path);
+                if (result == null)
+                {
+                    return false;
+                }
+                new LoadingContext(
+                    PersistentDataManager.Tags.AllTags,
+                    Array.Empty<Protocol>(),
+                    new[] { result })
+                    .ResolveDatabase(new[] { result }, Array.Empty<DataInfo>());
                 result.CleanInvalidData();
-                return result != null;
+                return true;
             }
             catch (Exception e)
             {

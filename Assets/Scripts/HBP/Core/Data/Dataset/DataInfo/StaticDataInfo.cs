@@ -83,7 +83,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public StaticDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.CSV(), new Error[0], new Warning[0], null, "")
+        public StaticDataInfo() : this("Data", null, new Container.CSV(), new Error[0], new Warning[0], null, "")
         {
 
         }

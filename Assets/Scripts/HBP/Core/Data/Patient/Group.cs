@@ -114,8 +114,24 @@ namespace HBP.Core.Data
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Group>(path);
-                if (result != null) return true;
-                else return false;
+                if (result == null)
+                {
+                    return false;
+                }
+                Project project = ApplicationState.LoadedProject;
+                IEnumerable<Patient> patients = project != null
+                    ? project.Patients
+                    : Array.Empty<Patient>();
+                LoadingContext context = new(
+                    Array.Empty<BaseTag>(),
+                    Array.Empty<Protocol>(),
+                    patients);
+                context.ResolveProject(
+                    patients,
+                    new[] { result },
+                    Array.Empty<Dataset>(),
+                    Array.Empty<Visualization>());
+                return true;
             }
             catch (Exception e)
             {
@@ -150,21 +166,23 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
-        public void UpdatePatients()
+        internal void ResolveReferences(LoadingContext context)
         {
-            // TEMP-LOADING-PROFILING
-            using LoadingDiagnostics.PhaseScope phase = LoadingDiagnostics.BeginReferenceLink(m_PatientsID?.Count ?? 0);
-            if (ApplicationState.LoadedProject != null)
-            {
-                m_Patients = (m_PatientsID ?? new List<string>())
-                    .Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id))
-                    .Where(p => p != null)
-                    .ToList();
-            }
-            else
-            {
-                m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
-            }
+            ResolvePatientReferences(context, true);
+        }
+
+        internal void ResolvePatientReferences(LoadingContext context, bool required)
+        {
+            m_Patients = (m_PatientsID ?? new List<string>())
+                .Select(id => required
+                    ? context.ResolveRequired(
+                        context.PatientById,
+                        id,
+                        "patient",
+                        $"Group '{ID}'")
+                    : context.ResolveOptional(context.PatientById, id))
+                .Where(patient => patient != null)
+                .ToList();
         }
         #endregion
 
@@ -201,7 +219,8 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            UpdatePatients();
+            m_PatientsID ??= new List<string>();
+            m_Patients = new List<Patient>();
         }
         #endregion
     }

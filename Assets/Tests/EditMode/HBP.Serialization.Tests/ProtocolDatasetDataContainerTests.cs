@@ -121,11 +121,16 @@ namespace HBP.Tests.Serialization
 
             Dataset source = SyntheticProjectFactory.CreateDataset(protocol, patient);
             Dataset loaded = RoundTrip(temp, source, "protocol-dataset-dataset.json");
-            contextProject.SetDatasets(new[] { loaded });
-            foreach (PatientDataInfo patientDataInfo in loaded.GetPatientDataInfos())
-            {
-                patientDataInfo.UpdatePatient();
-            }
+            LoadingContext context = new(
+                PersistentDataManager.Tags.AllTags,
+                new[] { protocol },
+                new[] { patient },
+                new[] { loaded });
+            context.ResolveProject(
+                new[] { patient },
+                Array.Empty<Group>(),
+                new[] { loaded },
+                Array.Empty<Visualization>());
 
             Assert.That(loaded.Protocol, Is.SameAs(protocol));
             Assert.That(loaded.Data.Select(data => data.Protocol), Is.All.SameAs(protocol));

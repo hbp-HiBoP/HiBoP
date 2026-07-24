@@ -60,15 +60,7 @@ namespace HBP.Core.Data
         ///
         public Patient Patient
         {
-            get
-            {
-                // Utile si le patient ne fait pas parti de la base de données
-                if (m_Patient == null)
-                {
-                    UpdatePatient();
-                }
-                return m_Patient; 
-            }
+            get => m_Patient;
             set
             {
                 if (value != null) m_PatientID = value.ID;
@@ -102,7 +94,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], ApplicationState.LoadedProject.Patients.FirstOrDefault(), "")
+        public PatientDataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], null, "")
         {
         }
         #endregion
@@ -157,16 +149,44 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        /// <summary>
+        /// Rebinds this instance against the currently published graph. Loading
+        /// code should use <see cref="LoadingContext"/> directly.
+        /// </summary>
         public void UpdatePatient()
         {
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginReferenceLink(1))
-            {
-                if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
-                    m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-                else
-                    m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-            }
+            IEnumerable<Patient> patients =
+                ApplicationState.LoadedProject != null
+                && ApplicationState.LoadedProject.Datasets.Any(dataset => dataset.Data.Contains(this))
+                    ? ApplicationState.LoadedProject.Patients
+                    : DatabaseManager.Database.Patients;
+            LoadingContext context = new(
+                System.Array.Empty<BaseTag>(),
+                DatabaseManager.Database.Protocols,
+                patients);
+            m_Patient = context.ResolveRequired(
+                context.PatientById,
+                m_PatientID ?? m_Patient?.ID,
+                "patient",
+                $"{GetType().Name} '{ID}'");
+        }
+
+        internal override void ResolveReferences(LoadingContext context)
+        {
+            base.ResolveReferences(context);
+            ResolvePatientReference(context, true);
+        }
+
+        internal void ResolvePatientReference(LoadingContext context, bool required)
+        {
+            string patientID = m_PatientID ?? m_Patient?.ID;
+            m_Patient = required
+                ? context.ResolveRequired(
+                    context.PatientById,
+                    patientID,
+                    "patient",
+                    $"{GetType().Name} '{ID}'")
+                : context.ResolveOptional(context.PatientById, patientID);
         }
         #endregion
 
@@ -174,7 +194,6 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            UpdatePatient();
         }
         #endregion
     }

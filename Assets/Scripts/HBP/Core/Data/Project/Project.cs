@@ -146,21 +146,25 @@ namespace HBP.Core.Data
         {
             m_Patients = new List<Patient>();
             AddPatient(patients);
+            LoadingContext context = new(
+                Array.Empty<BaseTag>(),
+                Array.Empty<Protocol>(),
+                m_Patients);
             foreach (Dataset dataset in m_Datasets)
             {
-                dataset.RemoveData(from data in dataset.GetPatientDataInfos() where !m_Patients.Any(p => p == data.Patient) select data);
-                foreach (var patientDataInfo in dataset.Data.OfType<PatientDataInfo>())
+                foreach (PatientDataInfo dataInfo in dataset.GetPatientDataInfos())
                 {
-                    patientDataInfo.UpdatePatient();
+                    dataInfo.ResolvePatientReference(context, false);
                 }
+                dataset.RemoveData(dataset.GetPatientDataInfos().Where(dataInfo => dataInfo.Patient == null));
             }
             foreach (Visualization visualization in m_Visualizations)
             {
-                visualization.UpdatePatients();
+                visualization.ResolvePatientReferences(context, false);
             }
             foreach (Group group in m_Groups)
             {
-                group.UpdatePatients();
+                group.ResolvePatientReferences(context, false);
             }
         }
         public void AddPatient(Patient patient)
@@ -446,12 +450,17 @@ namespace HBP.Core.Data
                 float groupsProgress = projectInfo.Groups;
                 float datasetsProgress = projectInfo.Datasets;
                 float visualizationsProgress = projectInfo.Visualizations;
-                float steps = settingsProgress + groupsProgress + patientsProgress + datasetsProgress + visualizationsProgress;
+                float linkingProgress = 1;
+                float validationProgress = projectInfo.Patients;
+                float steps = settingsProgress + groupsProgress + patientsProgress + datasetsProgress
+                    + visualizationsProgress + linkingProgress + validationProgress;
                 settingsProgress /= steps;
                 patientsProgress /= steps;
                 groupsProgress /= steps;
                 datasetsProgress /= steps;
                 visualizationsProgress /= steps;
+                linkingProgress /= steps;
+                validationProgress /= steps;
 
                 updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
 
@@ -475,33 +484,84 @@ namespace HBP.Core.Data
 
                 // Load Settings.
                 token.ThrowIfCancellationRequested();
-                await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
+                ProjectPreferences preferences = await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
                 token.ThrowIfCancellationRequested();
                 progress += settingsProgress;
 
                 // Load Patients.
                 token.ThrowIfCancellationRequested();
-                await LoadPatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token);
+                List<Patient> patients = await LoadPatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token);
                 token.ThrowIfCancellationRequested();
                 progress += patientsProgress;
 
                 // Load Groups.
                 token.ThrowIfCancellationRequested();
-                await LoadGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token);
+                List<Group> groups = await LoadGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token);
                 token.ThrowIfCancellationRequested();
                 progress += groupsProgress;
 
                 // Load Datasets.
                 token.ThrowIfCancellationRequested();
-                await LoadDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token);
+                List<Dataset> datasets = await LoadDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token);
                 token.ThrowIfCancellationRequested();
                 progress += datasetsProgress;
 
                 // Load Visualizations.
                 token.ThrowIfCancellationRequested();
-                await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token);
+                List<Visualization> visualizations = await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token);
                 token.ThrowIfCancellationRequested();
                 progress += visualizationsProgress;
+
+                // Link every serialized ID against the canonical instances before
+                // the new graph becomes visible through this Project.
+                updateProgress.Invoke(progress, 0, new LoadingText("Linking project references"));
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.ProjectLinkReferences,
+                    objectCount: patients.Count + groups.Count + datasets.Count + visualizations.Count))
+                {
+                    LoadingContext context = new(
+                        PersistentDataManager.Tags.AllTags,
+                        DatabaseManager.Database.Protocols,
+                        patients,
+                        datasets);
+                    context.ResolveProject(patients, groups, datasets, visualizations);
+
+                    ISet<string> tagIds = new HashSet<string>(
+                        context.TagById.Keys,
+                        StringComparer.Ordinal);
+                    await UniTask.WhenAll(patients.Select(patient => patient.CheckTagsAsync(tagIds)));
+                }
+                token.ThrowIfCancellationRequested();
+                progress += linkingProgress;
+
+                int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.ProjectValidateFiles,
+                    objectCount: patients.Count,
+                    concurrency: concurrency))
+                {
+                    await new AssetReferenceValidator().ValidatePatientsAsync(
+                        patients,
+                        concurrency,
+                        token,
+                        (completed, total) => updateProgress.Invoke(
+                            progress + (total == 0 ? 1 : (float)completed / total) * validationProgress,
+                            completed == 0 ? 0 : 0.2f,
+                            total == 0
+                                ? new LoadingText("Validating patient file references")
+                                : new LoadingText(
+                                    "Validating patient file references",
+                                    " ",
+                                    completed + "/" + total)));
+                }
+                token.ThrowIfCancellationRequested();
+                progress += validationProgress;
+
+                Preferences = preferences;
+                m_Patients = patients;
+                m_Groups = groups;
+                m_Datasets = datasets;
+                m_Visualizations = visualizations;
 
                 token.ThrowIfCancellationRequested();
                 updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully"));
@@ -608,7 +668,7 @@ namespace HBP.Core.Data
         #endregion
 
         #region Private Methods
-        private async UniTask LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private async UniTask<ProjectPreferences> LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
         {
             updateProgress.Invoke(0, 0, new LoadingText("Loading settings"));
             FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectPreferences.EXTENSION, SearchOption.TopDirectoryOnly);
@@ -616,18 +676,19 @@ namespace HBP.Core.Data
             else if (settingsFiles.Length > 1) throw new MultipleSettingsFilesFoundException(); // Test if multiple settings files found.
             try
             {
-                Preferences = await ClassLoaderSaver.LoadFromJsonAsync<ProjectPreferences>(
+                ProjectPreferences preferences = await ClassLoaderSaver.LoadFromJsonAsync<ProjectPreferences>(
                     settingsFiles[0].FullName,
                     LoadingPhase.ProjectSettings,
                     LoadingPhase.ProjectSettings,
                     1);
                 LoadingDiagnostics.RecordObjects("ProjectPreferences", 1);
+                updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
+                return preferences;
             }
             catch (Exception e)
             {
                 throw new CanNotReadSettingsFileException(settingsFiles[0].Name, e);
             }
-            updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
         }
 
         private bool ReferencesMissingDataset(Column column)
@@ -658,17 +719,12 @@ namespace HBP.Core.Data
                 _ => null
             };
         }
-        private async UniTask LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Patient>> LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Patient> patients = new();
             DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
-            ISet<string> tagIds = new HashSet<string>(
-                PersistentDataManager.Tags.AllTags
-                    .Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID))
-                    .Select(tag => tag.ID),
-                StringComparer.Ordinal);
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
             {
                 try
@@ -679,10 +735,6 @@ namespace HBP.Core.Data
                         LoadingPhase.ProjectPatientsDeserialize,
                         concurrency);
                     LoadingDiagnostics.RecordPatientGraph(patient);
-                    using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectPatientsBindTags, concurrency: concurrency))
-                    {
-                        await patient.CheckTagsAsync(tagIds);
-                    }
                     return patient;
                 }
                 catch (Exception e)
@@ -691,25 +743,10 @@ namespace HBP.Core.Data
                 }
             }));
             patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginPhase(
-                LoadingPhase.ProjectValidateFiles,
-                objectCount: patients.Count,
-                concurrency: concurrency))
-            {
-                await new AssetReferenceValidator().ValidatePatientsAsync(
-                    patients,
-                    concurrency,
-                    token);
-            }
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: patients.Count))
-            {
-                SetPatients(patients.ToArray());
-            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
+            return patients;
         }
-        private async UniTask LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Group>> LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Group> groups = new();
             DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
@@ -732,14 +769,10 @@ namespace HBP.Core.Data
             }));
             groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             LoadingDiagnostics.RecordObjects("Group", groups.Count);
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: groups.Count))
-            {
-                SetGroups(groups.ToArray());
-            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
+            return groups;
         }
-        private async UniTask LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Dataset>> LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Dataset> datasets = new();
             DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
@@ -762,14 +795,10 @@ namespace HBP.Core.Data
             }));
             datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             LoadingDiagnostics.RecordObjects("Dataset", datasets.Count);
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: datasets.Count))
-            {
-                SetDatasets(datasets.ToArray());
-            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
+            return datasets;
         }
-        private async UniTask LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Visualization>> LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
             List<Visualization> visualizations = new();
@@ -792,12 +821,8 @@ namespace HBP.Core.Data
             }));
             visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             LoadingDiagnostics.RecordObjects("Visualization", visualizations.Count);
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginPhase(LoadingPhase.ProjectLinkReferences, objectCount: visualizations.Count))
-            {
-                SetVisualizations(visualizations.ToArray());
-            }
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
+            return visualizations;
         }
 
         private async UniTask SaveSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)

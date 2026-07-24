@@ -12,17 +12,16 @@ namespace HBP.Core.Data
     {
         #region Properties
         [JsonProperty("Dataset")] string datasetID;
+        Dataset m_Dataset;
         /// <summary>
         /// Dataset of the column.
         /// </summary>
         public Dataset Dataset
         {
-            get
-            {
-                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
-            }
+            get => m_Dataset;
             set
             {
+                m_Dataset = value;
                 if (value == null)
                 {
                     datasetID = string.Empty;
@@ -85,6 +84,15 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+        internal void ResolveReferences(LoadingContext context)
+        {
+            m_Dataset = context.ResolveRequired(
+                context.DatasetById,
+                datasetID,
+                "dataset",
+                $"StaticColumn '{ID}'");
+        }
+
         public override void GenerateID()
         {
             base.GenerateID();

@@ -119,12 +119,26 @@ namespace HBP.Core.Data
         /// <summary>
         /// Create a new Dataset instance with default values.
         /// </summary>
-        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0])
+        public Dataset() : this("New dataset", null, new DataInfo[0])
         {
         }
         #endregion
 
         #region Public Methods
+        internal void ResolveReferences(LoadingContext context)
+        {
+            m_Protocol = context.ResolveRequired(
+                context.ProtocolById,
+                m_ProtocolID ?? m_Protocol?.ID,
+                "protocol",
+                $"Dataset '{ID}'");
+
+            foreach (DataInfo dataInfo in m_Data ?? Enumerable.Empty<DataInfo>())
+            {
+                dataInfo.ResolveReferences(context);
+            }
+        }
+
         /// <summary>
         /// Get all the patient dataInfo.
         /// </summary>
@@ -284,7 +298,23 @@ namespace HBP.Core.Data
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Dataset>(path);
-                return result != null;
+                if (result == null)
+                {
+                    return false;
+                }
+                IEnumerable<Patient> patients = ApplicationState.LoadedProject?.Patients
+                    ?? DatabaseManager.Database.Patients;
+                LoadingContext context = new(
+                    Array.Empty<BaseTag>(),
+                    DatabaseManager.Database.Protocols,
+                    patients,
+                    new[] { result });
+                context.ResolveProject(
+                    patients,
+                    Array.Empty<Group>(),
+                    new[] { result },
+                    Array.Empty<Visualization>());
+                return true;
             }
             catch (Exception e)
             {
@@ -339,12 +369,7 @@ namespace HBP.Core.Data
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginReferenceLink(1))
-            {
-                var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
-                Protocol = protocol;
-            }
+            m_Data ??= new List<DataInfo>();
         }
         #endregion
 

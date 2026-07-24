@@ -116,11 +116,14 @@ namespace HBP.Core.Data
         #endregion
 
         #region Serialization
+        internal void ResolveReferences(LoadingContext context)
+        {
+            Tag = context.ResolveOptional(context.TagById, m_TagID ?? Tag?.ID);
+        }
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            PersistentDataManager.Tags.TryGetTag(m_TagID, out BaseTag tag);
-            Tag = tag;
         }
         protected override void OnSerializing()
         {

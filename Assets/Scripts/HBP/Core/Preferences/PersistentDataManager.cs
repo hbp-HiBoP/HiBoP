@@ -27,6 +27,9 @@ namespace HBP.Core.Preferences
             m_Tags = TagCollection.Initialize();
             m_Aliases = AliasCollection.Initialize();
             m_FilterConditionsPresets = FilterConditionsPresetCollection.Initialize();
+            new LoadingContext(m_Tags.AllTags, System.Array.Empty<Protocol>())
+                .ResolveFilterConditions(m_FilterConditionsPresets);
+            m_FilterConditionsPresets.Save();
         }
         #endregion
     }
