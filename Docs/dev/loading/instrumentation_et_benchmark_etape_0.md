@@ -148,9 +148,14 @@ l'intérieur de `JsonConvert.DeserializeObject`. `ValidateFiles` est une phase
 physiquement séparée, exécutée après le parsing et avant la publication des
 patients.
 
-Les liaisons de tags et de références restent partiellement imbriquées dans
-les callbacks ou dans le travail patient. Leur séparation complète relève de
-l'étape 4.
+Depuis l'étape 4, les liaisons de tags et de références sont regroupées dans
+la passe explicite `LinkReferences`.
+
+Depuis l'étape 5, Json.NET lit directement le stream pendant la
+désérialisation. `Read` conserve les compteurs de fichiers et d'octets et
+enveloppe `Deserialize`. Les deux durées se chevauchent donc et ne doivent pas
+être additionnées. Quand les deux marqueurs désignent la même phase, un seul
+scope est produit.
 
 ## Vérifications automatisées
 

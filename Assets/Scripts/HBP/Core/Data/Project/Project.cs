@@ -302,50 +302,21 @@ namespace HBP.Core.Data
         #region Public Methods
         public static bool IsProject(string path)
         {
-            bool isProject = false;
-            if (new FileInfo(path).Extension == EXTENSION)
+            try
             {
-                try
-                {
-                    using ZipFile zip = ZipFile.Read(path);
-                    bool hasPatientsDirectory = false;
-                    bool hasGroupsDirectory = false;
-                    bool hasDatasetsDirectory = false;
-                    bool hasVisualizationsDirectory = false;
-                    bool hasSettingsFile = false;
-                    foreach (var entryFileName in zip.EntryFileNames)
-                    {
-                        if (entryFileName == "Patients/")
-                        {
-                            hasPatientsDirectory = true;
-                        }
-                        else if (entryFileName == "Groups/")
-                        {
-                            hasGroupsDirectory = true;
-                        }
-                        else if (entryFileName == "Datasets/")
-                        {
-                            hasDatasetsDirectory = true;
-                        }
-                        else if (entryFileName == "Visualizations/")
-                        {
-                            hasVisualizationsDirectory = true;
-                        }
-                        else if (entryFileName.EndsWith(ProjectPreferences.EXTENSION))
-                        {
-                            hasSettingsFile = true;
-                        }
-                    }
-                    isProject = hasPatientsDirectory && hasGroupsDirectory && hasDatasetsDirectory && hasVisualizationsDirectory && hasSettingsFile;
-                }
-                catch
-                {
-                    isProject = false;
-                }
+                _ = ProjectManifest.Read(path, false);
+                return true;
             }
-            return isProject;
+            catch
+            {
+                return false;
+            }
         }
         public static IEnumerable<string> GetProject(string path)
+        {
+            return GetProjectInfos(path).Select(project => project.Path);
+        }
+        public static IEnumerable<ProjectInfo> GetProjectInfos(string path)
         {
             if (!string.IsNullOrEmpty(path))
             {
@@ -353,19 +324,27 @@ namespace HBP.Core.Data
                 if (directory.Exists)
                 {
                     FileInfo[] files = directory.GetFiles("*" + EXTENSION);
-                    return from file in files where IsProject(file.FullName) select file.FullName;
+                    List<ProjectInfo> projects = new();
+                    foreach (FileInfo file in files)
+                    {
+                        try
+                        {
+                            projects.Add(new ProjectInfo(file.FullName));
+                        }
+                        catch (DirectoryNotProjectException)
+                        {
+                        }
+                    }
+                    return projects;
                 }
             }
-            return new string[0];
+            return Array.Empty<ProjectInfo>();
         }
         public string GetProject(string path, string ID)
         {
-            IEnumerable<string> projectsDirectories = GetProject(path);
-            foreach (var directoryPaths in projectsDirectories)
-            {
-                ProjectInfo projectInfo = new(directoryPaths);
-            }
-            return projectsDirectories.FirstOrDefault((project) => new ProjectInfo(project).Settings.ID == ID);
+            return GetProjectInfos(path)
+                .FirstOrDefault(project => project.SettingsLoadException == null && project.Settings.ID == ID)
+                ?.Path;
         }
         public async UniTask<Dictionary<string, List<Tuple<BaseData, string>>>> CheckProjectIDsAsync()
         {
@@ -443,15 +422,35 @@ namespace HBP.Core.Data
             using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Project);
             try
             {
+                updateProgress.Invoke(0.0f, 0, new LoadingText("Loading project"));
+                token.ThrowIfCancellationRequested();
+                await UniTask.SwitchToThreadPool();
+
+                ProjectManifest manifest;
+                try
+                {
+                    using (LoadingDiagnostics.BeginPhase(
+                        LoadingPhase.ProjectArchiveRead,
+                        fileCount: 1,
+                        byteCount: LoadingDiagnostics.GetFileLength(projectInfo.Path)))
+                    {
+                        manifest = projectInfo.GetCurrentManifest();
+                    }
+                }
+                catch (Exception exception)
+                {
+                    throw new FileNotFoundException(projectInfo.Path, exception);
+                }
+
                 // Initialize progress.
                 float progress = 0.0f;
                 float settingsProgress = 1;
-                float patientsProgress = 2 * projectInfo.Patients;
-                float groupsProgress = projectInfo.Groups;
-                float datasetsProgress = projectInfo.Datasets;
-                float visualizationsProgress = projectInfo.Visualizations;
+                float patientsProgress = 2 * manifest.Patients;
+                float groupsProgress = manifest.Groups;
+                float datasetsProgress = manifest.Datasets;
+                float visualizationsProgress = manifest.Visualizations;
                 float linkingProgress = 1;
-                float validationProgress = projectInfo.Patients;
+                float validationProgress = manifest.Patients;
                 float steps = settingsProgress + groupsProgress + patientsProgress + datasetsProgress
                     + visualizationsProgress + linkingProgress + validationProgress;
                 settingsProgress /= steps;
@@ -462,55 +461,77 @@ namespace HBP.Core.Data
                 linkingProgress /= steps;
                 validationProgress /= steps;
 
-                updateProgress.Invoke(progress, 0, new LoadingText("Loading project"));
-
-                // Unzipping
-                await UniTask.SwitchToThreadPool();
-                // TEMP-LOADING-PROFILING
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingPhase.ProjectArchiveRead,
-                    fileCount: 1,
-                    byteCount: LoadingDiagnostics.GetFileLength(projectInfo.Path)))
-                {
-                    if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
-                    using ZipFile zip = ZipFile.Read(projectInfo.Path);
-                    zip.ExtractAll(ApplicationState.ExtractProjectFolder, ExtractExistingFileAction.OverwriteSilently);
-                    if (!File.Exists(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file exists.
-                    if (!IsProject(projectInfo.Path)) throw new FileNotFoundException(projectInfo.Path); // Test if the file is a project.
-                }
-                DirectoryInfo projectDirectory = new(ApplicationState.ExtractProjectFolder);
-
-                Name = projectInfo.Name;
+                Name = manifest.Name;
 
                 // Load Settings.
                 token.ThrowIfCancellationRequested();
-                ProjectPreferences preferences = await LoadSettingsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
+                ProjectPreferences preferences = LoadSettings(
+                    manifest,
+                    (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
                 token.ThrowIfCancellationRequested();
                 progress += settingsProgress;
 
-                // Load Patients.
-                token.ThrowIfCancellationRequested();
-                List<Patient> patients = await LoadPatientsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token);
-                token.ThrowIfCancellationRequested();
-                progress += patientsProgress;
+                int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
+                int readerCount = Math.Min(
+                    concurrency,
+                    Math.Max(
+                        1,
+                        Math.Max(
+                            Math.Max(manifest.Patients, manifest.Groups),
+                            Math.Max(manifest.Datasets, manifest.Visualizations))));
+                List<Patient> patients;
+                List<Group> groups;
+                List<Dataset> datasets;
+                List<Visualization> visualizations;
+                ProjectArchiveReader archiveReader;
+                using (LoadingDiagnostics.BeginPhase(
+                    LoadingPhase.ProjectArchiveRead,
+                    fileCount: readerCount))
+                {
+                    archiveReader = new ProjectArchiveReader(manifest.Path, readerCount);
+                }
+                using (archiveReader)
+                {
+                    // Load Patients.
+                    token.ThrowIfCancellationRequested();
+                    patients = await LoadPatientsAsync(
+                        manifest,
+                        archiveReader,
+                        (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text),
+                        token);
+                    token.ThrowIfCancellationRequested();
+                    progress += patientsProgress;
 
-                // Load Groups.
-                token.ThrowIfCancellationRequested();
-                List<Group> groups = await LoadGroupsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token);
-                token.ThrowIfCancellationRequested();
-                progress += groupsProgress;
+                    // Load Groups.
+                    token.ThrowIfCancellationRequested();
+                    groups = await LoadGroupsAsync(
+                        manifest,
+                        archiveReader,
+                        (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text),
+                        token);
+                    token.ThrowIfCancellationRequested();
+                    progress += groupsProgress;
 
-                // Load Datasets.
-                token.ThrowIfCancellationRequested();
-                List<Dataset> datasets = await LoadDatasetsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token);
-                token.ThrowIfCancellationRequested();
-                progress += datasetsProgress;
+                    // Load Datasets.
+                    token.ThrowIfCancellationRequested();
+                    datasets = await LoadDatasetsAsync(
+                        manifest,
+                        archiveReader,
+                        (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text),
+                        token);
+                    token.ThrowIfCancellationRequested();
+                    progress += datasetsProgress;
 
-                // Load Visualizations.
-                token.ThrowIfCancellationRequested();
-                List<Visualization> visualizations = await LoadVisualizationsAsync(projectDirectory, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token);
-                token.ThrowIfCancellationRequested();
-                progress += visualizationsProgress;
+                    // Load Visualizations.
+                    token.ThrowIfCancellationRequested();
+                    visualizations = await LoadVisualizationsAsync(
+                        manifest,
+                        archiveReader,
+                        (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text),
+                        token);
+                    token.ThrowIfCancellationRequested();
+                    progress += visualizationsProgress;
+                }
 
                 // Link every serialized ID against the canonical instances before
                 // the new graph becomes visible through this Project.
@@ -534,7 +555,6 @@ namespace HBP.Core.Data
                 token.ThrowIfCancellationRequested();
                 progress += linkingProgress;
 
-                int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
                 using (LoadingDiagnostics.BeginPhase(
                     LoadingPhase.ProjectValidateFiles,
                     objectCount: patients.Count,
@@ -579,7 +599,6 @@ namespace HBP.Core.Data
             }
             finally
             {
-                if (Directory.Exists(ApplicationState.ExtractProjectFolder)) Directory.Delete(ApplicationState.ExtractProjectFolder, true);
                 await UniTask.SwitchToMainThread();
             }
         }
@@ -668,27 +687,27 @@ namespace HBP.Core.Data
         #endregion
 
         #region Private Methods
-        private async UniTask<ProjectPreferences> LoadSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
+        private ProjectPreferences LoadSettings(ProjectManifest manifest, Action<float, float, LoadingText> updateProgress)
         {
             updateProgress.Invoke(0, 0, new LoadingText("Loading settings"));
-            FileInfo[] settingsFiles = projectDirectory.GetFiles("*" + ProjectPreferences.EXTENSION, SearchOption.TopDirectoryOnly);
-            if (settingsFiles.Length == 0) throw new SettingsFileNotFoundException(); // Test if settings files found.
-            else if (settingsFiles.Length > 1) throw new MultipleSettingsFilesFoundException(); // Test if multiple settings files found.
-            try
+            if (manifest.SettingsEntries.Count == 0)
             {
-                ProjectPreferences preferences = await ClassLoaderSaver.LoadFromJsonAsync<ProjectPreferences>(
-                    settingsFiles[0].FullName,
-                    LoadingPhase.ProjectSettings,
-                    LoadingPhase.ProjectSettings,
-                    1);
-                LoadingDiagnostics.RecordObjects("ProjectPreferences", 1);
-                updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
-                return preferences;
+                throw new SettingsFileNotFoundException();
             }
-            catch (Exception e)
+            if (manifest.SettingsEntries.Count > 1)
             {
-                throw new CanNotReadSettingsFileException(settingsFiles[0].Name, e);
+                throw new MultipleSettingsFilesFoundException();
             }
+            if (manifest.PreferencesLoadException != null)
+            {
+                throw new CanNotReadSettingsFileException(
+                    Path.GetFileName(manifest.SettingsEntries[0]),
+                    manifest.PreferencesLoadException);
+            }
+
+            LoadingDiagnostics.RecordObjects("ProjectPreferences", 1);
+            updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
+            return manifest.Preferences;
         }
 
         private bool ReferencesMissingDataset(Column column)
@@ -719,52 +738,60 @@ namespace HBP.Core.Data
                 _ => null
             };
         }
-        private async UniTask<List<Patient>> LoadPatientsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Patient>> LoadPatientsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Patient> patients = new();
-            DirectoryInfo patientDirectory = projectDirectory.GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
-            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
+            var tasks = manifest.PatientEntries.Select(entryName => (Func<UniTask<Patient>>)(async () =>
             {
                 try
                 {
-                    var patient = await ClassLoaderSaver.LoadFromJsonAsync<Patient>(
-                        file.FullName,
+                    Patient patient = await archiveReader.ReadAsync<Patient>(
+                        manifest,
+                        entryName,
                         LoadingPhase.ProjectPatientsRead,
                         LoadingPhase.ProjectPatientsDeserialize,
-                        concurrency);
+                        concurrency,
+                        token);
                     LoadingDiagnostics.RecordPatientGraph(patient);
                     return patient;
                 }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
-                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(file.Name), e);
+                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
             patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
             return patients;
         }
-        private async UniTask<List<Group>> LoadGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Group>> LoadGroupsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Group> groups = new();
-            DirectoryInfo groupDirectory = projectDirectory.GetDirectories("Groups", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] groupFiles = groupDirectory.GetFiles("*" + Group.EXTENSION, SearchOption.TopDirectoryOnly);
             int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
-            var tasks = groupFiles.Select(file => (Func<UniTask<Group>>)(async () =>
+            var tasks = manifest.GroupEntries.Select(entryName => (Func<UniTask<Group>>)(async () =>
             {
                 try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Group>(
-                        file.FullName,
+                    return await archiveReader.ReadAsync<Group>(
+                        manifest,
+                        entryName,
                         LoadingPhase.ProjectGroups,
                         LoadingPhase.ProjectGroups,
-                        concurrency);
+                        concurrency,
+                        token);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
-                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(file.Name), e);
+                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
             groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
@@ -772,25 +799,29 @@ namespace HBP.Core.Data
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
             return groups;
         }
-        private async UniTask<List<Dataset>> LoadDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Dataset>> LoadDatasetsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             List<Dataset> datasets = new();
-            DirectoryInfo datasetDirectory = projectDirectory.GetDirectories("Datasets", SearchOption.TopDirectoryOnly)[0];
-            FileInfo[] datasetFiles = datasetDirectory.GetFiles("*" + Dataset.EXTENSION, SearchOption.TopDirectoryOnly);
             int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
-            var tasks = datasetFiles.Select(file => (Func<UniTask<Dataset>>)(async () =>
+            var tasks = manifest.DatasetEntries.Select(entryName => (Func<UniTask<Dataset>>)(async () =>
             {
                 try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Dataset>(
-                        file.FullName,
+                    return await archiveReader.ReadAsync<Dataset>(
+                        manifest,
+                        entryName,
                         LoadingPhase.ProjectDatasets,
                         LoadingPhase.ProjectDatasets,
-                        concurrency);
+                        concurrency,
+                        token);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
-                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(file.Name), e);
+                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
             datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
@@ -798,25 +829,29 @@ namespace HBP.Core.Data
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
             return datasets;
         }
-        private async UniTask<List<Visualization>> LoadVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Visualization>> LoadVisualizationsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            DirectoryInfo visualizationsDirectory = projectDirectory.GetDirectories("Visualizations", SearchOption.TopDirectoryOnly)[0];
             List<Visualization> visualizations = new();
-            FileInfo[] visualizationFiles = visualizationsDirectory.GetFiles("*" + Visualization.EXTENSION, SearchOption.TopDirectoryOnly);
             int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
-            var tasks = visualizationFiles.Select(file => (Func<UniTask<Visualization>>)(async () =>
+            var tasks = manifest.VisualizationEntries.Select(entryName => (Func<UniTask<Visualization>>)(async () =>
             {
                 try
                 {
-                    return await ClassLoaderSaver.LoadFromJsonAsync<Visualization>(
-                        file.FullName,
+                    return await archiveReader.ReadAsync<Visualization>(
+                        manifest,
+                        entryName,
                         LoadingPhase.ProjectVisualizations,
                         LoadingPhase.ProjectVisualizations,
-                        concurrency);
+                        concurrency,
+                        token);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception e)
                 {
-                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(file.Name), e);
+                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
             visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));

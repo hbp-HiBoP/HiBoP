@@ -82,6 +82,9 @@ namespace HBP.Tests.Serialization
             Assert.That(info.Groups, Is.EqualTo(source.Groups.Count));
             Assert.That(info.Datasets, Is.EqualTo(source.Datasets.Count));
             Assert.That(info.Visualizations, Is.EqualTo(source.Visualizations.Count));
+            Assert.That(info.Manifest, Is.Not.Null);
+            Assert.That(info.Manifest.SchemaVersion, Is.EqualTo(ProjectManifest.LegacySchemaVersion));
+            Assert.That(info.Manifest.ProductVersion, Is.EqualTo(source.Preferences.Version));
         }
 
         [Test]
@@ -150,6 +153,26 @@ namespace HBP.Tests.Serialization
             Dataset loadedDataset = loaded.Datasets.Single();
             Assert.That(loadedDataset.Protocol, Is.SameAs(databaseProtocol));
             Assert.That(loadedDataset.Data.Select(data => data.Protocol), Is.All.SameAs(databaseProtocol));
+        }
+
+        [Test]
+        public async Task LoadAsync_LegacyProtocolsFolder_IsIgnored()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+
+            Project source = SyntheticProjectFactory.CreateCompleteProject();
+            string archivePath = await SaveProject(temp, source);
+            AddZipEntryContent(archivePath, "Protocols/", string.Empty);
+            AddZipEntryContent(archivePath, "Protocols/ignored" + Protocol.EXTENSION, "{ this is deliberately invalid json");
+
+            Protocol databaseProtocol = SyntheticProjectFactory.CreateProtocol();
+            ProjectInfo info = new(archivePath);
+            Project loaded = await LoadProject(temp, archivePath, databaseProtocol);
+
+            Assert.That(info.Manifest.Entries.Keys.Any(name => name.StartsWith("Protocols/", StringComparison.OrdinalIgnoreCase)), Is.False);
+            Assert.That(loaded.Datasets.Single().Protocol, Is.SameAs(databaseProtocol));
         }
 
         [Test]
@@ -235,6 +258,25 @@ namespace HBP.Tests.Serialization
 
             Assert.That(exception, Is.TypeOf<OperationCanceledException>());
             Assert.That(Directory.Exists(ApplicationState.ExtractProjectFolder), Is.False);
+        }
+
+        [Test]
+        public async Task LoadAsync_DoesNotTouchExtractionFolder()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+
+            Project source = SyntheticProjectFactory.CreateCompleteProject();
+            string archivePath = await SaveProject(temp, source);
+            Directory.CreateDirectory(ApplicationState.ExtractProjectFolder);
+            string sentinelPath = Path.Combine(ApplicationState.ExtractProjectFolder, "sentinel.txt");
+            File.WriteAllText(sentinelPath, "must remain untouched");
+
+            Project loaded = await LoadProject(temp, archivePath);
+
+            Assert.That(loaded.Patients, Has.Count.EqualTo(source.Patients.Count));
+            Assert.That(File.ReadAllText(sentinelPath), Is.EqualTo("must remain untouched"));
         }
 
         [Test, Timeout(5000)]
@@ -344,7 +386,7 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
-        public async Task ProjectInfo_CorruptedSettingsJson_MarksArchiveAsNotLoadableAndCleansTemporaryExtraction()
+        public async Task ProjectInfo_CorruptedSettingsJson_MarksArchiveAsNotLoadableWithoutTouchingTemporaryFolder()
         {
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope appState = new(temp.Path);
@@ -353,13 +395,32 @@ namespace HBP.Tests.Serialization
             Project source = SyntheticProjectFactory.CreateMinimalProject();
             string archivePath = await SaveProject(temp, source);
             ReplaceZipEntryContent(archivePath, source.Name + ProjectPreferences.EXTENSION, "{ this is not valid json");
+            string sentinelPath = Path.Combine(ApplicationState.TMPFolder, "sentinel.txt");
+            File.WriteAllText(sentinelPath, "must remain untouched");
 
             ProjectInfo info = new(archivePath);
 
             Assert.That(info.Settings.CanLoadProject, Is.False);
             Assert.That(info.SettingsLoadException, Is.Not.Null);
             Assert.That(info.SettingsLoadException.Message, Is.Not.Empty);
-            Assert.That(Directory.Exists(ApplicationState.TMPFolder), Is.False);
+            Assert.That(File.ReadAllText(sentinelPath), Is.EqualTo("must remain untouched"));
+        }
+
+        [TestCase("../outside.patient")]
+        [TestCase("/absolute.patient")]
+        [TestCase("C:/absolute.patient")]
+        public async Task ProjectManifest_RejectsUnsafeArchiveEntryNames(string unsafeEntryName)
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+
+            Project source = SyntheticProjectFactory.CreateMinimalProject();
+            string archivePath = await SaveProject(temp, source);
+            AddZipEntryContent(archivePath, unsafeEntryName, "{}");
+
+            Assert.That(Project.IsProject(archivePath), Is.False);
+            Assert.Throws<DirectoryNotProjectException>(() => _ = new ProjectInfo(archivePath));
         }
 
         [Test, Timeout(5000)]
@@ -923,6 +984,7 @@ namespace HBP.Tests.Serialization
             Assert.That(exception, Is.TypeOf(expectedExceptionType));
             Assert.That(exception.InnerException, Is.Not.Null);
             Assert.That(Directory.Exists(ApplicationState.ExtractProjectFolder), Is.False);
+            AssertArchiveIsUnlocked(archivePath);
         }
 
         private static async Task AssertLoadCancellationFromProgress(string cancellationStep)
@@ -952,6 +1014,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(exception, Is.TypeOf<OperationCanceledException>());
             Assert.That(Directory.Exists(ApplicationState.ExtractProjectFolder), Is.False);
+            AssertArchiveIsUnlocked(archivePath);
         }
 
         private static async Task<string> SaveProject(TempDirectoryScope temp, Project project, string directoryName = "saved")
@@ -985,7 +1048,14 @@ namespace HBP.Tests.Serialization
 
             DatabaseManager.Database.SetProtocols(databaseProtocols.Length > 0 ? databaseProtocols : new[] { SyntheticProjectFactory.CreateProtocol() });
             await loaded.LoadAsync(info, NoProgress, CancellationToken.None);
+            AssertArchiveIsUnlocked(archivePath);
             return loaded;
+        }
+
+        private static void AssertArchiveIsUnlocked(string archivePath)
+        {
+            using FileStream stream = new(archivePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            Assert.That(stream.CanRead, Is.True);
         }
 
         private static void AssertArchiveContainsProjectDirectories(string archivePath)

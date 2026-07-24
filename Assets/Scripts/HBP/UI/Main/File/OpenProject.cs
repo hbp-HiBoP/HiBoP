@@ -86,12 +86,11 @@ namespace HBP.UI.Main
             {
                 m_OKButton.interactable = false;
                 m_ProjectList.Set(new ProjectInfo[0]);
-                string[] paths = Project.GetProject(path).ToArray();
-                foreach (string projectPath in paths)
+                await UniTask.SwitchToThreadPool();
+                ProjectInfo[] projects = Project.GetProjectInfos(path).ToArray();
+                await UniTask.SwitchToMainThread();
+                foreach (ProjectInfo project in projects)
                 {
-                    await UniTask.SwitchToThreadPool();
-                    ProjectInfo project = new(projectPath);
-                    await UniTask.SwitchToMainThread();
                     if (project.SettingsLoadException != null)
                     {
                         Debug.LogException(project.SettingsLoadException);

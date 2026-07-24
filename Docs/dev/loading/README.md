@@ -35,6 +35,16 @@ base locale et les projets `.hibop`.
   atomique.
 - [Résultats de l'étape 4](resultats_etape_4_2026-07-24.md) : comparaison
   avant/après sur la nouvelle machine avec `Default` et `full_test`.
+- [Lecture et écriture JSON streamées — étape 5](etape_5_json_streame_2026-07-24.md) :
+  settings lecture/écriture séparés, suppression des grandes chaînes
+  intermédiaires et indentation conservée.
+- [Résultats de l'étape 5](resultats_etape_5_2026-07-24.md) : comparaison des
+  médianes chaudes, GC et limites des marqueurs streamés.
+- [Manifeste projet et lecture ZIP directe — étape 6](etape_6_manifeste_zip_direct_2026-07-24.md) :
+  format inchangé, lecture sans extraction, compatibilité et sécurité des
+  entrées.
+- [Résultats de l'étape 6](resultats_etape_6_2026-07-24.md) : comparaison des
+  médianes chaudes et analyse séparée de l'incident Unity.
 
 ## Conclusion courte
 
@@ -85,3 +95,20 @@ instrumenté de liaison baisse de 80,2 % sur la base et de 87,2 % sur le projet.
 Sur la médiane de trois passes chaudes après implémentation, le temps mural
 baisse de 5,1 % sur la base et de 17,1 % sur le projet par rapport à la capture
 de référence.
+
+L'étape 5 est implémentée et validée fonctionnellement. Les lectures et
+écritures JSON utilisent maintenant les streams Json.NET, sans chaîne complète
+intermédiaire, et les contraintes `new()` inutiles ont été retirées. Tous les
+fichiers restent indentés afin de préserver leur édition manuelle. Le
+benchmark montre une baisse médiane du temps mural de 10,3 % sur la base et de
+19,3 % sur le projet. Les collections GC diminuent respectivement de 41,8 % et
+25,0 %. La première passe après compilation reste plus lente que la référence
+chaude.
+
+L'étape 6 est implémentée et validée fonctionnellement. Le format `.hibop`
+écrit reste identique, mais son index, ses settings et ses objets sont
+désormais lus directement depuis les streams ZIP. Le dossier d'extraction
+n'est plus utilisé pendant le chargement. Les anciens dossiers `Protocols/`
+sont acceptés mais entièrement ignorés. Sur `full_test`, la médiane chaude
+passe de 2 929,8 ms à 1 792,5 ms (-38,8 %) et la lecture de l'archive de
+1 082,9 ms à 105,2 ms (-90,3 %).

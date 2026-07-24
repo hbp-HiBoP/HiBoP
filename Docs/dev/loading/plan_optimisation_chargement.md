@@ -266,11 +266,18 @@ flowchart LR
 
 ## Étape 5 — Réduire les copies et la taille JSON sans nouveau schéma
 
+**Statut au 24 juillet 2026 : implémentée, validée et benchmarkée.**
+Voir
+[`etape_5_json_streame_2026-07-24.md`](etape_5_json_streame_2026-07-24.md).
+Les résultats sur le workspace `Default` et le projet `full_test` sont dans
+[`resultats_etape_5_2026-07-24.md`](resultats_etape_5_2026-07-24.md).
+
 ### Changements
 
 - settings de lecture séparés des settings d'écriture ;
-- `Formatting.None` pour la base ;
+- `Formatting.Indented` conservé partout pour permettre l'édition manuelle ;
 - `JsonSerializer.Deserialize` sur `JsonTextReader`/`StreamReader` ;
+- `JsonSerializer.Serialize` sur `JsonTextWriter`/`StreamWriter` ;
 - suppression de l'instance `new T()` inutile dans `LoadFromJson<T>` ;
 - suppression de la contrainte `where T : new()` si elle n'est plus requise ;
 - buffer de stream cohérent et métriques d'octets.
@@ -280,9 +287,9 @@ flowchart LR
 La lecture streamée réduit surtout le pic mémoire et le passage par de grandes
 chaînes. Elle ne corrigera pas une résolution de graphe quadratique.
 
-Le format compact reste lisible par les versions actuelles de Json.NET. Il
-faudra seulement accepter que les diffs manuels de fichiers deviennent moins
-pratiques.
+La réduction de taille par JSON compact a été écartée : les utilisateurs
+ouvrent et modifient parfois les projets `.hibop` à la main. Les settings
+d'écriture restent donc explicitement sur `Formatting.Indented`.
 
 ### Tests
 
@@ -292,6 +299,14 @@ pratiques.
 - Mono et IL2CPP.
 
 ## Étape 6 — Simplifier le projet `.hibop`
+
+**Statut au 24 juillet 2026 : implémentée, validée et benchmarkée.**
+Voir
+[`etape_6_manifeste_zip_direct_2026-07-24.md`](etape_6_manifeste_zip_direct_2026-07-24.md).
+Les résultats sur le projet `full_test` sont dans
+[`resultats_etape_6_2026-07-24.md`](resultats_etape_6_2026-07-24.md).
+La médiane chaude du chargement projet baisse de 38,8 % par rapport à l'étape
+5 ; la phase de lecture de l'archive baisse de 90,3 %.
 
 ### Manifeste unique
 
@@ -323,13 +338,18 @@ Une fois le pipeline de liaison stable :
 ### Rétrocompatibilité
 
 Le manifeste doit tolérer l'absence de `schemaVersion`. Dans ce cas, le projet
-est classé `legacy-v0`. Les entrées historiques, notamment `Protocols/`, sont
-indexées même si la politique courante choisit la base comme source canonique.
+est classé `legacy-v0`.
+
+La présence d'entrées supplémentaires ne doit pas invalider une archive
+autrement correcte. En particulier, un ancien dossier `Protocols/` est ignoré :
+ses entrées ne sont ni désérialisées, ni liées, ni utilisées pour construire le
+projet. Les protocoles de la base restent l'unique source canonique.
 
 ### Tests
 
 - fixtures actuelles ;
-- ancien projet avec dossier `Protocols/` ;
+- ancien projet avec dossier `Protocols/`, chargé avec succès en vérifiant que
+  son contenu est ignoré ;
 - archive incomplète ;
 - noms d'entrées malveillants (`../`, chemins absolus) ;
 - annulation et fermeture propre des streams ;
