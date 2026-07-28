@@ -13,6 +13,10 @@ namespace HBP.Core.Data
         public virtual Dictionary<string, string> UnitByChannel { get; set; }
         public virtual Tools.Frequency Frequency { get; set; }
         protected Dictionary<int, List<EventOccurence>> m_OccurencesByCode;
+        internal EEGValidationMetadata ValidationMetadata =>
+            new(
+                m_OccurencesByCode?.Keys ?? Enumerable.Empty<int>(),
+                ValuesByChannel?.Keys ?? Enumerable.Empty<string>());
         #endregion
 
         #region Public Methods

@@ -3,10 +3,8 @@ using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Data;
 using HBP.Core.Preferences;
-using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.Core.Database;
-using System;
 
 namespace HBP.UI.Main
 {
@@ -29,34 +27,69 @@ namespace HBP.UI.Main
         #endregion
 
         #region Public Methods
-        public override async void OK()
+        public override void OK()
         {
-            bool requiresCheck = false;
-
-            if (m_AliasListGestion.HasBeenModified)
-            {
-                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Data check required", "Some aliases have been modified. A data integrity check is required to ensure there are no errors.\n\nWould you like to proceed with the check?", "Check", "Cancel");
-
-                if (result == 0)
-                    requiresCheck = true;
-                else
-                    return;
-            }
-
+            Project project = ApplicationState.LoadedProject;
+            GlobalDatabase database = DatabaseManager.Database;
+            ValidationRequest projectRequest =
+                ValidationImpactAnalyzer.ForAliases(
+                    Object.Aliases,
+                    ObjectTemp.Aliases,
+                    project?.Datasets.SelectMany(dataset => dataset.Data),
+                    project?.Patients);
+            ValidationRequest databaseRequest =
+                ValidationImpactAnalyzer.ForAliases(
+                    Object.Aliases,
+                    ObjectTemp.Aliases,
+                    database.DataInfos,
+                    database.Patients);
             base.OK();
-            Object.SetAliases(m_AliasListGestion.List.Objects.ToList());
             PersistentDataManager.Aliases.Save();
-            ApplicationState.LoadedProject?.InvalidateValidation();
-
-            if (requiresCheck)
+            MarkAliasDependentStatesStale(
+                projectRequest,
+                project?.Datasets.SelectMany(dataset => dataset.Data),
+                project?.Patients);
+            MarkAliasDependentStatesStale(
+                databaseRequest,
+                database.DataInfos,
+                database.Patients);
+            if (projectRequest.Aspects != ValidationAspect.None)
             {
-                DataInfo[] dataInfos = DatabaseManager.Database.DataInfos
-                    .Concat(
-                        ApplicationState.LoadedProject?.Datasets.SelectMany(dataset => dataset.Data)
-                        ?? Enumerable.Empty<DataInfo>())
-                    .ToArray();
-                LoadingManager.Load(
-                    update => Dataset.CheckDatasetsAsync(dataInfos, true, update));
+                project?.InvalidateValidation(projectRequest);
+            }
+            if (databaseRequest.Aspects != ValidationAspect.None)
+            {
+                database.InvalidateValidation(databaseRequest);
+            }
+        }
+
+        private static void MarkAliasDependentStatesStale(
+            ValidationRequest request,
+            System.Collections.Generic.IEnumerable<DataInfo> dataInfos,
+            System.Collections.Generic.IEnumerable<Patient> patients)
+        {
+            foreach (DataInfo dataInfo in dataInfos ??
+                System.Array.Empty<DataInfo>())
+            {
+                if (request.Matches(
+                    dataInfo,
+                    ValidationAspect.SourceAvailability))
+                {
+                    dataInfo.MarkValidationStale(
+                        ValidationAspect.SourceAvailability |
+                        ValidationAspect.SourceReadability |
+                        ValidationAspect.StaticContent |
+                        ValidationAspect.Epoching |
+                        ValidationAspect.ChannelMapping);
+                }
+            }
+            foreach (Patient patient in patients ??
+                System.Array.Empty<Patient>())
+            {
+                if (request.Matches(patient))
+                {
+                    patient.MarkAssetValidationStale();
+                }
             }
         }
         #endregion

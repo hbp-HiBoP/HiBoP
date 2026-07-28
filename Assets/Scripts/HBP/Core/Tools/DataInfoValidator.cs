@@ -54,9 +54,36 @@ namespace HBP.Core.Data
     /// </summary>
     public sealed class DataInfoValidator
     {
+        private readonly IEEGValidationMetadataReader m_MetadataReader;
+
+        public DataInfoValidator(
+            IEEGValidationMetadataReader metadataReader = null)
+        {
+            m_MetadataReader = metadataReader;
+        }
+
         public async UniTask<DataInfoValidationResult> ValidateAsync(
             IEnumerable<DataInfo> dataInfos,
             bool force,
+            int maxConcurrency,
+            CancellationToken token,
+            Action<int, int> updateProgress = null,
+            long generation = 0)
+        {
+            return await ValidateAsync(
+                dataInfos,
+                new ValidationRequest(
+                    ValidationAspect.DataInfoAll,
+                    force: force),
+                maxConcurrency,
+                token,
+                updateProgress,
+                generation);
+        }
+
+        public async UniTask<DataInfoValidationResult> ValidateAsync(
+            IEnumerable<DataInfo> dataInfos,
+            ValidationRequest request,
             int maxConcurrency,
             CancellationToken token,
             Action<int, int> updateProgress = null,
@@ -66,9 +93,15 @@ namespace HBP.Core.Data
             {
                 throw new ArgumentNullException(nameof(dataInfos));
             }
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
 
             token.ThrowIfCancellationRequested();
-            DataInfo[] snapshot = dataInfos.Where(dataInfo => dataInfo != null).ToArray();
+            DataInfo[] snapshot = dataInfos
+                .Where(request.Matches)
+                .ToArray();
             DataInfoValidationResult.Entry[] results =
                 new DataInfoValidationResult.Entry[snapshot.Length];
             updateProgress?.Invoke(0, snapshot.Length);
@@ -85,7 +118,7 @@ namespace HBP.Core.Data
                 .Select(_ => ValidateWorkerAsync(
                     snapshot,
                     results,
-                    force,
+                    request,
                     () => Interlocked.Increment(ref nextIndex),
                     () =>
                     {
@@ -109,10 +142,10 @@ namespace HBP.Core.Data
                 results.Where(result => result != null).ToArray());
         }
 
-        private static async UniTask ValidateWorkerAsync(
+        private async UniTask ValidateWorkerAsync(
             IReadOnlyList<DataInfo> snapshot,
             DataInfoValidationResult.Entry[] results,
-            bool force,
+            ValidationRequest request,
             Func<int> nextIndex,
             Action validationCompleted,
             CancellationToken token)
@@ -128,7 +161,10 @@ namespace HBP.Core.Data
                 }
 
                 DataInfo target = snapshot[index];
-                DataInfo validatedSnapshot = target.CreateValidationSnapshot(force);
+                DataInfo validatedSnapshot = target.CreateValidationSnapshot(
+                    request,
+                    request.Force,
+                    m_MetadataReader);
                 if (validatedSnapshot != null)
                 {
                     results[index] = new DataInfoValidationResult.Entry(target, validatedSnapshot);

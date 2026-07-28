@@ -735,6 +735,9 @@ namespace HBP.Core.Data
             EEGRecordingSource source = EEGRecordingSource.From(request.DataInfo);
             RawRecordingSourceKey sourceKey = RawRecordingSourceKey.From(source);
             DynamicData rawData = m_RawRecordingCache.GetOrLoad(sourceKey, () => RawRecordingLoader(source));
+            PublishLoadedValidationMetadata(
+                request.DataInfo,
+                rawData.ValidationMetadata);
 
             Data data;
             if (request.DataInfo is IEEGDataInfo iEEGDataInfo)
@@ -786,6 +789,59 @@ namespace HBP.Core.Data
             if (data is EpochedData)
                 m_RawRecordingCache.RetainOnlyUnpinned(sourceKey);
         }
+
+        private static void PublishLoadedValidationMetadata(
+            DataInfo dataInfo,
+            EEGValidationMetadata metadata)
+        {
+            ValidationAspect aspects =
+                ValidationAspect.SourceReadability;
+            if (dataInfo is IEEGDataInfo ||
+                dataInfo is CCEPDataInfo)
+            {
+                aspects |=
+                    ValidationAspect.Epoching |
+                    ValidationAspect.ChannelMapping;
+            }
+            ValidationRequest request = new(
+                aspects,
+                dataInfoIDs: new[] { dataInfo.ID },
+                force: true);
+            string sourceDefinition =
+                DataInfoValidationContext.GetSourceDefinitionSignature(
+                    dataInfo);
+            DataInfo snapshot = dataInfo.CreateValidationSnapshot(
+                request,
+                true,
+                new LoadedMetadataReader(metadata));
+            if (snapshot != null &&
+                string.Equals(
+                    sourceDefinition,
+                    DataInfoValidationContext
+                        .GetSourceDefinitionSignature(dataInfo),
+                    StringComparison.Ordinal))
+            {
+                dataInfo.ApplyValidationState(snapshot);
+            }
+        }
+
+        private sealed class LoadedMetadataReader :
+            IEEGValidationMetadataReader
+        {
+            private readonly EEGValidationMetadata m_Metadata;
+
+            public LoadedMetadataReader(
+                EEGValidationMetadata metadata)
+            {
+                m_Metadata = metadata;
+            }
+
+            public EEGValidationMetadata Read(DataInfo dataInfo)
+            {
+                return m_Metadata;
+            }
+        }
+
         static void UnLoad(Request request)
         {
             if (!request.IsValid)

@@ -83,6 +83,11 @@ namespace HBP.Core.Data
         /// </summary>
         [JsonProperty] public List<BaseTagValue> Tags { get; set; }
         [JsonProperty] public string CorrespondingDatabaseID { get; set; }
+        [JsonProperty("AssetValidationState")]
+        private ValidationState m_AssetValidationState;
+        [JsonIgnore]
+        public ValidationState AssetValidationState =>
+            m_AssetValidationState?.Clone();
         #endregion
 
         #region Constructors
@@ -173,6 +178,30 @@ namespace HBP.Core.Data
                 foreach (var tag in siteTagsToRemove)
                     site.Tags.Remove(tag);
             }
+        }
+
+        public bool IsAssetValidationCurrent =>
+            m_AssetValidationState != null &&
+            (m_AssetValidationState.Status == ValidationStatus.Current ||
+                m_AssetValidationState.Status ==
+                    ValidationStatus.NotApplicable);
+
+        public void MarkAssetValidationStale()
+        {
+            if (m_AssetValidationState != null &&
+                m_AssetValidationState.Status !=
+                    ValidationStatus.NotApplicable)
+            {
+                m_AssetValidationState =
+                    m_AssetValidationState.WithStatus(
+                        ValidationStatus.Stale);
+            }
+        }
+
+        internal void ApplyAssetValidationState(
+            ValidationState state)
+        {
+            m_AssetValidationState = state?.Clone();
         }
         public UniTask CheckTagsAsync(IEnumerable<BaseTag> tags)
         {
@@ -920,15 +949,28 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static async UniTask<IEnumerable<Patient>> LoadFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, Func<Patient, bool> filter)
         {
-            updateProgress(0, 0, new LoadingText("Loading database"));
-            await UniTask.WaitUntil(() => DatabaseManager.Database.IsLoaded);
+            GlobalDatabase database = DatabaseManager.Database;
+            float databaseWeight = database.NeedsReadyWait ? 0.8f : 0;
+            if (databaseWeight > 0)
+            {
+                await database.EnsureDatabaseReadyAsync(
+                    (progress, duration, text) => updateProgress(
+                        progress * databaseWeight,
+                        duration,
+                        text));
+            }
             await UniTask.SwitchToThreadPool();
             var result = new List<Patient>();
-            int length = DatabaseManager.Database.Patients.Count;
+            int length = database.Patients.Count;
             int progress = 0;
-            foreach (var patient in DatabaseManager.Database.Patients)
+            foreach (var patient in database.Patients)
             {
-                updateProgress((float)progress++ / length, 0, new LoadingText("Loading patients"));
+                updateProgress(
+                    databaseWeight +
+                        (length == 0 ? 1 : (float)progress++ / length) *
+                        (1 - databaseWeight),
+                    0,
+                    new LoadingText("Loading patients"));
                 if (filter(patient)) result.Add(patient);
             }
             return result;
@@ -962,7 +1004,17 @@ namespace HBP.Core.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Patient(Name, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), CorrespondingDatabaseID, ID);
+            Patient clone = new(
+                Name,
+                Meshes.DeepClone(),
+                MRIs.DeepClone(),
+                Sites.DeepClone(),
+                Tags.DeepClone(),
+                CorrespondingDatabaseID,
+                ID);
+            clone.m_AssetValidationState =
+                m_AssetValidationState?.Clone();
+            return clone;
         }
         /// <summary>
         /// Copy the instance.
@@ -979,6 +1031,8 @@ namespace HBP.Core.Data
                 Sites = patient.Sites;
                 Tags = patient.Tags;
                 CorrespondingDatabaseID = patient.CorrespondingDatabaseID;
+                m_AssetValidationState =
+                    patient.m_AssetValidationState?.Clone();
             }
         }
         #endregion

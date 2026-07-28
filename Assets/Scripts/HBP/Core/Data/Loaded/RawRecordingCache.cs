@@ -29,7 +29,17 @@ namespace HBP.Core.Data
             if (dataInfo.DataContainer is Container.EDF edf)
                 return new EEGRecordingSource(DLL.EEG.File.FileType.EDF, new[] { edf.File });
             if (dataInfo.DataContainer is Container.Elan elan)
-                return new EEGRecordingSource(DLL.EEG.File.FileType.ELAN, new[] { elan.EEG, elan.POS, elan.Notes }, new[] { elan.EEG, elan.EEGHeader, elan.POS, elan.Notes });
+            {
+                string optionalNotes =
+                    !string.IsNullOrWhiteSpace(elan.Notes) &&
+                    File.Exists(elan.Notes)
+                        ? elan.Notes
+                        : string.Empty;
+                return new EEGRecordingSource(
+                    DLL.EEG.File.FileType.ELAN,
+                    new[] { elan.EEG, elan.POS, optionalNotes },
+                    new[] { elan.EEG, elan.EEGHeader, elan.POS });
+            }
             if (dataInfo.DataContainer is Container.Micromed micromed)
                 return new EEGRecordingSource(DLL.EEG.File.FileType.Micromed, new[] { micromed.Path });
             if (dataInfo.DataContainer is Container.FIF fif)
@@ -38,7 +48,7 @@ namespace HBP.Core.Data
             throw new Exception("Invalid data container type");
         }
 
-        private static IEnumerable<string> GetBrainVisionReferencedFiles(string headerPath)
+        internal static IEnumerable<string> GetBrainVisionReferencedFiles(string headerPath)
         {
             if (string.IsNullOrWhiteSpace(headerPath) || !System.IO.File.Exists(headerPath))
                 return Array.Empty<string>();

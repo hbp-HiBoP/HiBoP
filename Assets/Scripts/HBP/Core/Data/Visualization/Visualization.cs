@@ -337,6 +337,39 @@ namespace HBP.Core.Data
         {
             return IEEGColumns.Select(c => GetDataInfo(patient, c)).Distinct();
         }
+
+        public IEnumerable<DataInfo> GetRequiredDataInfos()
+        {
+            IEnumerable<DataInfo> dynamicDataInfos = Columns
+                .Where(column =>
+                    column is IEEGColumn ||
+                    column is CCEPColumn)
+                .SelectMany(column =>
+                    GetDataInfo(column) ?? Enumerable.Empty<DataInfo>());
+            IEnumerable<DataInfo> fmriDataInfos = FMRIColumns
+                .SelectMany(column =>
+                    column.Dataset.GetFMRIDataInfos()
+                        .Where(data => Patients.Contains(data.Patient))
+                        .Cast<DataInfo>()
+                        .Concat(column.Dataset.GetSharedFMRIDataInfos()));
+            IEnumerable<DataInfo> megDataInfos = MEGColumns
+                .SelectMany(column =>
+                    column.Dataset.GetMEGDataInfos()
+                        .Where(data => Patients.Contains(data.Patient)));
+            IEnumerable<DataInfo> staticDataInfos = StaticColumns
+                .SelectMany(column =>
+                    column.Dataset.GetStaticDataInfos()
+                        .Where(data =>
+                            Patients.Contains(data.Patient) &&
+                            column.DataName == data.Name));
+            return dynamicDataInfos
+                .Concat(fmriDataInfos)
+                .Concat(megDataInfos)
+                .Concat(staticDataInfos)
+                .Where(dataInfo => dataInfo != null)
+                .Distinct();
+        }
+
         public override void GenerateID()
         {
             base.GenerateID();

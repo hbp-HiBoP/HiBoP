@@ -22,6 +22,7 @@ namespace HBP.UI.Module3D
         [SerializeField] private Dropdown m_DataSourceDropdown;
         [SerializeField] private Dropdown m_DataNameDropdown;
         List<IEEGDataInfo> m_IEEGDataInfos = new();
+        private int m_DataNameRefreshGeneration;
 
         static string m_DataNameDropdownValue;
         static DataSource m_DataSourceDropdownValue = DataSource.Project;
@@ -30,13 +31,63 @@ namespace HBP.UI.Module3D
         #region Private Methods
         private void UpdateDataNameDropdown()
         {
-            m_IEEGDataInfos = (DataSource)m_DataSourceDropdown.value switch
+            int generation = ++m_DataNameRefreshGeneration;
+            DataSource source = (DataSource)m_DataSourceDropdown.value;
+            if (source == DataSource.Database)
             {
-                DataSource.Project => ApplicationState.LoadedProject.Datasets.SelectMany(ds => ds.GetIEEGDataInfos()).ToList(),
-                DataSource.Database => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().ToList(),
-                _ => new List<IEEGDataInfo>(),
-            };
+                UpdateDatabaseDataNamesAsync(generation).Forget();
+                return;
+            }
+
+            SetDataInfos(
+                source == DataSource.Project
+                    ? ApplicationState.LoadedProject.Datasets
+                        .SelectMany(dataset => dataset.GetIEEGDataInfos())
+                        .ToList()
+                    : new List<IEEGDataInfo>());
+        }
+
+        private async UniTaskVoid UpdateDatabaseDataNamesAsync(int generation)
+        {
+            GlobalDatabase database = DatabaseManager.Database;
+            if (database.NeedsReadyWait)
+            {
+                try
+                {
+                    await LoadingManager.LoadAsync(
+                        (update, token) =>
+                            database.EnsureDatabaseReadyAsync(
+                                update,
+                                token));
+                }
+                catch (System.Exception)
+                {
+                    return;
+                }
+            }
+
+            await UniTask.SwitchToMainThread();
+            if (generation != m_DataNameRefreshGeneration ||
+                (DataSource)m_DataSourceDropdown.value != DataSource.Database)
+            {
+                return;
+            }
+            SetDataInfos(
+                database.DataInfos
+                    .OfType<IEEGDataInfo>()
+                    .ToList());
+        }
+
+        private void SetDataInfos(List<IEEGDataInfo> dataInfos)
+        {
+            m_IEEGDataInfos = dataInfos;
             m_DataNameDropdown.options = m_IEEGDataInfos.Select(d => d.Name).Distinct().OrderBy(name => name).Select(dataName => new Dropdown.OptionData(dataName)).ToList();
+            int index = m_IEEGDataInfos.FindIndex(
+                info => info.Name == m_DataNameDropdownValue);
+            m_DataNameDropdown.SetValueWithoutNotify(
+                index >= 0 && index < m_DataNameDropdown.options.Count
+                    ? index
+                    : 0);
             m_DataNameDropdown.RefreshShownValue();
         }
         #endregion
@@ -51,6 +102,15 @@ namespace HBP.UI.Module3D
         public override async UniTask ApplyAsync()
         {
             await UniTask.SwitchToMainThread();
+
+            if ((DataSource)m_DataSourceDropdown.value == DataSource.Database)
+            {
+                GlobalDatabase database = DatabaseManager.Database;
+                SetDataInfos(
+                    database.DataInfos
+                        .OfType<IEEGDataInfo>()
+                        .ToList());
+            }
 
             List<ChannelStruct> channelStructs = Sites.Select(s => new ChannelStruct(s)).Distinct().ToList();
 
@@ -74,7 +134,54 @@ namespace HBP.UI.Module3D
                 return;
             }
 
-            OpenTrialMatrixExplorer(channelStructs, m_IEEGDataInfos, selectedDataName);
+            List<IEEGDataInfo> selectedDataInfos = m_IEEGDataInfos
+                .Where(info => info.Name == selectedDataName)
+                .ToList();
+            ValidationRequest validationRequest = new(
+                ValidationAspect.SourceAvailability |
+                    ValidationAspect.SourceReadability |
+                    ValidationAspect.Epoching |
+                    ValidationAspect.ChannelMapping,
+                dataInfoIDs: selectedDataInfos.Select(info => info.ID));
+            try
+            {
+                if ((DataSource)m_DataSourceDropdown.value == DataSource.Database)
+                {
+                    GlobalDatabase database = DatabaseManager.Database;
+                    if (database.RequiresValidation(validationRequest))
+                    {
+                        await LoadingManager.LoadAsync(
+                            (update, token) =>
+                                database.EnsureDatabaseValidatedAsync(
+                                    validationRequest,
+                                    update,
+                                    token));
+                    }
+                }
+                else
+                {
+                    Project project = ApplicationState.LoadedProject;
+                    if (project != null &&
+                        project.RequiresValidation(validationRequest))
+                    {
+                        await LoadingManager.LoadAsync(
+                            (update, token) =>
+                                project.EnsureProjectValidatedAsync(
+                                    validationRequest,
+                                    update,
+                                    token));
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                return;
+            }
+
+            OpenTrialMatrixExplorer(
+                channelStructs,
+                selectedDataInfos,
+                selectedDataName);
         }
         protected virtual void OpenTrialMatrixExplorer(List<ChannelStruct> channelStructs, List<IEEGDataInfo> dataInfos, string dataName)
         {
@@ -90,9 +197,6 @@ namespace HBP.UI.Module3D
         public override void LoadSettings()
         {
             m_DataSourceDropdown.Set(typeof(DataSource), (int)m_DataSourceDropdownValue);
-            UpdateDataNameDropdown();
-            int index = m_IEEGDataInfos.FindIndex(info => info.Name == m_DataNameDropdownValue);
-            m_DataNameDropdown.value = index >= 0 && index < m_DataNameDropdown.options.Count ? index : 0;
         }
         #endregion
     }

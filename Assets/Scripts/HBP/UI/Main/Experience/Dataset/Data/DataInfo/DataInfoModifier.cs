@@ -64,8 +64,13 @@ namespace HBP.UI.Main
         /// </summary>
         public override void OK()
         {
+            ValidationRequest request =
+                ValidationImpactAnalyzer.ForDataInfo(
+                    m_Object,
+                    ObjectTemp);
             m_Object = ObjectTemp;
-            m_Object.RequireErrorCheck = true;
+            m_Object.PendingValidationRequest = request;
+            m_Object.MarkValidationStale(request.Aspects);
             base.OK();
         }
         /// <summary>

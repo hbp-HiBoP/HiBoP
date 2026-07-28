@@ -42,6 +42,8 @@ namespace HBP.Core.Data
         private string m_LoadingProjectPath;
         private long m_LoadingGeneration;
         private bool m_ValidationPublished;
+        private ValidationRequest m_ValidationRequest =
+            ValidationRequest.Startup;
 
         public SharedLoadingOperation<Project> CurrentLoadingOperation
         {
@@ -63,6 +65,39 @@ namespace HBP.Core.Data
                     return !m_ValidationPublished;
                 }
             }
+        }
+
+        public bool RequiresValidation(ValidationRequest request)
+        {
+            if (request == null || request.Aspects == ValidationAspect.None)
+            {
+                return false;
+            }
+
+            lock (m_LoadingOperationLock)
+            {
+                if (!m_ValidationPublished)
+                {
+                    return true;
+                }
+            }
+
+            ValidationAspect dataInfoAspects =
+                request.Aspects & ValidationAspect.DataInfoAll;
+            return request.Force ||
+                (request.Includes(ValidationAspect.PatientAssets) &&
+                    m_Patients
+                        .Where(request.Matches)
+                        .Any(patient =>
+                            !patient.IsAssetValidationCurrent)) ||
+                (dataInfoAspects != ValidationAspect.None &&
+                    m_Datasets
+                        .SelectMany(dataset => dataset.Data)
+                        .Where(request.Matches)
+                        .Any(dataInfo =>
+                            !dataInfo.IsValidationCurrent(
+                                dataInfoAspects,
+                                request)));
         }
 
         public event Action OnValidationStateChanged;
@@ -173,10 +208,18 @@ namespace HBP.Core.Data
         /// Set the patients of the project.
         /// </summary>
         /// <param name="patients"></param>
-        public void SetPatients(IEnumerable<Patient> patients)
+        public void SetPatients(
+            IEnumerable<Patient> patients,
+            ValidationRequest validationRequest = null)
         {
-            m_Patients = new List<Patient>();
-            AddPatient(patients);
+            List<Patient> oldPatients = m_Patients;
+            List<Patient> newPatients =
+                patients?.ToList() ?? new List<Patient>();
+            validationRequest ??=
+                ValidationImpactAnalyzer.ForPatients(
+                    oldPatients,
+                    newPatients);
+            m_Patients = newPatients;
             LoadingContext context = new(
                 Array.Empty<BaseTag>(),
                 Array.Empty<Protocol>(),
@@ -197,19 +240,26 @@ namespace HBP.Core.Data
             {
                 group.ResolvePatientReferences(context, false);
             }
+            InvalidateValidation(validationRequest);
         }
         public void AddPatient(Patient patient)
         {
             m_Patients.Add(patient);
-            InvalidateValidation();
+            InvalidateValidation(new ValidationRequest(
+                ValidationAspect.PatientAssets |
+                    ValidationAspect.ChannelMapping,
+                patientIDs: new[] { patient.ID },
+                force: true));
         }
         public void AddPatient(IEnumerable<Patient> patients)
         {
-            foreach (Patient patient in patients)
-            {
-                m_Patients.Add(patient);
-            }
-            InvalidateValidation();
+            Patient[] added = patients.ToArray();
+            m_Patients.AddRange(added);
+            InvalidateValidation(new ValidationRequest(
+                ValidationAspect.PatientAssets |
+                    ValidationAspect.ChannelMapping,
+                patientIDs: added.Select(patient => patient.ID),
+                force: true));
         }
         public void RemovePatient(Patient patient)
         {
@@ -226,14 +276,31 @@ namespace HBP.Core.Data
                 visualization.Patients.Remove(patient);
             }
             m_Patients.Remove(patient);
-            InvalidateValidation();
+            InvalidateValidation(
+                new ValidationRequest(ValidationAspect.None));
         }
         public void RemovePatient(IEnumerable<Patient> patients)
         {
-            foreach (Patient patient in patients)
+            foreach (Patient patient in patients.ToArray())
             {
-                RemovePatient(patient);
+                foreach (Group group in m_Groups)
+                {
+                    group.Patients.Remove(patient);
+                }
+                foreach (Dataset dataset in m_Datasets)
+                {
+                    dataset.RemoveData(
+                        dataset.GetPatientDataInfos()
+                            .Where(data => data.Patient == patient));
+                }
+                foreach (Visualization visualization in m_Visualizations)
+                {
+                    visualization.Patients.Remove(patient);
+                }
+                m_Patients.Remove(patient);
             }
+            InvalidateValidation(
+                new ValidationRequest(ValidationAspect.None));
         }
         // Groups.
         public void SetGroups(IEnumerable<Group> groups)
@@ -264,10 +331,18 @@ namespace HBP.Core.Data
             }
         }
         // Datasets.
-        public void SetDatasets(IEnumerable<Dataset> datasets)
+        public void SetDatasets(
+            IEnumerable<Dataset> datasets,
+            ValidationRequest validationRequest = null)
         {
-            m_Datasets = new List<Dataset>();
-            AddDataset(datasets);
+            List<Dataset> oldDatasets = m_Datasets;
+            List<Dataset> newDatasets =
+                datasets?.ToList() ?? new List<Dataset>();
+            validationRequest ??=
+                ValidationImpactAnalyzer.ForDatasets(
+                    oldDatasets,
+                    newDatasets);
+            m_Datasets = newDatasets;
             foreach (Visualization visualization in m_Visualizations)
             {
                 Column[] columnsToRemove = visualization.Columns.Where(ReferencesMissingDataset).ToArray();
@@ -276,19 +351,27 @@ namespace HBP.Core.Data
                     visualization.Columns.Remove(column);
                 }
             }
+            InvalidateValidation(validationRequest);
         }
         public void AddDataset(Dataset dataset)
         {
             m_Datasets.Add(dataset);
-            InvalidateValidation();
+            InvalidateValidation(new ValidationRequest(
+                ValidationAspect.DataInfoAll,
+                dataInfoIDs:
+                    dataset.Data.Select(dataInfo => dataInfo.ID),
+                force: true));
         }
         public void AddDataset(IEnumerable<Dataset> datasets)
         {
-            foreach (Dataset dataset in datasets)
-            {
-                m_Datasets.Add(dataset);
-            }
-            InvalidateValidation();
+            Dataset[] added = datasets.ToArray();
+            m_Datasets.AddRange(added);
+            InvalidateValidation(new ValidationRequest(
+                ValidationAspect.DataInfoAll,
+                dataInfoIDs: added
+                    .SelectMany(dataset => dataset.Data)
+                    .Select(dataInfo => dataInfo.ID),
+                force: true));
         }
         public void RemoveDataset(Dataset dataset)
         {
@@ -297,14 +380,22 @@ namespace HBP.Core.Data
                 visualization.Columns.RemoveAll(column => ReferencesDataset(column, dataset));
             }
             m_Datasets.Remove(dataset);
-            InvalidateValidation();
+            InvalidateValidation(
+                new ValidationRequest(ValidationAspect.None));
         }
         public void RemoveDataset(IEnumerable<Dataset> datasets)
         {
-            foreach (Dataset dataset in datasets)
+            foreach (Dataset dataset in datasets.ToArray())
             {
-                RemoveDataset(dataset);
+                foreach (Visualization visualization in m_Visualizations)
+                {
+                    visualization.Columns.RemoveAll(
+                        column => ReferencesDataset(column, dataset));
+                }
+                m_Datasets.Remove(dataset);
             }
+            InvalidateValidation(
+                new ValidationRequest(ValidationAspect.None));
         }
         // Visualizations.
         public void SetVisualizations(IEnumerable<Visualization> visualizations)
@@ -463,6 +554,7 @@ namespace HBP.Core.Data
                 {
                     m_LoadingProjectPath = projectInfo.Path;
                     long generation = ++m_LoadingGeneration;
+                    m_ValidationRequest = ValidationRequest.Startup;
                     m_LoadingOperation = new SharedLoadingOperation<Project>(
                         generation,
                         async (progress, operationToken) =>
@@ -484,7 +576,8 @@ namespace HBP.Core.Data
                                     duration,
                                     text),
                                 operationToken,
-                                generation));
+                                generation,
+                                ValidationRequest.Startup));
                 }
                 else if (!string.Equals(m_LoadingProjectPath, projectInfo.Path, StringComparison.Ordinal))
                 {
@@ -699,7 +792,9 @@ namespace HBP.Core.Data
                 if (m_LoadingOperation == null)
                 {
                     long generation = ++m_LoadingGeneration;
-                    m_LoadingOperation = CreateValidationOperation(generation);
+                    m_LoadingOperation = CreateValidationOperation(
+                        generation,
+                        m_ValidationRequest);
                 }
                 operation = m_LoadingOperation;
             }
@@ -731,8 +826,23 @@ namespace HBP.Core.Data
             await operation.EnsureValidatedAsync(token);
         }
 
-        public void InvalidateValidation()
+        public virtual async UniTask EnsureProjectValidatedAsync(
+            ValidationRequest request,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token = default)
         {
+            if (RequiresValidation(request))
+            {
+                InvalidateValidation(request);
+            }
+            await EnsureProjectValidatedAsync(updateProgress, token);
+        }
+
+        public void InvalidateValidation(
+            ValidationRequest request = null)
+        {
+            request ??= ValidationRequest.Full;
+            MarkRequestedValidationStale(request);
             SharedLoadingOperation<Project> operation;
             SharedLoadingOperation<Project> replacement;
             lock (m_LoadingOperationLock)
@@ -745,8 +855,13 @@ namespace HBP.Core.Data
                 operation = m_LoadingOperation;
                 m_LoadingProjectPath = null;
                 long generation = ++m_LoadingGeneration;
+                m_ValidationRequest = m_ValidationPublished
+                    ? request
+                    : m_ValidationRequest.Merge(request);
                 m_ValidationPublished = false;
-                replacement = CreateValidationOperation(generation);
+                replacement = CreateValidationOperation(
+                    generation,
+                    m_ValidationRequest);
                 m_LoadingOperation = replacement;
             }
 
@@ -755,8 +870,41 @@ namespace HBP.Core.Data
             OnValidationStateChanged?.Invoke();
         }
 
+        private void MarkRequestedValidationStale(
+            ValidationRequest request)
+        {
+            ValidationAspect[] aspects =
+            {
+                ValidationAspect.Structure,
+                ValidationAspect.SourceAvailability,
+                ValidationAspect.SourceReadability,
+                ValidationAspect.StaticContent,
+                ValidationAspect.Epoching,
+                ValidationAspect.ChannelMapping
+            };
+            foreach (DataInfo dataInfo in m_Datasets
+                .SelectMany(dataset => dataset.Data))
+            {
+                foreach (ValidationAspect aspect in aspects)
+                {
+                    if (request.Matches(dataInfo, aspect))
+                    {
+                        dataInfo.MarkValidationStale(aspect);
+                    }
+                }
+            }
+            foreach (Patient patient in m_Patients)
+            {
+                if (request.Matches(patient))
+                {
+                    patient.MarkAssetValidationStale();
+                }
+            }
+        }
+
         private SharedLoadingOperation<Project> CreateValidationOperation(
-            long generation)
+            long generation,
+            ValidationRequest request)
         {
             return new SharedLoadingOperation<Project>(
                 generation,
@@ -769,21 +917,26 @@ namespace HBP.Core.Data
                             duration,
                             text),
                         operationToken,
-                        generation));
+                        generation,
+                        request));
         }
 
         private async UniTask<bool> ValidateProjectCoreAsync(
             Action<float, float, LoadingText> updateProgress,
             CancellationToken token,
-            long generation)
+            long generation,
+            ValidationRequest request)
         {
             try
             {
                 await UniTask.SwitchToMainThread();
-                Patient[] patients = m_Patients.ToArray();
+                Patient[] patients = request.Includes(
+                        ValidationAspect.PatientAssets)
+                    ? m_Patients.Where(request.Matches).ToArray()
+                    : Array.Empty<Patient>();
                 DataInfo[] dataInfos = m_Datasets
                     .SelectMany(dataset => dataset.Data)
-                    .Where(dataInfo => dataInfo != null)
+                    .Where(request.Matches)
                     .ToArray();
                 float pathWeight = patients.Length == 0
                     ? 0
@@ -824,7 +977,7 @@ namespace HBP.Core.Data
                 DataInfoValidationResult dataInfoResult =
                     await new DataInfoValidator().ValidateAsync(
                         dataInfos,
-                        true,
+                        request,
                         dataInfoConcurrency,
                         token,
                         (completed, total) => updateProgress(
@@ -859,6 +1012,10 @@ namespace HBP.Core.Data
                 return assetResult.HasIssues || dataInfoResult.HasIssues;
             }
             catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (ThreadAbortException)
             {
                 throw;
             }

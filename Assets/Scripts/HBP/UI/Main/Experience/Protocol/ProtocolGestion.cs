@@ -6,7 +6,6 @@ using HBP.UI.Tools;
 using HBP.Core.Database;
 using HBP.UI.Database;
 using Cysharp.Threading.Tasks;
-using System.Linq;
 
 namespace HBP.UI.Main
 {
@@ -32,32 +31,23 @@ namespace HBP.UI.Main
         #region Public Methods
         public override async void OK()
         {
-            bool requiresReload = false;
+            bool requiresReload = DataManager.HasData;
+            ValidationRequest validationRequest =
+                ValidationImpactAnalyzer.ForProtocols(
+                    m_OldValues,
+                    m_ListGestion.List.Objects);
 
-            if (DataManager.HasData)
-            {
-                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data is already loaded. Your recent changes won't be applied unless you reload the data.\n\nWould you like to save and reload now?", "Save&Reload", "Cancel");
-                
-                if (result == 0)
-                    requiresReload = true;
-                else
-                    return;
-            }
-
-            Protocol[] modifiedProtocols = m_ListGestion.ModifiedProtocols.ToArray();
             base.OK();
-            DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
-            ApplicationState.LoadedProject?.InvalidateValidation();
+            DatabaseManager.Database.SetProtocols(
+                m_ListGestion.List.Objects,
+                validationRequest);
+            if (validationRequest.Aspects != ValidationAspect.None)
+            {
+                ApplicationState.LoadedProject?.InvalidateValidation(
+                    validationRequest);
+            }
             await DatabaseWorkflow.SaveProtocolsAsync();
             InteractableStateManager.SetInteractables();
-            if (modifiedProtocols.Length > 0)
-            {
-                DataInfo[] dataInfos = DatabaseManager.Database.DataInfos
-                    .Where(dataInfo => modifiedProtocols.Contains(dataInfo.Protocol))
-                    .ToArray();
-                await LoadingManager.LoadAsync(
-                    update => Dataset.CheckDatasetsAsync(dataInfos, true, update));
-            }
             await UniTask.SwitchToMainThread();
             if (requiresReload)
             {

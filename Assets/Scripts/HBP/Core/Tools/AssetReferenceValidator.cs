@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Errors;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +13,7 @@ namespace HBP.Core.Tools
     {
         private readonly IReadOnlyList<MeshValidation> m_Meshes;
         private readonly IReadOnlyList<MRIValidation> m_MRIs;
+        private readonly IReadOnlyList<PatientValidation> m_Patients;
 
         public long Generation { get; }
         public bool HasIssues =>
@@ -21,11 +23,13 @@ namespace HBP.Core.Tools
         internal PatientAssetValidationResult(
             long generation,
             IReadOnlyList<MeshValidation> meshes,
-            IReadOnlyList<MRIValidation> MRIs)
+            IReadOnlyList<MRIValidation> MRIs,
+            IReadOnlyList<PatientValidation> patients)
         {
             Generation = generation;
             m_Meshes = meshes;
             m_MRIs = MRIs;
+            m_Patients = patients;
         }
 
         public bool TryApply(long currentGeneration)
@@ -42,6 +46,11 @@ namespace HBP.Core.Tools
             foreach (MRIValidation validation in m_MRIs)
             {
                 validation.MRI.ApplyUsabilityValidation(validation.IsUsable);
+            }
+            foreach (PatientValidation validation in m_Patients)
+            {
+                validation.Patient.ApplyAssetValidationState(
+                    validation.State);
             }
             return true;
         }
@@ -67,6 +76,20 @@ namespace HBP.Core.Tools
             {
                 this.MRI = MRI;
                 IsUsable = isUsable;
+            }
+        }
+
+        internal sealed class PatientValidation
+        {
+            public Patient Patient { get; }
+            public ValidationState State { get; }
+
+            public PatientValidation(
+                Patient patient,
+                ValidationState state)
+            {
+                Patient = patient;
+                State = state;
             }
         }
     }
@@ -177,7 +200,154 @@ namespace HBP.Core.Tools
                         IsValid(MRI.SavedFile, extension, validationBySavedPath))))
                 .ToArray();
 
-            return new PatientAssetValidationResult(generation, meshResults, MRIResults);
+            PatientAssetValidationResult.PatientValidation[] patientResults =
+                patientArray
+                    .Select(patient =>
+                    {
+                        string[] savedPaths = GetSavedPaths(patient)
+                            .Where(path => !string.IsNullOrEmpty(path))
+                            .Distinct(pathComparer)
+                            .OrderBy(path => path, pathComparer)
+                            .ToArray();
+                        Error[] errors = GetAssetErrors(
+                            patient,
+                            validationBySavedPath);
+                        string signature = string.Join(
+                            "|",
+                            savedPaths.Select(path =>
+                                validationBySavedPath.TryGetValue(
+                                    path,
+                                    out PathValidation validation)
+                                    ? validation.Signature
+                                    : $"{path}:missing"));
+                        return new PatientAssetValidationResult.PatientValidation(
+                            patient,
+                            new ValidationState(
+                                ValidationAspect.PatientAssets,
+                                patient.ID,
+                                ValidationStatus.Current,
+                                signature,
+                                errors,
+                                Array.Empty<Warning>()));
+                    })
+                    .ToArray();
+
+            return new PatientAssetValidationResult(
+                generation,
+                meshResults,
+                MRIResults,
+                patientResults);
+        }
+
+        private static IEnumerable<string> GetSavedPaths(
+            Patient patient)
+        {
+            IEnumerable<string> meshPaths = patient.Meshes.SelectMany(mesh =>
+                mesh switch
+                {
+                    SingleMesh single =>
+                        new[] { single.SavedPath },
+                    LeftRightMesh leftRight =>
+                        new[]
+                        {
+                            leftRight.SavedLeftHemisphere,
+                            leftRight.SavedRightHemisphere
+                        },
+                    _ => Array.Empty<string>()
+                });
+            return meshPaths.Concat(
+                patient.MRIs.Select(MRI => MRI.SavedFile));
+        }
+
+        private static Error[] GetAssetErrors(
+            Patient patient,
+            IReadOnlyDictionary<string, PathValidation>
+                validationBySavedPath)
+        {
+            List<Error> errors = new();
+            foreach (BaseMesh mesh in patient.Meshes)
+            {
+                if (string.IsNullOrEmpty(mesh.Name))
+                {
+                    errors.Add(new RequiredFieldEmptyError(
+                        "Mesh name is empty"));
+                }
+                switch (mesh)
+                {
+                    case SingleMesh single:
+                        AddPathError(
+                            single.SavedPath,
+                            new[] { BaseMesh.MESH_EXTENSION },
+                            "Mesh",
+                            validationBySavedPath,
+                            errors);
+                        break;
+                    case LeftRightMesh leftRight:
+                        AddPathError(
+                            leftRight.SavedLeftHemisphere,
+                            new[] { BaseMesh.MESH_EXTENSION },
+                            "Left mesh",
+                            validationBySavedPath,
+                            errors);
+                        AddPathError(
+                            leftRight.SavedRightHemisphere,
+                            new[] { BaseMesh.MESH_EXTENSION },
+                            "Right mesh",
+                            validationBySavedPath,
+                            errors);
+                        break;
+                }
+            }
+            foreach (MRI MRI in patient.MRIs)
+            {
+                if (string.IsNullOrEmpty(MRI.Name))
+                {
+                    errors.Add(new RequiredFieldEmptyError(
+                        "MRI name is empty"));
+                }
+                AddPathError(
+                    MRI.SavedFile,
+                    MRI.EXTENSIONS,
+                    "MRI",
+                    validationBySavedPath,
+                    errors);
+            }
+            return errors.ToArray();
+        }
+
+        private static void AddPathError(
+            string savedPath,
+            IEnumerable<string> extensions,
+            string label,
+            IReadOnlyDictionary<string, PathValidation>
+                validationBySavedPath,
+            ICollection<Error> errors)
+        {
+            if (string.IsNullOrEmpty(savedPath))
+            {
+                errors.Add(new RequiredFieldEmptyError(
+                    $"{label} path is empty"));
+                return;
+            }
+            if (!validationBySavedPath.TryGetValue(
+                    savedPath,
+                    out PathValidation validation) ||
+                !validation.Exists)
+            {
+                errors.Add(new FileDoesNotExistError(savedPath));
+                return;
+            }
+            string extension =
+                new FileInfo(validation.FullPath).Extension;
+            if (!extensions.Any(expected =>
+                string.Equals(
+                    extension,
+                    expected,
+                    StringComparison.OrdinalIgnoreCase)))
+            {
+                errors.Add(new WrongExtensionError(
+                    $"{label} has a wrong extension: {savedPath}"));
+            }
         }
 
         private static void RegisterPath(
@@ -254,6 +424,25 @@ namespace HBP.Core.Tools
 
                 PathValidation validation = validations[index];
                 validation.Exists = m_FileExists(validation.FullPath);
+                if (validation.Exists)
+                {
+                    try
+                    {
+                        FileInfo file = new(validation.FullPath);
+                        if (file.Exists)
+                        {
+                            validation.Length = file.Length;
+                            validation.LastWriteTimeUtcTicks =
+                                file.LastWriteTimeUtc.Ticks;
+                        }
+                    }
+                    catch (IOException)
+                    {
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                    }
+                }
                 pathValidated();
             }
         }
@@ -266,13 +455,21 @@ namespace HBP.Core.Tools
             return !string.IsNullOrEmpty(savedPath) &&
                 validationBySavedPath.TryGetValue(savedPath, out PathValidation validation) &&
                 validation.Exists &&
-                new FileInfo(validation.FullPath).Extension == extension;
+                string.Equals(
+                    new FileInfo(validation.FullPath).Extension,
+                    extension,
+                    StringComparison.OrdinalIgnoreCase);
         }
 
         private sealed class PathValidation
         {
             public string FullPath { get; }
             public bool Exists { get; set; }
+            public long Length { get; set; }
+            public long LastWriteTimeUtcTicks { get; set; }
+            public string Signature => Exists
+                ? $"{FullPath}:{Length}:{LastWriteTimeUtcTicks}"
+                : $"{FullPath}:missing";
 
             public PathValidation(string fullPath)
             {

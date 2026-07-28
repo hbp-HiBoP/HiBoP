@@ -37,7 +37,15 @@ namespace HBP.UI.Database
             DatabaseManager.Database.SaveSettings();
 
             if (switchedWorkspace)
-                await DatabaseWorkflow.LoadDatabaseAsync();
+            {
+                try
+                {
+                    await DatabaseWorkflow.LoadDatabaseAsync();
+                }
+                catch (System.Exception)
+                {
+                }
+            }
         }
         public void SwitchWorkspace()
         {

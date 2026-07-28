@@ -24,13 +24,12 @@ namespace HBP.UI.Database
             }
 
             await database.LoadProtocolsAsync();
-            await LoadDatabaseAsync();
+            await UniTask.SwitchToMainThread();
+            await database.StartLoadingSilentlyAsync();
         }
         public static async UniTask LoadDatabaseAsync()
         {
-            var database = DatabaseManager.Database;
-            await database.LoadDatabaseReferencesAsync();
-            await LoadingManager.LoadAsync(update => database.LoadDatabaseAsync(update));
+            await DatabaseManager.Database.ReloadSelectedWorkspaceSilentlyAsync();
         }
         public static async UniTask SaveDatabaseAsync()
         {

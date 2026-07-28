@@ -2,7 +2,7 @@
 
 Date : 24 juillet 2026
 
-Statut : conception validée, lots 8.1 à 8.3 implémentés.
+Statut : conception validée, lots 8.1 à 8.5 implémentés.
 
 Ce document est le point de départ de la dernière étape d'optimisation du
 chargement. Il remplace la portée initiale de l'étape 8, qui ne concernait que
@@ -69,14 +69,19 @@ données sont visualisables.
 
 ### Validated
 
-L'état `Validated` garantit en plus que :
+L'état `Validated` garantit en plus que les aspects demandés par l'opération
+courante sont à jour. Au démarrage et à l'ouverture d'un projet, cela signifie
+uniquement :
 
 - les chemins des meshes et IRM ont été contrôlés ;
-- les erreurs et warnings des `DataInfo` ont été recalculés ;
+- la disponibilité et l'empreinte légère des sources ont été contrôlées ;
 - les résultats correspondent à la génération actuelle du projet ou du
   workspace.
 
-Les opérations dépendantes des fichiers doivent attendre cet état.
+Une opération dépendante des fichiers fournit sa propre `ValidationRequest` et
+attend uniquement les aspects et `DataInfo` qu'elle utilise. Le rapport
+d'intégrité explicite est le seul consommateur qui force tous les aspects sur
+toute la base.
 
 ### États proposés
 
@@ -197,9 +202,7 @@ Lecture et liaison de la base — silencieuses
         ↓
 Publication atomique — Ready
         ↓
-Validation des chemins — silencieuse
-        ↓
-Validation des DataInfo — silencieuse
+Disponibilité des sources et assets — silencieuse
         ↓
 Validated ou ValidatedWithIssues
 ```
@@ -236,9 +239,7 @@ Publication atomique — Ready
         ↓
 Fermeture du loader initial
         ↓
-Validation des chemins — silencieuse
-        ↓
-Validation des DataInfo — silencieuse
+Disponibilité des sources et assets — silencieuse
         ↓
 Validated ou ValidatedWithIssues
 ```
@@ -335,6 +336,49 @@ Les contrôles natifs doivent donc utiliser un budget de concurrence plus
 prudent que les vérifications de chemins. Le crash Unity observé pendant les
 étapes précédentes ne prouve pas que cette couche en était responsable, mais
 il interdit de supposer qu'une concurrence de 20 est sans risque.
+
+## Validation ciblée par dépendances
+
+La validation est divisée en aspects indépendants :
+
+```text
+Structure
+SourceAvailability
+SourceReadability
+StaticContent
+Epoching
+ChannelMapping
+PatientAssets
+```
+
+Chaque `DataInfo` sérialise ses `ValidationState`, diagnostics et signatures.
+Les tableaux publics `Errors` et `Warnings` restent une vue aplatie pour
+préserver les consommateurs existants. Les états historiques sans catégorie
+sont migrés vers le bucket correspondant puis marqués périmés lorsque leur
+signature ne peut pas être démontrée.
+
+Une `ValidationRequest` associe les aspects à leurs IDs de `DataInfo`, patients,
+protocoles et sous-blocs. La fusion conserve les périmètres par aspect : une
+requête d'epoching sur A fusionnée avec une requête de channels sur B ne
+contrôle ni les channels de A ni l'epoching de B.
+
+Les validations sémantiques EEG partagent une seule ouverture native pendant
+une opération. Le lecteur est injectable pour compter les ouvertures dans les
+tests. Aucune liste de triggers ou de channels n'est conservée après
+l'opération.
+
+Les modifications sont analysées par signatures minimales :
+
+- chemin ou container : disponibilité, lisibilité et règles dépendantes ;
+- protocole : epoching des seuls sous-blocs dont l'événement principal change ;
+- code secondaire : aucun accès fichier ;
+- patient : assets modifiés et liaisons si les noms de sites changent ;
+- canal stimulé CCEP : liaison mémoire uniquement ;
+- nom et apparence : structure locale uniquement.
+
+Le changement de workspace et l'ouverture d'un projet ne font jamais de lecture
+native ni de parcours CSV complet. Trial Matrix, la visualisation et les exports
+demandent ensuite leurs prérequis sur les seules données sélectionnées.
 
 ## Parallélisme adaptatif
 
@@ -439,7 +483,33 @@ Critère : aucun accès dépendant des fichiers ne peut contourner la validation
 Critère : aucun écran de base ne lit un graphe non publié et aucune exception
 de fond n'est perdue.
 
-### Lot 8.5 — Scheduler adaptatif
+Implémenté le 28 juillet 2026 : le graphe de base est publié atomiquement à
+`Ready`, sa validation se poursuit silencieusement, les consommateurs
+s'attachent à l'opération partagée avec des barrières explicites et les
+changements de workspace remplacent la génération courante. Une exception de
+fond reste attachée à l'opération jusqu'à sa présentation par un consommateur ;
+la demande suivante peut alors relancer le chargement.
+
+### Lot 8.5 — Validation ciblée par dépendances
+
+- introduire les aspects, requêtes, états et signatures ;
+- séparer les diagnostics par règle ;
+- comparer les clones avant/après et invalider uniquement les dépendances
+  touchées ;
+- conserver une vue publique aplatie compatible ;
+- demander les prérequis exacts à Trial Matrix, la visualisation et aux exports ;
+- réserver la validation complète au rapport d'intégrité.
+
+Critère : le démarrage et l'ouverture d'un projet ne déclenchent aucune lecture
+native ou CSV complète, et une modification locale n'ouvre que les sources
+réellement dépendantes.
+
+Implémenté le 28 juillet 2026 : requêtes fusionnables à périmètres indépendants,
+états sérialisés par aspect et sous-bloc, analyse d'impact protocoles/patients/
+`DataInfo`, lecture EEG injectable et partagée par opération, barrières ciblées
+pour Trial Matrix, visualisation et exports, rapport d'intégrité complet.
+
+### Lot 8.6 — Scheduler adaptatif
 
 - supprimer les valeurs 20 en dur ;
 - séparer les catégories de travail ;

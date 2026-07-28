@@ -76,8 +76,7 @@ namespace HBP.UI.Database
             m_ChannelStructs = new List<ChannelStruct>();
             m_Patients = patients;
             m_DataName = dataName;
-            m_DataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Where(d => d.Name == m_DataName).ToList();
-            LoadingManager.Load((update, token) => LoadDataAsync(update, token));
+            LoadingManager.Load(LoadDatabaseDataAsync);
         }
         public void Set(List<ChannelStruct> channelStructs, List<IEEGDataInfo> dataInfos, string dataName)
         {
@@ -263,6 +262,42 @@ namespace HBP.UI.Database
             await UniTask.SwitchToMainThread();
             SetupDropdowns();
             Visible = m_ChannelStructs.Count > 0 && m_DataInfos.Count > 0;
+        }
+        private async UniTask LoadDatabaseDataAsync(
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token)
+        {
+            GlobalDatabase database = DatabaseManager.Database;
+            await UniTask.SwitchToMainThread();
+            m_DataInfos = database.DataInfos
+                .OfType<IEEGDataInfo>()
+                .Where(dataInfo => dataInfo.Name == m_DataName)
+                .ToList();
+            ValidationRequest validationRequest = new(
+                ValidationAspect.SourceAvailability |
+                    ValidationAspect.SourceReadability |
+                    ValidationAspect.Epoching |
+                    ValidationAspect.ChannelMapping,
+                dataInfoIDs: m_DataInfos.Select(dataInfo => dataInfo.ID));
+            float validationWeight =
+                database.RequiresValidation(validationRequest) ? 0.2f : 0;
+            if (validationWeight > 0)
+            {
+                await database.EnsureDatabaseValidatedAsync(
+                    validationRequest,
+                    (progress, duration, text) => updateProgress(
+                        progress * validationWeight,
+                        duration,
+                        text),
+                    token);
+            }
+
+            await LoadDataAsync(
+                (progress, duration, text) => updateProgress(
+                    validationWeight + progress * (1 - validationWeight),
+                    duration,
+                    text),
+                token);
         }
         private void DisplayMatrix(bool display)
         {

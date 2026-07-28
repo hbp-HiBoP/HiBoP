@@ -79,7 +79,19 @@ namespace HBP.UI.Main
         protected virtual void ChangeProtocol(int index)
         {
             ObjectTemp.Protocol = DatabaseManager.Database.Protocols[index];
-            LoadingManager.Load(update => m_DataInfoListGestion.UpdateAllObjectsAsync(update));
+            foreach (Core.Data.DataInfo dataInfo in ObjectTemp.Data)
+            {
+                dataInfo.MarkValidationStale(Core.Data.ValidationAspect.Epoching);
+                dataInfo.PendingValidationRequest =
+                    (dataInfo.PendingValidationRequest ??
+                        new Core.Data.ValidationRequest(
+                            Core.Data.ValidationAspect.None))
+                    .Merge(new Core.Data.ValidationRequest(
+                        Core.Data.ValidationAspect.Epoching,
+                        dataInfoIDs: new[] { dataInfo.ID },
+                        protocolIDs: new[] { ObjectTemp.Protocol.ID },
+                        force: true));
+            }
         }
         /// <summary>
         /// Change the name.

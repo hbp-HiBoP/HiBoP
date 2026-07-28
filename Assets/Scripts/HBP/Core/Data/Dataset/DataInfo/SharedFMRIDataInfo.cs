@@ -123,6 +123,29 @@ namespace HBP.Core.Data
         #endregion
 
         #region Private Methods
+        internal override IEnumerable<ValidationState> GetValidationStates(
+            ValidationAspect aspect,
+            ValidationRequest request,
+            DataInfoValidationContext context)
+        {
+            IEnumerable<ValidationState> states =
+                base.GetValidationStates(aspect, request, context);
+            if (aspect != ValidationAspect.SourceAvailability ||
+                string.IsNullOrEmpty(MaskDataContainer?.File))
+            {
+                return states;
+            }
+            return states.Concat(new[]
+            {
+                CreateValidationState(
+                    aspect,
+                    "Mask",
+                    context.SourceSignature,
+                    MaskDataContainer.GetErrors(),
+                    MaskDataContainer.GetWarnings())
+            });
+        }
+
         protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new(base.GetErrors());

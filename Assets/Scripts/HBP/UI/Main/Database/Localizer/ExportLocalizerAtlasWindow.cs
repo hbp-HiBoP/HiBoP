@@ -88,7 +88,14 @@ namespace HBP.UI.Main
             
             base.OK();
 
-            await LoadingManager.LoadAsync(ExportAtlasAsync);
+            try
+            {
+                await LoadingManager.LoadAsync(ExportValidatedAtlasAsync);
+            }
+            catch (Exception)
+            {
+                return;
+            }
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Export complete", "The export of localizer atlas is complete.").Forget();
         }
         #endregion
@@ -345,6 +352,39 @@ namespace HBP.UI.Main
                 await UniTask.SwitchToMainThread();
                 ShowFailedDataInfosDialog(failedDataInfos);
             }
+        }
+
+        private async UniTask ExportValidatedAtlasAsync(
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token)
+        {
+            GlobalDatabase database = DatabaseManager.Database;
+            ValidationRequest validationRequest = new(
+                ValidationAspect.SourceAvailability |
+                    ValidationAspect.SourceReadability |
+                    ValidationAspect.Epoching |
+                    ValidationAspect.ChannelMapping |
+                    ValidationAspect.PatientAssets,
+                patientIDs: m_SelectedPatients.Select(patient => patient.ID));
+            float validationWeight =
+                database.RequiresValidation(validationRequest) ? 0.1f : 0;
+            if (validationWeight > 0)
+            {
+                await database.EnsureDatabaseValidatedAsync(
+                    validationRequest,
+                    (progress, duration, text) => updateProgress(
+                        progress * validationWeight,
+                        duration,
+                        text),
+                    token);
+            }
+
+            await ExportAtlasAsync(
+                (progress, duration, text) => updateProgress(
+                    validationWeight + progress * (1 - validationWeight),
+                    duration,
+                    text),
+                token);
         }
         private Implantation3D GenerateImplantation3D(List<Patient> patients)
         {

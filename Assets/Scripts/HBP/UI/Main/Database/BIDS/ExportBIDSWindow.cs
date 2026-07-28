@@ -103,7 +103,14 @@ namespace HBP.UI.Main
             
             base.OK();
             
-            await LoadingManager.LoadAsync(ExportBIDSAsync);
+            try
+            {
+                await LoadingManager.LoadAsync(ExportValidatedBIDSAsync);
+            }
+            catch (System.Exception)
+            {
+                return;
+            }
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Export complete", "The BIDS export is complete.").Forget();
         }
         #endregion
@@ -376,6 +383,35 @@ namespace HBP.UI.Main
                 Debug.LogError($"BIDS export failed: {ex.Message}");
                 throw;
             }
+        }
+        private async UniTask ExportValidatedBIDSAsync(
+            System.Action<float, float, LoadingText> updateProgress,
+            CancellationToken token)
+        {
+            GlobalDatabase database = DatabaseManager.Database;
+            ValidationRequest validationRequest = new(
+                ValidationAspect.SourceAvailability |
+                    ValidationAspect.PatientAssets,
+                patientIDs: m_SelectedPatients.Select(patient => patient.ID));
+            float validationWeight =
+                database.RequiresValidation(validationRequest) ? 0.1f : 0;
+            if (validationWeight > 0)
+            {
+                await database.EnsureDatabaseValidatedAsync(
+                    validationRequest,
+                    (progress, duration, text) => updateProgress(
+                        progress * validationWeight,
+                        duration,
+                        text),
+                    token);
+            }
+
+            await ExportBIDSAsync(
+                (progress, duration, text) => updateProgress(
+                    validationWeight + progress * (1 - validationWeight),
+                    duration,
+                    text),
+                token);
         }
         #endregion
     }

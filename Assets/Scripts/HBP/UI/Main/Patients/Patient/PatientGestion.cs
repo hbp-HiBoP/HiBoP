@@ -37,6 +37,10 @@ namespace HBP.UI.Main
         #region Public Methods
         public override async void OK()
         {
+            ValidationRequest validationRequest =
+                ValidationImpactAnalyzer.ForPatients(
+                    m_OldValues,
+                    ListGestion.List.Objects);
             if (DataManager.HasData)
             {
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", "Save & Reload", "Cancel");
@@ -44,7 +48,9 @@ namespace HBP.UI.Main
                 {
                     base.OK();
                     await UniTask.SwitchToMainThread();
-                    ApplicationState.LoadedProject.SetPatients(ListGestion.List.Objects);
+                    ApplicationState.LoadedProject.SetPatients(
+                        ListGestion.List.Objects,
+                        validationRequest);
                     DataManager.Clear();
                     var visualizations = Module3DMain.PrepareReloadScenes();
                     await LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
@@ -54,7 +60,9 @@ namespace HBP.UI.Main
             else
             {
                 base.OK();
-                ApplicationState.LoadedProject.SetPatients(ListGestion.List.Objects);
+                ApplicationState.LoadedProject.SetPatients(
+                    ListGestion.List.Objects,
+                    validationRequest);
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
             InteractableStateManager.SetInteractables();

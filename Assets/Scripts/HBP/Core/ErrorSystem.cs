@@ -156,6 +156,16 @@ namespace HBP.Core.Errors
         }
         #endregion
     }
+    public class SourceUnreadableError : Error
+    {
+        public SourceUnreadableError() : this("")
+        {
+        }
+        public SourceUnreadableError(string message)
+            : base("The data source could not be read.", message)
+        {
+        }
+    }
 
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class Warning

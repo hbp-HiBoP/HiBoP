@@ -107,6 +107,7 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.TagCollection), "HBP.Core.Data.TagCollection");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.ThresholdTreatment), "HBP.Core.Data.ThresholdTreatment");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.Treatment), "HBP.Core.Data.Treatment");
+            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.ValidationState), "HBP.Core.Data.ValidationState");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.Visualization), "HBP.Core.Data.Visualization");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.VisualizationConfiguration), "HBP.Core.Data.VisualizationConfiguration");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Database.BIDSDatabaseParameters), "HBP.Core.Database.BIDSDatabaseParameters", "HBP.Data.Database.BIDSDatabaseParameters");
@@ -126,6 +127,7 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Errors.NotEnoughInformationError), "HBP.Core.Errors.NotEnoughInformationError");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Errors.PatientEmptyError), "HBP.Core.Errors.PatientEmptyError");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Errors.RequiredFieldEmptyError), "HBP.Core.Errors.RequiredFieldEmptyError");
+            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Errors.SourceUnreadableError), "HBP.Core.Errors.SourceUnreadableError");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Errors.WrongExtensionError), "HBP.Core.Errors.WrongExtensionError");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences._3DPreferences), "HBP.Core.Preferences._3DPreferences", "HBP.Data.Preferences._3DPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.AnatomicPreferences), "HBP.Core.Preferences.AnatomicPreferences", "HBP.Data.Preferences.AnatomicPreferences");

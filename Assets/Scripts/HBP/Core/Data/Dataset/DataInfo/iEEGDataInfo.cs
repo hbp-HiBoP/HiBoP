@@ -116,6 +116,178 @@ namespace HBP.Core.Data
         #endregion
 
         #region Private Methods
+        internal override IEnumerable<ValidationState> GetValidationStates(
+            ValidationAspect aspect,
+            ValidationRequest request,
+            DataInfoValidationContext context)
+        {
+            if (aspect == ValidationAspect.Epoching)
+            {
+                return GetEpochingValidationStates(request, context);
+            }
+            if (aspect == ValidationAspect.ChannelMapping)
+            {
+                return GetChannelValidationStates(context);
+            }
+            return base.GetValidationStates(aspect, request, context);
+        }
+
+        private IEnumerable<ValidationState> GetEpochingValidationStates(
+            ValidationRequest request,
+            DataInfoValidationContext context)
+        {
+            if (Protocol == null)
+            {
+                return new[]
+                {
+                    CreateNotApplicableState(ValidationAspect.Epoching)
+                };
+            }
+            SubBloc[] subBlocs = Protocol.Blocs
+                .SelectMany(bloc => bloc.SubBlocs)
+                .Where(subBloc =>
+                    request.MatchesSubBloc(this, subBloc))
+                .ToArray();
+            if (subBlocs.Length == 0)
+            {
+                return new[]
+                {
+                    CreateNotApplicableState(ValidationAspect.Epoching)
+                };
+            }
+            if (!subBlocs.Any(IsEpochable))
+            {
+                return subBlocs
+                    .Select(subBloc =>
+                        CreateNotApplicableState(
+                            ValidationAspect.Epoching,
+                            subBloc.ID))
+                    .ToArray();
+            }
+            if (!context.TryGetEEGMetadata(
+                out EEGValidationMetadata metadata,
+                out Error error))
+            {
+                return new[]
+                {
+                    CreateValidationState(
+                        ValidationAspect.Epoching,
+                        string.Empty,
+                        context.SourceSignature,
+                        error == null
+                            ? Array.Empty<Error>()
+                            : new[] { error },
+                        Array.Empty<Warning>())
+                };
+            }
+
+            HashSet<int> triggerCodes = new(metadata.TriggerCodes);
+            return subBlocs
+                .Select(subBloc =>
+                {
+                    if (!IsEpochable(subBloc))
+                    {
+                        return CreateNotApplicableState(
+                            ValidationAspect.Epoching,
+                            subBloc.ID);
+                    }
+                    Event mainEvent = subBloc.MainEvent;
+                    bool found = mainEvent != null &&
+                        mainEvent.Codes.Any(triggerCodes.Contains);
+                    return CreateValidationState(
+                        ValidationAspect.Epoching,
+                        subBloc.ID,
+                        GetEpochingSignature(
+                            context.SourceSignature,
+                            subBloc),
+                        Array.Empty<Error>(),
+                        found
+                            ? Array.Empty<Warning>()
+                            : new Warning[]
+                            {
+                                new BlocsCantBeEpochedWarning(
+                                    $"{subBloc.Name} ({mainEvent?.Name ?? "no main event"})")
+                            });
+                })
+                .ToArray();
+        }
+
+        private static bool IsEpochable(SubBloc subBloc)
+        {
+            return subBloc.Window.Length > 0 &&
+                subBloc.MainEvent != null &&
+                subBloc.MainEvent.Codes.Count > 0;
+        }
+
+        private IEnumerable<ValidationState> GetChannelValidationStates(
+            DataInfoValidationContext context)
+        {
+            if (Patient == null)
+            {
+                return new[]
+                {
+                    CreateNotApplicableState(ValidationAspect.ChannelMapping)
+                };
+            }
+            if (!context.TryGetEEGMetadata(
+                out EEGValidationMetadata metadata,
+                out Error error))
+            {
+                return new[]
+                {
+                    CreateValidationState(
+                        ValidationAspect.ChannelMapping,
+                        string.Empty,
+                        context.SourceSignature,
+                        error == null
+                            ? Array.Empty<Error>()
+                            : new[] { error },
+                        Array.Empty<Warning>())
+                };
+            }
+
+            HashSet<string> channels = new(
+                metadata.ChannelLabels,
+                StringComparer.Ordinal);
+            bool hasMatch = Patient.Sites.Any(site =>
+                channels.Contains(site.Name));
+            return new[]
+            {
+                CreateValidationState(
+                    ValidationAspect.ChannelMapping,
+                    string.Empty,
+                    $"{context.SourceSignature}|{GetSiteSignature()}",
+                    Array.Empty<Error>(),
+                    hasMatch
+                        ? Array.Empty<Warning>()
+                        : new Warning[] { new NoMatchingSiteWarning() })
+            };
+        }
+
+        private static string GetEpochingSignature(
+            string sourceSignature,
+            SubBloc subBloc)
+        {
+            Event mainEvent = subBloc.MainEvent;
+            string codes = mainEvent == null
+                ? string.Empty
+                : string.Join(
+                    ",",
+                    mainEvent.Codes
+                        .Distinct()
+                        .OrderBy(code => code));
+            return $"{sourceSignature}|{subBloc.Type}|{mainEvent?.ID}|{codes}";
+        }
+
+        private string GetSiteSignature()
+        {
+            return string.Join(
+                "|",
+                Patient.Sites
+                    .Select(site => site.Name ?? string.Empty)
+                    .OrderBy(name => name, StringComparer.Ordinal));
+        }
+
         protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new(base.GetErrors());

@@ -164,6 +164,28 @@ namespace HBP.Core.Tools
             return Ready;
         }
 
+        /// <summary>
+        /// Cancels only this consumer's wait for Ready. The shared operation keeps running.
+        /// </summary>
+        public async Task<TResult> EnsureReadyAsync(CancellationToken consumerToken)
+        {
+            Task<TResult> ready = EnsureReadyAsync();
+            if (!consumerToken.CanBeCanceled || ready.IsCompleted)
+            {
+                return await ready;
+            }
+
+            TaskCompletionSource<bool> cancellation =
+                new(TaskCreationOptions.RunContinuationsAsynchronously);
+            using CancellationTokenRegistration registration =
+                consumerToken.Register(() => cancellation.TrySetResult(true));
+            if (await Task.WhenAny(ready, cancellation.Task) != ready)
+            {
+                throw new OperationCanceledException(consumerToken);
+            }
+            return await ready;
+        }
+
         public Task<TResult> EnsureValidatedAsync()
         {
             Start();

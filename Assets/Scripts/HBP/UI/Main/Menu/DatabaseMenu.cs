@@ -44,12 +44,44 @@ namespace HBP.UI.Main
         {
             WindowsManager.Open("Protocol gestion window", null);
         }
-        public void OpenDatabaseBrowser()
+        public async void OpenDatabaseBrowser()
         {
+            GlobalDatabase database = DatabaseManager.Database;
+            if (database.NeedsReadyWait)
+            {
+                try
+                {
+                    await LoadingManager.LoadAsync(
+                        (update, token) =>
+                            database.EnsureDatabaseReadyAsync(
+                                update,
+                                token));
+                }
+                catch (System.Exception)
+                {
+                    return;
+                }
+            }
             WindowsManager.Open("Database browser window", null);
         }
-        public void OpenTrialMatrixExplorer()
+        public async void OpenTrialMatrixExplorer()
         {
+            GlobalDatabase database = DatabaseManager.Database;
+            if (database.NeedsReadyWait)
+            {
+                try
+                {
+                    await LoadingManager.LoadAsync(
+                        (update, token) =>
+                            database.EnsureDatabaseReadyAsync(
+                                update,
+                                token));
+                }
+                catch (System.Exception)
+                {
+                    return;
+                }
+            }
             WindowsManager.Open("Trial matrix explorer window", null);
         }
         public async void CheckDatabaseIntegrity()
@@ -62,7 +94,21 @@ namespace HBP.UI.Main
             if (string.IsNullOrEmpty(path))
                 return;
 
-            await LoadingManager.LoadAsync((update, token) => DatabaseManager.Database.CheckIntegrityAsync(path, update, token));
+            GlobalDatabase database = DatabaseManager.Database;
+            try
+            {
+                await LoadingManager.LoadAsync(async (update, token) =>
+                {
+                    await database.CheckIntegrityAsync(
+                        path,
+                        update,
+                        token);
+                });
+            }
+            catch (System.Exception)
+            {
+                return;
+            }
 
             await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Database integrity check", "The database integrity check has been completed. The report has been saved to the specified location.", "OK");
         }

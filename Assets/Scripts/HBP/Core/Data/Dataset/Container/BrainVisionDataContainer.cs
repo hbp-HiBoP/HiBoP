@@ -81,6 +81,19 @@ namespace HBP.Core.Data.Container
                     {
                         errors.Add(new WrongExtensionError("BrainVision header file has a wrong extension"));
                     }
+                    else
+                    {
+                        foreach (string referencedFile in
+                            EEGRecordingSource.GetBrainVisionReferencedFiles(
+                                headerFile.FullName))
+                        {
+                            if (!File.Exists(referencedFile))
+                            {
+                                errors.Add(new FileDoesNotExistError(
+                                    $"BrainVision referenced file does not exist: {referencedFile}"));
+                            }
+                        }
+                    }
                 }
             }
             m_Errors = errors.ToArray();

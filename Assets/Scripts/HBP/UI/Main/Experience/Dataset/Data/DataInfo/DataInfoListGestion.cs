@@ -1,11 +1,9 @@
 ﻿using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
-using Cysharp.Threading.Tasks;
 using System;
-using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {
@@ -19,28 +17,9 @@ namespace HBP.UI.Main
         public override ObjectCreator<Core.Data.DataInfo> ObjectCreator => m_ObjectCreator;
         #endregion
 
-        #region Public Methods
-        public async UniTask UpdateAllObjectsAsync(Action<float, float, LoadingText> updateProgress)
-        {
-            Core.Data.DataInfo[] dataInfos = List.Objects.ToArray();
-            int count = 0;
-            updateProgress.Invoke(0, 0, new LoadingText("Checking dataset"));
-            foreach (var obj in dataInfos)
-            {
-                await UniTask.SwitchToThreadPool();
-                obj.CheckErrorsAndWarnings(true);
-                await UniTask.SwitchToMainThread();
-                List.UpdateObject(obj);
-                count++;
-                updateProgress.Invoke((float)count / dataInfos.Length, 0, new LoadingText("Checking dataset", " ", $"{count}/{dataInfos.Length}"));
-            }
-        }
-        #endregion
-
         #region Protected Methods
         protected override void OnSaveModifier(Core.Data.DataInfo obj)
         {
-            obj.CheckErrorsAndWarnings(true);
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {
@@ -53,7 +32,12 @@ namespace HBP.UI.Main
         }
         protected override void OnObjectCreated(Core.Data.DataInfo obj)
         {
-            obj.CheckErrorsAndWarnings();
+            obj.PendingValidationRequest = new Core.Data.ValidationRequest(
+                Core.Data.ValidationAspect.DataInfoAll,
+                dataInfoIDs: new[] { obj.ID },
+                force: true);
+            obj.MarkValidationStale(
+                Core.Data.ValidationAspect.DataInfoAll);
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {

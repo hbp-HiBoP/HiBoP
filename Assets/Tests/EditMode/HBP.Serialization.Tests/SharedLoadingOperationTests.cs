@@ -7,6 +7,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -172,6 +173,35 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public async Task CancellingReadyConsumer_DoesNotCancelSharedLoad()
+        {
+            TaskCompletionSource<bool> releaseLoad = NewCompletionSource<bool>();
+            SharedLoadingOperation<string> operation = new(
+                5,
+                async (progress, token) =>
+                {
+                    await releaseLoad.Task;
+                    return "graph";
+                });
+            Task<string> sharedReady = operation.EnsureReadyAsync();
+            using CancellationTokenSource consumerCancellation = new();
+
+            Task<string> cancelledConsumer =
+                operation.EnsureReadyAsync(consumerCancellation.Token);
+            consumerCancellation.Cancel();
+            Exception exception = await CaptureExceptionAsync(
+                async () => await cancelledConsumer);
+
+            Assert.That(exception, Is.TypeOf<OperationCanceledException>());
+            Assert.That(operation.State, Is.EqualTo(LoadingOperationState.Loading));
+            Assert.That(operation.CancellationToken.IsCancellationRequested, Is.False);
+
+            releaseLoad.SetResult(true);
+            Assert.That(await sharedReady, Is.EqualTo("graph"));
+            Assert.That(operation.State, Is.EqualTo(LoadingOperationState.Validated));
+        }
+
+        [Test]
         public async Task ProjectLoad_TwoCallersShareTheCurrentOperation()
         {
             using TempDirectoryScope temp = new();
@@ -257,7 +287,138 @@ namespace HBP.Tests.Serialization
             Assert.That(secondProgress, Is.EqualTo(1));
         }
 
+        [Test]
+        public async Task DatabaseSilentStart_ReachesReadyWithoutVisibleLoadingInfrastructure()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope applicationState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+            GlobalDatabase database = DatabaseManager.Database;
+            database.Settings.SetDefaultWorkspace();
+
+            await database.StartLoadingSilentlyAsync();
+            SharedLoadingOperation<GlobalDatabase> operation =
+                database.CurrentLoadingOperation;
+
+            Assert.That(operation, Is.Not.Null);
+            Assert.That(await operation.Ready, Is.SameAs(database));
+            Assert.That(database.IsLoaded, Is.True);
+            Assert.That(await operation.Validated, Is.SameAs(database));
+            Assert.That(operation.State, Is.EqualTo(LoadingOperationState.Validated));
+        }
+
+        [Test]
+        public async Task DatabaseWorkspaceSwitch_PublishesOnlyTheCurrentGeneration()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope applicationState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+            GlobalDatabase database = DatabaseManager.Database;
+            Workspace firstWorkspace = new("first", "workspace-first");
+            Workspace secondWorkspace = new("second", "workspace-second");
+            database.Settings.SetWorkspaces(new[] { firstWorkspace, secondWorkspace });
+            database.Settings.SelectedWorkspace = firstWorkspace;
+
+            for (int index = 0; index < 12; index++)
+            {
+                await SaveWorkspacePatientAsync(
+                    firstWorkspace,
+                    new Patient(
+                        "first-" + index,
+                        Array.Empty<BaseMesh>(),
+                        Array.Empty<MRI>(),
+                        Array.Empty<Site>(),
+                        Array.Empty<BaseTagValue>(),
+                        string.Empty,
+                        "first-patient-" + index));
+            }
+            Patient expectedPatient = new(
+                "second",
+                Array.Empty<BaseMesh>(),
+                Array.Empty<MRI>(),
+                Array.Empty<Site>(),
+                Array.Empty<BaseTagValue>(),
+                string.Empty,
+                "second-patient");
+            await SaveWorkspacePatientAsync(secondWorkspace, expectedPatient);
+
+            await database.StartLoadingSilentlyAsync();
+            SharedLoadingOperation<GlobalDatabase> obsoleteOperation =
+                database.CurrentLoadingOperation;
+
+            database.Settings.SelectedWorkspace = secondWorkspace;
+            await database.ReloadSelectedWorkspaceSilentlyAsync();
+            SharedLoadingOperation<GlobalDatabase> currentOperation =
+                database.CurrentLoadingOperation;
+            await currentOperation.Validated;
+
+            Assert.That(currentOperation, Is.Not.SameAs(obsoleteOperation));
+            Assert.That(
+                currentOperation.Generation,
+                Is.GreaterThan(obsoleteOperation.Generation));
+            Assert.That(database.IsLoaded, Is.True);
+            Assert.That(database.Patients, Has.Count.EqualTo(1));
+            Assert.That(database.Patients[0].ID, Is.EqualTo(expectedPatient.ID));
+            Assert.That(
+                database.Patients,
+                Has.None.Matches<Patient>(
+                    patient => patient.ID.StartsWith("first-patient-")));
+        }
+
+        [Test]
+        public async Task DatabaseBackgroundFailure_IsPresentedBeforeTheNextRequestRetries()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope applicationState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+            GlobalDatabase database = DatabaseManager.Database;
+            database.Settings.SetDefaultWorkspace();
+            InvalidOperationException failure = new("background database failure");
+            SharedLoadingOperation<GlobalDatabase> failedOperation = new(
+                1,
+                (progress, token) =>
+                    UniTask.FromException<GlobalDatabase>(failure));
+            await CaptureExceptionAsync(
+                async () => await failedOperation.EnsureReadyAsync());
+            SetPrivateField(database, "m_LoadingOperation", failedOperation);
+            SetPrivateField(
+                database,
+                "m_LoadingWorkspaceID",
+                database.Settings.SelectedWorkspace.ID);
+            SetPrivateField(database, "m_LoadingGeneration", 1L);
+
+            Exception presentedException = await CaptureExceptionAsync(
+                () => database.EnsureDatabaseReadyAsync(NoProgress).AsTask());
+
+            Assert.That(presentedException, Is.SameAs(failure));
+            Assert.That(
+                database.CurrentLoadingOperation,
+                Is.SameAs(failedOperation));
+            Assert.That(failedOperation.Exception, Is.SameAs(failure));
+
+            await database.EnsureDatabaseReadyAsync(NoProgress);
+            SharedLoadingOperation<GlobalDatabase> retryOperation =
+                database.CurrentLoadingOperation;
+            await retryOperation.Validated;
+
+            Assert.That(retryOperation, Is.Not.SameAs(failedOperation));
+            Assert.That(retryOperation.Generation, Is.EqualTo(2));
+            Assert.That(database.IsLoaded, Is.True);
+        }
+
         private static readonly Action<float, float, LoadingText> NoProgress = (_, _, _) => { };
+
+        private static async UniTask SaveWorkspacePatientAsync(
+            Workspace workspace,
+            Patient patient)
+        {
+            string patientDirectory = Path.Combine(workspace.Path, "Patients");
+            Directory.CreateDirectory(patientDirectory);
+            await ClassLoaderSaver.SaveToJsonAsync(
+                patient,
+                Path.Combine(patientDirectory, patient.ID + Patient.EXTENSION),
+                true);
+        }
 
         private static TaskCompletionSource<T> NewCompletionSource<T>()
         {
@@ -275,6 +436,17 @@ namespace HBP.Tests.Serialization
             {
                 return exception;
             }
+        }
+
+        private static void SetPrivateField(
+            object target,
+            string fieldName,
+            object value)
+        {
+            FieldInfo field = target.GetType().GetField(
+                fieldName,
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            field.SetValue(target, value);
         }
     }
 }
