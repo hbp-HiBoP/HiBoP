@@ -610,6 +610,7 @@ namespace HBP.Tests.Serialization
             Assert.That(previousProgress, Is.EqualTo(1.0f));
             Assert.That(lastText.ToString(), Is.EqualTo("Project loaded successfully"));
             Assert.That(validationProgressReported, Is.False);
+            await loaded.CurrentLoadingOperation.Validated;
         }
 
         [Test]
@@ -1071,6 +1072,7 @@ namespace HBP.Tests.Serialization
 
             DatabaseManager.Database.SetProtocols(databaseProtocols.Length > 0 ? databaseProtocols : new[] { SyntheticProjectFactory.CreateProtocol() });
             await loaded.LoadAsync(info, NoProgress, CancellationToken.None);
+            await loaded.CurrentLoadingOperation.Validated;
             AssertArchiveIsUnlocked(archivePath);
             return loaded;
         }

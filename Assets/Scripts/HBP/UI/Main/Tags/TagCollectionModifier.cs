@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using HBP.UI.Tools;
@@ -90,7 +91,23 @@ namespace HBP.UI.Main
         }
         private async UniTask RunCheckPatientsTagsTasksAsync(IEnumerable<Func<UniTask>> tasks, Action<float, float, LoadingText> update)
         {
-            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking patients", update, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(
+                LoadingWorkCategory.Metadata);
+            await LoadingWorkScheduler.Shared.RunAsync(
+                tasks,
+                LoadingWorkCategory.Metadata,
+                () => LoadingWorkPriority.Foreground,
+                CancellationToken.None,
+                (completed, total) => update(
+                    total == 0 ? 1 : (float)completed / total,
+                    completed == 0 ? 0 : 0.2f,
+                    total == 0
+                        ? new LoadingText("Checking patients")
+                        : new LoadingText(
+                            "Checking patients",
+                            " ",
+                            completed + "/" + total)),
+                concurrency);
         }
         #endregion
 

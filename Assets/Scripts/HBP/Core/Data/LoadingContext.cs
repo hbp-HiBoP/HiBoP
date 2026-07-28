@@ -156,7 +156,6 @@ namespace HBP.Core.Data
             string owner)
             where T : class
         {
-            LoadingDiagnostics.RecordReferenceLookups(1);
             if (!string.IsNullOrEmpty(id) && index.TryGetValue(id, out T value))
             {
                 return value;
@@ -169,13 +168,11 @@ namespace HBP.Core.Data
         internal T ResolveOptional<T>(IReadOnlyDictionary<string, T> index, string id)
             where T : class
         {
-            LoadingDiagnostics.RecordReferenceLookups(1);
             return !string.IsNullOrEmpty(id) && index.TryGetValue(id, out T value) ? value : null;
         }
 
         internal Bloc ResolveBloc(string protocolId, string blocId, string owner)
         {
-            LoadingDiagnostics.RecordReferenceLookups(1);
             if (!string.IsNullOrEmpty(protocolId)
                 && BlocByIdByProtocolId.TryGetValue(protocolId, out IReadOnlyDictionary<string, Bloc> blocs)
                 && !string.IsNullOrEmpty(blocId)

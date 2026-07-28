@@ -354,6 +354,7 @@ namespace HBP.Core.Tools
                 {
                     var tasksToExecute = taskList.Select(async task =>
                     {
+                        token.ThrowIfCancellationRequested();
                         await task();
                         lock (updateProgress)
                         {
@@ -368,10 +369,10 @@ namespace HBP.Core.Tools
                     using var semaphore = new SemaphoreSlim(maxConcurrency);
                     var tasksToExecute = taskList.Select(async task =>
                     {
-                        await semaphore.WaitAsync();
+                        await semaphore.WaitAsync(token);
                         try
                         {
-                            if (token.IsCancellationRequested) return;
+                            token.ThrowIfCancellationRequested();
                             await task();
                             lock (updateProgress)
                             {
@@ -392,7 +393,7 @@ namespace HBP.Core.Tools
             {
                 foreach (var task in taskList)
                 {
-                    if (token.IsCancellationRequested) break;
+                    token.ThrowIfCancellationRequested();
                     await task();
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
@@ -411,6 +412,7 @@ namespace HBP.Core.Tools
                 {
                     var tasksToExecute = taskList.Select(async task =>
                     {
+                        token.ThrowIfCancellationRequested();
                         T data = await task();
                         lock (updateProgress)
                         {
@@ -425,22 +427,18 @@ namespace HBP.Core.Tools
                 else
                 {
                     using var semaphore = new SemaphoreSlim(maxConcurrency);
-                    var results = new List<T>();
-                    var tasksToExecute = taskList.Select(async task =>
+                    T[] results = new T[taskList.Count];
+                    var tasksToExecute = taskList.Select(async (task, index) =>
                     {
-                        await semaphore.WaitAsync();
+                        await semaphore.WaitAsync(token);
                         try
                         {
-                            if (token.IsCancellationRequested) return;
-                            T data = await task();
+                            token.ThrowIfCancellationRequested();
+                            results[index] = await task();
                             lock (updateProgress)
                             {
                                 count++;
                                 updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
-                            }
-                            lock (results)
-                            {
-                                results.Add(data);
                             }
                         }
                         finally
@@ -458,7 +456,7 @@ namespace HBP.Core.Tools
                 List<T> result = new();
                 foreach (var task in taskList)
                 {
-                    if (token.IsCancellationRequested) break;
+                    token.ThrowIfCancellationRequested();
                     result.Add(await task());
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));

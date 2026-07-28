@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Database;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,11 +26,32 @@ namespace HBP.UI.Database
 
             await database.LoadProtocolsAsync();
             await UniTask.SwitchToMainThread();
-            await database.StartLoadingSilentlyAsync();
+            if (LoadingConcurrencyPolicy.BackgroundValidationEnabled)
+            {
+                await database.StartLoadingSilentlyAsync();
+            }
+            else
+            {
+                await LoadingManager.LoadAsync(
+                    update => database.LoadDatabaseAsync(update));
+            }
         }
         public static async UniTask LoadDatabaseAsync()
         {
-            await DatabaseManager.Database.ReloadSelectedWorkspaceSilentlyAsync();
+            if (LoadingConcurrencyPolicy.BackgroundValidationEnabled)
+            {
+                await DatabaseManager.Database
+                    .ReloadSelectedWorkspaceSilentlyAsync();
+            }
+            else
+            {
+                await LoadingManager.LoadAsync(
+                    (update, token) =>
+                        DatabaseManager.Database
+                            .ReloadSelectedWorkspaceAsync(
+                                update,
+                                token));
+            }
         }
         public static async UniTask SaveDatabaseAsync()
         {

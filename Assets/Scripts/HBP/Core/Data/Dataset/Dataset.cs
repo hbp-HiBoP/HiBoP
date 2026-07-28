@@ -329,10 +329,14 @@ namespace HBP.Core.Data
             CancellationToken token = default,
             long generation = 0)
         {
-            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
+            ValidationRequest request = new(
+                ValidationAspect.DataInfoAll,
+                force: force);
+            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(
+                DataInfoValidator.GetWorkCategory(request));
             return await new DataInfoValidator().ValidateAsync(
                 dataInfos,
-                force,
+                request,
                 concurrency,
                 token,
                 (completed, total) => updateProgress(

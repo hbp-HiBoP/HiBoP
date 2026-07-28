@@ -101,7 +101,7 @@ namespace HBP.Core.Tools
     {
         private readonly Func<string, bool> m_FileExists;
 
-        public AssetReferenceValidator() : this(LoadingDiagnostics.FileExists)
+        public AssetReferenceValidator() : this(File.Exists)
         {
         }
 
@@ -115,7 +115,8 @@ namespace HBP.Core.Tools
             int maxConcurrency,
             CancellationToken token,
             Action<int, int> updateProgress = null,
-            long generation = 0)
+            long generation = 0,
+            Func<LoadingWorkPriority> priorityProvider = null)
         {
             if (patients == null)
             {
@@ -164,7 +165,8 @@ namespace HBP.Core.Tools
                 validationByFullPath.Values.ToArray(),
                 maxConcurrency,
                 token,
-                updateProgress);
+                updateProgress,
+                priorityProvider);
             token.ThrowIfCancellationRequested();
 
             PatientAssetValidationResult.MeshValidation[] meshResults = meshes
@@ -373,77 +375,47 @@ namespace HBP.Core.Tools
             PathValidation[] validations,
             int maxConcurrency,
             CancellationToken token,
-            Action<int, int> updateProgress)
+            Action<int, int> updateProgress,
+            Func<LoadingWorkPriority> priorityProvider)
         {
-            updateProgress?.Invoke(0, validations.Length);
-            if (validations.Length == 0)
-            {
-                return;
-            }
-
-            int nextIndex = -1;
-            int completedCount = 0;
-            object progressLock = new();
-            int workerCount = Math.Min(Math.Max(1, maxConcurrency), validations.Length);
-            UniTask[] workers = Enumerable.Range(0, workerCount)
-                .Select(_ => ValidateWorkerAsync(
-                    validations,
-                    () => Interlocked.Increment(ref nextIndex),
-                    () =>
-                    {
-                        if (updateProgress == null)
-                        {
-                            return;
-                        }
-
-                        lock (progressLock)
-                        {
-                            updateProgress(++completedCount, validations.Length);
-                        }
-                    },
-                    token))
+            Func<UniTask<bool>>[] tasks = validations
+                .Select(validation => (Func<UniTask<bool>>)(async () =>
+                {
+                    await UniTask.SwitchToThreadPool();
+                    ValidatePath(validation);
+                    return true;
+                }))
                 .ToArray();
-            await UniTask.WhenAll(workers);
+            await LoadingWorkScheduler.Shared.RunAsync(
+                tasks,
+                LoadingWorkCategory.FileSystem,
+                priorityProvider,
+                token,
+                updateProgress,
+                maxConcurrency);
         }
 
-        private async UniTask ValidateWorkerAsync(
-            IReadOnlyList<PathValidation> validations,
-            Func<int> nextIndex,
-            Action pathValidated,
-            CancellationToken token)
+        private void ValidatePath(PathValidation validation)
         {
-            await UniTask.SwitchToThreadPool();
-            while (true)
+            validation.Exists = m_FileExists(validation.FullPath);
+            if (validation.Exists)
             {
-                token.ThrowIfCancellationRequested();
-                int index = nextIndex();
-                if (index >= validations.Count)
+                try
                 {
-                    return;
-                }
-
-                PathValidation validation = validations[index];
-                validation.Exists = m_FileExists(validation.FullPath);
-                if (validation.Exists)
-                {
-                    try
+                    FileInfo file = new(validation.FullPath);
+                    if (file.Exists)
                     {
-                        FileInfo file = new(validation.FullPath);
-                        if (file.Exists)
-                        {
-                            validation.Length = file.Length;
-                            validation.LastWriteTimeUtcTicks =
-                                file.LastWriteTimeUtc.Ticks;
-                        }
-                    }
-                    catch (IOException)
-                    {
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
+                        validation.Length = file.Length;
+                        validation.LastWriteTimeUtcTicks =
+                            file.LastWriteTimeUtc.Ticks;
                     }
                 }
-                pathValidated();
+                catch (IOException)
+                {
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
             }
         }
 

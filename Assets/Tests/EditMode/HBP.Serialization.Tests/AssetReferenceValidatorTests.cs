@@ -18,12 +18,6 @@ namespace HBP.Tests.Serialization
 {
     public class AssetReferenceValidatorTests
     {
-        [TearDown]
-        public void TearDown()
-        {
-            LoadingDiagnostics.SetOutputDirectoryForTests(null);
-        }
-
         [Test]
         public async Task DeserializationPerformsNoFileIo_ThenValidationPreservesUsability()
         {
@@ -67,51 +61,21 @@ namespace HBP.Tests.Serialization
             string patientPath = temp.GetPath("patient.patient");
             Assert.That(ClassLoaderSaver.SaveToJSon(source, patientPath, true), Is.True);
 
-            LoadingDiagnostics.SetOutputDirectoryForTests(temp.Path);
-            Patient loaded;
-            using (LoadingDiagnostics.SessionScope session =
-                LoadingDiagnostics.BeginSession(LoadingDiagnostics.Operation.Database))
-            {
-                loaded = ClassLoaderSaver.LoadFromJson<Patient>(
-                    patientPath,
-                    LoadingDiagnostics.Phase.None,
-                    LoadingDiagnostics.Phase.DatabasePatientsDeserialize);
-                session.MarkSucceeded();
-            }
-
-            JObject deserializeSummary = JObject.Parse(File.ReadAllText(LoadingDiagnostics.LastSummaryPath));
-            Assert.That(
-                deserializeSummary["phases"].Sum(phase => (long)phase["fileExistsCalls"]),
-                Is.Zero);
+            Patient loaded =
+                ClassLoaderSaver.LoadFromJson<Patient>(patientPath);
             Assert.That(loaded.Meshes.All(mesh => !mesh.WasUsable), Is.True);
             Assert.That(loaded.MRIs.All(MRI => !MRI.WasUsable), Is.True);
 
-            using (LoadingDiagnostics.SessionScope session =
-                LoadingDiagnostics.BeginSession(LoadingDiagnostics.Operation.Database))
-            {
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingDiagnostics.Phase.DatabasePatientsValidateFiles,
-                    objectCount: 1,
-                    concurrency: 4))
-                {
-                    PatientAssetValidationResult result =
-                        await new AssetReferenceValidator().ValidatePatientsAsync(
-                        new[] { loaded },
-                        4,
-                        CancellationToken.None,
-                        generation: 12);
-                    Assert.That(loaded.Meshes.All(mesh => !mesh.WasUsable), Is.True);
-                    Assert.That(loaded.MRIs.All(MRI => !MRI.WasUsable), Is.True);
-                    Assert.That(result.TryApply(12), Is.True);
-                }
-                session.MarkSucceeded();
-            }
+            PatientAssetValidationResult result =
+                await new AssetReferenceValidator().ValidatePatientsAsync(
+                    new[] { loaded },
+                    4,
+                    CancellationToken.None,
+                    generation: 12);
+            Assert.That(loaded.Meshes.All(mesh => !mesh.WasUsable), Is.True);
+            Assert.That(loaded.MRIs.All(MRI => !MRI.WasUsable), Is.True);
+            Assert.That(result.TryApply(12), Is.True);
             await UniTask.SwitchToMainThread();
-
-            JObject validationSummary = JObject.Parse(File.ReadAllText(LoadingDiagnostics.LastSummaryPath));
-            JToken validationPhase = validationSummary["phases"]
-                .Single(phase => (string)phase["name"] == "Loading.Database.Patients.ValidateFiles");
-            Assert.That((long)validationPhase["fileExistsCalls"], Is.EqualTo(7));
 
             foreach (BaseMesh mesh in loaded.Meshes)
             {

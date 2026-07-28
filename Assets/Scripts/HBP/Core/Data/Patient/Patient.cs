@@ -223,12 +223,8 @@ namespace HBP.Core.Data
             }
 
             await UniTask.SwitchToThreadPool();
-            // TEMP-LOADING-PROFILING
-            LoadingDiagnostics.RecordTagLookups(Tags.Count + Sites.Sum(site => site.Tags.Count));
             Tags.RemoveAll(t => t.Tag == null || !tagIds.Contains(t.Tag.ID));
             foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !tagIds.Contains(t.Tag.ID));
-            // TEMP-LOADING-PROFILING
-            LoadingDiagnostics.RecordTagLookups(Tags.Count + Sites.Sum(site => site.Tags.Count));
             List<BaseTagValue> tagsToUpdate = Tags.Where(t => t.Tag != null && tagIds.Contains(t.Tag.ID)).ToList();
             tagsToUpdate.AddRange(Sites.SelectMany(s => s.Tags).Where(t => t.Tag != null && tagIds.Contains(t.Tag.ID)));
             foreach (var tagValue in tagsToUpdate)

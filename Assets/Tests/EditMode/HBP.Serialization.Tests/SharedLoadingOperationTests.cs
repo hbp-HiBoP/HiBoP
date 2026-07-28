@@ -406,6 +406,32 @@ namespace HBP.Tests.Serialization
             Assert.That(database.IsLoaded, Is.True);
         }
 
+        [Test]
+        public void ForegroundLeases_AreReferenceCounted()
+        {
+            SharedLoadingOperation<int> operation = new(
+                1,
+                (progress, token) => UniTask.FromResult(1));
+
+            Assert.That(
+                operation.Priority,
+                Is.EqualTo(LoadingWorkPriority.Background));
+            IDisposable first = operation.AttachForeground();
+            IDisposable second = operation.AttachForeground();
+            Assert.That(
+                operation.Priority,
+                Is.EqualTo(LoadingWorkPriority.Foreground));
+
+            first.Dispose();
+            Assert.That(
+                operation.Priority,
+                Is.EqualTo(LoadingWorkPriority.Foreground));
+            second.Dispose();
+            Assert.That(
+                operation.Priority,
+                Is.EqualTo(LoadingWorkPriority.Background));
+        }
+
         private static readonly Action<float, float, LoadingText> NoProgress = (_, _, _) => { };
 
         private static async UniTask SaveWorkspacePatientAsync(

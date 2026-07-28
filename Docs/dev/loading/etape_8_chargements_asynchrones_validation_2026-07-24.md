@@ -511,6 +511,13 @@ pour Trial Matrix, visualisation et exports, rapport d'intégrité complet.
 
 ### Lot 8.6 — Scheduler adaptatif
 
+Implémenté le 28 juillet 2026 : politique centrale par catégorie, budget global
+partagé entre base et projet, priorité foreground dynamique, mode de repli à un
+worker et matrice complète sur `Default` et `visu_full_test`. Les plafonds
+retenus sont 8 pour JSON/ZIP et chemins, 4 pour les métadonnées et 2 pour les
+appels natifs. Voir
+[`resultats_etape_8_6_2026-07-28.md`](resultats_etape_8_6_2026-07-28.md).
+
 - supprimer les valeurs 20 en dur ;
 - séparer les catégories de travail ;
 - ajouter le budget global et la priorité foreground ;

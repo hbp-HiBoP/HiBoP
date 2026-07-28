@@ -84,7 +84,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(File) && LoadingDiagnostics.FileExists(File) && EXTENSIONS.Any(e => e == new FileInfo(File).Extension);
+                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && EXTENSIONS.Any(e => e == new FileInfo(File).Extension);
             }
         }
         #endregion

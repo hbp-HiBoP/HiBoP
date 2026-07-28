@@ -33,29 +33,22 @@ namespace HBP.Core.Tools
 
         public static T LoadFromJson<T>(string path)
         {
-            return LoadFromJson<T>(path, LoadingDiagnostics.Phase.None, LoadingDiagnostics.Phase.None);
+            return LoadFromJsonFile<T>(path);
         }
 
-        public static T LoadFromJson<T>(string path, LoadingDiagnostics.Phase readPhase, LoadingDiagnostics.Phase deserializePhase, int concurrency = 0)
+        public static T LoadFromJson<T>(Stream stream)
         {
-            return LoadFromJsonFile<T>(path, readPhase, deserializePhase, concurrency);
-        }
-
-        public static T LoadFromJson<T>(Stream stream, long byteCount, LoadingDiagnostics.Phase readPhase, LoadingDiagnostics.Phase deserializePhase, int concurrency = 0)
-        {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
-            return LoadFromJsonStream<T>(stream, byteCount, readPhase, deserializePhase, concurrency);
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+            return LoadFromJsonStream<T>(stream);
         }
 
         public static async UniTask<T> LoadFromJsonAsync<T>(string path)
         {
-            return await LoadFromJsonAsync<T>(path, LoadingDiagnostics.Phase.None, LoadingDiagnostics.Phase.None);
-        }
-
-        public static async UniTask<T> LoadFromJsonAsync<T>(string path, LoadingDiagnostics.Phase readPhase, LoadingDiagnostics.Phase deserializePhase, int concurrency = 0)
-        {
             await UniTask.SwitchToThreadPool();
-            return LoadFromJsonFile<T>(path, readPhase, deserializePhase, concurrency);
+            return LoadFromJsonFile<T>(path);
         }
 
         public static bool SaveToJSon<T>(T instance, string path, bool overwrite = false)
@@ -76,36 +69,20 @@ namespace HBP.Core.Tools
             return Deserialize<T>(jsonReader);
         }
 
-        private static T LoadFromJsonFile<T>(string path, LoadingDiagnostics.Phase readPhase, LoadingDiagnostics.Phase deserializePhase, int concurrency)
+        private static T LoadFromJsonFile<T>(string path)
         {
-            long fileLength = LoadingDiagnostics.GetFileLength(path);
             using (FileStream fileStream = new(path, FileMode.Open, FileAccess.Read, FileShare.Read, STREAM_BUFFER_SIZE, FileOptions.SequentialScan))
             {
-                return LoadFromJsonStream<T>(fileStream, fileLength, readPhase, deserializePhase, concurrency);
+                return LoadFromJsonStream<T>(fileStream);
             }
         }
 
-        private static T LoadFromJsonStream<T>(Stream stream, long byteCount, LoadingDiagnostics.Phase readPhase, LoadingDiagnostics.Phase deserializePhase, int concurrency)
+        private static T LoadFromJsonStream<T>(Stream stream)
         {
-            int readObjectCount = readPhase == deserializePhase ? 1 : 0;
-
-            // Streaming makes file reads part of deserialization. The outer read phase
-            // retains file/byte accounting; distinct read/deserialize timings overlap.
-            // TEMP-LOADING-PROFILING
-            using (LoadingDiagnostics.BeginPhase(readPhase, 1, byteCount, readObjectCount, concurrency))
             using (StreamReader streamReader = new(stream, Encoding.UTF8, true, STREAM_BUFFER_SIZE, true))
             using (JsonTextReader jsonReader = new(streamReader))
             {
-                if (readPhase == deserializePhase)
-                {
-                    return Deserialize<T>(jsonReader);
-                }
-
-                // TEMP-LOADING-PROFILING
-                using (LoadingDiagnostics.BeginPhase(deserializePhase, objectCount: 1, concurrency: concurrency))
-                {
-                    return Deserialize<T>(jsonReader);
-                }
+                return Deserialize<T>(jsonReader);
             }
         }
 

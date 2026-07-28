@@ -243,7 +243,15 @@ namespace HBP.Dev
             DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () => await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)));
-            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", (a, b, c) => { }, 20, true);
+            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(
+                tasks,
+                0,
+                1,
+                "tutu",
+                (a, b, c) => { },
+                LoadingConcurrencyPolicy.Current.GetLimit(
+                    LoadingWorkCategory.JsonAndZip),
+                true);
             watch.Stop();
             Debug.Log("Time : " + watch.ElapsedMilliseconds);
         }

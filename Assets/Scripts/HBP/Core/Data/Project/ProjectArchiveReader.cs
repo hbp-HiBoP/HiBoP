@@ -38,9 +38,6 @@ namespace HBP.Core.Data
         public async UniTask<T> ReadAsync<T>(
             ProjectManifest manifest,
             string entryName,
-            LoadingDiagnostics.Phase readPhase,
-            LoadingDiagnostics.Phase deserializePhase,
-            int concurrency,
             CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -60,12 +57,7 @@ namespace HBP.Core.Data
                 }
 
                 using Stream stream = entry.OpenReader();
-                return ClassLoaderSaver.LoadFromJson<T>(
-                    stream,
-                    manifest.GetEntrySize(entryName),
-                    readPhase,
-                    deserializePhase,
-                    concurrency);
+                return ClassLoaderSaver.LoadFromJson<T>(stream);
             }
             finally
             {

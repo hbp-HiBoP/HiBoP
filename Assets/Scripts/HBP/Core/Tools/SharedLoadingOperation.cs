@@ -59,6 +59,7 @@ namespace HBP.Core.Tools
         private Exception m_Exception;
         private bool m_HasResult;
         private bool m_Started;
+        private int m_ForegroundConsumerCount;
         private long m_ReportedProgressCount;
         private long m_FlushedProgressCount;
 
@@ -67,6 +68,18 @@ namespace HBP.Core.Tools
         public Task<TResult> Ready => m_Ready.Task;
         public Task<TResult> Validated => m_Validated.Task;
         public CancellationToken CancellationToken => m_Cancellation.Token;
+        public LoadingWorkPriority Priority
+        {
+            get
+            {
+                lock (m_Lock)
+                {
+                    return m_ForegroundConsumerCount > 0
+                        ? LoadingWorkPriority.Foreground
+                        : LoadingWorkPriority.Background;
+                }
+            }
+        }
 
         public LoadingOperationState State
         {
@@ -236,6 +249,19 @@ namespace HBP.Core.Tools
             return subscription;
         }
 
+        /// <summary>
+        /// Marks this shared operation as user-visible until the returned lease
+        /// is disposed. Several visible consumers may overlap safely.
+        /// </summary>
+        public IDisposable AttachForeground()
+        {
+            lock (m_Lock)
+            {
+                m_ForegroundConsumerCount++;
+            }
+            return new ForegroundLease(this);
+        }
+
         public void Cancel()
         {
             m_Cancellation.Cancel();
@@ -391,6 +417,17 @@ namespace HBP.Core.Tools
             }
         }
 
+        private void DetachForeground()
+        {
+            lock (m_Lock)
+            {
+                if (m_ForegroundConsumerCount > 0)
+                {
+                    m_ForegroundConsumerCount--;
+                }
+            }
+        }
+
         private sealed class ProgressSubscription : IDisposable
         {
             private readonly object m_SubscriptionLock = new();
@@ -428,6 +465,23 @@ namespace HBP.Core.Tools
                     m_Listener = null;
                 }
                 owner?.Unsubscribe(this);
+            }
+        }
+
+        private sealed class ForegroundLease : IDisposable
+        {
+            private SharedLoadingOperation<TResult> m_Owner;
+
+            public ForegroundLease(SharedLoadingOperation<TResult> owner)
+            {
+                m_Owner = owner;
+            }
+
+            public void Dispose()
+            {
+                SharedLoadingOperation<TResult> owner =
+                    Interlocked.Exchange(ref m_Owner, null);
+                owner?.DetachForeground();
             }
         }
     }

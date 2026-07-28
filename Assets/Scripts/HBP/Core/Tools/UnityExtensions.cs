@@ -550,9 +550,12 @@ namespace HBP.Core.Tools
                 localPath = ApplicationState.ExtractProjectFolder + localPath;
             }
             
-            foreach (var alias in PersistentDataManager.Aliases.Aliases)
+            if (PersistentDataManager.IsInitialized)
             {
-                alias.ConvertKeyToValue(ref localPath);
+                foreach (var alias in PersistentDataManager.Aliases.Aliases)
+                {
+                    alias.ConvertKeyToValue(ref localPath);
+                }
             }
 
             return localPath.StandardizeToEnvironement();
@@ -566,9 +569,12 @@ namespace HBP.Core.Tools
                 localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ExtractProjectFolder.Length);
             }
             
-            foreach (var alias in PersistentDataManager.Aliases.Aliases)
+            if (PersistentDataManager.IsInitialized)
             {
-                alias.ConvertValueToKey(ref localPath);
+                foreach (var alias in PersistentDataManager.Aliases.Aliases)
+                {
+                    alias.ConvertValueToKey(ref localPath);
+                }
             }
 
             return localPath.StandardizeToEnvironement();

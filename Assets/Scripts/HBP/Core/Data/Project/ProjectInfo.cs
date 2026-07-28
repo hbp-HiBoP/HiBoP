@@ -1,7 +1,4 @@
 using HBP.Core.Exceptions;
-using HBP.Core.Tools;
-using LoadingOperation = HBP.Core.Tools.LoadingDiagnostics.Operation;
-using LoadingPhase = HBP.Core.Tools.LoadingDiagnostics.Phase;
 
 namespace HBP.Core.Data
 {
@@ -35,39 +32,17 @@ namespace HBP.Core.Data
 
         public ProjectInfo(string path) : this()
         {
-            // TEMP-LOADING-PROFILING
-            using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Project);
             try
             {
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingPhase.ProjectManifest,
-                    fileCount: 1,
-                    byteCount: LoadingDiagnostics.GetFileLength(path)))
-                {
-                    try
-                    {
-                        ApplyManifest(ProjectManifest.Read(path, true));
-                    }
-                    catch (DirectoryNotProjectException)
-                    {
-                        throw;
-                    }
-                    catch (System.Exception exception)
-                    {
-                        throw new DirectoryNotProjectException(path, exception);
-                    }
-                }
-
-                if (SettingsLoadException != null)
-                {
-                    session.MarkFailed(SettingsLoadException);
-                }
-                session.MarkSucceeded();
+                ApplyManifest(ProjectManifest.Read(path, true));
+            }
+            catch (DirectoryNotProjectException)
+            {
+                throw;
             }
             catch (System.Exception exception)
             {
-                session.MarkFailed(exception);
-                throw;
+                throw new DirectoryNotProjectException(path, exception);
             }
         }
         #endregion

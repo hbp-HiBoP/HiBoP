@@ -16,8 +16,6 @@ base locale et les projets `.hibop`.
   étapes suivantes.
 - [Plan d'optimisation](plan_optimisation_chargement.md) : ordre de mise en
   œuvre, critères de validation et stratégie de migration.
-- [Instrumentation et benchmark — étape 0](instrumentation_et_benchmark_etape_0.md) :
-  emplacement, format des résultats, benchmark opt-in et procédure de retrait.
 - [Index stable des tags — étape 1](etape_1_index_tags_2026-07-23.md) :
   implémentation, contrats de mutation, compatibilité JSON et IL2CPP.
 - [Résultats de l'étape 1](resultats_etape_1_2026-07-23.md) : validation
@@ -51,6 +49,9 @@ base locale et les projets `.hibop`.
 - [Chargements asynchrones et validations différées — étape 8](etape_8_chargements_asynchrones_validation_2026-07-24.md) :
   états `Ready` et `Validated`, chargement silencieux, orchestration du loader,
   sécurité de publication, stratégie de migration et parallélisme adaptatif.
+- [Résultats du scheduler adaptatif — étape 8.6](resultats_etape_8_6_2026-07-28.md) :
+  matrice 1/2/4/8/20 sur `Default` et `visu_full_test`, plafonds retenus et
+  cleanup final de l'instrumentation.
 
 ## Conclusion courte
 

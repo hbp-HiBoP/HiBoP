@@ -6,7 +6,6 @@ using System.Linq;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using Ionic.Zip;
-using LoadingPhase = HBP.Core.Tools.LoadingDiagnostics.Phase;
 
 namespace HBP.Core.Data
 {
@@ -156,12 +155,7 @@ namespace HBP.Core.Data
                 {
                     ZipEntry settingsEntry = zip[settingsEntryName];
                     using Stream stream = settingsEntry.OpenReader();
-                    preferences = ClassLoaderSaver.LoadFromJson<ProjectPreferences>(
-                        stream,
-                        settingsEntry.UncompressedSize,
-                        LoadingPhase.ProjectSettings,
-                        LoadingPhase.ProjectSettings,
-                        1);
+                    preferences = ClassLoaderSaver.LoadFromJson<ProjectPreferences>(stream);
                 }
                 catch (Exception exception)
                 {
@@ -194,11 +188,6 @@ namespace HBP.Core.Data
             return archiveFile.Exists
                 && archiveFile.Length == ArchiveLength
                 && archiveFile.LastWriteTimeUtc == ArchiveLastWriteTimeUtc;
-        }
-
-        internal long GetEntrySize(string entryName)
-        {
-            return m_Entries[entryName];
         }
 
         private static string NormalizeAndValidateEntryName(string entryName)

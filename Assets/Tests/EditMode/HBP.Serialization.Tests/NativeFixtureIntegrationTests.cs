@@ -101,6 +101,7 @@ namespace HBP.Tests.Serialization
             ApplicationState.LoadedProjectLocation = Path.GetDirectoryName(archivePath);
 
             await loaded.LoadAsync(info, NoProgress, CancellationToken.None);
+            await loaded.CurrentLoadingOperation.Validated;
 
             Dataset dataset = loaded.Datasets.Single();
             Assert.That(loaded.Patients, Has.Count.EqualTo(1));

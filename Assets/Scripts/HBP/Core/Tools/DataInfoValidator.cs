@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using HBP.Core.Tools;
 
 namespace HBP.Core.Data
 {
@@ -68,7 +69,8 @@ namespace HBP.Core.Data
             int maxConcurrency,
             CancellationToken token,
             Action<int, int> updateProgress = null,
-            long generation = 0)
+            long generation = 0,
+            Func<LoadingWorkPriority> priorityProvider = null)
         {
             return await ValidateAsync(
                 dataInfos,
@@ -78,7 +80,8 @@ namespace HBP.Core.Data
                 maxConcurrency,
                 token,
                 updateProgress,
-                generation);
+                generation,
+                priorityProvider);
         }
 
         public async UniTask<DataInfoValidationResult> ValidateAsync(
@@ -87,7 +90,8 @@ namespace HBP.Core.Data
             int maxConcurrency,
             CancellationToken token,
             Action<int, int> updateProgress = null,
-            long generation = 0)
+            long generation = 0,
+            Func<LoadingWorkPriority> priorityProvider = null)
         {
             if (dataInfos == null)
             {
@@ -102,75 +106,51 @@ namespace HBP.Core.Data
             DataInfo[] snapshot = dataInfos
                 .Where(request.Matches)
                 .ToArray();
-            DataInfoValidationResult.Entry[] results =
-                new DataInfoValidationResult.Entry[snapshot.Length];
-            updateProgress?.Invoke(0, snapshot.Length);
-            if (snapshot.Length == 0)
-            {
-                return new DataInfoValidationResult(generation, results);
-            }
-
-            int nextIndex = -1;
-            int completedCount = 0;
-            object progressLock = new();
-            int workerCount = Math.Min(Math.Max(1, maxConcurrency), snapshot.Length);
-            UniTask[] workers = Enumerable.Range(0, workerCount)
-                .Select(_ => ValidateWorkerAsync(
-                    snapshot,
-                    results,
-                    request,
-                    () => Interlocked.Increment(ref nextIndex),
-                    () =>
+            Func<UniTask<DataInfoValidationResult.Entry>>[] tasks = snapshot
+                .Select(target =>
+                    (Func<UniTask<DataInfoValidationResult.Entry>>)(async () =>
                     {
-                        if (updateProgress == null)
-                        {
-                            return;
-                        }
-
-                        lock (progressLock)
-                        {
-                            updateProgress(++completedCount, snapshot.Length);
-                        }
-                    },
-                    token))
+                        await UniTask.SwitchToThreadPool();
+                        token.ThrowIfCancellationRequested();
+                        DataInfo validatedSnapshot =
+                            target.CreateValidationSnapshot(
+                                request,
+                                request.Force,
+                                m_MetadataReader);
+                        return validatedSnapshot == null
+                            ? null
+                            : new DataInfoValidationResult.Entry(
+                                target,
+                                validatedSnapshot);
+                    }))
                 .ToArray();
-
-            await UniTask.WhenAll(workers);
+            LoadingWorkCategory category = GetWorkCategory(request);
+            DataInfoValidationResult.Entry[] results =
+                await LoadingWorkScheduler.Shared.RunAsync(
+                    tasks,
+                    category,
+                    priorityProvider,
+                    token,
+                    updateProgress,
+                    maxConcurrency);
             token.ThrowIfCancellationRequested();
             return new DataInfoValidationResult(
                 generation,
                 results.Where(result => result != null).ToArray());
         }
 
-        private async UniTask ValidateWorkerAsync(
-            IReadOnlyList<DataInfo> snapshot,
-            DataInfoValidationResult.Entry[] results,
-            ValidationRequest request,
-            Func<int> nextIndex,
-            Action validationCompleted,
-            CancellationToken token)
+        internal static LoadingWorkCategory GetWorkCategory(
+            ValidationRequest request)
         {
-            await UniTask.SwitchToThreadPool();
-            while (true)
+            if (request.Includes(ValidationAspect.SourceReadability) ||
+                request.Includes(ValidationAspect.Epoching) ||
+                request.Includes(ValidationAspect.ChannelMapping))
             {
-                token.ThrowIfCancellationRequested();
-                int index = nextIndex();
-                if (index >= snapshot.Count)
-                {
-                    return;
-                }
-
-                DataInfo target = snapshot[index];
-                DataInfo validatedSnapshot = target.CreateValidationSnapshot(
-                    request,
-                    request.Force,
-                    m_MetadataReader);
-                if (validatedSnapshot != null)
-                {
-                    results[index] = new DataInfoValidationResult.Entry(target, validatedSnapshot);
-                }
-                validationCompleted();
+                return LoadingWorkCategory.Native;
             }
+            return request.Includes(ValidationAspect.StaticContent)
+                ? LoadingWorkCategory.Metadata
+                : LoadingWorkCategory.FileSystem;
         }
     }
 }

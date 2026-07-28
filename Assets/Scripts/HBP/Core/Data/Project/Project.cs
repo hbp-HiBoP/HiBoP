@@ -12,8 +12,6 @@ using HBP.Core.Preferences;
 using HBP.Core.Database;
 using Cysharp.Threading.Tasks;
 using System.Threading;
-using LoadingOperation = HBP.Core.Tools.LoadingDiagnostics.Operation;
-using LoadingPhase = HBP.Core.Tools.LoadingDiagnostics.Phase;
 
 namespace HBP.Core.Data
 {
@@ -555,7 +553,8 @@ namespace HBP.Core.Data
                     m_LoadingProjectPath = projectInfo.Path;
                     long generation = ++m_LoadingGeneration;
                     m_ValidationRequest = ValidationRequest.Startup;
-                    m_LoadingOperation = new SharedLoadingOperation<Project>(
+                    SharedLoadingOperation<Project> createdOperation = null;
+                    createdOperation = new SharedLoadingOperation<Project>(
                         generation,
                         async (progress, operationToken) =>
                         {
@@ -565,7 +564,8 @@ namespace HBP.Core.Data
                                     value * READY_PROGRESS_WEIGHT,
                                     duration,
                                     text),
-                                operationToken);
+                                operationToken,
+                                () => createdOperation.Priority);
                             return this;
                         },
                         (project, progress, operationToken) =>
@@ -577,7 +577,9 @@ namespace HBP.Core.Data
                                     text),
                                 operationToken,
                                 generation,
-                                ValidationRequest.Startup));
+                                ValidationRequest.Startup,
+                                () => createdOperation.Priority));
+                    m_LoadingOperation = createdOperation;
                 }
                 else if (!string.Equals(m_LoadingProjectPath, projectInfo.Path, StringComparison.Ordinal))
                 {
@@ -586,8 +588,19 @@ namespace HBP.Core.Data
                 operation = m_LoadingOperation;
             }
 
+            bool backgroundValidation =
+                LoadingConcurrencyPolicy.BackgroundValidationEnabled;
+            using IDisposable foreground = operation.AttachForeground();
             using IDisposable progressSubscription = operation.SubscribeProgress(progress =>
             {
+                if (!backgroundValidation)
+                {
+                    updateProgress.Invoke(
+                        progress.Value,
+                        progress.Duration,
+                        progress.Text);
+                    return;
+                }
                 if (progress.State == LoadingOperationState.Validating ||
                     progress.Value > READY_PROGRESS_WEIGHT)
                 {
@@ -602,7 +615,14 @@ namespace HBP.Core.Data
             using CancellationTokenRegistration cancellationRegistration = token.Register(operation.Cancel);
             try
             {
-                await operation.EnsureReadyAsync();
+                if (backgroundValidation)
+                {
+                    await operation.EnsureReadyAsync();
+                }
+                else
+                {
+                    await operation.EnsureValidatedAsync();
+                }
             }
             catch (OperationCanceledException)
             {
@@ -613,10 +633,9 @@ namespace HBP.Core.Data
         private async UniTask LoadCoreAsync(
             ProjectInfo projectInfo,
             Action<float, float, LoadingText> updateProgress,
-            CancellationToken token)
+            CancellationToken token,
+            Func<LoadingWorkPriority> priorityProvider)
         {
-            // TEMP-LOADING-PROFILING
-            using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Project);
             try
             {
                 updateProgress.Invoke(0.0f, 0, new LoadingText("Loading project"));
@@ -626,13 +645,7 @@ namespace HBP.Core.Data
                 ProjectManifest manifest;
                 try
                 {
-                    using (LoadingDiagnostics.BeginPhase(
-                        LoadingPhase.ProjectArchiveRead,
-                        fileCount: 1,
-                        byteCount: LoadingDiagnostics.GetFileLength(projectInfo.Path)))
-                    {
-                        manifest = projectInfo.GetCurrentManifest();
-                    }
+                    manifest = projectInfo.GetCurrentManifest();
                 }
                 catch (Exception exception)
                 {
@@ -666,7 +679,8 @@ namespace HBP.Core.Data
                 token.ThrowIfCancellationRequested();
                 progress += settingsProgress;
 
-                int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
+                int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(
+                    LoadingWorkCategory.JsonAndZip);
                 int readerCount = Math.Min(
                     concurrency,
                     Math.Max(
@@ -678,13 +692,8 @@ namespace HBP.Core.Data
                 List<Group> groups;
                 List<Dataset> datasets;
                 List<Visualization> visualizations;
-                ProjectArchiveReader archiveReader;
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingPhase.ProjectArchiveRead,
-                    fileCount: readerCount))
-                {
-                    archiveReader = new ProjectArchiveReader(manifest.Path, readerCount);
-                }
+                ProjectArchiveReader archiveReader =
+                    new(manifest.Path, readerCount);
                 using (archiveReader)
                 {
                     // Load Patients.
@@ -693,7 +702,9 @@ namespace HBP.Core.Data
                         manifest,
                         archiveReader,
                         (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text),
-                        token);
+                        token,
+                        concurrency,
+                        priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += patientsProgress;
 
@@ -703,7 +714,9 @@ namespace HBP.Core.Data
                         manifest,
                         archiveReader,
                         (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text),
-                        token);
+                        token,
+                        concurrency,
+                        priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += groupsProgress;
 
@@ -713,7 +726,9 @@ namespace HBP.Core.Data
                         manifest,
                         archiveReader,
                         (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text),
-                        token);
+                        token,
+                        concurrency,
+                        priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += datasetsProgress;
 
@@ -723,7 +738,9 @@ namespace HBP.Core.Data
                         manifest,
                         archiveReader,
                         (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text),
-                        token);
+                        token,
+                        concurrency,
+                        priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += visualizationsProgress;
                 }
@@ -731,22 +748,28 @@ namespace HBP.Core.Data
                 // Link every serialized ID against the canonical instances before
                 // the new graph becomes visible through this Project.
                 updateProgress.Invoke(progress, 0, new LoadingText("Linking project references"));
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingPhase.ProjectLinkReferences,
-                    objectCount: patients.Count + groups.Count + datasets.Count + visualizations.Count))
-                {
-                    LoadingContext context = new(
-                        PersistentDataManager.Tags.AllTags,
-                        DatabaseManager.Database.Protocols,
-                        patients,
-                        datasets);
-                    context.ResolveProject(patients, groups, datasets, visualizations);
+                LoadingContext context = new(
+                    PersistentDataManager.Tags.AllTags,
+                    DatabaseManager.Database.Protocols,
+                    patients,
+                    datasets);
+                context.ResolveProject(patients, groups, datasets, visualizations);
 
-                    ISet<string> tagIds = new HashSet<string>(
-                        context.TagById.Keys,
-                        StringComparer.Ordinal);
-                    await UniTask.WhenAll(patients.Select(patient => patient.CheckTagsAsync(tagIds)));
-                }
+                ISet<string> tagIds = new HashSet<string>(
+                    context.TagById.Keys,
+                    StringComparer.Ordinal);
+                int tagConcurrency =
+                    LoadingConcurrencyPolicy.Current.GetLimit(
+                        LoadingWorkCategory.Metadata);
+                await LoadingWorkScheduler.Shared.RunAsync(
+                    patients.Select(patient =>
+                        (Func<UniTask>)(() =>
+                            patient.CheckTagsAsync(tagIds))),
+                    LoadingWorkCategory.Metadata,
+                    priorityProvider,
+                    token,
+                    null,
+                    tagConcurrency);
                 token.ThrowIfCancellationRequested();
                 progress += linkingProgress;
 
@@ -763,17 +786,6 @@ namespace HBP.Core.Data
 
                 token.ThrowIfCancellationRequested();
                 updateProgress.Invoke(1.0f, 0, new LoadingText("Project loaded successfully"));
-                session.MarkSucceeded();
-            }
-            catch (OperationCanceledException)
-            {
-                session.MarkCanceled();
-                throw;
-            }
-            catch (Exception exception)
-            {
-                session.MarkFailed(exception);
-                throw;
             }
             finally
             {
@@ -802,10 +814,12 @@ namespace HBP.Core.Data
             if (operation.State == LoadingOperationState.Validated ||
                 operation.State == LoadingOperationState.ValidatedWithIssues)
             {
+                using IDisposable foreground = operation.AttachForeground();
                 await operation.EnsureValidatedAsync(token);
                 return;
             }
 
+            using IDisposable foregroundLease = operation.AttachForeground();
             updateProgress?.Invoke(0, 0, new LoadingText("Validating project"));
             using IDisposable progressSubscription = operation.SubscribeProgress(progress =>
             {
@@ -906,7 +920,8 @@ namespace HBP.Core.Data
             long generation,
             ValidationRequest request)
         {
-            return new SharedLoadingOperation<Project>(
+            SharedLoadingOperation<Project> operation = null;
+            operation = new SharedLoadingOperation<Project>(
                 generation,
                 (progress, operationToken) => UniTask.FromResult(this),
                 (project, progress, operationToken) =>
@@ -918,14 +933,17 @@ namespace HBP.Core.Data
                             text),
                         operationToken,
                         generation,
-                        request));
+                        request,
+                        () => operation.Priority));
+            return operation;
         }
 
         private async UniTask<bool> ValidateProjectCoreAsync(
             Action<float, float, LoadingText> updateProgress,
             CancellationToken token,
             long generation,
-            ValidationRequest request)
+            ValidationRequest request,
+            Func<LoadingWorkPriority> priorityProvider)
         {
             try
             {
@@ -943,36 +961,29 @@ namespace HBP.Core.Data
                     : dataInfos.Length == 0
                         ? 1
                         : (float)patients.Length / (patients.Length + dataInfos.Length);
-                int pathConcurrency =
-                    PersistentDataManager.UserPreferences.General.System.MultiThreading
-                        ? 20
-                        : 1;
-                int dataInfoConcurrency =
-                    PersistentDataManager.UserPreferences.General.System.MultiThreading
-                        ? 2
-                        : 1;
+                LoadingConcurrencyPolicy concurrencyPolicy =
+                    LoadingConcurrencyPolicy.Current;
+                int pathConcurrency = concurrencyPolicy.GetLimit(
+                    LoadingWorkCategory.FileSystem);
+                int dataInfoConcurrency = concurrencyPolicy.GetLimit(
+                    DataInfoValidator.GetWorkCategory(request));
 
-                PatientAssetValidationResult assetResult;
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingPhase.ProjectValidateFiles,
-                    objectCount: patients.Length,
-                    concurrency: pathConcurrency))
-                {
-                    assetResult = await new AssetReferenceValidator().ValidatePatientsAsync(
-                        patients,
-                        pathConcurrency,
-                        token,
-                        (completed, total) => updateProgress(
-                            (total == 0 ? 1 : (float)completed / total) * pathWeight,
-                            completed == 0 ? 0 : 0.2f,
-                            total == 0
-                                ? new LoadingText("Validating patient file references")
-                                : new LoadingText(
-                                    "Validating patient file references",
-                                    " ",
-                                    completed + "/" + total)),
-                        generation);
-                }
+                PatientAssetValidationResult assetResult =
+                    await new AssetReferenceValidator().ValidatePatientsAsync(
+                    patients,
+                    pathConcurrency,
+                    token,
+                    (completed, total) => updateProgress(
+                        (total == 0 ? 1 : (float)completed / total) * pathWeight,
+                        completed == 0 ? 0 : 0.2f,
+                        total == 0
+                            ? new LoadingText("Validating patient file references")
+                            : new LoadingText(
+                                "Validating patient file references",
+                                " ",
+                                completed + "/" + total)),
+                    generation,
+                    priorityProvider);
 
                 DataInfoValidationResult dataInfoResult =
                     await new DataInfoValidator().ValidateAsync(
@@ -991,7 +1002,8 @@ namespace HBP.Core.Data
                                     "Validating project data",
                                     " ",
                                     completed + "/" + total)),
-                        generation);
+                        generation,
+                        priorityProvider);
 
                 token.ThrowIfCancellationRequested();
                 await UniTask.SwitchToMainThread();
@@ -1161,7 +1173,6 @@ namespace HBP.Core.Data
                     manifest.PreferencesLoadException);
             }
 
-            LoadingDiagnostics.RecordObjects("ProjectPreferences", 1);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
             return manifest.Preferences;
         }
@@ -1194,10 +1205,14 @@ namespace HBP.Core.Data
                 _ => null
             };
         }
-        private async UniTask<List<Patient>> LoadPatientsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Patient>> LoadPatientsAsync(
+            ProjectManifest manifest,
+            ProjectArchiveReader archiveReader,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token,
+            int concurrency,
+            Func<LoadingWorkPriority> priorityProvider)
         {
-            List<Patient> patients = new();
-            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = manifest.PatientEntries.Select(entryName => (Func<UniTask<Patient>>)(async () =>
             {
                 try
@@ -1205,11 +1220,7 @@ namespace HBP.Core.Data
                     Patient patient = await archiveReader.ReadAsync<Patient>(
                         manifest,
                         entryName,
-                        LoadingPhase.ProjectPatientsRead,
-                        LoadingPhase.ProjectPatientsDeserialize,
-                        concurrency,
                         token);
-                    LoadingDiagnostics.RecordPatientGraph(patient);
                     return patient;
                 }
                 catch (OperationCanceledException)
@@ -1221,14 +1232,25 @@ namespace HBP.Core.Data
                     throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
-            patients.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
+            List<Patient> patients = (await RunLoadingTasksAsync(
+                    tasks,
+                    "Loading patients",
+                    updateProgress,
+                    token,
+                    concurrency,
+                    priorityProvider))
+                .ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
             return patients;
         }
-        private async UniTask<List<Group>> LoadGroupsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Group>> LoadGroupsAsync(
+            ProjectManifest manifest,
+            ProjectArchiveReader archiveReader,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token,
+            int concurrency,
+            Func<LoadingWorkPriority> priorityProvider)
         {
-            List<Group> groups = new();
-            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = manifest.GroupEntries.Select(entryName => (Func<UniTask<Group>>)(async () =>
             {
                 try
@@ -1236,9 +1258,6 @@ namespace HBP.Core.Data
                     return await archiveReader.ReadAsync<Group>(
                         manifest,
                         entryName,
-                        LoadingPhase.ProjectGroups,
-                        LoadingPhase.ProjectGroups,
-                        concurrency,
                         token);
                 }
                 catch (OperationCanceledException)
@@ -1250,15 +1269,25 @@ namespace HBP.Core.Data
                     throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
-            groups.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            LoadingDiagnostics.RecordObjects("Group", groups.Count);
+            List<Group> groups = (await RunLoadingTasksAsync(
+                    tasks,
+                    "Loading groups",
+                    updateProgress,
+                    token,
+                    concurrency,
+                    priorityProvider))
+                .ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
             return groups;
         }
-        private async UniTask<List<Dataset>> LoadDatasetsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Dataset>> LoadDatasetsAsync(
+            ProjectManifest manifest,
+            ProjectArchiveReader archiveReader,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token,
+            int concurrency,
+            Func<LoadingWorkPriority> priorityProvider)
         {
-            List<Dataset> datasets = new();
-            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = manifest.DatasetEntries.Select(entryName => (Func<UniTask<Dataset>>)(async () =>
             {
                 try
@@ -1266,9 +1295,6 @@ namespace HBP.Core.Data
                     return await archiveReader.ReadAsync<Dataset>(
                         manifest,
                         entryName,
-                        LoadingPhase.ProjectDatasets,
-                        LoadingPhase.ProjectDatasets,
-                        concurrency,
                         token);
                 }
                 catch (OperationCanceledException)
@@ -1280,15 +1306,25 @@ namespace HBP.Core.Data
                     throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
-            datasets.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            LoadingDiagnostics.RecordObjects("Dataset", datasets.Count);
+            List<Dataset> datasets = (await RunLoadingTasksAsync(
+                    tasks,
+                    "Loading datasets",
+                    updateProgress,
+                    token,
+                    concurrency,
+                    priorityProvider))
+                .ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
             return datasets;
         }
-        private async UniTask<List<Visualization>> LoadVisualizationsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<List<Visualization>> LoadVisualizationsAsync(
+            ProjectManifest manifest,
+            ProjectArchiveReader archiveReader,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token,
+            int concurrency,
+            Func<LoadingWorkPriority> priorityProvider)
         {
-            List<Visualization> visualizations = new();
-            int concurrency = PersistentDataManager.UserPreferences.General.System.MultiThreading ? 20 : 1;
             var tasks = manifest.VisualizationEntries.Select(entryName => (Func<UniTask<Visualization>>)(async () =>
             {
                 try
@@ -1296,9 +1332,6 @@ namespace HBP.Core.Data
                     return await archiveReader.ReadAsync<Visualization>(
                         manifest,
                         entryName,
-                        LoadingPhase.ProjectVisualizations,
-                        LoadingPhase.ProjectVisualizations,
-                        concurrency,
                         token);
                 }
                 catch (OperationCanceledException)
@@ -1310,10 +1343,66 @@ namespace HBP.Core.Data
                     throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(entryName), e);
                 }
             }));
-            visualizations.AddRange(await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Loading visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token));
-            LoadingDiagnostics.RecordObjects("Visualization", visualizations.Count);
+            List<Visualization> visualizations = (await RunLoadingTasksAsync(
+                    tasks,
+                    "Loading visualizations",
+                    updateProgress,
+                    token,
+                    concurrency,
+                    priorityProvider))
+                .ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
             return visualizations;
+        }
+
+        private static async UniTask<T[]> RunLoadingTasksAsync<T>(
+            IEnumerable<Func<UniTask<T>>> tasks,
+            string loadingText,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token,
+            int concurrency,
+            Func<LoadingWorkPriority> priorityProvider)
+        {
+            return await LoadingWorkScheduler.Shared.RunAsync(
+                tasks,
+                LoadingWorkCategory.JsonAndZip,
+                priorityProvider,
+                token,
+                (completed, total) => updateProgress(
+                    total == 0 ? 1 : (float)completed / total,
+                    completed == 0 ? 0 : 0.2f,
+                    total == 0
+                        ? new LoadingText(loadingText)
+                        : new LoadingText(
+                            loadingText,
+                            " ",
+                            completed + "/" + total)),
+                concurrency);
+        }
+
+        private static async UniTask RunLoadingTasksAsync(
+            IEnumerable<Func<UniTask>> tasks,
+            string loadingText,
+            Action<float, float, LoadingText> updateProgress,
+            CancellationToken token)
+        {
+            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(
+                LoadingWorkCategory.JsonAndZip);
+            await LoadingWorkScheduler.Shared.RunAsync(
+                tasks,
+                LoadingWorkCategory.JsonAndZip,
+                () => LoadingWorkPriority.Foreground,
+                token,
+                (completed, total) => updateProgress(
+                    total == 0 ? 1 : (float)completed / total,
+                    completed == 0 ? 0 : 0.2f,
+                    total == 0
+                        ? new LoadingText(loadingText)
+                        : new LoadingText(
+                            loadingText,
+                            " ",
+                            completed + "/" + total)),
+                concurrency);
         }
 
         private async UniTask SaveSettingsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress)
@@ -1351,7 +1440,11 @@ namespace HBP.Core.Data
                     }
                 });
             });
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving patients", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
+            await RunLoadingTasksAsync(
+                tasks,
+                "Saving patients",
+                updateProgress,
+                token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients saved successfully"));
         }
         private async UniTask SaveGroupsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -1374,7 +1467,11 @@ namespace HBP.Core.Data
                     }
                 });
             });
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving groups", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
+            await RunLoadingTasksAsync(
+                tasks,
+                "Saving groups",
+                updateProgress,
+                token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups saved successfully"));
         }
         private async UniTask SaveDatasetsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -1397,7 +1494,11 @@ namespace HBP.Core.Data
                     }
                 });
             });
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving datasets", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
+            await RunLoadingTasksAsync(
+                tasks,
+                "Saving datasets",
+                updateProgress,
+                token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets saved successfully"));
         }
         private async UniTask SaveVisualizationsAsync(DirectoryInfo projectDirectory, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -1420,7 +1521,11 @@ namespace HBP.Core.Data
                     }
                 });
             });
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Saving visualizations", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
+            await RunLoadingTasksAsync(
+                tasks,
+                "Saving visualizations",
+                updateProgress,
+                token);
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations saved successfully"));
         }
 

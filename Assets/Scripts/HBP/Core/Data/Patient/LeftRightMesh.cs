@@ -125,7 +125,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(LeftHemisphere) && !string.IsNullOrEmpty(RightHemisphere) && LoadingDiagnostics.FileExists(LeftHemisphere) && LoadingDiagnostics.FileExists(RightHemisphere) && new FileInfo(LeftHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightHemisphere).Extension == MESH_EXTENSION;
+                return !string.IsNullOrEmpty(LeftHemisphere) && !string.IsNullOrEmpty(RightHemisphere) && File.Exists(LeftHemisphere) && File.Exists(RightHemisphere) && new FileInfo(LeftHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightHemisphere).Extension == MESH_EXTENSION;
             }
         }
         /// <summary>
@@ -135,7 +135,7 @@ namespace HBP.Core.Data
         {
             get
             {
-                return !string.IsNullOrEmpty(LeftMarsAtlasHemisphere) && !string.IsNullOrEmpty(RightMarsAtlasHemisphere) && LoadingDiagnostics.FileExists(LeftMarsAtlasHemisphere) && LoadingDiagnostics.FileExists(RightMarsAtlasHemisphere) && new FileInfo(LeftMarsAtlasHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightMarsAtlasHemisphere).Extension == MESH_EXTENSION;
+                return !string.IsNullOrEmpty(LeftMarsAtlasHemisphere) && !string.IsNullOrEmpty(RightMarsAtlasHemisphere) && File.Exists(LeftMarsAtlasHemisphere) && File.Exists(RightMarsAtlasHemisphere) && new FileInfo(LeftMarsAtlasHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightMarsAtlasHemisphere).Extension == MESH_EXTENSION;
             }
         }
         #endregion

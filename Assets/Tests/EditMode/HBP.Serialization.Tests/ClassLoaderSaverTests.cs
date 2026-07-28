@@ -130,10 +130,7 @@ namespace HBP.Tests.Serialization
             using MemoryStream stream = new(json);
 
             ConstructorOnlyPayload loaded = ClassLoaderSaver.LoadFromJson<ConstructorOnlyPayload>(
-                stream,
-                json.Length,
-                LoadingDiagnostics.Phase.None,
-                LoadingDiagnostics.Phase.None);
+                stream);
 
             Assert.That(loaded.Name, Is.EqualTo("payload-alpha"));
             Assert.That(loaded.Value, Is.EqualTo(42));
