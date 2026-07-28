@@ -7,57 +7,71 @@ namespace HBP.UI.Toolbar
     public class ToolbarSelector : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Toolbar menu
         /// </summary>
         [SerializeField] private ToolbarMenu m_ToolbarMenu;
+
         /// <summary>
         /// Scene configuration toggle
         /// </summary>
         [SerializeField] private Toggle m_ConfigurationToggle;
+
         /// <summary>
         /// Scene toggle
         /// </summary>
         [SerializeField] private Toggle m_SceneToggle;
+
         /// <summary>
         /// Display toggle
         /// </summary>
         [SerializeField] private Toggle m_DisplayToggle;
+
         /// <summary>
         /// IEEG toggle
         /// </summary>
         [SerializeField] private Toggle m_IEEGToggle;
+
         /// <summary>
         /// Timeline toggle
         /// </summary>
         [SerializeField] private Toggle m_TimelineToggle;
+
         /// <summary>
         /// Site toggle
         /// </summary>
         [SerializeField] private Toggle m_SiteToggle;
+
         /// <summary>
         /// IBC toggle
         /// </summary>
         [SerializeField] private Toggle m_IBCToggle;
+
         /// <summary>
         /// ROI Toggle
         /// </summary>
         [SerializeField] private Toggle m_ROIToggle;
+
         /// <summary>
         /// Triangle erasing Toggle
         /// </summary>
         [SerializeField] private Toggle m_TriangleToggle;
+
         /// <summary>
         /// Toggle group associated to the left menu toggles
         /// </summary>
         private ToggleGroup m_ToggleGroup;
+
         /// <summary>
         /// Link toggle to its respective toolbar
         /// </summary>
         private Dictionary<Toggle, Toolbar> m_Toolbars = new();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_ToggleGroup = GetComponent<ToggleGroup>();
@@ -74,6 +88,7 @@ namespace HBP.UI.Toolbar
 
             AddListeners();
         }
+
         /// <summary>
         /// Add the listeners to the toggles (to change the toolbar)
         /// </summary>
@@ -143,6 +158,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Method to be called when changing the state of a toggle
         /// </summary>
@@ -155,6 +171,7 @@ namespace HBP.UI.Toolbar
             m_ToolbarMenu.CurrentToolbar.gameObject.SetActive(true);
             m_ToolbarMenu.CurrentToolbar.ShowToolbarCallback();
         }
+
         #endregion
     }
 }

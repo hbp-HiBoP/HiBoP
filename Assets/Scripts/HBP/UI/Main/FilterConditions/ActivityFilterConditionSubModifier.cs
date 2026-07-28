@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class ActivityFilterConditionSubModifier : SubModifier<ActivityFilterCondition>
     {
         #region Properties
+
         [SerializeField] Dropdown m_MeasureTypeDropdown;
         [SerializeField] Dropdown m_ComparisonTypeDropdown;
         [SerializeField] InputField m_ValueInputField;
@@ -19,17 +20,17 @@ namespace HBP.UI.Main
         [SerializeField] InputField m_MaxInputField;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
-            set
-            {
-                m_FilteringObjects = value;
-            }
+            set { m_FilteringObjects = value; }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -40,9 +41,11 @@ namespace HBP.UI.Main
             m_MinInputField.onEndEdit.AddListener(value => Object.Min = float.Parse(value, NumberStyles.Any, CultureInfo.InvariantCulture));
             m_MaxInputField.onEndEdit.AddListener(value => Object.Max = float.Parse(value, NumberStyles.Any, CultureInfo.InvariantCulture));
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(ActivityFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -74,6 +77,7 @@ namespace HBP.UI.Main
             m_MinInputField.transform.parent.gameObject.SetActive(type == NumberComparisonType.Range);
             m_MaxInputField.transform.parent.gameObject.SetActive(type == NumberComparisonType.Range);
         }
+
         #endregion
     }
 }

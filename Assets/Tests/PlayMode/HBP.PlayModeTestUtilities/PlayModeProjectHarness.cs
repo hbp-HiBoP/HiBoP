@@ -44,13 +44,7 @@ namespace HBP.Tests.PlayMode.Utilities
             Visualization visualization = CreateVisualization(patient, dataset, protocol.Blocs[0]);
             Group group = new("playmode-group-alpha", new[] { patient }, GroupId);
 
-            Project project = new(
-                ProjectName,
-                new ProjectPreferences("playmode-test", ProjectId),
-                new[] { patient },
-                new[] { group },
-                new[] { dataset },
-                new[] { visualization });
+            Project project = new(ProjectName, new ProjectPreferences("playmode-test", ProjectId), new[] { patient }, new[] { group }, new[] { dataset }, new[] { visualization });
 
             ApplicationState.LoadedProject = project;
             return project;
@@ -60,36 +54,16 @@ namespace HBP.Tests.PlayMode.Utilities
         {
             HBP.Core.Data.Event mainEvent = new("playmode-event-alpha", new[] { 11 }, MainSecondaryEnum.Main, "playmode-event-001");
             TimeWindow window = new(-100, 250);
-            SubBloc subBloc = new(
-                "playmode-subbloc-alpha",
-                0,
-                MainSecondaryEnum.Main,
-                window,
-                new TimeWindow(-100, 0),
-                new[] { mainEvent },
-                new[] { new Icon("playmode-icon-alpha", string.Empty, window, "playmode-icon-001") },
-                new Treatment[] { new MeanTreatment(true, window, false, new TimeWindow(), 0, "playmode-treatment-001") },
-                "playmode-subbloc-001");
+            SubBloc subBloc = new("playmode-subbloc-alpha", 0, MainSecondaryEnum.Main, window, new TimeWindow(-100, 0), new[] { mainEvent }, new[] { new Icon("playmode-icon-alpha", string.Empty, window, "playmode-icon-001") }, new Treatment[] { new MeanTreatment(true, window, false, new TimeWindow(), 0, "playmode-treatment-001") }, "playmode-subbloc-001");
             Bloc bloc = new("playmode-bloc-alpha", 0, string.Empty, "playmode-subbloc-alpha_event-alpha_CODE", new[] { subBloc }, "playmode-bloc-001");
             return new Protocol("playmode-protocol-alpha", new[] { bloc }, ProtocolId);
         }
 
         private static Patient CreatePatient(BoolTag patientTag, StringTag siteTag)
         {
-            Site site = new(
-                "playmode-site-alpha",
-                new[] { new Coordinate("playmode-space", new Vector3(1, 2, 3), "playmode-coordinate-001") },
-                new BaseTagValue[] { new StringTagValue(siteTag, "playmode-plot-value", "playmode-site-tag-value-001") },
-                SiteId);
+            Site site = new("playmode-site-alpha", new[] { new Coordinate("playmode-space", new Vector3(1, 2, 3), "playmode-coordinate-001") }, new BaseTagValue[] { new StringTagValue(siteTag, "playmode-plot-value", "playmode-site-tag-value-001") }, SiteId);
 
-            return new Patient(
-                "playmode-patient-alpha",
-                new BaseMesh[0],
-                new MRI[0],
-                new[] { site },
-                new BaseTagValue[] { new BoolTagValue(patientTag, true, "playmode-patient-tag-value-001") },
-                "playmode-database-link-001",
-                PatientId);
+            return new Patient("playmode-patient-alpha", new BaseMesh[0], new MRI[0], new[] { site }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "playmode-patient-tag-value-001") }, "playmode-database-link-001", PatientId);
         }
 
         private static Dataset CreateDataset(Protocol protocol, Patient patient)
@@ -126,13 +100,10 @@ namespace HBP.Tests.PlayMode.Utilities
 
         private static BaseConfiguration CreateBaseConfiguration(string suffix)
         {
-            return new BaseConfiguration(
-                0.75f,
-                new Dictionary<string, SiteConfiguration>
+            return new BaseConfiguration(0.75f, new Dictionary<string, SiteConfiguration>
                 {
                     { SiteId, new SiteConfiguration(false, true, Color.cyan, new[] { "playmode-label-alpha" }, $"playmode-site-config-{suffix}-001") }
-                },
-                $"playmode-base-config-{suffix}-001");
+                }, $"playmode-base-config-{suffix}-001");
         }
     }
 }

@@ -95,13 +95,11 @@ namespace HBP.Tests.Serialization
             RawRecordingCache cache = new(budget);
             RawRecordingSourceKey key = new("large-recording");
             int loadCount = 0;
+
             DynamicData Load()
             {
                 loadCount++;
-                return new DynamicData(
-                    new Dictionary<string, float[]> { { "A1", new float[400000] } },
-                    new Dictionary<string, string> { { "A1", "uV" } },
-                    new Frequency(1000));
+                return new DynamicData(new Dictionary<string, float[]> { { "A1", new float[400000] } }, new Dictionary<string, string> { { "A1", "uV" } }, new Frequency(1000));
             }
 
             cache.Pin(key);

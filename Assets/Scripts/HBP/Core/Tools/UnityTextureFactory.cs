@@ -59,6 +59,7 @@ namespace HBP.Core.Tools
             {
                 horizontal = Resize1DColorPixels(horizontal, resultWidth);
             }
+
             if (vertical.Length != resultWidth)
             {
                 vertical = Resize1DColorPixels(vertical, resultWidth);
@@ -75,13 +76,7 @@ namespace HBP.Core.Tools
                 {
                     Color32 left = horizontal[x];
                     Color32 right = vertical[x];
-                    pixels[rowOffset + x] = left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a
-                        ? left
-                        : new Color32(
-                            (byte)(left.r * inv + right.r * t),
-                            (byte)(left.g * inv + right.g * t),
-                            (byte)(left.b * inv + right.b * t),
-                            255);
+                    pixels[rowOffset + x] = left.r == right.r && left.g == right.g && left.b == right.b && left.a == right.a ? left : new Color32((byte)(left.r * inv + right.r * t), (byte)(left.g * inv + right.g * t), (byte)(left.b * inv + right.b * t), 255);
                 }
             });
 
@@ -120,6 +115,7 @@ namespace HBP.Core.Tools
             {
                 texture.Reinitialize(width, height);
             }
+
             texture.SetPixels32(GenerateDistributionHistogramPixels(bins, height, width, withGreyArea));
             texture.Apply(false, false);
         }
@@ -216,6 +212,7 @@ namespace HBP.Core.Tools
             {
                 if (bins[i] > maxBin) maxBin = bins[i];
             }
+
             if (maxBin == 0)
             {
                 return;
@@ -248,6 +245,7 @@ namespace HBP.Core.Tools
             {
                 managedSource = texture.GetPixels32();
             }
+
             NativeArray<Color32> target = new(size * size, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
             try
             {
@@ -295,19 +293,13 @@ namespace HBP.Core.Tools
             if (target == null) throw new ArgumentNullException(nameof(target));
 
             Color32[] sourcePixels = source.GetPixels32();
-            Color32[] targetPixels = RotateCutPixels(
-                sourcePixels,
-                source.width,
-                source.height,
-                orientation,
-                flip,
-                out int targetWidth,
-                out int targetHeight);
+            Color32[] targetPixels = RotateCutPixels(sourcePixels, source.width, source.height, orientation, flip, out int targetWidth, out int targetHeight);
 
             if (target.width != targetWidth || target.height != targetHeight)
             {
                 target.Reinitialize(targetWidth, targetHeight);
             }
+
             target.filterMode = FilterMode.Point;
             target.wrapMode = TextureWrapMode.Clamp;
             target.mipMapBias = -10.0f;
@@ -336,6 +328,7 @@ namespace HBP.Core.Tools
                 Array.Copy(source, target, target.Length);
                 return target;
             }
+
             if (textureOrientation == TextureOrientation.RightToLeft)
             {
                 Array.Copy(source, target, target.Length);
@@ -453,6 +446,7 @@ namespace HBP.Core.Tools
                 {
                     pixels[x] = LerpRgb(colors[0], colors[1], x / (float)width);
                 }
+
                 return pixels;
             }
 
@@ -510,6 +504,7 @@ namespace HBP.Core.Tools
             {
                 totalColumns += (int)(ColormapSize * (factors[i] / min));
             }
+
             return totalColumns;
         }
 
@@ -541,6 +536,7 @@ namespace HBP.Core.Tools
                 int rightIndex = Mathf.Min(leftIndex + 1, source.Length - 1);
                 target[x] = LerpRgbRounded(source[leftIndex], source[rightIndex], t);
             }
+
             return target;
         }
 
@@ -654,11 +650,7 @@ namespace HBP.Core.Tools
             }
 
             float inv = 1.0f - t;
-            return new Color32(
-                (byte)(left.r * inv + right.r * t),
-                (byte)(left.g * inv + right.g * t),
-                (byte)(left.b * inv + right.b * t),
-                255);
+            return new Color32((byte)(left.r * inv + right.r * t), (byte)(left.g * inv + right.g * t), (byte)(left.b * inv + right.b * t), 255);
         }
 
         private static Color32 LerpRgbRounded(Color32 left, Color32 right, float t)
@@ -669,11 +661,7 @@ namespace HBP.Core.Tools
             }
 
             float inv = 1.0f - t;
-            return new Color32(
-                (byte)Mathf.Clamp(Mathf.RoundToInt(left.r * inv + right.r * t), 0, 255),
-                (byte)Mathf.Clamp(Mathf.RoundToInt(left.g * inv + right.g * t), 0, 255),
-                (byte)Mathf.Clamp(Mathf.RoundToInt(left.b * inv + right.b * t), 0, 255),
-                255);
+            return new Color32((byte)Mathf.Clamp(Mathf.RoundToInt(left.r * inv + right.r * t), 0, 255), (byte)Mathf.Clamp(Mathf.RoundToInt(left.g * inv + right.g * t), 0, 255), (byte)Mathf.Clamp(Mathf.RoundToInt(left.b * inv + right.b * t), 0, 255), 255);
         }
 
         private static void ComputeDataRange(float[] data, ref float min, ref float max)
@@ -773,6 +761,7 @@ namespace HBP.Core.Tools
             {
                 width += CharacterWidth(text[i]) + 1;
             }
+
             return width * scale;
         }
 
@@ -800,26 +789,14 @@ namespace HBP.Core.Tools
                         continue;
                     }
 
-                    FillRectangle(
-                        pixels,
-                        width,
-                        height,
-                        startX + column * scale,
-                        startY + (rows.Length - 1 - row) * scale,
-                        scale,
-                        scale,
-                        VideoTextColor);
+                    FillRectangle(pixels, width, height, startX + column * scale, startY + (rows.Length - 1 - row) * scale, scale, scale, VideoTextColor);
                 }
             }
         }
 
         private static string NormalizeVideoText(string text)
         {
-            return text
-                .Replace('\u00A0', ' ')
-                .Replace('\u202F', ' ')
-                .Replace('\u2212', '-')
-                .Replace('\u00BA', '\u00B0');
+            return text.Replace('\u00A0', ' ').Replace('\u202F', ' ').Replace('\u2212', '-').Replace('\u00BA', '\u00B0');
         }
 
         private static void FillRectangle(Color32[] pixels, int width, int height, int startX, int startY, int rectWidth, int rectHeight, Color32 color)
@@ -978,6 +955,7 @@ namespace HBP.Core.Tools
                     error += dy;
                     x0 += sx;
                 }
+
                 if (e2 <= dx)
                 {
                     error += dx;

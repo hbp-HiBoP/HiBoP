@@ -25,11 +25,7 @@ namespace HBP.Core.Tools
         public LoadingText Text { get; }
         public LoadingOperationState State { get; }
 
-        public LoadingProgress(
-            float value,
-            float duration,
-            LoadingText text,
-            LoadingOperationState state)
+        public LoadingProgress(float value, float duration, LoadingText text, LoadingOperationState state)
         {
             Value = value;
             Duration = duration;
@@ -68,15 +64,14 @@ namespace HBP.Core.Tools
         public Task<TResult> Ready => m_Ready.Task;
         public Task<TResult> Validated => m_Validated.Task;
         public CancellationToken CancellationToken => m_Cancellation.Token;
+
         public LoadingWorkPriority Priority
         {
             get
             {
                 lock (m_Lock)
                 {
-                    return m_ForegroundConsumerCount > 0
-                        ? LoadingWorkPriority.Foreground
-                        : LoadingWorkPriority.Background;
+                    return m_ForegroundConsumerCount > 0 ? LoadingWorkPriority.Foreground : LoadingWorkPriority.Background;
                 }
             }
         }
@@ -120,10 +115,7 @@ namespace HBP.Core.Tools
             {
                 lock (m_Lock)
                 {
-                    return m_State == LoadingOperationState.Validated
-                        || m_State == LoadingOperationState.ValidatedWithIssues
-                        || m_State == LoadingOperationState.ValidationFailed
-                        || m_State == LoadingOperationState.Cancelled;
+                    return m_State == LoadingOperationState.Validated || m_State == LoadingOperationState.ValidatedWithIssues || m_State == LoadingOperationState.ValidationFailed || m_State == LoadingOperationState.Cancelled;
                 }
             }
         }
@@ -138,6 +130,7 @@ namespace HBP.Core.Tools
                     {
                         throw new InvalidOperationException("The loading operation has not reached Ready.");
                     }
+
                     return m_Result;
                 }
             }
@@ -160,10 +153,7 @@ namespace HBP.Core.Tools
         /// Optionally validates the graph and returns true when normal data issues were found.
         /// A missing validator promotes Ready directly to Validated.
         /// </param>
-        public SharedLoadingOperation(
-            long generation,
-            Func<Action<float, float, LoadingText>, CancellationToken, UniTask<TResult>> loadAsync,
-            Func<TResult, Action<float, float, LoadingText>, CancellationToken, UniTask<bool>> validateAsync = null)
+        public SharedLoadingOperation(long generation, Func<Action<float, float, LoadingText>, CancellationToken, UniTask<TResult>> loadAsync, Func<TResult, Action<float, float, LoadingText>, CancellationToken, UniTask<bool>> validateAsync = null)
         {
             Generation = generation;
             m_LoadAsync = loadAsync ?? throw new ArgumentNullException(nameof(loadAsync));
@@ -188,14 +178,13 @@ namespace HBP.Core.Tools
                 return await ready;
             }
 
-            TaskCompletionSource<bool> cancellation =
-                new(TaskCreationOptions.RunContinuationsAsynchronously);
-            using CancellationTokenRegistration registration =
-                consumerToken.Register(() => cancellation.TrySetResult(true));
+            TaskCompletionSource<bool> cancellation = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            using CancellationTokenRegistration registration = consumerToken.Register(() => cancellation.TrySetResult(true));
             if (await Task.WhenAny(ready, cancellation.Task) != ready)
             {
                 throw new OperationCanceledException(consumerToken);
             }
+
             return await ready;
         }
 
@@ -216,14 +205,13 @@ namespace HBP.Core.Tools
                 return await validation;
             }
 
-            TaskCompletionSource<bool> cancellation =
-                new(TaskCreationOptions.RunContinuationsAsynchronously);
-            using CancellationTokenRegistration registration =
-                consumerToken.Register(() => cancellation.TrySetResult(true));
+            TaskCompletionSource<bool> cancellation = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            using CancellationTokenRegistration registration = consumerToken.Register(() => cancellation.TrySetResult(true));
             if (await Task.WhenAny(validation, cancellation.Task) != validation)
             {
                 throw new OperationCanceledException(consumerToken);
             }
+
             return await validation;
         }
 
@@ -246,6 +234,7 @@ namespace HBP.Core.Tools
             {
                 subscription.Publish(progress);
             }
+
             return subscription;
         }
 
@@ -259,6 +248,7 @@ namespace HBP.Core.Tools
             {
                 m_ForegroundConsumerCount++;
             }
+
             return new ForegroundLease(this);
         }
 
@@ -297,6 +287,7 @@ namespace HBP.Core.Tools
                     m_HasResult = true;
                     m_State = LoadingOperationState.Ready;
                 }
+
                 m_Ready.TrySetResult(result);
 
                 bool hasIssues = false;
@@ -306,6 +297,7 @@ namespace HBP.Core.Tools
                     {
                         m_State = LoadingOperationState.Validating;
                     }
+
                     hasIssues = await m_ValidateAsync(result, ReportProgress, m_Cancellation.Token);
                     await FlushProgressAsync();
                     m_Cancellation.Token.ThrowIfCancellationRequested();
@@ -313,10 +305,9 @@ namespace HBP.Core.Tools
 
                 lock (m_Lock)
                 {
-                    m_State = hasIssues
-                        ? LoadingOperationState.ValidatedWithIssues
-                        : LoadingOperationState.Validated;
+                    m_State = hasIssues ? LoadingOperationState.ValidatedWithIssues : LoadingOperationState.Validated;
                 }
+
                 m_Validated.TrySetResult(result);
             }
             catch (OperationCanceledException exception)
@@ -326,6 +317,7 @@ namespace HBP.Core.Tools
                     m_Exception = exception;
                     m_State = LoadingOperationState.Cancelled;
                 }
+
                 m_Ready.TrySetCanceled();
                 m_Validated.TrySetCanceled();
             }
@@ -336,6 +328,7 @@ namespace HBP.Core.Tools
                     m_Exception = exception;
                     m_State = LoadingOperationState.ValidationFailed;
                 }
+
                 m_Ready.TrySetException(exception);
                 m_Validated.TrySetException(exception);
             }
@@ -354,14 +347,12 @@ namespace HBP.Core.Tools
                 {
                     return;
                 }
+
                 m_FlushedProgressCount = m_ReportedProgressCount;
             }
 
-            TaskCompletionSource<bool> completion =
-                new(TaskCreationOptions.RunContinuationsAsynchronously);
-            m_ProgressSynchronizationContext.Post(
-                _ => completion.TrySetResult(true),
-                null);
+            TaskCompletionSource<bool> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            m_ProgressSynchronizationContext.Post(_ => completion.TrySetResult(true), null);
             await completion.Task;
         }
 
@@ -379,11 +370,7 @@ namespace HBP.Core.Tools
                 }
 
                 m_ReportedProgressCount++;
-                progress = new LoadingProgress(
-                    boundedValue,
-                    duration,
-                    text ?? new LoadingText(),
-                    m_State);
+                progress = new LoadingProgress(boundedValue, duration, text ?? new LoadingText(), m_State);
                 m_LastProgress = progress;
                 subscriptions = m_ProgressSubscriptions.ToArray();
             }
@@ -394,9 +381,7 @@ namespace HBP.Core.Tools
             }
         }
 
-        private void PublishProgress(
-            ProgressSubscription subscription,
-            LoadingProgress progress)
+        private void PublishProgress(ProgressSubscription subscription, LoadingProgress progress)
         {
             if (m_ProgressSynchronizationContext == null)
             {
@@ -404,9 +389,7 @@ namespace HBP.Core.Tools
                 return;
             }
 
-            m_ProgressSynchronizationContext.Post(
-                _ => subscription.Publish(progress),
-                null);
+            m_ProgressSynchronizationContext.Post(_ => subscription.Publish(progress), null);
         }
 
         private void Unsubscribe(ProgressSubscription subscription)
@@ -464,6 +447,7 @@ namespace HBP.Core.Tools
                     m_Owner = null;
                     m_Listener = null;
                 }
+
                 owner?.Unsubscribe(this);
             }
         }
@@ -479,8 +463,7 @@ namespace HBP.Core.Tools
 
             public void Dispose()
             {
-                SharedLoadingOperation<TResult> owner =
-                    Interlocked.Exchange(ref m_Owner, null);
+                SharedLoadingOperation<TResult> owner = Interlocked.Exchange(ref m_Owner, null);
                 owner?.DetachForeground();
             }
         }

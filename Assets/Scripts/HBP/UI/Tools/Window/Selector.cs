@@ -8,8 +8,9 @@ namespace HBP.UI.Tools
     public class Selector : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        private bool m_Selected;
+
+        [SerializeField] private bool m_Selected;
+
         public bool Selected
         {
             get { return m_Selected; }
@@ -21,26 +22,31 @@ namespace HBP.UI.Tools
                 if (value) transform.SetAsLastSibling();
             }
         }
+
         public GenericEvent<bool> OnChangeValue = new();
 
-        [SerializeField]
-        private Graphic m_TargetGraphic;
+        [SerializeField] private Graphic m_TargetGraphic;
+
         public Graphic TargetGraphic
         {
             get { return m_TargetGraphic; }
             set { m_TargetGraphic = value; }
         }
+
         #endregion
 
         #region Private Methods
+
         void Start()
         {
             SelectionManager.Add(this);
         }
+
         private void OnDestroy()
         {
             SelectionManager.Remove(this);
         }
+
         #endregion
     }
 }

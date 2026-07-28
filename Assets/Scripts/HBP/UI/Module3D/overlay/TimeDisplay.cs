@@ -10,13 +10,16 @@ namespace HBP.UI.Module3D
     public class TimeDisplay : ColumnOverlayElement
     {
         #region Properties
+
         /// <summary>
         /// Displays the current point on the timeline (index and time)
         /// </summary>
         [SerializeField] private Text m_Text;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Setup the overlay element
         /// </summary>
@@ -38,29 +41,18 @@ namespace HBP.UI.Module3D
 
             if (column is Column3DDynamic dynamicColumn)
             {
-                dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
-                {
-                    m_Text.text = string.Format("{0} ({1}{2})",
-                        dynamicColumn.Timeline.CurrentSubtimeline.GetLocalIndex(dynamicColumn.Timeline.CurrentIndex).ToString(),
-                        dynamicColumn.Timeline.CurrentSubtimeline.GetLocalTime(dynamicColumn.Timeline.CurrentIndex).ToString("N2"),
-                        dynamicColumn.Timeline.Unit);
-                });
+                dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() => { m_Text.text = string.Format("{0} ({1}{2})", dynamicColumn.Timeline.CurrentSubtimeline.GetLocalIndex(dynamicColumn.Timeline.CurrentIndex).ToString(), dynamicColumn.Timeline.CurrentSubtimeline.GetLocalTime(dynamicColumn.Timeline.CurrentIndex).ToString("N2"), dynamicColumn.Timeline.Unit); });
             }
             else if (column is Column3DFMRI fmriColumn)
             {
-                fmriColumn.OnUpdateCurrentTimelineID.AddListener(() =>
-                {
-                    m_Text.text = string.Format("{0} ({1}{2})",
-                        fmriColumn.Timeline.CurrentSubtimeline.GetLocalIndex(fmriColumn.Timeline.CurrentIndex).ToString(),
-                        fmriColumn.Timeline.CurrentSubtimeline.GetLocalTime(fmriColumn.Timeline.CurrentIndex).ToString("N2"),
-                        fmriColumn.Timeline.Unit);
-                });
+                fmriColumn.OnUpdateCurrentTimelineID.AddListener(() => { m_Text.text = string.Format("{0} ({1}{2})", fmriColumn.Timeline.CurrentSubtimeline.GetLocalIndex(fmriColumn.Timeline.CurrentIndex).ToString(), fmriColumn.Timeline.CurrentSubtimeline.GetLocalTime(fmriColumn.Timeline.CurrentIndex).ToString("N2"), fmriColumn.Timeline.Unit); });
             }
             else
             {
                 IsActive = false;
             }
         }
+
         #endregion
     }
 }

@@ -8,15 +8,13 @@ namespace HBP.UI.Informations.Graphs
     public class ShapedCurve : Curve
     {
         #region Properties
+
         [SerializeField] UIVerticalShapeRenderer m_ShapeRenderer;
         float[] m_RenderShapeBuffer = System.Array.Empty<float>();
 
         public new ShapedCurveData Data
         {
-            get
-            {
-                return m_Data as ShapedCurveData;
-            }
+            get { return m_Data as ShapedCurveData; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Data, value))
@@ -25,12 +23,14 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         #endregion
 
         #region Setters
+
         protected override void SetData()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 base.SetData();
                 if (m_Data is ShapedCurveData)
@@ -45,12 +45,13 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         protected override void SetAbscissaDisplayRange()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 base.SetAbscissaDisplayRange();
-                if(m_Data is ShapedCurveData)
+                if (m_Data is ShapedCurveData)
                 {
                     if (!Application.isPlaying) SetPoints();
                 }
@@ -60,12 +61,13 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         protected override void SetOrdinateDisplayRange()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 base.SetOrdinateDisplayRange();
-                if(m_Data is ShapedCurveData)
+                if (m_Data is ShapedCurveData)
                 {
                     if (!Application.isPlaying) SetPoints();
                 }
@@ -73,14 +75,14 @@ namespace HBP.UI.Informations.Graphs
                 {
                     m_ShapeRenderer.SetData(System.Array.Empty<Vector2>(), System.Array.Empty<float>(), 0);
                 }
-
             }
         }
+
         protected override void SetPoints()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
-                if(m_Data is ShapedCurveData)
+                if (m_Data is ShapedCurveData)
                 {
                     ShapedCurveData shapedData = m_Data as ShapedCurveData;
                     if (!TryGetVisibleRange(out int startIndex, out int endIndex))
@@ -104,6 +106,7 @@ namespace HBP.UI.Informations.Graphs
                         int sourceIndex = startIndex + i * downSampling;
                         FillPointAndShape(shapedData, sourceIndex, i, startIndex);
                     }
+
                     if (downSampling > 1)
                         FillPointAndShape(shapedData, endIndex, m_RenderPointCount - 1, startIndex);
 
@@ -114,19 +117,15 @@ namespace HBP.UI.Informations.Graphs
                 else
                 {
                     base.SetPoints();
-                }        
+                }
             }
         }
 
         void FillPointAndShape(ShapedCurveData data, int sourceIndex, int destinationIndex, int startIndex)
         {
             Vector2 point = data.GetPoint(sourceIndex);
-            m_RenderPointBuffer[destinationIndex] = new Vector2(
-                m_xRatio * (point.x - m_AbscissaDisplayRange.x),
-                m_yRatio * (point.y - m_OrdinateDisplayRange.x));
-            int shapeIndex = sourceIndex == startIndex && point.x < m_AbscissaDisplayRange.x && sourceIndex + 1 < data.Count
-                ? sourceIndex + 1
-                : sourceIndex;
+            m_RenderPointBuffer[destinationIndex] = new Vector2(m_xRatio * (point.x - m_AbscissaDisplayRange.x), m_yRatio * (point.y - m_OrdinateDisplayRange.x));
+            int shapeIndex = sourceIndex == startIndex && point.x < m_AbscissaDisplayRange.x && sourceIndex + 1 < data.Count ? sourceIndex + 1 : sourceIndex;
             m_RenderShapeBuffer[destinationIndex] = m_yRatio * data.Shapes[shapeIndex];
         }
 
@@ -136,6 +135,7 @@ namespace HBP.UI.Informations.Graphs
                 return;
             System.Array.Resize(ref m_RenderShapeBuffer, Mathf.NextPowerOfTwo(required));
         }
+
         #endregion
     }
 }

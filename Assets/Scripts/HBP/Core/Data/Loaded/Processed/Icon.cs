@@ -9,7 +9,7 @@ namespace HBP.Core.Data.Processed
     * \version 1.0
     * \date 10 janvier 2017
     * \brief Icon of the Iconic scenario.
-    * 
+    *
     * \details Icon of the Iconic Scenario which contains:
     *   - \a Label.
     *   - \a Illustration path.
@@ -22,6 +22,7 @@ namespace HBP.Core.Data.Processed
         /// Label.
         /// </summary>
         private string label;
+
         public string Label
         {
             get { return label; }
@@ -32,6 +33,7 @@ namespace HBP.Core.Data.Processed
         /// Illustration path.
         /// </summary>
         private string illustrationPath;
+
         public string IllustrationPath
         {
             get { return illustrationPath; }
@@ -42,6 +44,7 @@ namespace HBP.Core.Data.Processed
         /// Start position.
         /// </summary>
         private int startPosition;
+
         public int StartPosition
         {
             get { return startPosition; }
@@ -52,6 +55,7 @@ namespace HBP.Core.Data.Processed
         /// End position.
         /// </summary>
         private int endPosition;
+
         public int EndPosition
         {
             get { return endPosition; }
@@ -59,23 +63,18 @@ namespace HBP.Core.Data.Processed
         }
 
         private Sprite m_Illustration;
+
         /// <summary>
         /// Texture of the icon
         /// </summary>
         public Sprite Illustration
         {
-            get
-            {
-                return m_Illustration;
-            }
+            get { return m_Illustration; }
         }
 
         public bool Usable
         {
-            get
-            {
-                return SpriteExtension.IsFileLoadable(illustrationPath);
-            }
+            get { return SpriteExtension.IsFileLoadable(illustrationPath); }
         }
 
         /// <summary>

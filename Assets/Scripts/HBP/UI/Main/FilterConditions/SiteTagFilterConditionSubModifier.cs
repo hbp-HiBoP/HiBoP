@@ -13,17 +13,16 @@ namespace HBP.UI.Main
     public class SiteTagFilterConditionSubModifier : SubModifier<SiteTagFilterCondition>
     {
         #region Properties
+
         [SerializeField] Dropdown m_TargetDropdown;
         [SerializeField] Dropdown m_TagDropdown;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
-            set
-            {
-                m_FilteringObjects = value;
-            }
+            set { m_FilteringObjects = value; }
         }
 
         [SerializeField] EmptyTagFilterValueSubModifier m_EmptyTagFilterValueSubModifier;
@@ -36,9 +35,11 @@ namespace HBP.UI.Main
 
         Dictionary<Type, BaseSubModifier> m_SubModifiers;
         Dictionary<Type, TagFilterValue> m_TagFilterValuesTemp;
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -70,9 +71,11 @@ namespace HBP.UI.Main
                 { typeof(EnumTag), new EnumTagFilterValue() }
             };
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(SiteTagFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -82,6 +85,7 @@ namespace HBP.UI.Main
             var currentTag = m_Tags.FirstOrDefault(t => t == objectToDisplay.Tag);
             m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
         }
+
         void OnChangeTarget(int value)
         {
             Object.Target = (SiteTagFilterCondition.TargetType)value;
@@ -96,6 +100,7 @@ namespace HBP.UI.Main
             var currentTag = m_Tags.FirstOrDefault(t => t == Object.Tag);
             m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
         }
+
         void OnChangeTag(int value)
         {
             foreach (var sm in m_SubModifiers.Values)
@@ -120,6 +125,7 @@ namespace HBP.UI.Main
             subModifier.IsActive = true;
             subModifier.Object = Object.Value;
         }
+
         #endregion
     }
 }

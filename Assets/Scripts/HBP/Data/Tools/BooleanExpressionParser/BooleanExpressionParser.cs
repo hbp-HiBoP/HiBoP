@@ -30,12 +30,13 @@ namespace HBP.Data.Tools
             enumerator.MoveNext();
             return MakeBooleanExpression(ref enumerator);
         }
+
         private static void FixExpression(ref string expression)
         {
             expression = new Regex(Token.AND_CHAR + "+").Replace(expression, Token.AND_CHAR.ToString());
             expression = new Regex("\\" + Token.OR_CHAR + "+").Replace(expression, Token.OR_CHAR.ToString());
-            
         }
+
         private static List<Token> StringToTokens(string expression)
         {
             List<Token> tokens = new();
@@ -60,8 +61,9 @@ namespace HBP.Data.Tools
                     notWithoutParentheses = false;
                     tokensWithSafeParentheses.Add(Token.CloseParenthesis);
                 }
+
                 tokensWithSafeParentheses.Add(tokens[i]);
-                if (i < tokens.Count - 1 && tokens[i].Type == TokenType.UnaryOperator && tokens[i+1].Type != TokenType.OpenParenthesis)
+                if (i < tokens.Count - 1 && tokens[i].Type == TokenType.UnaryOperator && tokens[i + 1].Type != TokenType.OpenParenthesis)
                 {
                     notWithoutParentheses = true;
                     tokensWithSafeParentheses.Add(Token.OpenParenthesis);
@@ -70,6 +72,7 @@ namespace HBP.Data.Tools
 
             return tokensWithSafeParentheses;
         }
+
         private static bool CheckExpression(List<Token> tokens, out string error)
         {
             int binaryOperatorCount = 0, booleanValueCount = 0, openParenthesisCount = 0, closeParenthesisCount = 0;
@@ -91,16 +94,19 @@ namespace HBP.Data.Tools
                         break;
                 }
             }
+
             if (binaryOperatorCount >= booleanValueCount && booleanValueCount != 0)
             {
                 error = "There are more binary operators (" + binaryOperatorCount + ") than operands (" + booleanValueCount + "), which is not possible.";
                 return false;
             }
+
             if (openParenthesisCount != closeParenthesisCount)
             {
                 error = "The number of open parenthesis (" + openParenthesisCount + ") is different from the number of close parenthesis (" + closeParenthesisCount + "), which is not possible";
                 return false;
             }
+
             for (int i = 0; i < tokens.Count; ++i)
             {
                 Token token = tokens[i];
@@ -134,7 +140,7 @@ namespace HBP.Data.Tools
                 {
                     if (i != 0)
                     {
-                        if (tokens[i-1].Type != TokenType.UnaryOperator && tokens[i-1].Type != TokenType.OpenParenthesis && tokens[i-1].Type != TokenType.BinaryOperator)
+                        if (tokens[i - 1].Type != TokenType.UnaryOperator && tokens[i - 1].Type != TokenType.OpenParenthesis && tokens[i - 1].Type != TokenType.BinaryOperator)
                         {
                             error = "There is an open parenthesis which is not at the begining of the expression, after an operator or after another open parenthesis, which is not possible.";
                             return false;
@@ -145,7 +151,7 @@ namespace HBP.Data.Tools
                 {
                     if (i != tokens.Count - 2)
                     {
-                        if (tokens[i+1].Type != TokenType.CloseParenthesis && tokens[i+1].Type != TokenType.BinaryOperator && tokens[i+1].Type != TokenType.EndOfExpression)
+                        if (tokens[i + 1].Type != TokenType.CloseParenthesis && tokens[i + 1].Type != TokenType.BinaryOperator && tokens[i + 1].Type != TokenType.EndOfExpression)
                         {
                             error = "There is a close parenthesis which is not at the end of the expression, before a binary operator or before another close parenthesis, which is not possible.";
                             return false;
@@ -153,9 +159,11 @@ namespace HBP.Data.Tools
                     }
                 }
             }
+
             error = "No information";
             return true;
         }
+
         private static List<Token> TransformToPolishNotation(List<Token> tokens)
         {
             Queue<Token> outputQueue = new();
@@ -174,27 +182,31 @@ namespace HBP.Data.Tools
                         stack.Push(token);
                         break;
                     case TokenType.CloseParenthesis:
-                        while(stack.Peek().Type != TokenType.OpenParenthesis)
+                        while (stack.Peek().Type != TokenType.OpenParenthesis)
                         {
                             outputQueue.Enqueue(stack.Pop());
                         }
+
                         stack.Pop();
                         if (stack.Count > 0 && stack.Peek().Type == TokenType.UnaryOperator)
                         {
                             outputQueue.Enqueue(stack.Pop());
                         }
+
                         break;
                     default:
                         break;
                 }
             }
-            while(stack.Count > 0)
+
+            while (stack.Count > 0)
             {
                 outputQueue.Enqueue(stack.Pop());
             }
 
             return outputQueue.Reverse().ToList();
         }
+
         private static BooleanExpression MakeBooleanExpression(ref List<Token>.Enumerator enumerator)
         {
             if (enumerator.Current.Type == TokenType.Value)
@@ -226,6 +238,7 @@ namespace HBP.Data.Tools
                     return BooleanExpression.CreateOr(left, right);
                 }
             }
+
             return null;
         }
     }

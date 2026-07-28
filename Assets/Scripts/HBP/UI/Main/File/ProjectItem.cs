@@ -5,12 +5,13 @@ using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-	/// <summary>
-	/// Component to display project in list.
-	/// </summary>
-	public class ProjectItem : ActionnableItem<Core.Data.ProjectInfo> 
-	{
+    /// <summary>
+    /// Component to display project in list.
+    /// </summary>
+    public class ProjectItem : ActionnableItem<Core.Data.ProjectInfo>
+    {
         #region Properties
+
         [SerializeField] Text m_NameText;
 
         [SerializeField] Text m_PatientsText;
@@ -25,10 +26,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.ProjectInfo Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
 
             set
             {
@@ -45,13 +43,16 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             Interactable = m_Object.Settings.CanLoadProject;
         }
+
         #endregion
     }
 }

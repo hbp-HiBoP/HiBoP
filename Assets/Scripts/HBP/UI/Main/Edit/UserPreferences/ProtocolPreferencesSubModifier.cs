@@ -10,16 +10,14 @@ namespace HBP.UI.Main
     public class ProtocolPreferencesSubModifier : SubModifier<ProtocolPreferences>
     {
         #region Properties
+
         [SerializeField] Dropdown m_PositionAveragingDropdown;
         [SerializeField] Toggle m_1msStepToogle, m_5msStepToggle, m_10msStepToggle, m_50msStepToggle, m_100msStepToggle;
         [SerializeField] InputField m_MinPossibleValueInputField, m_MaxPossibleValueInputField;
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -36,9 +34,11 @@ namespace HBP.UI.Main
                 m_100msStepToggle.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -46,17 +46,34 @@ namespace HBP.UI.Main
             m_MinPossibleValueInputField.onValueChanged.AddListener(OnChangeMinPossibleValue);
             m_MaxPossibleValueInputField.onValueChanged.AddListener(OnChangeMaxPossibleValue);
 
-            m_1msStepToogle.onValueChanged.AddListener(value => { if (value) Object.Step = 1; });
-            m_5msStepToggle.onValueChanged.AddListener(value => { if (value) Object.Step = 5; });
-            m_10msStepToggle.onValueChanged.AddListener(value => { if (value) Object.Step = 10; });
-            m_50msStepToggle.onValueChanged.AddListener(value => { if (value) Object.Step = 50; });
-            m_100msStepToggle.onValueChanged.AddListener(value => { if (value) Object.Step = 100; });
+            m_1msStepToogle.onValueChanged.AddListener(value =>
+            {
+                if (value) Object.Step = 1;
+            });
+            m_5msStepToggle.onValueChanged.AddListener(value =>
+            {
+                if (value) Object.Step = 5;
+            });
+            m_10msStepToggle.onValueChanged.AddListener(value =>
+            {
+                if (value) Object.Step = 10;
+            });
+            m_50msStepToggle.onValueChanged.AddListener(value =>
+            {
+                if (value) Object.Step = 50;
+            });
+            m_100msStepToggle.onValueChanged.AddListener(value =>
+            {
+                if (value) Object.Step = 100;
+            });
 
             m_PositionAveragingDropdown.onValueChanged.AddListener(value => Object.PositionAveraging = (AveragingType)value);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(ProtocolPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -72,6 +89,7 @@ namespace HBP.UI.Main
 
             m_PositionAveragingDropdown.Set(typeof(AveragingType), (int)objectToDisplay.PositionAveraging);
         }
+
         protected void OnChangeMaxPossibleValue(string value)
         {
             if (int.TryParse(value, out int max))
@@ -80,6 +98,7 @@ namespace HBP.UI.Main
                 m_MaxPossibleValueInputField.text = Object.MaxLimit.ToString();
             }
         }
+
         protected void OnChangeMinPossibleValue(string value)
         {
             if (int.TryParse(value, out int min))
@@ -88,6 +107,7 @@ namespace HBP.UI.Main
                 m_MinPossibleValueInputField.text = Object.MinLimit.ToString();
             }
         }
+
         #endregion
     }
 }

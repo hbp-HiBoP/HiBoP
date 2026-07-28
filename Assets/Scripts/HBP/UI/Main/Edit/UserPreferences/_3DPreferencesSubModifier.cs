@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class _3DPreferencesSubModifier : SubModifier<_3DPreferences>
     {
         #region Properties
+
         [SerializeField] Toggle m_AutomaticEEGUpdateToggle;
         [SerializeField] Toggle m_RawCutsToggle;
         [SerializeField] Dropdown m_VisualizationsLayoutDirectionDropdown;
@@ -26,10 +27,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -46,9 +44,11 @@ namespace HBP.UI.Main
                 m_DefaultSelectedImplantionInMultiPatientsInputField.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -66,9 +66,11 @@ namespace HBP.UI.Main
             m_DefaultSelectedMeshInMultiPatientsInputField.onValueChanged.AddListener((value) => Object.DefaultSelectedMeshInMultiPatientsVisualization = value);
             m_DefaultSelectedImplantionInMultiPatientsInputField.onValueChanged.AddListener((value) => Object.DefaultSelectedImplantationInMultiPatientsVisualization = value);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(_3DPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -86,6 +88,7 @@ namespace HBP.UI.Main
             m_DefaultSelectedMeshInMultiPatientsInputField.text = objectToDisplay.DefaultSelectedMeshInMultiPatientsVisualization;
             m_DefaultSelectedImplantionInMultiPatientsInputField.text = objectToDisplay.DefaultSelectedImplantationInMultiPatientsVisualization;
         }
+
         #endregion
     }
 }

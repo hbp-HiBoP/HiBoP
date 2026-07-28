@@ -2,6 +2,7 @@
 /// Tool script taken from the UI source as it's set to Internal for some reason. So to use in the extensions project it is needed here also.
 /// </summary>
 /// 
+
 using System.Collections.Generic;
 
 namespace UnityEngine.UI.Extensions
@@ -17,7 +18,7 @@ namespace UnityEngine.UI.Extensions
             return true;
         }
 
-        public static bool SetStruct<T>(ref T currentValue, T newValue) where T: struct
+        public static bool SetStruct<T>(ref T currentValue, T newValue) where T : struct
         {
             if (EqualityComparer<T>.Default.Equals(currentValue, newValue))
                 return false;
@@ -26,7 +27,7 @@ namespace UnityEngine.UI.Extensions
             return true;
         }
 
-        public static bool SetClass<T>(ref T currentValue, T newValue) where T: class
+        public static bool SetClass<T>(ref T currentValue, T newValue) where T : class
         {
             if ((currentValue == null && newValue == null) || (currentValue != null && currentValue.Equals(newValue)))
                 return false;

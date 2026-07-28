@@ -52,6 +52,7 @@ namespace HBP.Core.Tools
                 if (!string.Equals(a, b, StringComparison.Ordinal))
                     return false;
             }
+
             if (includeSuffix && !string.Equals(Suffix, other.Suffix, StringComparison.Ordinal))
                 return false;
             return true;
@@ -160,6 +161,7 @@ namespace HBP.Core.Tools
                 if (TryParse(file, suffixList.Count > 0 ? suffixList : null, extList.Count > 0 ? extList : null, out BIDSFile bidsFile))
                     results.Add(bidsFile);
             }
+
             return results;
         }
     }

@@ -11,10 +11,13 @@ namespace HBP.UI.Tools
     public class FileBrowser
     {
         #region Properties
+
         private static string m_LastSelectedDirectory = "";
+
         #endregion
 
         #region Public Methods
+
         public static async UniTask<string> GetExistingDirectoryNameAsync(string message = "Select a directory", string directoryPath = "")
         {
             bool done = false;
@@ -33,6 +36,7 @@ namespace HBP.UI.Tools
             await UniTask.WaitUntil(() => done);
             return result.Length > 0 ? (m_LastSelectedDirectory = result[0].StandardizeToEnvironement()) : string.Empty;
         }
+
         public static async UniTask<string[]> GetExistingDirectoryNamesAsync(string message = "Select a directory", string directoryPath = "")
         {
             bool done = false;
@@ -51,6 +55,7 @@ namespace HBP.UI.Tools
             await UniTask.WaitUntil(() => done);
             return result.Select(r => r.StandardizeToEnvironement()).ToArray();
         }
+
         public static async UniTask<string> GetExistingFileNameAsync(string[] filtersArray = null, string message = "Select a file", string filePath = "")
         {
             bool done = false;
@@ -73,11 +78,13 @@ namespace HBP.UI.Tools
                 m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
                 result = paths[0];
             }
+
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
             return result.StandardizeToEnvironement();
         }
+
         public static async UniTask<string[]> GetExistingFileNamesAsync(string[] filtersArray = null, string message = "Select files", string filePath = "")
         {
             bool done = false;
@@ -100,11 +107,13 @@ namespace HBP.UI.Tools
                 m_LastSelectedDirectory = new FileInfo(paths[0]).DirectoryName;
                 result = paths;
             }
+
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
             return result.Select(r => r.StandardizeToEnvironement()).ToArray();
         }
+
         public static async UniTask<string> GetSavedFileNameAsync(string[] filtersArray = null, string message = "Save to", string filePath = "", string defaultName = "")
         {
             bool done = false;
@@ -127,11 +136,13 @@ namespace HBP.UI.Tools
                 m_LastSelectedDirectory = new FileInfo(path).DirectoryName;
                 result = path;
             }
+
             done = true;
 #endif
             await UniTask.WaitUntil(() => done);
             return result.StandardizeToEnvironement();
         }
+
         #endregion
     }
 }

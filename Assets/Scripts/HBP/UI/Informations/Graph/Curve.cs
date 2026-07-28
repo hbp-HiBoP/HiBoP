@@ -8,16 +8,15 @@ namespace HBP.UI.Informations.Graphs
     public class Curve : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] protected CurveData m_Data;
+
         public CurveData Data
         {
-            get
-            {
-                return m_Data;
-            }
+            get { return m_Data; }
             set
             {
-                if(SetPropertyUtility.SetClass(ref m_Data, value))
+                if (SetPropertyUtility.SetClass(ref m_Data, value))
                 {
                     SetData();
                 }
@@ -25,12 +24,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] protected Vector2 m_OrdinateDisplayRange;
+
         public Vector2 OrdinateDisplayRange
         {
-            get
-            {
-                return m_OrdinateDisplayRange;
-            }
+            get { return m_OrdinateDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
@@ -41,12 +38,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] protected Vector2 m_AbscissaDisplayRange;
+
         public Vector2 AbscissaDisplayRange
         {
-            get
-            {
-                return m_AbscissaDisplayRange;
-            }
+            get { return m_AbscissaDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
@@ -59,12 +54,10 @@ namespace HBP.UI.Informations.Graphs
         [SerializeField] protected CurveRenderer m_CurveRenderer;
 
         [SerializeField] protected int m_NumberOfPixelsByPoint;
+
         public int NumberOfPixelsByPoint
         {
-            get
-            {
-                return m_NumberOfPixelsByPoint;
-            }
+            get { return m_NumberOfPixelsByPoint; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_NumberOfPixelsByPoint, value))
@@ -80,17 +73,21 @@ namespace HBP.UI.Informations.Graphs
         protected bool m_NeedSetPoints;
         protected Vector2[] m_RenderPointBuffer = System.Array.Empty<Vector2>();
         protected int m_RenderPointCount;
+
         #endregion
-       
+
         #region Private Methods
+
         protected void OnValidate()
         {
             m_RectTransform = transform as RectTransform;
             SetData();
         }
+
         #endregion
 
         #region Setters
+
         protected virtual void SetData()
         {
             m_xRatio = m_RectTransform.rect.width / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
@@ -99,22 +96,25 @@ namespace HBP.UI.Informations.Graphs
             {
                 m_CurveRenderer.color = m_Data.Color;
                 m_CurveRenderer.LineThickness = m_Data.Thickness;
-                if(Application.isPlaying) m_NeedSetPoints = true;
+                if (Application.isPlaying) m_NeedSetPoints = true;
                 else SetPoints();
             }
         }
+
         protected virtual void SetAbscissaDisplayRange()
         {
             m_xRatio = m_RectTransform.rect.width / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
             if (Application.isPlaying) m_NeedSetPoints = true;
             else SetPoints();
         }
+
         protected virtual void SetOrdinateDisplayRange()
         {
             m_yRatio = m_RectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
             if (Application.isPlaying) m_NeedSetPoints = true;
             else SetPoints();
         }
+
         protected virtual void SetNumberOfPixelsByPoint()
         {
             if (Application.isPlaying) m_NeedSetPoints = true;
@@ -138,6 +138,7 @@ namespace HBP.UI.Informations.Graphs
                     Vector2 point = m_Data.GetPoint(v);
                     m_RenderPointBuffer[i] = new Vector2(m_xRatio * (point.x - m_AbscissaDisplayRange.x), m_yRatio * (point.y - m_OrdinateDisplayRange.x));
                 }
+
                 Profiler.EndSample();
                 Profiler.EndSample();
                 m_CurveRenderer.SetPoints(m_RenderPointBuffer, m_RenderPointCount);
@@ -147,6 +148,7 @@ namespace HBP.UI.Informations.Graphs
                 m_RenderPointCount = 0;
                 m_CurveRenderer.SetPoints(m_RenderPointBuffer, 0);
             }
+
             m_NeedSetPoints = false;
             Profiler.EndSample();
         }
@@ -176,6 +178,7 @@ namespace HBP.UI.Informations.Graphs
                         break;
                     }
                 }
+
                 startIndex = min;
             }
 
@@ -198,8 +201,10 @@ namespace HBP.UI.Informations.Graphs
                         break;
                     }
                 }
+
                 endIndex = max;
             }
+
             return endIndex >= startIndex;
         }
 
@@ -226,15 +231,16 @@ namespace HBP.UI.Informations.Graphs
             //    SetOrdinateDisplayRange();
             //    rectTransform.hasChanged = false;
             //}
-            if(m_NeedSetPoints) SetPoints();
+            if (m_NeedSetPoints) SetPoints();
         }
-        
+
         private void OnRectTransformDimensionsChange()
         {
             m_xRatio = m_RectTransform.rect.width / (m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x);
             m_yRatio = m_RectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
             SetPoints();
         }
+
         #endregion
     }
 }

@@ -7,18 +7,22 @@ namespace HBP.UI.Tools
     public class DropWindowAdjuster : MonoBehaviour
     {
         #region Properties
+
         private RectTransform m_RectTransform;
         private RectTransform m_Canvas;
 
         private float m_OldHeight;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_Canvas = m_RectTransform.GetTopmostCanvas().GetComponent<RectTransform>();
         }
+
         private void Update()
         {
             if (m_OldHeight != m_RectTransform.rect.height)
@@ -27,14 +31,17 @@ namespace HBP.UI.Tools
                 m_RectTransform.hasChanged = false;
             }
         }
+
         private void OnEnable()
         {
             AdjustIfOutOfScreen();
         }
+
         private void OnDisable()
         {
             ApplyBottomPosition();
         }
+
         private void AdjustIfOutOfScreen()
         {
             if (CheckLimits())
@@ -52,6 +59,7 @@ namespace HBP.UI.Tools
 
             m_OldHeight = m_RectTransform.rect.height;
         }
+
         private bool CheckLimits()
         {
             Vector3[] worldCorners = new Vector3[4];
@@ -65,6 +73,7 @@ namespace HBP.UI.Tools
 
             return windowBottom < canvasBottom;
         }
+
         private void ApplyTopPosition()
         {
             m_RectTransform.anchorMin = new Vector2(m_RectTransform.anchorMin.x, 1);
@@ -74,6 +83,7 @@ namespace HBP.UI.Tools
             newPos.y = 1;
             m_RectTransform.anchoredPosition = newPos;
         }
+
         private void ApplyBottomPosition()
         {
             m_RectTransform.anchorMin = new Vector2(m_RectTransform.anchorMin.x, 0);
@@ -83,6 +93,7 @@ namespace HBP.UI.Tools
             newPos.y = -1;
             m_RectTransform.anchoredPosition = newPos;
         }
+
         #endregion
     }
 }

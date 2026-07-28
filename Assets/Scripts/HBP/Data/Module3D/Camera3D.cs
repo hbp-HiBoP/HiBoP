@@ -13,43 +13,46 @@ namespace HBP.Data.Module3D
     public class Camera3D : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Scene associated to this camera
         /// </summary>
         private Base3DScene m_AssociatedScene;
+
         /// <summary>
         /// Column associated to this camera
         /// </summary>
         private Column3D m_AssociatedColumn;
+
         /// <summary>
         /// View associated to this camera
         /// </summary>
         private View3D m_AssociatedView;
 
         [SerializeField] private Camera m_Camera;
+
         /// <summary>
         /// Camera component
         /// </summary>
-        public Camera Camera { get { return m_Camera; } }
+        public Camera Camera
+        {
+            get { return m_Camera; }
+        }
 
         /// <summary>
         /// Culling mask of the camera (so it doesn't render when view is minimized)
         /// </summary>
         public int CullingMask
         {
-            get
-            {
-                return m_Camera.cullingMask;
-            }
-            set
-            {
-                m_Camera.cullingMask = value;
-            }
+            get { return m_Camera.cullingMask; }
+            set { m_Camera.cullingMask = value; }
         }
+
         /// <summary>
         /// Automatic rotation speed
         /// </summary>
         public float AutomaticRotationSpeed { get; set; }
+
         /// <summary>
         /// Is the camera automatically rotating ?
         /// </summary>
@@ -59,38 +62,43 @@ namespace HBP.Data.Module3D
         /// Minimum distance between camera and target
         /// </summary>
         [SerializeField] private float m_MinDistance = 50.0f;
+
         /// <summary>
         /// Maximum distance between camera and target
         /// </summary>
         [SerializeField] private float m_MaxDistance = 750.0f;
+
         /// <summary>
         /// Starting distance between camera and target
         /// </summary>
         [SerializeField] private float m_StartDistance = 250.0f;
+
         /// <summary>
         /// Current distance between camera and target
         /// </summary>
-        private float m_Distance { get { return Vector3.Distance(transform.position, Target); } }
+        private float m_Distance
+        {
+            get { return Vector3.Distance(transform.position, Target); }
+        }
 
         /// <summary>
         /// Rotation speed when dragging
         /// </summary>
         [SerializeField] private float m_Speed = 1.0f;
+
         /// <summary>
         /// Zoom speed of the camera
         /// </summary>
         [SerializeField] private float m_ZoomSpeed = 1.0f;
 
         private bool m_DisplayRotationCircles = false;
+
         /// <summary>
         /// Do we display the rotation circles ?
         /// </summary>
         public bool DisplayRotationCircles
         {
-            get
-            {
-                return m_DisplayRotationCircles;
-            }
+            get { return m_DisplayRotationCircles; }
             set
             {
                 m_DisplayRotationCircles = value;
@@ -99,6 +107,7 @@ namespace HBP.Data.Module3D
                 m_CircleZ.gameObject.SetActive(value);
             }
         }
+
         /// <summary>
         /// Radius of the rotation circles
         /// </summary>
@@ -108,54 +117,51 @@ namespace HBP.Data.Module3D
         /// Material of the X rotation circle
         /// </summary>
         [SerializeField] private Material m_XCircleMaterial;
+
         /// <summary>
         /// Material of the Y rotation circle
         /// </summary>
         [SerializeField] private Material m_YCircleMaterial;
+
         /// <summary>
         /// Material of the Z rotation circle
         /// </summary>
         [SerializeField] private Material m_ZCircleMaterial;
 
         private CameraControl m_Type = CameraControl.Trackball;
+
         /// <summary>
         /// Type of the rotation
         /// </summary>
         public CameraControl Type
         {
-            get
-            {
-                return m_Type;
-            }
+            get { return m_Type; }
             set
             {
                 m_Type = value;
                 m_AssociatedView.Default();
             }
         }
-        
+
         /// <summary>
         /// Local target position
         /// </summary>
         public Vector3 LocalTarget { get; private set; }
+
         /// <summary>
         /// Global target position
         /// </summary>
         public Vector3 Target
         {
-            get
-            {
-                return m_AssociatedView ? LocalTarget + m_AssociatedView.transform.position : LocalTarget;
-            }
-            set
-            {
-                LocalTarget = value;
-            }
+            get { return m_AssociatedView ? LocalTarget + m_AssociatedView.transform.position : LocalTarget; }
+            set { LocalTarget = value; }
         }
+
         /// <summary>
         /// Original target position
         /// </summary>
         private Vector3 m_OriginalTarget;
+
         /// <summary>
         /// Original camera rotation angle
         /// </summary>
@@ -165,10 +171,12 @@ namespace HBP.Data.Module3D
         /// Vertices of the X rotation circle
         /// </summary>
         private Vector3[] m_XRotationCircleVertices;
+
         /// <summary>
         /// Vertices of the Y rotation circle
         /// </summary>
         private Vector3[] m_YRotationCircleVertices;
+
         /// <summary>
         /// Vertices of the Z rotation circle
         /// </summary>
@@ -182,15 +190,17 @@ namespace HBP.Data.Module3D
         /// Vertices of the plane cut circle
         /// </summary>
         private List<Vector3[]> m_PlanesCutsCirclesVertices = new();
-        
+
         /// <summary>
         /// Material of the cuts
         /// </summary>
         [SerializeField] private Material m_PlaneMaterial;
+
         /// <summary>
         /// Do we display cut circle ?
         /// </summary>
         private bool m_DisplayCutsCircles = false;
+
         public bool DisplayCutsCircles
         {
             get { return m_DisplayCutsCircles; }
@@ -202,10 +212,12 @@ namespace HBP.Data.Module3D
                 m_CutCross2.gameObject.SetActive(value);
             }
         }
+
         /// <summary>
         /// Time before the cut circle disappear
         /// </summary>
         private float m_DisplayPlanesTimeRemaining = 1f;
+
         /// <summary>
         /// Time since we begin to display circles
         /// </summary>
@@ -219,10 +231,12 @@ namespace HBP.Data.Module3D
         /// Ambient mode for the camera
         /// </summary>
         public AmbientMode AmbientMode = AmbientMode.Flat;
+
         /// <summary>
         /// Ambient intensity
         /// </summary>
         public float AmbientIntensity = 1;
+
         /// <summary>
         /// Ambient light color
         /// </summary>
@@ -232,13 +246,16 @@ namespace HBP.Data.Module3D
         /// State for the selected view
         /// </summary>
         [SerializeField] Theme.State Selected;
+
         /// <summary>
         /// State for the clicked view
         /// </summary>
         [SerializeField] Theme.State Clicked;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_AssociatedScene = GetComponentInParent<Base3DScene>();
@@ -309,6 +326,7 @@ namespace HBP.Data.Module3D
                 m_OriginalTarget = target;
             });
         }
+
         private void OnPreCull()
         {
             RenderSettings.ambientMode = AmbientMode;
@@ -319,6 +337,7 @@ namespace HBP.Data.Module3D
             Module3DMain.SharedSpotlight.transform.eulerAngles = transform.eulerAngles;
             Module3DMain.SharedSpotlight.transform.position = transform.position;
         }
+
         private void Update()
         {
             if (m_AssociatedScene.IsSelected)
@@ -340,6 +359,7 @@ namespace HBP.Data.Module3D
             {
                 m_Camera.GetComponent<Theme.ThemeElement>().Set();
             }
+
             AutomaticCameraRotation();
             if (DisplayRotationCircles) SetRotationCirclesPositions();
             if (m_DisplayPlanesTimer < m_DisplayPlanesTimeRemaining)
@@ -347,6 +367,7 @@ namespace HBP.Data.Module3D
             else
                 DisplayCutsCircles = false;
         }
+
         private void SetRotationCirclesPositions()
         {
             float scaleRatio = m_Distance / m_MaxDistance;
@@ -369,6 +390,7 @@ namespace HBP.Data.Module3D
             m_CircleZ.loop = true;
             m_CircleZ.startWidth = scaleRatio * 1.4f;
         }
+
         /// <summary>
         /// Make the camera rotate automatically
         /// </summary>
@@ -379,31 +401,35 @@ namespace HBP.Data.Module3D
                 HorizontalRotation(AutomaticRotationSpeed * Time.deltaTime);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Strafe the camera horizontally (keeping the same camera direction)
         /// </summary>
         /// <param name="amount">Strafe distance</param>
         public void HorizontalStrafe(float amount)
         {
-            Vector3 strafe = amount * m_Speed * 0.2f * - transform.right;
+            Vector3 strafe = amount * m_Speed * 0.2f * -transform.right;
 
             transform.position = transform.position + strafe;
             LocalTarget += strafe;
         }
+
         /// <summary>
         /// Strafe the camera vertically (keeping the same camera direction)
         /// </summary>
         /// <param name="amount">Strafe distance</param>
         public void VerticalStrafe(float amount)
         {
-            Vector3 strafe = amount * m_Speed * - transform.up;
+            Vector3 strafe = amount * m_Speed * -transform.up;
 
             transform.position = transform.position + strafe;
             LocalTarget += strafe;
         }
+
         /// <summary>
         /// Rotate the camera horizontally
         /// </summary>
@@ -424,6 +450,7 @@ namespace HBP.Data.Module3D
                     break;
             }
         }
+
         /// <summary>
         /// Rotate the camera vertically
         /// </summary>
@@ -432,6 +459,7 @@ namespace HBP.Data.Module3D
         {
             transform.RotateAround(Target, transform.right, -amount * m_Speed);
         }
+
         /// <summary>
         /// Zoom towards target
         /// </summary>
@@ -452,6 +480,7 @@ namespace HBP.Data.Module3D
                 transform.position = Target - transform.forward * m_MinDistance;
             }
         }
+
         /// <summary>
         /// Reset the original target of the camera
         /// </summary>
@@ -468,6 +497,7 @@ namespace HBP.Data.Module3D
             m_CircleY.gameObject.layer = LayerMask.NameToLayer(layer);
             m_CircleZ.gameObject.layer = LayerMask.NameToLayer(layer);
         }
+
         #endregion
     }
 }

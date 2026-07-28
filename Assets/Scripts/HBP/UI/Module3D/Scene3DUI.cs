@@ -12,18 +12,22 @@ namespace HBP.UI.Module3D
     public class Scene3DUI : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// If the difference between the width of the scene and the default minimum width of a column in the ResizableGrid is less than this value, it is considered minimized
         /// </summary>
         private const float MINIMIZED_THRESHOLD = 200.0f;
+
         /// <summary>
         /// Associated logical Base3DScene
         /// </summary>
         private Base3DScene m_Scene;
+
         /// <summary>
         /// Linked resizable grid
         /// </summary>
         private ResizableGrid m_ResizableGrid;
+
         /// <summary>
         /// Reference to the RectTransform of this object
         /// </summary>
@@ -33,37 +37,40 @@ namespace HBP.UI.Module3D
         /// Progress bar overlay element to show feedback when computing the activity on the brain
         /// </summary>
         [SerializeField] private ProgressBar m_ProgressBar;
+
         /// <summary>
         /// Feedback for when the iEEG are not up to date
         /// </summary>
         [SerializeField] private IEEGOutdated m_IEEGOutdated;
+
         /// <summary>
         /// GameObject to hide a minimized scene
         /// </summary>
         [SerializeField] private GameObject m_MinimizedGameObject;
+
         /// <summary>
         /// Is the scene minimzed ?
         /// </summary>
         public bool IsMinimized
         {
-            get
-            {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
-            }
+            get { return Mathf.Abs(m_RectTransform.rect.width - m_ResizableGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD; }
         }
 
         /// <summary>
         /// List of all the columns of this scene UI
         /// </summary>
         public List<Column3DUI> Columns { get; private set; } = new List<Column3DUI>();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_ResizableGrid = GetComponent<ResizableGrid>();
         }
+
         private void Update()
         {
             if (m_RectTransform.hasChanged)
@@ -72,9 +79,11 @@ namespace HBP.UI.Module3D
                 m_RectTransform.hasChanged = false;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the UI Scene
         /// </summary>
@@ -95,6 +104,7 @@ namespace HBP.UI.Module3D
                     UpdateOverlayElementsPosition();
                 });
             }
+
             m_ResizableGrid.AddViewLine();
             for (int i = 0; i < m_ResizableGrid.Columns.Count; i++)
             {
@@ -149,15 +159,10 @@ namespace HBP.UI.Module3D
                 if (updating) m_ProgressBar.Open();
                 else m_ProgressBar.Close();
             });
-            m_Scene.OnProgressUpdateGenerator.AddListener((progress, message) =>
-            {
-                m_ProgressBar.Progress(progress, message, 0.2f);
-            });
-            m_Scene.OnIEEGOutdated.AddListener((state) =>
-            {
-                m_IEEGOutdated.gameObject.SetActive(state);
-            });
+            m_Scene.OnProgressUpdateGenerator.AddListener((progress, message) => { m_ProgressBar.Progress(progress, message, 0.2f); });
+            m_Scene.OnIEEGOutdated.AddListener((state) => { m_IEEGOutdated.gameObject.SetActive(state); });
         }
+
         /// <summary>
         /// Update the position of the overlay
         /// </summary>
@@ -180,6 +185,7 @@ namespace HBP.UI.Module3D
                         break;
                     }
                 }
+
                 m_IEEGOutdated.SetVerticalOffset(verticalOffset);
 
                 // Horizontal
@@ -196,9 +202,11 @@ namespace HBP.UI.Module3D
                         break;
                     }
                 }
+
                 m_IEEGOutdated.SetHorizontalOffset(horizontalOffset);
             }
         }
+
         #endregion
     }
 }

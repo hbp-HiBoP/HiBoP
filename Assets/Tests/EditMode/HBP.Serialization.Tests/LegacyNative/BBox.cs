@@ -19,6 +19,7 @@ namespace HBP.Tests.Serialization.LegacyNative
         public bool UsesHbpCore => m_Backend == BenchmarkBackend.HbpCore;
 
         #region Properties
+
         /// <summary>
         /// Minimum point of the bounding box
         /// </summary>
@@ -37,6 +38,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return new Vector3(_min[0], _min[1], _min[2]);
             }
         }
+
         /// <summary>
         /// Maximum point of the bounding box
         /// </summary>
@@ -55,6 +57,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return new Vector3(_max[0], _max[1], _max[2]);
             }
         }
+
         /// <summary>
         /// Center point of the bounding box
         /// </summary>
@@ -73,16 +76,15 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return new Vector3(center[0], center[1], center[2]);
             }
         }
+
         /// <summary>
         /// Length of the diagonal Max-Min
         /// </summary>
         public float DiagonalLength
         {
-            get
-            {
-                return (Max - Min).magnitude;
-            }
+            get { return (Max - Min).magnitude; }
         }
+
         /// <summary>
         /// List of the points of the bounding box (8 points)
         /// </summary>
@@ -109,6 +111,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return bboxPoints;
             }
         }
+
         /// <summary>
         /// List of the pairs of points composing the edges of the bounding box
         /// </summary>
@@ -136,9 +139,11 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return linesPoints;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Get the points of the intersection of a plane and this bounding box
         /// </summary>
@@ -167,6 +172,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             return intersecPoints;
         }
+
         /// <summary>
         /// Get the lines of the intersection of a plane and this bounding box
         /// </summary>
@@ -193,6 +199,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             return intersecLines;
         }
+
         /// <summary>
         /// Get the intersection segment of two planes with the ends of the segment being on the bounding box
         /// </summary>
@@ -218,6 +225,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return new Segment3(new Vector3(result[0], result[1], result[2]), new Vector3(result[3], result[4], result[5]));
             }
         }
+
         /// <summary>
         /// Merge two BBox into one
         /// </summary>
@@ -237,6 +245,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             update_BBox(_handle, other.getHandle());
         }
+
         public void Transform(Transformation3 transformation)
         {
             if (m_Backend != BenchmarkBackend.HbpCore)
@@ -246,6 +255,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             ThrowIfFailed(hbp_bbox_transform(_handle.Handle, transformation.getHandle().Handle));
         }
+
         /// <summary>
         /// Get the offset value for a cut plane given the number of cuts
         /// </summary>
@@ -267,24 +277,30 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
         }
+
         public bool Compare(BBox other)
         {
             return (Min == other.Min && Max == other.Max && Center == other.Center);
         }
+
         #endregion
 
         #region Memory Management
+
         public BBox()
         {
         }
+
         public BBox(IntPtr bBoxPointer) : base(bBoxPointer)
         {
             m_Backend = BenchmarkBackend.HbpExport;
         }
+
         internal BBox(IntPtr bBoxPointer, BenchmarkBackend backend) : base(bBoxPointer)
         {
             m_Backend = backend;
         }
+
         public static BBox Merge(BBox bbox1, BBox bbox2)
         {
             BBox bbox = new();
@@ -292,6 +308,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             bbox.Update(bbox2);
             return bbox;
         }
+
         public static BBox CreateHbpCore(Vector3 min, Vector3 max)
         {
             Vec3 nativeMin = Vec3.FromVector3(min);
@@ -300,6 +317,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             ThrowIfFailed(hbp_bbox_create_from_min_max(ref nativeMin, ref nativeMax, out IntPtr bbox));
             return new BBox(bbox, BenchmarkBackend.HbpCore);
         }
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -314,6 +332,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             _handle = new HandleRef(this, create_BBox());
         }
+
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -327,6 +346,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             delete_BBox(_handle);
         }
+
         #endregion
 
         private static Vector3[] ToVector3Array(Vec3[] points, int count = -1)
@@ -337,6 +357,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 result[i] = points[i].ToVector3();
             }
+
             return result;
         }
 
@@ -375,6 +396,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 segments.Add(new Segment3(points[i], points[i + 1]));
             }
+
             return segments;
         }
 
@@ -387,59 +409,85 @@ namespace HBP.Tests.Serialization.LegacyNative
         }
 
         #region DLLImport
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "create_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr create_BBox();
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "delete_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_BBox(HandleRef handleBBox);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "getMin_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getMin_BBox(HandleRef handleBBox, float[] min);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "getMax_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getMax_BBox(HandleRef handleBBox, float[] max);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "getPoints_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getPoints_BBox(HandleRef handleBBox, float[] points);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "getLinesPairPoints_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getLinesPairPoints_BBox(HandleRef handleBBox, float[] points);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "getIntersectionsWithPlane_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getIntersectionsWithPlane_BBox(HandleRef handleBBox, float[] plane, float[] interPoints);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "getLinesIntersectionsWithPlane_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getLinesIntersectionsWithPlane_BBox(HandleRef handleBBox, float[] plane, float[] interPoints);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "find_intersection_segment_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern bool find_intersection_segment_BBox(HandleRef handleBBox, float[] planeA, float[] planeB, float[] interPoints);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "getCenter_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void getCenter_BBox(HandleRef handleBBox, float[] center);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "update_BBox", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_BBox(HandleRef handleBBox1, HandleRef handleBBox2);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "size_offset_cut_plane_Surface", CallingConvention = CallingConvention.Cdecl)]
         static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_create(out IntPtr bbox);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_create_from_min_max", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_create_from_min_max(ref Vec3 min, ref Vec3 max, out IntPtr bbox);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_destroy(IntPtr bbox);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_update", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_update(IntPtr target, IntPtr source);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_transform", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_transform(IntPtr bbox, IntPtr transform);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_get_min", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_get_min(IntPtr bbox, out Vec3 min);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_get_max", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_get_max(IntPtr bbox, out Vec3 max);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_get_center", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_get_center(IntPtr bbox, out Vec3 center);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_get_points", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_get_points(IntPtr bbox, [Out] Vec3[] points, int pointCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_get_segments", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_get_segments(IntPtr bbox, [Out] Vec3[] segmentPoints, int pointCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_intersections_with_plane", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_intersections_with_plane(IntPtr bbox, IntPtr plane, [Out] Vec3[] points, int pointCapacity, out int count);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_intersection_segments_with_plane", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_intersection_segments_with_plane(IntPtr bbox, IntPtr plane, [Out] Vec3[] segmentPoints, int pointCapacity, out int segmentCount);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_intersection_segment_between_planes", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_intersection_segment_between_planes(IntPtr bbox, IntPtr planeA, IntPtr planeB, out Vec3 start, out Vec3 end, out int intersects);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_bbox_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_bbox_size_offset_cut_plane(IntPtr bbox, IntPtr plane, int cutCount, out float offset);
+
         #endregion
     }
 }

@@ -33,6 +33,7 @@ namespace HBP.Core.Database
     public class GlobalDatabase
     {
         #region Properties
+
         private const float READY_PROGRESS_WEIGHT = 0.7f;
         private readonly object m_LoadingOperationLock = new();
         private SharedLoadingOperation<GlobalDatabase> m_LoadingOperation;
@@ -41,8 +42,7 @@ namespace HBP.Core.Database
         private long m_LoadingGeneration;
         private bool m_ValidationPublished;
         private Guid? m_PresentedFailureOperationID;
-        private ValidationRequest m_ValidationRequest =
-            ValidationRequest.Startup;
+        private ValidationRequest m_ValidationRequest = ValidationRequest.Startup;
 
         public SharedLoadingOperation<GlobalDatabase> CurrentLoadingOperation
         {
@@ -76,8 +76,7 @@ namespace HBP.Core.Database
             {
                 lock (m_LoadingOperationLock)
                 {
-                    return m_PublishedWorkspaceID != null &&
-                        m_PublishedWorkspaceID == Settings.SelectedWorkspace?.ID;
+                    return m_PublishedWorkspaceID != null && m_PublishedWorkspaceID == Settings.SelectedWorkspace?.ID;
                 }
             }
         }
@@ -110,67 +109,54 @@ namespace HBP.Core.Database
                 }
             }
 
-            ValidationAspect dataInfoAspects =
-                request.Aspects & ValidationAspect.DataInfoAll;
-            return request.Force ||
-                (request.Includes(ValidationAspect.PatientAssets) &&
-                    m_Patients
-                        .Where(request.Matches)
-                        .Any(patient =>
-                            !patient.IsAssetValidationCurrent)) ||
-                (dataInfoAspects != ValidationAspect.None &&
-                    m_DataInfos
-                        .Where(request.Matches)
-                        .Any(dataInfo =>
-                            !dataInfo.IsValidationCurrent(
-                                dataInfoAspects,
-                                request)));
+            ValidationAspect dataInfoAspects = request.Aspects & ValidationAspect.DataInfoAll;
+            return request.Force || (request.Includes(ValidationAspect.PatientAssets) && m_Patients.Where(request.Matches).Any(patient => !patient.IsAssetValidationCurrent)) || (dataInfoAspects != ValidationAspect.None && m_DataInfos.Where(request.Matches).Any(dataInfo => !dataInfo.IsValidationCurrent(dataInfoAspects, request)));
         }
+
         #endregion
 
         #region Events
+
         public UnityEvent OnUpdateDatabases { get; } = new UnityEvent();
         public event Action OnValidationStateChanged;
+
         #endregion
 
         #region Getters/Setters
-        public void SetProtocols(
-            IEnumerable<Protocol> protocols,
-            ValidationRequest validationRequest = null)
+
+        public void SetProtocols(IEnumerable<Protocol> protocols, ValidationRequest validationRequest = null)
         {
             m_Protocols = protocols.ToList();
             if (validationRequest?.Aspects != ValidationAspect.None)
             {
-                RefreshAfterProtocolChangeAsync(
-                    validationRequest).Forget();
+                RefreshAfterProtocolChangeAsync(validationRequest).Forget();
             }
         }
+
         public void SetDatabaseReferences(IEnumerable<DatabaseReference> databaseReferences)
         {
             m_DatabaseReferences = databaseReferences.ToList();
         }
+
         #endregion
 
         #region Public Methods
+
         public async UniTask InitializeAsync()
         {
             await UniTask.SwitchToThreadPool();
             if (!new DirectoryInfo(ApplicationState.DatabasePath).Exists) Directory.CreateDirectory(ApplicationState.DatabasePath);
             LoadSettings();
         }
+
         public void SaveSettings()
         {
             ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
         }
+
         public async UniTask CheckIntegrityAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            await EnsureDatabaseValidatedAsync(
-                ValidationRequest.Full,
-                (progress, duration, text) => updateProgress(
-                    progress * 0.9f,
-                    duration,
-                    text),
-                token);
+            await EnsureDatabaseValidatedAsync(ValidationRequest.Full, (progress, duration, text) => updateProgress(progress * 0.9f, duration, text), token);
 
             updateProgress(0.9f, 0, new LoadingText("Writing report"));
 
@@ -197,6 +183,7 @@ namespace HBP.Core.Database
 
                         dataInfosByErrorType[error.GetType()].Add(dataInfo);
                     }
+
                     foreach (var warning in dataInfo.Warnings)
                     {
                         if (!dataInfosByErrorType.ContainsKey(warning.GetType()))
@@ -205,6 +192,7 @@ namespace HBP.Core.Database
                         dataInfosByErrorType[warning.GetType()].Add(dataInfo);
                     }
                 }
+
                 dataInfosByErrorTypeByDataName[name] = dataInfosByErrorType;
             }
 
@@ -256,6 +244,7 @@ namespace HBP.Core.Database
 
                         await writer.WriteLineAsync($"    - {patientId}: {protocolsJoined}");
                     }
+
                     await writer.WriteLineAsync();
                 }
             }
@@ -264,9 +253,11 @@ namespace HBP.Core.Database
 
             await SaveDatabaseAsync(updateProgress);
         }
+
         #endregion
 
         #region Private Methods
+
         public void ConfigureDefault()
         {
             DirectoryInfo defaultDatabaseDirectory = new(Path.Combine(ApplicationState.DataPath, "DefaultDatabase"));
@@ -279,8 +270,7 @@ namespace HBP.Core.Database
             {
                 try
                 {
-                    m_Settings = ClassLoaderSaver.LoadFromJson<GlobalDatabaseSettings>(
-                        GlobalDatabaseSettings.PATH);
+                    m_Settings = ClassLoaderSaver.LoadFromJson<GlobalDatabaseSettings>(GlobalDatabaseSettings.PATH);
                     // Remove unused workspaces
                     var workspaceDirectories = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Workspaces")).GetDirectories();
                     foreach (var workspaceDirectory in workspaceDirectories)
@@ -306,8 +296,7 @@ namespace HBP.Core.Database
         public async UniTask StartLoadingSilentlyAsync()
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation =
-                GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
+            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
             obsolete?.Cancel();
             if (created)
             {
@@ -315,13 +304,10 @@ namespace HBP.Core.Database
             }
         }
 
-        public async UniTask ReloadSelectedWorkspaceAsync(
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token = default)
+        public async UniTask ReloadSelectedWorkspaceAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation =
-                GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
+            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
             obsolete?.Cancel();
             ObserveBackgroundOperationAsync(operation).Forget();
             try
@@ -339,27 +325,21 @@ namespace HBP.Core.Database
         public async UniTask ReloadSelectedWorkspaceSilentlyAsync()
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation =
-                GetOrCreateLoadingOperation(
-                    true,
-                    out SharedLoadingOperation<GlobalDatabase> obsolete,
-                    out _);
+            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
             obsolete?.Cancel();
             ObserveBackgroundOperationAsync(operation).Forget();
         }
 
-        public async UniTask EnsureDatabaseReadyAsync(
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token = default)
+        public async UniTask EnsureDatabaseReadyAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation =
-                GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
+            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
             obsolete?.Cancel();
             if (created)
             {
                 ObserveBackgroundOperationAsync(operation).Forget();
             }
+
             try
             {
                 using IDisposable foreground = operation.AttachForeground();
@@ -372,21 +352,17 @@ namespace HBP.Core.Database
             }
         }
 
-        public async UniTask EnsureDatabaseValidatedAsync(
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token = default)
+        public async UniTask EnsureDatabaseValidatedAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation =
-                GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
+            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
             obsolete?.Cancel();
             if (created)
             {
                 ObserveBackgroundOperationAsync(operation).Forget();
             }
 
-            if (operation.State == LoadingOperationState.Validated ||
-                operation.State == LoadingOperationState.ValidatedWithIssues)
+            if (operation.State == LoadingOperationState.Validated || operation.State == LoadingOperationState.ValidatedWithIssues)
             {
                 using IDisposable foreground = operation.AttachForeground();
                 await operation.EnsureValidatedAsync(token);
@@ -394,11 +370,7 @@ namespace HBP.Core.Database
             }
 
             using IDisposable foregroundLease = operation.AttachForeground();
-            using IDisposable progressSubscription = operation.SubscribeProgress(
-                progress => updateProgress?.Invoke(
-                    progress.Value,
-                    progress.Duration,
-                    progress.Text));
+            using IDisposable progressSubscription = operation.SubscribeProgress(progress => updateProgress?.Invoke(progress.Value, progress.Duration, progress.Text));
             try
             {
                 await operation.EnsureValidatedAsync(token);
@@ -410,30 +382,27 @@ namespace HBP.Core.Database
             }
         }
 
-        public async UniTask EnsureDatabaseValidatedAsync(
-            ValidationRequest request,
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token = default)
+        public async UniTask EnsureDatabaseValidatedAsync(ValidationRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             if (!IsLoaded)
             {
                 await EnsureDatabaseReadyAsync(updateProgress, token);
             }
+
             if (RequiresValidation(request))
             {
                 InvalidateValidation(request);
             }
+
             await EnsureDatabaseValidatedAsync(updateProgress, token);
         }
 
-        public async UniTask LoadDatabaseAsync(
-            Action<float, float, LoadingText> updateProgress)
+        public async UniTask LoadDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
             await EnsureDatabaseValidatedAsync(updateProgress);
         }
 
-        public void InvalidateValidation(
-            ValidationRequest request = null)
+        public void InvalidateValidation(ValidationRequest request = null)
         {
             request ??= ValidationRequest.Full;
             MarkRequestedValidationStale(request);
@@ -442,9 +411,7 @@ namespace HBP.Core.Database
             lock (m_LoadingOperationLock)
             {
                 string workspaceID = Settings.SelectedWorkspace?.ID;
-                if (m_LoadingOperation == null ||
-                    workspaceID == null ||
-                    workspaceID != m_PublishedWorkspaceID)
+                if (m_LoadingOperation == null || workspaceID == null || workspaceID != m_PublishedWorkspaceID)
                 {
                     return;
                 }
@@ -452,14 +419,9 @@ namespace HBP.Core.Database
                 operation = m_LoadingOperation;
                 long generation = ++m_LoadingGeneration;
                 m_LoadingWorkspaceID = workspaceID;
-                m_ValidationRequest = m_ValidationPublished
-                    ? request
-                    : m_ValidationRequest.Merge(request);
+                m_ValidationRequest = m_ValidationPublished ? request : m_ValidationRequest.Merge(request);
                 m_ValidationPublished = false;
-                replacement = CreateValidationOperation(
-                    generation,
-                    workspaceID,
-                    m_ValidationRequest);
+                replacement = CreateValidationOperation(generation, workspaceID, m_ValidationRequest);
                 m_LoadingOperation = replacement;
             }
 
@@ -468,8 +430,7 @@ namespace HBP.Core.Database
             OnValidationStateChanged?.Invoke();
         }
 
-        private void MarkRequestedValidationStale(
-            ValidationRequest request)
+        private void MarkRequestedValidationStale(ValidationRequest request)
         {
             ValidationAspect[] aspects =
             {
@@ -490,6 +451,7 @@ namespace HBP.Core.Database
                     }
                 }
             }
+
             foreach (Patient patient in m_Patients)
             {
                 if (request.Matches(patient))
@@ -499,60 +461,36 @@ namespace HBP.Core.Database
             }
         }
 
-        private async UniTaskVoid RefreshAfterProtocolChangeAsync(
-            ValidationRequest request)
+        private async UniTaskVoid RefreshAfterProtocolChangeAsync(ValidationRequest request)
         {
             await UniTask.SwitchToMainThread();
             if (CurrentLoadingOperation == null)
             {
                 return;
             }
+
             if (IsLoaded)
             {
                 InvalidateValidation(request);
                 return;
             }
 
-            SharedLoadingOperation<GlobalDatabase> operation =
-                GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
+            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
             obsolete?.Cancel();
             ObserveBackgroundOperationAsync(operation).Forget();
         }
 
-        private SharedLoadingOperation<GlobalDatabase> CreateValidationOperation(
-            long generation,
-            string workspaceID,
-            ValidationRequest request)
+        private SharedLoadingOperation<GlobalDatabase> CreateValidationOperation(long generation, string workspaceID, ValidationRequest request)
         {
             SharedLoadingOperation<GlobalDatabase> operation = null;
-            operation = new SharedLoadingOperation<GlobalDatabase>(
-                generation,
-                (progress, operationToken) => UniTask.FromResult(this),
-                (database, progress, operationToken) =>
-                    ValidateDatabaseCoreAsync(
-                        workspaceID,
-                        (value, duration, text) => progress(
-                            READY_PROGRESS_WEIGHT +
-                                value * (1 - READY_PROGRESS_WEIGHT),
-                            duration,
-                            text),
-                        operationToken,
-                        generation,
-                        request,
-                        () => operation.Priority));
+            operation = new SharedLoadingOperation<GlobalDatabase>(generation, (progress, operationToken) => UniTask.FromResult(this), (database, progress, operationToken) => ValidateDatabaseCoreAsync(workspaceID, (value, duration, text) => progress(READY_PROGRESS_WEIGHT + value * (1 - READY_PROGRESS_WEIGHT), duration, text), operationToken, generation, request, () => operation.Priority));
             return operation;
         }
 
-        private async UniTask WaitForReadyAsync(
-            SharedLoadingOperation<GlobalDatabase> operation,
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token)
+        private async UniTask WaitForReadyAsync(SharedLoadingOperation<GlobalDatabase> operation, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            bool backgroundValidation =
-                LoadingConcurrencyPolicy.BackgroundValidationEnabled;
-            Task<GlobalDatabase> barrier = backgroundValidation
-                ? operation.Ready
-                : operation.Validated;
+            bool backgroundValidation = LoadingConcurrencyPolicy.BackgroundValidationEnabled;
+            Task<GlobalDatabase> barrier = backgroundValidation ? operation.Ready : operation.Validated;
             if (barrier.IsCompleted)
             {
                 if (backgroundValidation)
@@ -563,6 +501,7 @@ namespace HBP.Core.Database
                 {
                     await operation.EnsureValidatedAsync(token);
                 }
+
                 return;
             }
 
@@ -570,22 +509,16 @@ namespace HBP.Core.Database
             {
                 if (!backgroundValidation)
                 {
-                    updateProgress?.Invoke(
-                        progress.Value,
-                        progress.Duration,
-                        progress.Text);
+                    updateProgress?.Invoke(progress.Value, progress.Duration, progress.Text);
                     return;
                 }
-                if (progress.State != LoadingOperationState.Loading ||
-                    progress.Value > READY_PROGRESS_WEIGHT)
+
+                if (progress.State != LoadingOperationState.Loading || progress.Value > READY_PROGRESS_WEIGHT)
                 {
                     return;
                 }
 
-                updateProgress?.Invoke(
-                    Math.Min(1, progress.Value / READY_PROGRESS_WEIGHT),
-                    progress.Duration,
-                    progress.Text);
+                updateProgress?.Invoke(Math.Min(1, progress.Value / READY_PROGRESS_WEIGHT), progress.Duration, progress.Text);
             });
             if (backgroundValidation)
             {
@@ -597,23 +530,13 @@ namespace HBP.Core.Database
             }
         }
 
-        private SharedLoadingOperation<GlobalDatabase> GetOrCreateLoadingOperation(
-            bool forceReload,
-            out SharedLoadingOperation<GlobalDatabase> obsolete,
-            out bool created)
+        private SharedLoadingOperation<GlobalDatabase> GetOrCreateLoadingOperation(bool forceReload, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created)
         {
             lock (m_LoadingOperationLock)
             {
-                Workspace workspace = Settings.SelectedWorkspace ??
-                    throw new InvalidOperationException("No database workspace is selected.");
-                bool retryFailedOperation =
-                    m_LoadingOperation?.State == LoadingOperationState.Cancelled ||
-                    (m_LoadingOperation?.State == LoadingOperationState.ValidationFailed &&
-                        m_PresentedFailureOperationID == m_LoadingOperation.ID);
-                if (!forceReload &&
-                    !retryFailedOperation &&
-                    m_LoadingOperation != null &&
-                    m_LoadingWorkspaceID == workspace.ID)
+                Workspace workspace = Settings.SelectedWorkspace ?? throw new InvalidOperationException("No database workspace is selected.");
+                bool retryFailedOperation = m_LoadingOperation?.State == LoadingOperationState.Cancelled || (m_LoadingOperation?.State == LoadingOperationState.ValidationFailed && m_PresentedFailureOperationID == m_LoadingOperation.ID);
+                if (!forceReload && !retryFailedOperation && m_LoadingOperation != null && m_LoadingWorkspaceID == workspace.ID)
                 {
                     obsolete = null;
                     created = false;
@@ -630,56 +553,29 @@ namespace HBP.Core.Database
                 m_ValidationRequest = ValidationRequest.Startup;
                 m_PresentedFailureOperationID = null;
                 SharedLoadingOperation<GlobalDatabase> createdOperation = null;
-                createdOperation = new SharedLoadingOperation<GlobalDatabase>(
-                    generation,
-                    async (progress, operationToken) =>
-                    {
-                        await LoadDatabaseCoreAsync(
-                            workspaceID,
-                            workspacePath,
-                            protocols,
-                            (value, duration, text) => progress(
-                                value * READY_PROGRESS_WEIGHT,
-                                duration,
-                                text),
-                            operationToken,
-                            generation,
-                            () => createdOperation.Priority);
-                        return this;
-                    },
-                    (database, progress, operationToken) =>
-                        ValidateDatabaseCoreAsync(
-                            workspaceID,
-                            (value, duration, text) => progress(
-                                READY_PROGRESS_WEIGHT +
-                                    value * (1 - READY_PROGRESS_WEIGHT),
-                                duration,
-                                text),
-                            operationToken,
-                            generation,
-                            ValidationRequest.Startup,
-                            () => createdOperation.Priority));
+                createdOperation = new SharedLoadingOperation<GlobalDatabase>(generation, async (progress, operationToken) =>
+                {
+                    await LoadDatabaseCoreAsync(workspaceID, workspacePath, protocols, (value, duration, text) => progress(value * READY_PROGRESS_WEIGHT, duration, text), operationToken, generation, () => createdOperation.Priority);
+                    return this;
+                }, (database, progress, operationToken) => ValidateDatabaseCoreAsync(workspaceID, (value, duration, text) => progress(READY_PROGRESS_WEIGHT + value * (1 - READY_PROGRESS_WEIGHT), duration, text), operationToken, generation, ValidationRequest.Startup, () => createdOperation.Priority));
                 m_LoadingOperation = createdOperation;
                 created = true;
                 return m_LoadingOperation;
             }
         }
 
-        private void MarkFailurePresented(
-            SharedLoadingOperation<GlobalDatabase> operation)
+        private void MarkFailurePresented(SharedLoadingOperation<GlobalDatabase> operation)
         {
             lock (m_LoadingOperationLock)
             {
-                if (m_LoadingOperation == operation &&
-                    operation.State == LoadingOperationState.ValidationFailed)
+                if (m_LoadingOperation == operation && operation.State == LoadingOperationState.ValidationFailed)
                 {
                     m_PresentedFailureOperationID = operation.ID;
                 }
             }
         }
 
-        private async UniTaskVoid ObserveBackgroundOperationAsync(
-            SharedLoadingOperation<GlobalDatabase> operation)
+        private async UniTaskVoid ObserveBackgroundOperationAsync(SharedLoadingOperation<GlobalDatabase> operation)
         {
             try
             {
@@ -695,19 +591,11 @@ namespace HBP.Core.Database
             }
         }
 
-        private async UniTask LoadDatabaseCoreAsync(
-            string workspaceID,
-            string workspacePath,
-            IReadOnlyCollection<Protocol> protocols,
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token,
-            long generation,
-            Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask LoadDatabaseCoreAsync(string workspaceID, string workspacePath, IReadOnlyCollection<Protocol> protocols, Action<float, float, LoadingText> updateProgress, CancellationToken token, long generation, Func<LoadingWorkPriority> priorityProvider)
         {
             try
             {
-                int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(
-                    LoadingWorkCategory.JsonAndZip);
+                int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
                 FileInfo[] referenceFiles = GetDatabaseReferenceFiles(workspacePath);
                 FileInfo[] patientFiles = GetPatientFiles(workspacePath);
                 FileInfo[] dataInfoFiles = GetDataInfoFiles(workspacePath);
@@ -715,8 +603,7 @@ namespace HBP.Core.Database
                 float patientProgress = patientFiles.Length;
                 float dataInfoProgress = dataInfoFiles.Length;
                 float linkingProgress = 1;
-                float steps =
-                    referenceProgress + patientProgress + dataInfoProgress + linkingProgress;
+                float steps = referenceProgress + patientProgress + dataInfoProgress + linkingProgress;
                 referenceProgress /= steps;
                 patientProgress /= steps;
                 dataInfoProgress /= steps;
@@ -724,75 +611,33 @@ namespace HBP.Core.Database
                 float progress = 0;
 
                 token.ThrowIfCancellationRequested();
-                List<DatabaseReference> references = await LoadDatabaseReferencesAsync(
-                    referenceFiles,
-                    (localProgress, duration, text) => updateProgress(
-                        progress + localProgress * referenceProgress,
-                        duration,
-                        text),
-                    token,
-                    concurrency,
-                    priorityProvider);
+                List<DatabaseReference> references = await LoadDatabaseReferencesAsync(referenceFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * referenceProgress, duration, text), token, concurrency, priorityProvider);
                 progress += referenceProgress;
 
                 token.ThrowIfCancellationRequested();
-                List<Patient> patients = await LoadPatientsAsync(
-                    patientFiles,
-                    (localProgress, duration, text) => updateProgress(
-                        progress + localProgress * patientProgress,
-                        duration,
-                        text),
-                    token,
-                    concurrency,
-                    priorityProvider);
+                List<Patient> patients = await LoadPatientsAsync(patientFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text), token, concurrency, priorityProvider);
                 progress += patientProgress;
 
                 token.ThrowIfCancellationRequested();
-                List<DataInfo> dataInfos = await LoadDataInfosAsync(
-                    dataInfoFiles,
-                    (localProgress, duration, text) => updateProgress(
-                        progress + localProgress * dataInfoProgress,
-                        duration,
-                        text),
-                    token,
-                    concurrency,
-                    priorityProvider);
+                List<DataInfo> dataInfos = await LoadDataInfosAsync(dataInfoFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text), token, concurrency, priorityProvider);
                 progress += dataInfoProgress;
 
                 token.ThrowIfCancellationRequested();
                 updateProgress(progress, 0, new LoadingText("Linking database references"));
-                LoadingContext context = new(
-                    PersistentDataManager.Tags.AllTags,
-                    protocols,
-                    patients);
+                LoadingContext context = new(PersistentDataManager.Tags.AllTags, protocols, patients);
                 context.ResolveDatabase(patients, dataInfos);
-                ISet<string> tagIds = new HashSet<string>(
-                    context.TagById.Keys,
-                    StringComparer.Ordinal);
-                int tagConcurrency =
-                    LoadingConcurrencyPolicy.Current.GetLimit(
-                        LoadingWorkCategory.Metadata);
-                await LoadingWorkScheduler.Shared.RunAsync(
-                    patients.Select(patient =>
-                        (Func<UniTask>)(() =>
-                            patient.CheckTagsAsync(tagIds))),
-                    LoadingWorkCategory.Metadata,
-                    priorityProvider,
-                    token,
-                    null,
-                    tagConcurrency);
+                ISet<string> tagIds = new HashSet<string>(context.TagById.Keys, StringComparer.Ordinal);
+                int tagConcurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.Metadata);
+                await LoadingWorkScheduler.Shared.RunAsync(patients.Select(patient => (Func<UniTask>)(() => patient.CheckTagsAsync(tagIds))), LoadingWorkCategory.Metadata, priorityProvider, token, null, tagConcurrency);
                 progress += linkingProgress;
 
                 token.ThrowIfCancellationRequested();
                 await UniTask.SwitchToMainThread();
                 lock (m_LoadingOperationLock)
                 {
-                    if (generation != m_LoadingGeneration ||
-                        workspaceID != Settings.SelectedWorkspace?.ID)
+                    if (generation != m_LoadingGeneration || workspaceID != Settings.SelectedWorkspace?.ID)
                     {
-                        throw new OperationCanceledException(
-                            "The database loading generation is obsolete.",
-                            token);
+                        throw new OperationCanceledException("The database loading generation is obsolete.", token);
                     }
 
                     m_DatabaseReferences = references;
@@ -820,13 +665,7 @@ namespace HBP.Core.Database
             }
         }
 
-        private async UniTask<bool> ValidateDatabaseCoreAsync(
-            string workspaceID,
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token,
-            long generation,
-            ValidationRequest request,
-            Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<bool> ValidateDatabaseCoreAsync(string workspaceID, Action<float, float, LoadingText> updateProgress, CancellationToken token, long generation, ValidationRequest request, Func<LoadingWorkPriority> priorityProvider)
         {
             try
             {
@@ -835,86 +674,33 @@ namespace HBP.Core.Database
                 DataInfo[] dataInfos;
                 lock (m_LoadingOperationLock)
                 {
-                    if (generation != m_LoadingGeneration ||
-                        workspaceID != m_PublishedWorkspaceID ||
-                        workspaceID != Settings.SelectedWorkspace?.ID)
+                    if (generation != m_LoadingGeneration || workspaceID != m_PublishedWorkspaceID || workspaceID != Settings.SelectedWorkspace?.ID)
                     {
-                        throw new OperationCanceledException(
-                            "The database validation generation is obsolete.",
-                            token);
+                        throw new OperationCanceledException("The database validation generation is obsolete.", token);
                     }
-                    patients = request.Includes(
-                            ValidationAspect.PatientAssets)
-                        ? m_Patients.Where(request.Matches).ToArray()
-                        : Array.Empty<Patient>();
-                    dataInfos = m_DataInfos
-                        .Where(request.Matches)
-                        .ToArray();
+
+                    patients = request.Includes(ValidationAspect.PatientAssets) ? m_Patients.Where(request.Matches).ToArray() : Array.Empty<Patient>();
+                    dataInfos = m_DataInfos.Where(request.Matches).ToArray();
                 }
 
-                float pathWeight = patients.Length == 0
-                    ? 0
-                    : dataInfos.Length == 0
-                        ? 1
-                        : (float)patients.Length / (patients.Length + dataInfos.Length);
-                LoadingConcurrencyPolicy concurrencyPolicy =
-                    LoadingConcurrencyPolicy.Current;
-                int pathConcurrency = concurrencyPolicy.GetLimit(
-                    LoadingWorkCategory.FileSystem);
-                int dataInfoConcurrency = concurrencyPolicy.GetLimit(
-                    DataInfoValidator.GetWorkCategory(request));
+                float pathWeight = patients.Length == 0 ? 0 : dataInfos.Length == 0 ? 1 : (float)patients.Length / (patients.Length + dataInfos.Length);
+                LoadingConcurrencyPolicy concurrencyPolicy = LoadingConcurrencyPolicy.Current;
+                int pathConcurrency = concurrencyPolicy.GetLimit(LoadingWorkCategory.FileSystem);
+                int dataInfoConcurrency = concurrencyPolicy.GetLimit(DataInfoValidator.GetWorkCategory(request));
 
-                PatientAssetValidationResult assetResult =
-                    await new AssetReferenceValidator().ValidatePatientsAsync(
-                    patients,
-                    pathConcurrency,
-                    token,
-                    (completed, total) => updateProgress(
-                        (total == 0 ? 1 : (float)completed / total) * pathWeight,
-                        completed == 0 ? 0 : 0.2f,
-                        total == 0
-                            ? new LoadingText("Validating database file references")
-                            : new LoadingText(
-                                "Validating database file references",
-                                " ",
-                                completed + "/" + total)),
-                    generation,
-                    priorityProvider);
+                PatientAssetValidationResult assetResult = await new AssetReferenceValidator().ValidatePatientsAsync(patients, pathConcurrency, token, (completed, total) => updateProgress((total == 0 ? 1 : (float)completed / total) * pathWeight, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database file references") : new LoadingText("Validating database file references", " ", completed + "/" + total)), generation, priorityProvider);
 
-                DataInfoValidationResult dataInfoResult =
-                    await new DataInfoValidator().ValidateAsync(
-                        dataInfos,
-                        request,
-                        dataInfoConcurrency,
-                        token,
-                        (completed, total) => updateProgress(
-                            pathWeight +
-                                (total == 0 ? 1 : (float)completed / total) *
-                                (1 - pathWeight),
-                            completed == 0 ? 0 : 0.2f,
-                            total == 0
-                                ? new LoadingText("Validating database data")
-                                : new LoadingText(
-                                    "Validating database data",
-                                    " ",
-                                    completed + "/" + total)),
-                        generation,
-                        priorityProvider);
+                DataInfoValidationResult dataInfoResult = await new DataInfoValidator().ValidateAsync(dataInfos, request, dataInfoConcurrency, token, (completed, total) => updateProgress(pathWeight + (total == 0 ? 1 : (float)completed / total) * (1 - pathWeight), completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database data") : new LoadingText("Validating database data", " ", completed + "/" + total)), generation, priorityProvider);
 
                 token.ThrowIfCancellationRequested();
                 await UniTask.SwitchToMainThread();
                 lock (m_LoadingOperationLock)
                 {
-                    if (generation != m_LoadingGeneration ||
-                        workspaceID != m_PublishedWorkspaceID ||
-                        workspaceID != Settings.SelectedWorkspace?.ID ||
-                        !assetResult.TryApply(m_LoadingGeneration) ||
-                        !dataInfoResult.TryApply(m_LoadingGeneration))
+                    if (generation != m_LoadingGeneration || workspaceID != m_PublishedWorkspaceID || workspaceID != Settings.SelectedWorkspace?.ID || !assetResult.TryApply(m_LoadingGeneration) || !dataInfoResult.TryApply(m_LoadingGeneration))
                     {
-                        throw new OperationCanceledException(
-                            "The database validation generation is obsolete.",
-                            token);
+                        throw new OperationCanceledException("The database validation generation is obsolete.", token);
                     }
+
                     m_ValidationPublished = true;
                 }
 
@@ -936,27 +722,19 @@ namespace HBP.Core.Database
                 throw;
             }
         }
+
         public async UniTask SaveDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
             float validationWeight = NeedsValidationWait ? 0.2f : 0;
             if (validationWeight > 0)
             {
-                await EnsureDatabaseValidatedAsync(
-                    (progress, duration, text) => updateProgress(
-                        progress * validationWeight,
-                        duration,
-                        text));
+                await EnsureDatabaseValidatedAsync((progress, duration, text) => updateProgress(progress * validationWeight, duration, text));
             }
 
-            await SaveDatabaseCoreAsync(
-                (progress, duration, text) => updateProgress(
-                    validationWeight + progress * (1 - validationWeight),
-                    duration,
-                    text));
+            await SaveDatabaseCoreAsync((progress, duration, text) => updateProgress(validationWeight + progress * (1 - validationWeight), duration, text));
         }
 
-        private async UniTask SaveDatabaseCoreAsync(
-            Action<float, float, LoadingText> updateProgress)
+        private async UniTask SaveDatabaseCoreAsync(Action<float, float, LoadingText> updateProgress)
         {
             if (m_Patients.Count == 0 && m_DataInfos.Count == 0)
             {
@@ -984,39 +762,20 @@ namespace HBP.Core.Database
             DirectoryInfo protocolDirectory = new(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             if (!protocolDirectory.Exists) protocolDirectory.Create();
             FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
-            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(
-                LoadingWorkCategory.JsonAndZip);
-            m_Protocols = (await LoadingWorkScheduler.Shared.RunAsync(
-                protocolFiles.Select(protocolFile =>
-                    (Func<UniTask<Protocol>>)(() =>
-                        ClassLoaderSaver.LoadFromJsonAsync<Protocol>(
-                            protocolFile.FullName))),
-                LoadingWorkCategory.JsonAndZip,
-                () => LoadingWorkPriority.Foreground,
-                CancellationToken.None,
-                null,
-                concurrency))
-                .ToList();
+            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+            m_Protocols = (await LoadingWorkScheduler.Shared.RunAsync(protocolFiles.Select(protocolFile => (Func<UniTask<Protocol>>)(() => ClassLoaderSaver.LoadFromJsonAsync<Protocol>(protocolFile.FullName))), LoadingWorkCategory.JsonAndZip, () => LoadingWorkPriority.Foreground, CancellationToken.None, null, concurrency)).ToList();
         }
+
         public async UniTask SaveProtocolsAsync()
         {
             CopyProtocolsImages();
             DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ProtocolsTemp"));
-            await RunDatabaseTasksAsync(
-                m_Protocols.Select(protocol =>
-                    (Func<UniTask>)(() =>
-                        ClassLoaderSaver.SaveToJsonAsync(
-                            protocol,
-                            Path.Combine(
-                                protocolTempDirectory.FullName,
-                                protocol.Name + Protocol.EXTENSION),
-                            true))),
-                "Saving database protocols",
-                null);
+            await RunDatabaseTasksAsync(m_Protocols.Select(protocol => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonAsync(protocol, Path.Combine(protocolTempDirectory.FullName, protocol.Name + Protocol.EXTENSION), true))), "Saving database protocols", null);
             protocolDirectory.Delete(true);
             protocolTempDirectory.MoveTo(protocolDirectory.FullName);
         }
+
         private void CopyProtocolsImages()
         {
             DirectoryInfo imagesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Images"));
@@ -1052,92 +811,50 @@ namespace HBP.Core.Database
                     }
                 }
             }
+
             imagesDirectory.Delete(true);
             imagesTempDirectory.MoveTo(imagesDirectory.FullName);
         }
 
         public async UniTask LoadDatabaseReferencesAsync()
         {
-            FileInfo[] referenceFiles =
-                GetDatabaseReferenceFiles(Settings.SelectedWorkspace.Path);
-            List<DatabaseReference> references =
-                await LoadDatabaseReferencesAsync(referenceFiles, null);
+            FileInfo[] referenceFiles = GetDatabaseReferenceFiles(Settings.SelectedWorkspace.Path);
+            List<DatabaseReference> references = await LoadDatabaseReferencesAsync(referenceFiles, null);
             await UniTask.SwitchToMainThread();
             m_DatabaseReferences = references;
         }
 
         private FileInfo[] GetDatabaseReferenceFiles(string workspacePath)
         {
-            DirectoryInfo referencesDirectory = Directory.CreateDirectory(
-                Path.Combine(workspacePath, "References"));
-            return referencesDirectory.GetFiles(
-                "*" + DatabaseReference.EXTENSION,
-                SearchOption.TopDirectoryOnly);
+            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "References"));
+            return referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
         }
 
-        private async UniTask<List<DatabaseReference>> LoadDatabaseReferencesAsync(
-            FileInfo[] referenceFiles,
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token = default,
-            int? concurrency = null,
-            Func<LoadingWorkPriority> priorityProvider = null)
+        private async UniTask<List<DatabaseReference>> LoadDatabaseReferencesAsync(FileInfo[] referenceFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token = default, int? concurrency = null, Func<LoadingWorkPriority> priorityProvider = null)
         {
-            int workerCount = concurrency ??
-                LoadingConcurrencyPolicy.Current.GetLimit(
-                    LoadingWorkCategory.JsonAndZip);
-            updateProgress?.Invoke(
-                0,
-                0,
-                new LoadingText("Loading database references"));
-            Func<UniTask<DatabaseReference>>[] tasks = referenceFiles
-                .Select(referenceFile =>
-                    (Func<UniTask<DatabaseReference>>)(() =>
-                        ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(
-                        referenceFile.FullName)))
-                .ToArray();
-            List<DatabaseReference> references =
-                (await LoadingWorkScheduler.Shared.RunAsync(
-                    tasks,
-                    LoadingWorkCategory.JsonAndZip,
-                    priorityProvider,
-                    token,
-                    null,
-                    workerCount))
-                .ToList();
-            updateProgress?.Invoke(
-                1,
-                0,
-                new LoadingText("Database references loaded"));
+            int workerCount = concurrency ?? LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+            updateProgress?.Invoke(0, 0, new LoadingText("Loading database references"));
+            Func<UniTask<DatabaseReference>>[] tasks = referenceFiles.Select(referenceFile => (Func<UniTask<DatabaseReference>>)(() => ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(referenceFile.FullName))).ToArray();
+            List<DatabaseReference> references = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, null, workerCount)).ToList();
+            updateProgress?.Invoke(1, 0, new LoadingText("Database references loaded"));
             return references;
         }
+
         public async UniTask SaveDatabaseReferencesAsync()
         {
             await SaveDatabaseReferencesAsync(true);
         }
 
-        private async UniTask SaveDatabaseReferencesAsync(
-            bool invalidateValidation)
+        private async UniTask SaveDatabaseReferencesAsync(bool invalidateValidation)
         {
             await UniTask.SwitchToMainThread();
             string workspaceID = Settings.SelectedWorkspace?.ID;
-            string workspacePath = Settings.SelectedWorkspace?.Path ??
-                throw new InvalidOperationException("No database workspace is selected.");
+            string workspacePath = Settings.SelectedWorkspace?.Path ?? throw new InvalidOperationException("No database workspace is selected.");
             DatabaseReference[] references = m_DatabaseReferences.ToArray();
 
             DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "References"));
             DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "ReferencesTemp"));
-            await RunDatabaseTasksAsync(
-                references.Select(reference =>
-                    (Func<UniTask>)(() =>
-                        ClassLoaderSaver.SaveToJsonAsync(
-                            reference,
-                            Path.Combine(
-                                referencesTempDirectory.FullName,
-                                reference.ID +
-                                    DatabaseReference.EXTENSION),
-                            true))),
-                "Saving database references",
-                null);
+            await RunDatabaseTasksAsync(references.Select(reference => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonAsync(reference, Path.Combine(referencesTempDirectory.FullName, reference.ID + DatabaseReference.EXTENSION), true))), "Saving database references", null);
             referencesDirectory.Delete(true);
             referencesTempDirectory.MoveTo(referencesDirectory.FullName);
 
@@ -1146,13 +863,14 @@ namespace HBP.Core.Database
             {
                 return;
             }
+
             m_Patients.RemoveAll(p => !references.Any(r => r.ID == p.CorrespondingDatabaseID));
             m_DataInfos.RemoveAll(d => references.All(r => r.ID != d.CorrespondingDatabaseID) || (d is PatientDataInfo pd && !m_Patients.Contains(pd.Patient)));
             if (invalidateValidation)
             {
-                InvalidateValidation(
-                    new ValidationRequest(ValidationAspect.None));
+                InvalidateValidation(new ValidationRequest(ValidationAspect.None));
             }
+
             OnUpdateDatabases.Invoke();
         }
 
@@ -1162,44 +880,20 @@ namespace HBP.Core.Database
             if (!patientsDirectory.Exists) patientsDirectory.Create();
             return patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
         }
-        private async UniTask<List<Patient>> LoadPatientsAsync(
-            FileInfo[] patientFiles,
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token,
-            int concurrency,
-            Func<LoadingWorkPriority> priorityProvider)
+
+        private async UniTask<List<Patient>> LoadPatientsAsync(FileInfo[] patientFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
         {
-            var tasks = patientFiles.Select(file =>
-                (Func<UniTask<Patient>>)(() =>
-                    ClassLoaderSaver.LoadFromJsonAsync<Patient>(
-                        file.FullName)));
-            List<Patient> patients = (await LoadingWorkScheduler.Shared.RunAsync(
-                tasks,
-                LoadingWorkCategory.JsonAndZip,
-                priorityProvider,
-                token,
-                (completed, total) => UpdateLoadingProgress(
-                    updateProgress,
-                    "Loading database patients",
-                    completed,
-                    total),
-                concurrency))
-                .OrderBy(patient => patient.Name)
-                .ToList();
+            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(() => ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)));
+            List<Patient> patients = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, (completed, total) => UpdateLoadingProgress(updateProgress, "Loading database patients", completed, total), concurrency)).OrderBy(patient => patient.Name).ToList();
             return patients;
         }
+
         private async UniTask SavePatientsAsync(Action<float, float, LoadingText> updateProgress)
         {
             DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "Patients"));
             DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "PatientsTemp"));
-            var tasks = m_Patients.Select(p => (Func<UniTask>)(async () =>
-            {
-                await ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true);
-            }));
-            await RunDatabaseTasksAsync(
-                tasks,
-                "Saving database patients",
-                updateProgress);
+            var tasks = m_Patients.Select(p => (Func<UniTask>)(async () => { await ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true); }));
+            await RunDatabaseTasksAsync(tasks, "Saving database patients", updateProgress);
             patientsDirectory.Delete(true);
             patientsTempDirectory.MoveTo(patientsDirectory.FullName);
         }
@@ -1210,67 +904,22 @@ namespace HBP.Core.Database
             if (!dataInfosDirectory.Exists) dataInfosDirectory.Create();
             return dataInfosDirectory.GetFiles("*" + DataInfo.EXTENSION, SearchOption.TopDirectoryOnly);
         }
-        private async UniTask<List<DataInfo>> LoadDataInfosAsync(
-            FileInfo[] dataInfoFiles,
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token,
-            int concurrency,
-            Func<LoadingWorkPriority> priorityProvider)
+
+        private async UniTask<List<DataInfo>> LoadDataInfosAsync(FileInfo[] dataInfoFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
         {
-            var tasks = dataInfoFiles.Select(file =>
-                (Func<UniTask<List<DataInfo>>>)(() =>
-                    ClassLoaderSaver.LoadFromJsonAsync<List<DataInfo>>(
-                        file.FullName)));
-            return (await LoadingWorkScheduler.Shared.RunAsync(
-                    tasks,
-                    LoadingWorkCategory.JsonAndZip,
-                    priorityProvider,
-                    token,
-                    (completed, total) => UpdateLoadingProgress(
-                        updateProgress,
-                        "Loading database functional data",
-                        completed,
-                        total),
-                    concurrency))
-                .SelectMany(dataInfos => dataInfos)
-                .ToList();
+            var tasks = dataInfoFiles.Select(file => (Func<UniTask<List<DataInfo>>>)(() => ClassLoaderSaver.LoadFromJsonAsync<List<DataInfo>>(file.FullName)));
+            return (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, (completed, total) => UpdateLoadingProgress(updateProgress, "Loading database functional data", completed, total), concurrency)).SelectMany(dataInfos => dataInfos).ToList();
         }
 
-        private static void UpdateLoadingProgress(
-            Action<float, float, LoadingText> updateProgress,
-            string loadingText,
-            int completed,
-            int total)
+        private static void UpdateLoadingProgress(Action<float, float, LoadingText> updateProgress, string loadingText, int completed, int total)
         {
-            updateProgress?.Invoke(
-                total == 0 ? 1 : (float)completed / total,
-                completed == 0 ? 0 : 0.2f,
-                total == 0
-                    ? new LoadingText(loadingText)
-                    : new LoadingText(
-                        loadingText,
-                        " ",
-                        completed + "/" + total));
+            updateProgress?.Invoke(total == 0 ? 1 : (float)completed / total, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText(loadingText) : new LoadingText(loadingText, " ", completed + "/" + total));
         }
 
-        private static async UniTask RunDatabaseTasksAsync(
-            IEnumerable<Func<UniTask>> tasks,
-            string loadingText,
-            Action<float, float, LoadingText> updateProgress)
+        private static async UniTask RunDatabaseTasksAsync(IEnumerable<Func<UniTask>> tasks, string loadingText, Action<float, float, LoadingText> updateProgress)
         {
-            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(
-                LoadingWorkCategory.JsonAndZip);
-            await LoadingWorkScheduler.Shared.RunAsync(
-                tasks,
-                LoadingWorkCategory.JsonAndZip,
-                () => LoadingWorkPriority.Foreground,
-                CancellationToken.None,
-                (completed, total) => UpdateLoadingProgress(
-                    updateProgress,
-                    loadingText,
-                    completed,
-                    total),
-                concurrency);
+            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+            await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, () => LoadingWorkPriority.Foreground, CancellationToken.None, (completed, total) => UpdateLoadingProgress(updateProgress, loadingText, completed, total), concurrency);
         }
 
         private async UniTask SaveDataInfosAsync(Action<float, float, LoadingText> updateProgress)
@@ -1282,36 +931,28 @@ namespace HBP.Core.Database
             {
                 patientDataInfos.Add(patient, new List<PatientDataInfo>());
             }
+
             List<DataInfo> otherDataInfos = new();
             foreach (var dataInfo in m_DataInfos)
             {
                 if (dataInfo is PatientDataInfo patientDataInfo) patientDataInfos[patientDataInfo.Patient].Add(patientDataInfo);
                 else otherDataInfos.Add(dataInfo);
             }
-            var tasks = patientDataInfos.Select(kvp => (Func<UniTask>)(async () =>
-            {
-                await ClassLoaderSaver.SaveToJsonAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + DataInfo.EXTENSION), true);
-            }));
-            await RunDatabaseTasksAsync(
-                tasks,
-                "Saving database functional data",
-                updateProgress);
+
+            var tasks = patientDataInfos.Select(kvp => (Func<UniTask>)(async () => { await ClassLoaderSaver.SaveToJsonAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + DataInfo.EXTENSION), true); }));
+            await RunDatabaseTasksAsync(tasks, "Saving database functional data", updateProgress);
             await ClassLoaderSaver.SaveToJsonAsync(otherDataInfos, Path.Combine(dataInfosTempDirectory.FullName, "None" + DataInfo.EXTENSION), true);
             dataInfosDirectory.Delete(true);
             dataInfosTempDirectory.MoveTo(dataInfosDirectory.FullName);
         }
-        
+
         public async UniTask<DatabaseUpdateReport> UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             updateProgress(0, 1, new LoadingText("Initialization"));
             await UniTask.SwitchToMainThread();
             string workspaceID = Settings.SelectedWorkspace?.ID;
-            List<Patient> oldPatients = m_Patients
-                .Select(patient => (Patient)patient.Clone())
-                .ToList();
-            List<DataInfo> oldDataInfos = m_DataInfos
-                .Select(dataInfo => (DataInfo)dataInfo.Clone())
-                .ToList();
+            List<Patient> oldPatients = m_Patients.Select(patient => (Patient)patient.Clone()).ToList();
+            List<DataInfo> oldDataInfos = m_DataInfos.Select(dataInfo => (DataInfo)dataInfo.Clone()).ToList();
             List<Patient> patientsTemp = new(m_Patients);
             List<DataInfo> dataInfosTemp = new(m_DataInfos);
             DatabaseReference[] referenceSnapshot = databaseReferences.ToArray();
@@ -1334,6 +975,7 @@ namespace HBP.Core.Database
                 updatedPatients.AddRange(patients);
                 progress += 1f / numberOfDatabases;
             }
+
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
@@ -1344,6 +986,7 @@ namespace HBP.Core.Database
                 updatedPatients.AddRange(patients);
                 progress += 1f / numberOfDatabases;
             }
+
             // Then load additional tags
             foreach (var tagsDatabaseReference in tagsDatabaseReferences)
             {
@@ -1354,9 +997,11 @@ namespace HBP.Core.Database
                     patientsTemp.Remove(patient);
                     patientsTemp.Add(patient);
                 }
+
                 updatedPatients.AddRange(patients);
                 progress += 1f / numberOfDatabases;
             }
+
             // Then load dataInfos
             foreach (var localizerDatabaseReference in localizerDatabaseReferences)
             {
@@ -1366,6 +1011,7 @@ namespace HBP.Core.Database
                 dataInfosTemp.AddRange(dataInfos);
                 progress += 1f / numberOfDatabases;
             }
+
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
@@ -1374,12 +1020,14 @@ namespace HBP.Core.Database
                 dataInfosTemp.AddRange(dataInfos);
                 progress += 1f / numberOfDatabases;
             }
+
             // Update last updated
             foreach (var databaseReference in referenceSnapshot)
             {
                 token.ThrowIfCancellationRequested();
                 databaseReference.LastUpdated = DateTime.Now;
             }
+
             updateProgress(1, 0, new LoadingText("Finalizing"));
             var report = FindChanges(oldPatients, patientsTemp, updatedPatients);
 
@@ -1387,23 +1035,17 @@ namespace HBP.Core.Database
             await UniTask.SwitchToMainThread();
             if (workspaceID != Settings.SelectedWorkspace?.ID)
             {
-                throw new OperationCanceledException(
-                    "The database workspace changed while its references were updating.",
-                    token);
+                throw new OperationCanceledException("The database workspace changed while its references were updating.", token);
             }
+
             m_Patients = patientsTemp;
             m_DataInfos = dataInfosTemp;
-            ValidationRequest validationRequest =
-                ValidationImpactAnalyzer.ForPatients(
-                    oldPatients,
-                    patientsTemp)
-                .Merge(ValidationImpactAnalyzer.ForDataInfos(
-                    oldDataInfos,
-                    dataInfosTemp));
+            ValidationRequest validationRequest = ValidationImpactAnalyzer.ForPatients(oldPatients, patientsTemp).Merge(ValidationImpactAnalyzer.ForDataInfos(oldDataInfos, dataInfosTemp));
             if (validationRequest.Aspects != ValidationAspect.None)
             {
                 InvalidateValidation(validationRequest);
             }
+
             OnUpdateDatabases.Invoke();
             await SaveDatabaseReferencesAsync(false);
             return report;
@@ -1416,6 +1058,7 @@ namespace HBP.Core.Database
             updatedPatients = updatedPatients.Distinct().Except(addedPatients).Except(removedPatients).ToList();
             return new DatabaseUpdateReport(removedPatients, addedPatients, updatedPatients);
         }
+
         #endregion
     }
 }

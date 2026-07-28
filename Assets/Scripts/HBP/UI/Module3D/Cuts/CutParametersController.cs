@@ -19,33 +19,40 @@ namespace HBP.UI.Module3D
     public class CutParametersController : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Cut affected to this parameters controller
         /// </summary>
         public Core.Object3D.Cut Cut { get; private set; }
+
         /// <summary>
         /// Parent scene of the corresponding cut controller
         /// </summary>
         private Base3DScene m_Scene;
+
         /// <summary>
         /// Is the parameters controller currently updating
         /// </summary>
         private bool m_IsUIUpdating = false;
+
         /// <summary>
         /// Are the UI elements allowing the modification of the cut visible ?
         /// </summary>
         public bool AreControlsOpen { get; set; }
+
         /// <summary>
         /// Texture of the cut associated with this controller
         /// </summary>
-        public Texture2D Texture { get { return m_Image.sprite.texture; } }
+        public Texture2D Texture
+        {
+            get { return m_Image.sprite.texture; }
+        }
+
         private bool m_Interactable = true;
+
         public bool Interactable
         {
-            get
-            {
-                return m_Interactable;
-            }
+            get { return m_Interactable; }
             set
             {
                 m_Interactable = value;
@@ -57,18 +64,22 @@ namespace HBP.UI.Module3D
         /// Did we just clicked on the minus button ?
         /// </summary>
         private bool m_ClickedOnMinus = false;
+
         /// <summary>
         /// Did we just clicked on the plus button ?
         /// </summary>
         private bool m_ClickedOnPlus = false;
+
         /// <summary>
         /// Time since last position update if the mouse is being held on the minus or plus button
         /// </summary>
         private float m_TimeSinceLastUpdate = 0.0f;
+
         /// <summary>
         /// Time between two position updates if the mouse is being held on the minus or plus button
         /// </summary>
         private float m_TimeBetweenTwoUpdates = 0.1f;
+
         /// <summary>
         /// Has the object been requested to be destroyed ?
         /// </summary>
@@ -78,6 +89,7 @@ namespace HBP.UI.Module3D
         /// Image of the cut (to hold the texture of the cut)
         /// </summary>
         [SerializeField] private Image m_Image;
+
         /// <summary>
         /// Dropdown to change the orientation of the cut
         /// </summary>
@@ -85,50 +97,62 @@ namespace HBP.UI.Module3D
         /// <seealso cref="Data.Enums.CutOrientation"/>
         /// </remarks>
         [SerializeField] private Dropdown m_Orientation;
+
         /// <summary>
         /// Slider to change the position of the cut
         /// </summary>
         [SerializeField] private Slider m_Position;
+
         /// <summary>
         /// Button to slightly increase the position of the cut
         /// </summary>
         [SerializeField] private PressableButton m_PlusPosition;
+
         /// <summary>
         /// Button to slightly decrease the position of the cut
         /// </summary>
         [SerializeField] private PressableButton m_MinusPosition;
+
         /// <summary>
         /// Toggle to change the flip of the cut
         /// </summary>
         [SerializeField] private Toggle m_Flip;
+
         /// <summary>
         /// Button to remove the cut from the scene
         /// </summary>
         [SerializeField] private Button m_Remove;
+
         /// <summary>
         /// RectTransform of the custom cut editor (allows to completely set the normal of the cut plane)
         /// </summary>
         [SerializeField] private RectTransform m_CustomValues;
+
         /// <summary>
         /// X value of the custom normal
         /// </summary>
         [SerializeField] private InputField m_CustomX;
+
         /// <summary>
         /// Y value of the custom normal
         /// </summary>
         [SerializeField] private InputField m_CustomY;
+
         /// <summary>
         /// Z value of the custom normal
         /// </summary>
         [SerializeField] private InputField m_CustomZ;
+
         /// <summary>
         /// Text on the MRI for the direction of the cut (for non-custom orientations)
         /// </summary>
         [SerializeField] private Text m_PositionTitle;
+
         /// <summary>
         /// Text on the MRI for the value of the cut (for non-custom orientations)
         /// </summary>
         [SerializeField] private Text m_PositionValue;
+
         /// <summary>
         /// Gameobject showing information about the position of the cut (for non-custom orientations)
         /// </summary>
@@ -138,6 +162,7 @@ namespace HBP.UI.Module3D
         /// Parent RectTransform for the cut sites
         /// </summary>
         [SerializeField] private RectTransform m_SitesRectTransform;
+
         /// <summary>
         /// Prefab for the cut sites
         /// </summary>
@@ -147,24 +172,30 @@ namespace HBP.UI.Module3D
         /// Parent RectTransform for the other cuts lines
         /// </summary>
         [SerializeField] private RectTransform m_CutLinesRectTransform;
+
         /// <summary>
         /// Prefab for the others cuts lines
         /// </summary>
         [SerializeField] private GameObject m_CutLinePrefab;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when opening the UI elements allowing to modify the cut
         /// </summary>
         public UnityEvent OnOpenControls = new();
+
         /// <summary>
         /// Event called when closing the UI elements allowing to modify the cut
         /// </summary>
         public UnityEvent OnCloseControls = new();
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (m_ClickedOnPlus || m_ClickedOnMinus)
@@ -183,8 +214,8 @@ namespace HBP.UI.Module3D
                     }
                 }
             }
-            
         }
+
         /// <summary>
         /// Add all listeners from UI to 3D scene and inversely
         /// </summary>
@@ -232,10 +263,7 @@ namespace HBP.UI.Module3D
                 m_ClickedOnMinus = true;
                 m_TimeSinceLastUpdate = -0.5f;
             });
-            m_MinusPosition.onRelease.AddListener(() =>
-            {
-                m_ClickedOnMinus = false;
-            });
+            m_MinusPosition.onRelease.AddListener(() => { m_ClickedOnMinus = false; });
             m_PlusPosition.onClick.AddListener(() =>
             {
                 if (m_IsUIUpdating) return;
@@ -247,10 +275,7 @@ namespace HBP.UI.Module3D
                 m_ClickedOnPlus = true;
                 m_TimeSinceLastUpdate = -0.5f;
             });
-            m_PlusPosition.onRelease.AddListener(() =>
-            {
-                m_ClickedOnPlus = false;
-            });
+            m_PlusPosition.onRelease.AddListener(() => { m_ClickedOnPlus = false; });
             m_Orientation.onValueChanged.AddListener((value) =>
             {
                 if (m_IsUIUpdating) return;
@@ -263,6 +288,7 @@ namespace HBP.UI.Module3D
                     NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
+
                 m_Scene.UpdateCutPlane(Cut, true);
             });
             m_Flip.onValueChanged.AddListener((isOn) =>
@@ -290,6 +316,7 @@ namespace HBP.UI.Module3D
                     NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
+
                 m_Scene.UpdateCutPlane(Cut, true);
             });
             m_CustomY.onEndEdit.AddListener((value) =>
@@ -303,6 +330,7 @@ namespace HBP.UI.Module3D
                     NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
+
                 m_Scene.UpdateCutPlane(Cut, true);
             });
             m_CustomZ.onEndEdit.AddListener((value) =>
@@ -316,6 +344,7 @@ namespace HBP.UI.Module3D
                     NumberExtension.TryParseFloat(m_CustomZ.text, out float z);
                     Cut.Normal = new Vector3(x, y, z);
                 }
+
                 m_Scene.UpdateCutPlane(Cut, true);
             });
             m_Image.GetComponent<Button>().onClick.AddListener(() =>
@@ -336,6 +365,7 @@ namespace HBP.UI.Module3D
                 ShowSites();
             });
         }
+
         /// <summary>
         /// Update the values in the UI from the values of the corresponding cut
         /// </summary>
@@ -366,6 +396,7 @@ namespace HBP.UI.Module3D
                 m_Flip.gameObject.SetActive(false);
                 m_CustomValues.gameObject.SetActive(false);
             }
+
             m_PositionInformation.SetActive(Cut.Orientation != CutOrientation.Custom);
             switch (Cut.Orientation)
             {
@@ -382,11 +413,14 @@ namespace HBP.UI.Module3D
                     m_PositionValue.text = Cut.Point.x.ToString("N2");
                     break;
             }
+
             m_IsUIUpdating = false;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this controller
         /// </summary>
@@ -401,9 +435,11 @@ namespace HBP.UI.Module3D
             {
                 m_Orientation.options.Add(new Dropdown.OptionData(orientation));
             }
+
             UpdateUI();
             AddListeners();
         }
+
         /// <summary>
         /// Open the UI elements allowing to modify the cut
         /// </summary>
@@ -414,6 +450,7 @@ namespace HBP.UI.Module3D
             UpdateUI();
             OnOpenControls.Invoke();
         }
+
         /// <summary>
         /// Close the UI elements allowing to modify the cut
         /// </summary>
@@ -423,6 +460,7 @@ namespace HBP.UI.Module3D
             UpdateUI();
             OnCloseControls.Invoke();
         }
+
         /// <summary>
         /// Show the sites on the cut image
         /// </summary>
@@ -430,7 +468,7 @@ namespace HBP.UI.Module3D
         {
             foreach (Transform child in m_SitesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == CutOrientation.Custom) return;
-            
+
             List<Core.Object3D.Site> sites = new();
             m_Scene.SelectedColumn.RawElectrodes.GetSitesOnPlane(Cut, 1.0f, out int[] result);
             foreach (var site in m_Scene.SelectedColumn.Sites)
@@ -475,6 +513,7 @@ namespace HBP.UI.Module3D
                         verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                         break;
                 }
+
                 horizontalRatio = Mathf.Lerp(horizontalOffset, 1f - horizontalOffset, horizontalRatio);
                 verticalRatio = Mathf.Lerp(verticalOffset, 1f - verticalOffset, verticalRatio);
 
@@ -482,6 +521,7 @@ namespace HBP.UI.Module3D
                 cutSite.Initialize(m_Scene, site, new Vector2(horizontalRatio, verticalRatio));
             }
         }
+
         /// <summary>
         /// Draw the cut lines of other cuts on the cut image
         /// </summary>
@@ -539,14 +579,17 @@ namespace HBP.UI.Module3D
                                     verticalRatio = Cut.Flip ? ratio.x : 1.0f - ratio.x;
                                     break;
                             }
+
                             horizontalRatio = Mathf.Lerp(horizontalOffset, 1f - horizontalOffset, horizontalRatio);
                             verticalRatio = Mathf.Lerp(verticalOffset, 1f - verticalOffset, verticalRatio);
                             linePoints.Add(new Vector2(horizontalRatio, verticalRatio));
                         }
+
                         addRatioOfPoint(segment.End1);
                         addRatioOfPoint(segment.End2);
                         segment.Dispose();
                     }
+
                     UILineRenderer lineRenderer = Instantiate(m_CutLinePrefab, m_CutLinesRectTransform).GetComponent<UILineRenderer>();
                     RectTransform lineRectTransform = lineRenderer.GetComponent<RectTransform>();
                     lineRectTransform.anchorMin = Vector2.zero;
@@ -557,6 +600,7 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+
         #endregion
     }
 }

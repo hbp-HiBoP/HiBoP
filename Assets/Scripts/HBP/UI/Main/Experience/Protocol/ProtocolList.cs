@@ -11,14 +11,25 @@ namespace HBP.UI.Main
     public class ProtocolList : ActionableList<Core.Data.Protocol>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Blocs, DescendingBlocs }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Blocs,
+            DescendingBlocs
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_BlocsSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -38,9 +49,11 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -72,9 +85,11 @@ namespace HBP.UI.Main
                     m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by blocs
         /// </summary>
@@ -95,6 +110,7 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_BlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

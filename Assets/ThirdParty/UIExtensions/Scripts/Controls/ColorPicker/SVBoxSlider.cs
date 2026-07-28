@@ -17,10 +17,7 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
         public RectTransform RectTransform
         {
-            get
-            {
-                return transform as RectTransform;
-            }
+            get { return transform as RectTransform; }
         }
 
         private void Awake()
@@ -70,6 +67,7 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                 picker.AssignColor(ColorValues.Saturation, saturation);
                 picker.AssignColor(ColorValues.Value, value);
             }
+
             listen = true;
         }
 
@@ -112,8 +110,10 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                 {
                     colors[v] = HSVUtil.ConvertHsvToRgb(h, (float)s / 100, (float)v / 100, 1);
                 }
+
                 texture.SetPixels32(s, 0, 1, 100, colors);
             }
+
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.filterMode = FilterMode.Trilinear;
             texture.Apply();

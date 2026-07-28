@@ -14,6 +14,7 @@ namespace HBP.UI.Main
     public class SubBlocItem : ActionnableItem<Core.Data.SubBloc>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
 
         [SerializeField] Text m_StartWindowText;
@@ -33,10 +34,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.SubBloc Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -49,7 +47,7 @@ namespace HBP.UI.Main
 
                 m_EventsText.SetIEnumerableFieldInItem("Events", from e in m_Object.Events where e.IsVisualizable select e.Name, m_ErrorState);
                 m_IconsText.SetIEnumerableFieldInItem("Icons", from i in m_Object.Icons select i.Name, m_ErrorState);
-                m_TreatmentsText.SetIEnumerableFieldInItem("Treatments", m_Object.Treatments.Select(t => string.Format("{0} {1}ms to {2}ms",(t.GetType().GetCustomAttributes(typeof(DisplayNameAttribute), false)[0] as DisplayNameAttribute).DisplayName,t.Window.Start,t.Window.End)), m_ErrorState);
+                m_TreatmentsText.SetIEnumerableFieldInItem("Treatments", m_Object.Treatments.Select(t => string.Format("{0} {1}ms to {2}ms", (t.GetType().GetCustomAttributes(typeof(DisplayNameAttribute), false)[0] as DisplayNameAttribute).DisplayName, t.Window.Start, t.Window.End)), m_ErrorState);
 
                 m_OrderText.text = value.Order.ToString();
 
@@ -62,6 +60,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

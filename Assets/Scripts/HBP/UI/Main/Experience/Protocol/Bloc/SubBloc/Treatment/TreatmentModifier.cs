@@ -15,6 +15,7 @@ namespace HBP.UI.Main
     public class TreatmentModifier : ObjectModifier<Treatment>
     {
         #region Properties
+
         [SerializeField] Toggle m_WindowToggle;
         [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] Toggle m_BaselineToggle;
@@ -34,15 +35,13 @@ namespace HBP.UI.Main
         [SerializeField] FactorTreatmentSubModifier m_FactorTreatmentSubModifier;
 
         TimeWindow m_Window;
+
         /// <summary>
         /// SubBloc of the window.
         /// </summary>
         public TimeWindow Window
         {
-            get
-            {
-                return m_Window;
-            }
+            get { return m_Window; }
             set
             {
                 m_Window = value;
@@ -52,15 +51,13 @@ namespace HBP.UI.Main
         }
 
         TimeWindow m_Baseline;
+
         /// <summary>
         /// Baseline of the subBloc.
         /// </summary>
         public TimeWindow Baseline
         {
-            get
-            {
-                return m_Baseline;
-            }
+            get { return m_Baseline; }
             set
             {
                 m_Baseline = value;
@@ -73,15 +70,13 @@ namespace HBP.UI.Main
         List<Treatment> m_TreatmentsTemp;
 
         Type[] m_Types;
+
         /// <summary>
         /// True if interactable, False otherwise.
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -108,9 +103,11 @@ namespace HBP.UI.Main
                 m_FactorTreatmentSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
@@ -119,9 +116,11 @@ namespace HBP.UI.Main
             m_Object = ObjectTemp;
             base.OK();
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -178,6 +177,7 @@ namespace HBP.UI.Main
                 new FactorTreatment()
             };
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -202,13 +202,14 @@ namespace HBP.UI.Main
             m_BaselineSlider.step = PersistentDataManager.UserPreferences.Data.Protocol.Step;
             m_BaselineSlider.Values = objectToDisplay.Baseline.ToVector2();
         }
+
         /// <summary>
         /// Change the order of the treatment.
         /// </summary>
         /// <param name="order">Order</param>
         protected void ChangeOrder(string value)
         {
-            if(int.TryParse(value, out int order))
+            if (int.TryParse(value, out int order))
             {
                 ObjectTemp.Order = order;
             }
@@ -217,14 +218,15 @@ namespace HBP.UI.Main
                 m_OrderInputField.text = ObjectTemp.Order.ToString();
             }
         }
+
         /// <summary>
         /// Change the type of the treatment.
         /// </summary>
         /// <param name="index">Index of the treatment type</param>
         protected void ChangeType(int index)
         {
-            Type type = m_Types[index];        
-            
+            Type type = m_Types[index];
+
             // Close old subModifier
             m_SubModifiers.Find(subModifier => subModifier.GetType().IsSubclassOf(typeof(SubModifier<>).MakeGenericType(m_ObjectTemp.GetType()))).IsActive = false;
 
@@ -237,6 +239,7 @@ namespace HBP.UI.Main
             newSubModifier.IsActive = true;
             newSubModifier.Object = m_ObjectTemp;
         }
+
         /// <summary>
         /// Change the window.
         /// </summary>
@@ -246,6 +249,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Window = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
+
         /// <summary>
         /// Change the baseline.
         /// </summary>
@@ -255,6 +259,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Baseline = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
         }
+
         /// <summary>
         /// Change use on window.
         /// </summary>
@@ -264,6 +269,7 @@ namespace HBP.UI.Main
             ObjectTemp.UseOnWindow = value;
             m_WindowSlider.interactable = Interactable && value;
         }
+
         /// <summary>
         /// Change use on baseline.
         /// </summary>
@@ -273,6 +279,7 @@ namespace HBP.UI.Main
             ObjectTemp.UseOnBaseline = value;
             m_BaselineSlider.interactable = Interactable && value;
         }
+
         #endregion
     }
 }

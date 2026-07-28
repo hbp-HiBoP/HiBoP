@@ -9,6 +9,7 @@ namespace HBP.UI.Main
     public class FloatTagValueSubModifier : SubModifier<Core.Data.FloatTagValue>
     {
         #region Properties
+
         [SerializeField] InputField m_ValueInputField;
 
         public override bool Interactable
@@ -20,23 +21,28 @@ namespace HBP.UI.Main
                 m_ValueInputField.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
             m_ValueInputField.onEndEdit.AddListener(OnChangeValue);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(Core.Data.FloatTagValue objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             CultureInfo cultureInfo = CultureInfo.GetCultureInfo("en-US");
             m_ValueInputField.text = objectToDisplay.Value.ToString("0.##", cultureInfo);
         }
+
         void OnChangeValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float floatValue))
@@ -45,6 +51,7 @@ namespace HBP.UI.Main
                 m_ValueInputField.text = Object.Value.ToString();
             }
         }
+
         #endregion
     }
 }

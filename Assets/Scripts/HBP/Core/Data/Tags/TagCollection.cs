@@ -17,6 +17,7 @@ namespace HBP.Core.Data
     public class TagCollection : BaseData
     {
         #region Properties
+
         public static string PATH = Path.Combine(Application.persistentDataPath, "Tags.json");
         private ReadOnlyCollection<BaseTag> m_AllTagsView;
         private Dictionary<string, BaseTag> m_TagById;
@@ -33,27 +34,35 @@ namespace HBP.Core.Data
         [JsonProperty] private List<BaseTag> m_SitesTags;
         private ReadOnlyCollection<BaseTag> m_SitesTagsView;
         public ReadOnlyCollection<BaseTag> SitesTags => m_SitesTagsView;
+
         #endregion
 
         #region Constructors
+
         public TagCollection(IEnumerable<BaseTag> generalTags, IEnumerable<BaseTag> patientsTags, IEnumerable<BaseTag> sitesTags, string ID) : base(ID)
         {
             ApplyCollections(generalTags.ToList(), patientsTags.ToList(), sitesTags.ToList());
         }
+
         public TagCollection(IEnumerable<BaseTag> generalTags, IEnumerable<BaseTag> patientsTags, IEnumerable<BaseTag> sitesTags) : base()
         {
             ApplyCollections(generalTags.ToList(), patientsTags.ToList(), sitesTags.ToList());
         }
+
         public TagCollection() : this(new List<BaseTag>(), new List<BaseTag>(), new List<BaseTag>())
         {
         }
+
         #endregion
 
         #region Events
+
         public UnityEvent OnSaveTags = new();
+
         #endregion
 
         #region Private Methods
+
         private void ApplyCollections(List<BaseTag> generalTags, List<BaseTag> patientsTags, List<BaseTag> sitesTags)
         {
             generalTags ??= new();
@@ -76,10 +85,7 @@ namespace HBP.Core.Data
             m_TagById = tagById;
         }
 
-        private static void AddToIndex(
-            IEnumerable<BaseTag> source,
-            ICollection<BaseTag> allTags,
-            IDictionary<string, BaseTag> tagById)
+        private static void AddToIndex(IEnumerable<BaseTag> source, ICollection<BaseTag> allTags, IDictionary<string, BaseTag> tagById)
         {
             foreach (BaseTag tag in source)
             {
@@ -138,7 +144,7 @@ namespace HBP.Core.Data
                 {
                     // Boolean values are also integers (in a sense), so don't break the chain yet
                     allIntegers = false; // But they're not really integers for tag purposes
-                    allFloats = false;   // And not floats either
+                    allFloats = false; // And not floats either
                 }
                 else
                 {
@@ -154,7 +160,7 @@ namespace HBP.Core.Data
                     else
                     {
                         allIntegers = false;
-                        
+
                         // Check for floats
                         if (!NumberExtension.TryParseFloat(value, out float floatValue))
                         {
@@ -173,17 +179,19 @@ namespace HBP.Core.Data
             // 2. If all values are integers AND at least one is not zero, use IntTag
             if (allIntegers && hasNonZeroInteger)
                 return new IntTag(tagName);
-            
+
             // 3. If all values are valid floats (including integers), use FloatTag
             if (allFloats)
                 return new FloatTag(tagName);
-            
+
             // 4. Otherwise, use StringTag as fallback
             return new StringTag(tagName);
         }
+
         #endregion
 
         #region Public Methods
+
         public static TagCollection Initialize()
         {
             TagCollection tagsCollection = new();
@@ -203,9 +211,11 @@ namespace HBP.Core.Data
                     tagsCollection = new TagCollection();
                 }
             }
+
             tagsCollection.Save();
             return tagsCollection;
         }
+
         public override void GenerateID()
         {
             base.GenerateID();
@@ -214,6 +224,7 @@ namespace HBP.Core.Data
             foreach (var tag in m_SitesTags) tag.GenerateID();
             ApplyCollections(m_GeneralTags, m_PatientsTags, m_SitesTags);
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
@@ -222,25 +233,26 @@ namespace HBP.Core.Data
             foreach (var tag in m_SitesTags) IDs.AddRange(tag.GetAllIdentifiable());
             return IDs;
         }
+
         public void Save()
         {
             ClassLoaderSaver.SaveToJSon(this, PATH, true);
             OnSaveTags.Invoke();
         }
+
         public override object Clone()
         {
             return new TagCollection(m_GeneralTags.DeepClone(), m_PatientsTags.DeepClone(), m_SitesTags.DeepClone(), ID);
         }
+
         public override void Copy(object copy)
         {
             if (copy is TagCollection tagsCollection)
             {
-                ApplyCollections(
-                    new List<BaseTag>(tagsCollection.m_GeneralTags),
-                    new List<BaseTag>(tagsCollection.m_PatientsTags),
-                    new List<BaseTag>(tagsCollection.m_SitesTags));
+                ApplyCollections(new List<BaseTag>(tagsCollection.m_GeneralTags), new List<BaseTag>(tagsCollection.m_PatientsTags), new List<BaseTag>(tagsCollection.m_SitesTags));
             }
         }
+
         public bool TryGetTag(string id, out BaseTag tag)
         {
             if (string.IsNullOrEmpty(id))
@@ -248,18 +260,22 @@ namespace HBP.Core.Data
                 tag = null;
                 return false;
             }
+
             return m_TagById.TryGetValue(id, out tag);
         }
+
         public bool ContainsTagId(string id)
         {
             return !string.IsNullOrEmpty(id) && m_TagById.ContainsKey(id);
         }
+
         public void AddGeneralTag(BaseTag tag, bool autoSave = true)
         {
             List<BaseTag> generalTags = new(m_GeneralTags) { tag };
             ApplyCollections(generalTags, m_PatientsTags, m_SitesTags);
             if (autoSave) Save();
         }
+
         public void RemoveGeneralTag(BaseTag tag, bool autoSave = true)
         {
             List<BaseTag> generalTags = new(m_GeneralTags);
@@ -267,17 +283,20 @@ namespace HBP.Core.Data
             ApplyCollections(generalTags, m_PatientsTags, m_SitesTags);
             if (autoSave) Save();
         }
+
         public void SetGeneralTags(IEnumerable<BaseTag> tags, bool autoSave = true)
         {
             ApplyCollections(tags.ToList(), m_PatientsTags, m_SitesTags);
             if (autoSave) Save();
         }
+
         public void AddPatientTag(BaseTag tag, bool autoSave = true)
         {
             List<BaseTag> patientsTags = new(m_PatientsTags) { tag };
             ApplyCollections(m_GeneralTags, patientsTags, m_SitesTags);
             if (autoSave) Save();
         }
+
         public void RemovePatientTag(BaseTag tag, bool autoSave = true)
         {
             List<BaseTag> patientsTags = new(m_PatientsTags);
@@ -285,17 +304,20 @@ namespace HBP.Core.Data
             ApplyCollections(m_GeneralTags, patientsTags, m_SitesTags);
             if (autoSave) Save();
         }
+
         public void SetPatientTags(IEnumerable<BaseTag> tags, bool autoSave = true)
         {
             ApplyCollections(m_GeneralTags, tags.ToList(), m_SitesTags);
             if (autoSave) Save();
         }
+
         public void AddSiteTag(BaseTag tag, bool autoSave = true)
         {
             List<BaseTag> sitesTags = new(m_SitesTags) { tag };
             ApplyCollections(m_GeneralTags, m_PatientsTags, sitesTags);
             if (autoSave) Save();
         }
+
         public void RemoveSiteTag(BaseTag tag, bool autoSave = true)
         {
             List<BaseTag> sitesTags = new(m_SitesTags);
@@ -303,11 +325,13 @@ namespace HBP.Core.Data
             ApplyCollections(m_GeneralTags, m_PatientsTags, sitesTags);
             if (autoSave) Save();
         }
+
         public void SetSiteTags(IEnumerable<BaseTag> tags, bool autoSave = true)
         {
             ApplyCollections(m_GeneralTags, m_PatientsTags, tags.ToList());
             if (autoSave) Save();
         }
+
         public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromCSV(string csvPath)
         {
             Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
@@ -335,11 +359,14 @@ namespace HBP.Core.Data
                                     columnValues.Add(rowValues[i]);
                                 }
                             }
+
                             tag = CreateOptimalTag(tagName, columnValues);
                             PersistentDataManager.Tags.AddPatientTag(tag);
                         }
+
                         tags[i - 1] = tag;
                     }
+
                     for (int i = 1; i < lines.Length; i++)
                     {
                         string[] values = csvParser.Split(lines[i]);
@@ -357,6 +384,7 @@ namespace HBP.Core.Data
                                 }
                             }
                         }
+
                         if (!resultTags.ContainsKey(name))
                         {
                             resultTags.Add(name, tagValues);
@@ -368,8 +396,10 @@ namespace HBP.Core.Data
                     }
                 }
             }
+
             return resultTags;
         }
+
         public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromCSV(string csvPath)
         {
             Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
@@ -397,11 +427,14 @@ namespace HBP.Core.Data
                                     columnValues.Add(rowValues[i]);
                                 }
                             }
+
                             tag = CreateOptimalTag(tagName, columnValues);
                             PersistentDataManager.Tags.AddSiteTag(tag);
                         }
+
                         tags[i - 1] = tag;
                     }
+
                     for (int i = 1; i < lines.Length; i++)
                     {
                         string[] values = csvParser.Split(lines[i]);
@@ -419,6 +452,7 @@ namespace HBP.Core.Data
                                 }
                             }
                         }
+
                         if (!resultTags.ContainsKey(name))
                         {
                             resultTags.Add(name, tagValues);
@@ -430,8 +464,10 @@ namespace HBP.Core.Data
                     }
                 }
             }
+
             return resultTags;
         }
+
         public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromExcel(string excelPath)
         {
             Dictionary<string, List<BaseTagValue>> resultTags = new();
@@ -459,6 +495,7 @@ namespace HBP.Core.Data
                         allHeaders.Add(header);
                     }
                 }
+
                 string[] headers = allHeaders.ToArray();
                 Dictionary<string, BaseTag> tagsByName = new();
 
@@ -477,9 +514,11 @@ namespace HBP.Core.Data
                                 tagValues.Add(value);
                             }
                         }
+
                         tag = CreateOptimalTag(tagName, tagValues);
                         PersistentDataManager.Tags.AddPatientTag(tag);
                     }
+
                     tagsByName[tagName] = tag;
                 }
 
@@ -521,6 +560,7 @@ namespace HBP.Core.Data
 
             return resultTags;
         }
+
         public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromExcel(string excelPath)
         {
             Dictionary<string, List<BaseTagValue>> resultTags = new();
@@ -548,6 +588,7 @@ namespace HBP.Core.Data
                         allHeaders.Add(header);
                     }
                 }
+
                 string[] headers = allHeaders.ToArray();
                 Dictionary<string, BaseTag> tagsByName = new();
 
@@ -566,9 +607,11 @@ namespace HBP.Core.Data
                                 tagValues.Add(value);
                             }
                         }
+
                         tag = CreateOptimalTag(tagName, tagValues);
                         PersistentDataManager.Tags.AddSiteTag(tag);
                     }
+
                     tagsByName[tagName] = tag;
                 }
 
@@ -610,14 +653,17 @@ namespace HBP.Core.Data
 
             return resultTags;
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
             ApplyCollections(m_GeneralTags, m_PatientsTags, m_SitesTags);
         }
+
         #endregion
     }
 }

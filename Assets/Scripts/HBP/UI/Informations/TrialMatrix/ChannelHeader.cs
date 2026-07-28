@@ -7,13 +7,12 @@ namespace HBP.UI.Informations.TrialMatrix
     public class ChannelHeader : MonoBehaviour
     {
         #region Properties
+
         data.ChannelStruct m_Channel;
+
         public data.ChannelStruct Channel
         {
-            get
-            {
-                return m_Channel;
-            }
+            get { return m_Channel; }
             set
             {
                 m_Channel = value;
@@ -22,8 +21,9 @@ namespace HBP.UI.Informations.TrialMatrix
                 gameObject.name = label;
             }
         }
+
         [SerializeField] Text m_Text;
+
         #endregion
     }
 }
-

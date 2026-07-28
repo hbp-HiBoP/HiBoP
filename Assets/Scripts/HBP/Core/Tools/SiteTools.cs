@@ -21,6 +21,7 @@ namespace HBP.Core.Tools
             {
                 siteName = siteName.Remove(prime, 1).Insert(prime, "\'");
             }
+
             for (int i = siteName.Length - 1; i > 0; --i)
             {
                 if (siteName[i] == '0' && !char.IsDigit(siteName[i - 1]))
@@ -28,6 +29,7 @@ namespace HBP.Core.Tools
                     siteName = siteName.Remove(i, 1);
                 }
             }
+
             return siteName;
         }
     }
@@ -49,11 +51,11 @@ namespace HBP.Core.Tools
                 int primeComp = xParts.HasPrime.CompareTo(yParts.HasPrime);
                 if (primeComp != 0) return primeComp;
 
-                // Valeur numérique
+                // Valeur numï¿½rique
                 int numComp = xParts.NumericValue.CompareTo(yParts.NumericValue);
                 if (numComp != 0) return numComp;
 
-                // Si même valeur numérique, trier par longueur de la chaîne de chiffres
+                // Si mï¿½me valeur numï¿½rique, trier par longueur de la chaï¿½ne de chiffres
                 return xParts.RawNumber.Length.CompareTo(yParts.RawNumber.Length);
             }
             else if (xValid) return -1;
@@ -66,12 +68,7 @@ namespace HBP.Core.Tools
             var match = Regex.Match(input, @"^([A-Z]+)('?)(\d+)$");
             if (match.Success)
             {
-                parts = (
-                    Letters: match.Groups[1].Value,
-                    HasPrime: match.Groups[2].Value == "'",
-                    NumericValue: int.Parse(match.Groups[3].Value),
-                    RawNumber: match.Groups[3].Value
-                );
+                parts = (Letters: match.Groups[1].Value, HasPrime: match.Groups[2].Value == "'", NumericValue: int.Parse(match.Groups[3].Value), RawNumber: match.Groups[3].Value);
                 return true;
             }
 
@@ -79,5 +76,4 @@ namespace HBP.Core.Tools
             return false;
         }
     }
-
 }

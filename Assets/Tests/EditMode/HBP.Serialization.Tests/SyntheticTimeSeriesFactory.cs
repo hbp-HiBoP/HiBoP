@@ -4,14 +4,7 @@ namespace HBP.Tests.Serialization
 {
     internal sealed class SyntheticTimeSeriesDefinition
     {
-        public SyntheticTimeSeriesDefinition(
-            int patientCount,
-            int channelsPerPatient,
-            int trialCount,
-            int recordingSampleCount,
-            int windowSampleCount,
-            int baselineSampleCount,
-            int samplingFrequencyHz)
+        public SyntheticTimeSeriesDefinition(int patientCount, int channelsPerPatient, int trialCount, int recordingSampleCount, int windowSampleCount, int baselineSampleCount, int samplingFrequencyHz)
         {
             if (patientCount <= 0) throw new ArgumentOutOfRangeException(nameof(patientCount));
             if (channelsPerPatient <= 0) throw new ArgumentOutOfRangeException(nameof(channelsPerPatient));
@@ -39,11 +32,7 @@ namespace HBP.Tests.Serialization
         public int SamplingFrequencyHz { get; }
 
         public long ManagedRawSignalBytes => Bytes(PatientCount, ChannelsPerPatient, RecordingSampleCount);
-        public long ManagedEpochBytes => Bytes(
-            PatientCount,
-            ChannelsPerPatient,
-            TrialCount,
-            checked(WindowSampleCount + BaselineSampleCount));
+        public long ManagedEpochBytes => Bytes(PatientCount, ChannelsPerPatient, TrialCount, checked(WindowSampleCount + BaselineSampleCount));
         public long ManagedDerivedBytes => Bytes(PatientCount, ChannelsPerPatient, TrialCount, WindowSampleCount);
 
         private static long Bytes(params int[] dimensions)
@@ -53,6 +42,7 @@ namespace HBP.Tests.Serialization
             {
                 count = checked(count * dimension);
             }
+
             return count;
         }
     }
@@ -75,11 +65,7 @@ namespace HBP.Tests.Serialization
             return (SampleCode(patient, channel, trial, sampleIndex) - 32768) / 256.0f;
         }
 
-        public static float[] CreateTrial(
-            SyntheticTimeSeriesDefinition definition,
-            int patient,
-            int channel,
-            int trial)
+        public static float[] CreateTrial(SyntheticTimeSeriesDefinition definition, int patient, int channel, int trial)
         {
             if (definition == null) throw new ArgumentNullException(nameof(definition));
             ValidateIndex(patient, definition.PatientCount, nameof(patient));
@@ -91,6 +77,7 @@ namespace HBP.Tests.Serialization
             {
                 values[sample] = ValueAt(patient, channel, trial, sample);
             }
+
             return values;
         }
 
@@ -107,12 +94,12 @@ namespace HBP.Tests.Serialization
                     {
                         for (int sample = 0; sample < definition.WindowSampleCount; ++sample)
                         {
-                            checksum = (checksum ^ (uint)SampleCode(patient, channel, trial, sample))
-                                * 1099511628211UL;
+                            checksum = (checksum ^ (uint)SampleCode(patient, channel, trial, sample)) * 1099511628211UL;
                         }
                     }
                 }
             }
+
             return checksum;
         }
 

@@ -154,6 +154,7 @@ namespace HBP.Tests.PlayMode.Workflow
                 {
                     Object.Destroy(m_GameObject);
                 }
+
                 ResetSingleton();
             }
 
@@ -203,6 +204,7 @@ namespace HBP.Tests.PlayMode.Workflow
                 {
                     throw new TimeoutException("Timed out while waiting for PlayMode project window state.");
                 }
+
                 await UniTask.Yield();
             }
         }

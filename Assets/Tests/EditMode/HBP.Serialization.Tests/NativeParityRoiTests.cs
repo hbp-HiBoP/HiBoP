@@ -65,6 +65,7 @@ namespace HBP.Tests.Serialization
                 {
                     inside[i] = isInside_ROI(roi, rawSites, i) == 1;
                 }
+
                 return inside;
             }
             finally
@@ -73,6 +74,7 @@ namespace HBP.Tests.Serialization
                 {
                     delete_RawSiteList(rawSites);
                 }
+
                 if (roi != IntPtr.Zero)
                 {
                     delete_ROI(roi);
@@ -107,6 +109,7 @@ namespace HBP.Tests.Serialization
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -139,17 +142,22 @@ namespace HBP.Tests.Serialization
 
         [DllImport("hbp_export", EntryPoint = "create_ROI", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create_ROI();
+
         [DllImport("hbp_export", EntryPoint = "delete_ROI", CallingConvention = CallingConvention.Cdecl)]
         private static extern void delete_ROI(IntPtr roi);
+
         [DllImport("hbp_export", EntryPoint = "addSphere_ROI", CallingConvention = CallingConvention.Cdecl)]
         private static extern void addSphere_ROI(IntPtr roi, float radius, float[] center);
+
         [DllImport("hbp_export", EntryPoint = "isInside_ROI", CallingConvention = CallingConvention.Cdecl)]
         private static extern int isInside_ROI(IntPtr roi, IntPtr rawSiteList, int id);
 
         [DllImport("hbp_export", EntryPoint = "create_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr create_RawSiteList();
+
         [DllImport("hbp_export", EntryPoint = "delete_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
         private static extern void delete_RawSiteList(IntPtr rawSiteList);
+
         [DllImport("hbp_export", EntryPoint = "add_site_RawSiteList", CallingConvention = CallingConvention.Cdecl)]
         private static extern void add_site_RawSiteList(IntPtr rawSiteList, string name, float x, float y, float z, int patientIndex, int index);
     }

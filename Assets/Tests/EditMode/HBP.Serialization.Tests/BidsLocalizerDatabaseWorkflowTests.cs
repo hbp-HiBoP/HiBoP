@@ -26,18 +26,9 @@ namespace HBP.Tests.Serialization
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
             DatabaseManager.Database.SetProtocols(new[] { protocol });
             string bidsRoot = CreateSyntheticBidsDatabase(temp, protocol.Name);
-            DatabaseReference reference = new(
-                "bids-localizer-database-bids",
-                DatabaseType.BIDS,
-                bidsRoot,
-                new BIDSDatabaseParameters(),
-                DateTime.MinValue,
-                "bids-localizer-database-bids-reference-001");
+            DatabaseReference reference = new("bids-localizer-database-bids", DatabaseType.BIDS, bidsRoot, new BIDSDatabaseParameters(), DateTime.MinValue, "bids-localizer-database-bids-reference-001");
 
-            var discovered = BIDSParser.FindFiles(
-                bidsRoot,
-                new[] { "T1w", "ieeg", "electrodes" },
-                new[] { ".nii", ".vhdr", ".json", ".tsv" }).ToList();
+            var discovered = BIDSParser.FindFiles(bidsRoot, new[] { "T1w", "ieeg", "electrodes" }, new[] { ".nii", ".vhdr", ".json", ".tsv" }).ToList();
 
             Patient.LoadFromBIDSDatabase(reference, out Patient[] patients, null, CancellationToken.None);
             DataInfo.LoadFromBIDSDatabase(reference, patients.ToList(), out DataInfo[] dataInfos, null, CancellationToken.None);
@@ -85,25 +76,14 @@ namespace HBP.Tests.Serialization
 
             string sourceMri = temp.GetPath("bids-localizer-database-source-t1w.nii");
             File.WriteAllText(sourceMri, "synthetic mri");
-            Patient patient = new(
-                "bids-localizer-database patient",
-                Array.Empty<BaseMesh>(),
-                new[] { new MRI("preimplantation", sourceMri, "bids-localizer-database-mri-001") },
-                new[]
+            Patient patient = new("bids-localizer-database patient", Array.Empty<BaseMesh>(), new[] { new MRI("preimplantation", sourceMri, "bids-localizer-database-mri-001") }, new[]
+            {
+                new Site("A1", new[]
                 {
-                    new Site(
-                        "A1",
-                        new[]
-                        {
-                            new Coordinate("scanner", new Vector3(1, 2, 3), "bids-localizer-database-coordinate-scanner-001"),
-                            new Coordinate("mni", new Vector3(4, 5, 6), "bids-localizer-database-coordinate-mni-001")
-                        },
-                        Array.Empty<BaseTagValue>(),
-                        "bids-localizer-database-site-001")
-                },
-                Array.Empty<BaseTagValue>(),
-                "",
-                "bids-localizer-database-patient-001");
+                    new Coordinate("scanner", new Vector3(1, 2, 3), "bids-localizer-database-coordinate-scanner-001"),
+                    new Coordinate("mni", new Vector3(4, 5, 6), "bids-localizer-database-coordinate-mni-001")
+                }, Array.Empty<BaseTagValue>(), "bids-localizer-database-site-001")
+            }, Array.Empty<BaseTagValue>(), "", "bids-localizer-database-patient-001");
             BIDSPatient bidsPatient = new(patient, Array.Empty<Protocol>(), Array.Empty<string>(), "01");
             string exportRoot = temp.GetPath("bids-localizer-database-export");
             Directory.CreateDirectory(exportRoot);
@@ -133,16 +113,9 @@ namespace HBP.Tests.Serialization
 
             string bidsRoot = temp.GetPath("bids-localizer-database-missing-participants");
             Directory.CreateDirectory(Path.Combine(bidsRoot, "sub-01", "ses-pre", "anat"));
-            DatabaseReference reference = new(
-                "bids-localizer-database-bids-missing",
-                DatabaseType.BIDS,
-                bidsRoot,
-                new BIDSDatabaseParameters(),
-                DateTime.MinValue,
-                "bids-localizer-database-bids-reference-missing-001");
+            DatabaseReference reference = new("bids-localizer-database-bids-missing", DatabaseType.BIDS, bidsRoot, new BIDSDatabaseParameters(), DateTime.MinValue, "bids-localizer-database-bids-reference-missing-001");
 
-            HBPException exception = Assert.Catch<HBPException>(() =>
-                Patient.LoadFromBIDSDatabase(reference, out _, null, CancellationToken.None));
+            HBPException exception = Assert.Catch<HBPException>(() => Patient.LoadFromBIDSDatabase(reference, out _, null, CancellationToken.None));
 
             Assert.That(exception.Title, Is.EqualTo("Missing file"));
             Assert.That(exception.Message, Does.Contain("participants.tsv"));
@@ -158,25 +131,17 @@ namespace HBP.Tests.Serialization
             DatabaseReference[] references =
             {
                 new("bids-localizer-database-brainvisa", DatabaseType.Brainvisa, temp.GetPath("brainvisa"), new BrainvisaDatabaseParameters(), DateTime.UtcNow, "bids-localizer-database-db-brainvisa-001"),
-                new(
-                    "bids-localizer-database-localizer",
-                    DatabaseType.Localizer,
-                    temp.GetPath("localizer"),
-                    new LocalizerDatabaseParameters
-                    {
-                        IncludeRaw = true,
-                        Frequencies = new[] { "f8f24" },
-                        TemporalSmoothings = new[] { "sm0", "sm250" }
-                    },
-                    DateTime.UtcNow,
-                    "bids-localizer-database-db-localizer-001"),
+                new("bids-localizer-database-localizer", DatabaseType.Localizer, temp.GetPath("localizer"), new LocalizerDatabaseParameters
+                {
+                    IncludeRaw = true,
+                    Frequencies = new[] { "f8f24" },
+                    TemporalSmoothings = new[] { "sm0", "sm250" }
+                }, DateTime.UtcNow, "bids-localizer-database-db-localizer-001"),
                 new("bids-localizer-database-bids", DatabaseType.BIDS, temp.GetPath("bids"), new BIDSDatabaseParameters(), DateTime.UtcNow, "bids-localizer-database-db-bids-001"),
                 new("bids-localizer-database-tags", DatabaseType.Tags, temp.GetPath("tags"), new TagsDatabaseParameters(), DateTime.UtcNow, "bids-localizer-database-db-tags-001")
             };
 
-            DatabaseReference[] loaded = references
-                .Select(reference => RoundTrip(temp, reference, reference.ID + DatabaseReference.EXTENSION))
-                .ToArray();
+            DatabaseReference[] loaded = references.Select(reference => RoundTrip(temp, reference, reference.ID + DatabaseReference.EXTENSION)).ToArray();
 
             Assert.That(loaded.Select(reference => reference.Type), Is.EquivalentTo(new[] { DatabaseType.Brainvisa, DatabaseType.Localizer, DatabaseType.BIDS, DatabaseType.Tags }));
             Assert.That(loaded.Single(reference => reference.Type == DatabaseType.Brainvisa).Parameters, Is.TypeOf<BrainvisaDatabaseParameters>());

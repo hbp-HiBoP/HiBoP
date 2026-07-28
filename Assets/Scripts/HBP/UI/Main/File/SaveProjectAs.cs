@@ -10,15 +10,13 @@ namespace HBP.UI.Main
     public class SaveProjectAs : DialogWindow
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] FolderSelector m_LocationFolderSelector;
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -28,9 +26,11 @@ namespace HBP.UI.Main
                 m_LocationFolderSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override async void OK()
         {
             bool overwriteConfirmed = true;
@@ -40,24 +40,24 @@ namespace HBP.UI.Main
                 overwriteConfirmed = result == 0;
             }
 
-            ProjectWorkflowResult workflowResult = await ProjectWorkflowService.Default.SaveProjectAsAsync(
-                m_NameInputField.text,
-                m_LocationFolderSelector.Folder,
-                overwriteConfirmed);
+            ProjectWorkflowResult workflowResult = await ProjectWorkflowService.Default.SaveProjectAsAsync(m_NameInputField.text, m_LocationFolderSelector.Folder, overwriteConfirmed);
 
             if (workflowResult.Success)
             {
                 base.OK();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             m_NameInputField.text = ApplicationState.LoadedProject.Name;
             m_LocationFolderSelector.Folder = ApplicationState.LoadedProjectLocation;
         }
+
         #endregion
     }
 }

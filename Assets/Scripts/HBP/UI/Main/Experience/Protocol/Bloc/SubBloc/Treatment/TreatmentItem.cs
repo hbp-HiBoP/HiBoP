@@ -11,6 +11,7 @@ namespace HBP.UI.Main
     public class TreatmentItem : ActionnableItem<Core.Data.Treatment>
     {
         #region Properties
+
         [SerializeField] Text m_TypeText;
 
         [SerializeField] Text m_StartWindowText;
@@ -23,10 +24,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Treatment Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -42,6 +40,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

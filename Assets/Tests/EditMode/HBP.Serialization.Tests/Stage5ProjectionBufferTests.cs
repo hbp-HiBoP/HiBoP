@@ -33,13 +33,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void FlattenTimeMajor_AllMasked_UsesStableAmplitudeFallback()
         {
-            ProjectionBufferBuilder.FlattenTimeMajor(
-                new[] { new[] { 0f, 0f } },
-                new[] { true },
-                2,
-                out RunningStatistics statistics,
-                out float minimum,
-                out float maximum);
+            ProjectionBufferBuilder.FlattenTimeMajor(new[] { new[] { 0f, 0f } }, new[] { true }, 2, out RunningStatistics statistics, out float minimum, out float maximum);
 
             Assert.That(statistics.Count, Is.Zero);
             Assert.That(minimum, Is.EqualTo(-1f));
@@ -49,15 +43,13 @@ namespace HBP.Tests.Serialization
         [Test]
         public void FlattenTimeMajor_RejectsMaskCountMismatch()
         {
-            Assert.Throws<ArgumentException>(() => ProjectionBufferBuilder.FlattenTimeMajor(
-                new[] { new[] { 1f } }, Array.Empty<bool>(), 1, out _, out _, out _));
+            Assert.Throws<ArgumentException>(() => ProjectionBufferBuilder.FlattenTimeMajor(new[] { new[] { 1f } }, Array.Empty<bool>(), 1, out _, out _, out _));
         }
 
         [Test]
         public void FlattenTimeMajor_RejectsSeriesLengthMismatch()
         {
-            Assert.Throws<ArgumentException>(() => ProjectionBufferBuilder.FlattenTimeMajor(
-                new[] { new[] { 1f } }, new[] { false }, 2, out _, out _, out _));
+            Assert.Throws<ArgumentException>(() => ProjectionBufferBuilder.FlattenTimeMajor(new[] { new[] { 1f } }, new[] { false }, 2, out _, out _, out _));
         }
     }
 }

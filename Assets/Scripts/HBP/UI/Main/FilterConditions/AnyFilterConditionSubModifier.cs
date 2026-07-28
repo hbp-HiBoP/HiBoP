@@ -8,9 +8,11 @@ namespace HBP.UI.Main
     public class AnyFilterConditionSubModifier : SubModifier<AnyFilterCondition>
     {
         #region Properties
+
         [SerializeField] FilterConditionListGestion m_FilterConditionsListGestion;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
@@ -20,9 +22,11 @@ namespace HBP.UI.Main
                 m_FilterConditionsListGestion.FilteringObjects = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             m_FilterConditionsListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
@@ -30,9 +34,11 @@ namespace HBP.UI.Main
             m_FilterConditionsListGestion.List.OnRemoveObject.AddListener(RemoveCondition);
             m_FilterConditionsListGestion.List.OnUpdateObject.AddListener(UpdateCondition);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(AnyFilterCondition condition)
         {
             m_FilterConditionsListGestion.List.Set(condition.Conditions);
@@ -45,6 +51,7 @@ namespace HBP.UI.Main
                 Object.Conditions.Add(condition);
             }
         }
+
         private void RemoveCondition(BaseFilterCondition condition)
         {
             if (Object.Conditions.Contains(condition))
@@ -52,6 +59,7 @@ namespace HBP.UI.Main
                 Object.Conditions.Remove(condition);
             }
         }
+
         private void UpdateCondition(BaseFilterCondition condition)
         {
             int index = Object.Conditions.IndexOf(condition);
@@ -60,6 +68,7 @@ namespace HBP.UI.Main
                 Object.Conditions[index] = condition;
             }
         }
+
         #endregion
     }
 }

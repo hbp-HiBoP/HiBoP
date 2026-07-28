@@ -14,16 +14,15 @@ namespace HBP.UI.Informations.TrialMatrix
     public class SubBloc : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] data.SubBloc m_Data;
+
         public data.SubBloc Data
         {
-            get
-            {
-                return m_Data;
-            }
+            get { return m_Data; }
             set
             {
-                if(SetPropertyUtility.SetClass(ref m_Data, value))
+                if (SetPropertyUtility.SetClass(ref m_Data, value))
                 {
                     SetData();
                 }
@@ -31,15 +30,13 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         Color[] m_Colors;
+
         public Color[] Colors
         {
-            get
-            {
-                return m_Colors;
-            }
+            get { return m_Colors; }
             set
             {
-                if(SetPropertyUtility.SetClass(ref m_Colors, value))
+                if (SetPropertyUtility.SetClass(ref m_Colors, value))
                 {
                     SetColors();
                 }
@@ -47,15 +44,13 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         [SerializeField] Vector2 m_Limits;
+
         public Vector2 Limits
         {
-            get
-            {
-                return m_Limits;
-            }
+            get { return m_Limits; }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_Limits, value))
+                if (SetPropertyUtility.SetStruct(ref m_Limits, value))
                 {
                     SetLimits();
                 }
@@ -63,15 +58,13 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         [SerializeField] bool m_Hovered = false;
+
         public bool Hovered
         {
-            get
-            {
-                return m_Hovered;
-            }
+            get { return m_Hovered; }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_Hovered, value))
+                if (SetPropertyUtility.SetStruct(ref m_Hovered, value))
                 {
                     SetHovered();
                 }
@@ -79,21 +72,17 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         [SerializeField] UnityEvent m_OnChangeHovered = new();
+
         public UnityEvent OnChangeHovered
         {
-            get
-            {
-                return m_OnChangeHovered;
-            }
+            get { return m_OnChangeHovered; }
         }
 
         [SerializeField] BaseEventData m_OnPointerDown;
+
         public BaseEventData OnPointerDown
         {
-            get
-            {
-                return m_OnPointerDown;
-            }
+            get { return m_OnPointerDown; }
         }
 
         [SerializeField] RawImage m_RawImage;
@@ -106,13 +95,15 @@ namespace HBP.UI.Informations.TrialMatrix
         readonly List<RawImage> m_TileImages = new();
         readonly List<Texture2D> m_TileTextures = new();
         Color32[] m_Color32Buffer;
+
         #endregion
 
         #region Public Methods
+
         public void Set(data.SubBloc data, Color[] colors, Vector2 limits)
         {
             m_Data = data;
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 m_Colors = colors;
                 m_Limits = limits;
@@ -129,20 +120,25 @@ namespace HBP.UI.Informations.TrialMatrix
                     SetTexture();
                     GenerateEventIndicators(data);
                 }
+
                 SetFillers();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_LayoutElement = GetComponent<LayoutElement>();
         }
+
         void OnDestroy()
         {
             ClearTextureResources();
         }
+
         void OnValidate()
         {
             SetColors();
@@ -153,20 +149,19 @@ namespace HBP.UI.Informations.TrialMatrix
 
         void SetTexture()
         {
-            if(m_Data != null && !m_Data.IsFiller && m_Colors != null && m_Colors.Length > 0)
+            if (m_Data != null && !m_Data.IsFiller && m_Colors != null && m_Colors.Length > 0)
             {
                 float[][] trials = ExtractDataTrials(m_Data.SubTrials);
                 bool smooth = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing;
                 bool smooth2D = smooth && PersistentDataManager.UserPreferences.Visualization.TrialMatrix.Smooth2D;
-                TrialMatrixTiles tiles = TrialMatrixTileBuilder.Build(trials, m_Limits, GetColor32Buffer(), smooth,
-                    PersistentDataManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues,
-                    smooth2D, SystemInfo.maxTextureSize);
+                TrialMatrixTiles tiles = TrialMatrixTileBuilder.Build(trials, m_Limits, GetColor32Buffer(), smooth, PersistentDataManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues, smooth2D, SystemInfo.maxTextureSize);
                 ApplyTiles(tiles, smooth2D ? FilterMode.Bilinear : FilterMode.Point);
             }
         }
+
         void SetFillers()
         {
-            if(m_Data.IsFiller)
+            if (m_Data.IsFiller)
             {
                 m_LeftFillerLayoutElement.flexibleWidth = 1;
                 m_RightFillerLayoutElement.flexibleWidth = 0;
@@ -179,6 +174,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 m_MainTextureLayoutElement.flexibleWidth = m_Data.SubBlocProtocol.Window.Length;
             }
         }
+
         Color32[] GetColor32Buffer()
         {
             if (m_Color32Buffer == null || m_Color32Buffer.Length != m_Colors.Length)
@@ -187,6 +183,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 m_Color32Buffer[i] = m_Colors[i];
             return m_Color32Buffer;
         }
+
         void ApplyTiles(TrialMatrixTiles tiles, FilterMode filterMode)
         {
             EnsureTileImages(tiles.Tiles.Count);
@@ -197,8 +194,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 RawImage image = m_TileImages[i];
                 RectTransform rect = image.rectTransform;
                 rect.anchorMin = new Vector2((float)tile.CoreX / tiles.Width, (float)tile.CoreY / tiles.Height);
-                rect.anchorMax = new Vector2((float)(tile.CoreX + tile.CoreWidth) / tiles.Width,
-                    (float)(tile.CoreY + tile.CoreHeight) / tiles.Height);
+                rect.anchorMax = new Vector2((float)(tile.CoreX + tile.CoreWidth) / tiles.Width, (float)(tile.CoreY + tile.CoreHeight) / tiles.Height);
                 rect.offsetMin = Vector2.zero;
                 rect.offsetMax = Vector2.zero;
                 image.uvRect = tile.UvRect;
@@ -211,9 +207,11 @@ namespace HBP.UI.Informations.TrialMatrix
                 image.texture = texture;
                 textureBytes += (long)tile.TextureWidth * tile.TextureHeight * 4;
             }
+
             TrimTextures(tiles.Tiles.Count);
             DataManager.RegisterMemoryUsage(this, MemoryCacheCategory.Texture, textureBytes, true);
         }
+
         void EnsureTileImages(int count)
         {
             if (m_TileImages.Count == 0)
@@ -231,15 +229,18 @@ namespace HBP.UI.Informations.TrialMatrix
                 image.color = m_RawImage.color;
                 m_TileImages.Add(image);
             }
+
             while (m_TileImages.Count > System.Math.Max(1, count))
             {
                 int last = m_TileImages.Count - 1;
                 DestroyObject(m_TileImages[last].gameObject);
                 m_TileImages.RemoveAt(last);
             }
+
             if (count == 0)
                 m_RawImage.enabled = false;
         }
+
         float[][] ExtractDataTrials(data.SubTrial[] subTrials)
         {
             float[][] result = new float[subTrials.Length][];
@@ -247,8 +248,10 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 result[l] = subTrials[l].Data.Values;
             }
+
             return result;
         }
+
         Texture2D GetOrCreateTexture(int index, int width, int height)
         {
             while (m_TileTextures.Count <= index)
@@ -266,8 +269,10 @@ namespace HBP.UI.Informations.TrialMatrix
                 };
                 m_TileTextures[index] = texture;
             }
+
             return texture;
         }
+
         void TrimTextures(int count)
         {
             for (int i = m_TileTextures.Count - 1; i >= count; i--)
@@ -276,6 +281,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 m_TileTextures.RemoveAt(i);
             }
         }
+
         void ClearTextureResources()
         {
             DataManager.UnregisterMemoryUsage(this);
@@ -291,6 +297,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 m_RawImage.enabled = false;
             }
         }
+
         static void DestroyObject(Object value)
         {
             if (value == null)
@@ -300,6 +307,7 @@ namespace HBP.UI.Informations.TrialMatrix
             else
                 DestroyImmediate(value);
         }
+
         void GenerateEventIndicators(data.SubBloc subBloc)
         {
             foreach (var _event in subBloc.SubBlocProtocol.Events)
@@ -325,7 +333,7 @@ namespace HBP.UI.Informations.TrialMatrix
                     rect.anchorMax = new Vector2(x, 1);
                     rect.anchoredPosition = new Vector2(0, 0);
                 }
-                else if(_event.Type == MainSecondaryEnum.Secondary)
+                else if (_event.Type == MainSecondaryEnum.Secondary)
                 {
                     for (int i = 0; i < subBloc.SubTrials.Length; i++)
                     {
@@ -353,18 +361,22 @@ namespace HBP.UI.Informations.TrialMatrix
         {
             SetTexture();
         }
+
         void SetHovered()
         {
             m_OnChangeHovered.Invoke();
         }
+
         void SetLimits()
         {
             SetTexture();
         }
+
         void SetData()
         {
             Set(m_Data, m_Colors, m_Limits);
         }
+
         #endregion
     }
 }

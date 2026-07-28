@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class AliasItem : ActionnableItem<Core.Data.Alias>
     {
         #region Properties
+
         [SerializeField] Text m_KeyText;
         [SerializeField] Text m_ValueText;
 
@@ -18,10 +19,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Alias Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -37,6 +35,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

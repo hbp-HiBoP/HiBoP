@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class RawSitePositionFilterConditionSubModifier : SubModifier<RawSitePositionFilterCondition>
     {
         #region Properties
+
         [SerializeField] Dropdown m_AxisDropdown;
         [SerializeField] Dropdown m_ComparisonTypeDropdown;
         [SerializeField] InputField m_ValueInputField;
@@ -19,14 +20,17 @@ namespace HBP.UI.Main
         [SerializeField] InputField m_MaxInputField;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set => m_FilteringObjects = value;
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -37,9 +41,11 @@ namespace HBP.UI.Main
             m_MinInputField.onEndEdit.AddListener(OnMinChanged);
             m_MaxInputField.onEndEdit.AddListener(OnMaxChanged);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(RawSitePositionFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -52,16 +58,19 @@ namespace HBP.UI.Main
 
             UpdateFieldVisibility(objectToDisplay.ComparisonType);
         }
+
         private void OnChangeAxis(int value)
         {
             Object.Axis = (RawSitePositionFilterCondition.AxisType)value;
         }
+
         private void OnChangeComparisonType(int value)
         {
             var type = (NumberComparisonType)value;
             Object.ComparisonType = type;
             UpdateFieldVisibility(type);
         }
+
         private void OnValueChanged(string value)
         {
             if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out float result))
@@ -69,6 +78,7 @@ namespace HBP.UI.Main
                 Object.Value = result;
             }
         }
+
         private void OnMinChanged(string value)
         {
             if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out float result))
@@ -76,6 +86,7 @@ namespace HBP.UI.Main
                 Object.Min = result;
             }
         }
+
         private void OnMaxChanged(string value)
         {
             if (float.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out float result))
@@ -83,12 +94,14 @@ namespace HBP.UI.Main
                 Object.Max = result;
             }
         }
+
         private void UpdateFieldVisibility(NumberComparisonType type)
         {
             m_ValueInputField.transform.parent.gameObject.SetActive(type != NumberComparisonType.Range);
             m_MinInputField.transform.parent.gameObject.SetActive(type == NumberComparisonType.Range);
             m_MaxInputField.transform.parent.gameObject.SetActive(type == NumberComparisonType.Range);
         }
+
         #endregion
     }
 }

@@ -11,14 +11,25 @@ namespace HBP.UI.Main
     public class MRIList : ActionableList<Core.Data.MRI>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, HasMRI, DescendingHasMRI }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            HasMRI,
+            DescendingHasMRI
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_HasMRISortingDisplayer;
+
         #endregion
 
         #region SortingMethods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -38,9 +49,11 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_HasMRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -72,9 +85,11 @@ namespace HBP.UI.Main
                     m_HasMRISortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by path.
         /// </summary>
@@ -96,6 +111,7 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_HasMRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

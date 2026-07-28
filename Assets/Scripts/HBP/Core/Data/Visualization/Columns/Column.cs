@@ -11,24 +11,28 @@ namespace HBP.Core.Data
     * \version 1.0
     * \date 21 septembre 2018
     * \brief Base class of visualization column.
-    * 
+    *
     * \detail Visualization column is a class which contains the base information of the visualization column.
     */
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class Column : BaseData, INameable
     {
         #region Properties
+
         /// <summary>
         /// Name of the column.
         /// </summary>
         [JsonProperty] public virtual string Name { get; set; }
+
         /// <summary>
         /// Base Configuration of the column.
         /// </summary>
         [JsonProperty] public virtual BaseConfiguration BaseConfiguration { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new column.
         /// </summary>
@@ -39,6 +43,7 @@ namespace HBP.Core.Data
             Name = name;
             BaseConfiguration = baseConfiguration;
         }
+
         /// <summary>
         /// Create a new column.
         /// </summary>
@@ -49,37 +54,44 @@ namespace HBP.Core.Data
             Name = name;
             BaseConfiguration = baseConfiguration;
         }
+
         /// <summary>
         /// Create a new Column with default values.
         /// </summary>
-        public Column():this("New column", new BaseConfiguration())
+        public Column() : this("New column", new BaseConfiguration())
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void GenerateID()
         {
             base.GenerateID();
             BaseConfiguration.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
             IDs.AddRange(BaseConfiguration.GetAllIdentifiable());
             return IDs;
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is Column column)
+            if (copy is Column column)
             {
                 Name = column.Name;
                 BaseConfiguration.Copy(column.BaseConfiguration);
             }
         }
+
         public abstract bool IsCompatible(IEnumerable<Patient> patients);
         public abstract void Unload();
+
         #endregion
     }
 }

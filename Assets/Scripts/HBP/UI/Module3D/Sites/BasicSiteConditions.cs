@@ -12,6 +12,7 @@ namespace HBP.UI.Module3D
     public class BasicSiteConditions : BaseSiteConditions
     {
         #region Properties
+
         // State
         [SerializeField] Toggle m_Highlighted;
         [SerializeField] Toggle m_NotHighlighted;
@@ -67,9 +68,11 @@ namespace HBP.UI.Module3D
         [SerializeField] Toggle m_StandardDeviation;
         [SerializeField] Toggle m_StandardDeviationSuperior;
         [SerializeField] InputField m_StandardDeviationValue;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this object
         /// </summary>
@@ -82,10 +85,12 @@ namespace HBP.UI.Module3D
             {
                 m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
             }
+
             foreach (var tag in PersistentDataManager.Tags.SitesTags)
             {
                 m_TagDropdown.options.Add(new Dropdown.OptionData(tag.Name));
             }
+
             m_TagDropdown.onValueChanged.AddListener((selected) =>
             {
                 if (selected < PersistentDataManager.Tags.GeneralTags.Count)
@@ -99,9 +104,11 @@ namespace HBP.UI.Module3D
             });
             m_SelectedTag = PersistentDataManager.Tags.GeneralTags.Count > 0 ? PersistentDataManager.Tags.GeneralTags[0] : PersistentDataManager.Tags.SitesTags.Count > 0 ? PersistentDataManager.Tags.SitesTags[0] : null;
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Check conditions on the state of the site
         /// </summary>
@@ -117,6 +124,7 @@ namespace HBP.UI.Module3D
             if (m_Label.isOn) result &= CheckLabel(site, m_LabelFilter.text);
             return result;
         }
+
         /// <summary>
         /// Check conditions on the position of the site
         /// </summary>
@@ -139,6 +147,7 @@ namespace HBP.UI.Module3D
             if (m_Z.isOn) result &= CheckZ(site, m_XSuperior.isOn, m_ZValue.text);
             return result;
         }
+
         /// <summary>
         /// Check conditions on the information of the site
         /// </summary>
@@ -155,9 +164,11 @@ namespace HBP.UI.Module3D
                     result &= CheckPatientName(site, m_PatientNameFilter.text);
                 }
             }
+
             if (m_Tag.isOn) result &= CheckTag(site, m_SelectedTag, m_TagFilter.text);
             return result;
         }
+
         /// <summary>
         /// Check conditions on the values of the channel associated with the site
         /// </summary>
@@ -173,6 +184,7 @@ namespace HBP.UI.Module3D
             if (m_StandardDeviation.isOn) result &= CheckStandardDeviation(site, m_StandardDeviationSuperior.isOn, m_StandardDeviationValue.text);
             return result;
         }
+
         /// <summary>
         /// Check all the set conditions for a specific site
         /// </summary>
@@ -182,6 +194,7 @@ namespace HBP.UI.Module3D
         {
             return CheckState(site) && CheckPosition(site) && CheckInformation(site) && CheckValues(site);
         }
+
         #endregion
     }
 }

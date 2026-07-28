@@ -11,9 +11,10 @@ namespace HBP.Core.Data
     public static class DataManager
     {
         #region Properties
+
         // Thread-safe access using ReaderWriterLockSlim for better performance than ConcurrentDictionary
         private static readonly ReaderWriterLockSlim m_DataLock = new();
-        
+
         // General.
         static Dictionary<Request, Data> m_DataByRequest = new();
         static readonly Dictionary<DataInfo, int> m_ActiveDataPinCounts = new();
@@ -46,28 +47,48 @@ namespace HBP.Core.Data
         static NormalizationType m_DefaultNormalization = NormalizationType.None;
         static AveragingType m_DefaultAveraging = AveragingType.Mean;
         static AveragingType m_DefaultPositionAveraging = AveragingType.Mean;
+
         public static NormalizationType DefaultNormalization
         {
             get
             {
                 m_DataLock.EnterReadLock();
-                try { return m_DefaultNormalization; }
-                finally { m_DataLock.ExitReadLock(); }
+                try
+                {
+                    return m_DefaultNormalization;
+                }
+                finally
+                {
+                    m_DataLock.ExitReadLock();
+                }
             }
             set
             {
                 m_DataLock.EnterWriteLock();
-                try { m_DefaultNormalization = value; }
-                finally { m_DataLock.ExitWriteLock(); }
+                try
+                {
+                    m_DefaultNormalization = value;
+                }
+                finally
+                {
+                    m_DataLock.ExitWriteLock();
+                }
             }
         }
+
         public static AveragingType DefaultAveraging
         {
             get
             {
                 m_DataLock.EnterReadLock();
-                try { return m_DefaultAveraging; }
-                finally { m_DataLock.ExitReadLock(); }
+                try
+                {
+                    return m_DefaultAveraging;
+                }
+                finally
+                {
+                    m_DataLock.ExitReadLock();
+                }
             }
             set
             {
@@ -80,16 +101,26 @@ namespace HBP.Core.Data
                     m_ChannelStatisticsByRequest = new Dictionary<ChannelRequest, ChannelStatistics>();
                     m_BlocChannelStatisticsByRequest = new Dictionary<BlocChannelRequest, BlocChannelStatistics>();
                 }
-                finally { m_DataLock.ExitWriteLock(); }
+                finally
+                {
+                    m_DataLock.ExitWriteLock();
+                }
             }
         }
+
         public static AveragingType DefaultPositionAveraging
         {
             get
             {
                 m_DataLock.EnterReadLock();
-                try { return m_DefaultPositionAveraging; }
-                finally { m_DataLock.ExitReadLock(); }
+                try
+                {
+                    return m_DefaultPositionAveraging;
+                }
+                finally
+                {
+                    m_DataLock.ExitReadLock();
+                }
             }
             set
             {
@@ -102,9 +133,13 @@ namespace HBP.Core.Data
                     m_EventsStatisticsByRequest = new Dictionary<Request, EventsStatistics>();
                     m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
                 }
-                finally { m_DataLock.ExitWriteLock(); }
+                finally
+                {
+                    m_DataLock.ExitWriteLock();
+                }
             }
         }
+
         public static bool HasData
         {
             get
@@ -112,14 +147,7 @@ namespace HBP.Core.Data
                 m_DataLock.EnterReadLock();
                 try
                 {
-                    return m_DataByRequest.Count > 0
-                        || m_BlocDataByRequest.Count > 0
-                        || m_ChannelDataByRequest.Count > 0
-                        || m_BlocChannelDataByRequest.Count > 0
-                        || m_ChannelStatisticsByRequest.Count > 0
-                        || m_BlocChannelStatisticsByRequest.Count > 0
-                        || m_EventsStatisticsByRequest.Count > 0
-                        || m_BlocEventsStatisticsByRequest.Count > 0;
+                    return m_DataByRequest.Count > 0 || m_BlocDataByRequest.Count > 0 || m_ChannelDataByRequest.Count > 0 || m_BlocChannelDataByRequest.Count > 0 || m_ChannelStatisticsByRequest.Count > 0 || m_BlocChannelStatisticsByRequest.Count > 0 || m_EventsStatisticsByRequest.Count > 0 || m_BlocEventsStatisticsByRequest.Count > 0;
                 }
                 finally
                 {
@@ -127,38 +155,43 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         static DataManager()
         {
-            m_MemoryBudget.BudgetExceeded += snapshot => UnityEngine.Debug.LogWarning(
-                $"Active time-series data exceed the memory cache budget: {snapshot.UsedBytes / (1024d * 1024d):N1} MiB used, "
-                + $"{snapshot.LimitBytes / (1024d * 1024d):N1} MiB allowed. Active exact data remain pinned; no downsampling was applied.");
+            m_MemoryBudget.BudgetExceeded += snapshot => UnityEngine.Debug.LogWarning($"Active time-series data exceed the memory cache budget: {snapshot.UsedBytes / (1024d * 1024d):N1} MiB used, " + $"{snapshot.LimitBytes / (1024d * 1024d):N1} MiB allowed. Active exact data remain pinned; no downsampling was applied.");
         }
 
         #region Public Methods
+
         // General.
         public static void Load(DataInfo dataInfo)
         {
             Load(new Request(dataInfo));
         }
+
         public static void UnLoad(DataInfo dataInfo)
         {
             UnLoad(new Request(dataInfo));
         }
+
         public static void Reload(DataInfo dataInfo)
         {
             UnLoad(dataInfo);
             Load(dataInfo);
         }
+
         public static void Clear()
         {
             Clear(true);
         }
+
         public static void ClearDerivedData()
         {
             Clear(false);
         }
+
         private static void Clear(bool clearRawRecordings)
         {
             DataInfo[] trackedDataInfos;
@@ -170,6 +203,7 @@ namespace HBP.Core.Data
                 {
                     data.Clear();
                 }
+
                 m_DataByRequest.Clear();
                 m_DataByRequest = new Dictionary<Request, Data>();
 
@@ -177,6 +211,7 @@ namespace HBP.Core.Data
                 {
                     blocData.Clear();
                 }
+
                 m_BlocDataByRequest.Clear();
                 m_BlocDataByRequest = new Dictionary<BlocRequest, BlocData>();
 
@@ -184,6 +219,7 @@ namespace HBP.Core.Data
                 {
                     channelData.Clear();
                 }
+
                 m_ChannelDataByRequest.Clear();
                 m_ChannelDataByRequest = new Dictionary<ChannelRequest, ChannelData>();
 
@@ -191,6 +227,7 @@ namespace HBP.Core.Data
                 {
                     blocChannelData.Clear();
                 }
+
                 m_BlocChannelDataByRequest.Clear();
                 m_BlocChannelDataByRequest = new Dictionary<BlocChannelRequest, BlocChannelData>();
 
@@ -198,6 +235,7 @@ namespace HBP.Core.Data
                 {
                     channelStatistics.Clear();
                 }
+
                 m_ChannelStatisticsByRequest.Clear();
                 m_ChannelStatisticsByRequest = new Dictionary<ChannelRequest, ChannelStatistics>();
 
@@ -205,6 +243,7 @@ namespace HBP.Core.Data
                 {
                     blocChannelStatistics.Clear();
                 }
+
                 m_BlocChannelStatisticsByRequest.Clear();
                 m_BlocChannelStatisticsByRequest = new Dictionary<BlocChannelRequest, BlocChannelStatistics>();
 
@@ -212,6 +251,7 @@ namespace HBP.Core.Data
                 {
                     eventStatistics.Clear();
                 }
+
                 m_EventsStatisticsByRequest.Clear();
                 m_EventsStatisticsByRequest = new Dictionary<Request, EventsStatistics>();
 
@@ -219,6 +259,7 @@ namespace HBP.Core.Data
                 {
                     blocEventsStatistics.Clear();
                 }
+
                 m_BlocEventsStatisticsByRequest.Clear();
                 m_BlocEventsStatisticsByRequest = new Dictionary<BlocRequest, BlocEventsStatistics>();
 
@@ -242,7 +283,6 @@ namespace HBP.Core.Data
                 m_RawRecordingCache.Clear();
             foreach (DataInfo dataInfo in trackedDataInfos)
                 m_MemoryBudget.Unregister(dataInfo);
-            
         }
 
         public static void ConfigureMemoryBudget(int explicitLimitMiB, int totalPhysicalMemoryMiB)
@@ -274,9 +314,14 @@ namespace HBP.Core.Data
                     sourceKeys = new Stack<RawRecordingSourceKey>();
                     m_ActiveRawSourceKeys[dataInfo] = sourceKeys;
                 }
+
                 sourceKeys.Push(sourceKey);
             }
-            finally { m_DataLock.ExitWriteLock(); }
+            finally
+            {
+                m_DataLock.ExitWriteLock();
+            }
+
             m_MemoryBudget.SetPinned(dataInfo, true);
         }
 
@@ -293,8 +338,7 @@ namespace HBP.Core.Data
                 pinned = count > 0;
                 if (pinned) m_ActiveDataPinCounts[dataInfo] = count;
                 else m_ActiveDataPinCounts.Remove(dataInfo);
-                if (m_ActiveRawSourceKeys.TryGetValue(dataInfo, out Stack<RawRecordingSourceKey> sourceKeys)
-                    && sourceKeys.Count > 0)
+                if (m_ActiveRawSourceKeys.TryGetValue(dataInfo, out Stack<RawRecordingSourceKey> sourceKeys) && sourceKeys.Count > 0)
                 {
                     sourceKey = sourceKeys.Pop();
                     hasSourceKey = true;
@@ -302,7 +346,11 @@ namespace HBP.Core.Data
                         m_ActiveRawSourceKeys.Remove(dataInfo);
                 }
             }
-            finally { m_DataLock.ExitWriteLock(); }
+            finally
+            {
+                m_DataLock.ExitWriteLock();
+            }
+
             m_MemoryBudget.SetPinned(dataInfo, pinned);
             if (hasSourceKey)
                 m_RawRecordingCache.Unpin(sourceKey);
@@ -317,6 +365,7 @@ namespace HBP.Core.Data
         {
             return GetData(dataInfo, true);
         }
+
         public static Data GetData(DataInfo dataInfo, bool updateMemoryUsage)
         {
             Data result = GetData(new Request(dataInfo));
@@ -324,10 +373,12 @@ namespace HBP.Core.Data
                 UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
+
         public static BlocData GetData(DataInfo dataInfo, Bloc bloc)
         {
             return GetData(dataInfo, bloc, true);
         }
+
         public static BlocData GetData(DataInfo dataInfo, Bloc bloc, bool updateMemoryUsage)
         {
             BlocData result = GetData(new BlocRequest(dataInfo, bloc));
@@ -335,16 +386,19 @@ namespace HBP.Core.Data
                 UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
+
         public static ChannelData GetData(DataInfo dataInfo, string channel)
         {
             ChannelData result = GetData(new ChannelRequest(dataInfo, channel));
             UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
+
         public static BlocChannelData GetData(DataInfo dataInfo, Bloc bloc, string channel)
         {
             return GetData(dataInfo, bloc, channel, true);
         }
+
         public static BlocChannelData GetData(DataInfo dataInfo, Bloc bloc, string channel, bool updateMemoryUsage)
         {
             BlocChannelData result = GetData(new BlocChannelRequest(dataInfo, bloc, channel));
@@ -360,10 +414,12 @@ namespace HBP.Core.Data
             UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
+
         public static BlocChannelStatistics GetStatistics(DataInfo dataInfo, Bloc bloc, string channel)
         {
             return GetStatistics(dataInfo, bloc, channel, true);
         }
+
         public static BlocChannelStatistics GetStatistics(DataInfo dataInfo, Bloc bloc, string channel, bool updateMemoryUsage)
         {
             BlocChannelStatistics result = GetStatistics(new BlocChannelRequest(dataInfo, bloc, channel));
@@ -371,16 +427,19 @@ namespace HBP.Core.Data
                 UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
+
         public static EventsStatistics GetEventsStatistics(DataInfo dataInfo)
         {
             EventsStatistics result = GetEventsStatistics(new Request(dataInfo));
             UpdateDerivedMemoryUsage(dataInfo);
             return result;
         }
+
         public static BlocEventsStatistics GetEventsStatistics(DataInfo dataInfo, Bloc bloc)
         {
             return GetEventsStatistics(dataInfo, bloc, true);
         }
+
         public static BlocEventsStatistics GetEventsStatistics(DataInfo dataInfo, Bloc bloc, bool updateMemoryUsage)
         {
             BlocEventsStatistics result = GetEventsStatistics(new BlocRequest(dataInfo, bloc));
@@ -435,8 +494,10 @@ namespace HBP.Core.Data
                             {
                                 m_DataLock.ExitReadLock();
                             }
+
                             if (needsNormalization) NormalizeByNone(request);
                         }
+
                         break;
                     case NormalizationType.SubTrial:
                         foreach (var request in dataRequestCollection)
@@ -451,8 +512,10 @@ namespace HBP.Core.Data
                             {
                                 m_DataLock.ExitReadLock();
                             }
+
                             if (needsNormalization) NormalizeBySubTrial(request);
                         }
+
                         break;
                     case NormalizationType.Trial:
                         foreach (var request in dataRequestCollection)
@@ -467,8 +530,10 @@ namespace HBP.Core.Data
                             {
                                 m_DataLock.ExitReadLock();
                             }
+
                             if (needsNormalization) NormalizeByTrial(request);
                         }
+
                         break;
                     case NormalizationType.SubBloc:
                         foreach (var request in dataRequestCollection)
@@ -483,8 +548,10 @@ namespace HBP.Core.Data
                             {
                                 m_DataLock.ExitReadLock();
                             }
+
                             if (needsNormalization) NormalizeBySubBloc(request);
                         }
+
                         break;
                     case NormalizationType.Bloc:
                         foreach (var request in dataRequestCollection)
@@ -499,26 +566,28 @@ namespace HBP.Core.Data
                             {
                                 m_DataLock.ExitReadLock();
                             }
+
                             if (needsNormalization) NormalizeByBloc(request);
                         }
+
                         break;
                     case NormalizationType.Protocol:
                         m_DataLock.EnterReadLock();
                         IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize;
                         try
                         {
-                            dataRequestAndNeedToNormalize = (from request in dataRequestCollection 
-                                                            select new Tuple<BlocRequest, bool>(request, 
-                                                                m_NormalizeByRequest.TryGetValue(request, out NormalizationType currentType) && currentType != NormalizationType.Protocol)).ToList();
+                            dataRequestAndNeedToNormalize = (from request in dataRequestCollection select new Tuple<BlocRequest, bool>(request, m_NormalizeByRequest.TryGetValue(request, out NormalizationType currentType) && currentType != NormalizationType.Protocol)).ToList();
                         }
                         finally
                         {
                             m_DataLock.ExitReadLock();
                         }
+
                         if (dataRequestAndNeedToNormalize.Any((tuple) => tuple.Item2))
                         {
                             NormalizeByProtocol(dataRequestAndNeedToNormalize);
                         }
+
                         break;
                     case NormalizationType.Auto:
                         switch (DefaultNormalization)
@@ -536,8 +605,10 @@ namespace HBP.Core.Data
                                     {
                                         m_DataLock.ExitReadLock();
                                     }
+
                                     if (needsNormalization) NormalizeByNone(request);
                                 }
+
                                 break;
                             case NormalizationType.SubTrial:
                                 foreach (var request in dataRequestCollection)
@@ -552,8 +623,10 @@ namespace HBP.Core.Data
                                     {
                                         m_DataLock.ExitReadLock();
                                     }
+
                                     if (needsNormalization) NormalizeBySubTrial(request);
                                 }
+
                                 break;
                             case NormalizationType.Trial:
                                 foreach (var request in dataRequestCollection)
@@ -568,8 +641,10 @@ namespace HBP.Core.Data
                                     {
                                         m_DataLock.ExitReadLock();
                                     }
+
                                     if (needsNormalization) NormalizeByTrial(request);
                                 }
+
                                 break;
                             case NormalizationType.SubBloc:
                                 foreach (var request in dataRequestCollection)
@@ -584,8 +659,10 @@ namespace HBP.Core.Data
                                     {
                                         m_DataLock.ExitReadLock();
                                     }
+
                                     if (needsNormalization) NormalizeBySubBloc(request);
                                 }
+
                                 break;
                             case NormalizationType.Bloc:
                                 foreach (var request in dataRequestCollection)
@@ -600,47 +677,46 @@ namespace HBP.Core.Data
                                     {
                                         m_DataLock.ExitReadLock();
                                     }
+
                                     if (needsNormalization) NormalizeByBloc(request);
                                 }
+
                                 break;
                             case NormalizationType.Protocol:
                                 m_DataLock.EnterReadLock();
                                 IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize2;
                                 try
                                 {
-                                    dataRequestAndNeedToNormalize2 = (from request in dataRequestCollection 
-                                                                     select new Tuple<BlocRequest, bool>(request, 
-                                                                         m_NormalizeByRequest.TryGetValue(request, out NormalizationType currentType) && currentType != NormalizationType.Protocol)).ToList();
+                                    dataRequestAndNeedToNormalize2 = (from request in dataRequestCollection select new Tuple<BlocRequest, bool>(request, m_NormalizeByRequest.TryGetValue(request, out NormalizationType currentType) && currentType != NormalizationType.Protocol)).ToList();
                                 }
                                 finally
                                 {
                                     m_DataLock.ExitReadLock();
                                 }
+
                                 if (dataRequestAndNeedToNormalize2.Any((tuple) => tuple.Item2))
                                 {
                                     NormalizeByProtocol(dataRequestAndNeedToNormalize2);
                                 }
+
                                 break;
                         }
+
                         break;
                 }
             };
 
-            int normalizationDegree = useParallelProcessing && dataInfoCollection.Count > 1
-                ? Math.Min(5, dataInfoCollection.Count)
-                : 1;
+            int normalizationDegree = useParallelProcessing && dataInfoCollection.Count > 1 ? Math.Min(5, dataInfoCollection.Count) : 1;
             if (normalizationDegree > 1)
             {
-                Parallel.ForEach(
-                    dataInfoCollection,
-                    new ParallelOptions { MaxDegreeOfParallelism = normalizationDegree },
-                    normalizeDataInfo);
+                Parallel.ForEach(dataInfoCollection, new ParallelOptions { MaxDegreeOfParallelism = normalizationDegree }, normalizeDataInfo);
             }
             else
             {
                 foreach (IEEGDataInfo dataInfo in dataInfoCollection)
                     normalizeDataInfo(dataInfo);
             }
+
             List<BlocRequest> blocRequestsRequiringStatisticsReset = new();
             m_DataLock.EnterWriteLock();
             try
@@ -654,10 +730,12 @@ namespace HBP.Core.Data
             {
                 m_DataLock.ExitWriteLock();
             }
+
             foreach (var request in blocRequestsRequiringStatisticsReset)
             {
                 UnloadStatistics(request);
             }
+
             m_RawRecordingCache.DiscardUnpinnedCompactRecordings();
         }
 
@@ -669,9 +747,11 @@ namespace HBP.Core.Data
         {
             m_DataLock?.Dispose();
         }
+
         #endregion
 
         #region Private Methods
+
         static void Load(Request request)
         {
             if (!request.IsValid)
@@ -730,14 +810,13 @@ namespace HBP.Core.Data
                 m_DataLock.ExitWriteLock();
             }
         }
+
         static void LoadRawBackedData(Request request)
         {
             EEGRecordingSource source = EEGRecordingSource.From(request.DataInfo);
             RawRecordingSourceKey sourceKey = RawRecordingSourceKey.From(source);
             DynamicData rawData = m_RawRecordingCache.GetOrLoad(sourceKey, () => RawRecordingLoader(source));
-            PublishLoadedValidationMetadata(
-                request.DataInfo,
-                rawData.ValidationMetadata);
+            PublishLoadedValidationMetadata(request.DataInfo, rawData.ValidationMetadata);
 
             Data data;
             if (request.DataInfo is IEEGDataInfo iEEGDataInfo)
@@ -776,6 +855,7 @@ namespace HBP.Core.Data
                         m_BlocDataByRequest.Remove(blocRequest);
                         m_NormalizeByRequest.Remove(blocRequest);
                     }
+
                     throw;
                 }
             }
@@ -783,6 +863,7 @@ namespace HBP.Core.Data
             {
                 m_DataLock.ExitWriteLock();
             }
+
             // Compact epoch backing is self-contained. Keep only the most recently
             // used unpinned recording to preserve cheap immediate reuse without
             // retaining every patient's full raw file for the visualization lifetime.
@@ -790,48 +871,28 @@ namespace HBP.Core.Data
                 m_RawRecordingCache.RetainOnlyUnpinned(sourceKey);
         }
 
-        private static void PublishLoadedValidationMetadata(
-            DataInfo dataInfo,
-            EEGValidationMetadata metadata)
+        private static void PublishLoadedValidationMetadata(DataInfo dataInfo, EEGValidationMetadata metadata)
         {
-            ValidationAspect aspects =
-                ValidationAspect.SourceReadability;
-            if (dataInfo is IEEGDataInfo ||
-                dataInfo is CCEPDataInfo)
+            ValidationAspect aspects = ValidationAspect.SourceReadability;
+            if (dataInfo is IEEGDataInfo || dataInfo is CCEPDataInfo)
             {
-                aspects |=
-                    ValidationAspect.Epoching |
-                    ValidationAspect.ChannelMapping;
+                aspects |= ValidationAspect.Epoching | ValidationAspect.ChannelMapping;
             }
-            ValidationRequest request = new(
-                aspects,
-                dataInfoIDs: new[] { dataInfo.ID },
-                force: true);
-            string sourceDefinition =
-                DataInfoValidationContext.GetSourceDefinitionSignature(
-                    dataInfo);
-            DataInfo snapshot = dataInfo.CreateValidationSnapshot(
-                request,
-                true,
-                new LoadedMetadataReader(metadata));
-            if (snapshot != null &&
-                string.Equals(
-                    sourceDefinition,
-                    DataInfoValidationContext
-                        .GetSourceDefinitionSignature(dataInfo),
-                    StringComparison.Ordinal))
+
+            ValidationRequest request = new(aspects, dataInfoIDs: new[] { dataInfo.ID }, force: true);
+            string sourceDefinition = DataInfoValidationContext.GetSourceDefinitionSignature(dataInfo);
+            DataInfo snapshot = dataInfo.CreateValidationSnapshot(request, true, new LoadedMetadataReader(metadata));
+            if (snapshot != null && string.Equals(sourceDefinition, DataInfoValidationContext.GetSourceDefinitionSignature(dataInfo), StringComparison.Ordinal))
             {
                 dataInfo.ApplyValidationState(snapshot);
             }
         }
 
-        private sealed class LoadedMetadataReader :
-            IEEGValidationMetadataReader
+        private sealed class LoadedMetadataReader : IEEGValidationMetadataReader
         {
             private readonly EEGValidationMetadata m_Metadata;
 
-            public LoadedMetadataReader(
-                EEGValidationMetadata metadata)
+            public LoadedMetadataReader(EEGValidationMetadata metadata)
             {
                 m_Metadata = metadata;
             }
@@ -924,6 +985,7 @@ namespace HBP.Core.Data
                 m_DataLock.ExitWriteLock();
             }
         }
+
         static void UnloadStatistics(BlocRequest request)
         {
             if (!request.IsValid)
@@ -981,7 +1043,7 @@ namespace HBP.Core.Data
 
             // Data not found, load it
             Load(request);
-            
+
             m_DataLock.EnterReadLock();
             try
             {
@@ -992,6 +1054,7 @@ namespace HBP.Core.Data
                 m_DataLock.ExitReadLock();
             }
         }
+
         static BlocData GetData(BlocRequest request)
         {
             if (!request.IsValid)
@@ -1012,7 +1075,7 @@ namespace HBP.Core.Data
 
             // Data not found, load it
             Load(request.DataInfo);
-            
+
             m_DataLock.EnterReadLock();
             try
             {
@@ -1023,6 +1086,7 @@ namespace HBP.Core.Data
                 m_DataLock.ExitReadLock();
             }
         }
+
         static ChannelData GetData(ChannelRequest request)
         {
             if (!request.IsValid)
@@ -1043,7 +1107,7 @@ namespace HBP.Core.Data
 
             // Channel data not found, create it
             Request dataRequest = new(request.DataInfo);
-            
+
             m_DataLock.EnterReadLock();
             bool dataExists;
             Data data = null;
@@ -1073,7 +1137,7 @@ namespace HBP.Core.Data
             if (data is EpochedData epochedData)
             {
                 ChannelData channelData = new(epochedData, request.Channel);
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1082,6 +1146,7 @@ namespace HBP.Core.Data
                     {
                         m_ChannelDataByRequest.Add(request, channelData);
                     }
+
                     return m_ChannelDataByRequest[request];
                 }
                 finally
@@ -1092,6 +1157,7 @@ namespace HBP.Core.Data
 
             return null;
         }
+
         static BlocChannelData GetData(BlocChannelRequest request)
         {
             if (!request.IsValid)
@@ -1113,13 +1179,13 @@ namespace HBP.Core.Data
             // BlocChannel data not found, create it
             Request dataRequest = new(request.DataInfo);
             EpochedData data = GetData(dataRequest) as EpochedData;
-            
+
             if (data != null)
             {
                 if (data.UnitByChannel.ContainsKey(request.Channel))
                 {
                     BlocRequest blocDataRequest = new(request.DataInfo, request.Bloc);
-                    
+
                     m_DataLock.EnterReadLock();
                     BlocData blocData;
                     try
@@ -1134,7 +1200,7 @@ namespace HBP.Core.Data
                     if (blocData != null)
                     {
                         BlocChannelData blocChannelData = new(blocData, request.Channel);
-                        
+
                         m_DataLock.EnterWriteLock();
                         try
                         {
@@ -1143,6 +1209,7 @@ namespace HBP.Core.Data
                             {
                                 m_BlocChannelDataByRequest.Add(request, blocChannelData);
                             }
+
                             return m_BlocChannelDataByRequest[request];
                         }
                         finally
@@ -1180,7 +1247,7 @@ namespace HBP.Core.Data
             if (channelData != null)
             {
                 ChannelStatistics channelStatistics = new(channelData, DefaultAveraging);
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1189,6 +1256,7 @@ namespace HBP.Core.Data
                     {
                         m_ChannelStatisticsByRequest.Add(request, channelStatistics);
                     }
+
                     return m_ChannelStatisticsByRequest[request];
                 }
                 finally
@@ -1199,6 +1267,7 @@ namespace HBP.Core.Data
 
             return null;
         }
+
         static BlocChannelStatistics GetStatistics(BlocChannelRequest request)
         {
             if (!request.IsValid)
@@ -1222,7 +1291,7 @@ namespace HBP.Core.Data
             if (blocChannelData != null)
             {
                 BlocChannelStatistics blocChannelStatistics = new(blocChannelData, DefaultAveraging);
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1231,6 +1300,7 @@ namespace HBP.Core.Data
                     {
                         m_BlocChannelStatisticsByRequest.Add(request, blocChannelStatistics);
                     }
+
                     return m_BlocChannelStatisticsByRequest[request];
                 }
                 finally
@@ -1241,6 +1311,7 @@ namespace HBP.Core.Data
 
             return null;
         }
+
         static EventsStatistics GetEventsStatistics(Request request)
         {
             if (!request.IsValid)
@@ -1261,14 +1332,14 @@ namespace HBP.Core.Data
 
             // Statistics not found, create them
             EventsStatistics eventsStatistics = new(request.DataInfo);
-            
+
             m_DataLock.EnterWriteLock();
             try
             {
                 // Double-check pattern to avoid duplicate creation
                 if (!m_EventsStatisticsByRequest.ContainsKey(request))
                 {
-                    foreach (var pair in eventsStatistics.EventsStatisticsByBloc) 
+                    foreach (var pair in eventsStatistics.EventsStatisticsByBloc)
                     {
                         var blocRequest = new BlocRequest(request.DataInfo, pair.Key);
                         if (!m_BlocEventsStatisticsByRequest.ContainsKey(blocRequest))
@@ -1276,8 +1347,10 @@ namespace HBP.Core.Data
                             m_BlocEventsStatisticsByRequest.Add(blocRequest, pair.Value);
                         }
                     }
+
                     m_EventsStatisticsByRequest.Add(request, eventsStatistics);
                 }
+
                 return m_EventsStatisticsByRequest[request];
             }
             finally
@@ -1285,6 +1358,7 @@ namespace HBP.Core.Data
                 m_DataLock.ExitWriteLock();
             }
         }
+
         static BlocEventsStatistics GetEventsStatistics(BlocRequest request)
         {
             if (!request.IsValid)
@@ -1306,7 +1380,7 @@ namespace HBP.Core.Data
             // Statistics not found, create them
             BlocData blocData = GetData(request);
             BlocEventsStatistics blocEventsStatistics = new(blocData, request.Bloc, DefaultPositionAveraging);
-            
+
             m_DataLock.EnterWriteLock();
             try
             {
@@ -1315,6 +1389,7 @@ namespace HBP.Core.Data
                 {
                     m_BlocEventsStatisticsByRequest.Add(request, blocEventsStatistics);
                 }
+
                 return m_BlocEventsStatisticsByRequest[request];
             }
             finally
@@ -1337,7 +1412,7 @@ namespace HBP.Core.Data
                             subTrial.Normalize(0, 1, channel, compatibilityBuffer, normalizedResult: false);
                     }
                 }
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1350,6 +1425,7 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         static void NormalizeBySubTrial(BlocRequest request)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
@@ -1367,7 +1443,7 @@ namespace HBP.Core.Data
                         }
                     }
                 }
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1380,6 +1456,7 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         static void NormalizeByTrial(BlocRequest request)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
@@ -1408,7 +1485,7 @@ namespace HBP.Core.Data
                         }
                     }
                 }
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1421,6 +1498,7 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         static void NormalizeBySubBloc(BlocRequest request)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
@@ -1452,7 +1530,7 @@ namespace HBP.Core.Data
                         }
                     }
                 }
-                
+
                 m_DataLock.EnterWriteLock();
                 try
                 {
@@ -1465,11 +1543,12 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         static void NormalizeByBloc(BlocRequest request)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
             Dictionary<string, RunningStatistics> baselineByChannel = new();
-            
+
             m_DataLock.EnterReadLock();
             BlocData epochedData;
             try
@@ -1520,6 +1599,7 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         static void NormalizeByProtocol(IEnumerable<Tuple<BlocRequest, bool>> dataRequestAndNeedToNormalize)
         {
             EpochCompatibilityBuffer compatibilityBuffer = new();
@@ -1563,7 +1643,7 @@ namespace HBP.Core.Data
             {
                 average = baselineByChannel[channel].Mean;
                 standardDeviation = baselineByChannel[channel].StandardDeviation;
-                
+
                 foreach (var tuple in dataRequestAndNeedToNormalize)
                 {
                     if (tuple.Item2)
@@ -1612,11 +1692,7 @@ namespace HBP.Core.Data
             }
         }
 
-        static void AccumulateBaseline(
-            Dictionary<string, RunningStatistics> baselineByChannel,
-            string channel,
-            SubTrial subTrial,
-            EpochCompatibilityBuffer compatibilityBuffer)
+        static void AccumulateBaseline(Dictionary<string, RunningStatistics> baselineByChannel, string channel, SubTrial subTrial, EpochCompatibilityBuffer compatibilityBuffer)
         {
             baselineByChannel.TryGetValue(channel, out RunningStatistics statistics);
             subTrial.AccumulateBaselineStatistics(channel, compatibilityBuffer, ref statistics);
@@ -1650,34 +1726,36 @@ namespace HBP.Core.Data
                         }
                     }
                 }
+
                 if (epochedData != null)
                 {
                     foreach (Bloc bloc in epochedData.DataByBloc.Keys)
                     {
                         foreach (string channel in epochedData.UnitByChannel.Keys)
                         {
-                            if (m_BlocChannelStatisticsByRequest.TryGetValue(
-                                new BlocChannelRequest(dataInfo, bloc, channel),
-                                out BlocChannelStatistics statistics))
+                            if (m_BlocChannelStatisticsByRequest.TryGetValue(new BlocChannelRequest(dataInfo, bloc, channel), out BlocChannelStatistics statistics))
                                 statisticsObjects.Add(statistics);
                         }
                     }
                 }
+
                 if (epochedData != null)
                 {
                     foreach (string channel in epochedData.UnitByChannel.Keys)
                     {
-                        if (!m_ChannelStatisticsByRequest.TryGetValue(
-                            new ChannelRequest(dataInfo, channel),
-                            out ChannelStatistics channelStatistics))
+                        if (!m_ChannelStatisticsByRequest.TryGetValue(new ChannelRequest(dataInfo, channel), out ChannelStatistics channelStatistics))
                             continue;
                         foreach (BlocChannelStatistics statistics in channelStatistics.StatisticsByBloc.Values)
                             statisticsObjects.Add(statistics);
                     }
                 }
+
                 pinned = m_ActiveDataPinCounts.TryGetValue(dataInfo, out int count) && count > 0;
             }
-            finally { m_DataLock.ExitReadLock(); }
+            finally
+            {
+                m_DataLock.ExitReadLock();
+            }
 
             foreach (BlocChannelStatistics statistics in statisticsObjects)
                 bytes += statistics.ManagedBytes;
@@ -1704,47 +1782,57 @@ namespace HBP.Core.Data
                     dataToClear.Add(m_DataByRequest[request]);
                     m_DataByRequest.Remove(request);
                 }
+
                 foreach (BlocRequest request in m_BlocDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                 {
                     blocDataToClear.Add(m_BlocDataByRequest[request]);
                     m_BlocDataByRequest.Remove(request);
                 }
+
                 foreach (ChannelRequest request in m_ChannelDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                 {
                     channelDataToClear.Add(m_ChannelDataByRequest[request]);
                     m_ChannelDataByRequest.Remove(request);
                 }
+
                 foreach (BlocChannelRequest request in m_BlocChannelDataByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                 {
                     blocChannelDataToClear.Add(m_BlocChannelDataByRequest[request]);
                     m_BlocChannelDataByRequest.Remove(request);
                 }
+
                 foreach (ChannelRequest request in m_ChannelStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                 {
                     channelStatisticsToClear.Add(m_ChannelStatisticsByRequest[request]);
                     m_ChannelStatisticsByRequest.Remove(request);
                 }
+
                 foreach (BlocChannelRequest request in m_BlocChannelStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                 {
                     blocChannelStatisticsToClear.Add(m_BlocChannelStatisticsByRequest[request]);
                     m_BlocChannelStatisticsByRequest.Remove(request);
                 }
+
                 foreach (Request request in m_EventsStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                 {
                     eventStatisticsToClear.Add(m_EventsStatisticsByRequest[request]);
                     m_EventsStatisticsByRequest.Remove(request);
                 }
+
                 foreach (BlocRequest request in m_BlocEventsStatisticsByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                 {
                     blocEventStatisticsToClear.Add(m_BlocEventsStatisticsByRequest[request]);
                     m_BlocEventsStatisticsByRequest.Remove(request);
                 }
+
                 foreach (BlocRequest request in m_NormalizeByRequest.Keys.Where(key => key.DataInfo == dataInfo).ToArray())
                     m_NormalizeByRequest.Remove(request);
-                m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>(
-                    m_BlocRequestsRequiringStatisticsReset.Where(request => request.DataInfo != dataInfo).Reverse());
+                m_BlocRequestsRequiringStatisticsReset = new Stack<BlocRequest>(m_BlocRequestsRequiringStatisticsReset.Where(request => request.DataInfo != dataInfo).Reverse());
             }
-            finally { m_DataLock.ExitWriteLock(); }
+            finally
+            {
+                m_DataLock.ExitWriteLock();
+            }
 
             foreach (Data data in dataToClear)
                 data.Clear();
@@ -1763,30 +1851,35 @@ namespace HBP.Core.Data
             foreach (BlocEventsStatistics blocEventStatistics in blocEventStatisticsToClear)
                 blocEventStatistics.Clear();
         }
+
         #endregion
 
         #region Private struct
+
         class Request
         {
             #region Properties
+
             public virtual DataInfo DataInfo { get; set; }
+
             public virtual bool IsValid
             {
-                get
-                {
-                    return DataInfo != null && DataInfo.IsOk;
-                }
+                get { return DataInfo != null && DataInfo.IsOk; }
             }
+
             #endregion
 
             #region Constructors
+
             public Request(DataInfo dataInfo)
             {
                 DataInfo = dataInfo;
             }
+
             #endregion
 
             #region Public Methods
+
             public override bool Equals(object obj)
             {
                 //Check for null and compare run-time types.
@@ -1800,41 +1893,49 @@ namespace HBP.Core.Data
                     return (DataInfo == request.DataInfo);
                 }
             }
+
             public override int GetHashCode()
             {
                 return DataInfo.GetHashCode();
             }
+
             public static bool operator ==(Request left, Request right)
             {
                 return left.Equals(right);
             }
+
             public static bool operator !=(Request left, Request right)
             {
                 return !left.Equals(right);
             }
+
             #endregion
         }
+
         class BlocRequest : Request
         {
             #region Properties
+
             public virtual Bloc Bloc { get; set; }
+
             public override bool IsValid
             {
-                get
-                {
-                    return base.IsValid && DataInfo.Protocol.Blocs.Contains(Bloc) && DataInfo is IEpochable;
-                }
+                get { return base.IsValid && DataInfo.Protocol.Blocs.Contains(Bloc) && DataInfo is IEpochable; }
             }
+
             #endregion
 
             #region Constructors
+
             public BlocRequest(DataInfo dataInfo, Bloc bloc) : base(dataInfo)
             {
                 Bloc = bloc;
             }
+
             #endregion
 
             #region Public Methods
+
             public override bool Equals(object obj)
             {
                 //Check for null and compare run-time types.
@@ -1848,34 +1949,40 @@ namespace HBP.Core.Data
                     return base.Equals(obj) && request.Bloc == Bloc;
                 }
             }
+
             public override int GetHashCode()
             {
                 return base.GetHashCode() * Bloc.GetHashCode();
             }
+
             #endregion
         }
+
         class ChannelRequest : Request
         {
             #region Properties
+
             public virtual string Channel { get; set; }
+
             public override bool IsValid
             {
-                get
-                {
-                    return base.IsValid && DataInfo is IEpochable /*&& AddTestOnChannel */;
-                }
+                get { return base.IsValid && DataInfo is IEpochable /*&& AddTestOnChannel */; }
             }
+
             #endregion
 
             #region Constructors
+
             public ChannelRequest(DataInfo dataInfo, string channel) : base(dataInfo)
             {
                 DataInfo = dataInfo;
                 Channel = channel;
             }
+
             #endregion
 
             #region Public Methods
+
             public override bool Equals(object obj)
             {
                 //Check for null and compare run-time types.
@@ -1889,16 +1996,21 @@ namespace HBP.Core.Data
                     return base.Equals(obj) && request.Channel == Channel;
                 }
             }
+
             public override int GetHashCode()
             {
                 return base.GetHashCode() * Channel.GetHashCode();
             }
+
             #endregion
         }
+
         class BlocChannelRequest : BlocRequest
         {
             #region Properties
+
             public virtual string Channel { get; set; }
+
             public override bool IsValid
             {
                 get
@@ -1906,16 +2018,20 @@ namespace HBP.Core.Data
                     return base.IsValid && DataInfo.Protocol.Blocs.Contains(Bloc); // AddTestOnChannel
                 }
             }
+
             #endregion
 
             #region Constructors
+
             public BlocChannelRequest(DataInfo dataInfo, Bloc bloc, string channel) : base(dataInfo, bloc)
             {
                 Channel = channel;
             }
+
             #endregion
 
             #region Public Methods
+
             public override bool Equals(object obj)
             {
                 //Check for null and compare run-time types.
@@ -1929,12 +2045,15 @@ namespace HBP.Core.Data
                     return base.Equals(obj) && request.Channel == Channel;
                 }
             }
+
             public override int GetHashCode()
             {
                 return base.GetHashCode() * Channel.GetHashCode();
             }
+
             #endregion
         }
+
         #endregion
     }
 }

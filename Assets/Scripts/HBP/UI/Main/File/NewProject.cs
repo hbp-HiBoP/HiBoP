@@ -15,19 +15,17 @@ namespace HBP.UI.Main
     /// Manage the New Project window.
     /// </summary>
     public class NewProject : DialogWindow
-	{
+    {
         #region Properties
-		[SerializeField] InputField m_NameInputField;
+
+        [SerializeField] InputField m_NameInputField;
         [SerializeField] FolderSelector m_ProjectLocationFolderSelector;
         [SerializeField] FolderSelector m_PatientsDatabaseLocationFolderSelector;
         [SerializeField] FolderSelector m_LocalizerDatabaseLocationFolderSelector;
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -39,9 +37,11 @@ namespace HBP.UI.Main
                 m_LocalizerDatabaseLocationFolderSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override async void OK()
         {
             if (string.IsNullOrEmpty(m_ProjectLocationFolderSelector.Folder) || !Directory.Exists(m_ProjectLocationFolderSelector.Folder))
@@ -49,6 +49,7 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Directory not found", "Please select a valid directory to save your project file.").Forget();
                 return;
             }
+
             if (ApplicationState.LoadedProject != null)
             {
                 if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
@@ -70,16 +71,19 @@ namespace HBP.UI.Main
                 await CreateNewProjectAsync();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields()
-		{
+        {
             Core.Preferences.ProjectPreferences preferences = PersistentDataManager.UserPreferences.General.Project;
 
             m_NameInputField.text = preferences.DefaultName;
             m_ProjectLocationFolderSelector.Folder = preferences.DefaultLocation;
         }
+
         async UniTask CreateNewProjectAsync()
         {
             bool overwriteConfirmed = true;
@@ -89,16 +93,14 @@ namespace HBP.UI.Main
                 overwriteConfirmed = result == 0;
             }
 
-            ProjectWorkflowResult workflowResult = await ProjectWorkflowService.Default.CreateNewProjectAsync(
-                m_NameInputField.text,
-                m_ProjectLocationFolderSelector.Folder,
-                overwriteConfirmed);
+            ProjectWorkflowResult workflowResult = await ProjectWorkflowService.Default.CreateNewProjectAsync(m_NameInputField.text, m_ProjectLocationFolderSelector.Folder, overwriteConfirmed);
 
             if (workflowResult.Success)
             {
                 base.OK();
             }
         }
+
         #endregion
     }
 }

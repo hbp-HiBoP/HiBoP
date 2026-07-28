@@ -8,29 +8,36 @@ namespace HBP.UI.Toolbar
     public class DynamicParameters : Tool
     {
         #region Properties
+
         /// <summary>
         /// Inputfield to change the influence distance of the sites
         /// </summary>
         [SerializeField] private InputField m_InputField;
+
         /// <summary>
         /// Button to open the threshold iEEG panel
         /// </summary>
         [SerializeField] private Button m_Button;
+
         /// <summary>
         /// Button to set the values automatically
         /// </summary>
         [SerializeField] private Button m_Auto;
+
         /// <summary>
         /// Module to handle the threshold iEEG
         /// </summary>
         [SerializeField] private ThresholdIEEG m_ThresholdIEEG;
+
         /// <summary>
         /// Are the changes applied to all columns ?
         /// </summary>
         public bool IsGlobal { get; set; }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -48,6 +55,7 @@ namespace HBP.UI.Toolbar
                     {
                         ((Column3DDynamic)column).DynamicParameters.InfluenceDistance = val;
                     }
+
                     m_InputField.text = dynamicColumn.DynamicParameters.InfluenceDistance.ToString("N2");
                 }
                 else if (SelectedColumn is Column3DStatic staticColumn)
@@ -56,6 +64,7 @@ namespace HBP.UI.Toolbar
                     {
                         ((Column3DStatic)column).StaticParameters.InfluenceDistance = val;
                     }
+
                     m_InputField.text = staticColumn.StaticParameters.InfluenceDistance.ToString("N2");
                 }
             });
@@ -103,6 +112,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -113,6 +123,7 @@ namespace HBP.UI.Toolbar
             m_InputField.interactable = false;
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -127,6 +138,7 @@ namespace HBP.UI.Toolbar
             m_InputField.interactable = isColumnDynamic || isColumnStatic;
             m_Button.interactable = isColumnIEEG || isColumnCCEPAndSourceSelected || isColumnStatic;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -149,6 +161,7 @@ namespace HBP.UI.Toolbar
                 m_InputField.text = "15.00";
             }
         }
+
         #endregion
     }
 }

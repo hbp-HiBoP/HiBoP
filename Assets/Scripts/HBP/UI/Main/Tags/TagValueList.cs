@@ -11,14 +11,25 @@ namespace HBP.UI.Main
     public class TagValueList : ActionableList<Core.Data.BaseTagValue>
     {
         #region Properties
-        enum OrderBy { None, Tag, DescendingTag, Value, DescendingValue }
+
+        enum OrderBy
+        {
+            None,
+            Tag,
+            DescendingTag,
+            Value,
+            DescendingValue
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_TagSortingDisplayer;
         [SerializeField] SortingDisplayer m_ValueSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add TagValue.
         /// </summary>
@@ -29,9 +40,11 @@ namespace HBP.UI.Main
             SortByNone();
             base.AddObject(objectToAdd);
         }
+
         #endregion
 
         #region SortingMethods
+
         /// <summary>
         /// Sort by tag.
         /// </summary>
@@ -51,9 +64,11 @@ namespace HBP.UI.Main
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by tag.
         /// </summary>
@@ -85,9 +100,11 @@ namespace HBP.UI.Main
                     m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by value.
         /// </summary>
@@ -109,6 +126,7 @@ namespace HBP.UI.Main
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

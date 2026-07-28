@@ -16,6 +16,7 @@ namespace HBP.UI.Module3D
     public class AdvancedSiteConditions : BaseSiteConditions
     {
         #region Properties
+
         public const string TRUE = "TRUE";
         public const string FALSE = "FALSE";
         public const string HIGHLIGHTED = "H";
@@ -43,6 +44,7 @@ namespace HBP.UI.Module3D
         /// InputField used to write the string to be parsed as a set of conditions
         /// </summary>
         [SerializeField] InputField m_InputField;
+
         /// <summary>
         /// Boolean expression parsed from the string
         /// </summary>
@@ -51,19 +53,19 @@ namespace HBP.UI.Module3D
         [SerializeField] AdvancedSiteConditionList m_AdvancedSiteConditionList;
         [SerializeField] Button m_StoreConditionButton;
         [SerializeField] Button m_ApplySelectedConditionButton;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_AdvancedSiteConditionList.Set(AdvancedSiteConditionStrings.Conditions);
-            AdvancedSiteConditionStrings.OnChangeConditions.AddListener(() =>
-            {
-                m_AdvancedSiteConditionList.Set(AdvancedSiteConditionStrings.Conditions);
-            });
+            AdvancedSiteConditionStrings.OnChangeConditions.AddListener(() => { m_AdvancedSiteConditionList.Set(AdvancedSiteConditionStrings.Conditions); });
             m_StoreConditionButton.onClick.AddListener(StoreCondition);
             m_ApplySelectedConditionButton.onClick.AddListener(ApplySelectedCondition);
         }
+
         /// <summary>
         /// Check all the set conditions for a specific site
         /// </summary>
@@ -75,8 +77,10 @@ namespace HBP.UI.Module3D
             {
                 booleanValue.SetBooleanValue((s) => ParseConditionAndCheckValue(site, s));
             }
+
             return m_BooleanExpression.Evaluate();
         }
+
         /// <summary>
         /// Parse the string containing the conditions and get the value 
         /// </summary>
@@ -324,11 +328,14 @@ namespace HBP.UI.Module3D
                     return CheckOnPlane(site);
                 }
             }
+
             throw new InvalidConditionException(s);
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Parse the whole string and store it to a BooleanExpression object
         /// </summary>
@@ -336,15 +343,18 @@ namespace HBP.UI.Module3D
         {
             m_BooleanExpression = BooleanExpressionParser.Parse(m_InputField.text.Replace("\n", "").Replace("\r", ""));
         }
+
         public void StoreCondition()
         {
             AdvancedSiteConditionStrings.AddCondition(m_InputField.text);
         }
+
         public void ApplySelectedCondition()
         {
             if (m_AdvancedSiteConditionList.ObjectsSelected.Length > 0)
                 m_InputField.text = m_AdvancedSiteConditionList.ObjectsSelected[0];
         }
+
         #endregion
     }
 }

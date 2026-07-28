@@ -11,16 +11,31 @@ namespace HBP.UI.Main
     public class TreatmentList : ActionableList<Core.Data.Treatment>
     {
         #region Properties
-        enum OrderBy { None, Type, DescendingType, StartWindow, DescendingStartWindow, EndWindow, DescendingEndWindow, Order, DescendingOrder }
+
+        enum OrderBy
+        {
+            None,
+            Type,
+            DescendingType,
+            StartWindow,
+            DescendingStartWindow,
+            EndWindow,
+            DescendingEndWindow,
+            Order,
+            DescendingOrder
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_TypeSortingDisplayer;
         [SerializeField] SortingDisplayer m_StartWindowSortingDisplayer;
         [SerializeField] SortingDisplayer m_EndWindowSortingDisplayer;
         [SerializeField] SortingDisplayer m_OrderSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         public void SortByType(Sorting sorting)
         {
             switch (sorting)
@@ -36,11 +51,13 @@ namespace HBP.UI.Main
                     m_OrderBy = OrderBy.DescendingType;
                     break;
             }
+
             Refresh();
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByType()
         {
             switch (m_OrderBy)
@@ -65,11 +82,13 @@ namespace HBP.UI.Main
                     m_OrderBy = OrderBy.DescendingStartWindow;
                     break;
             }
+
             Refresh();
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByStartWindow()
         {
             switch (m_OrderBy)
@@ -95,11 +114,13 @@ namespace HBP.UI.Main
                     m_OrderBy = OrderBy.DescendingEndWindow;
                     break;
             }
+
             Refresh();
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByEndWindow()
         {
             switch (m_OrderBy)
@@ -124,11 +145,13 @@ namespace HBP.UI.Main
                     m_OrderBy = OrderBy.DescendingOrder;
                     break;
             }
+
             Refresh();
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByOrder()
         {
             switch (m_OrderBy)
@@ -148,6 +171,7 @@ namespace HBP.UI.Main
             m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

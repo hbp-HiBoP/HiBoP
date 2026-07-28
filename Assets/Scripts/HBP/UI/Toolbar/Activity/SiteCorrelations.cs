@@ -22,6 +22,7 @@ namespace HBP.UI.Toolbar
     public class SiteCorrelations : Tool
     {
         #region Internal Classes
+
         [JsonObject(MemberSerialization.OptIn), Preserve]
         public class CorrelationsContainer
         {
@@ -45,36 +46,45 @@ namespace HBP.UI.Toolbar
             [JsonProperty] public string CorrelationsBinaryFile { get; set; }
             [JsonProperty] public string CorrelationsMeanFile { get; set; }
         }
+
         #endregion
 
         #region Properties
+
         /// <summary>
         /// Trigger the computation of the projection of the iEEG activity
         /// </summary>
         [SerializeField] private Button m_Compute;
+
         /// <summary>
         /// Load a correlation folder to the visualization
         /// </summary>
         [SerializeField] private Button m_Load;
+
         /// <summary>
         /// Save the data that has been computed to a folder
         /// </summary>
         [SerializeField] private Button m_Save;
+
         /// <summary>
         /// Reset the correlation data
         /// </summary>
         [SerializeField] private Button m_Reset;
+
         /// <summary>
         /// Remove the projection of the iEEG activity
         /// </summary>
         [SerializeField] private Toggle m_Display;
+
         /// <summary>
         /// Are the correlations being computed ?
         /// </summary>
         private bool m_CorrelationsComputing = false;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -111,6 +121,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.DisplayCorrelations = isOn;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -126,6 +137,7 @@ namespace HBP.UI.Toolbar
             m_Load.interactable = false;
             m_Reset.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -144,6 +156,7 @@ namespace HBP.UI.Toolbar
             m_Load.interactable = isColumnIEEG && !m_CorrelationsComputing && isSinglePatientScene;
             m_Reset.interactable = isColumnIEEG && areCorrelationsComputed && !m_CorrelationsComputing && isSinglePatientScene;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -151,9 +164,11 @@ namespace HBP.UI.Toolbar
         {
             m_Display.isOn = SelectedScene.DisplayCorrelations;
         }
+
         #endregion
 
         #region
+
         private void SaveCorrelations()
         {
             CorrelationsContainer container = new()
@@ -182,6 +197,7 @@ namespace HBP.UI.Toolbar
                     CorrelationsMeanFile = string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name)
                 });
             }
+
             string saveDirectory = Path.Combine(SelectedScene.GenerateExportDirectory(), "Correlations").GenerateUniqueDirectoryPath();
             if (!Directory.Exists(saveDirectory)) Directory.CreateDirectory(saveDirectory);
             ClassLoaderSaver.SaveToJSon(container, Path.Combine(saveDirectory, string.Format("{0}_Correlations.json", container.PatientID)));
@@ -196,11 +212,13 @@ namespace HBP.UI.Toolbar
                     if (char.IsDigit(name[i])) digits += name[i];
                     else label += name[i];
                 }
+
                 for (int i = 0; i < label.Length; i++)
                 {
                     if (name[i] == '\'') weight += 1;
                     else weight += 100 * name[i];
                 }
+
                 if (digits.Length > 0)
                     weight += int.Parse(digits);
                 return weight;
@@ -239,9 +257,11 @@ namespace HBP.UI.Toolbar
                                 csvBinaryText.Append(1);
                             }
                         }
+
                         csvText.AppendLine();
                         csvBinaryText.AppendLine();
                     }
+
                     if (column.CorrelationMeanBySitePair.TryGetValue(site, out Dictionary<Core.Object3D.Site, float> meanOfSite))
                     {
                         csvMeanText.Append(site.Information.Name);
@@ -257,19 +277,23 @@ namespace HBP.UI.Toolbar
                                 csvMeanText.Append(1);
                             }
                         }
+
                         csvMeanText.AppendLine();
                     }
                 }
+
                 try
                 {
                     using (StreamWriter sw = new(Path.Combine(saveDirectory, string.Format("{0}_{1}_correlations.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvText.ToString());
                     }
+
                     using (StreamWriter sw = new(Path.Combine(saveDirectory, string.Format("{0}_{1}_significant.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvBinaryText.ToString());
                     }
+
                     using (StreamWriter sw = new(Path.Combine(saveDirectory, string.Format("{0}_{1}_pearson.csv", container.PatientID, column.Name))))
                     {
                         sw.Write(csvMeanText.ToString());
@@ -282,8 +306,10 @@ namespace HBP.UI.Toolbar
                     return;
                 }
             }
+
             DialogBoxManager.Open(DialogBoxType.Informational, "Site correlations saved", "Site correlations of this visualization have been saved to <color=#3080ffff>" + saveDirectory + "</color>").Forget();
         }
+
         private async void LoadCorrelations()
         {
             void Load(string path)
@@ -297,16 +323,19 @@ namespace HBP.UI.Toolbar
                         DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.").Forget();
                         return;
                     }
+
                     if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Column)))
                     {
                         DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.").Forget();
                         return;
                     }
+
                     // Load
                     foreach (var column in SelectedScene.ColumnsIEEG)
                     {
                         column.CorrelationBySitePair.Clear();
                     }
+
                     string directory = new FileInfo(path).Directory.FullName;
                     foreach (var column in SelectedScene.ColumnsIEEG)
                     {
@@ -337,11 +366,14 @@ namespace HBP.UI.Toolbar
                                             }
                                         }
                                     }
+
                                     correlationsBySitePair[site] = valueBySite;
                                 }
                             }
+
                             column.CorrelationBySitePair = correlationsBySitePair;
                         }
+
                         string csvMeanFilePath = Path.Combine(directory, columnContainer.CorrelationsMeanFile);
                         using (StreamReader sr = new(csvMeanFilePath))
                         {
@@ -368,12 +400,15 @@ namespace HBP.UI.Toolbar
                                             }
                                         }
                                     }
+
                                     meanByPair[site] = valueBySite;
                                 }
                             }
+
                             column.CorrelationMeanBySitePair = meanByPair;
                         }
                     }
+
                     SelectedScene.DisplayCorrelations = true;
                     Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 }
@@ -390,6 +425,7 @@ namespace HBP.UI.Toolbar
                 Load(loadPath);
             }
         }
+
         private async void ResetCorrelations()
         {
             int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", "Reset", "Cancel");
@@ -399,12 +435,15 @@ namespace HBP.UI.Toolbar
                 {
                     column.CorrelationBySitePair.Clear();
                 }
+
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
         }
+
         #endregion
 
         #region Coroutines
+
         /// <summary>
         /// Compute correlations for all ieeg columns
         /// </summary>
@@ -431,12 +470,14 @@ namespace HBP.UI.Toolbar
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 return;
             }
+
             m_CorrelationsComputing = false;
             updateProgress(1, 0, new LoadingText("Correlations computed"));
             await UniTask.SwitchToMainThread();
             SelectedScene.DisplayCorrelations = true;
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         #endregion
     }
 }

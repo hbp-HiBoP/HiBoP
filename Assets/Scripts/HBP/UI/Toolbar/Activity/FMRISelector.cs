@@ -7,13 +7,16 @@ namespace HBP.UI.Toolbar
     public class FMRISelector : Tool
     {
         #region Properties
+
         /// <summary>
         /// Dropdown to select the contrast to display
         /// </summary>
         [SerializeField] private Dropdown m_Dropdown;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -27,6 +30,7 @@ namespace HBP.UI.Toolbar
                     fmriColumn.SelectedFMRIIndex = value;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -34,6 +38,7 @@ namespace HBP.UI.Toolbar
         {
             m_Dropdown.gameObject.SetActive(false);
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -44,6 +49,7 @@ namespace HBP.UI.Toolbar
 
             m_Dropdown.gameObject.SetActive(isColumnFMRI && isGeneratorUpToDate);
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -56,10 +62,13 @@ namespace HBP.UI.Toolbar
                 {
                     m_Dropdown.options.Add(new Dropdown.OptionData(string.Format("{0} ({1})", fmri.Item1.Name, fmri.Item2 != null ? fmri.Item2.Name : "Shared")));
                 }
+
                 m_Dropdown.value = fmriColumn.SelectedFMRIIndex;
             }
+
             m_Dropdown.RefreshShownValue();
         }
+
         #endregion
     }
 }

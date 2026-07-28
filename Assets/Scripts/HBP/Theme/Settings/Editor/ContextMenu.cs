@@ -10,7 +10,7 @@ namespace HBP.Theme
         private static void Save()
         {
             ScriptableObject scriptableObject = (Selection.activeObject as ScriptableObject);
-            string json = JsonUtility.ToJson(scriptableObject,true);
+            string json = JsonUtility.ToJson(scriptableObject, true);
             string path = Application.dataPath + "/Data/" + scriptableObject.name + ".json";
             Debug.Log(path);
             using (StreamWriter sw = File.CreateText(path))
@@ -18,6 +18,7 @@ namespace HBP.Theme
                 sw.Write(json);
             }
         }
+
         [MenuItem("Assets/Save to json", true)]
         private static bool CanSave()
         {
@@ -36,6 +37,7 @@ namespace HBP.Theme
                 JsonUtility.FromJsonOverwrite(json, scriptableObject);
             }
         }
+
         [MenuItem("Assets/Load from json", true)]
         private static bool CanLoad()
         {
@@ -43,4 +45,3 @@ namespace HBP.Theme
         }
     }
 }
-

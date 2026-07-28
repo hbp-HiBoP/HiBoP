@@ -17,13 +17,14 @@ namespace HBP.UI.Informations
     public class GraphZone : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] TrialMatrixGrid m_TrialMatrixGrid;
         [SerializeField] GameObject m_GraphPrefab;
         [SerializeField] RectTransform m_GraphContainer;
 
         [SerializeField] GameObject m_TogglesPrefab;
         [SerializeField] RectTransform m_ToggleContainer;
-        
+
         Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Core.Tools.TimeWindow>[] m_SubBlocsAndWindowByColumn;
         Dictionary<string, bool> m_StatesByCurves = new();
 
@@ -39,9 +40,11 @@ namespace HBP.UI.Informations
         private Dictionary<ChannelStruct, List<LocalizerCurveData>> m_LocalizersCurves = new();
         Color m_DefaultColor = new(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
         bool m_isLock;
+
         #endregion
 
         #region Public Methods
+
         public void CreateGraphPool(int maxNumberOfColumn)
         {
             for (int i = 0; i < maxNumberOfColumn; i++)
@@ -62,6 +65,7 @@ namespace HBP.UI.Informations
                 m_GraphPool.Enqueue(graph);
             }
         }
+
         public void Display(ChannelStruct[] channels, Column[] columns)
         {
             m_Columns = columns.ToArray();
@@ -69,6 +73,7 @@ namespace HBP.UI.Informations
 
             SetGraphs();
         }
+
         public void UpdateTimeVisibility(bool visible)
         {
             foreach (Graph graph in m_Graphs)
@@ -76,22 +81,26 @@ namespace HBP.UI.Informations
                 graph.DisplayCurrentTime = visible;
             }
         }
+
         public void UpdateTime(Column column, Core.Data.SubBloc subBloc, float currentTime)
         {
             int index = Array.FindIndex(m_SubBlocsAndWindowByColumn, item => item.Item1.Any(t => t.Item1 == column.Data.Bloc && t.Item2 == subBloc));
-            if(index != -1)
+            if (index != -1)
             {
                 Graph graph = m_Graphs[index];
                 graph.CurrentTime = currentTime;
             }
         }
+
         public void SetLocalizersCurves(Dictionary<ChannelStruct, List<LocalizerCurveData>> curves)
         {
             m_LocalizersCurves = curves;
         }
+
         #endregion
 
         #region Private Methods
+
         void ClearGraphs()
         {
             // Destroy toggles.
@@ -106,8 +115,10 @@ namespace HBP.UI.Informations
                 graph.gameObject.SetActive(false);
                 m_GraphPool.Enqueue(graph);
             }
+
             m_Graphs = new List<Graph>();
         }
+
         void SetGraphs()
         {
             SaveSettings();
@@ -122,6 +133,7 @@ namespace HBP.UI.Informations
                 foreach (var curve in column.Item1)
                     AddValues(curve, ref valueStatistics);
             }
+
             Vector2 defaultOrdinateDisplayRange = Core.Data.StreamingStatistics.CalculateValueLimit(valueStatistics, 5);
             Vector2 ordinateDisplayRange = m_useDefaultDisplayRange ? defaultOrdinateDisplayRange : m_OrdinateDisplayRange;
 
@@ -145,8 +157,10 @@ namespace HBP.UI.Informations
                 bool selected = c == m_SelectedColumn;
                 AddGraph(column.Item1, column.Item2.ToVector2(), defaultOrdinateDisplayRange, abscissaDisplayRange[c], ordinateDisplayRange, selected);
             }
+
             m_ToggleContainer.gameObject.SetActive(m_Graphs.Count > 1);
         }
+
         void AddGraph(Graph.Curve[] curves, Vector2 defaultAbscissaDisplayRange, Vector2 defaultOrdinateDisplayRange, Vector2 abscissaDisplayRange, Vector2 ordinateDisplayRange, bool selected)
         {
             string name = "";
@@ -165,6 +179,7 @@ namespace HBP.UI.Informations
                 curveQueue.Enqueue(curve);
                 graph.AddCurve(curve);
             }
+
             while (curveQueue.Count > 0)
             {
                 Graph.Curve curve = curveQueue.Dequeue();
@@ -192,6 +207,7 @@ namespace HBP.UI.Informations
 
             m_Graphs.Add(graph);
         }
+
         void SaveSettings()
         {
             m_AbscissaDisplayRange = new Vector2[m_Graphs.Count];
@@ -204,6 +220,7 @@ namespace HBP.UI.Informations
                 m_AbscissaDisplayRange[g] = graph.AbscissaDisplayRange;
             }
         }
+
         void OnChangeOrdinateDisplayRangeHandler(Vector2 ordinateDisplayRange)
         {
             if (!m_isLock)
@@ -213,9 +230,11 @@ namespace HBP.UI.Informations
                 {
                     graph.OrdinateDisplayRange = ordinateDisplayRange;
                 }
+
                 m_isLock = false;
             }
         }
+
         void OnChangeCurveIsActiveHandler(string ID, bool isActive)
         {
             if (!m_isLock)
@@ -226,9 +245,11 @@ namespace HBP.UI.Informations
                 {
                     graph.SetEnabled(ID, isActive);
                 }
+
                 m_isLock = false;
             }
         }
+
         void OnUseDefaultDisplayRangeHandler(bool useDefaultDisplayRange)
         {
             if (!m_isLock)
@@ -238,6 +259,7 @@ namespace HBP.UI.Informations
                 {
                     graph.UseDefaultDisplayRange = useDefaultDisplayRange;
                 }
+
                 m_isLock = false;
             }
         }
@@ -264,11 +286,13 @@ namespace HBP.UI.Informations
                         curves.Add(curve);
                     }
                 }
+
                 // Localizer data
                 if (channels.Length == 1 && m_LocalizersCurves.ContainsKey(channels[0]))
                 {
                     curves.Add(GenerateLocalizersCurve(channels[0]));
                 }
+
                 result.Add(new Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>(curves.ToArray(), subBlocsAndWindow.Item2, subBlocsAndWindow.Item1[0].Item2.Type == MainSecondaryEnum.Main));
             }
 
@@ -311,6 +335,7 @@ namespace HBP.UI.Informations
             Graph.Curve curve = new(column.Name, null, true, ID, subcurves.ToArray(), m_DefaultColor);
             return curve;
         }
+
         Graph.Curve GenerateGroupsCurve(Column column, int index, Core.Data.SubBloc subBloc, string ID)
         {
             ID += "_" + column.ChannelGroups[index].ID;
@@ -321,6 +346,7 @@ namespace HBP.UI.Informations
                 channelsByPatient.AddIfAbsent(channel.Patient, new List<string>());
                 channelsByPatient[channel.Patient].Add(channel.Channel);
             }
+
             Dictionary<Core.Data.Patient, Core.Data.PatientDataInfo> dataInfoByPatient = new(channelsByPatient.Count);
             if (column.Data is IEEGData ieegDataStruct)
             {
@@ -354,12 +380,14 @@ namespace HBP.UI.Informations
                 {
                     statistics[c] = Core.Data.DataManager.GetStatistics(dataInfoByPatient[column.ChannelGroups[index].Channels[c].Patient], column.Data.Bloc, column.ChannelGroups[index].Channels[c].Channel);
                 }
+
                 // Create all the required variables
                 float[][] series = new float[channelCount][];
                 for (int c = 0; c < channelCount; ++c)
                 {
                     series[c] = statistics[c].Trial.ChannelSubTrialBySubBloc[subBloc].Values;
                 }
+
                 Core.Data.StreamingStatistics.Calculate(series, Core.Data.DataManager.DefaultAveraging, out float[] values, out float[] standardDeviations);
 
                 int start = subBloc.Window.Start;
@@ -372,7 +400,7 @@ namespace HBP.UI.Informations
                 ChannelStruct channel = column.ChannelGroups[index].Channels[0];
                 Core.Data.PatientDataInfo dataInfo = dataInfoByPatient[channel.Patient];
                 Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-                
+
                 if (blocChannelData == null)
                 {
                     Graph.Curve nullResult = new(column.ChannelGroups[index].Name, null, true, ID, new Graph.Curve[0], m_DefaultColor);
@@ -389,13 +417,13 @@ namespace HBP.UI.Informations
 
                 // Use existing GetCurveData method
                 curveData = GetCurveData(column, subBloc, channel, allValidTrialsSelected);
-                
+
                 // Update color to match group color instead of site color
                 if (curveData != null)
                 {
                     curveData.Color = color;
                 }
-                
+
                 Graph.Curve result = new(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
                 return result;
             }
@@ -403,12 +431,14 @@ namespace HBP.UI.Informations
             Graph.Curve finalResult = new(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return finalResult;
         }
+
         Graph.Curve GeneratePatientCurve(Column column, ChannelStruct[] channels, Core.Data.SubBloc subBloc, string ID)
         {
             ID += "_" + channels[0].Patient.Name;
             Graph.Curve[] subcurves = channels.Select(channel => GenerateChannelCurve(column, channel, subBloc, ID)).ToArray();
             return new Graph.Curve(channels[0].Patient.Name, null, true, ID, subcurves, m_DefaultColor);
         }
+
         Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, Core.Data.SubBloc subBloc, string ID)
         {
             ID += "_" + channel.Channel;
@@ -420,6 +450,7 @@ namespace HBP.UI.Informations
             channelBloc.OnChangeTrialSelected.AddListener(() => { result.Data = GetCurveData(column, subBloc, channel, channelBloc.TrialIsSelected); });
             return result;
         }
+
         Graph.Curve GenerateLocalizersCurve(ChannelStruct channel)
         {
             // Grouper les données par protocole
@@ -463,6 +494,7 @@ namespace HBP.UI.Informations
                             blocCurveData = CurveData.CreateInstance(blocPair.Value.Points, PersistentDataManager.UserPreferences.Visualization.Graph.LocalizersColors.GetColor(0, blocIndex++));
                         }
                     }
+
                     var blocCurve = new Graph.Curve(blocName, blocCurveData, true, blocID, new Graph.Curve[0], m_DefaultColor);
                     blocCurves.Add(blocCurve);
                 }
@@ -487,6 +519,7 @@ namespace HBP.UI.Informations
             Graph.Curve curve = new(column.Name, null, true, ID, subcurves.ToArray(), m_DefaultColor);
             return curve;
         }
+
         Graph.Curve GenerateNonEpochedChannelCurve(Column column, ChannelStruct channel, string ID)
         {
             ID += "_" + channel.Channel;
@@ -507,6 +540,7 @@ namespace HBP.UI.Informations
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Name));
             }
+
             Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
             Color color = PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
@@ -518,7 +552,6 @@ namespace HBP.UI.Informations
             for (int i = 0; i < validTrials.Length; i++)
             {
                 if (selected[i]) trialsToUse.Add(validTrials[i]);
-
             }
 
             float start = blocData.Frequency.ConvertNumberOfSamplesToMilliseconds(blocData.Frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start));
@@ -540,8 +573,10 @@ namespace HBP.UI.Informations
 
                 result = CurveData.CreateRegular(values, start, end, color);
             }
+
             return result;
         }
+
         CurveData GetNonEpochedCurveData(Column column, ChannelStruct channel)
         {
             CurveData result = null;
@@ -551,6 +586,7 @@ namespace HBP.UI.Informations
                 dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<Core.Data.MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
                 if (dataInfo == null) return null;
             }
+
             Core.Data.MEGcData megData = Core.Data.DataManager.GetData(dataInfo) as Core.Data.MEGcData;
             Color color = PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
@@ -567,6 +603,7 @@ namespace HBP.UI.Informations
 
             return result;
         }
+
         void AddValues(Graph.Curve curve, ref Core.Data.RunningStatistics statistics)
         {
             if (curve.Data != null)
@@ -575,9 +612,11 @@ namespace HBP.UI.Informations
                 for (int i = 0; i < length; i++)
                     statistics.Add(curve.Data.GetOrdinate(i));
             }
+
             foreach (var subCurve in curve.SubCurves)
                 AddValues(subCurve, ref statistics);
         }
+
         void UpdateCurveData(ref CurveData curveData, ChannelBloc channelBloc, Core.Data.BlocChannelData blocChannelData, Core.Data.SubBloc subBloc)
         {
             bool[] trialIsSelected = channelBloc.TrialIsSelected;
@@ -612,6 +651,7 @@ namespace HBP.UI.Informations
                 curveData = CurveData.CreateRegular(values, start, end, curveData.Color, 30);
             }
         }
+
         #endregion
     }
 }

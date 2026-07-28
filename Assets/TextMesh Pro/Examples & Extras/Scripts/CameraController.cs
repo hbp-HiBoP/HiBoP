@@ -3,10 +3,14 @@ using UnityEngine;
 
 namespace TMPro.Examples
 {
-
     public class CameraController : MonoBehaviour
     {
-        public enum CameraModes { Follow, Isometric, Free }
+        public enum CameraModes
+        {
+            Follow,
+            Isometric,
+            Free
+        }
 
         private Transform cameraTransform;
         private Transform dummyTarget;
@@ -115,11 +119,8 @@ namespace TMPro.Examples
                 {
                     cameraTransform.LookAt(CameraTarget);
                 }
-
             }
-
         }
-
 
 
         void GetPlayerInput()
@@ -191,7 +192,6 @@ namespace TMPro.Examples
                         if (OrbitalAngle < 0)
                             OrbitalAngle += 360;
                     }
-
                 }
 
                 // Check for left mouse button to select a new CameraTarget or to reset Follow position
@@ -213,7 +213,6 @@ namespace TMPro.Examples
                             OrbitalAngle = 0;
                             MovementSmoothing = previousSmoothing;
                         }
-
                     }
                 }
 
@@ -247,9 +246,7 @@ namespace TMPro.Examples
                     moveVector = cameraTransform.TransformDirection(mouseX, mouseY, 0);
 
                     dummyTarget.Translate(-moveVector, Space.World);
-
                 }
-
             }
 
             // Check Pinching to Zoom in - out on Mobile device
@@ -272,20 +269,15 @@ namespace TMPro.Examples
                     // Limit FollowDistance between min & max values.
                     FollowDistance = Mathf.Clamp(FollowDistance, MinFollowDistance, MaxFollowDistance);
                 }
-
-
             }
 
             // Check MouseWheel to Zoom in-out
             if (mouseWheel < -0.01f || mouseWheel > 0.01f)
             {
-
                 FollowDistance -= mouseWheel * 5.0f;
                 // Limit FollowDistance between min & max values.
                 FollowDistance = Mathf.Clamp(FollowDistance, MinFollowDistance, MaxFollowDistance);
             }
-
-
         }
     }
 }

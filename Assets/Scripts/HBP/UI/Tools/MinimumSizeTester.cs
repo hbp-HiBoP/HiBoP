@@ -8,16 +8,15 @@ namespace HBP.UI.Tools
     public class MinimumSizeTester : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] bool m_UseMinWidth;
+
         public bool UseMinWidth
         {
-            get
-            {
-                return m_UseMinWidth;
-            }
+            get { return m_UseMinWidth; }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_UseMinWidth, value))
+                if (SetPropertyUtility.SetStruct(ref m_UseMinWidth, value))
                 {
                     SetUseMinWidth();
                 }
@@ -25,12 +24,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] bool m_UseMinHeight;
+
         public bool UseMinHeight
         {
-            get
-            {
-                return m_UseMinHeight;
-            }
+            get { return m_UseMinHeight; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_UseMinHeight, value))
@@ -41,15 +38,13 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] float m_MinWidth;
+
         public float MinWidth
         {
-            get
-            {
-                return m_MinWidth;
-            }
+            get { return m_MinWidth; }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_MinWidth, value))
+                if (SetPropertyUtility.SetStruct(ref m_MinWidth, value))
                 {
                     SetMinWidth();
                 }
@@ -57,12 +52,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] float m_MinHeight;
+
         public float MinHeight
         {
-            get
-            {
-                return m_MinHeight;
-            }
+            get { return m_MinHeight; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_MinHeight, value))
@@ -73,75 +66,81 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField, ReadOnly] bool m_Minimized;
+
         public bool Minimized
         {
-            get
-            {
-                return m_Minimized;
-            }
+            get { return m_Minimized; }
         }
 
         [SerializeField] BoolEvent m_OnChangeMinimized;
+
         public BoolEvent OnChangeMinimized
         {
-            get
-            {
-                return m_OnChangeMinimized;
-            }
+            get { return m_OnChangeMinimized; }
         }
 
         RectTransform m_RectTransform;
+
         #endregion
 
         #region Private Methods
+
         void Start()
         {
-
         }
+
         void Update()
         {
-
         }
+
         void OnEnable()
         {
             SetMinimized();
         }
+
         void OnValidate()
         {
             SetMinimized();
         }
+
         void OnRectTransformDimensionsChange()
         {
             SetMinimized();
         }
+
         #endregion
 
         #region Setters
+
         void SetMinWidth()
         {
-            if(m_UseMinWidth)
+            if (m_UseMinWidth)
             {
                 SetMinimized();
             }
         }
+
         void SetMinHeight()
         {
-            if(m_UseMinHeight)
+            if (m_UseMinHeight)
             {
                 SetMinimized();
             }
         }
+
         void SetUseMinWidth()
         {
             SetMinimized();
         }
+
         void SetUseMinHeight()
         {
             SetMinimized();
         }
+
         void SetMinimized()
         {
-            if(isActiveAndEnabled)
+            if (isActiveAndEnabled)
             {
                 m_RectTransform = transform as RectTransform;
                 bool widthIsOk = !m_UseMinWidth || m_RectTransform.rect.width >= m_MinWidth;
@@ -154,6 +153,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         #endregion
     }
 }

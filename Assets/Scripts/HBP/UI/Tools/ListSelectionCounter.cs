@@ -10,13 +10,16 @@ namespace HBP.UI.Tools
     public class ListSelectionCounter : MonoBehaviour
     {
         #region Properties
+
         public Text DisplayText;
         public MonoBehaviour List;
         public bool DisplayFilteredCount = true;
         ISelectionCountable m_SelectionCountable;
+
         #endregion
 
         #region Private Methods
+
         void OnEnable()
         {
             if (List is ISelectionCountable selectionCountable)
@@ -26,10 +29,12 @@ namespace HBP.UI.Tools
                 UpdateCounter();
             }
         }
+
         void OnDisable()
         {
             m_SelectionCountable?.OnSelectionChanged.RemoveListener(UpdateCounter);
         }
+
         void UpdateCounter()
         {
             if (m_SelectionCountable != null)
@@ -44,6 +49,7 @@ namespace HBP.UI.Tools
                 DisplayText.text = string.Join(" - ", new[] { selectedText, filteredText, totalText }.Where(s => !string.IsNullOrEmpty(s)));
             }
         }
+
         #endregion
     }
 }

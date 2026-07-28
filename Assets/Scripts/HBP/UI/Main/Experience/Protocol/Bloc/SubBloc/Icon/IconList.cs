@@ -11,16 +11,31 @@ namespace HBP.UI.Main
     public class IconList : ActionableList<Core.Data.Icon>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Path, DescendingPath, Start, DescendingStart, End, DescendingEnd}
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Path,
+            DescendingPath,
+            Start,
+            DescendingStart,
+            End,
+            DescendingEnd
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_StartSortingDisplayer;
         [SerializeField] SortingDisplayer m_EndSortingDisplayer;
         [SerializeField] SortingDisplayer m_IllustrationSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -42,11 +57,13 @@ namespace HBP.UI.Main
                 default:
                     break;
             }
+
             Refresh();
             m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -84,10 +101,11 @@ namespace HBP.UI.Main
             m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by path.
         /// </summary>
-		public void SortByPath()
+        public void SortByPath()
         {
             switch (m_OrderBy)
             {
@@ -115,11 +133,13 @@ namespace HBP.UI.Main
                     m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by start.
         /// </summary>
@@ -151,11 +171,13 @@ namespace HBP.UI.Main
                     m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_IllustrationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by end.
         /// </summary>
@@ -178,6 +200,7 @@ namespace HBP.UI.Main
             m_StartSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EndSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

@@ -10,6 +10,7 @@ namespace HBP.UI.Database
     public class ProtocolTab : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private Toggle m_Toggle;
         public Toggle Toggle => m_Toggle;
         [SerializeField] private UnityEngine.UI.Text m_Text;
@@ -18,6 +19,7 @@ namespace HBP.UI.Database
         public GenericEvent<Protocol> OnSelect = new();
 
         private bool m_HasData = false;
+
         public bool HasData
         {
             get => m_HasData;
@@ -28,11 +30,14 @@ namespace HBP.UI.Database
                 m_Text.GetComponent<ThemeElement>().Set(value ? m_HasDataState : m_NoDataState);
             }
         }
+
         [SerializeField] private State m_HasDataState;
         [SerializeField] private State m_NoDataState;
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(Protocol protocol)
         {
             Protocol = protocol;
@@ -45,6 +50,7 @@ namespace HBP.UI.Database
                 }
             });
         }
+
         #endregion
     }
 }

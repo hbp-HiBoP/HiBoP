@@ -8,13 +8,12 @@ namespace HBP.UI.Tools
     public class StringFormatSetter : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] string m_Arg0;
+
         public string Arg0
         {
-            get
-            {
-                return m_Arg0;
-            }
+            get { return m_Arg0; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Arg0, value))
@@ -25,12 +24,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] string m_Arg1;
+
         public string Arg1
         {
-            get
-            {
-                return m_Arg1;
-            }
+            get { return m_Arg1; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Arg1, value))
@@ -41,12 +38,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] string m_Arg2;
+
         public string Arg2
         {
-            get
-            {
-                return m_Arg2;
-            }
+            get { return m_Arg2; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Arg2, value))
@@ -57,12 +52,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] string m_Arg3;
+
         public string Arg3
         {
-            get
-            {
-                return m_Arg3;
-            }
+            get { return m_Arg3; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Arg3, value))
@@ -73,12 +66,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] string m_Arg4;
+
         public string Arg4
         {
-            get
-            {
-                return m_Arg4;
-            }
+            get { return m_Arg4; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Arg4, value))
@@ -90,12 +81,10 @@ namespace HBP.UI.Tools
 
 
         [SerializeField] string m_Format;
+
         public string Format
         {
-            get
-            {
-                return m_Format;
-            }
+            get { return m_Format; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Format, value))
@@ -108,20 +97,21 @@ namespace HBP.UI.Tools
         [SerializeField, ReadOnly] string m_Result;
 
         [SerializeField] StringEvent m_OnChangeResult;
+
         public StringEvent OnChangeResult
         {
-            get
-            {
-                return m_OnChangeResult;
-            }
+            get { return m_OnChangeResult; }
         }
+
         #endregion
 
         #region Private Methods
+
         private void OnValidate()
         {
             SetResult();
         }
+
         void SetResult()
         {
             try
@@ -138,6 +128,7 @@ namespace HBP.UI.Tools
                 Debug.LogWarning("Wrong format or Wrong Value");
             }
         }
+
         #endregion
     }
 }

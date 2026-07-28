@@ -68,6 +68,7 @@ namespace HBP.Tests.PlayMode.Module3D
             {
                 SetPrivateField(m_Module3DMainInstance, "m_SharedMaterials", m_Module3DMainSharedMaterials);
             }
+
             Module3DMain.OnSelectScene = m_OnSelectScene;
             Module3DMain.OnDeselectScene = m_OnDeselectScene;
             Module3DMain.OnMinimizeScene = m_OnMinimizeScene;
@@ -307,11 +308,7 @@ namespace HBP.Tests.PlayMode.Module3D
         {
             using PlayModeSceneScope scene = new("Module3DSceneModule3DColumnConfiguration");
             Column3DAnatomy column = CreateColumn<Column3DAnatomy>(scene, "Configured Column");
-            HBP.Core.Data.AnatomicColumn columnData = new(
-                "configured-column",
-                new HBP.Core.Data.BaseConfiguration(0.33f, new System.Collections.Generic.Dictionary<string, HBP.Core.Data.SiteConfiguration>()),
-                new HBP.Core.Data.AnatomicConfiguration("module3d-scene-anatomic-config-001"),
-                "module3d-scene-anatomic-column-001");
+            HBP.Core.Data.AnatomicColumn columnData = new("configured-column", new HBP.Core.Data.BaseConfiguration(0.33f, new System.Collections.Generic.Dictionary<string, HBP.Core.Data.SiteConfiguration>()), new HBP.Core.Data.AnatomicConfiguration("module3d-scene-anatomic-config-001"), "module3d-scene-anatomic-column-001");
             SetAutoProperty(column, "ColumnData", columnData);
             SetAutoProperty(column, "Sites", new System.Collections.Generic.List<HBP.Core.Object3D.Site>());
 
@@ -766,61 +763,47 @@ namespace HBP.Tests.PlayMode.Module3D
             }
 
             using PlayModeTempDirectoryScope temp = new();
-                using SyntheticMNIScope mni = new(temp);
-                using PlayModeApplicationStateScope appState = new(temp.Path);
-                using PlayModePersistentDataScope persistentData = new(temp.Path);
-                PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
-                using PlayModeSceneScope scene = new("Module3DSceneHbpCoreRuntimeCutAndSurface");
-                GameObject moduleObject = new("Controlled Module3DMain For HbpCore");
-                moduleObject.SetActive(false);
-                SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
-                Module3DMain module = moduleObject.AddComponent<Module3DMain>();
-                SetPrivateField(module, "m_SharedMaterials", CreateSharedMaterials());
-                SetPrivateField(module, "m_Scenes", new List<Base3DScene>());
-                SetModule3DMainInstance(module);
-                var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
-                Base3DScene baseScene = initialized.BaseScene;
-                Column3D column = baseScene.Columns.Single();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+            using PlayModeSceneScope scene = new("Module3DSceneHbpCoreRuntimeCutAndSurface");
+            GameObject moduleObject = new("Controlled Module3DMain For HbpCore");
+            moduleObject.SetActive(false);
+            SceneManager.MoveGameObjectToScene(moduleObject, scene.Scene);
+            Module3DMain module = moduleObject.AddComponent<Module3DMain>();
+            SetPrivateField(module, "m_SharedMaterials", CreateSharedMaterials());
+            SetPrivateField(module, "m_Scenes", new List<Base3DScene>());
+            SetModule3DMainInstance(module);
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
+            Base3DScene baseScene = initialized.BaseScene;
+            Column3D column = baseScene.Columns.Single();
 
-                Assert.That(baseScene.MRIManager.SelectedMRI.Volume.IsLoaded, Is.True);
+            Assert.That(baseScene.MRIManager.SelectedMRI.Volume.IsLoaded, Is.True);
 
-                await WaitForConditionAsync(() =>
-                    baseScene.MeshManager.BrainSurface != null
-                    && baseScene.MeshManager.BrainSurface.NumberOfVertices > 0
-                    && column.BrainMesh != null
-                    && column.BrainMesh.GetComponent<MeshFilter>().mesh.vertexCount > 0,
-                    "hbp_core initial brain geometry update");
+            await WaitForConditionAsync(() => baseScene.MeshManager.BrainSurface != null && baseScene.MeshManager.BrainSurface.NumberOfVertices > 0 && column.BrainMesh != null && column.BrainMesh.GetComponent<MeshFilter>().mesh.vertexCount > 0, "hbp_core initial brain geometry update");
 
-                baseScene.AddCutPlane();
-                await WaitForConditionAsync(() =>
-                    baseScene.Cuts.Count == 1
-                    && column.CutTextures.CutGenerators.Count == 1
-                    && !baseScene.SceneInformation.CutsNeedUpdate
-                    && !baseScene.SceneInformation.BaseCutTexturesNeedUpdate,
-                    "hbp_core cut geometry and base cut texture update",
-                    () => FormatCutUpdateDiagnostics(baseScene, column));
+            baseScene.AddCutPlane();
+            await WaitForConditionAsync(() => baseScene.Cuts.Count == 1 && column.CutTextures.CutGenerators.Count == 1 && !baseScene.SceneInformation.CutsNeedUpdate && !baseScene.SceneInformation.BaseCutTexturesNeedUpdate, "hbp_core cut geometry and base cut texture update", () => FormatCutUpdateDiagnostics(baseScene, column));
 
-                Assert.That(column.CutTextures.CutGenerators[0].CutGeometryGenerator, Is.Not.Null);
-                Assert.That(column.CutTextures.BaseBrainCutTextures[0].width, Is.GreaterThan(1));
-                Assert.That(column.CutTextures.BaseBrainCutTextures[0].height, Is.GreaterThan(1));
-                Assert.That(column.CutTextures.BaseBrainCutTextures[0].GetPixels32().Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
+            Assert.That(column.CutTextures.CutGenerators[0].CutGeometryGenerator, Is.Not.Null);
+            Assert.That(column.CutTextures.BaseBrainCutTextures[0].width, Is.GreaterThan(1));
+            Assert.That(column.CutTextures.BaseBrainCutTextures[0].height, Is.GreaterThan(1));
+            Assert.That(column.CutTextures.BaseBrainCutTextures[0].GetPixels32().Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
 
-                baseScene.UpdateGenerator();
-                await WaitForConditionAsync(() => baseScene.IsGeneratorUpToDate, "hbp_core activity generator update", () => FormatGeneratorDiagnostics(baseScene), 600);
-                await WaitForConditionAsync(() =>
-                    !baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate
-                    && !baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate,
-                    "hbp_core functional cut and surface update");
+            baseScene.UpdateGenerator();
+            await WaitForConditionAsync(() => baseScene.IsGeneratorUpToDate, "hbp_core activity generator update", () => FormatGeneratorDiagnostics(baseScene), 600);
+            await WaitForConditionAsync(() => !baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate && !baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate, "hbp_core functional cut and surface update");
 
-                Assert.That(column.ActivityGenerator.GeneratorSurface, Is.Not.Null);
-                Assert.That(column.SurfaceGenerator.ActivityGenerator, Is.SameAs(column.ActivityGenerator));
-                Assert.That(column.CutTextures.BrainCutTextures[0].width, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].width));
-                Assert.That(column.CutTextures.BrainCutTextures[0].height, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].height));
-                Assert.That(column.SurfaceGenerator.ActivityUV, Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfVertices));
-                Assert.That(column.SurfaceGenerator.AlphaUV, Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfVertices));
-                Mesh brainMesh = column.BrainMesh.GetComponent<MeshFilter>().mesh;
-                Assert.That(brainMesh.uv2, Has.Length.EqualTo(brainMesh.vertexCount));
-                Assert.That(brainMesh.uv3, Has.Length.EqualTo(brainMesh.vertexCount));
+            Assert.That(column.ActivityGenerator.GeneratorSurface, Is.Not.Null);
+            Assert.That(column.SurfaceGenerator.ActivityGenerator, Is.SameAs(column.ActivityGenerator));
+            Assert.That(column.CutTextures.BrainCutTextures[0].width, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].width));
+            Assert.That(column.CutTextures.BrainCutTextures[0].height, Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].height));
+            Assert.That(column.SurfaceGenerator.ActivityUV, Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfVertices));
+            Assert.That(column.SurfaceGenerator.AlphaUV, Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfVertices));
+            Mesh brainMesh = column.BrainMesh.GetComponent<MeshFilter>().mesh;
+            Assert.That(brainMesh.uv2, Has.Length.EqualTo(brainMesh.vertexCount));
+            Assert.That(brainMesh.uv3, Has.Length.EqualTo(brainMesh.vertexCount));
         }
 
         [Test]
@@ -993,13 +976,7 @@ namespace HBP.Tests.PlayMode.Module3D
                     GameObject columnObject = column.gameObject;
 
                     baseScene.AddCutPlane();
-                    await WaitForConditionAsync(() =>
-                        baseScene.Cuts.Count == 1
-                        && column.CutTextures.CutGenerators.Count == 1
-                        && !baseScene.SceneInformation.CutsNeedUpdate
-                        && !baseScene.SceneInformation.BaseCutTexturesNeedUpdate,
-                        $"cut update in reload cycle {cycle}",
-                        () => FormatCutUpdateDiagnostics(baseScene, column));
+                    await WaitForConditionAsync(() => baseScene.Cuts.Count == 1 && column.CutTextures.CutGenerators.Count == 1 && !baseScene.SceneInformation.CutsNeedUpdate && !baseScene.SceneInformation.BaseCutTexturesNeedUpdate, $"cut update in reload cycle {cycle}", () => FormatCutUpdateDiagnostics(baseScene, column));
 
                     GameObject cutObject = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects").BrainCutMeshes.Single();
                     await baseScene.CleanAsync();
@@ -1033,32 +1010,11 @@ namespace HBP.Tests.PlayMode.Module3D
             Quaternion secondViewRotation = Quaternion.Euler(40, 50, 60);
             Vector3 secondViewTarget = new(4, 5, 6);
 
-            visualization.Configuration = new VisualizationConfiguration(
-                ColorType.Grayscale,
-                ColorType.Hot,
-                ColorType.Winter,
-                MeshPart.Right,
-                "MNI White matter",
-                "MNI",
-                string.Empty,
-                true,
-                true,
-                0.42f,
-                true,
-                true,
-                true,
-                true,
-                1.75f,
-                0.2f,
-                0.8f,
-                CameraControl.Orbital,
-                new[] { new HBP.Core.Data.Cut(new Vector3(0, 1, 0), CutOrientation.Coronal, true, 0.25f) },
-                new[]
-                {
-                    new View(firstViewPosition, firstViewRotation, firstViewTarget),
-                    new View(secondViewPosition, secondViewRotation, secondViewTarget)
-                },
-                Enumerable.Empty<RegionOfInterest>());
+            visualization.Configuration = new VisualizationConfiguration(ColorType.Grayscale, ColorType.Hot, ColorType.Winter, MeshPart.Right, "MNI White matter", "MNI", string.Empty, true, true, 0.42f, true, true, true, true, 1.75f, 0.2f, 0.8f, CameraControl.Orbital, new[] { new HBP.Core.Data.Cut(new Vector3(0, 1, 0), CutOrientation.Coronal, true, 0.25f) }, new[]
+            {
+                new View(firstViewPosition, firstViewRotation, firstViewTarget),
+                new View(secondViewPosition, secondViewRotation, secondViewTarget)
+            }, Enumerable.Empty<RegionOfInterest>());
 
             baseScene.LoadConfiguration(false);
 
@@ -1116,10 +1072,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Visualization visualization = project.Visualizations.Single();
             baseScene.Initialize(visualization);
 
-            System.Exception exception = await AsyncPlayModeTestUtilities.CaptureExceptionAsync(async () =>
-            {
-                await baseScene.InitializeAsync(visualization, NoProgress, CancellationToken.None);
-            });
+            System.Exception exception = await AsyncPlayModeTestUtilities.CaptureExceptionAsync(async () => { await baseScene.InitializeAsync(visualization, NoProgress, CancellationToken.None); });
 
             Assert.That(exception, Is.TypeOf<CanNotLoadMNI>());
             Assert.That(scene.Scene.isLoaded, Is.True);
@@ -1217,11 +1170,7 @@ namespace HBP.Tests.PlayMode.Module3D
             return baseScene;
         }
 
-        private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization, List<string> LoadingMessages)> InitializeSyntheticAnatomicSceneAsync(
-            PlayModeTempDirectoryScope temp,
-            PlayModeSceneScope scene,
-            int anatomyColumnCount = 1,
-            string patientSuffix = "alpha")
+        private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization, List<string> LoadingMessages)> InitializeSyntheticAnatomicSceneAsync(PlayModeTempDirectoryScope temp, PlayModeSceneScope scene, int anatomyColumnCount = 1, string patientSuffix = "alpha")
         {
             Project project = CreateMinimalAnatomicProject(anatomyColumnCount, patientSuffix);
             Base3DScene baseScene = CreateRuntimeBase3DScene(scene);
@@ -1229,10 +1178,7 @@ namespace HBP.Tests.PlayMode.Module3D
             List<string> loadingMessages = new();
 
             baseScene.Initialize(visualization);
-            await baseScene.InitializeAsync(
-                visualization,
-                (progress, duration, text) => loadingMessages.Add(text.ToString()),
-                CancellationToken.None);
+            await baseScene.InitializeAsync(visualization, (progress, duration, text) => loadingMessages.Add(text.ToString()), CancellationToken.None);
             baseScene.FinalizeInitialization();
             WireRuntimeCameraGraph(baseScene);
             EnsureRuntimeSiteConfigurations(baseScene);
@@ -1353,6 +1299,7 @@ namespace HBP.Tests.PlayMode.Module3D
             {
                 cameraObject.AddComponent(postProcessLayerType);
             }
+
             SetPrivateField(view, "m_Camera3D", camera3D);
             SetPrivateField(camera3D, "m_Camera", camera);
             SetPrivateField(camera3D, "m_CircleX", CreateLineRendererObject("Circle X", cameraObject));
@@ -1477,39 +1424,11 @@ namespace HBP.Tests.PlayMode.Module3D
 
         private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1, string patientSuffix = "alpha")
         {
-            HBP.Core.Data.Site site = new(
-                $"module3d-scene-site-{patientSuffix}",
-                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"module3d-scene-coordinate-{patientSuffix}") },
-                Array.Empty<BaseTagValue>(),
-                $"module3d-scene-site-{patientSuffix}");
-            Patient patient = new(
-                $"module3d-scene-patient-{patientSuffix}",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                new[] { site },
-                Array.Empty<BaseTagValue>(),
-                string.Empty,
-                $"module3d-scene-patient-{patientSuffix}");
-            List<Column> columns = Enumerable.Range(0, anatomyColumnCount)
-                .Select(index => (Column)new AnatomicColumn(
-                    $"module3d-scene-anatomy-{index}",
-                    new BaseConfiguration(),
-                    new AnatomicConfiguration($"module3d-scene-anatomy-config-{index}"),
-                    $"module3d-scene-column-anatomy-{index}"))
-                .ToList();
-            Visualization visualization = new(
-                $"module3d-scene-visualization-{patientSuffix}",
-                new[] { patient },
-                columns,
-                new VisualizationConfiguration(),
-                $"module3d-scene-visualization-{patientSuffix}");
-            Project project = new(
-                $"module3d-scene-project-{patientSuffix}",
-                new HBP.Core.Data.ProjectPreferences("module3d-scene-test", $"module3d-scene-project-preferences-{patientSuffix}"),
-                new[] { patient },
-                Array.Empty<Group>(),
-                Array.Empty<Dataset>(),
-                new[] { visualization });
+            HBP.Core.Data.Site site = new($"module3d-scene-site-{patientSuffix}", new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"module3d-scene-coordinate-{patientSuffix}") }, Array.Empty<BaseTagValue>(), $"module3d-scene-site-{patientSuffix}");
+            Patient patient = new($"module3d-scene-patient-{patientSuffix}", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { site }, Array.Empty<BaseTagValue>(), string.Empty, $"module3d-scene-patient-{patientSuffix}");
+            List<Column> columns = Enumerable.Range(0, anatomyColumnCount).Select(index => (Column)new AnatomicColumn($"module3d-scene-anatomy-{index}", new BaseConfiguration(), new AnatomicConfiguration($"module3d-scene-anatomy-config-{index}"), $"module3d-scene-column-anatomy-{index}")).ToList();
+            Visualization visualization = new($"module3d-scene-visualization-{patientSuffix}", new[] { patient }, columns, new VisualizationConfiguration(), $"module3d-scene-visualization-{patientSuffix}");
+            Project project = new($"module3d-scene-project-{patientSuffix}", new HBP.Core.Data.ProjectPreferences("module3d-scene-test", $"module3d-scene-project-preferences-{patientSuffix}"), new[] { patient }, Array.Empty<Group>(), Array.Empty<Dataset>(), new[] { visualization });
             ApplicationState.LoadedProject = project;
             return project;
         }
@@ -1522,9 +1441,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
         private static System.Type FindLoadedType(string typeName)
         {
-            return System.AppDomain.CurrentDomain.GetAssemblies()
-                .Select(assembly => assembly.GetType(typeName))
-                .FirstOrDefault(type => type != null);
+            return System.AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType(typeName)).FirstOrDefault(type => type != null);
         }
 
         private static void AssertVectorApproximately(Vector3 actual, Vector3 expected, float tolerance = 0.0001f)
@@ -1552,6 +1469,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 if (field != null) return field;
                 type = type.BaseType;
             }
+
             Assert.Fail($"Missing field {fieldName}");
             return null;
         }
@@ -1568,32 +1486,28 @@ namespace HBP.Tests.PlayMode.Module3D
                 {
                     return;
                 }
+
                 await UniTask.Delay(10);
             }
+
             string message = $"Timed out while waiting for {description}.";
             if (diagnostics != null)
             {
                 message += $" {diagnostics()}";
             }
+
             Assert.Fail(message);
         }
 
         private static string FormatCutUpdateDiagnostics(Base3DScene baseScene, Column3D column)
         {
-            return $"Cuts={baseScene.Cuts.Count}, CutGeometryGenerators={baseScene.CutGeometryGenerators.Count}, " +
-                $"CutGenerators={column.CutTextures.CutGenerators.Count}, BaseTextures={column.CutTextures.BaseBrainCutTextures.Count}, " +
-                $"BrainCutMeshes={column.BrainCutMeshes.Count}, GeometryNeedsUpdate={baseScene.SceneInformation.GeometryNeedsUpdate}, " +
-                $"CutsNeedUpdate={baseScene.SceneInformation.CutsNeedUpdate}, BaseCutTexturesNeedUpdate={baseScene.SceneInformation.BaseCutTexturesNeedUpdate}, " +
-                $"FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, GUICutTexturesNeedUpdate={baseScene.SceneInformation.GUICutTexturesNeedUpdate}, " +
-                $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}.";
+            return $"Cuts={baseScene.Cuts.Count}, CutGeometryGenerators={baseScene.CutGeometryGenerators.Count}, " + $"CutGenerators={column.CutTextures.CutGenerators.Count}, BaseTextures={column.CutTextures.BaseBrainCutTextures.Count}, " + $"BrainCutMeshes={column.BrainCutMeshes.Count}, GeometryNeedsUpdate={baseScene.SceneInformation.GeometryNeedsUpdate}, " + $"CutsNeedUpdate={baseScene.SceneInformation.CutsNeedUpdate}, BaseCutTexturesNeedUpdate={baseScene.SceneInformation.BaseCutTexturesNeedUpdate}, " + $"FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, GUICutTexturesNeedUpdate={baseScene.SceneInformation.GUICutTexturesNeedUpdate}, " + $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}.";
         }
 
         private static string FormatGeneratorDiagnostics(Base3DScene baseScene)
         {
             bool updatingGenerators = GetPrivateField<bool>(baseScene, "m_UpdatingGenerators");
-            return $"IsGeneratorUpToDate={baseScene.IsGeneratorUpToDate}, UpdatingGenerators={updatingGenerators}, GeneratorNeedsUpdate={baseScene.SceneInformation.GeneratorNeedsUpdate}, " +
-                $"GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}, FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, " +
-                $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, SitesNeedUpdate={baseScene.SceneInformation.SitesNeedUpdate}.";
+            return $"IsGeneratorUpToDate={baseScene.IsGeneratorUpToDate}, UpdatingGenerators={updatingGenerators}, GeneratorNeedsUpdate={baseScene.SceneInformation.GeneratorNeedsUpdate}, " + $"GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}, FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, " + $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, SitesNeedUpdate={baseScene.SceneInformation.SitesNeedUpdate}.";
         }
 
         private static string NativeFixturePath(params string[] parts)
@@ -1603,6 +1517,7 @@ namespace HBP.Tests.PlayMode.Module3D
             {
                 path = Path.Combine(path, part);
             }
+
             return path;
         }
 
@@ -1682,12 +1597,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
             private static string VertexLine(Vector3 point)
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "v {0} {1} {2}",
-                    point.x,
-                    point.y,
-                    point.z);
+                return string.Format(CultureInfo.InvariantCulture, "v {0} {1} {2}", point.x, point.y, point.z);
             }
 
             private static HBP.Core.DLL.Surface LoadSurface(string objPath)

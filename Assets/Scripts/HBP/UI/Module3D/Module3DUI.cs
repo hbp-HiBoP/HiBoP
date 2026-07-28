@@ -14,10 +14,12 @@ namespace HBP.UI.Module3D
     public class Module3DUI : Singleton<Module3DUI>
     {
         #region Properties
+
         /// <summary>
         /// Reference to the SiteInfoDisplayer of the software
         /// </summary>
         [SerializeField] private SiteInfoDisplayer m_SiteInfoDisplayer;
+
         /// <summary>
         /// Reference to the AtlasInfoDisplayer of the software
         /// </summary>
@@ -27,21 +29,27 @@ namespace HBP.UI.Module3D
         /// Dictionary containing all scene windows by 3D scene
         /// </summary>
         private Dictionary<Base3DScene, Scene3DWindow> m_Scenes = new();
-        public static Dictionary<Base3DScene, Scene3DWindow> Scenes { get { return m_Instance.m_Scenes; } }
+
+        public static Dictionary<Base3DScene, Scene3DWindow> Scenes
+        {
+            get { return m_Instance.m_Scenes; }
+        }
 
         /// <summary>
         /// Prefab for the Scene3DWindow object
         /// </summary>
         [SerializeField] private GameObject m_SceneWindowPrefab;
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialization()
         {
             m_SiteInfoDisplayer.Initialize();
             m_AtlasInfoDisplayer.Initialize();
             ChangeLayoutDirection();
-            
+
             Module3DMain.OnAddScene.AddListener((scene) =>
             {
                 Scene3DWindow sceneWindow = Instantiate(m_SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
@@ -52,6 +60,7 @@ namespace HBP.UI.Module3D
             });
             PersistentDataManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);
         }
+
         private void ChangeLayoutDirection()
         {
             DestroyImmediate(gameObject.GetComponent<HorizontalOrVerticalLayoutGroup>());
@@ -67,6 +76,7 @@ namespace HBP.UI.Module3D
             layout.childForceExpandWidth = true;
             layout.spacing = 1;
         }
+
         #endregion
     }
 }

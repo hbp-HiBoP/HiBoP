@@ -14,15 +14,25 @@ namespace HBP.Core.Data
     public class AttributesFilterCondition : BaseFilterCondition
     {
         #region Enums
-        public enum AttributeType { Highlighted, Blacklisted, Label, Color }
+
+        public enum AttributeType
+        {
+            Highlighted,
+            Blacklisted,
+            Label,
+            Color
+        }
+
         #endregion
 
         #region Properties
+
         [JsonProperty("Type")] public AttributeType Type { get; set; }
         [JsonProperty("LabelValue")] public string LabelValue { get; set; }
         [JsonProperty("ExactMatch")] public bool ExactMatch { get; set; }
         [JsonProperty("CaseSensitive")] public bool CaseSensitive { get; set; }
         [JsonProperty("Color")] private SerializableColor m_Color;
+
         public Color Color
         {
             get => m_Color.ToColor();
@@ -51,10 +61,15 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Constructors
-        public AttributesFilterCondition() : this(AttributeType.Highlighted, "", false, false, SiteState.DefaultColor, false) { }
+
+        public AttributesFilterCondition() : this(AttributeType.Highlighted, "", false, false, SiteState.DefaultColor, false)
+        {
+        }
+
         public AttributesFilterCondition(AttributeType type, string labelValue, bool exactMatch, bool caseSensitive, Color color, bool isNot) : base(isNot)
         {
             Type = type;
@@ -63,6 +78,7 @@ namespace HBP.Core.Data
             CaseSensitive = caseSensitive;
             Color = color;
         }
+
         public AttributesFilterCondition(AttributeType type, string labelValue, bool exactMatch, bool caseSensitive, Color color, bool isNot, string ID) : base(isNot, ID)
         {
             Type = type;
@@ -71,13 +87,16 @@ namespace HBP.Core.Data
             CaseSensitive = caseSensitive;
             Color = color;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new AttributesFilterCondition(Type, LabelValue, ExactMatch, CaseSensitive, Color, IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -90,9 +109,11 @@ namespace HBP.Core.Data
                 Color = other.Color;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is Object3D.Site site)
@@ -120,6 +141,7 @@ namespace HBP.Core.Data
                                 labels = labels.Select(l => l.ToLower()).ToList();
                                 labelToCompare = labelToCompare.ToLower();
                             }
+
                             if (ExactMatch)
                             {
                                 result = labels.Contains(labelToCompare);
@@ -129,15 +151,19 @@ namespace HBP.Core.Data
                                 result = labels.Any(l => l.Contains(labelToCompare));
                             }
                         }
+
                         break;
                     case AttributeType.Color:
                         result = site.State.Color.Equals(Color);
                         break;
                 }
+
                 return result != IsNot;
             }
+
             return false;
         }
+
         #endregion
     }
 }

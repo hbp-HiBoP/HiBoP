@@ -8,15 +8,13 @@ namespace HBP.UI.Informations
     public class ChannelStructItem : SelectableItem<ChannelStruct>
     {
         #region Properties
+
         [SerializeField] Text m_ChannelText;
         [SerializeField] Text m_PatientText;
 
         public override ChannelStruct Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -28,6 +26,7 @@ namespace HBP.UI.Informations
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

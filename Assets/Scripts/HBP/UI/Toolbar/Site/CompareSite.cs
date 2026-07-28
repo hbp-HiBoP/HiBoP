@@ -6,13 +6,16 @@ namespace HBP.UI.Toolbar
     public class CompareSite : Tool
     {
         #region Properties
+
         /// <summary>
         /// Toggle the compare sites mode (after having selected a site, allows the selection of another site)
         /// </summary>
         [SerializeField] private Toggle m_Toggle;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -24,6 +27,7 @@ namespace HBP.UI.Toolbar
                 UpdateInteractable();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -32,6 +36,7 @@ namespace HBP.UI.Toolbar
             m_Toggle.interactable = false;
             m_Toggle.isOn = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -42,6 +47,7 @@ namespace HBP.UI.Toolbar
 
             m_Toggle.interactable = isSiteSelected || isComparingSites;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -49,6 +55,7 @@ namespace HBP.UI.Toolbar
         {
             m_Toggle.isOn = SelectedScene.ImplantationManager.ComparingSites;
         }
+
         #endregion
     }
 }

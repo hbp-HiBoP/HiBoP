@@ -5,6 +5,7 @@ namespace HBP.Core.Data
     public class ProjectInfo
     {
         #region Properties
+
         public string Name { get; set; }
         public ProjectPreferences Settings { get; set; }
         public int Patients { get; set; }
@@ -14,9 +15,11 @@ namespace HBP.Core.Data
         public string Path { get; set; }
         public System.Exception SettingsLoadException { get; private set; }
         public ProjectManifest Manifest { get; private set; }
+
         #endregion
 
         #region Constructors
+
         public ProjectInfo()
         {
             Name = string.Empty;
@@ -45,6 +48,7 @@ namespace HBP.Core.Data
                 throw new DirectoryNotProjectException(path, exception);
             }
         }
+
         #endregion
 
         internal ProjectManifest GetCurrentManifest()
@@ -53,6 +57,7 @@ namespace HBP.Core.Data
             {
                 ApplyManifest(ProjectManifest.Read(Path, true));
             }
+
             return Manifest;
         }
 

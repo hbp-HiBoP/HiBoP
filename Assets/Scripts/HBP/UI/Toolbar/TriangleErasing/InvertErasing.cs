@@ -7,13 +7,16 @@ namespace HBP.UI.Toolbar
     public class InvertErasing : Tool
     {
         #region Properties
+
         /// <summary>
         /// Invert the erased area
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -26,6 +29,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.TriangleEraser.CurrentMode = TriEraserMode.Invert;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -33,6 +37,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -40,6 +45,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = true;
         }
+
         #endregion
     }
 }

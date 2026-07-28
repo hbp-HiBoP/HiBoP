@@ -13,32 +13,39 @@ namespace HBP.UI.Main.QuickStart
     public class FunctionalPanel : QuickStartPanel
     {
         #region Properties
+
         [SerializeField] private Dropdown m_DataContainer;
         private Type[] m_DataContainerTypes;
         [SerializeField] private FunctionalDataList m_List;
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
-            
+
             m_DataContainerTypes = m_DataContainer.Set(typeof(DataContainer), new IEEG());
             m_DataContainer.SetValue(Array.IndexOf(m_DataContainerTypes, typeof(BrainVision)));
 
             m_DataContainer.onValueChanged.AddListener(OnChangeDataContainerType);
         }
+
         private void OnChangeDataContainerType(int type)
         {
             foreach (var functionalData in m_List.Objects)
             {
                 functionalData.ChangeContainer(m_DataContainerTypes[type]);
             }
+
             m_List.Refresh();
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Open()
         {
             base.Open();
@@ -51,6 +58,7 @@ namespace HBP.UI.Main.QuickStart
                     m_List.Remove(functionalData);
                 }
             }
+
             foreach (var patient in ApplicationState.LoadedProject.Patients)
             {
                 if (!functionalDataObjects.Any(f => f.DataInfo.Patient == patient))
@@ -59,6 +67,7 @@ namespace HBP.UI.Main.QuickStart
                 }
             }
         }
+
         public override bool OpenNextPanel()
         {
             if (m_List.Objects.All(o => !o.DataInfo.IsOk))
@@ -66,15 +75,18 @@ namespace HBP.UI.Main.QuickStart
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No valid data", "At least one data must be valid in order to continue.").Forget();
                 return false;
             }
+
             Dataset dataset = new("QuickStart", DatabaseManager.Database.Protocols[0], m_List.Objects.Select(f => f.DataInfo));
             ApplicationState.LoadedProject.SetDatasets(new Dataset[] { dataset });
             return base.OpenNextPanel();
         }
+
         public override bool OpenPreviousPanel()
         {
             ApplicationState.LoadedProject.SetDatasets(new Dataset[0]);
             return base.OpenPreviousPanel();
         }
+
         #endregion
     }
 }

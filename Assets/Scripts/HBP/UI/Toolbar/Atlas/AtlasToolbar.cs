@@ -5,14 +5,17 @@ namespace HBP.UI.Toolbar
     public class AtlasToolbar : Toolbar
     {
         #region Properties
+
         /// <summary>
         /// Change the state of the atlas
         /// </summary>
         [SerializeField] private AtlasState m_AtlasState;
+
         /// <summary>
         /// Change the parameters of the IBC contrasts
         /// </summary>
         [SerializeField] private FMRIAtlasParameters m_FMRIAtlasParameters;
+
         /// <summary>
         /// Change the contrast
         /// </summary>
@@ -25,9 +28,11 @@ namespace HBP.UI.Toolbar
         [SerializeField] private LocalizersSelector m_LocalizersSelector;
 
         [SerializeField] private LocalizersTimeline m_LocalizersTimeline;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>
@@ -42,6 +47,7 @@ namespace HBP.UI.Toolbar
             m_Tools.Add(m_LocalizersSelector);
             m_Tools.Add(m_LocalizersTimeline);
         }
+
         #endregion
     }
 }

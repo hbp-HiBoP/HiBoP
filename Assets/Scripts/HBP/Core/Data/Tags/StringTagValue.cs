@@ -22,6 +22,7 @@
     public class StringTagValue : TagValue<StringTag, string>
     {
         #region Constructors
+
         /// <summary>
         /// Create a new instance of StringTagValue.
         /// </summary>
@@ -31,6 +32,7 @@
         public StringTagValue(StringTag tag, string value, string ID) : base(tag, value, ID)
         {
         }
+
         /// <summary>
         /// Create a new instance of StringTagValue.
         /// </summary>
@@ -39,27 +41,32 @@
         public StringTagValue(StringTag tag, string value) : base(tag, value)
         {
         }
+
         /// <summary>
         /// Create a new instance of StringTagValue.
         /// </summary>
         public StringTagValue() : this(null, default)
         {
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new StringTagValue(Tag, Value, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is BaseTagValue baseTagValue)
+            if (copy is BaseTagValue baseTagValue)
             {
                 Value = baseTagValue.DisplayableValue;
             }
         }
+
         #endregion
     }
 }

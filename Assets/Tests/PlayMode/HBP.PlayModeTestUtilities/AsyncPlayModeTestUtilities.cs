@@ -16,6 +16,7 @@ namespace HBP.Tests.PlayMode.Utilities
                 {
                     throw new TimeoutException("Timed out while waiting for PlayMode condition.");
                 }
+
                 yield return null;
             }
         }

@@ -16,6 +16,7 @@ namespace HBP.UI.Main
     public class PatientCreator : ObjectCreator<Patient>
     {
         #region Private Methods
+
         protected override async UniTaskVoid SaveSelector(ObjectSelector<Patient> selector, bool generateNewIDs)
         {
             if (!generateNewIDs)
@@ -38,6 +39,7 @@ namespace HBP.UI.Main
                         {
                             nameList += ", ...";
                         }
+
                         message = $"{numberOfExistingObjects} patients will be overridden ({nameList}). Are you sure you want to override them?";
                     }
 
@@ -74,6 +76,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         #endregion
     }
 }

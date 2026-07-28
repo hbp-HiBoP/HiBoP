@@ -20,16 +20,7 @@ namespace HBP.Core.DLL
 
         private readonly struct MarsAtlasMetadata
         {
-            public MarsAtlasMetadata(
-                string hemisphere,
-                string lobe,
-                string nameFS,
-                string name,
-                string fullName,
-                string brodmannAreas,
-                string information,
-                Color color,
-                Color highlightedColor)
+            public MarsAtlasMetadata(string hemisphere, string lobe, string nameFS, string name, string fullName, string brodmannAreas, string information, Color color, Color highlightedColor)
             {
                 Hemisphere = hemisphere;
                 Lobe = lobe;
@@ -54,10 +45,15 @@ namespace HBP.Core.DLL
         }
 
         #region Constructors
-        public MarsAtlas() : base() { }
+
+        public MarsAtlas() : base()
+        {
+        }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Get the label of the MarsAtlas region given its shortened name
         /// </summary>
@@ -68,6 +64,7 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_mars_atlas_find_label(_handle.Handle, name, out int label));
             return label;
         }
+
         /// <summary>
         /// Return all the labels of the mars atlas file
         /// </summary>
@@ -80,8 +77,10 @@ namespace HBP.Core.DLL
             {
                 ThrowIfFailed(hbp_mars_atlas_copy_labels(_handle.Handle, labels, labels.Length));
             }
+
             return labels;
         }
+
         /// <summary>
         /// Return the name of the hemisphere given a mars atlas label ID
         /// </summary>
@@ -93,6 +92,7 @@ namespace HBP.Core.DLL
             if (TryGetMetadata(id, out MarsAtlasMetadata metadata)) return metadata.Hemisphere;
             return CopyHbpCoreText(id, hbp_mars_atlas_copy_hemisphere);
         }
+
         /// <summary>
         /// Return the name of the lobe given a mars atlas label ID
         /// </summary>
@@ -104,6 +104,7 @@ namespace HBP.Core.DLL
             if (TryGetMetadata(label, out MarsAtlasMetadata metadata)) return metadata.Lobe;
             return CopyHbpCoreText(label, hbp_mars_atlas_copy_lobe);
         }
+
         /// <summary>
         /// Return the name of the name fs given a mars atlas label ID
         /// </summary>
@@ -115,6 +116,7 @@ namespace HBP.Core.DLL
             if (TryGetMetadata(label, out MarsAtlasMetadata metadata)) return metadata.NameFS;
             return CopyHbpCoreText(label, hbp_mars_atlas_copy_name_fs);
         }
+
         /// <summary>
         /// Return the name of a mars atlas area given a mars atlas label ID
         /// </summary>
@@ -126,6 +128,7 @@ namespace HBP.Core.DLL
             if (TryGetMetadata(label, out MarsAtlasMetadata metadata)) return metadata.Name;
             return CopyHbpCoreText(label, hbp_mars_atlas_copy_name);
         }
+
         /// <summary>
         /// Return the full name of a mars atlas area given a mars atlas label ID
         /// </summary>
@@ -137,6 +140,7 @@ namespace HBP.Core.DLL
             if (TryGetMetadata(label, out MarsAtlasMetadata metadata)) return metadata.FullName;
             return CopyHbpCoreText(label, hbp_mars_atlas_copy_full_name);
         }
+
         /// <summary>
         /// Return the name of the brodmann area given a mars atlas label ID
         /// </summary>
@@ -148,6 +152,7 @@ namespace HBP.Core.DLL
             if (TryGetMetadata(label, out MarsAtlasMetadata metadata)) return metadata.BrodmannAreas;
             return CopyHbpCoreText(label, hbp_mars_atlas_copy_brodmann_areas);
         }
+
         public override void Load()
         {
             string indexPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "mars_atlas_index.csv");
@@ -155,6 +160,7 @@ namespace HBP.Core.DLL
             string mriPath = Path.Combine(ApplicationState.DataPath, "Atlases", "MarsAtlas", "colin27_MNI_MarsAtlas.nii");
             Load(indexPath, brodmannPath, mriPath);
         }
+
         /// <summary>
         /// Load the mars atlas
         /// </summary>
@@ -172,9 +178,11 @@ namespace HBP.Core.DLL
             {
                 ThrowIfFailed(hbp_mars_atlas_apply_offset(_handle.Handle, 1.7f, 0f, 1f));
             }
+
             Loading = false;
             return Loaded;
         }
+
         public override string GetAreaName(int index)
         {
             string[] areaInformation = GetInformation(index);
@@ -182,9 +190,11 @@ namespace HBP.Core.DLL
                 return areaInformation[4];
             return string.Empty;
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void GetAreaNames()
         {
             m_AreaNames = new List<string>();
@@ -206,6 +216,7 @@ namespace HBP.Core.DLL
                     if (headers[i].Trim() == "Label") labelIndex = i;
                     if (headers[i].Trim() == "Full name") fullNameIndex = i;
                 }
+
                 if (labelIndex == -1 || fullNameIndex == -1) return;
 
                 while (!reader.EndOfStream)
@@ -231,9 +242,11 @@ namespace HBP.Core.DLL
 
             m_AreaNames.AddRange(names.OrderBy(n => n).Distinct());
         }
+
         #endregion
 
         #region Memory Management
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -243,6 +256,7 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_mars_atlas_create(out IntPtr atlas));
             _handle = new HandleRef(this, atlas);
         }
+
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -252,6 +266,7 @@ namespace HBP.Core.DLL
             m_MetadataCacheBuilt = false;
             ThrowIfFailed(hbp_mars_atlas_destroy(_handle.Handle));
         }
+
         #endregion
 
         private delegate HbpCoreStatus CopyMarsAtlasText(IntPtr atlas, int label, StringBuilder text, int textCapacity);
@@ -317,16 +332,7 @@ namespace HBP.Core.DLL
                 string nameFS = CopyHbpCoreText(label, hbp_mars_atlas_copy_name_fs);
                 string name = CopyHbpCoreText(label, hbp_mars_atlas_copy_name);
                 string fullName = CopyHbpCoreText(label, hbp_mars_atlas_copy_full_name);
-                m_MetadataByLabel[label] = new MarsAtlasMetadata(
-                    hemisphere,
-                    lobe,
-                    nameFS,
-                    name,
-                    fullName,
-                    CopyHbpCoreText(label, hbp_mars_atlas_copy_brodmann_areas),
-                    $"{hemisphere}_{name}?{hemisphere}?{lobe}?{nameFS}?{fullName}",
-                    CopyHbpCoreColor(label, highlighted: false),
-                    CopyHbpCoreColor(label, highlighted: true));
+                m_MetadataByLabel[label] = new MarsAtlasMetadata(hemisphere, lobe, nameFS, name, fullName, CopyHbpCoreText(label, hbp_mars_atlas_copy_brodmann_areas), $"{hemisphere}_{name}?{hemisphere}?{lobe}?{nameFS}?{fullName}", CopyHbpCoreColor(label, highlighted: false), CopyHbpCoreColor(label, highlighted: true));
             }
 
             GetAreaNames();
@@ -343,10 +349,12 @@ namespace HBP.Core.DLL
                 {
                     return builder.ToString();
                 }
+
                 if (status != HbpCoreStatus.BufferTooSmall)
                 {
                     ThrowIfFailed(status);
                 }
+
                 capacity *= 2;
             }
 
@@ -360,35 +368,49 @@ namespace HBP.Core.DLL
         }
 
         #region DLLImport
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_create(out IntPtr atlas);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_destroy(IntPtr atlas);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_load", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_load(IntPtr atlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string indexPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string brodmannPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string niftiPath);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_apply_offset", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_apply_offset(IntPtr atlas, float x, float y, float z);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_get_label_count", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_get_label_count(IntPtr atlas, out int count);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_copy_labels", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_copy_labels(IntPtr atlas, [Out] int[] labels, int labelCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_find_label", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_find_label(IntPtr atlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string name, out int label);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_get_color", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_get_color(IntPtr atlas, int label, int highlighted, out Color4 color);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_copy_hemisphere", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_copy_hemisphere(IntPtr atlas, int label, StringBuilder text, int textCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_copy_lobe", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_copy_lobe(IntPtr atlas, int label, StringBuilder text, int textCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_copy_name_fs", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_copy_name_fs(IntPtr atlas, int label, StringBuilder text, int textCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_copy_name", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_copy_name(IntPtr atlas, int label, StringBuilder text, int textCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_copy_full_name", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_copy_full_name(IntPtr atlas, int label, StringBuilder text, int textCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_mars_atlas_copy_brodmann_areas", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_mars_atlas_copy_brodmann_areas(IntPtr atlas, int label, StringBuilder text, int textCapacity);
-        #endregion
 
+        #endregion
     }
 }

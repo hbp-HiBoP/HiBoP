@@ -109,15 +109,7 @@ namespace HBP.Tests.PlayMode.Workflow
 
             Protocol protocol = PlayModeProjectHarness.CreateProtocol();
             Patient patient = CreatePatient("invalid");
-            StaticDataInfo invalidDataInfo = new(
-                "data-manager-playmode-invalid-static",
-                protocol,
-                new CSV("", Array.Empty<Error>(), Array.Empty<Warning>()),
-                new Error[] { new RequiredFieldEmptyError("data-manager playmode invalid data") },
-                Array.Empty<Warning>(),
-                patient,
-                "data-manager-playmode-db",
-                "data-manager-playmode-invalid-data-001");
+            StaticDataInfo invalidDataInfo = new("data-manager-playmode-invalid-static", protocol, new CSV("", Array.Empty<Error>(), Array.Empty<Warning>()), new Error[] { new RequiredFieldEmptyError("data-manager playmode invalid data") }, Array.Empty<Warning>(), patient, "data-manager-playmode-db", "data-manager-playmode-invalid-data-001");
 
             Assert.That(DataManager.GetData(invalidDataInfo), Is.Null);
             Assert.That(DataManager.GetData(invalidDataInfo, protocol.Blocs[0], "A1"), Is.Null);
@@ -137,27 +129,12 @@ namespace HBP.Tests.PlayMode.Workflow
             });
 
             Protocol protocol = PlayModeProjectHarness.CreateProtocol();
-            return new StaticDataInfo(
-                $"data-manager-playmode-static-{suffix}",
-                protocol,
-                new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), $"data-manager-playmode-container-{suffix}"),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                CreatePatient(suffix),
-                "data-manager-playmode-db",
-                $"data-manager-playmode-static-data-{suffix}");
+            return new StaticDataInfo($"data-manager-playmode-static-{suffix}", protocol, new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), $"data-manager-playmode-container-{suffix}"), Array.Empty<Error>(), Array.Empty<Warning>(), CreatePatient(suffix), "data-manager-playmode-db", $"data-manager-playmode-static-data-{suffix}");
         }
 
         private static Patient CreatePatient(string suffix)
         {
-            return new Patient(
-                $"data-manager-playmode-patient-{suffix}",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                Array.Empty<Site>(),
-                Array.Empty<BaseTagValue>(),
-                string.Empty,
-                $"data-manager-playmode-patient-{suffix}");
+            return new Patient($"data-manager-playmode-patient-{suffix}", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, $"data-manager-playmode-patient-{suffix}");
         }
     }
 }

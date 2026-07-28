@@ -12,20 +12,19 @@ namespace HBP.UI.Main
     public class IconModifier : ObjectModifier<Icon>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] ImageSelector m_ImageSelector;
 
         Core.Tools.TimeWindow m_Window;
+
         /// <summary>
         /// Window of the subBloc.
         /// </summary>
         public Core.Tools.TimeWindow Window
         {
-            get
-            {
-                return m_Window;
-            }
+            get { return m_Window; }
             set
             {
                 m_Window = value;
@@ -39,10 +38,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -51,9 +47,11 @@ namespace HBP.UI.Main
                 m_ImageSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -64,6 +62,7 @@ namespace HBP.UI.Main
             m_WindowSlider.onValueChanged.AddListener(ChangeWindow);
             m_ImageSelector.onValueChanged.AddListener(ChangeImage);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -77,13 +76,14 @@ namespace HBP.UI.Main
             m_WindowSlider.Values = objectToDisplay.Window.ToVector2();
             m_ImageSelector.Path = objectToDisplay.ImagePath;
         }
+
         /// <summary>
         /// Change the name of the icon.
         /// </summary>
         /// <param name="value">Name</param>
         protected void ChangeName(string value)
         {
-            if(value != "")
+            if (value != "")
             {
                 ObjectTemp.Name = value;
             }
@@ -92,6 +92,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Change the window.
         /// </summary>
@@ -101,6 +102,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Window = new Core.Tools.TimeWindow((int)min, (int)max);
         }
+
         /// <summary>
         /// Change the image.
         /// </summary>
@@ -109,6 +111,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.ImagePath = path;
         }
+
         #endregion
     }
 }

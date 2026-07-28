@@ -21,7 +21,7 @@ namespace HBP.Data.BIDS
             {
                 return GetDefaultConfiguration();
             }
-            
+
             try
             {
                 return ClassLoaderSaver.LoadFromJson<BIDSExportConfiguration>(path);
@@ -31,7 +31,7 @@ namespace HBP.Data.BIDS
                 return GetDefaultConfiguration();
             }
         }
-        
+
         /// <summary>
         /// Save a BIDS export configuration to a JSON file.
         /// </summary>
@@ -41,7 +41,7 @@ namespace HBP.Data.BIDS
         {
             ClassLoaderSaver.SaveToJSon(config, path, true);
         }
-        
+
         /// <summary>
         /// Get the default BIDS export configuration that matches the previous BIDSParameters behavior.
         /// </summary>
@@ -54,48 +54,55 @@ namespace HBP.Data.BIDS
                 AnatomicalRules = new List<AnatomicalDataRule>
                 {
                     // Pre-implantation session
-                    new() { 
-                        DataType = "MRI", 
-                        SourceName = "Preimplantation", 
-                        BIDSSuffix = "T1w", 
-                        BIDSSession = "pre" 
+                    new()
+                    {
+                        DataType = "MRI",
+                        SourceName = "Preimplantation",
+                        BIDSSuffix = "T1w",
+                        BIDSSession = "pre"
                     },
-                    new() { 
-                        DataType = "Mesh", 
-                        SourceName = "Grey matter", 
-                        BIDSSuffix = "pial", 
-                        BIDSSession = "pre" 
+                    new()
+                    {
+                        DataType = "Mesh",
+                        SourceName = "Grey matter",
+                        BIDSSuffix = "pial",
+                        BIDSSession = "pre"
                     },
-                    new() { 
-                        DataType = "Mesh", 
-                        SourceName = "White matter", 
-                        BIDSSuffix = "white", 
-                        BIDSSession = "pre" 
+                    new()
+                    {
+                        DataType = "Mesh",
+                        SourceName = "White matter",
+                        BIDSSuffix = "white",
+                        BIDSSession = "pre"
                     },
-                    
+
                     // Post-implantation session
-                    new() { 
-                        DataType = "MRI", 
-                        SourceName = "Postimplantation", 
-                        BIDSSuffix = "T1w", 
-                        BIDSSession = "post" 
+                    new()
+                    {
+                        DataType = "MRI",
+                        SourceName = "Postimplantation",
+                        BIDSSuffix = "T1w",
+                        BIDSSession = "post"
                     },
-                    new() { 
-                        DataType = "MRI", 
-                        SourceName = "CT", 
-                        BIDSSuffix = "CT", 
-                        BIDSSession = "post" 
+                    new()
+                    {
+                        DataType = "MRI",
+                        SourceName = "CT",
+                        BIDSSuffix = "CT",
+                        BIDSSession = "post"
                     }
                 },
                 CoordinateSystemRules = new List<CoordinateSystemRule>
                 {
-                    new() { 
-                        CoordinateSystemName = "Patient", 
-                        BIDSSpace = "" 
+                    new()
+                    {
+                        CoordinateSystemName = "Patient",
+                        BIDSSpace = ""
                     },
-                    new() { 
-                        CoordinateSystemName = "MNI", 
-                        BIDSSpace = "MNI152Lin" 
+                    new()
+                    {
+                        CoordinateSystemName = "MNI",
+                        BIDSSpace = "MNI152Lin"
                     }
                 }
             };

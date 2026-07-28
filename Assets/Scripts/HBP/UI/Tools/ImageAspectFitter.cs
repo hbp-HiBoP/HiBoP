@@ -11,39 +11,36 @@ namespace HBP.UI.Tools
     public class ImageAspectFitter : UIBehaviour, ILayoutElement, ILayoutIgnorer
     {
         #region Properties
-        public enum FitMode { None, WidthControlsHeigth, HeigthControlsWidth, MaxControlMin }
-        [SerializeField]
-        private FitMode m_FitMode;
 
-        [SerializeField]
-        private float m_MinWidth = -1f;
+        public enum FitMode
+        {
+            None,
+            WidthControlsHeigth,
+            HeigthControlsWidth,
+            MaxControlMin
+        }
 
-        [SerializeField]
-        private float m_MinHeight = -1f;
+        [SerializeField] private FitMode m_FitMode;
 
-        [SerializeField]
-        private float m_PreferredWidth = -1f;
+        [SerializeField] private float m_MinWidth = -1f;
 
-        [SerializeField]
-        private float m_PreferredHeight = -1f;
+        [SerializeField] private float m_MinHeight = -1f;
 
-        [SerializeField]
-        private float m_FlexibleWidth = -1f;
+        [SerializeField] private float m_PreferredWidth = -1f;
 
-        [SerializeField]
-        private float m_FlexibleHeight = -1f;
+        [SerializeField] private float m_PreferredHeight = -1f;
 
-        [SerializeField]
-        private float m_Min = -1f;
+        [SerializeField] private float m_FlexibleWidth = -1f;
 
-        [SerializeField]
-        private float m_Preferred = -1f;
+        [SerializeField] private float m_FlexibleHeight = -1f;
 
-        [SerializeField]
-        private float m_Flexible = -1f;
+        [SerializeField] private float m_Min = -1f;
 
-        [SerializeField]
-        private bool m_IgnoreLayout;
+        [SerializeField] private float m_Preferred = -1f;
+
+        [SerializeField] private float m_Flexible = -1f;
+
+        [SerializeField] private bool m_IgnoreLayout;
 
         protected Image m_Image;
         protected RectTransform m_RectTransform;
@@ -53,10 +50,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual bool ignoreLayout
         {
-            get
-            {
-                return this.m_IgnoreLayout;
-            }
+            get { return this.m_IgnoreLayout; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref this.m_IgnoreLayout, value))
@@ -67,10 +61,7 @@ namespace HBP.UI.Tools
 
         public FitMode fitMode
         {
-            get
-            {
-                return this.m_FitMode;
-            }
+            get { return this.m_FitMode; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref this.m_FitMode, value))
@@ -84,10 +75,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual float minWidth
         {
-            get
-            {
-                return this.m_MinWidth;
-            }
+            get { return this.m_MinWidth; }
         }
 
         /// <summary>
@@ -95,10 +83,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual float minHeight
         {
-            get
-            {
-                return this.m_MinHeight;
-            }
+            get { return this.m_MinHeight; }
         }
 
         /// <summary>
@@ -106,10 +91,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual float preferredWidth
         {
-            get
-            {
-                return this.m_PreferredWidth;
-            }
+            get { return this.m_PreferredWidth; }
         }
 
         /// <summary>
@@ -117,10 +99,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual float preferredHeight
         {
-            get
-            {
-                return this.m_PreferredHeight;
-            }
+            get { return this.m_PreferredHeight; }
         }
 
         /// <summary>
@@ -128,10 +107,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual float flexibleWidth
         {
-            get
-            {
-                return this.m_FlexibleWidth;
-            }
+            get { return this.m_FlexibleWidth; }
         }
 
         /// <summary>
@@ -139,10 +115,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual float flexibleHeight
         {
-            get
-            {
-                return this.m_FlexibleHeight;
-            }
+            get { return this.m_FlexibleHeight; }
         }
 
         protected ImageAspectFitter()
@@ -154,15 +127,13 @@ namespace HBP.UI.Tools
         /// </summary>
         public virtual int layoutPriority
         {
-            get
-            {
-                return 1;
-            }
+            get { return 1; }
         }
 
         #endregion
 
         #region Public Methods
+
         public void CalculateLayoutInputHorizontal()
         {
             float ratio = m_Image.mainTexture.width / (float)m_Image.mainTexture.height;
@@ -177,6 +148,7 @@ namespace HBP.UI.Tools
                 m_FlexibleHeight = m_Flexible;
             }
         }
+
         public void CalculateLayoutInputVertical()
         {
             float ratio = (float)m_Image.mainTexture.height / m_Image.mainTexture.width;
@@ -191,9 +163,11 @@ namespace HBP.UI.Tools
                 m_FlexibleHeight = m_Flexible == -1 ? m_Flexible : ratio * m_Flexible;
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -206,6 +180,7 @@ namespace HBP.UI.Tools
         {
             this.SetDirty();
         }
+
         /// <summary>
         ///   <para>See MonoBehaviour.OnDisable.</para>
         /// </summary>
@@ -214,6 +189,7 @@ namespace HBP.UI.Tools
             this.SetDirty();
             base.OnDisable();
         }
+
         protected override void OnDidApplyAnimationProperties()
         {
             this.SetDirty();
@@ -223,6 +199,7 @@ namespace HBP.UI.Tools
         {
             this.SetDirty();
         }
+
         /// <summary>
         ///   <para>Mark the LayoutElement as dirty.</para>
         /// </summary>
@@ -241,6 +218,7 @@ namespace HBP.UI.Tools
             this.SetDirty();
         }
 #endif
+
         #endregion
     }
 }

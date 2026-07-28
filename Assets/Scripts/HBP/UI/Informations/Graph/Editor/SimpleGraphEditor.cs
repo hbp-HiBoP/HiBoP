@@ -7,6 +7,7 @@ namespace HBP.UI.Informations.Graphs
     public class SimpleGraphEditor : Editor
     {
         #region Properties
+
         // General
         SerializedProperty m_Title;
         SerializedProperty m_FontColor;
@@ -32,9 +33,11 @@ namespace HBP.UI.Informations.Graphs
         SerializedProperty m_OnChangeUseDefaultRange;
         SerializedProperty m_OnChangeSelected;
         SerializedProperty m_OnChangeCurves;
+
         #endregion
 
         #region Public Methods
+
         public void OnEnable()
         {
             // General
@@ -55,6 +58,7 @@ namespace HBP.UI.Informations.Graphs
             m_OnChangeSelected = serializedObject.FindProperty("m_OnChangeSelected");
             m_OnChangeCurves = serializedObject.FindProperty("m_OnChangeCurves");
         }
+
         public override void OnInspectorGUI()
         {
             // General
@@ -74,12 +78,12 @@ namespace HBP.UI.Informations.Graphs
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_OrdinateDisplayRange, new GUIContent("Range"));
             EditorGUI.indentLevel--;
-        
+
             EditorGUILayout.PropertyField(m_Curves, true);
 
             // Events
             m_ShowEvents = EditorGUILayout.Foldout(m_ShowEvents, "Events");
-            if(m_ShowEvents)
+            if (m_ShowEvents)
             {
                 EditorGUILayout.PropertyField(m_OnChangeTitle);
                 EditorGUILayout.PropertyField(m_OnChangeFontColor);
@@ -93,6 +97,7 @@ namespace HBP.UI.Informations.Graphs
 
             serializedObject.ApplyModifiedProperties();
         }
+
         #endregion
     }
 }

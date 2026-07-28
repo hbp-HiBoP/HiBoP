@@ -10,18 +10,23 @@ namespace HBP.UI.Tools
     public class LoadingManager : Manager<LoadingManager>
     {
         #region Properties
+
         [SerializeField] private LoadingCircle m_LoadingCircle;
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialization()
         {
             base.Initialization();
             m_LoadingCircle.Initialize();
         }
+
         #endregion
 
         #region Public Methods
+
         public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute, bool showInformations = true)
         {
             AsyncMethod<T> method = new(taskToExecute);
@@ -48,6 +53,7 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.Close();
             }
         }
+
         public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
         {
             AsyncMethod method = new(taskToExecute);
@@ -67,8 +73,10 @@ namespace HBP.UI.Tools
                 Debug.LogError(e.ToString());
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
+
             m_Instance.m_LoadingCircle.Close();
         }
+
         public static void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
         {
             LoadVoid(taskToExecute, showInformations).Forget();
@@ -106,6 +114,7 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
             }
         }
+
         public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations = true)
         {
             CancelableAsyncMethod method = new(taskToExecute);
@@ -138,13 +147,16 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
             }
         }
+
         public static void Load(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations = true)
         {
             LoadVoid(taskToExecute, showInformations).Forget();
         }
+
         #endregion
 
         #region Private Methods
+
         private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations)
         {
             AsyncMethod method = new(taskToExecute);
@@ -164,8 +176,10 @@ namespace HBP.UI.Tools
                 Debug.LogError(e.ToString());
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
+
             m_Instance.m_LoadingCircle.Close();
         }
+
         private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations)
         {
             CancelableAsyncMethod method = new(taskToExecute);
@@ -195,6 +209,7 @@ namespace HBP.UI.Tools
                 m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
             }
         }
+
         #endregion
     }
 }

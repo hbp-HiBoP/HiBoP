@@ -20,14 +20,12 @@ namespace HBP.Tests.Serialization
         {
             int executions = 0;
             TaskCompletionSource<bool> release = NewCompletionSource<bool>();
-            SharedLoadingOperation<string> operation = new(
-                7,
-                async (progress, token) =>
-                {
-                    executions++;
-                    await release.Task;
-                    return "result";
-                });
+            SharedLoadingOperation<string> operation = new(7, async (progress, token) =>
+            {
+                executions++;
+                await release.Task;
+                return "result";
+            });
 
             Task<string> first = operation.EnsureValidatedAsync();
             Task<string> second = operation.EnsureValidatedAsync();
@@ -48,15 +46,13 @@ namespace HBP.Tests.Serialization
         public async Task LateProgressSubscriber_ImmediatelyReceivesTheLatestMonotoneProgress()
         {
             TaskCompletionSource<bool> release = NewCompletionSource<bool>();
-            SharedLoadingOperation<string> operation = new(
-                0,
-                async (progress, token) =>
-                {
-                    progress(0.7f, 0.2f, new LoadingText("seventy"));
-                    progress(0.3f, 0.2f, new LoadingText("stale"));
-                    await release.Task;
-                    return "result";
-                });
+            SharedLoadingOperation<string> operation = new(0, async (progress, token) =>
+            {
+                progress(0.7f, 0.2f, new LoadingText("seventy"));
+                progress(0.3f, 0.2f, new LoadingText("stale"));
+                await release.Task;
+                return "result";
+            });
 
             Task<string> completion = operation.EnsureValidatedAsync();
             List<LoadingProgress> received = new();
@@ -74,14 +70,11 @@ namespace HBP.Tests.Serialization
         public async Task Validation_KeepsReadyAvailableUntilTheSharedValidationCompletes()
         {
             TaskCompletionSource<bool> releaseValidation = NewCompletionSource<bool>();
-            SharedLoadingOperation<string> operation = new(
-                1,
-                (progress, token) => UniTask.FromResult("graph"),
-                async (result, progress, token) =>
-                {
-                    await releaseValidation.Task;
-                    return true;
-                });
+            SharedLoadingOperation<string> operation = new(1, (progress, token) => UniTask.FromResult("graph"), async (result, progress, token) =>
+            {
+                await releaseValidation.Task;
+                return true;
+            });
 
             Task<string> validated = operation.EnsureValidatedAsync();
             string ready = await operation.Ready;
@@ -100,10 +93,7 @@ namespace HBP.Tests.Serialization
         public async Task TechnicalFailure_IsStoredAndPropagatedToEveryConsumer()
         {
             InvalidOperationException failure = new("validation failed");
-            SharedLoadingOperation<string> operation = new(
-                2,
-                (progress, token) => UniTask.FromResult("graph"),
-                (result, progress, token) => UniTask.FromException<bool>(failure));
+            SharedLoadingOperation<string> operation = new(2, (progress, token) => UniTask.FromResult("graph"), (result, progress, token) => UniTask.FromException<bool>(failure));
 
             Task<string> first = operation.EnsureValidatedAsync();
             Task<string> second = operation.EnsureValidatedAsync();
@@ -120,15 +110,12 @@ namespace HBP.Tests.Serialization
         [Test]
         public async Task CancellingTheOperation_CancelsBothSharedBarriers()
         {
-            SharedLoadingOperation<string> operation = new(
-                3,
-                async (progress, token) =>
-                {
-                    TaskCompletionSource<string> cancelled = NewCompletionSource<string>();
-                    using CancellationTokenRegistration registration =
-                        token.Register(() => cancelled.TrySetCanceled());
-                    return await cancelled.Task;
-                });
+            SharedLoadingOperation<string> operation = new(3, async (progress, token) =>
+            {
+                TaskCompletionSource<string> cancelled = NewCompletionSource<string>();
+                using CancellationTokenRegistration registration = token.Register(() => cancelled.TrySetCanceled());
+                return await cancelled.Task;
+            });
 
             Task<string> ready = operation.EnsureReadyAsync();
             Task<string> validated = operation.EnsureValidatedAsync();
@@ -146,22 +133,17 @@ namespace HBP.Tests.Serialization
         public async Task CancellingOneConsumer_DoesNotCancelSharedValidation()
         {
             TaskCompletionSource<bool> releaseValidation = NewCompletionSource<bool>();
-            SharedLoadingOperation<string> operation = new(
-                4,
-                (progress, token) => UniTask.FromResult("graph"),
-                async (result, progress, token) =>
-                {
-                    await releaseValidation.Task;
-                    return false;
-                });
+            SharedLoadingOperation<string> operation = new(4, (progress, token) => UniTask.FromResult("graph"), async (result, progress, token) =>
+            {
+                await releaseValidation.Task;
+                return false;
+            });
             Task<string> sharedValidation = operation.EnsureValidatedAsync();
             using CancellationTokenSource consumerCancellation = new();
 
-            Task<string> cancelledConsumer =
-                operation.EnsureValidatedAsync(consumerCancellation.Token);
+            Task<string> cancelledConsumer = operation.EnsureValidatedAsync(consumerCancellation.Token);
             consumerCancellation.Cancel();
-            Exception exception = await CaptureExceptionAsync(
-                async () => await cancelledConsumer);
+            Exception exception = await CaptureExceptionAsync(async () => await cancelledConsumer);
 
             Assert.That(exception, Is.TypeOf<OperationCanceledException>());
             Assert.That(operation.State, Is.EqualTo(LoadingOperationState.Validating));
@@ -176,21 +158,17 @@ namespace HBP.Tests.Serialization
         public async Task CancellingReadyConsumer_DoesNotCancelSharedLoad()
         {
             TaskCompletionSource<bool> releaseLoad = NewCompletionSource<bool>();
-            SharedLoadingOperation<string> operation = new(
-                5,
-                async (progress, token) =>
-                {
-                    await releaseLoad.Task;
-                    return "graph";
-                });
+            SharedLoadingOperation<string> operation = new(5, async (progress, token) =>
+            {
+                await releaseLoad.Task;
+                return "graph";
+            });
             Task<string> sharedReady = operation.EnsureReadyAsync();
             using CancellationTokenSource consumerCancellation = new();
 
-            Task<string> cancelledConsumer =
-                operation.EnsureReadyAsync(consumerCancellation.Token);
+            Task<string> cancelledConsumer = operation.EnsureReadyAsync(consumerCancellation.Token);
             consumerCancellation.Cancel();
-            Exception exception = await CaptureExceptionAsync(
-                async () => await cancelledConsumer);
+            Exception exception = await CaptureExceptionAsync(async () => await cancelledConsumer);
 
             Assert.That(exception, Is.TypeOf<OperationCanceledException>());
             Assert.That(operation.State, Is.EqualTo(LoadingOperationState.Loading));
@@ -229,11 +207,7 @@ namespace HBP.Tests.Serialization
                     return;
                 }
 
-                secondLoad = loaded.LoadAsync(
-                    info,
-                    (value, _, _) => secondProgress = value,
-                    CancellationToken.None)
-                    .AsTask();
+                secondLoad = loaded.LoadAsync(info, (value, _, _) => secondProgress = value, CancellationToken.None).AsTask();
             }
 
             Task firstLoad = loaded.LoadAsync(info, AttachSecondCaller, CancellationToken.None).AsTask();
@@ -268,9 +242,7 @@ namespace HBP.Tests.Serialization
                     return;
                 }
 
-                secondLoad = database.LoadDatabaseAsync(
-                    (value, _, _) => secondProgress = value)
-                    .AsTask();
+                secondLoad = database.LoadDatabaseAsync((value, _, _) => secondProgress = value).AsTask();
             }
 
             Task firstLoad = database.LoadDatabaseAsync(AttachSecondCaller).AsTask();
@@ -297,8 +269,7 @@ namespace HBP.Tests.Serialization
             database.Settings.SetDefaultWorkspace();
 
             await database.StartLoadingSilentlyAsync();
-            SharedLoadingOperation<GlobalDatabase> operation =
-                database.CurrentLoadingOperation;
+            SharedLoadingOperation<GlobalDatabase> operation = database.CurrentLoadingOperation;
 
             Assert.That(operation, Is.Not.Null);
             Assert.That(await operation.Ready, Is.SameAs(database));
@@ -321,48 +292,26 @@ namespace HBP.Tests.Serialization
 
             for (int index = 0; index < 12; index++)
             {
-                await SaveWorkspacePatientAsync(
-                    firstWorkspace,
-                    new Patient(
-                        "first-" + index,
-                        Array.Empty<BaseMesh>(),
-                        Array.Empty<MRI>(),
-                        Array.Empty<Site>(),
-                        Array.Empty<BaseTagValue>(),
-                        string.Empty,
-                        "first-patient-" + index));
+                await SaveWorkspacePatientAsync(firstWorkspace, new Patient("first-" + index, Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "first-patient-" + index));
             }
-            Patient expectedPatient = new(
-                "second",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                Array.Empty<Site>(),
-                Array.Empty<BaseTagValue>(),
-                string.Empty,
-                "second-patient");
+
+            Patient expectedPatient = new("second", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "second-patient");
             await SaveWorkspacePatientAsync(secondWorkspace, expectedPatient);
 
             await database.StartLoadingSilentlyAsync();
-            SharedLoadingOperation<GlobalDatabase> obsoleteOperation =
-                database.CurrentLoadingOperation;
+            SharedLoadingOperation<GlobalDatabase> obsoleteOperation = database.CurrentLoadingOperation;
 
             database.Settings.SelectedWorkspace = secondWorkspace;
             await database.ReloadSelectedWorkspaceSilentlyAsync();
-            SharedLoadingOperation<GlobalDatabase> currentOperation =
-                database.CurrentLoadingOperation;
+            SharedLoadingOperation<GlobalDatabase> currentOperation = database.CurrentLoadingOperation;
             await currentOperation.Validated;
 
             Assert.That(currentOperation, Is.Not.SameAs(obsoleteOperation));
-            Assert.That(
-                currentOperation.Generation,
-                Is.GreaterThan(obsoleteOperation.Generation));
+            Assert.That(currentOperation.Generation, Is.GreaterThan(obsoleteOperation.Generation));
             Assert.That(database.IsLoaded, Is.True);
             Assert.That(database.Patients, Has.Count.EqualTo(1));
             Assert.That(database.Patients[0].ID, Is.EqualTo(expectedPatient.ID));
-            Assert.That(
-                database.Patients,
-                Has.None.Matches<Patient>(
-                    patient => patient.ID.StartsWith("first-patient-")));
+            Assert.That(database.Patients, Has.None.Matches<Patient>(patient => patient.ID.StartsWith("first-patient-")));
         }
 
         [Test]
@@ -374,31 +323,20 @@ namespace HBP.Tests.Serialization
             GlobalDatabase database = DatabaseManager.Database;
             database.Settings.SetDefaultWorkspace();
             InvalidOperationException failure = new("background database failure");
-            SharedLoadingOperation<GlobalDatabase> failedOperation = new(
-                1,
-                (progress, token) =>
-                    UniTask.FromException<GlobalDatabase>(failure));
-            await CaptureExceptionAsync(
-                async () => await failedOperation.EnsureReadyAsync());
+            SharedLoadingOperation<GlobalDatabase> failedOperation = new(1, (progress, token) => UniTask.FromException<GlobalDatabase>(failure));
+            await CaptureExceptionAsync(async () => await failedOperation.EnsureReadyAsync());
             SetPrivateField(database, "m_LoadingOperation", failedOperation);
-            SetPrivateField(
-                database,
-                "m_LoadingWorkspaceID",
-                database.Settings.SelectedWorkspace.ID);
+            SetPrivateField(database, "m_LoadingWorkspaceID", database.Settings.SelectedWorkspace.ID);
             SetPrivateField(database, "m_LoadingGeneration", 1L);
 
-            Exception presentedException = await CaptureExceptionAsync(
-                () => database.EnsureDatabaseReadyAsync(NoProgress).AsTask());
+            Exception presentedException = await CaptureExceptionAsync(() => database.EnsureDatabaseReadyAsync(NoProgress).AsTask());
 
             Assert.That(presentedException, Is.SameAs(failure));
-            Assert.That(
-                database.CurrentLoadingOperation,
-                Is.SameAs(failedOperation));
+            Assert.That(database.CurrentLoadingOperation, Is.SameAs(failedOperation));
             Assert.That(failedOperation.Exception, Is.SameAs(failure));
 
             await database.EnsureDatabaseReadyAsync(NoProgress);
-            SharedLoadingOperation<GlobalDatabase> retryOperation =
-                database.CurrentLoadingOperation;
+            SharedLoadingOperation<GlobalDatabase> retryOperation = database.CurrentLoadingOperation;
             await retryOperation.Validated;
 
             Assert.That(retryOperation, Is.Not.SameAs(failedOperation));
@@ -409,41 +347,26 @@ namespace HBP.Tests.Serialization
         [Test]
         public void ForegroundLeases_AreReferenceCounted()
         {
-            SharedLoadingOperation<int> operation = new(
-                1,
-                (progress, token) => UniTask.FromResult(1));
+            SharedLoadingOperation<int> operation = new(1, (progress, token) => UniTask.FromResult(1));
 
-            Assert.That(
-                operation.Priority,
-                Is.EqualTo(LoadingWorkPriority.Background));
+            Assert.That(operation.Priority, Is.EqualTo(LoadingWorkPriority.Background));
             IDisposable first = operation.AttachForeground();
             IDisposable second = operation.AttachForeground();
-            Assert.That(
-                operation.Priority,
-                Is.EqualTo(LoadingWorkPriority.Foreground));
+            Assert.That(operation.Priority, Is.EqualTo(LoadingWorkPriority.Foreground));
 
             first.Dispose();
-            Assert.That(
-                operation.Priority,
-                Is.EqualTo(LoadingWorkPriority.Foreground));
+            Assert.That(operation.Priority, Is.EqualTo(LoadingWorkPriority.Foreground));
             second.Dispose();
-            Assert.That(
-                operation.Priority,
-                Is.EqualTo(LoadingWorkPriority.Background));
+            Assert.That(operation.Priority, Is.EqualTo(LoadingWorkPriority.Background));
         }
 
         private static readonly Action<float, float, LoadingText> NoProgress = (_, _, _) => { };
 
-        private static async UniTask SaveWorkspacePatientAsync(
-            Workspace workspace,
-            Patient patient)
+        private static async UniTask SaveWorkspacePatientAsync(Workspace workspace, Patient patient)
         {
             string patientDirectory = Path.Combine(workspace.Path, "Patients");
             Directory.CreateDirectory(patientDirectory);
-            await ClassLoaderSaver.SaveToJsonAsync(
-                patient,
-                Path.Combine(patientDirectory, patient.ID + Patient.EXTENSION),
-                true);
+            await ClassLoaderSaver.SaveToJsonAsync(patient, Path.Combine(patientDirectory, patient.ID + Patient.EXTENSION), true);
         }
 
         private static TaskCompletionSource<T> NewCompletionSource<T>()
@@ -464,14 +387,9 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static void SetPrivateField(
-            object target,
-            string fieldName,
-            object value)
+        private static void SetPrivateField(object target, string fieldName, object value)
         {
-            FieldInfo field = target.GetType().GetField(
-                fieldName,
-                BindingFlags.NonPublic | BindingFlags.Instance);
+            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             field.SetValue(target, value);
         }
     }

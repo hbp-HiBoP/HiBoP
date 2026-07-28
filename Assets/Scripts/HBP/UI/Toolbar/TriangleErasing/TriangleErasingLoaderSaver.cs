@@ -10,17 +10,21 @@ namespace HBP.UI.Toolbar
     public class TriangleErasingLoaderSaver : Tool
     {
         #region Properties
+
         /// <summary>
         /// Save the erased area to a mask
         /// </summary>
         [SerializeField] private Button m_Save;
+
         /// <summary>
         /// Load a mask to an erased area
         /// </summary>
         [SerializeField] private Button m_Load;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -65,6 +69,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -73,6 +78,7 @@ namespace HBP.UI.Toolbar
             m_Save.interactable = false;
             m_Load.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -81,6 +87,7 @@ namespace HBP.UI.Toolbar
             m_Save.interactable = true;
             m_Load.interactable = true;
         }
+
         #endregion
     }
 }

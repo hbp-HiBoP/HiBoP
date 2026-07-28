@@ -10,15 +10,18 @@ namespace HBP.UI.Main
     public class BIDSDataItem : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private Text m_DataNameText;
         [SerializeField] private Toggle m_Toggle;
-        
+
         public string DataName => m_DataNameText.text;
         public bool IsSelected => m_Toggle.isOn;
         public Toggle.ToggleEvent OnToggleChanged => m_Toggle.onValueChanged;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the data item with data name.
         /// </summary>
@@ -37,6 +40,7 @@ namespace HBP.UI.Main
         {
             m_Toggle.isOn = selected;
         }
+
         #endregion
     }
 }

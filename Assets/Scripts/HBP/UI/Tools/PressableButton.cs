@@ -10,27 +10,33 @@ namespace HBP.UI.Tools
     public class PressableButton : Button
     {
         #region Events
+
         /// <summary>
         /// Event called when pressing the button
         /// </summary>
         public UnityEvent onPress = new();
+
         /// <summary>
         /// Event called when releasing the button
         /// </summary>
         public UnityEvent onRelease = new();
+
         #endregion
 
         #region Public Methods
+
         public override void OnPointerDown(PointerEventData eventData)
         {
             base.OnPointerDown(eventData);
             onPress.Invoke();
         }
+
         public override void OnPointerUp(PointerEventData eventData)
         {
             base.OnPointerUp(eventData);
             onRelease.Invoke();
         }
+
         #endregion
     }
 }

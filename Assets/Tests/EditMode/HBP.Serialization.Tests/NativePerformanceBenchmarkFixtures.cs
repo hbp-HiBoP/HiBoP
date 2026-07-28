@@ -65,6 +65,7 @@ namespace HBP.Tests.Serialization
             {
                 throw new FileNotFoundException($"{description} benchmark source fixture is missing.", source);
             }
+
             if (!File.Exists(destination) || new FileInfo(destination).Length != new FileInfo(source).Length)
             {
                 File.Copy(source, destination, overwrite: true);
@@ -120,9 +121,7 @@ namespace HBP.Tests.Serialization
                     {
                         for (int x = 0; x < nx; ++x)
                         {
-                            float value = atlas
-                                ? ((x + 3 * y + 7 * z) % 19 == 0 ? 0.0f : 1.0f + (x + 3 * y + 7 * z) % 124)
-                                : ((x * 13 + y * 7 + z * 3 + t * 11) % 257 - 128) / 64.0f;
+                            float value = atlas ? ((x + 3 * y + 7 * z) % 19 == 0 ? 0.0f : 1.0f + (x + 3 * y + 7 * z) % 124) : ((x * 13 + y * 7 + z * 3 + t * 11) % 257 - 128) / 64.0f;
                             min = Math.Min(min, value);
                             max = Math.Max(max, value);
                             writer.Write(value);
@@ -130,6 +129,7 @@ namespace HBP.Tests.Serialization
                     }
                 }
             }
+
             stream.Position = 124;
             writer.Write(max);
             writer.Write(min);
@@ -152,11 +152,10 @@ namespace HBP.Tests.Serialization
                     float px = xOffset + 63.0f * x / (size - 1);
                     float py = 63.0f * y / (size - 1);
                     float pz = 31.5f + 2.0f * (float)Math.Sin(x * 0.11) * (float)Math.Cos(y * 0.07);
-                    writer.WriteLine(string.Format(
-                        CultureInfo.InvariantCulture,
-                        "v {0:R} {1:R} {2:R}", px, py, pz));
+                    writer.WriteLine(string.Format(CultureInfo.InvariantCulture, "v {0:R} {1:R} {2:R}", px, py, pz));
                 }
             }
+
             for (int y = 0; y < size - 1; ++y)
             {
                 for (int x = 0; x < size - 1; ++x)
@@ -177,19 +176,8 @@ namespace HBP.Tests.Serialization
             {
                 return;
             }
-            File.WriteAllText(CubeObj,
-                "v 0 0 0\n" +
-                "v 63 0 0\n" +
-                "v 63 63 0\n" +
-                "v 0 63 0\n" +
-                "v 0 0 63\n" +
-                "v 63 0 63\n" +
-                "v 63 63 63\n" +
-                "v 0 63 63\n" +
-                "f 1 3 2\nf 1 4 3\nf 5 6 7\nf 5 7 8\n" +
-                "f 1 2 6\nf 1 6 5\nf 2 3 7\nf 2 7 6\n" +
-                "f 3 4 8\nf 3 8 7\nf 4 1 5\nf 4 5 8\n",
-                new UTF8Encoding(false));
+
+            File.WriteAllText(CubeObj, "v 0 0 0\n" + "v 63 0 0\n" + "v 63 63 0\n" + "v 0 63 0\n" + "v 0 0 63\n" + "v 63 0 63\n" + "v 63 63 63\n" + "v 0 63 63\n" + "f 1 3 2\nf 1 4 3\nf 5 6 7\nf 5 7 8\n" + "f 1 2 6\nf 1 6 5\nf 2 3 7\nf 2 7 6\n" + "f 3 4 8\nf 3 8 7\nf 4 1 5\nf 4 5 8\n", new UTF8Encoding(false));
         }
 
         private void EnsureAtlasMetadata()
@@ -203,6 +191,7 @@ namespace HBP.Tests.Serialization
                     writer.WriteLine($"{label},L,Frontal,fs_{label},Area{label},Area {label},0,255 0 0");
                 }
             }
+
             if (!File.Exists(Brodmann))
             {
                 File.WriteAllText(Brodmann, "BA0\n", new UTF8Encoding(false));
@@ -237,6 +226,7 @@ namespace HBP.Tests.Serialization
                     ++count;
                 }
             }
+
             return count;
         }
     }

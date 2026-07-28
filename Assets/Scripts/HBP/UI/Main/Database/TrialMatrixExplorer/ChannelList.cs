@@ -13,11 +13,22 @@ namespace HBP.UI.Database
     public class ChannelList : SelectableList<ChannelStruct>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Place, DescendingPlace, Date, DescendingDate }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Place,
+            DescendingPlace,
+            Date,
+            DescendingDate
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
-        
+
         public bool CanSelectNext
         {
             get
@@ -28,7 +39,7 @@ namespace HBP.UI.Database
                 return maxIndex < m_DisplayedObjects.Count - 1;
             }
         }
-        
+
         public bool CanSelectPrevious
         {
             get
@@ -39,14 +50,18 @@ namespace HBP.UI.Database
                 return minIndex > 0;
             }
         }
+
         #endregion
-        
+
         #region Events
+
         public UnityEvent OnReachEnd = new();
         public UnityEvent OnReachBeginning = new();
+
         #endregion
 
         #region Public Methods
+
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -62,8 +77,10 @@ namespace HBP.UI.Database
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
         }
+
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -72,11 +89,13 @@ namespace HBP.UI.Database
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
         public void SortByNone()
         {
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
         }
+
         public override void SelectNext(bool scroll = true)
         {
             if (CanSelectNext)
@@ -88,6 +107,7 @@ namespace HBP.UI.Database
                 OnReachEnd.Invoke();
             }
         }
+
         public override void SelectPrevious(bool scroll = true)
         {
             if (CanSelectPrevious)
@@ -99,13 +119,16 @@ namespace HBP.UI.Database
                 OnReachBeginning.Invoke();
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override IEnumerable<ChannelStruct> DefaultSorting(IEnumerable<ChannelStruct> objects)
         {
             return objects.OrderBy(c => c.Channel, new SiteNameComparer());
         }
+
         #endregion
     }
 }

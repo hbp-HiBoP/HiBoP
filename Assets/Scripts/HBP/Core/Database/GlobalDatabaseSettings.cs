@@ -13,6 +13,7 @@ namespace HBP.Core.Database
     public class GlobalDatabaseSettings : BaseData
     {
         #region Properties
+
         public static string PATH = Path.Combine(ApplicationState.DatabasePath, "Settings.json");
 
         [JsonProperty] public bool IsFirstUse { get; set; }
@@ -22,42 +23,44 @@ namespace HBP.Core.Database
 
         [JsonProperty] private string m_SelectedWorkspaceID;
         private Workspace m_SelectedWorkspace;
+
         public Workspace SelectedWorkspace
         {
-            get
-            {
-                return m_SelectedWorkspace;
-            }
-            set
-            {
-                m_SelectedWorkspace = value;
-            }
+            get { return m_SelectedWorkspace; }
+            set { m_SelectedWorkspace = value; }
         }
+
         #endregion
 
         #region Constructors
+
         public GlobalDatabaseSettings(bool isFirstUse, IEnumerable<Workspace> workspaces, Workspace selectedWorkspace, string ID) : base(ID)
         {
             IsFirstUse = isFirstUse;
             m_Workspaces = workspaces.ToList();
             SelectedWorkspace = selectedWorkspace;
         }
+
         public GlobalDatabaseSettings(bool isFirstUse, IEnumerable<Workspace> workspaces, Workspace selectedWorkspace) : base()
         {
             IsFirstUse = isFirstUse;
             m_Workspaces = workspaces.ToList();
             SelectedWorkspace = selectedWorkspace;
         }
+
         public GlobalDatabaseSettings() : this(true, new List<Workspace>(), null)
         {
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new GlobalDatabaseSettings(IsFirstUse, m_Workspaces, SelectedWorkspace, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
@@ -68,9 +71,11 @@ namespace HBP.Core.Database
                 SelectedWorkspace = globalDatabaseSettings.SelectedWorkspace;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void SetDefaultWorkspace()
         {
             if (m_Workspaces.Count > 0 && SelectedWorkspace != null) return;
@@ -79,18 +84,22 @@ namespace HBP.Core.Database
             m_Workspaces.Add(workspace);
             SelectedWorkspace = workspace;
         }
+
         public void SetWorkspaces(IEnumerable<Workspace> workspaces)
         {
             m_Workspaces = workspaces.ToList();
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnSerializing()
         {
             base.OnSerializing();
             m_SelectedWorkspaceID = m_SelectedWorkspace?.ID;
         }
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
@@ -100,6 +109,7 @@ namespace HBP.Core.Database
                 SelectedWorkspace = m_Workspaces[0];
             }
         }
+
         #endregion
     }
 }

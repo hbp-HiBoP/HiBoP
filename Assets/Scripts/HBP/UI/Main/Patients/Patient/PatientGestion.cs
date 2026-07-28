@@ -18,6 +18,7 @@ namespace HBP.UI.Main
     public class PatientGestion : GestionWindow<Patient>
     {
         #region Properties
+
         [SerializeField] PatientListGestion m_ListGestion;
         public override ListGestion<Patient> ListGestion => m_ListGestion;
 
@@ -32,15 +33,14 @@ namespace HBP.UI.Main
                 m_ListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override async void OK()
         {
-            ValidationRequest validationRequest =
-                ValidationImpactAnalyzer.ForPatients(
-                    m_OldValues,
-                    ListGestion.List.Objects);
+            ValidationRequest validationRequest = ValidationImpactAnalyzer.ForPatients(m_OldValues, ListGestion.List.Objects);
             if (DataManager.HasData)
             {
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data have already been loaded. Your changes will not be applied unless you reload.\n\nWould you like to reload ?", "Save & Reload", "Cancel");
@@ -48,9 +48,7 @@ namespace HBP.UI.Main
                 {
                     base.OK();
                     await UniTask.SwitchToMainThread();
-                    ApplicationState.LoadedProject.SetPatients(
-                        ListGestion.List.Objects,
-                        validationRequest);
+                    ApplicationState.LoadedProject.SetPatients(ListGestion.List.Objects, validationRequest);
                     DataManager.Clear();
                     var visualizations = Module3DMain.PrepareReloadScenes();
                     await LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
@@ -60,19 +58,20 @@ namespace HBP.UI.Main
             else
             {
                 base.OK();
-                ApplicationState.LoadedProject.SetPatients(
-                    ListGestion.List.Objects,
-                    validationRequest);
+                ApplicationState.LoadedProject.SetPatients(ListGestion.List.Objects, validationRequest);
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
+
             InteractableStateManager.SetInteractables();
         }
+
         public override void Close()
         {
             if (m_ListGestion.HasBeenModified)
                 LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Patients, update), false);
             base.Close();
         }
+
         public async void UpdateFromDatabase()
         {
             var result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Update Patients from Database", "This will overwrite every patients of this project with data from the database. Patients not found within the database will not be changed.\n\nDo you want to proceed ?", "Yes", "No");
@@ -87,22 +86,27 @@ namespace HBP.UI.Main
                     {
                         stringBuilder.AppendLine(patient.ID);
                     }
+
                     stringBuilder.AppendLine();
                 }
+
                 if (stringBuilder.Length != 0)
                 {
                     await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "Update Patients from Database", stringBuilder.ToString(), "OK");
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields()
         {
             base.SetFields();
             SetList(ApplicationState.LoadedProject.Patients);
         }
+
         private async UniTask<List<Patient>> UpdateFromDatabaseAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -119,13 +123,16 @@ namespace HBP.UI.Main
                     updatedPatients.Add(databasePatient);
                 }
             }
+
             await UniTask.SwitchToMainThread();
             foreach (var patient in updatedPatients)
             {
                 m_ListGestion.List.UpdateObject(patient);
             }
+
             return updatedPatients;
         }
+
         #endregion
     }
 }

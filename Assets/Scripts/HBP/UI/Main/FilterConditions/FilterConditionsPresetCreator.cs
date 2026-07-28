@@ -6,16 +6,20 @@ namespace HBP.UI.Main
     public class FilterConditionsPresetCreator : ObjectCreator<FilterConditionsPreset>
     {
         #region Properties
+
         public System.Collections.Generic.List<object> FilteringObjects { get; set; }
+
         #endregion
 
         #region Private Methods
+
         protected override ObjectModifier<FilterConditionsPreset> OpenModifier(FilterConditionsPreset obj)
         {
             var modifier = base.OpenModifier(obj) as FilterConditionsPresetModifier;
             modifier.FilteringObjects = FilteringObjects;
             return modifier;
         }
+
         #endregion
     }
 }

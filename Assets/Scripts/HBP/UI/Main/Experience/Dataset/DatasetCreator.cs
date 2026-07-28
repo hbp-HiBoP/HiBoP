@@ -15,6 +15,7 @@ namespace HBP.UI.Main
     public class DatasetCreator : ObjectCreator<Dataset>
     {
         #region Private Methods
+
         protected override async UniTaskVoid SaveSelector(ObjectSelector<Dataset> selector, bool generateNewIDs)
         {
             if (!generateNewIDs)
@@ -37,6 +38,7 @@ namespace HBP.UI.Main
                         {
                             nameList += ", ...";
                         }
+
                         message = $"{numberOfExistingObjects} datasets will be overridden ({nameList}). Are you sure you want to override them?";
                     }
 
@@ -47,6 +49,7 @@ namespace HBP.UI.Main
 
             base.SaveSelector(selector, generateNewIDs).Forget();
         }
+
         #endregion
     }
 }

@@ -45,14 +45,14 @@ namespace HBP.Core.Tools
                 {
                     return m_Name;
                 }
-                
+
                 int headerIndex = index - 1;
                 if (headerIndex >= 0 && headerIndex < m_Headers.Length)
                 {
                     string headerName = m_Headers[headerIndex];
                     return m_Data.TryGetValue(headerName, out string value) ? value : "";
                 }
-                
+
                 return "";
             }
         }
@@ -72,13 +72,13 @@ namespace HBP.Core.Tools
         {
             string[] result = new string[Length];
             result[0] = m_Name;
-            
+
             for (int i = 0; i < m_Headers.Length; i++)
             {
                 string headerName = m_Headers[i];
                 result[i + 1] = m_Data.TryGetValue(headerName, out string value) ? value : "";
             }
-            
+
             return result;
         }
 
@@ -99,7 +99,7 @@ namespace HBP.Core.Tools
             {
                 return true;
             }
-            
+
             return m_Data.Values.Any(v => !string.IsNullOrWhiteSpace(v));
         }
     }

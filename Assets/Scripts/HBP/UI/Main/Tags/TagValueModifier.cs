@@ -14,6 +14,7 @@ namespace HBP.UI.Main
     public class TagValueModifier : ObjectModifier<Core.Data.BaseTagValue>
     {
         #region Properties
+
         [SerializeField] Dropdown m_TagDropdown;
 
         [SerializeField] EmptyTagValueSubModifier m_EmptyTagValueSubModifier;
@@ -27,19 +28,17 @@ namespace HBP.UI.Main
         List<Core.Data.BaseTagValue> m_TagValuesTemp;
 
         Core.Data.BaseTag[] m_Tags = new Core.Data.BaseTag[0];
+
         /// <summary>
         /// Possible tags.
         /// </summary>
         public Core.Data.BaseTag[] Tags
         {
-            get
-            {
-                return m_Tags;
-            }
+            get { return m_Tags; }
             set
             {
                 m_Tags = value;
-                if(m_Tags.Length == 0)
+                if (m_Tags.Length == 0)
                 {
                     m_TagDropdown.options = new List<Dropdown.OptionData> { new("None") };
                     m_TagDropdown.interactable = false;
@@ -51,6 +50,7 @@ namespace HBP.UI.Main
                     m_TagDropdown.interactable = Interactable;
                     m_OKButton.interactable = Interactable;
                 }
+
                 SetFields(ObjectTemp);
             }
         }
@@ -60,10 +60,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -76,9 +73,11 @@ namespace HBP.UI.Main
                 m_StringTagValueSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
@@ -87,9 +86,11 @@ namespace HBP.UI.Main
             m_Object = ObjectTemp;
             base.OK();
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -127,6 +128,7 @@ namespace HBP.UI.Main
                 new Core.Data.StringTagValue()
             };
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -138,6 +140,7 @@ namespace HBP.UI.Main
 
             m_TagDropdown.SetValue(Array.IndexOf(Tags, objectToModify.Tag));
         }
+
         /// <summary>
         /// Change the tag.
         /// </summary>
@@ -198,6 +201,7 @@ namespace HBP.UI.Main
                 newSubModifier.Object = m_ObjectTemp;
             }
         }
+
         #endregion
     }
 }

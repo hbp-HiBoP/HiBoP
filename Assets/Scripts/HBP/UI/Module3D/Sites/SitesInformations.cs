@@ -14,6 +14,7 @@ namespace HBP.UI.Module3D
     public class SitesInformations : MonoBehaviour
     {
         #region Properties
+
         private const float MINIMIZED_THRESHOLD = 260.0f;
         private Base3DScene m_Scene;
         private RectTransform m_RectTransform;
@@ -31,20 +32,20 @@ namespace HBP.UI.Module3D
 
         public bool IsMinimized
         {
-            get
-            {
-                return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
-            }
+            get { return Mathf.Abs(m_RectTransform.rect.width - m_ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD; }
         }
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_ParentGrid = GetComponentInParent<ResizableGrid>();
             Module3DMain.OnRequestUpdateInSiteList.AddListener(UpdateList);
         }
+
         private void Update()
         {
             if (m_RectTransform.hasChanged)
@@ -53,21 +54,25 @@ namespace HBP.UI.Module3D
                 m_RectTransform.hasChanged = false;
             }
         }
+
         private void SetList()
         {
             m_SiteList.ObjectsList = m_Scene.SelectedColumn.Sites.ToList();
             m_SiteList.MaskList(m_Scene.SelectedColumn.Sites.Select(s => s.State.IsFiltered && !s.State.IsMasked).ToArray());
         }
+
         private void UpdateList()
         {
             m_SiteList.MaskList(m_Scene.SelectedColumn.Sites.Select(s => s.State.IsFiltered && !s.State.IsMasked).ToArray());
         }
+
         private void OpenSiteTools()
         {
             var siteTools = WindowsManager.Open("Site Tools window", null).GetComponent<SiteToolsWindow>();
             siteTools.Scene = m_Scene;
             siteTools.OnToolApplied.AddListener(UpdateList);
         }
+
         private void OpenSiteFilters()
         {
             var siteFilters = WindowsManager.Open("Site Filters window", null).GetComponent<SiteFiltersWindow>();
@@ -79,6 +84,7 @@ namespace HBP.UI.Module3D
                 UpdateList();
             });
         }
+
         private void OnSelectSite(Core.Object3D.Site site)
         {
             UpdateList();
@@ -89,6 +95,7 @@ namespace HBP.UI.Module3D
         {
             m_SiteTooltip.Text = string.Format("Number of sites: {0}; number of distinct patients: {1}", m_SiteList.Objects.Count, m_SiteList.Objects.Select(s => s.Information.Patient).Distinct().Count());
         }
+
         private void CountLabels()
         {
             string labelsTooltip = "Number of sites with";
@@ -104,6 +111,7 @@ namespace HBP.UI.Module3D
                     countByNumberOfLabels[site.State.Labels.Count]++;
                 }
             }
+
             foreach (var kv in countByNumberOfLabels)
             {
                 if (kv.Key == 1)
@@ -111,23 +119,29 @@ namespace HBP.UI.Module3D
                 else
                     labelsTooltip += string.Format("\n{0} labels: {1}", kv.Key, kv.Value);
             }
+
             m_LabelsTooltip.Text = labelsTooltip;
         }
+
         private void CountHighlighted()
         {
             m_HighlightedTooltip.Text = string.Format("Number of highlighted sites: {0}", m_SiteList.Objects.Count(s => s.State.IsHighlighted));
         }
+
         private void CountBlacklisted()
         {
             m_BlacklistedTooltip.Text = string.Format("Number of blacklisted sites: {0}", m_SiteList.Objects.Count(s => s.State.IsBlackListed));
         }
+
         private void CountColors()
         {
             m_ColorTooltip.Text = string.Format("Number of distinct colors: {0}", m_SiteList.Objects.Select(s => s.State.Color).Distinct().Count());
         }
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
@@ -150,6 +164,7 @@ namespace HBP.UI.Module3D
                 column.OnSelect.AddListener(SetList);
             }
         }
+
         #endregion
     }
 }

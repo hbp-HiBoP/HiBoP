@@ -9,16 +9,19 @@ namespace HBP.Core.Object3D
     public abstract class Mesh3D : ICloneable
     {
         #region Properties
+
         /// <summary>
         /// Name of the mesh
         /// </summary>
         public string Name { get; set; }
+
         /// <summary>
         /// Type of the mesh (Patient or MNI)
         /// </summary>
         public MeshType Type { get; protected set; }
 
         protected DLL.Surface m_Both;
+
         /// <summary>
         /// DLL surface containing data for the whole brain mesh
         /// </summary>
@@ -30,13 +33,11 @@ namespace HBP.Core.Object3D
                 if (!IsLoaded) Load();
                 return m_Both;
             }
-            protected set
-            {
-                m_Both = value;
-            }
+            protected set { m_Both = value; }
         }
 
         protected DLL.Surface m_SimplifiedBoth;
+
         /// <summary>
         /// DLL surface containing data for the whole simplified brain mesh
         /// </summary>
@@ -48,10 +49,7 @@ namespace HBP.Core.Object3D
                 if (!IsLoaded) Load();
                 return m_SimplifiedBoth;
             }
-            protected set
-            {
-                m_SimplifiedBoth = value;
-            }
+            protected set { m_SimplifiedBoth = value; }
         }
 
         /// <summary>
@@ -59,36 +57,36 @@ namespace HBP.Core.Object3D
         /// </summary>
         public bool IsLoaded
         {
-            get
-            {
-                return m_Both != null ? m_Both.IsLoaded : false;
-            }
+            get { return m_Both != null ? m_Both.IsLoaded : false; }
         }
+
         /// <summary>
         /// Is mars atlas loaded for this mesh ?
         /// </summary>
         public bool IsMarsAtlasLoaded
         {
-            get
-            {
-                return m_Both != null ? m_Both.IsMarsAtlasLoaded : false;
-            }
+            get { return m_Both != null ? m_Both.IsMarsAtlasLoaded : false; }
         }
+
         /// <summary>
         /// Is the mesh currently loading ?
         /// </summary>
         protected bool m_IsLoading = false;
+
         /// <summary>
         /// Does the mesh have been loaded outside of a scene and copied to the scene (e.g. MNI objects) ?
         /// </summary>
         public bool HasBeenLoadedOutside { get; protected set; }
+
         /// <summary>
         /// Data of the mesh (paths etc.)
         /// </summary>
         protected Data.BaseMesh m_Mesh;
+
         #endregion
 
         #region Constructors
+
         public Mesh3D(Data.BaseMesh mesh, MeshType type, bool load)
         {
             m_Mesh = mesh;
@@ -97,14 +95,20 @@ namespace HBP.Core.Object3D
             if (load) Load();
             HasBeenLoadedOutside = false;
         }
-        public Mesh3D() { }
+
+        public Mesh3D()
+        {
+        }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Load the mesh to DLL objects
         /// </summary>
         public abstract void Load();
+
         /// <summary>
         /// Dispose all DLL objects
         /// </summary>
@@ -113,7 +117,9 @@ namespace HBP.Core.Object3D
             m_Both?.Dispose();
             m_SimplifiedBoth?.Dispose();
         }
+
         public abstract object Clone();
+
         #endregion
     }
 
@@ -123,11 +129,19 @@ namespace HBP.Core.Object3D
     public class SingleMesh3D : Mesh3D
     {
         #region Constructors
-        public SingleMesh3D(Data.SingleMesh mesh, MeshType type, bool load) : base(mesh, type, load) { }
-        public SingleMesh3D() { }
+
+        public SingleMesh3D(Data.SingleMesh mesh, MeshType type, bool load) : base(mesh, type, load)
+        {
+        }
+
+        public SingleMesh3D()
+        {
+        }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Load the mesh to DLL objects
         /// </summary>
@@ -145,8 +159,10 @@ namespace HBP.Core.Object3D
                     m_Both.SearchMarsParcelFileAndUpdateColors(Object3DManager.MarsAtlas, mesh.MarsAtlasPath);
                 SimplifiedBoth = m_Both.Simplify();
             }
+
             m_IsLoading = false;
         }
+
         public override object Clone()
         {
             SingleMesh3D mesh = new()
@@ -160,6 +176,7 @@ namespace HBP.Core.Object3D
             };
             return mesh;
         }
+
         #endregion
     }
 
@@ -169,7 +186,9 @@ namespace HBP.Core.Object3D
     public class LeftRightMesh3D : Mesh3D
     {
         #region Properties
+
         protected DLL.Surface m_Left;
+
         /// <summary>
         /// DLL surface containing data for the left part of the mesh
         /// </summary>
@@ -181,13 +200,11 @@ namespace HBP.Core.Object3D
                 if (!IsLoaded) Load();
                 return m_Left;
             }
-            protected set
-            {
-                m_Left = value;
-            }
+            protected set { m_Left = value; }
         }
 
         protected DLL.Surface m_Right;
+
         /// <summary>
         /// DLL surface containing data for the right part of the mesh
         /// </summary>
@@ -199,13 +216,11 @@ namespace HBP.Core.Object3D
                 if (!IsLoaded) Load();
                 return m_Right;
             }
-            protected set
-            {
-                m_Right = value;
-            }
+            protected set { m_Right = value; }
         }
 
         protected DLL.Surface m_SimplifiedLeft;
+
         /// <summary>
         /// DLL surface containing data for the left simplified part of the mesh
         /// </summary>
@@ -217,13 +232,11 @@ namespace HBP.Core.Object3D
                 if (!IsLoaded) Load();
                 return m_SimplifiedLeft;
             }
-            protected set
-            {
-                m_SimplifiedLeft = value;
-            }
+            protected set { m_SimplifiedLeft = value; }
         }
 
         protected DLL.Surface m_SimplifiedRight;
+
         /// <summary>
         /// DLL surface containing data for the right simplified part of the mesh
         /// </summary>
@@ -235,15 +248,17 @@ namespace HBP.Core.Object3D
                 if (!IsLoaded) Load();
                 return m_SimplifiedRight;
             }
-            protected set
-            {
-                m_SimplifiedRight = value;
-            }
+            protected set { m_SimplifiedRight = value; }
         }
+
         #endregion
 
         #region Constructors
-        public LeftRightMesh3D(Data.LeftRightMesh mesh, MeshType type, bool load) : base(mesh, type, load) { }
+
+        public LeftRightMesh3D(Data.LeftRightMesh mesh, MeshType type, bool load) : base(mesh, type, load)
+        {
+        }
+
         public LeftRightMesh3D(string name, DLL.Surface left, DLL.Surface right, DLL.Surface both, MeshType type)
         {
             Name = name;
@@ -256,10 +271,15 @@ namespace HBP.Core.Object3D
             SimplifiedBoth = both.Simplify();
             HasBeenLoadedOutside = true;
         }
-        public LeftRightMesh3D() { }
+
+        public LeftRightMesh3D()
+        {
+        }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Load the mesh to DLL objects
         /// </summary>
@@ -293,8 +313,10 @@ namespace HBP.Core.Object3D
                 m_Both.Append(m_Right);
                 SimplifiedBoth = m_Both.Simplify();
             }
+
             m_IsLoading = false;
         }
+
         /// <summary>
         /// Dispose all DLL objects
         /// </summary>
@@ -306,6 +328,7 @@ namespace HBP.Core.Object3D
             m_SimplifiedLeft?.Dispose();
             m_SimplifiedRight?.Dispose();
         }
+
         public override object Clone()
         {
             LeftRightMesh3D mesh = new()
@@ -323,6 +346,7 @@ namespace HBP.Core.Object3D
             };
             return mesh;
         }
+
         #endregion
     }
 }

@@ -12,9 +12,7 @@ namespace HBP.Core.Data
         private readonly IReadOnlyList<Entry> m_Entries;
 
         public long Generation { get; }
-        public bool HasIssues => m_Entries.Any(entry =>
-            entry.ValidatedSnapshot.Errors.Count > 0 ||
-            entry.ValidatedSnapshot.Warnings.Count > 0);
+        public bool HasIssues => m_Entries.Any(entry => entry.ValidatedSnapshot.Errors.Count > 0 || entry.ValidatedSnapshot.Warnings.Count > 0);
 
         internal DataInfoValidationResult(long generation, IReadOnlyList<Entry> entries)
         {
@@ -33,6 +31,7 @@ namespace HBP.Core.Data
             {
                 entry.Target.ApplyValidationState(entry.ValidatedSnapshot);
             }
+
             return true;
         }
 
@@ -57,100 +56,51 @@ namespace HBP.Core.Data
     {
         private readonly IEEGValidationMetadataReader m_MetadataReader;
 
-        public DataInfoValidator(
-            IEEGValidationMetadataReader metadataReader = null)
+        public DataInfoValidator(IEEGValidationMetadataReader metadataReader = null)
         {
             m_MetadataReader = metadataReader;
         }
 
-        public async UniTask<DataInfoValidationResult> ValidateAsync(
-            IEnumerable<DataInfo> dataInfos,
-            bool force,
-            int maxConcurrency,
-            CancellationToken token,
-            Action<int, int> updateProgress = null,
-            long generation = 0,
-            Func<LoadingWorkPriority> priorityProvider = null)
+        public async UniTask<DataInfoValidationResult> ValidateAsync(IEnumerable<DataInfo> dataInfos, bool force, int maxConcurrency, CancellationToken token, Action<int, int> updateProgress = null, long generation = 0, Func<LoadingWorkPriority> priorityProvider = null)
         {
-            return await ValidateAsync(
-                dataInfos,
-                new ValidationRequest(
-                    ValidationAspect.DataInfoAll,
-                    force: force),
-                maxConcurrency,
-                token,
-                updateProgress,
-                generation,
-                priorityProvider);
+            return await ValidateAsync(dataInfos, new ValidationRequest(ValidationAspect.DataInfoAll, force: force), maxConcurrency, token, updateProgress, generation, priorityProvider);
         }
 
-        public async UniTask<DataInfoValidationResult> ValidateAsync(
-            IEnumerable<DataInfo> dataInfos,
-            ValidationRequest request,
-            int maxConcurrency,
-            CancellationToken token,
-            Action<int, int> updateProgress = null,
-            long generation = 0,
-            Func<LoadingWorkPriority> priorityProvider = null)
+        public async UniTask<DataInfoValidationResult> ValidateAsync(IEnumerable<DataInfo> dataInfos, ValidationRequest request, int maxConcurrency, CancellationToken token, Action<int, int> updateProgress = null, long generation = 0, Func<LoadingWorkPriority> priorityProvider = null)
         {
             if (dataInfos == null)
             {
                 throw new ArgumentNullException(nameof(dataInfos));
             }
+
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
             token.ThrowIfCancellationRequested();
-            DataInfo[] snapshot = dataInfos
-                .Where(request.Matches)
-                .ToArray();
-            Func<UniTask<DataInfoValidationResult.Entry>>[] tasks = snapshot
-                .Select(target =>
-                    (Func<UniTask<DataInfoValidationResult.Entry>>)(async () =>
-                    {
-                        await UniTask.SwitchToThreadPool();
-                        token.ThrowIfCancellationRequested();
-                        DataInfo validatedSnapshot =
-                            target.CreateValidationSnapshot(
-                                request,
-                                request.Force,
-                                m_MetadataReader);
-                        return validatedSnapshot == null
-                            ? null
-                            : new DataInfoValidationResult.Entry(
-                                target,
-                                validatedSnapshot);
-                    }))
-                .ToArray();
+            DataInfo[] snapshot = dataInfos.Where(request.Matches).ToArray();
+            Func<UniTask<DataInfoValidationResult.Entry>>[] tasks = snapshot.Select(target => (Func<UniTask<DataInfoValidationResult.Entry>>)(async () =>
+            {
+                await UniTask.SwitchToThreadPool();
+                token.ThrowIfCancellationRequested();
+                DataInfo validatedSnapshot = target.CreateValidationSnapshot(request, request.Force, m_MetadataReader);
+                return validatedSnapshot == null ? null : new DataInfoValidationResult.Entry(target, validatedSnapshot);
+            })).ToArray();
             LoadingWorkCategory category = GetWorkCategory(request);
-            DataInfoValidationResult.Entry[] results =
-                await LoadingWorkScheduler.Shared.RunAsync(
-                    tasks,
-                    category,
-                    priorityProvider,
-                    token,
-                    updateProgress,
-                    maxConcurrency);
+            DataInfoValidationResult.Entry[] results = await LoadingWorkScheduler.Shared.RunAsync(tasks, category, priorityProvider, token, updateProgress, maxConcurrency);
             token.ThrowIfCancellationRequested();
-            return new DataInfoValidationResult(
-                generation,
-                results.Where(result => result != null).ToArray());
+            return new DataInfoValidationResult(generation, results.Where(result => result != null).ToArray());
         }
 
-        internal static LoadingWorkCategory GetWorkCategory(
-            ValidationRequest request)
+        internal static LoadingWorkCategory GetWorkCategory(ValidationRequest request)
         {
-            if (request.Includes(ValidationAspect.SourceReadability) ||
-                request.Includes(ValidationAspect.Epoching) ||
-                request.Includes(ValidationAspect.ChannelMapping))
+            if (request.Includes(ValidationAspect.SourceReadability) || request.Includes(ValidationAspect.Epoching) || request.Includes(ValidationAspect.ChannelMapping))
             {
                 return LoadingWorkCategory.Native;
             }
-            return request.Includes(ValidationAspect.StaticContent)
-                ? LoadingWorkCategory.Metadata
-                : LoadingWorkCategory.FileSystem;
+
+            return request.Includes(ValidationAspect.StaticContent) ? LoadingWorkCategory.Metadata : LoadingWorkCategory.FileSystem;
         }
     }
 }

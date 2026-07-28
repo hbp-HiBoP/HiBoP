@@ -8,14 +8,17 @@ namespace HBP.UI.Main
     public class AboutWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] TMPro.TMP_Text m_VersionText;
         [SerializeField] TMPro.TMP_Text m_BuildInfoText;
         [SerializeField] TMPro.TMP_Text m_LicenseText;
         [SerializeField] TMPro.TMP_Text m_HBPText;
         [SerializeField] TMPro.TMP_Text m_GithubText;
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields()
         {
             TextAsset buildInfo = Resources.Load<TextAsset>("BuildInfo");
@@ -29,8 +32,10 @@ namespace HBP.UI.Main
             {
                 Close();
             }
+
             base.SetFields();
         }
+
         #endregion
     }
 }

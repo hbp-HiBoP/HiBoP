@@ -14,35 +14,33 @@ namespace HBP.Data.Module3D
     public abstract class Column3D : MonoBehaviour, IConfigurable
     {
         #region Properties
+
         /// <summary>
         /// Data of this column (contains information about what to display)
         /// </summary>
         public Core.Data.Column ColumnData { get; protected set; }
+
         /// <summary>
         /// Name of the column (same name as in the column data)
         /// </summary>
         public string Name
         {
-            get
-            {
-                return ColumnData.Name;
-            }
+            get { return ColumnData.Name; }
         }
+
         /// <summary>
         /// Layer on which the objects of this column are displayed
         /// </summary>
         public string Layer { get; protected set; }
 
         private bool m_IsSelected;
+
         /// <summary>
         /// Is this column selected ?
         /// </summary>
         public bool IsSelected
         {
-            get
-            {
-                return m_IsSelected;
-            }
+            get { return m_IsSelected; }
             set
             {
                 m_IsSelected = value;
@@ -55,15 +53,13 @@ namespace HBP.Data.Module3D
         }
 
         private bool m_IsMinimized;
+
         /// <summary>
         /// Is this column minimized ?
         /// </summary>
         public bool IsMinimized
         {
-            get
-            {
-                return m_IsMinimized;
-            }
+            get { return m_IsMinimized; }
             set
             {
                 if (m_IsMinimized != value)
@@ -73,6 +69,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Does the column rendering need to be updated ?
         /// </summary>
@@ -82,6 +79,7 @@ namespace HBP.Data.Module3D
         /// Surface mesh displayed in this column
         /// </summary>
         public GameObject BrainMesh { get; protected set; }
+
         /// <summary>
         /// Meshes of the cuts
         /// </summary>
@@ -91,59 +89,63 @@ namespace HBP.Data.Module3D
         /// Views of this column
         /// </summary>
         public List<View3D> Views { get; protected set; } = new List<View3D>();
+
         /// <summary>
         /// Currently selected view
         /// </summary>
         public View3D SelectedView
         {
-            get
-            {
-                return Views.FirstOrDefault(v => v.IsSelected);
-            }
+            get { return Views.FirstOrDefault(v => v.IsSelected); }
         }
 
         /// <summary>
         /// Currently selected site
         /// </summary>
         public Core.Object3D.Site SelectedSite { get; private set; }
+
         /// <summary>
         /// Currently selected site ID
         /// </summary>
-        public int SelectedSiteID { get { return SelectedSite != null ? SelectedSite.Information.Index : -1; } }
-        
+        public int SelectedSiteID
+        {
+            get { return SelectedSite != null ? SelectedSite.Information.Index : -1; }
+        }
+
         /// <summary>
         /// Raw site list (used for DLL operations)
         /// </summary>
         public Core.DLL.RawSiteList RawElectrodes { get; protected set; } = new Core.DLL.RawSiteList();
+
         /// <summary>
         /// Sites of this column
         /// </summary>
         public List<Core.Object3D.Site> Sites { get; protected set; }
+
         /// <summary>
         /// Site state by site ID (used when changing the implantation to keep the state of sites common to both implantations)
         /// </summary>
         public Dictionary<string, Core.Object3D.SiteState> SiteStateBySiteID = new();
-        
+
         public virtual Core.DLL.ActivityGenerator ActivityGenerator { get; protected set; }
+
         /// <summary>
         /// Texture generator for the brain surface
         /// </summary>
         public Core.DLL.SurfaceGenerator SurfaceGenerator { get; set; }
+
         /// <summary>
         /// Cut Textures Utility
         /// </summary>
         public CutTexturesUtility CutTextures { get; protected set; } = new CutTexturesUtility();
 
         private float m_ActivityAlpha = 0.8f;
+
         /// <summary>
         /// Alpha of the activity for the lowest site density
         /// </summary>
         public float ActivityAlpha
         {
-            get
-            {
-                return m_ActivityAlpha;
-            }
+            get { return m_ActivityAlpha; }
             set
             {
                 if (m_ActivityAlpha != value)
@@ -158,48 +160,60 @@ namespace HBP.Data.Module3D
         /// Parent of the meshes displayed in this column
         /// </summary>
         [SerializeField] private Transform m_BrainSurfaceMeshesParent;
+
         /// <summary>
         /// Parent of the meshes of the cuts
         /// </summary>
         [SerializeField] private Transform m_CutMeshesParent;
+
         /// <summary>
         /// Parent of the sites displayed in this column
         /// </summary>
         [SerializeField] private Transform m_SitesMeshesParent;
+
         /// <summary>
         /// View prefab
         /// </summary>
         [SerializeField] protected GameObject m_ViewPrefab;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when this column is selected
         /// </summary>
         [HideInInspector] public UnityEvent OnSelect = new();
+
         /// <summary>
         /// Event called when a view is moved
         /// </summary>
         [HideInInspector] public GenericEvent<View3D> OnMoveView = new();
+
         /// <summary>
         /// Event called when minimizing a column
         /// </summary>
         [HideInInspector] public UnityEvent OnChangeMinimizedState = new();
+
         /// <summary>
         /// Event called when selecting a site
         /// </summary>
         [HideInInspector] public GenericEvent<Core.Object3D.Site> OnSelectSite = new();
+
         /// <summary>
         /// Event called each time we change the state of a site
         /// </summary>
         [HideInInspector] public GenericEvent<Core.Object3D.Site> OnChangeSiteState = new();
+
         /// <summary>
         /// Event called when updating the alpha values
         /// </summary>
         [HideInInspector] public UnityEvent OnUpdateActivityAlpha = new();
+
         #endregion
 
         #region Private Methods
+
         private void OnDestroy()
         {
             Core.Data.DataManager.UnregisterMemoryUsage(this);
@@ -208,9 +222,11 @@ namespace HBP.Data.Module3D
             ActivityGenerator?.Dispose();
             CutTextures.Clean();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the column with all the required parameters
         /// </summary>
@@ -228,6 +244,7 @@ namespace HBP.Data.Module3D
 
             SurfaceGenerator = new Core.DLL.SurfaceGenerator();
         }
+
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
@@ -239,6 +256,7 @@ namespace HBP.Data.Module3D
             {
                 Destroy(patientSite.gameObject);
             }
+
             Sites = new List<Core.Object3D.Site>();
 
             if (implantation == null) return;
@@ -270,6 +288,7 @@ namespace HBP.Data.Module3D
                             siteState.ApplyState(baseSite.State);
                             SiteStateBySiteID.Add(baseSite.Information.FullID, siteState);
                         }
+
                         site.State = siteState;
                         site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
                         // Configuration
@@ -281,6 +300,7 @@ namespace HBP.Data.Module3D
                         {
                             ColumnData.BaseConfiguration.ConfigurationBySite.Add(site.Information.FullID, site.Configuration);
                         }
+
                         site.IsActive = true;
                         site.OnSelectSite.AddListener((selected) =>
                         {
@@ -293,17 +313,16 @@ namespace HBP.Data.Module3D
                             {
                                 SelectedSite = null;
                             }
+
                             OnSelectSite.Invoke(SelectedSite);
                         });
-                        site.OnChangeConfiguration.AddListener(() =>
-                        {
-                            Module3DMain.OnRequestUpdateInToolbar.Invoke();
-                        });
+                        site.OnChangeConfiguration.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
                         Sites.Add(site);
                     }
                 }
             }
         }
+
         /// <summary>
         /// Instantiate the brain meshes for this column (required because we need different UVs to display a different activity on each column)
         /// </summary>
@@ -315,6 +334,7 @@ namespace HBP.Data.Module3D
             BrainMesh.GetComponent<MeshFilter>().mesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
             BrainMesh.SetActive(true);
         }
+
         /// <summary>
         /// Update the meshes of this column (when updating the base meshes in the scene)
         /// </summary>
@@ -324,6 +344,7 @@ namespace HBP.Data.Module3D
             DestroyImmediate(BrainMesh.GetComponent<MeshFilter>().sharedMesh);
             BrainMesh.GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
         }
+
         /// <summary>
         /// Update the number of cuts (called when changing the number of cuts in the scene)
         /// </summary>
@@ -340,12 +361,14 @@ namespace HBP.Data.Module3D
                 columnCut.SetActive(true);
                 BrainCutMeshes.Add(columnCut);
             }
+
             while (BrainCutMeshes.Count > nbCuts)
             {
                 Destroy(BrainCutMeshes[BrainCutMeshes.Count - 1]);
                 BrainCutMeshes.RemoveAt(BrainCutMeshes.Count - 1);
             }
         }
+
         public void UpdateColumnCutMeshes(List<GameObject> cutMeshes)
         {
             for (int i = 0; i < BrainCutMeshes.Count; ++i)
@@ -354,6 +377,7 @@ namespace HBP.Data.Module3D
                 BrainCutMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(cutMeshes[i].GetComponent<MeshFilter>().mesh);
             }
         }
+
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state
         /// </summary>
@@ -387,11 +411,13 @@ namespace HBP.Data.Module3D
                     site.transform.localScale = Vector3.one;
                     siteType = SiteType.Normal;
                 }
+
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }
+
         /// <summary>
         /// Add a view to this column
         /// </summary>
@@ -408,14 +434,13 @@ namespace HBP.Data.Module3D
                         v.IsSelected = false;
                     }
                 }
+
                 IsSelected = true;
             });
-            view.OnMoveView.AddListener(() =>
-            {
-                OnMoveView.Invoke(view);
-            });
+            view.OnMoveView.AddListener(() => { OnMoveView.Invoke(view); });
             Views.Add(view);
         }
+
         /// <summary>
         /// Remove a view from this column
         /// </summary>
@@ -425,6 +450,7 @@ namespace HBP.Data.Module3D
             Destroy(Views[lineID].gameObject);
             Views.RemoveAt(lineID);
         }
+
         /// <summary>
         /// Unselect the selected site
         /// </summary>
@@ -435,6 +461,7 @@ namespace HBP.Data.Module3D
                 SelectedSite.IsSelected = false;
             }
         }
+
         /// <summary>
         /// Select the first unmasked site by name
         /// </summary>
@@ -450,11 +477,13 @@ namespace HBP.Data.Module3D
             {
                 site = Sites.FirstOrDefault(s => !s.State.IsMasked);
             }
+
             if (site != null)
             {
                 site.IsSelected = true;
             }
         }
+
         /// <summary>
         /// Move all sites of this column to the same side of a plane, with each site under the plane being moved to its symmetric position
         /// </summary>
@@ -473,6 +502,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Reset the position of all sites
         /// </summary>
@@ -483,6 +513,7 @@ namespace HBP.Data.Module3D
                 site.transform.localPosition = site.Information.DefaultPosition;
             }
         }
+
         /// <summary>
         /// Update the sites mask of the DLL using the state of each site
         /// </summary>
@@ -493,6 +524,7 @@ namespace HBP.Data.Module3D
                 RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
             }
         }
+
         /// <summary>
         /// Performs a raycast on the column
         /// </summary>
@@ -511,12 +543,14 @@ namespace HBP.Data.Module3D
                 if (hit.collider.GetComponent<Core.Object3D.Site>() != null) result = RaycastHitResult.Site;
                 if (hit.collider.GetComponent<Sphere>() != null) result = RaycastHitResult.ROI;
             }
+
             return result;
         }
+
         public virtual void ComputeActivityData()
         {
-
         }
+
         /// <summary>
         /// Load the column configuration from the column data
         /// </summary>
@@ -532,6 +566,7 @@ namespace HBP.Data.Module3D
 
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
@@ -543,6 +578,7 @@ namespace HBP.Data.Module3D
                 site.SaveConfiguration();
             }
         }
+
         /// <summary>
         /// Reset the configuration of this column
         /// </summary>
@@ -556,11 +592,13 @@ namespace HBP.Data.Module3D
 
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
         /// <param name="brainSurface">Surface of the brain</param>
         public abstract void ComputeSurfaceBrainUVWithActivity();
+
         #endregion
     }
 }

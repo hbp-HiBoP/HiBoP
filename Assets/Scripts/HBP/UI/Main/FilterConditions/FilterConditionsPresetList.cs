@@ -9,14 +9,25 @@ namespace HBP.UI.Main
     public class FilterConditionsPresetList : ActionableList<FilterConditionsPreset>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Conditions, DescendingConditions }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Conditions,
+            DescendingConditions
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_ConditionsSortingDisplayer;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Add alias.
         /// </summary>
@@ -27,9 +38,11 @@ namespace HBP.UI.Main
             SortByNone();
             base.AddObject(objectToAdd);
         }
+
         #endregion
 
         #region Sorting Methods
+
         /// <summary>
         /// Sort by key.
         /// </summary>
@@ -49,9 +62,11 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ConditionsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by key.
         /// </summary>
@@ -63,6 +78,7 @@ namespace HBP.UI.Main
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
         /// <summary>
         /// Sort by value.
         /// </summary>
@@ -82,9 +98,11 @@ namespace HBP.UI.Main
                     m_ConditionsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by value.
         /// </summary>
@@ -96,6 +114,7 @@ namespace HBP.UI.Main
                 default: SortByConditions(Sorting.Descending); break;
             }
         }
+
         /// <summary>
         /// Sort by none.
         /// </summary>
@@ -105,6 +124,7 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ConditionsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

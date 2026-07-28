@@ -61,13 +61,13 @@ namespace HBP.Tests.Serialization
                 using Surface hbpCoreSurface = LoadSurface(BenchmarkBackend.HbpCore, surface => surface.LoadOBJFile(objPath));
 
                 foreach ((Vector3 point, bool expectedInside, string name) in new[]
-                {
-                    (new Vector3(-0.5f, 0.5f, 0.5f), true, "center"),
-                    (new Vector3(-0.1f, 0.5f, 0.5f), true, "inside near face"),
-                    (new Vector3(-1.5f, 0.5f, 0.5f), false, "outside x"),
-                    (new Vector3(-0.5f, 1.5f, 0.5f), false, "outside y"),
-                    (new Vector3(-0.5f, 0.5f, 1.5f), false, "outside z")
-                })
+                         {
+                             (new Vector3(-0.5f, 0.5f, 0.5f), true, "center"),
+                             (new Vector3(-0.1f, 0.5f, 0.5f), true, "inside near face"),
+                             (new Vector3(-1.5f, 0.5f, 0.5f), false, "outside x"),
+                             (new Vector3(-0.5f, 1.5f, 0.5f), false, "outside y"),
+                             (new Vector3(-0.5f, 0.5f, 1.5f), false, "outside z")
+                         })
                 {
                     bool hbpCoreInside = hbpCoreSurface.IsPointInside(point);
                     bool hbpExportInside = hbpExportSurface.IsPointInside(point);
@@ -197,12 +197,7 @@ namespace HBP.Tests.Serialization
             Assert.That(hbpCoreAtlas.GetInformation(1), Is.EqualTo(hbpExportAtlas.GetInformation(1)));
         }
 
-        private static void AssertLoadedSurfaceMatches(
-            string path,
-            Func<Surface, bool> load,
-            float tolerance = NativeParityAssert.DefaultTolerance,
-            Vector3? nativeFixtureMin = null,
-            Vector3? nativeFixtureMax = null)
+        private static void AssertLoadedSurfaceMatches(string path, Func<Surface, bool> load, float tolerance = NativeParityAssert.DefaultTolerance, Vector3? nativeFixtureMin = null, Vector3? nativeFixtureMax = null)
         {
             bool isGifti = Path.GetExtension(path).Equals(".gii", StringComparison.OrdinalIgnoreCase);
             bool isObj = Path.GetExtension(path).Equals(".obj", StringComparison.OrdinalIgnoreCase);
@@ -218,13 +213,7 @@ namespace HBP.Tests.Serialization
 
             using BBox hbpExportBBox = hbpExportSurface.BoundingBox;
             using BBox hbpCoreBBox = hbpCoreSurface.BoundingBox;
-            NativeParityAssert.AssertUnityBoundsMatchLegacyNative(
-                hbpCoreBBox.Min,
-                hbpCoreBBox.Max,
-                hbpExportBBox.Min,
-                hbpExportBBox.Max,
-                tolerance,
-                path);
+            NativeParityAssert.AssertUnityBoundsMatchLegacyNative(hbpCoreBBox.Min, hbpCoreBBox.Max, hbpExportBBox.Min, hbpExportBBox.Max, tolerance, path);
             if (nativeFixtureMin.HasValue && nativeFixtureMax.HasValue)
             {
                 NativeParityAssert.NativeBoundsToUnity(nativeFixtureMin.Value, nativeFixtureMax.Value, out Vector3 expectedMin, out Vector3 expectedMax);
@@ -252,22 +241,20 @@ namespace HBP.Tests.Serialization
 
         private static Surface LoadSurface(BenchmarkBackend backend, Func<Surface, bool> load)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                Surface surface = new();
+                try
                 {
-                    Surface surface = new();
-                    try
-                    {
-                        Assert.That(load(surface), Is.True);
-                        return surface;
-                    }
-                    catch
-                    {
-                        surface.Dispose();
-                        throw;
-                    }
-                });
+                    Assert.That(load(surface), Is.True);
+                    return surface;
+                }
+                catch
+                {
+                    surface.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static void AssertTriSurfaceMatchesFixtureOracle(string triPath)
@@ -284,15 +271,13 @@ namespace HBP.Tests.Serialization
             try
             {
                 surface.UpdateMeshFromDLL(mesh);
-                NativeParityAssert.AssertSameVectorArray(
-                    mesh.vertices,
-                    new[]
-                    {
-                        new Vector3(0.0f, 0.0f, 0.0f),
-                        new Vector3(-1.0f, 0.0f, 0.0f),
-                        new Vector3(-1.0f, 1.0f, 0.0f),
-                        new Vector3(0.0f, 1.0f, 0.0f)
-                    });
+                NativeParityAssert.AssertSameVectorArray(mesh.vertices, new[]
+                {
+                    new Vector3(0.0f, 0.0f, 0.0f),
+                    new Vector3(-1.0f, 0.0f, 0.0f),
+                    new Vector3(-1.0f, 1.0f, 0.0f),
+                    new Vector3(0.0f, 1.0f, 0.0f)
+                });
                 NativeParityAssert.AssertSameVectorArray(mesh.normals, Enumerable.Repeat(Vector3.forward, 4).ToArray());
                 Assert.That(mesh.triangles, Is.EqualTo(new[] { 0, 2, 1, 0, 3, 2 }), "TRI fixture winding after right-handed to left-handed conversion");
                 TestContext.Progress.WriteLine("TRI: hbp_core validated against fixture oracle; hbp_export comparison unavailable because the installed DLL has no load_TRI_file_Surface entry point.");
@@ -305,43 +290,39 @@ namespace HBP.Tests.Serialization
 
         private static MarsAtlas LoadMarsAtlas(BenchmarkBackend backend)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                MarsAtlas atlas = new();
+                try
                 {
-                    MarsAtlas atlas = new();
-                    try
-                    {
-                        Assert.That(atlas.Load(AtlasPath("mars_atlas_index.csv"), AtlasPath("brodmann_areas.txt"), AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
-                        return atlas;
-                    }
-                    catch
-                    {
-                        atlas.Dispose();
-                        throw;
-                    }
-                });
+                    Assert.That(atlas.Load(AtlasPath("mars_atlas_index.csv"), AtlasPath("brodmann_areas.txt"), AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
+                    return atlas;
+                }
+                catch
+                {
+                    atlas.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static JuBrainAtlas LoadJuBrainAtlas(BenchmarkBackend backend)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                JuBrainAtlas atlas = new();
+                try
                 {
-                    JuBrainAtlas atlas = new();
-                    try
-                    {
-                        atlas.Load();
-                        Assert.That(atlas.Loaded, Is.True);
-                        return atlas;
-                    }
-                    catch
-                    {
-                        atlas.Dispose();
-                        throw;
-                    }
-                });
+                    atlas.Load();
+                    Assert.That(atlas.Loaded, Is.True);
+                    return atlas;
+                }
+                catch
+                {
+                    atlas.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static string AtlasPath(string fileName)
@@ -351,45 +332,7 @@ namespace HBP.Tests.Serialization
 
         private static string CubeObjFixture()
         {
-            return string.Join(
-                Environment.NewLine,
-                "v 0 0 0",
-                "v 1 0 0",
-                "v 1 1 0",
-                "v 0 1 0",
-                "v 0 0 1",
-                "v 1 0 1",
-                "v 1 1 1",
-                "v 0 1 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vt 0 0",
-                "vt 1 0",
-                "vt 1 1",
-                "vt 0 1",
-                "vt 0 0",
-                "vt 1 0",
-                "vt 1 1",
-                "vt 0 1",
-                "f 1/1/1 2/2/2 3/3/3",
-                "f 1/1/1 3/3/3 4/4/4",
-                "f 5/5/5 7/7/7 6/6/6",
-                "f 5/5/5 8/8/8 7/7/7",
-                "f 1/1/1 5/5/5 6/6/6",
-                "f 1/1/1 6/6/6 2/2/2",
-                "f 2/2/2 6/6/6 7/7/7",
-                "f 2/2/2 7/7/7 3/3/3",
-                "f 3/3/3 7/7/7 8/8/8",
-                "f 3/3/3 8/8/8 4/4/4",
-                "f 4/4/4 8/8/8 5/5/5",
-                "f 4/4/4 5/5/5 1/1/1",
-                string.Empty);
+            return string.Join(Environment.NewLine, "v 0 0 0", "v 1 0 0", "v 1 1 0", "v 0 1 0", "v 0 0 1", "v 1 0 1", "v 1 1 1", "v 0 1 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1", "vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1", "f 1/1/1 2/2/2 3/3/3", "f 1/1/1 3/3/3 4/4/4", "f 5/5/5 7/7/7 6/6/6", "f 5/5/5 8/8/8 7/7/7", "f 1/1/1 5/5/5 6/6/6", "f 1/1/1 6/6/6 2/2/2", "f 2/2/2 6/6/6 7/7/7", "f 2/2/2 7/7/7 3/3/3", "f 3/3/3 7/7/7 8/8/8", "f 3/3/3 8/8/8 4/4/4", "f 4/4/4 8/8/8 5/5/5", "f 4/4/4 5/5/5 1/1/1", string.Empty);
         }
 
         private static void AssertMesh(Mesh actual, Mesh expected, string context, float tolerance, bool compareColors, bool compareTriangles)
@@ -402,6 +345,7 @@ namespace HBP.Tests.Serialization
             {
                 AssertColorArray(actual.colors, expected.colors, context, tolerance);
             }
+
             if (compareTriangles)
             {
                 Assert.That(actual.triangles, Is.EqualTo(expected.triangles), context);
@@ -422,33 +366,12 @@ namespace HBP.Tests.Serialization
 
         private static string MarsParcelFixture(int[] labels)
         {
-            return string.Join(
-                Environment.NewLine,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-                "<GIFTI Version=\"1.0\" NumberOfDataArrays=\"1\">",
-                "<MetaData />",
-                "<LabelTable />",
-                "<DataArray Intent=\"NIFTI_INTENT_NONE\" DataType=\"NIFTI_TYPE_INT32\" ArrayIndexingOrder=\"RowMajorOrder\" Dimensionality=\"1\" Encoding=\"ASCII\" Endian=\"LittleEndian\" ExternalFileName=\"\" ExternalFileOffset=\"0\" Dim0=\"" + labels.Length + "\">",
-                "<MetaData />",
-                "<Data>" + string.Join(" ", labels) + "</Data>",
-                "</DataArray>",
-                "</GIFTI>",
-                string.Empty);
+            return string.Join(Environment.NewLine, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<GIFTI Version=\"1.0\" NumberOfDataArrays=\"1\">", "<MetaData />", "<LabelTable />", "<DataArray Intent=\"NIFTI_INTENT_NONE\" DataType=\"NIFTI_TYPE_INT32\" ArrayIndexingOrder=\"RowMajorOrder\" Dimensionality=\"1\" Encoding=\"ASCII\" Endian=\"LittleEndian\" ExternalFileName=\"\" ExternalFileOffset=\"0\" Dim0=\"" + labels.Length + "\">", "<MetaData />", "<Data>" + string.Join(" ", labels) + "</Data>", "</DataArray>", "</GIFTI>", string.Empty);
         }
 
         private static string TriFixture()
         {
-            return string.Join(
-                Environment.NewLine,
-                "4 2",
-                "0 0 0 0 0 1 1 0 0",
-                "1 0 0 0 0 1 0 1 0",
-                "1 1 0 0 0 1 0 0 1",
-                "0 1 0 0 0 1 1 1 1",
-                "- 2 0 0",
-                "0 1 2",
-                "0 2 3",
-                string.Empty);
+            return string.Join(Environment.NewLine, "4 2", "0 0 0 0 0 1 1 0 0", "1 0 0 0 0 1 0 1 0", "1 1 0 0 0 1 0 0 1", "0 1 0 0 0 1 1 1 1", "- 2 0 0", "0 1 2", "0 2 3", string.Empty);
         }
     }
 }

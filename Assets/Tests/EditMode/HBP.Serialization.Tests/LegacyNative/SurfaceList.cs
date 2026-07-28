@@ -38,6 +38,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 surfaces.Add(TakeSurface(0));
             }
+
             return surfaces;
         }
 

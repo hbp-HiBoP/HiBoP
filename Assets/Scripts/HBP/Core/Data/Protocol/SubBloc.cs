@@ -59,60 +59,75 @@ namespace HBP.Core.Data
     public class SubBloc : BaseData, INameable
     {
         #region Properties
+
         /// <summary> 
         /// Name of the SubBloc.
         /// </summary>
         [JsonProperty] public string Name { get; set; }
+
         /// <summary>
         /// Order of the SubBloc in the Bloc.
         /// </summary>
         [JsonProperty] public int Order { get; set; }
+
         /// <summary>
         /// Type of SubBloc.
         /// </summary>
         [JsonProperty] public Enums.MainSecondaryEnum Type { get; set; }
+
         /// <summary>
         /// Window of the SubBloc (\a x : time before main event in ms. \a y : time after main event in ms.)
         /// </summary>
         [JsonProperty] public Tools.TimeWindow Window { get; set; }
+
         /// <summary>
         /// Baseline of the SubBloc (\a x : start of the Baseline in ms. \a y : end of the Baseline in ms.)
         /// </summary>
         [JsonProperty] public Tools.TimeWindow Baseline { get; set; }
+
         /// <summary>
         /// Main event of the SubBloc.
         /// </summary>
-        public Event MainEvent { get { return Events.FirstOrDefault((e) => e.Type == Enums.MainSecondaryEnum.Main); } }
+        public Event MainEvent
+        {
+            get { return Events.FirstOrDefault((e) => e.Type == Enums.MainSecondaryEnum.Main); }
+        }
+
         /// <summary>
         /// Secondary events of the SubBloc.
         /// </summary>
-        public ReadOnlyCollection<Event> SecondaryEvents { get { return new ReadOnlyCollection<Event>(Events.FindAll((e) => e.Type == Enums.MainSecondaryEnum.Secondary)); } }
+        public ReadOnlyCollection<Event> SecondaryEvents
+        {
+            get { return new ReadOnlyCollection<Event>(Events.FindAll((e) => e.Type == Enums.MainSecondaryEnum.Secondary)); }
+        }
+
         /// <summary>
         /// Events of the SubBloc.
         /// </summary>
         [JsonProperty] public List<Event> Events { get; set; }
+
         /// <summary>
         /// Iconic scenario of the SubBloc.
         /// </summary>
         [JsonProperty] public List<Icon> Icons { get; set; }
+
         /// <summary>
         /// Treatments of the subBloc.
         /// </summary>
         [JsonProperty] public List<Treatment> Treatments { get; set; }
+
         /// <summary>
         /// True if the subBloc is visualizable, False otherwise.
         /// </summary>
         public bool IsVisualizable
         {
-            get
-            {
-                return Window.Length > 0 && MainEvent != null && Events.All(e => e.IsVisualizable);
-            }
+            get { return Window.Length > 0 && MainEvent != null && Events.All(e => e.IsVisualizable); }
         }
 
         #endregion
 
         #region Public Methods
+
         public override void GenerateID()
         {
             base.GenerateID();
@@ -120,6 +135,7 @@ namespace HBP.Core.Data
             foreach (var icon in Icons) icon.GenerateID();
             foreach (var treatment in Treatments) treatment.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
@@ -128,9 +144,11 @@ namespace HBP.Core.Data
             foreach (var treatment in Treatments) IDs.AddRange(treatment.GetAllIdentifiable());
             return IDs;
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new SubBloc instance.
         /// </summary>
@@ -154,6 +172,7 @@ namespace HBP.Core.Data
             Icons = icons.ToList();
             Treatments = treatments.ToList();
         }
+
         /// <summary>
         /// Create a new SubBloc instance.
         /// </summary>
@@ -176,12 +195,14 @@ namespace HBP.Core.Data
             Icons = icons.ToList();
             Treatments = treatments.ToList();
         }
+
         /// <summary>
         /// Create a new SubBloc instance with default value.
         /// </summary>
-        public SubBloc() : this("New subBloc", 0, Enums.MainSecondaryEnum.Main, new Tools.TimeWindow(-300,300), new Tools.TimeWindow(-300,0), new List<Event>(), new List<Icon>(), new List<Treatment>())
+        public SubBloc() : this("New subBloc", 0, Enums.MainSecondaryEnum.Main, new Tools.TimeWindow(-300, 300), new Tools.TimeWindow(-300, 0), new List<Event>(), new List<Icon>(), new List<Treatment>())
         {
         }
+
         /// <summary>
         /// Create a new SubBloc instance with a specific type.
         /// </summary>
@@ -190,9 +211,11 @@ namespace HBP.Core.Data
         {
             Type = type;
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Copy the instance.
         /// </summary>
@@ -200,7 +223,7 @@ namespace HBP.Core.Data
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is SubBloc subBloc)
+            if (obj is SubBloc subBloc)
             {
                 Name = subBloc.Name;
                 Order = subBloc.Order;
@@ -212,6 +235,7 @@ namespace HBP.Core.Data
                 Treatments = subBloc.Treatments;
             }
         }
+
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -220,6 +244,7 @@ namespace HBP.Core.Data
         {
             return new SubBloc(Name, Order, Type, Window, Baseline, Events.DeepClone(), Icons.DeepClone(), Treatments.DeepClone(), ID);
         }
+
         #endregion
     }
 }

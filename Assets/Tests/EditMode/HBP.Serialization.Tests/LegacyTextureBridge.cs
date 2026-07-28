@@ -32,8 +32,7 @@ namespace HBP.Tests.Serialization
 
         public static LegacyTextureBridge GenerateHistogram(LegacyNative.NIFTI nifti, int height, int width, bool withGreyArea)
         {
-            return new LegacyTextureBridge(generate_distribution_histogram_NIFTI_Texture(
-                nifti.getHandle().Handle, height, width, withGreyArea));
+            return new LegacyTextureBridge(generate_distribution_histogram_NIFTI_Texture(nifti.getHandle().Handle, height, width, withGreyArea));
         }
 
         public void ApplyBlur()
@@ -43,8 +42,7 @@ namespace HBP.Tests.Serialization
 
         public LegacyTextureBridge Rotate(CutOrientation orientation, bool flip)
         {
-            return new LegacyTextureBridge(rotate_with_cut_plane_Texture(
-                Handle, orientation.ToString(), flip ? 1 : 0));
+            return new LegacyTextureBridge(rotate_with_cut_plane_Texture(Handle, orientation.ToString(), flip ? 1 : 0));
         }
 
         public void ResizeToSquare(int size)
@@ -63,6 +61,7 @@ namespace HBP.Tests.Serialization
                 rgb[3 * i + 1] = pixels[i].g;
                 rgb[3 * i + 2] = pixels[i].b;
             }
+
             set_colors_Texture(texture.Handle, rgb, pixels.Length);
             return texture;
         }
@@ -81,6 +80,7 @@ namespace HBP.Tests.Serialization
             {
                 handle.Free();
             }
+
             return pixels;
         }
 

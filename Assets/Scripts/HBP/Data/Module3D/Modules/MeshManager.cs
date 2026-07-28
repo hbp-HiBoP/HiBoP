@@ -19,10 +19,12 @@ namespace HBP.Data.Module3D
     public class MeshManager : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene of the manager
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+
         /// <summary>
         /// Component containing references to GameObjects of the 3D scene
         /// </summary>
@@ -32,24 +34,28 @@ namespace HBP.Data.Module3D
         /// List of all the meshes of the scene
         /// </summary>
         public List<Core.Object3D.Mesh3D> Meshes { get; set; } = new List<Core.Object3D.Mesh3D>();
+
         /// <summary>
         /// List of all the loaded meshes
         /// </summary>
-        public List<Core.Object3D.Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
+        public List<Core.Object3D.Mesh3D> LoadedMeshes
+        {
+            get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); }
+        }
+
         /// <summary>
         /// Selected Mesh3D ID
         /// </summary>
         public int SelectedMeshID { get; private set; }
+
         /// <summary>
         /// Selected Mesh3D
         /// </summary>
         public Core.Object3D.Mesh3D SelectedMesh
         {
-            get
-            {
-                return Meshes[SelectedMeshID];
-            }
+            get { return Meshes[SelectedMeshID]; }
         }
+
         /// <summary>
         /// List of all the preloaded meshes of the scene
         /// </summary>
@@ -59,21 +65,26 @@ namespace HBP.Data.Module3D
         /// Mesh part to be displayed in the scene
         /// </summary>
         public MeshPart MeshPartToDisplay { get; private set; } = MeshPart.Both;
+
         /// <summary>
         /// Mesh being displayed in the scene
         /// </summary>
         public Core.DLL.Surface BrainSurface { get; private set; }
+
         /// <summary>
         /// Simplified mesh to be used in the scene
         /// </summary>
         public Core.DLL.Surface SimplifiedMeshToUse { get; private set; }
+
         /// <summary>
         /// Center of the loaded mesh
         /// </summary>
         public Vector3 MeshCenter { get; private set; }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a mesh to the mesh manager
         /// </summary>
@@ -132,6 +143,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Add a mesh to the mesh manager preloaded meshes
         /// </summary>
@@ -147,6 +159,7 @@ namespace HBP.Data.Module3D
                     PreloadedMeshes[patient].Add(new Core.Object3D.SingleMesh3D((SingleMesh)mesh, MeshType.Patient, true));
             }
         }
+
         /// <summary>
         /// Set the mesh type to be displayed in the scene
         /// </summary>
@@ -161,28 +174,34 @@ namespace HBP.Data.Module3D
             {
                 m_Scene.AtlasManager.DisplayMarsAtlas = false;
             }
+
             if (m_Scene.AtlasManager.DisplayJuBrainAtlas && SelectedMesh.Type != MeshType.MNI)
             {
                 m_Scene.AtlasManager.DisplayJuBrainAtlas = false;
             }
+
             if (m_Scene.FMRIManager.DisplayIBCContrasts && SelectedMesh.Type != MeshType.MNI)
             {
                 m_Scene.FMRIManager.DisplayIBCContrasts = false;
             }
+
             if (m_Scene.FMRIManager.DisplayDiFuMo && SelectedMesh.Type != MeshType.MNI)
             {
                 m_Scene.FMRIManager.DisplayDiFuMo = false;
             }
+
             if (m_Scene.FMRIManager.DisplayLocalizers && SelectedMesh.Type != MeshType.MNI)
             {
                 m_Scene.FMRIManager.DisplayLocalizers = false;
             }
+
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
 
             m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Set the mesh part to be displayed in the scene
         /// </summary>
@@ -193,6 +212,7 @@ namespace HBP.Data.Module3D
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
         }
+
         /// <summary>
         /// Load every mesh that has not been loaded yet
         /// </summary>
@@ -203,6 +223,7 @@ namespace HBP.Data.Module3D
                 if (!mesh.IsLoaded) mesh.Load();
             }
         }
+
         /// <summary>
         /// Update the surface meshes from the DLL
         /// </summary>
@@ -212,6 +233,7 @@ namespace HBP.Data.Module3D
             foreach (Column3D column in m_Scene.Columns)
                 column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
         }
+
         /// <summary>
         /// Update meshes to display (fills information)
         /// </summary>
@@ -244,12 +266,14 @@ namespace HBP.Data.Module3D
                 SimplifiedMeshToUse = SelectedMesh.SimplifiedBoth;
                 BrainSurface = SelectedMesh.Both;
             }
+
             // get the middle
             MeshCenter = BrainSurface.Center;
             m_Scene.BrainMaterials.SetBrainCenter(MeshCenter);
 
             m_Scene.UpdateAllCutPlanes();
         }
+
         /// <summary>
         /// Initialize the meshes of the scene
         /// </summary>
@@ -258,6 +282,7 @@ namespace HBP.Data.Module3D
             m_DisplayedObjects.InstantiateBrain();
             m_DisplayedObjects.InstantiateSimplifiedBrain();
         }
+
         #endregion
     }
 }

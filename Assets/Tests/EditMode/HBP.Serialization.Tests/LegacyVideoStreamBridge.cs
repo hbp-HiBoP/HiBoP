@@ -23,6 +23,7 @@ namespace HBP.Tests.Serialization
             {
                 return;
             }
+
             delete_VideoStream(m_Handle);
             m_Handle = IntPtr.Zero;
         }

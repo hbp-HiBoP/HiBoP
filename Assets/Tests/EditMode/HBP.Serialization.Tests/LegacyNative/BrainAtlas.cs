@@ -16,19 +16,24 @@ namespace HBP.Tests.Serialization.LegacyNative
     public abstract class BrainAtlas : CppDLLImportBase
     {
         #region Properties
+
         /// <summary>
         /// Is the atlas completely loaded ?
         /// </summary>
         public bool Loaded { get; protected set; }
+
         public bool Loading { get; protected set; }
         protected List<string> m_AreaNames = new();
         public ReadOnlyCollection<string> AreaNames => new(m_AreaNames);
         private protected BenchmarkBackend m_Backend = OracleBackendContext.Current;
         internal BenchmarkBackend Backend => m_Backend;
+
         #endregion
 
         #region Public Methods
+
         public abstract void Load();
+
         /// <summary>
         /// Get the index of the area closest to a position
         /// </summary>
@@ -45,6 +50,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             return get_closest_area_index_BrainAtlas(_handle, -position.x, position.y, position.z, radius);
         }
+
         /// <summary>
         /// Get information about an area given its index
         /// </summary>
@@ -58,6 +64,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 {
                     return information;
                 }
+
                 return CopyHbpCoreAreaInformation(labelIndex).Split(new char[1] { '?' }, StringSplitOptions.None);
             }
 
@@ -67,6 +74,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return result.Split(new char[1] { '?' }, StringSplitOptions.None);
             }
         }
+
         /// <summary>
         /// Get the labels of the area for each vertex of a surface
         /// </summary>
@@ -87,6 +95,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             get_vertices_area_index_BrainAtlas(_handle, surface.getHandle(), result);
             return result;
         }
+
         /// <summary>
         /// Convert an array of indices to an array of color
         /// </summary>
@@ -109,6 +118,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 {
                     colors[i] = nativeColors[i].ToColor();
                 }
+
                 return colors;
             }
 
@@ -118,9 +128,12 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 colors[i] = new Color(result[4 * i] / 255, result[4 * i + 1] / 255, result[4 * i + 2] / 255, result[4 * i + 3] / 255);
             }
+
             return colors;
         }
+
         public abstract string GetAreaName(int index);
+
         public Vector3[] GetAreaCoordinates(int labelIndex)
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
@@ -137,6 +150,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 {
                     hbpCoreResult[i] = nativeCoordinates[i].ToVector3();
                 }
+
                 return hbpCoreResult;
             }
 
@@ -148,11 +162,14 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 result[i] = new Vector3(-coords[3 * i], coords[3 * i + 1], coords[3 * i + 2]);
             }
+
             return result;
         }
+
         #endregion
 
         #region Private Methods
+
         protected abstract void GetAreaNames();
 
         protected virtual bool TryGetCachedInformation(int labelIndex, out string[] information)
@@ -177,10 +194,12 @@ namespace HBP.Tests.Serialization.LegacyNative
                 {
                     return builder.ToString();
                 }
+
                 if (status != HbpCoreStatus.BufferTooSmall)
                 {
                     ThrowIfFailed(status);
                 }
+
                 capacity *= 2;
             }
 
@@ -202,32 +221,44 @@ namespace HBP.Tests.Serialization.LegacyNative
                 throw new InvalidOperationException($"hbp_core BrainAtlas call failed with status {status}: {HbpCoreRuntime.LastError}");
             }
         }
+
         #endregion
 
         #region DLLImport
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "get_closest_area_index_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern int get_closest_area_index_BrainAtlas(HandleRef atlas, float x, float y, float z, int radius);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "get_area_information_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr get_area_information_BrainAtlas(HandleRef atlas, int labelIndex);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "get_vertices_area_index_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_vertices_area_index_BrainAtlas(HandleRef atlas, HandleRef surfaceHandle, int[] indices);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "get_colors_from_indices_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_colors_from_indices_BrainAtlas(HandleRef atlas, int[] indices, int size, int selectedArea, float[] colors);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "get_region_coordinates_BrainAtlas", CallingConvention = CallingConvention.Cdecl)]
         private static extern int get_region_coordinates_BrainAtlas(HandleRef atlas, int labelIndex, float[] coordinates, int maxCoordinates);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_brain_atlas_get_closest_area_index", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_brain_atlas_get_closest_area_index(IntPtr atlas, ref Vec3 position, int radius, out int label);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_brain_atlas_copy_area_information", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_brain_atlas_copy_area_information(IntPtr atlas, int label, StringBuilder text, int textCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_brain_atlas_copy_surface_area_labels", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_brain_atlas_copy_surface_area_labels(IntPtr atlas, IntPtr surface, [Out] int[] labels, int labelCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_brain_atlas_copy_colors_from_indices", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_brain_atlas_copy_colors_from_indices(IntPtr atlas, [In] int[] indices, int indexCount, int selectedArea, [Out] Color4[] colors, int colorCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_brain_atlas_get_region_coordinate_count", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_brain_atlas_get_region_coordinate_count(IntPtr atlas, int label, out int count);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_brain_atlas_copy_region_coordinates", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_brain_atlas_copy_region_coordinates(IntPtr atlas, int label, [Out] Vec3[] coordinates, int coordinateCapacity);
+
         #endregion
     }
 }

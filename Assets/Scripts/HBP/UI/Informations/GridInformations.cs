@@ -7,13 +7,20 @@ namespace HBP.UI.Informations
     public class GridInformations : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] ChannelStruct[] m_Channels;
         [SerializeField] Column[] m_Columns;
         [SerializeField] GraphsGrid m_Grid;
-        public GraphsGrid Grid { get { return m_Grid; } }
+
+        public GraphsGrid Grid
+        {
+            get { return m_Grid; }
+        }
+
         #endregion
 
         #region Public Methods
+
         public void Display(ChannelStruct[] channels)
         {
             m_Channels = channels;
@@ -23,6 +30,7 @@ namespace HBP.UI.Informations
                 m_Grid.Display(m_Channels, m_Columns);
             }
         }
+
         public void SetColumns(Column[] columns)
         {
             m_Columns = columns;
@@ -36,6 +44,7 @@ namespace HBP.UI.Informations
                     {
                         abscissaDisplayRange = new Vector2(mainSubBloc.Window.Start, abscissaDisplayRange.y);
                     }
+
                     if (mainSubBloc.Window.End > abscissaDisplayRange.y)
                     {
                         abscissaDisplayRange = new Vector2(abscissaDisplayRange.x, mainSubBloc.Window.End);
@@ -48,14 +57,17 @@ namespace HBP.UI.Informations
                     {
                         abscissaDisplayRange = new Vector2(window.Start, abscissaDisplayRange.y);
                     }
+
                     if (window.End > abscissaDisplayRange.y)
                     {
                         abscissaDisplayRange = new Vector2(abscissaDisplayRange.x, window.End);
                     }
                 }
             }
+
             m_Grid.AbscissaDisplayRange = abscissaDisplayRange;
         }
+
         #endregion
     }
 }

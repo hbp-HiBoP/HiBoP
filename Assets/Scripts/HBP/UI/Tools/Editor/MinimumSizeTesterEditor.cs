@@ -8,12 +8,14 @@ namespace HBP.UI.Tools
     public class MinimumSizeTesterEditor : Editor
     {
         #region Properties
+
         SerializedProperty m_UseMinWidth;
         SerializedProperty m_UseMinHeight;
         SerializedProperty m_MinWidth;
         SerializedProperty m_MinHeight;
         SerializedProperty m_Minimized;
         SerializedProperty m_OnChangeMinimized;
+
         #endregion
 
         void OnEnable()
@@ -36,7 +38,7 @@ namespace HBP.UI.Tools
             EditorGUILayout.BeginHorizontal();
             GUI.enabled = m_UseMinWidth.boolValue;
             EditorGUILayout.PropertyField(m_MinWidth, new GUIContent("Width"), new GUILayoutOption[] { GUILayout.ExpandWidth(true) });
-            GUI.enabled = true; 
+            GUI.enabled = true;
             EditorGUILayout.PropertyField(m_UseMinWidth, new GUIContent(""), new GUILayoutOption[] { GUILayout.ExpandWidth(false), GUILayout.MaxWidth(30), GUILayout.MinWidth(30) });
             EditorGUILayout.EndHorizontal();
 
@@ -54,7 +56,6 @@ namespace HBP.UI.Tools
             EditorGUILayout.PropertyField(m_Minimized);
             EditorGUILayout.PropertyField(m_OnChangeMinimized);
             EditorGUI.indentLevel--;
-
 
 
             serializedObject.ApplyModifiedProperties();

@@ -12,6 +12,7 @@ namespace HBP.UI.Database
     public class DatabaseReferenceGestion : GestionWindow<DatabaseReference>
     {
         #region Properties
+
         [SerializeField] Button m_UpdateButton;
         [SerializeField] DatabaseReferenceListGestion m_ListGestion;
         public override ListGestion<DatabaseReference> ListGestion => m_ListGestion;
@@ -28,9 +29,11 @@ namespace HBP.UI.Database
                 SetUpdateButtonInteractableState();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public async override void OK()
         {
             if (m_ListGestion.HasBeenModified)
@@ -50,6 +53,7 @@ namespace HBP.UI.Database
                 InteractableStateManager.SetInteractables();
             }
         }
+
         public async void UpdateDatabases()
         {
             int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Override data", "Patients and data will be overridden. Do you want to continue?", "Yes", "Cancel");
@@ -64,7 +68,6 @@ namespace HBP.UI.Database
                 }
                 catch (OperationCanceledException)
                 {
-
                 }
                 catch (Exception e)
                 {
@@ -72,15 +75,18 @@ namespace HBP.UI.Database
                 }
             }
         }
+
         public override void Close()
         {
             if (m_ListGestion.HasBeenModified)
                 LoadingManager.Load(update => RestoreOldValuesAsync(DatabaseManager.Database.DatabaseReferences, update), false);
             base.Close();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -89,17 +95,20 @@ namespace HBP.UI.Database
             m_ListGestion.List.OnRemoveObject.AddListener((database) => SetUpdateButtonInteractableState());
             m_ListGestion.List.OnAddObject.AddListener((database) => SetUpdateButtonInteractableState());
         }
+
         private void SetUpdateButtonInteractableState()
         {
             var selectedDatabases = m_ListGestion.List.ObjectsSelected;
             m_UpdateButton.interactable = selectedDatabases.Length > 0 && Interactable;
         }
+
         protected override void SetFields()
         {
             base.SetFields();
             SetList(DatabaseManager.Database.DatabaseReferences);
             SetUpdateButtonInteractableState();
         }
+
         #endregion
     }
 }

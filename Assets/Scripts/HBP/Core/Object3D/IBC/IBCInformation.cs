@@ -11,21 +11,25 @@ namespace HBP.Core.Object3D
     public class IBCInformation
     {
         #region Structs
+
         /// <summary>
         /// Structure containing the labels for a contrast
         /// </summary>
         public struct Labels
         {
             #region Propreties
+
             public int Index { get; set; }
             public string Task { get; private set; }
             public string Contrast { get; set; }
             public string PrettyName { get; private set; }
             public string ControlCondition { get; private set; }
             public string TargetCondition { get; private set; }
+
             #endregion
 
             #region Constructors
+
             public Labels(int index, string task, string contrast, string prettyName, string controlCondition, string targetCondition)
             {
                 Index = index;
@@ -35,24 +39,31 @@ namespace HBP.Core.Object3D
                 ControlCondition = controlCondition;
                 TargetCondition = targetCondition;
             }
+
             #endregion
         }
+
         #endregion
 
         #region Properties
+
         public List<Labels> AllLabels { get; } = new List<Labels>();
         public bool Loaded { get; private set; } = false;
         public bool Loading { get; private set; } = false;
+
         #endregion
 
         #region Constructors
+
         public IBCInformation(string csvFile)
         {
             LoadAsync(csvFile).Forget();
         }
+
         #endregion
 
         #region Private Methods
+
         private async UniTaskVoid LoadAsync(string csvFile)
         {
             await UniTask.SwitchToThreadPool();
@@ -76,12 +87,15 @@ namespace HBP.Core.Object3D
                     }
                 }
             }
+
             Loading = false;
             Loaded = true;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Get the <see cref="Labels"/> object corresponding to the raw file name
         /// </summary>
@@ -91,6 +105,7 @@ namespace HBP.Core.Object3D
         {
             return AllLabels[index];
         }
+
         #endregion
     }
 }

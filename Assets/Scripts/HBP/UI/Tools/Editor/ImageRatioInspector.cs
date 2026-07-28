@@ -6,6 +6,7 @@ namespace HBP.UI.Tools
     public class ImageRatioInspector : Editor
     {
         #region Properties
+
         SerializedProperty m_TypeProperty;
         SerializedProperty m_MinHeightProperty;
         SerializedProperty m_PreferredHeightProperty;
@@ -13,6 +14,7 @@ namespace HBP.UI.Tools
         SerializedProperty m_MinWidthProperty;
         SerializedProperty m_PreferredWidthProperty;
         SerializedProperty m_FlexibleWidthProperty;
+
         #endregion
 
         private void OnEnable()
@@ -32,7 +34,7 @@ namespace HBP.UI.Tools
 
             EditorGUILayout.PropertyField(m_TypeProperty);
             EditorGUI.indentLevel++;
-            switch((ImageRatio.ControlType)m_TypeProperty.enumValueIndex)
+            switch ((ImageRatio.ControlType)m_TypeProperty.enumValueIndex)
             {
                 case ImageRatio.ControlType.HeightControlsWidth:
                     EditorGUILayout.PropertyField(m_MinHeightProperty);
@@ -45,6 +47,7 @@ namespace HBP.UI.Tools
                     EditorGUILayout.PropertyField(m_FlexibleWidthProperty);
                     break;
             }
+
             EditorGUI.indentLevel--;
 
             serializedObject.ApplyModifiedProperties();

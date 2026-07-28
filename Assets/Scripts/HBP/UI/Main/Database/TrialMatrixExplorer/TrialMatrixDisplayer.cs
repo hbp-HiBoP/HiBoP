@@ -21,6 +21,7 @@ namespace HBP.UI.Database
     public class TrialMatrixDisplayer : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] TrialMatrixGrid m_TrialMatrixGrid;
         [SerializeField] GameObject m_TrialMatrixGridContainer;
         [SerializeField] GameObject m_NoDataContainer;
@@ -44,7 +45,7 @@ namespace HBP.UI.Database
         private Protocol m_CurrentProtocol;
 
         public Patient CurrentPatient => m_CurrentPatient;
-        
+
         public bool HasMultiplePatients => m_Patients != null && m_Patients.Count > 1;
 
         Data.Informations.TrialMatrix.TrialMatrixGrid m_TrialMatrixGridData;
@@ -52,10 +53,7 @@ namespace HBP.UI.Database
 
         public bool Visible
         {
-            get
-            {
-                return m_TrialMatrixGrid.gameObject.activeSelf && m_ChannelList.gameObject.activeSelf && m_PatientDropdown.gameObject.activeSelf && m_ProtocolDropdown.gameObject.activeSelf;
-            }
+            get { return m_TrialMatrixGrid.gameObject.activeSelf && m_ChannelList.gameObject.activeSelf && m_PatientDropdown.gameObject.activeSelf && m_ProtocolDropdown.gameObject.activeSelf; }
             set
             {
                 m_TrialMatrixGrid.gameObject.SetActive(value);
@@ -68,9 +66,11 @@ namespace HBP.UI.Database
         }
 
         private Selector m_ParentSelector;
+
         #endregion
 
         #region Public Methods
+
         public void Set(List<Patient> patients, string dataName)
         {
             m_ChannelStructs = new List<ChannelStruct>();
@@ -78,6 +78,7 @@ namespace HBP.UI.Database
             m_DataName = dataName;
             LoadingManager.Load(LoadDatabaseDataAsync);
         }
+
         public void Set(List<ChannelStruct> channelStructs, List<IEEGDataInfo> dataInfos, string dataName)
         {
             m_ChannelStructs = channelStructs.OrderBy(c => c.Channel, new SiteNameComparer()).ToList();
@@ -86,6 +87,7 @@ namespace HBP.UI.Database
             m_DataInfos = dataInfos.Where(d => d.Name == m_DataName).ToList();
             LoadingManager.Load((update, token) => LoadDataAsync(update, token));
         }
+
         public void Display(ChannelStruct channelStruct, IEEGDataInfo dataInfo)
         {
             m_CurrentChannelStruct = channelStruct;
@@ -101,14 +103,17 @@ namespace HBP.UI.Database
             DisplayMatrix(true);
             ApplySettings();
         }
+
         public void Refresh()
         {
             DataManager.NormalizeiEEGData();
             Display(m_CurrentChannelStruct, m_CurrentDataInfo);
         }
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_Settings = new Settings();
@@ -121,6 +126,7 @@ namespace HBP.UI.Database
             m_ProtocolDropdown.OnValueChanged.AddSafeListener(index => OnChangeProtocol(index), gameObject);
             m_ParentSelector = GetComponentInParent<Selector>();
         }
+
         private void Update()
         {
             if (m_ParentSelector != null && !m_ParentSelector.Selected)
@@ -131,12 +137,14 @@ namespace HBP.UI.Database
             else if (Input.GetKeyDown(KeyCode.RightArrow))
                 m_ProtocolDropdown.SelectNext();
         }
+
         private void OnChangePatient(Patient patient)
         {
             m_CurrentPatient = patient;
             UpdateChannelList();
             UpdateCurrentDataInfo();
         }
+
         private void OnChangeProtocol(int protocolIndex)
         {
             if (m_AvailableProtocols != null && protocolIndex >= 0 && protocolIndex < m_AvailableProtocols.Count)
@@ -145,6 +153,7 @@ namespace HBP.UI.Database
                 UpdateCurrentDataInfo();
             }
         }
+
         private void UpdateChannelList()
         {
             if (m_CurrentPatient == null || m_ChannelStructs == null) return;
@@ -154,13 +163,15 @@ namespace HBP.UI.Database
             m_CurrentChannelStruct = channelStructsForPatient.FirstOrDefault();
             UpdateCurrentDataInfo();
         }
+
         private void UpdateCurrentDataInfo()
         {
             if (m_CurrentPatient == null || m_CurrentProtocol == null || m_DataInfos == null) return;
-            
+
             var dataInfo = m_DataInfos.FirstOrDefault(d => d.Patient == m_CurrentPatient && d.Protocol == m_CurrentProtocol);
             Display(m_CurrentChannelStruct, dataInfo);
         }
+
         private void SetupDropdowns()
         {
             // Setup patient dropdown
@@ -182,10 +193,11 @@ namespace HBP.UI.Database
             // Initialize channel list and data info
             UpdateChannelList();
         }
+
         private async UniTask LoadDataAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
-            
+
             bool getChannelStructsFromData = m_ChannelStructs.Count == 0;
             int currentPatientIndex = 0;
             int totalPatients = m_Patients.Count;
@@ -225,8 +237,10 @@ namespace HBP.UI.Database
                             {
                                 throw new OperationCanceledException(token);
                             }
+
                             await UniTask.SwitchToThreadPool();
                         }
+
                         dataCounter++;
                     }
 
@@ -263,42 +277,22 @@ namespace HBP.UI.Database
             SetupDropdowns();
             Visible = m_ChannelStructs.Count > 0 && m_DataInfos.Count > 0;
         }
-        private async UniTask LoadDatabaseDataAsync(
-            Action<float, float, LoadingText> updateProgress,
-            CancellationToken token)
+
+        private async UniTask LoadDatabaseDataAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             GlobalDatabase database = DatabaseManager.Database;
             await UniTask.SwitchToMainThread();
-            m_DataInfos = database.DataInfos
-                .OfType<IEEGDataInfo>()
-                .Where(dataInfo => dataInfo.Name == m_DataName)
-                .ToList();
-            ValidationRequest validationRequest = new(
-                ValidationAspect.SourceAvailability |
-                    ValidationAspect.SourceReadability |
-                    ValidationAspect.Epoching |
-                    ValidationAspect.ChannelMapping,
-                dataInfoIDs: m_DataInfos.Select(dataInfo => dataInfo.ID));
-            float validationWeight =
-                database.RequiresValidation(validationRequest) ? 0.2f : 0;
+            m_DataInfos = database.DataInfos.OfType<IEEGDataInfo>().Where(dataInfo => dataInfo.Name == m_DataName).ToList();
+            ValidationRequest validationRequest = new(ValidationAspect.SourceAvailability | ValidationAspect.SourceReadability | ValidationAspect.Epoching | ValidationAspect.ChannelMapping, dataInfoIDs: m_DataInfos.Select(dataInfo => dataInfo.ID));
+            float validationWeight = database.RequiresValidation(validationRequest) ? 0.2f : 0;
             if (validationWeight > 0)
             {
-                await database.EnsureDatabaseValidatedAsync(
-                    validationRequest,
-                    (progress, duration, text) => updateProgress(
-                        progress * validationWeight,
-                        duration,
-                        text),
-                    token);
+                await database.EnsureDatabaseValidatedAsync(validationRequest, (progress, duration, text) => updateProgress(progress * validationWeight, duration, text), token);
             }
 
-            await LoadDataAsync(
-                (progress, duration, text) => updateProgress(
-                    validationWeight + progress * (1 - validationWeight),
-                    duration,
-                    text),
-                token);
+            await LoadDataAsync((progress, duration, text) => updateProgress(validationWeight + progress * (1 - validationWeight), duration, text), token);
         }
+
         private void DisplayMatrix(bool display)
         {
             m_TrialMatrixGridContainer.SetActive(display);
@@ -313,6 +307,7 @@ namespace HBP.UI.Database
                 m_InformationPanels.Set(m_CurrentChannelStruct);
             }
         }
+
         void SaveSettings()
         {
             var data = m_TrialMatrixGrid.Data.FirstOrDefault();
@@ -322,6 +317,7 @@ namespace HBP.UI.Database
                 m_Settings.Limits = data.Limits;
             }
         }
+
         void ApplySettings()
         {
             foreach (var data in m_TrialMatrixGrid.Data)
@@ -333,52 +329,61 @@ namespace HBP.UI.Database
                 }
             }
         }
+
         private void NavigateToNextPatient()
         {
             if (!HasMultiplePatients) return;
-            
+
             int currentIndex = m_Patients.IndexOf(m_CurrentPatient);
             int nextIndex = (currentIndex + 1) % m_Patients.Count;
-            
+
             m_PatientDropdown.SetValueWithoutNotify(nextIndex);
             OnChangePatient(m_Patients[nextIndex]);
-            
+
             m_ChannelList.SelectFirst();
         }
+
         private void NavigateToPreviousPatient()
         {
             if (!HasMultiplePatients) return;
-            
+
             int currentIndex = m_Patients.IndexOf(m_CurrentPatient);
             int previousIndex = currentIndex == 0 ? m_Patients.Count - 1 : currentIndex - 1;
-            
+
             m_PatientDropdown.SetValueWithoutNotify(previousIndex);
             OnChangePatient(m_Patients[previousIndex]);
-            
+
             m_ChannelList.SelectLast();
         }
+
         #endregion
 
         #region Structs
+
         class Settings
         {
             #region Properties
+
             public Vector2 Limits { get; set; }
             public bool UseDefaultLimit { get; set; }
+
             #endregion
 
             #region Constructors
+
             public Settings() : this(Vector2.zero, true)
             {
-
             }
+
             public Settings(Vector2 limits, bool useDefaultLimits)
             {
                 Limits = limits;
                 UseDefaultLimit = useDefaultLimits;
             }
+
             #endregion
         }
+
         #endregion
     }
 }

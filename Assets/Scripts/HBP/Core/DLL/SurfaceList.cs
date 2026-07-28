@@ -36,6 +36,7 @@ namespace HBP.Core.DLL
             {
                 surfaces.Add(TakeSurface(0));
             }
+
             return surfaces;
         }
 

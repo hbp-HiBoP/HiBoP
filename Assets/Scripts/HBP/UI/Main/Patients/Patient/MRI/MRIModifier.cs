@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class MRIModifier : ObjectModifier<Core.Data.MRI>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] FileSelector m_FileSelector;
 
@@ -18,10 +19,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -31,9 +29,11 @@ namespace HBP.UI.Main
                 m_FileSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -44,6 +44,7 @@ namespace HBP.UI.Main
             m_NameInputField.onEndEdit.AddListener(ChangeName);
             m_FileSelector.onValueChanged.AddListener(ChangeFile);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -53,13 +54,14 @@ namespace HBP.UI.Main
             m_NameInputField.text = objectToDisplay.Name;
             m_FileSelector.File = objectToDisplay.SavedFile;
         }
+
         /// <summary>
         /// Change the name.
         /// </summary>
         /// <param name="value">Name of the MRI</param>
         protected void ChangeName(string value)
         {
-            if(value != "")
+            if (value != "")
             {
                 ObjectTemp.Name = value;
             }
@@ -68,6 +70,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Change the path to the MRI file.
         /// </summary>
@@ -76,6 +79,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.File = value;
         }
+
         #endregion
     }
 }

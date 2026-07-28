@@ -12,59 +12,74 @@ namespace HBP.UI.Module3D
     public class SiteInfoDisplayer : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// GameObject displaying information about iEEG activity of the hovered site
         /// </summary>
         [SerializeField] GameObject m_IEEG;
+
         /// <summary>
         /// GameObject displaying information about CCEP activity of the hovered site
         /// </summary>
         [SerializeField] GameObject m_CCEP;
+
         [SerializeField] GameObject m_PatientTags;
+
         /// <summary>
         /// GameObject displaying information about the atlases of the hovered site
         /// </summary>
         [SerializeField] GameObject m_Tags;
+
         /// <summary>
         /// GameObject displaying information about the state of the hovered site
         /// </summary>
         [SerializeField] GameObject m_States;
+
         /// <summary>
         /// Displays the name of the site
         /// </summary>
         [SerializeField] Text m_SiteNameText;
+
         /// <summary>
         /// If this image is visible, that means the site is highlighted
         /// </summary>
         [SerializeField] Image m_IsHighlightedImage;
+
         /// <summary>
         /// If this image is visible, that means the site is blacklisted
         /// </summary>
         [SerializeField] Image m_IsBlackListedImage;
+
         /// <summary>
         /// Displays information about the patient
         /// </summary>
         [SerializeField] Text m_PatientText;
+
         /// <summary>
         /// Displays the amplitude of the iEEG activity
         /// </summary>
         [SerializeField] Text m_IEEGAmplitudeText;
+
         /// <summary>
         /// Displays the amplitude of the CCEP activity of the first spike
         /// </summary>
         [SerializeField] Text m_CCEPAmplitudeText;
+
         /// <summary>
         /// Displays the latency of the first spike
         /// </summary>
         [SerializeField] Text m_CCEPLatencyText;
+
         /// <summary>
         /// Displays the tags of the patient
         /// </summary>
         [SerializeField] Text m_PatientTagsText;
+
         /// <summary>
         /// Displays the tags of the site
         /// </summary>
         [SerializeField] Text m_TagsText;
+
         /// <summary>
         /// Parent canvas of this object
         /// </summary>
@@ -74,13 +89,16 @@ namespace HBP.UI.Module3D
         /// Current selected mode to display the site information
         /// </summary>
         SiteInformationDisplayMode m_CurrentMode = SiteInformationDisplayMode.Anatomy;
+
         /// <summary>
         /// RectTransform of this object
         /// </summary>
         RectTransform m_RectTransform;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this object
         /// </summary>
@@ -128,6 +146,7 @@ namespace HBP.UI.Module3D
                             break;
                     }
                 }
+
                 if (siteInfo.Enabled)
                 {
                     SetPosition(siteInfo);
@@ -155,14 +174,18 @@ namespace HBP.UI.Module3D
                         case SiteInformationDisplayMode.Light:
                             break;
                     }
+
                     m_RectTransform.ClampToRectTransform(m_Canvas, new RectOffset(30, 30, 30, 30));
                 }
+
                 gameObject.SetActive(siteInfo.Enabled);
             });
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Set the position of this object on the screen
         /// </summary>
@@ -171,6 +194,7 @@ namespace HBP.UI.Module3D
         {
             transform.position = siteInfo.Position + new Vector3(0, -20, 0);
         }
+
         /// <summary>
         /// Set the site information (name)
         /// </summary>
@@ -179,6 +203,7 @@ namespace HBP.UI.Module3D
         {
             m_SiteNameText.text = site.Information.Name;
         }
+
         /// <summary>
         /// Set the patient information (name, place, date)
         /// </summary>
@@ -187,6 +212,7 @@ namespace HBP.UI.Module3D
         {
             m_PatientText.text = patient.Name;
         }
+
         /// <summary>
         /// Set the states of the site (highlighted, blacklisted)
         /// </summary>
@@ -196,6 +222,7 @@ namespace HBP.UI.Module3D
             m_IsBlackListedImage.gameObject.SetActive(site.State.IsBlackListed);
             m_IsHighlightedImage.gameObject.SetActive(site.State.IsHighlighted);
         }
+
         /// <summary>
         /// Set the CCEP values of the site (amplitude, latency)
         /// </summary>
@@ -205,6 +232,7 @@ namespace HBP.UI.Module3D
             m_CCEPAmplitudeText.text = siteInfo.CCEPAmplitude;
             m_CCEPLatencyText.text = siteInfo.CCEPLatency;
         }
+
         /// <summary>
         /// Set the iEEG values of the site (amplitude)
         /// </summary>
@@ -214,8 +242,9 @@ namespace HBP.UI.Module3D
             string unit = siteInfo.IEEGUnit;
             if (unit == "microV") unit = "µV";
             if (unit != string.Empty) unit = " (" + unit + ")";
-            m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude + unit;      
+            m_IEEGAmplitudeText.text = siteInfo.IEEGAmplitude + unit;
         }
+
         void SetPatientTags(Core.Object3D.SiteInfo siteInfo)
         {
             if (siteInfo.Site && siteInfo.Site.Information.Patient.Tags.Count > 0)
@@ -225,6 +254,7 @@ namespace HBP.UI.Module3D
                 {
                     stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
                 }
+
                 m_PatientTagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
                 m_PatientTags.SetActive(true);
             }
@@ -233,6 +263,7 @@ namespace HBP.UI.Module3D
                 m_PatientTags.SetActive(false);
             }
         }
+
         /// <summary>
         /// Set the atlases of the site (Mars atlas, Brodmann, Freesurfer)
         /// </summary>
@@ -246,6 +277,7 @@ namespace HBP.UI.Module3D
                 {
                     stringBuilder.Append(string.Format("\t• <b>{0}</b>: {1}\n", tag.Tag.Name, tag.DisplayableValue));
                 }
+
                 m_TagsText.text = stringBuilder.Remove(stringBuilder.Length - 1, 1).ToString();
                 m_Tags.SetActive(true);
             }
@@ -254,6 +286,7 @@ namespace HBP.UI.Module3D
                 m_Tags.SetActive(false);
             }
         }
+
         #endregion
     }
 }

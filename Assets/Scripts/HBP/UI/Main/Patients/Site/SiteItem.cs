@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class SiteItem : ActionnableItem<Core.Data.Site>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_CoordinatesText;
         [SerializeField] Text m_TagsText;
@@ -22,10 +23,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Site Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -40,6 +38,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

@@ -33,42 +33,42 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-	[JsonObject(MemberSerialization.OptIn), Preserve]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Protocol : BaseData, ILoadable<Protocol>, INameable
     {
         #region Properties
+
         /// <summary>
         /// Protocol file extension.
         /// </summary>
         public const string EXTENSION = ".prov";
+
         /// <summary>
         /// Name of the protocol.
         /// </summary>
         [JsonProperty] public string Name { get; set; }
+
         /// <summary>
         /// Blocs of the protocol.
         /// </summary>
         [JsonProperty] public List<Bloc> Blocs { get; set; }
+
         /// <summary>
         /// Blocs ordered by Bloc.Order.
         /// </summary>
         public IOrderedEnumerable<Bloc> OrderedBlocs
         {
-            get
-            {
-                return Blocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
-            }
+            get { return Blocs.OrderBy(s => s.Order).ThenBy(s => s.Name); }
         }
+
         /// <summary>
         /// Return True if the protocol is visualizable, False otherwise.
         /// </summary>
         public bool IsVisualizable
         {
-            get
-            {
-                return Blocs.Count > 0 && Blocs.All(b => b.IsVisualizable);
-            }
+            get { return Blocs.Count > 0 && Blocs.All(b => b.IsVisualizable); }
         }
+
         public bool IsAdvanced
         {
             get
@@ -85,20 +85,23 @@ namespace HBP.Core.Data
                 return false;
             }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new protocol instance.
         /// </summary>
         /// <param name="name">Name</param>
         /// <param name="blocs">Blocs</param>
         /// <param name="ID">Unique identifier</param>
-        public Protocol(string name,IEnumerable<Bloc> blocs,string ID) : base(ID)
+        public Protocol(string name, IEnumerable<Bloc> blocs, string ID) : base(ID)
         {
             Name = name;
             Blocs = blocs.ToList();
         }
+
         /// <summary>
         /// Create a new protocol.
         /// </summary>
@@ -109,15 +112,18 @@ namespace HBP.Core.Data
             Name = name;
             Blocs = blocs.ToList();
         }
+
         /// <summary>
         /// Create a new protocol instance with default values.
         /// </summary>
-        public Protocol() : this("New protocol",new List<Bloc>())
-		{
+        public Protocol() : this("New protocol", new List<Bloc>())
+        {
         }
+
         #endregion
 
         #region Public Methods
+
         public void SetBasicProtocolFeatures()
         {
             foreach (var bloc in Blocs)
@@ -141,6 +147,7 @@ namespace HBP.Core.Data
                     bloc.Sort = $"{bloc.MainSubBloc.Name}_{bloc.MainSubBloc.MainEvent.Name}_CODE";
             }
         }
+
         /// <summary>
         /// Generates new unique identifier recursively.
         /// </summary>
@@ -149,15 +156,18 @@ namespace HBP.Core.Data
             base.GenerateID();
             foreach (var bloc in Blocs) bloc.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
             foreach (var bloc in Blocs) IDs.AddRange(bloc.GetAllIdentifiable());
             return IDs;
         }
+
         #endregion
 
         #region Public Static Methods
+
         /// <summary>
         /// Get all the protocol file extensions.
         /// </summary>
@@ -166,6 +176,7 @@ namespace HBP.Core.Data
         {
             return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
+
         /// <summary>
         /// Load a protocol from a protocol file.
         /// </summary>
@@ -187,9 +198,11 @@ namespace HBP.Core.Data
                 throw new CanNotReadProtocolFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
+
         #endregion
 
         #region Operator
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -198,6 +211,7 @@ namespace HBP.Core.Data
         {
             return new Protocol(Name, Blocs.DeepClone(), ID);
         }
+
         /// <summary>
         /// Copy the instance.
         /// </summary>
@@ -205,15 +219,17 @@ namespace HBP.Core.Data
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is Protocol protocol)
+            if (obj is Protocol protocol)
             {
                 Name = protocol.Name;
                 Blocs = protocol.Blocs;
             }
         }
+
         #endregion
 
         #region Interfaces
+
         /// <summary>
         /// Get all the protocol file extensions.
         /// </summary>
@@ -222,6 +238,7 @@ namespace HBP.Core.Data
         {
             return GetExtensions();
         }
+
         /// <summary>
         /// Load a protocol from a protocol file.
         /// </summary>
@@ -234,6 +251,7 @@ namespace HBP.Core.Data
             result = new Protocol[] { protocol };
             return success;
         }
+
         #endregion
     }
 }

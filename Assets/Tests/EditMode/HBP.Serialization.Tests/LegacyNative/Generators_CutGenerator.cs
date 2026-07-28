@@ -13,13 +13,16 @@ namespace HBP.Tests.Serialization.LegacyNative
         private BenchmarkBackend m_Backend = OracleBackendContext.Current;
 
         #region Properties
+
         public ActivityGenerator ActivityGenerator { get; private set; }
         public CutGeometryGenerator CutGeometryGenerator { get; private set; }
         internal BenchmarkBackend Backend => m_Backend;
         public bool UsesHbpCore => m_Backend == BenchmarkBackend.HbpCore;
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(ActivityGenerator activityGenerator, CutGeometryGenerator cutGeometryGenerator, int blurFactor)
         {
             ActivityGenerator = activityGenerator;
@@ -34,6 +37,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                     EnsureHbpCoreActivity(activityGenerator, nameof(Initialize));
                     activityHandle = activityGenerator.getHandle().Handle;
                 }
+
                 ThrowIfFailed(hbp_cut_generator_initialize(_handle.Handle, activityHandle, cutGeometryGenerator.getHandle().Handle, blurFactor));
                 return;
             }
@@ -54,6 +58,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 colorSchemeHandle.Free();
             }
+
             if (status != HbpCoreStatus.Ok)
             {
                 Vector2Int size = CutGeometryGenerator != null ? CutGeometryGenerator.TextureSize : Vector2Int.zero;
@@ -114,9 +119,11 @@ namespace HBP.Tests.Serialization.LegacyNative
             EnsureHbpCore(nameof(CopyOverlayPixels));
             return CopyPixels(overlay: true);
         }
+
         #endregion
 
         #region Memory Management
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -131,6 +138,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             _handle = new HandleRef(this, create_CutGenerator());
         }
+
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -144,6 +152,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             delete_CutGenerator(_handle);
         }
+
         #endregion
 
         private Color32[] CopyPixels(bool overlay)
@@ -155,14 +164,13 @@ namespace HBP.Tests.Serialization.LegacyNative
             GCHandle pixelsHandle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
             try
             {
-                status = overlay
-                    ? hbp_cut_generator_copy_overlay_rgba8(_handle.Handle, pixelsHandle.AddrOfPinnedObject(), pixels.Length)
-                    : hbp_cut_generator_copy_base_rgba8(_handle.Handle, pixelsHandle.AddrOfPinnedObject(), pixels.Length);
+                status = overlay ? hbp_cut_generator_copy_overlay_rgba8(_handle.Handle, pixelsHandle.AddrOfPinnedObject(), pixels.Length) : hbp_cut_generator_copy_base_rgba8(_handle.Handle, pixelsHandle.AddrOfPinnedObject(), pixels.Length);
             }
             finally
             {
                 pixelsHandle.Free();
             }
+
             ThrowIfFailed(status);
             return pixels;
         }
@@ -181,6 +189,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 throw new ArgumentNullException(nameof(geometry), $"CutGenerator.{methodName} requires a cut geometry generator.");
             }
+
             if (geometry.Backend != BenchmarkBackend.HbpCore)
             {
                 throw new InvalidOperationException($"CutGenerator.{methodName} cannot use a {geometry.Backend} geometry with hbp_core.");
@@ -220,41 +229,58 @@ namespace HBP.Tests.Serialization.LegacyNative
         }
 
         #region DLLImport
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "create_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr create_CutGenerator();
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "delete_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_CutGenerator(HandleRef generator);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "initialize_CutGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void initialize_CutGenerator(HandleRef generator, HandleRef activityGenerator, HandleRef geometryGenerator, int blurFactor);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_create(out IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_destroy(IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_initialize(IntPtr generator, IntPtr activityGenerator, IntPtr geometryGenerator, int blurFactor);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_fill_volume_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_volume_rgba(IntPtr generator, [In] Color4[] colorScheme, int colorCount, float calMin, float calMax);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_fill_volume_rgba8", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_volume_rgba8(IntPtr generator, IntPtr colorScheme, int colorCount, float calMin, float calMax);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_fill_atlas_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_atlas_rgba(IntPtr generator, IntPtr atlas, float alpha, int selectedArea);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_fill_activity_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_activity_rgba(IntPtr generator, [In] Color4[] colorScheme, int colorCount, int timelineIndex, float alpha);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_fill_activity_rgba8", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_activity_rgba8(IntPtr generator, IntPtr colorScheme, int colorCount, int timelineIndex, float alpha);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_fill_fmri_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_fmri_rgba(IntPtr generator, IntPtr volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_fill_localizer_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_localizer_rgba(IntPtr generator, IntPtr volume, IntPtr mask, float minValue, float middleValue, float maxValue, [In] Color4[] colorScheme, int colorCount);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_copy_base_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_copy_base_rgba(IntPtr generator, [Out] Color4[] colors, int colorCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_copy_overlay_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_copy_overlay_rgba(IntPtr generator, [Out] Color4[] colors, int colorCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_copy_base_rgba8", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_copy_base_rgba8(IntPtr generator, IntPtr colors, int pixelCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_generator_copy_overlay_rgba8", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_copy_overlay_rgba8(IntPtr generator, IntPtr colors, int pixelCapacity);
+
         #endregion
     }
 }

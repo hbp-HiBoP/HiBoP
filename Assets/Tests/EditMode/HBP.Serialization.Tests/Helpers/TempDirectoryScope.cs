@@ -20,6 +20,7 @@ namespace HBP.Tests.Serialization.Helpers
             {
                 path = System.IO.Path.Combine(path, part);
             }
+
             return path;
         }
 

@@ -7,6 +7,7 @@ namespace HBP.UI.Tools
     public class TooltipManager : Manager<TooltipManager>
     {
         #region Properties
+
         private static Vector3 m_Offset = new(0, -20, 0);
         public const float TIME_TO_DISPLAY = 0.7f;
 
@@ -21,47 +22,58 @@ namespace HBP.UI.Tools
         /// Canvas on which the tooltip is displayed
         /// </summary>
         [SerializeField] RectTransform m_Canvas;
+
         /// <summary>
         /// Tooltip's RectTransform
         /// </summary>
         [SerializeField] RectTransform m_Tooltip;
+
         /// <summary>
         /// Tooltip's Textfield
         /// </summary>
         [SerializeField] Text m_TextField;
+
         /// <summary>
         /// Tooltip's Icon
         /// </summary>
         [SerializeField] Image m_ImageField;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (!IsTooltipDisplayed)
             {
                 m_TimeBeforeHiding -= Time.deltaTime;
             }
+
             if (m_TimeBeforeHiding < 0)
             {
                 TooltipHasBeenDisplayedRecently = false;
             }
-            if(m_FollowMouse)
+
+            if (m_FollowMouse)
             {
                 MoveAtMousePosition();
             }
+
             if (IsTooltipDisplayed)
             {
                 m_Tooltip.ClampToRectTransform(m_Canvas, new RectOffset(0, 0, 0, 0));
             }
         }
+
         private void MoveAtMousePosition()
         {
             m_Tooltip.position = Input.mousePosition + m_Offset;
         }
+
         #endregion
 
         #region Public Methods
+
         public static void ShowTooltip(string text, Sprite icon, bool followMouse = false)
         {
             if (m_Instance == null) return;
@@ -75,12 +87,14 @@ namespace HBP.UI.Tools
                 m_Instance.m_ImageField.gameObject.SetActive(true);
             }
             else m_Instance.m_ImageField.gameObject.SetActive(false);
+
             m_Instance.MoveAtMousePosition();
 
             IsTooltipDisplayed = true;
             TooltipHasBeenDisplayedRecently = true;
             m_Instance.m_TimeBeforeHiding = TIME_TO_DISPLAY;
         }
+
         public static void HideTooltip()
         {
             if (m_Instance == null) return;
@@ -88,6 +102,7 @@ namespace HBP.UI.Tools
             m_Instance.m_Tooltip.gameObject.SetActive(false);
             IsTooltipDisplayed = false;
         }
+
         #endregion
     }
 }

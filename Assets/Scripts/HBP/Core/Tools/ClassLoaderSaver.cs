@@ -42,6 +42,7 @@ namespace HBP.Core.Tools
             {
                 throw new ArgumentNullException(nameof(stream));
             }
+
             return LoadFromJsonStream<T>(stream);
         }
 
@@ -93,9 +94,7 @@ namespace HBP.Core.Tools
             {
                 return serializer.Deserialize<T>(jsonReader);
             }
-            catch (JsonSerializationException exception)
-                when (exception.InnerException is JsonSerializationException registryException &&
-                      registryException.Message.Contains("generated HiBoP type registry"))
+            catch (JsonSerializationException exception) when (exception.InnerException is JsonSerializationException registryException && registryException.Message.Contains("generated HiBoP type registry"))
             {
                 throw new JsonSerializationException(registryException.Message, exception);
             }
@@ -130,8 +129,10 @@ namespace HBP.Core.Tools
                 result = (T)serializer.Deserialize(streamReader.BaseStream);
                 streamReader.Close();
             }
+
             return result;
         }
+
         public static bool SaveToXML<T>(T instance, string path, bool overwrite = false) where T : new()
         {
             try
@@ -143,6 +144,7 @@ namespace HBP.Core.Tools
                     serializer.Serialize(streamWriter, instance);
                     streamWriter.Close();
                 }
+
                 return true;
             }
             catch (Exception e)

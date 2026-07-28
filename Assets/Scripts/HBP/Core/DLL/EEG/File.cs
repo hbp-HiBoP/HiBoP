@@ -8,28 +8,32 @@ namespace HBP.Core.DLL.EEG
     public class File : CppDLLImportBase
     {
         #region Properties
-        public enum FileType { ELAN, EDF, Micromed, BrainVision, FIF }
+
+        public enum FileType
+        {
+            ELAN,
+            EDF,
+            Micromed,
+            BrainVision,
+            FIF
+        }
 
         /// <summary>
         /// Size of the data
         /// </summary>
         public int NumberOfSamples
         {
-            get
-            {
-                return GetNumberOfSamples(_handle);
-            }
+            get { return GetNumberOfSamples(_handle); }
         }
+
         /// <summary>
         /// Number of electrodes in this file
         /// </summary>
         public int ElectrodeCount
         {
-            get
-            {
-                return GetElectrodeCount(_handle);
-            }
+            get { return GetElectrodeCount(_handle); }
         }
+
         /// <summary>
         /// List of electrodes of this file
         /// </summary>
@@ -46,21 +50,22 @@ namespace HBP.Core.DLL.EEG
                         data = new float[NumberOfSamples];
                         GetElectrodeData(_handle, i, 0, data, data.Length);
                     }
+
                     electrodes.Add(new Electrode(GetElectrode(_handle, i), data));
                 }
+
                 return electrodes;
             }
         }
+
         /// <summary>
         /// Number of triggers in this file
         /// </summary>
         public int TriggerCount
         {
-            get
-            {
-                return GetTriggerCount(_handle);
-            }
+            get { return GetTriggerCount(_handle); }
         }
+
         /// <summary>
         /// List of triggers of this file
         /// </summary>
@@ -73,19 +78,19 @@ namespace HBP.Core.DLL.EEG
                 {
                     triggers.Add(new Trigger(GetTrigger(_handle, i)));
                 }
+
                 return triggers;
             }
         }
+
         /// <summary>
         /// Number of notes in this file
         /// </summary>
         public int NoteCount
         {
-            get
-            {
-                return GetNoteCount(_handle);
-            }
+            get { return GetNoteCount(_handle); }
         }
+
         /// <summary>
         /// List of notes of this file
         /// </summary>
@@ -98,22 +103,23 @@ namespace HBP.Core.DLL.EEG
                 {
                     notes.Add(new Note(GetNote(_handle, i)));
                 }
+
                 return notes;
             }
         }
+
         /// <summary>
         /// Sampling frequency of this file
         /// </summary>
         public Frequency SamplingFrequency
         {
-            get
-            {
-                return new Frequency(GetSamplingFrequency(_handle));
-            }
+            get { return new Frequency(GetSamplingFrequency(_handle)); }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Fix the name of the electrodes using the same pattern as Site Name Correction
         /// </summary>
@@ -121,6 +127,7 @@ namespace HBP.Core.DLL.EEG
         {
             FixElectrodeName(_handle);
         }
+
         /// <summary>
         /// Delete some electrodes and their data
         /// </summary>
@@ -129,6 +136,7 @@ namespace HBP.Core.DLL.EEG
         {
             DeleteElectrodesAndData(_handle, electrodes, electrodes.Length);
         }
+
         /// <summary>
         /// Load the data of the file
         /// </summary>
@@ -136,6 +144,7 @@ namespace HBP.Core.DLL.EEG
         {
             Load(_handle);
         }
+
         /// <summary>
         /// Save the file
         /// </summary>
@@ -143,6 +152,7 @@ namespace HBP.Core.DLL.EEG
         {
             Save(_handle);
         }
+
         /// <summary>
         /// Save the file in a specific directory with a specific base name (without extension)
         /// </summary>
@@ -152,18 +162,24 @@ namespace HBP.Core.DLL.EEG
         {
             SaveAs(_handle, directoryPath, baseFileName);
         }
+
         public void Convert(string output)
         {
             Convert(_handle, output);
         }
+
         #endregion
 
         #region Memory Management
+
         /// <summary>
         /// File constructor with an already allocated dll File
         /// </summary>
         /// <param name="filePtr"></param>
-        public File(IntPtr filePtr) : base(filePtr) { }
+        public File(IntPtr filePtr) : base(filePtr)
+        {
+        }
+
         /// <summary>
         /// File constructor
         /// </summary>
@@ -196,12 +212,14 @@ namespace HBP.Core.DLL.EEG
                     break;
             }
         }
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
         protected override void create_DLL_class()
         {
         }
+
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -209,54 +227,74 @@ namespace HBP.Core.DLL.EEG
         {
             DeleteFile(_handle);
         }
+
         #endregion
 
         #region DLLImport
+
         [DllImport("EEGFormat", EntryPoint = "CreateMicromedFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr CreateMicromedFile(string filePath, bool loadData);
+
         [DllImport("EEGFormat", EntryPoint = "CreateElanFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr CreateElanFile(string dataPath, string eventsPath, string notesPath, bool loadData);
+
         [DllImport("EEGFormat", EntryPoint = "CreateEDFFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr CreateEDFFile(string filePath, bool loadData);
+
         [DllImport("EEGFormat", EntryPoint = "CreateBrainVisionFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr CreateBrainVisionFile(string filePath, bool loadData);
+
         [DllImport("EEGFormat", EntryPoint = "CreateFIFFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr CreateFIFFile(string filePath, bool loadData);
+
         [DllImport("EEGFormat", EntryPoint = "DeleteGenericFile", CallingConvention = CallingConvention.Cdecl)]
         static private extern void DeleteFile(HandleRef fileToDelete);
 
         [DllImport("EEGFormat", EntryPoint = "GetNumberOfSamples", CallingConvention = CallingConvention.Cdecl)]
         static private extern int GetNumberOfSamples(HandleRef file);
+
         [DllImport("EEGFormat", EntryPoint = "GetElectrodeCount", CallingConvention = CallingConvention.Cdecl)]
         static private extern int GetElectrodeCount(HandleRef file);
+
         [DllImport("EEGFormat", EntryPoint = "GetTriggerCount", CallingConvention = CallingConvention.Cdecl)]
         static private extern int GetTriggerCount(HandleRef file);
+
         [DllImport("EEGFormat", EntryPoint = "GetNoteCount", CallingConvention = CallingConvention.Cdecl)]
         static private extern int GetNoteCount(HandleRef file);
+
         [DllImport("EEGFormat", EntryPoint = "GetSamplingFrequency", CallingConvention = CallingConvention.Cdecl)]
         static private extern int GetSamplingFrequency(HandleRef file);
 
         [DllImport("EEGFormat", EntryPoint = "GetData", CallingConvention = CallingConvention.Cdecl)]
         static private extern float GetData(HandleRef file, int electrodeID, int sample, int dataConverterType);
+
         [DllImport("EEGFormat", EntryPoint = "GetElectrodeData", CallingConvention = CallingConvention.Cdecl)]
         static private extern void GetElectrodeData(HandleRef file, int electrodeID, int dataConverterType, float[] values, int size);
+
         [DllImport("EEGFormat", EntryPoint = "GetElectrode", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr GetElectrode(HandleRef file, int electrodeID);
+
         [DllImport("EEGFormat", EntryPoint = "GetTrigger", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr GetTrigger(HandleRef file, int triggerID);
+
         [DllImport("EEGFormat", EntryPoint = "GetNote", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr GetNote(HandleRef file, int noteID);
 
         [DllImport("EEGFormat", EntryPoint = "FixElectrodeName", CallingConvention = CallingConvention.Cdecl)]
         static private extern void FixElectrodeName(HandleRef file);
+
         [DllImport("EEGFormat", EntryPoint = "DeleteElectrodesAndData", CallingConvention = CallingConvention.Cdecl)]
         static private extern void DeleteElectrodesAndData(HandleRef file, int[] electrodesToDelete, int numberOfElectrodesToDelete);
+
         [DllImport("EEGFormat", EntryPoint = "Load", CallingConvention = CallingConvention.Cdecl)]
         static private extern void Load(HandleRef file);
+
         [DllImport("EEGFormat", EntryPoint = "Save", CallingConvention = CallingConvention.Cdecl)]
         static private extern void Save(HandleRef file);
+
         [DllImport("EEGFormat", EntryPoint = "SaveAs", CallingConvention = CallingConvention.Cdecl)]
         static private extern void SaveAs(HandleRef file, string directoryPath, string baseFileName);
+
         [DllImport("EEGFormat", EntryPoint = "Convert", CallingConvention = CallingConvention.Cdecl)]
         static private extern void Convert(HandleRef file, string outputFilepath);
 

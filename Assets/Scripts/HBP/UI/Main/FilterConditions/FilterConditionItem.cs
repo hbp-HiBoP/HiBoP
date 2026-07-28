@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class FilterConditionItem : ActionnableItem<BaseFilterCondition>
     {
         #region Properties
+
         [SerializeField] Text m_DescriptionText;
 
         public override BaseFilterCondition Object
@@ -23,6 +24,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

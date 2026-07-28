@@ -26,20 +26,15 @@ namespace HBP.Core.Data
                 string[] identityFiles = new[] { brainVision.Header }.Concat(GetBrainVisionReferencedFiles(brainVision.Header)).ToArray();
                 return new EEGRecordingSource(DLL.EEG.File.FileType.BrainVision, new[] { brainVision.Header }, identityFiles);
             }
+
             if (dataInfo.DataContainer is Container.EDF edf)
                 return new EEGRecordingSource(DLL.EEG.File.FileType.EDF, new[] { edf.File });
             if (dataInfo.DataContainer is Container.Elan elan)
             {
-                string optionalNotes =
-                    !string.IsNullOrWhiteSpace(elan.Notes) &&
-                    File.Exists(elan.Notes)
-                        ? elan.Notes
-                        : string.Empty;
-                return new EEGRecordingSource(
-                    DLL.EEG.File.FileType.ELAN,
-                    new[] { elan.EEG, elan.POS, optionalNotes },
-                    new[] { elan.EEG, elan.EEGHeader, elan.POS });
+                string optionalNotes = !string.IsNullOrWhiteSpace(elan.Notes) && File.Exists(elan.Notes) ? elan.Notes : string.Empty;
+                return new EEGRecordingSource(DLL.EEG.File.FileType.ELAN, new[] { elan.EEG, elan.POS, optionalNotes }, new[] { elan.EEG, elan.EEGHeader, elan.POS });
             }
+
             if (dataInfo.DataContainer is Container.Micromed micromed)
                 return new EEGRecordingSource(DLL.EEG.File.FileType.Micromed, new[] { micromed.Path });
             if (dataInfo.DataContainer is Container.FIF fif)
@@ -56,13 +51,7 @@ namespace HBP.Core.Data
             string directory = Path.GetDirectoryName(headerPath) ?? string.Empty;
             try
             {
-                return System.IO.File.ReadLines(headerPath)
-                    .Select(line => line.Trim())
-                    .Where(line => line.StartsWith("DataFile=", StringComparison.OrdinalIgnoreCase) || line.StartsWith("MarkerFile=", StringComparison.OrdinalIgnoreCase))
-                    .Select(line => line.Substring(line.IndexOf('=') + 1).Trim())
-                    .Where(path => !string.IsNullOrWhiteSpace(path))
-                    .Select(path => Path.IsPathRooted(path) ? path : Path.Combine(directory, path))
-                    .ToArray();
+                return System.IO.File.ReadLines(headerPath).Select(line => line.Trim()).Where(line => line.StartsWith("DataFile=", StringComparison.OrdinalIgnoreCase) || line.StartsWith("MarkerFile=", StringComparison.OrdinalIgnoreCase)).Select(line => line.Substring(line.IndexOf('=') + 1).Trim()).Where(path => !string.IsNullOrWhiteSpace(path)).Select(path => Path.IsPathRooted(path) ? path : Path.Combine(directory, path)).ToArray();
             }
             catch (IOException)
             {
@@ -105,9 +94,7 @@ namespace HBP.Core.Data
             try
             {
                 FileInfo file = new(fullPath);
-                return file.Exists
-                    ? $"{fullPath}:{file.Length}:{file.LastWriteTimeUtc.Ticks}"
-                    : $"{fullPath}:missing";
+                return file.Exists ? $"{fullPath}:{file.Length}:{file.LastWriteTimeUtc.Ticks}" : $"{fullPath}:missing";
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
             {
@@ -146,6 +133,7 @@ namespace HBP.Core.Data
                     bool pinned = m_PinCounts.TryGetValue(key, out int pinCount) && pinCount > 0;
                     m_Budget.Register(key, MemoryCacheCategory.RawRecording, EstimateBytes(data), pinned, () => Remove(key, entry));
                 }
+
                 return data;
             }
             catch
@@ -163,6 +151,7 @@ namespace HBP.Core.Data
                 foreach (RawRecordingSourceKey key in m_Entries.Keys)
                     m_Budget.Unregister(key);
             }
+
             m_Entries.Clear();
             m_PinCounts.Clear();
             m_DiscardableKeys.Clear();
@@ -230,11 +219,13 @@ namespace HBP.Core.Data
                 bytes += pair.Value?.LongLength * sizeof(float) ?? 0;
                 bytes += pair.Key?.Length * sizeof(char) ?? 0;
             }
+
             foreach (KeyValuePair<string, string> pair in data.UnitByChannel)
             {
                 bytes += pair.Key?.Length * sizeof(char) ?? 0;
                 bytes += pair.Value?.Length * sizeof(char) ?? 0;
             }
+
             return bytes;
         }
     }

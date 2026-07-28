@@ -8,24 +8,30 @@ namespace HBP.UI.Toolbar
     public class Views : Tool
     {
         #region Properties
+
         /// <summary>
         /// Add a new view line
         /// </summary>
         [SerializeField] private Button m_Add;
+
         /// <summary>
         /// Remove the last view line
         /// </summary>
         [SerializeField] private Button m_Remove;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when either button has been pressed
         /// </summary>
         public UnityEvent OnClick = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -47,6 +53,7 @@ namespace HBP.UI.Toolbar
                 OnClick.Invoke();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -55,6 +62,7 @@ namespace HBP.UI.Toolbar
             m_Add.interactable = false;
             m_Remove.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -66,6 +74,7 @@ namespace HBP.UI.Toolbar
             m_Add.interactable = canAddView;
             m_Remove.interactable = canRemoveView;
         }
+
         #endregion
     }
 }

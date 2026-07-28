@@ -15,7 +15,7 @@ namespace HBP.Core.Preferences
     * \version 1.0
     * \date 16 janvier 2017
     * \brief User preferences.
-    * 
+    *
     * \details Class which contains the user preferences:
     *     - General preferences.
     *     - Data preferences.
@@ -25,35 +25,44 @@ namespace HBP.Core.Preferences
     public class UserPreferences : BaseData
     {
         #region Properties
+
         public static string PATH = Path.Combine(Application.persistentDataPath, "Preferences.txt");
         [JsonProperty] public GeneralPreferences General { get; set; }
         [JsonProperty] public DataPreferences Data { get; set; }
         [JsonProperty] public VisualizationPreferences Visualization { get; set; }
+
         #endregion
 
         #region Events
+
         public UnityEvent OnSavePreferences = new();
+
         #endregion
 
         #region Constructors
+
         public UserPreferences(GeneralPreferences generalPreferences, DataPreferences dataPreferences, VisualizationPreferences visualizationPreferences, string ID) : base(ID)
         {
             General = generalPreferences;
             Data = dataPreferences;
             Visualization = visualizationPreferences;
         }
+
         public UserPreferences(GeneralPreferences generalPreferences, DataPreferences dataPreferences, VisualizationPreferences visualizationPreferences) : base()
         {
             General = generalPreferences;
             Data = dataPreferences;
             Visualization = visualizationPreferences;
         }
+
         public UserPreferences() : this(new GeneralPreferences(), new DataPreferences(), new VisualizationPreferences())
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public static UserPreferences Initialize()
         {
             UserPreferences userPreferences = new();
@@ -72,18 +81,22 @@ namespace HBP.Core.Preferences
                     Debug.LogException(e);
                 }
             }
+
             userPreferences.Save();
             return userPreferences;
         }
+
         public void Save()
         {
             ClassLoaderSaver.SaveToJSon(this, PATH, true);
             OnSavePreferences.Invoke();
         }
+
         public override object Clone()
         {
             return new UserPreferences(General.Clone() as GeneralPreferences, Data.Clone() as DataPreferences, Visualization.Clone() as VisualizationPreferences, ID);
         }
+
         public override void Copy(object copy)
         {
             if (copy is UserPreferences preferences)
@@ -93,6 +106,7 @@ namespace HBP.Core.Preferences
                 Visualization = preferences.Visualization;
             }
         }
+
         #endregion
     }
 }

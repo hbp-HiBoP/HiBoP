@@ -7,7 +7,14 @@ namespace HBP.UI.Tools
     public class ImageResizer : MonoBehaviour, IScrollHandler, IPointerDownHandler
     {
         #region Properties
-        public enum ResizingType { Height, Width, Both }
+
+        public enum ResizingType
+        {
+            Height,
+            Width,
+            Both
+        }
+
         public ResizingType Type;
         public float Minimum;
         public float Maximum;
@@ -16,13 +23,16 @@ namespace HBP.UI.Tools
         private RectTransform m_RectTransform;
         private Vector2 m_InitialAnchoredPosition;
         private Vector2 m_InitialSizeDelta;
+
         #endregion
 
         #region Public Methods
+
         public void OnScroll(PointerEventData data)
         {
             Scroll(data.scrollDelta);
         }
+
         public void OnPointerDown(PointerEventData data)
         {
             if (data.button == PointerEventData.InputButton.Right)
@@ -30,6 +40,7 @@ namespace HBP.UI.Tools
                 ResetPosition();
             }
         }
+
         public void Scroll(Vector2 scroll)
         {
             float height, width;
@@ -57,23 +68,28 @@ namespace HBP.UI.Tools
                     m_RectTransform.sizeDelta = new Vector2(width, height);
                     break;
             }
+
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_RectTransform);
         }
+
         public void ResetPosition()
         {
             m_RectTransform.anchoredPosition = m_InitialAnchoredPosition;
             m_RectTransform.sizeDelta = m_InitialSizeDelta;
             LayoutRebuilder.ForceRebuildLayoutImmediate(m_RectTransform);
         }
+
         #endregion
 
         #region Private Methods
+
         public void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_InitialAnchoredPosition = m_RectTransform.anchoredPosition;
             m_InitialSizeDelta = m_RectTransform.sizeDelta;
         }
+
         #endregion
     }
 }

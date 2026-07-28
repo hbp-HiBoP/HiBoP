@@ -14,6 +14,7 @@ namespace HBP.Tests.Serialization.Helpers
             {
                 path = Path.Combine(path, part);
             }
+
             return path;
         }
     }

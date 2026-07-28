@@ -60,36 +60,44 @@ namespace HBP.Core.Data
     public class ThresholdTreatment : Treatment
     {
         public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
+
         #region Properties
+
         /// <summary>
         /// True to set a minimun treshold, False otherwise.
         /// </summary>
         [JsonProperty] public bool UseMinTreshold { get; set; }
+
         /// <summary>
         /// Minimum treshold.
         /// </summary>
         [JsonProperty] public float Min { get; set; }
+
         /// <summary>
         /// True to set a maximum treshold, False otherwise.
         /// </summary>
         [JsonProperty] public bool UseMaxTreshold { get; set; }
+
         /// <summary>
         /// Maximum treshold.
         /// </summary>
         [JsonProperty] public float Max { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new ThresholdTreatment instance with default values.
         /// </summary>
-        public ThresholdTreatment(): base()
+        public ThresholdTreatment() : base()
         {
             UseMinTreshold = false;
             UseMaxTreshold = false;
             Min = 0;
             Max = 1;
         }
+
         /// <summary>
         /// Create a new ThresholdTreatment instance with default values and a specified unique identifier.
         /// </summary>
@@ -101,6 +109,7 @@ namespace HBP.Core.Data
             Min = 0;
             Max = 1;
         }
+
         /// <summary>
         /// Create a new MedianTreatment instance.
         /// </summary>
@@ -121,12 +130,14 @@ namespace HBP.Core.Data
             UseMaxTreshold = useMaxTreshold;
             Max = max;
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
-            if(UseOnWindow)
+            if (UseOnWindow)
             {
                 int startIndex = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
                 int endIndex = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
@@ -155,7 +166,7 @@ namespace HBP.Core.Data
                 }
             }
 
-            if(UseOnBaseline)
+            if (UseOnBaseline)
             {
                 int startIndex = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
                 int endIndex = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
@@ -183,26 +194,29 @@ namespace HBP.Core.Data
                     }
                 }
             }
-
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new ThresholdTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, UseMinTreshold, Min, UseMaxTreshold, Max, Order, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is ThresholdTreatment tresholdTreatment)
+            if (copy is ThresholdTreatment tresholdTreatment)
             {
                 UseMinTreshold = tresholdTreatment.UseMinTreshold;
                 Min = tresholdTreatment.Min;
                 UseMaxTreshold = tresholdTreatment.UseMaxTreshold;
                 Max = tresholdTreatment.Max;
             }
-            if(copy is ClampTreatment clampTreatment)
+
+            if (copy is ClampTreatment clampTreatment)
             {
                 UseMinTreshold = clampTreatment.UseMinClamp;
                 Min = clampTreatment.Min;
@@ -210,6 +224,7 @@ namespace HBP.Core.Data
                 Max = clampTreatment.Max;
             }
         }
+
         #endregion
     }
 }

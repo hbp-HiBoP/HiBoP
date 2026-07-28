@@ -11,6 +11,7 @@ namespace HBP.UI.Main
     public class CoordinateItem : ActionnableItem<Core.Data.Coordinate>
     {
         #region Properties
+
         [SerializeField] Text m_ReferenceSystemText;
         [SerializeField] Text m_XText;
         [SerializeField] Text m_YText;
@@ -21,10 +22,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Coordinate Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -39,6 +37,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

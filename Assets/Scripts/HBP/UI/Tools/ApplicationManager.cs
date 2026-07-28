@@ -11,18 +11,23 @@ namespace HBP.UI.Tools
     public class ApplicationManager : Manager<ApplicationManager>
     {
         #region Properties
+
         private bool m_IsQuitting = false;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             Application.wantsToQuit += OnQuit;
         }
+
         private void Start()
         {
             DatabaseWorkflow.InitializeAsync().Forget();
         }
+
         private void OnDestroy()
         {
             DataManager.Clear();
@@ -32,6 +37,7 @@ namespace HBP.UI.Tools
                 Directory.Delete(tmpDir, true);
             }
         }
+
         private bool OnQuit()
         {
             if (m_IsQuitting) return true;
@@ -39,6 +45,7 @@ namespace HBP.UI.Tools
             ShowQuitDialog().Forget();
             return false;
         }
+
         private async UniTaskVoid ShowQuitDialog()
         {
             if (ApplicationState.LoadedProject != null)
@@ -69,6 +76,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         #endregion
     }
 }

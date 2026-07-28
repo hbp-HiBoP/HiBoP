@@ -7,21 +7,26 @@ namespace HBP.UI.Toolbar
     public class CCEPSiteSourceSelector : Tool
     {
         #region Properties
+
         /// <summary>
         /// Text to display the name of the selected source
         /// </summary>
         [SerializeField] private Text m_Text;
+
         /// <summary>
         /// Set the currently selected site as source
         /// </summary>
         [SerializeField] private Button m_SelectSource;
+
         /// <summary>
         /// Unselect the current source
         /// </summary>
         [SerializeField] private Button m_UnselectSource;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -40,6 +45,7 @@ namespace HBP.UI.Toolbar
                 ((Column3DCCEP)SelectedColumn).SelectedSourceSite = null;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -50,6 +56,7 @@ namespace HBP.UI.Toolbar
             m_UnselectSource.interactable = false;
             gameObject.SetActive(false);
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -71,6 +78,7 @@ namespace HBP.UI.Toolbar
                 gameObject.SetActive(false);
             }
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -92,6 +100,7 @@ namespace HBP.UI.Toolbar
                 m_Text.text = "Selected column is not CCEP";
             }
         }
+
         #endregion
     }
 }

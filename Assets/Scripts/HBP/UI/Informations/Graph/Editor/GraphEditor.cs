@@ -7,6 +7,7 @@ namespace HBP.UI.Informations.Graphs
     public class GraphEditor : Editor
     {
         #region Properties
+
         // General
         SerializedProperty m_Title;
         SerializedProperty m_FontColor;
@@ -46,9 +47,11 @@ namespace HBP.UI.Informations.Graphs
         SerializedProperty m_OnChangeDisplayCurrentTime;
         SerializedProperty m_OnChangeCurrentTime;
         SerializedProperty m_OnChangeCurves;
+
         #endregion
 
         #region Public Methods
+
         public void OnEnable()
         {
             // General
@@ -83,6 +86,7 @@ namespace HBP.UI.Informations.Graphs
             m_OnChangeCurrentTime = serializedObject.FindProperty("m_OnChangeCurrentTime");
             m_OnChangeCurves = serializedObject.FindProperty("m_OnChangeCurves");
         }
+
         public override void OnInspectorGUI()
         {
             // General
@@ -111,12 +115,12 @@ namespace HBP.UI.Informations.Graphs
             EditorGUILayout.PropertyField(m_OrdinateDisplayRange, new GUIContent("Range"));
             EditorGUILayout.PropertyField(m_DefaultOrdinateDisplayRange, new GUIContent("Default Range"));
             EditorGUI.indentLevel--;
-        
+
             EditorGUILayout.PropertyField(m_Curves, true);
 
             // Events
             m_ShowEvents = EditorGUILayout.Foldout(m_ShowEvents, "Events");
-            if(m_ShowEvents)
+            if (m_ShowEvents)
             {
                 EditorGUILayout.PropertyField(m_OnChangeTitle);
                 EditorGUILayout.PropertyField(m_OnChangeAbscissaUnit);
@@ -135,6 +139,7 @@ namespace HBP.UI.Informations.Graphs
 
             serializedObject.ApplyModifiedProperties();
         }
+
         #endregion
     }
 

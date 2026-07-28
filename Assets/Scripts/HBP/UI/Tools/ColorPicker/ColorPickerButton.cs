@@ -8,15 +8,20 @@ namespace HBP.UI.Tools
     public class ColorPickerButton : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] Button m_Button;
         [SerializeField] Image m_Image;
+
         #endregion
 
         #region Events
+
         public GenericEvent<Color> OnColorPicked = new();
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(Color initialColor)
         {
             m_Image.color = initialColor;
@@ -27,6 +32,7 @@ namespace HBP.UI.Tools
                 OnColorPicked.Invoke(color);
             });
         }
+
         #endregion
     }
 }

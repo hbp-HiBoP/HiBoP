@@ -39,13 +39,7 @@ namespace HBP.Tests.Serialization
 
                     using BBox hbpExportBBox = hbpExportGeometry.BoundingBox;
                     using BBox hbpCoreBBox = hbpCoreGeometry.BoundingBox;
-                    NativeParityAssert.AssertUnityBoundsMatchLegacyNative(
-                        hbpCoreBBox.Min,
-                        hbpCoreBBox.Max,
-                        hbpExportBBox.Min,
-                        hbpExportBBox.Max,
-                        0.0002f,
-                        $"{orientation} flip={flip} cut geometry");
+                    NativeParityAssert.AssertUnityBoundsMatchLegacyNative(hbpCoreBBox.Min, hbpCoreBBox.Max, hbpExportBBox.Min, hbpExportBBox.Max, 0.0002f, $"{orientation} flip={flip} cut geometry");
 
                     Vector2Int textureSize = hbpCoreGeometry.TextureSize;
                     Assert.That(textureSize.x, Is.GreaterThan(0), $"{orientation} {flip}");
@@ -124,96 +118,88 @@ namespace HBP.Tests.Serialization
 
         private static CutPixels RenderVolumeCut(BenchmarkBackend backend, CutOrientation orientation, bool flip)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Volume volume = LoadVolume(backend);
+                using HBP.Core.Object3D.Cut cut = CreateCut(volume, orientation, flip);
+                using CutGeometryGenerator geometry = InitializeCutGeometry(backend, volume, cut, 8);
+                using Surface surface = LoadSurface(backend);
+                using GeneratorSurface generatorSurface = new();
+                generatorSurface.Initialize(surface, volume, 8);
+                using DensityGenerator activity = new();
+                activity.Initialize(generatorSurface);
+                using CutGenerator cutGenerator = new();
+                cutGenerator.Initialize(activity, geometry, 0);
+
+                Color32[] colorScheme = UnityTextureFactory.Generate1DColorPixels(ColorType.BrainColor);
+                if (backend == BenchmarkBackend.HbpCore)
                 {
-                    using Volume volume = LoadVolume(backend);
-                    using HBP.Core.Object3D.Cut cut = CreateCut(volume, orientation, flip);
-                    using CutGeometryGenerator geometry = InitializeCutGeometry(backend, volume, cut, 8);
-                    using Surface surface = LoadSurface(backend);
-                    using GeneratorSurface generatorSurface = new();
-                    generatorSurface.Initialize(surface, volume, 8);
-                    using DensityGenerator activity = new();
-                    activity.Initialize(generatorSurface);
-                    using CutGenerator cutGenerator = new();
-                    cutGenerator.Initialize(activity, geometry, 0);
+                    cutGenerator.FillTextureWithVolume(colorScheme, 0.0f, 124.0f);
+                    Vector2Int size = geometry.TextureSize;
+                    return new CutPixels(size.x, size.y, cutGenerator.CopyBasePixels());
+                }
 
-                    Color32[] colorScheme = UnityTextureFactory.Generate1DColorPixels(ColorType.BrainColor);
-                    if (backend == BenchmarkBackend.HbpCore)
-                    {
-                        cutGenerator.FillTextureWithVolume(colorScheme, 0.0f, 124.0f);
-                        Vector2Int size = geometry.TextureSize;
-                        return new CutPixels(size.x, size.y, cutGenerator.CopyBasePixels());
-                    }
-
-                    using LegacyTextureBridge colorSchemeTexture = LegacyTextureBridge.CreateFromPixels(colorScheme, UnityTextureFactory.ColormapSize, 1);
-                    using LegacyTextureBridge outputTexture = new();
-                    LegacyCutGeneratorBridge.FillTextureWithVolume(cutGenerator, colorSchemeTexture, 0.0f, 124.0f);
-                    LegacyCutGeneratorBridge.UpdateTextureWithVolume(cutGenerator, outputTexture);
-                    Color32[] pixels = outputTexture.GetPixels(out int width, out int height);
-                    return new CutPixels(width, height, pixels);
-                });
+                using LegacyTextureBridge colorSchemeTexture = LegacyTextureBridge.CreateFromPixels(colorScheme, UnityTextureFactory.ColormapSize, 1);
+                using LegacyTextureBridge outputTexture = new();
+                LegacyCutGeneratorBridge.FillTextureWithVolume(cutGenerator, colorSchemeTexture, 0.0f, 124.0f);
+                LegacyCutGeneratorBridge.UpdateTextureWithVolume(cutGenerator, outputTexture);
+                Color32[] pixels = outputTexture.GetPixels(out int width, out int height);
+                return new CutPixels(width, height, pixels);
+            });
         }
 
         private static Volume LoadVolume(BenchmarkBackend backend)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                Volume volume = new();
+                try
                 {
-                    Volume volume = new();
-                    try
-                    {
-                        Assert.That(volume.LoadNIFTIFile(NativeParityAssert.NativePath("Nifti", "fmri_3d.nii")), Is.True);
-                        return volume;
-                    }
-                    catch
-                    {
-                        volume.Dispose();
-                        throw;
-                    }
-                });
+                    Assert.That(volume.LoadNIFTIFile(NativeParityAssert.NativePath("Nifti", "fmri_3d.nii")), Is.True);
+                    return volume;
+                }
+                catch
+                {
+                    volume.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static Surface LoadSurface(BenchmarkBackend backend)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                Surface surface = new();
+                try
                 {
-                    Surface surface = new();
-                    try
-                    {
-                        Assert.That(surface.LoadGIIFile(NativeParityAssert.NativePath("Meshes", "single_surface.gii")), Is.True);
-                        return surface;
-                    }
-                    catch
-                    {
-                        surface.Dispose();
-                        throw;
-                    }
-                });
+                    Assert.That(surface.LoadGIIFile(NativeParityAssert.NativePath("Meshes", "single_surface.gii")), Is.True);
+                    return surface;
+                }
+                catch
+                {
+                    surface.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static CutGeometryGenerator InitializeCutGeometry(BenchmarkBackend backend, Volume volume, HBP.Core.Object3D.Cut cut, int maxTextureSize)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                CutGeometryGenerator generator = new();
+                try
                 {
-                    CutGeometryGenerator generator = new();
-                    try
-                    {
-                        generator.Initialize(volume, cut, maxTextureSize);
-                        return generator;
-                    }
-                    catch
-                    {
-                        generator.Dispose();
-                        throw;
-                    }
-                });
+                    generator.Initialize(volume, cut, maxTextureSize);
+                    return generator;
+                }
+                catch
+                {
+                    generator.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static HBP.Core.Object3D.Cut CreateCut(Volume volume, CutOrientation orientation, bool flip)

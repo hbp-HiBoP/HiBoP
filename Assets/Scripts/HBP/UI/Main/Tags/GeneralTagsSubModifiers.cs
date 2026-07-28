@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class GeneralTagsSubModifiers : SubModifier<Core.Data.TagCollection>
     {
         #region Properties
+
         [SerializeField] TagListGestion m_TagListGestion;
         public TagListGestion TagListGestion => m_TagListGestion;
         public ReadOnlyCollection<Core.Data.BaseTag> ModifiedTags => m_TagListGestion.ModifiedTags;
@@ -22,22 +23,27 @@ namespace HBP.UI.Main
                 m_TagListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Save()
         {
             base.Save();
             Object.SetGeneralTags(m_TagListGestion.List.Objects.ToList(), false);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(Core.Data.TagCollection objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_TagListGestion.List.Set(objectToDisplay.GeneralTags);
         }
+
         #endregion
     }
 }

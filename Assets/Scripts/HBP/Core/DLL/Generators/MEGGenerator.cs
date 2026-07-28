@@ -17,6 +17,7 @@ namespace HBP.Core.DLL
                 volumes.Add(volumeAndMask.Item1);
                 masks.Add(volumeAndMask.Item2);
             }
+
             ThrowIfFailed(hbp_meg_generator_compute_activity(_handle.Handle, ToNativeVolumeHandles(volumes, nameof(ComputeActivity)), ToNativeVolumeHandles(masks, nameof(ComputeActivity)), volumes.Count));
         }
 
@@ -43,12 +44,16 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_meg_generator_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_meg_generator_create(out IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_meg_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_meg_generator_destroy(IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_meg_generator_compute_activity", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_meg_generator_compute_activity(IntPtr generator, [In] IntPtr[] volumes, [In] IntPtr[] masks, int volumeCount);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_meg_generator_adjust_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_meg_generator_adjust_values(IntPtr generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_meg_generator_set_hide_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_meg_generator_set_hide_values(IntPtr generator, int lower, int middle, int higher);
     }

@@ -10,6 +10,7 @@ namespace HBP.Core.Data
     public class AllFilterCondition : BaseFilterCondition
     {
         #region Properties
+
         public override string Description
         {
             get
@@ -20,26 +21,36 @@ namespace HBP.Core.Data
                 return $"{(IsNot ? "NOT " : "")}({string.Join(" AND ", descriptions)})";
             }
         }
+
         [JsonProperty("Conditions")] public List<BaseFilterCondition> Conditions { get; set; } = new List<BaseFilterCondition>();
+
         #endregion
 
         #region Constructors
-        public AllFilterCondition() : this(new List<BaseFilterCondition>(), false) { }
+
+        public AllFilterCondition() : this(new List<BaseFilterCondition>(), false)
+        {
+        }
+
         public AllFilterCondition(IEnumerable<BaseFilterCondition> conditions, bool isNot) : base(isNot)
         {
             Conditions = conditions.ToList();
         }
+
         public AllFilterCondition(IEnumerable<BaseFilterCondition> conditions, bool isNot, string ID) : base(isNot, ID)
         {
             Conditions = conditions.ToList();
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new AllFilterCondition(Conditions.Select(c => (BaseFilterCondition)c.Clone()), IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -48,9 +59,11 @@ namespace HBP.Core.Data
                 Conditions = all.Conditions.Select(c => (BaseFilterCondition)c.Clone()).ToList();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (Conditions == null || Conditions.Count < 2)
@@ -59,6 +72,7 @@ namespace HBP.Core.Data
             bool result = Conditions.All(c => c.Check(obj));
             return result != IsNot;
         }
+
         #endregion
     }
 }

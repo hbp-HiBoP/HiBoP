@@ -20,6 +20,7 @@ namespace HBP.Tests.PlayMode.Utilities
             {
                 path = System.IO.Path.Combine(path, part);
             }
+
             return path;
         }
 

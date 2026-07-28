@@ -12,9 +12,11 @@ namespace HBP.UI.Main
     public class FilterConditionsPresetCollectionModifier : ObjectModifier<FilterConditionsPresetCollection>
     {
         #region Properties
+
         [SerializeField] FilterConditionsPresetListGestion m_FilterConditionsPresetListGestion;
 
         private List<object> m_FilteringObjects = new();
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
@@ -37,9 +39,11 @@ namespace HBP.UI.Main
                 m_FilterConditionsPresetListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void OK()
         {
             base.OK();
@@ -49,15 +53,18 @@ namespace HBP.UI.Main
                 PersistentDataManager.FilterConditionsPresets.Save();
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void Initialize()
         {
             base.Initialize();
 
             m_FilterConditionsPresetListGestion.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
         }
+
         protected override void SetFields(FilterConditionsPresetCollection objectToDisplay)
         {
             if (m_FilteringObjects.Count > 0)
@@ -65,6 +72,7 @@ namespace HBP.UI.Main
                 m_FilterConditionsPresetListGestion.List.Set(objectToDisplay.GetPresets(m_FilteringObjects[0].GetType()));
             }
         }
+
         #endregion
     }
 }

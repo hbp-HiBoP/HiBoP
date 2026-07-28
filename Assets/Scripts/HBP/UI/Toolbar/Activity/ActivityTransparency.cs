@@ -8,17 +8,21 @@ namespace HBP.UI.Toolbar
     public class ActivityTransparency : Tool
     {
         #region Properties
+
         /// <summary>
         /// Slider to control the alpha of the iEEG on the brain
         /// </summary>
         [SerializeField] private Slider m_Slider;
+
         /// <summary>
         /// Are the changes applied to all columns ?
         /// </summary>
         public bool IsGlobal { get; set; }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -35,6 +39,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -43,6 +48,7 @@ namespace HBP.UI.Toolbar
             m_Slider.value = 0.8f;
             m_Slider.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -50,6 +56,7 @@ namespace HBP.UI.Toolbar
         {
             m_Slider.interactable = true;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -57,6 +64,7 @@ namespace HBP.UI.Toolbar
         {
             m_Slider.value = SelectedColumn.ActivityAlpha;
         }
+
         #endregion
     }
 }

@@ -47,6 +47,7 @@ namespace HBP.Core.Data
                 for (int i = 0; i < values.Length; i++)
                     statistics.Add(values[i]);
             }
+
             return CalculateValueLimit(statistics, zScore);
         }
 
@@ -64,11 +65,7 @@ namespace HBP.Core.Data
             return new Vector2(statistics.Mean - offset, statistics.Mean + offset);
         }
 
-        public static void Calculate(
-            IReadOnlyList<float[]> series,
-            AveragingType averaging,
-            out float[] values,
-            out float[] standardErrors)
+        public static void Calculate(IReadOnlyList<float[]> series, AveragingType averaging, out float[] values, out float[] standardErrors)
         {
             if (series == null)
                 throw new ArgumentNullException(nameof(series));
@@ -85,11 +82,10 @@ namespace HBP.Core.Data
                 if (series[i].Length != sampleCount)
                     throw new ArgumentException("All series must have the same number of samples.", nameof(series));
             }
+
             values = new float[sampleCount];
             standardErrors = new float[sampleCount];
-            float[] medianBuffer = averaging == AveragingType.Median
-                ? ArrayPool<float>.Shared.Rent(series.Count)
-                : null;
+            float[] medianBuffer = averaging == AveragingType.Median ? ArrayPool<float>.Shared.Rent(series.Count) : null;
             try
             {
                 for (int sample = 0; sample < sampleCount; ++sample)
@@ -103,9 +99,7 @@ namespace HBP.Core.Data
                             medianBuffer[seriesIndex] = value;
                     }
 
-                    values[sample] = averaging == AveragingType.Median
-                        ? Median(medianBuffer, series.Count)
-                        : statistics.Mean;
+                    values[sample] = averaging == AveragingType.Median ? Median(medianBuffer, series.Count) : statistics.Mean;
                     standardErrors[sample] = statistics.StandardError;
                 }
             }
@@ -134,6 +128,7 @@ namespace HBP.Core.Data
                 if (buffer[i].CompareTo(lower) > 0)
                     lower = buffer[i];
             }
+
             return (lower + upper) * 0.5f;
         }
 
@@ -149,6 +144,7 @@ namespace HBP.Core.Data
                 if (target < pivot) right = pivot - 1;
                 else left = pivot + 1;
             }
+
             return buffer[target];
         }
 
@@ -162,6 +158,7 @@ namespace HBP.Core.Data
                 if (buffer[i].CompareTo(pivot) <= 0)
                     Swap(buffer, store++, i);
             }
+
             Swap(buffer, store, right);
             return store;
         }
@@ -181,9 +178,7 @@ namespace HBP.Core.Data
 
             Array.Sort(buffer, 0, count);
             int middle = count / 2;
-            return count % 2 == 0
-                ? (buffer[middle - 1] + buffer[middle]) / 2
-                : buffer[middle];
+            return count % 2 == 0 ? (buffer[middle - 1] + buffer[middle]) / 2 : buffer[middle];
         }
     }
 }

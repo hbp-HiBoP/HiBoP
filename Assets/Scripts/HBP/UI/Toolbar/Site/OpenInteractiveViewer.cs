@@ -8,17 +8,21 @@ namespace HBP.UI.Toolbar
     public class OpenInteractiveViewer : Tool
     {
         #region Properties
+
         /// <summary>
         /// Base URL of the interactive viewer
         /// </summary>
         private string m_BaseURL = @"https://kg.humanbrainproject.org/viewer/?templateSelected=MNI+152+ICBM+2009c+Nonlinear+Asymmetric&parcellationSelected=Fibre+Bundle+Atlas+-+Long+Bundle&navigation={0}_{1}_{2}_{3}__{4}_{5}_{6}_{7}__{8}__{9}_{10}_{11}__{12}";
+
         /// <summary>
         /// Open the HBP interactive viewer
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Open the interactive viewer
         /// </summary>
@@ -32,17 +36,15 @@ namespace HBP.UI.Toolbar
             {
                 quaternion = view.LocalCameraRotation * Quaternion.Euler(0, 180, 0);
             }
-            string url = string.Format(m_BaseURL,
-                0, 0, 0, 1,
-                quaternion.x.ToString("0.00", new CultureInfo("en-US")), (-quaternion.y).ToString("0.00", new CultureInfo("en-US")), (-quaternion.z).ToString("0.00", new CultureInfo("en-US")), quaternion.w.ToString("0.00", new CultureInfo("en-US")),
-                3000000,
-                (-unitySitePosition.x * 1000000).ToString("0.00", new CultureInfo("en-US")), (unitySitePosition.y * 1000000).ToString("0.00", new CultureInfo("en-US")), (unitySitePosition.z * 1000000).ToString("0.00", new CultureInfo("en-US")),
-                150000);
+
+            string url = string.Format(m_BaseURL, 0, 0, 0, 1, quaternion.x.ToString("0.00", new CultureInfo("en-US")), (-quaternion.y).ToString("0.00", new CultureInfo("en-US")), (-quaternion.z).ToString("0.00", new CultureInfo("en-US")), quaternion.w.ToString("0.00", new CultureInfo("en-US")), 3000000, (-unitySitePosition.x * 1000000).ToString("0.00", new CultureInfo("en-US")), (unitySitePosition.y * 1000000).ToString("0.00", new CultureInfo("en-US")), (unitySitePosition.z * 1000000).ToString("0.00", new CultureInfo("en-US")), 150000);
             ToolbarExternalActions.OpenURL(url);
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -55,6 +57,7 @@ namespace HBP.UI.Toolbar
                 Open();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -62,6 +65,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -71,6 +75,7 @@ namespace HBP.UI.Toolbar
 
             m_Button.interactable = isSiteSelected;
         }
+
         #endregion
     }
 }

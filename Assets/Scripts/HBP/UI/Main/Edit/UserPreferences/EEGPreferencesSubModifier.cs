@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class EEGPreferencesSubModifier : SubModifier<EEGPreferences>
     {
         #region Properties
+
         [SerializeField] Dropdown m_EEGAveragingDropdown;
         [SerializeField] Dropdown m_EEGNormalizationDropdown;
         [SerializeField] Dropdown m_TemporalSamplingDropdown;
@@ -21,10 +22,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -36,9 +34,11 @@ namespace HBP.UI.Main
                 m_BonferroniCorrectionToggle.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -59,9 +59,11 @@ namespace HBP.UI.Main
             });
             m_BonferroniCorrectionToggle.onValueChanged.AddListener((value) => Object.BonferroniCorrection = value);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(EEGPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -74,6 +76,7 @@ namespace HBP.UI.Main
             m_CorrelationAlphaInputField.text = Object.CorrelationAlpha.ToString();
             m_BonferroniCorrectionToggle.isOn = Object.BonferroniCorrection;
         }
+
         #endregion
     }
 }

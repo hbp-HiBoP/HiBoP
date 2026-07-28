@@ -36,9 +36,7 @@ namespace HBP.Core.Tools
 
                     if (s_TypesBySerializedName.TryGetValue(serializedTypeName, out Type registeredType) && registeredType != type)
                     {
-                        throw new InvalidOperationException(
-                            $"Serialized type name '{serializedTypeName}' is registered for both " +
-                            $"'{registeredType.FullName}' and '{type.FullName}'.");
+                        throw new InvalidOperationException($"Serialized type name '{serializedTypeName}' is registered for both " + $"'{registeredType.FullName}' and '{type.FullName}'.");
                     }
 
                     s_TypesBySerializedName[serializedTypeName] = type;
@@ -52,12 +50,8 @@ namespace HBP.Core.Tools
         {
             if (TryResolve(typeName, out Type type)) return type;
 
-            string serializedIdentity = string.IsNullOrEmpty(assemblyName)
-                ? typeName
-                : $"{typeName}, {assemblyName}";
-            throw new JsonSerializationException(
-                $"Serialization type '{serializedIdentity}' is not present in the generated HiBoP type registry. " +
-                "In the Unity Editor, run 'Tools/Serialization/Generate Type Registry'.");
+            string serializedIdentity = string.IsNullOrEmpty(assemblyName) ? typeName : $"{typeName}, {assemblyName}";
+            throw new JsonSerializationException($"Serialization type '{serializedIdentity}' is not present in the generated HiBoP type registry. " + "In the Unity Editor, run 'Tools/Serialization/Generate Type Registry'.");
         }
 
         public static bool TryResolve(string typeName, out Type type)
@@ -87,9 +81,7 @@ namespace HBP.Core.Tools
         {
             if (!IsRegistered(type))
             {
-                throw new JsonSerializationException(
-                    $"Serialization type '{type?.FullName ?? "<null>"}' is not present in the generated HiBoP type registry. " +
-                    "In the Unity Editor, run 'Tools/Serialization/Generate Type Registry'.");
+                throw new JsonSerializationException($"Serialization type '{type?.FullName ?? "<null>"}' is not present in the generated HiBoP type registry. " + "In the Unity Editor, run 'Tools/Serialization/Generate Type Registry'.");
             }
 
             assemblyName = type.Assembly.GetName().Name;

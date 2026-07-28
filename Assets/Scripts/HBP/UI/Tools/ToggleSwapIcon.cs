@@ -7,14 +7,15 @@ namespace HBP.UI.Tools
     public class ToggleSwapIcon : MonoBehaviour
     {
         #region Properties
+
         private Toggle m_Toggle;
-        [SerializeField]
-        private Image m_OnIcon;
-        [SerializeField]
-        private Image m_OffIcon;
+        [SerializeField] private Image m_OnIcon;
+        [SerializeField] private Image m_OffIcon;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
@@ -24,6 +25,7 @@ namespace HBP.UI.Tools
                 m_OnIcon.gameObject.SetActive(isOn);
             });
         }
+
         #endregion
     }
 }

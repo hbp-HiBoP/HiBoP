@@ -35,9 +35,7 @@ namespace HBP.Tests.Serialization
                 using ApplicationStateTestScope applicationState = new(temp.Path);
                 using PersistentDataTestScope persistentData = new(temp.Path);
 
-                PersistentDataManager.Aliases.SetAliases(
-                    new[] { new Alias(NativeAlias, nativeFixturesRoot, "native-fixtures-alias-001") },
-                    false);
+                PersistentDataManager.Aliases.SetAliases(new[] { new Alias(NativeAlias, nativeFixturesRoot, "native-fixtures-alias-001") }, false);
 
                 string[] generated =
                 {
@@ -85,45 +83,18 @@ namespace HBP.Tests.Serialization
             Visualization visualization = SyntheticProjectFactory.CreateVisualization(patient, dataset, protocol.Blocs[0]);
             Group group = new("native-fixture-group", new[] { patient }, "native-fixture-group-001");
 
-            return new Project(
-                "native-fixture-reference",
-                new HBP.Core.Data.ProjectPreferences("native-fixture-version", "native-fixture-project-001"),
-                new[] { patient },
-                new[] { group },
-                new[] { dataset },
-                new[] { visualization });
+            return new Project("native-fixture-reference", new HBP.Core.Data.ProjectPreferences("native-fixture-version", "native-fixture-project-001"), new[] { patient }, new[] { group }, new[] { dataset }, new[] { visualization });
         }
 
         private static Patient CreateNativePatient(BoolTag patientTag, StringTag siteTag)
         {
-            Site site = new(
-                "native-site-alpha",
-                new[] { new Coordinate("synthetic-space", new Vector3(1, 2, 3), "native-coordinate-001") },
-                new BaseTagValue[] { new StringTagValue(siteTag, "native-site", "native-site-tag-value-001") },
-                "native-site-001");
+            Site site = new("native-site-alpha", new[] { new Coordinate("synthetic-space", new Vector3(1, 2, 3), "native-coordinate-001") }, new BaseTagValue[] { new StringTagValue(siteTag, "native-site", "native-site-tag-value-001") }, "native-site-001");
 
-            MRI mri = new(
-                "native-t1",
-                FixturePath("Nifti", "mri_t1.nii"),
-                "native-mri-001");
+            MRI mri = new("native-t1", FixturePath("Nifti", "mri_t1.nii"), "native-mri-001");
 
-            LeftRightMesh mesh = new(
-                "native-white-matter",
-                FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "registration", "RawT1-synthetic-patient_T1pre_synthetic_TO_Scanner_Based.trm"),
-                FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "synthetic-patient_Lwhite.gii"),
-                FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "synthetic-patient_Rwhite.gii"),
-                FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "surface_analysis", "synthetic-patient_Lwhite_parcels_marsAtlas.gii"),
-                FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "surface_analysis", "synthetic-patient_Rwhite_parcels_marsAtlas.gii"),
-                "native-mesh-001");
+            LeftRightMesh mesh = new("native-white-matter", FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "registration", "RawT1-synthetic-patient_T1pre_synthetic_TO_Scanner_Based.trm"), FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "synthetic-patient_Lwhite.gii"), FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "synthetic-patient_Rwhite.gii"), FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "surface_analysis", "synthetic-patient_Lwhite_parcels_marsAtlas.gii"), FixturePath("Patients", "synthetic-patient", "t1mri", "T1pre_synthetic", "default_analysis", "segmentation", "mesh", "surface_analysis", "synthetic-patient_Rwhite_parcels_marsAtlas.gii"), "native-mesh-001");
 
-            return new Patient(
-                "native-patient-alpha",
-                new BaseMesh[] { mesh },
-                new[] { mri },
-                new[] { site },
-                new BaseTagValue[] { new BoolTagValue(patientTag, true, "native-patient-tag-value-001") },
-                "native-database-link-001",
-                "native-patient-001");
+            return new Patient("native-patient-alpha", new BaseMesh[] { mesh }, new[] { mri }, new[] { site }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "native-patient-tag-value-001") }, "native-database-link-001", "native-patient-001");
         }
 
         private static Dataset CreateNativeDataset(Protocol protocol, Patient patient)

@@ -9,11 +9,12 @@ namespace HBP.UI.Main
     /// <summary>
     /// Component to display group in list.
     /// </summary>
-	public class GroupItem : ActionnableItem<Core.Data.Group> 
-	{
-		#region Properties
-		[SerializeField] Text m_NameText;
-		[SerializeField] Text m_PatientsText;
+    public class GroupItem : ActionnableItem<Core.Data.Group>
+    {
+        #region Properties
+
+        [SerializeField] Text m_NameText;
+        [SerializeField] Text m_PatientsText;
         [SerializeField] Theme.State m_ErrorState;
 
         /// <summary>
@@ -21,10 +22,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Group Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -37,6 +35,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

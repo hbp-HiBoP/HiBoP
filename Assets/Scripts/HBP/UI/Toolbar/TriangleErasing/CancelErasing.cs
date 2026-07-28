@@ -6,13 +6,16 @@ namespace HBP.UI.Toolbar
     public class CancelErasing : Tool
     {
         #region Properties
+
         /// <summary>
         /// Cancel the last erasing action
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -25,6 +28,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.TriangleEraser.CancelLastAction();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -32,6 +36,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -41,6 +46,7 @@ namespace HBP.UI.Toolbar
 
             m_Button.interactable = isCancelAvailable;
         }
+
         #endregion
     }
 }

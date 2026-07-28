@@ -10,9 +10,10 @@ namespace HBP.UI.Main
     /// <summary>
     /// Component to display dataset in list.
     /// </summary>
-    public class DatasetItem : ActionnableItem<Core.Data.Dataset> 
-	{
+    public class DatasetItem : ActionnableItem<Core.Data.Dataset>
+    {
         #region Properties
+
         [SerializeField] UnityEngine.UI.Text m_NameText;
         [SerializeField] UnityEngine.UI.Text m_ProtocolText;
         [SerializeField] UnityEngine.UI.Text m_DataText;
@@ -24,10 +25,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Dataset Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -47,6 +45,7 @@ namespace HBP.UI.Main
                     if (i < names.Length - 1) stringBuilder.AppendLine(text);
                     else stringBuilder.Append(text);
                 }
+
                 if (data.Length == 0)
                 {
                     m_DataText.GetComponent<ThemeElement>().Set(m_ErrorState);
@@ -56,12 +55,14 @@ namespace HBP.UI.Main
                 {
                     m_DataText.GetComponent<ThemeElement>().Set();
                 }
+
                 m_DataText.GetComponent<Tooltip>().Text = stringBuilder.ToString();
                 m_DataText.text = data.Length.ToString();
 
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

@@ -65,7 +65,7 @@ namespace HBP.Core.Tools
         private static List<ExcelRowData> ReadExcelFileInternal(string filePath, int sheetIndex, TagType tagType)
         {
             List<ExcelRowData> result = new();
-            
+
             if (!File.Exists(filePath))
             {
                 Debug.LogWarning($"Excel file not found: {filePath}");
@@ -79,7 +79,7 @@ namespace HBP.Core.Tools
                     using (var reader = ExcelReaderFactory.CreateReader(stream))
                     {
                         var dataSet = reader.AsDataSet();
-                        
+
                         if (dataSet.Tables.Count <= sheetIndex)
                         {
                             Debug.LogWarning($"Sheet index {sheetIndex} not found in Excel file: {filePath}");
@@ -95,7 +95,7 @@ namespace HBP.Core.Tools
 
                         // Reconstruct headers from first two rows
                         string[] reconstructedHeaders = ReconstructHeaders(table, tagType);
-                        
+
                         if (reconstructedHeaders.Length == 0)
                         {
                             Debug.LogWarning($"No valid headers found in Excel file: {filePath}");
@@ -106,7 +106,7 @@ namespace HBP.Core.Tools
                         for (int rowIndex = 2; rowIndex < table.Rows.Count; rowIndex++)
                         {
                             DataRow row = table.Rows[rowIndex];
-                            
+
                             // Check if row is completely empty
                             if (IsEmptyRow(row))
                             {
@@ -115,7 +115,7 @@ namespace HBP.Core.Tools
 
                             // Extract name (first column)
                             string name = GetCellValue(row, 0);
-                            
+
                             // Extract data for each header column
                             Dictionary<string, string> rowData = new();
                             for (int colIndex = 0; colIndex < reconstructedHeaders.Length; colIndex++)
@@ -126,7 +126,7 @@ namespace HBP.Core.Tools
                             }
 
                             ExcelRowData excelRowData = new(name, reconstructedHeaders, rowData);
-                            
+
                             // Only add rows that have meaningful data
                             if (excelRowData.HasData())
                             {
@@ -166,7 +166,7 @@ namespace HBP.Core.Tools
 
             DataRow firstRow = table.Rows[0];
             DataRow secondRow = table.Rows[1];
-            
+
             List<string> headers = new();
             string lastFirstRowValue = "";
 
@@ -185,14 +185,13 @@ namespace HBP.Core.Tools
                 // Build header name
                 string headerName = "";
                 string cleanSecondRow = "";
-                
+
                 if (!string.IsNullOrWhiteSpace(secondRowValue))
                 {
                     cleanSecondRow = secondRowValue.Trim();
-                    
+
                     // If we have both first and second row values, concatenate them
-                    if (!string.IsNullOrWhiteSpace(lastFirstRowValue) && 
-                        !string.Equals(lastFirstRowValue, cleanSecondRow, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrWhiteSpace(lastFirstRowValue) && !string.Equals(lastFirstRowValue, cleanSecondRow, StringComparison.OrdinalIgnoreCase))
                     {
                         headerName = $"{lastFirstRowValue} - {cleanSecondRow}";
                     }
@@ -208,15 +207,14 @@ namespace HBP.Core.Tools
                 }
 
                 // Only add non-empty, valid header names
-                if (!string.IsNullOrWhiteSpace(headerName) && 
-                    !headerName.StartsWith("Unnamed", StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(headerName) && !headerName.StartsWith("Unnamed", StringComparison.OrdinalIgnoreCase))
                 {
                     // Clean up the header name
                     headerName = CleanHeaderName(headerName);
-                    
+
                     // Apply tag-specific naming rules
                     headerName = ApplySpecialNamingRules(headerName, lastFirstRowValue, cleanSecondRow, tagType);
-                    
+
                     // Skip headers that should be ignored
                     if (!ShouldIgnoreHeader(headerName, tagType))
                     {
@@ -239,7 +237,7 @@ namespace HBP.Core.Tools
             }
 
             object cellValue = row[columnIndex];
-            
+
             if (cellValue == null || cellValue == DBNull.Value)
             {
                 return "";
@@ -261,6 +259,7 @@ namespace HBP.Core.Tools
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -275,11 +274,7 @@ namespace HBP.Core.Tools
             }
 
             // Replace common problematic characters
-            string cleaned = headerName
-                .Replace("\n", " - ")
-                .Replace("\r", " - ")
-                .Replace("\t", " - ")
-                .Replace("  ", " ")  // Replace double spaces with single
+            string cleaned = headerName.Replace("\n", " - ").Replace("\r", " - ").Replace("\t", " - ").Replace("  ", " ") // Replace double spaces with single
                 .Trim();
 
             return cleaned;
@@ -376,7 +371,7 @@ namespace HBP.Core.Tools
                 string afterParen = input.Substring(parenIndex).Trim();
                 return $"{beforeParen} rate {afterParen}";
             }
-            
+
             return $"{input} rate";
         }
 
@@ -416,7 +411,7 @@ namespace HBP.Core.Tools
                 // Handle Past-history merging (1, 2, 3 -> single tag)
                 var pastHistoryValues = new List<string>();
                 var pastHistoryHeaders = new List<string>();
-                
+
                 // Handle Comorbidity merging (1, 2, 3 -> single tag)
                 var comorbidityValues = new List<string>();
                 var comorbidityHeaders = new List<string>();
@@ -485,7 +480,7 @@ namespace HBP.Core.Tools
 
                 // First pass: identify which spikes/ripples patterns should be excluded
                 var excludedPatterns = new HashSet<string>();
-                
+
                 foreach (var header in row.GetHeaders())
                 {
                     if (row.TryGetValue(header, out string value))
@@ -592,7 +587,7 @@ namespace HBP.Core.Tools
 
             // Remove "rate" from the header to get the base pattern
             string basePattern = headerName.Replace(" rate ", " ").Trim();
-            
+
             // For patterns like "spikes rate (wakefulness)", this becomes "spikes (wakefulness)"
             // For patterns like "spikes (wakefulness)", this stays the same
             return basePattern;
@@ -606,9 +601,7 @@ namespace HBP.Core.Tools
             if (string.IsNullOrEmpty(header))
                 return false;
 
-            return header.Equals("Past-history - 1", StringComparison.OrdinalIgnoreCase) ||
-                   header.Equals("Past-history - 2", StringComparison.OrdinalIgnoreCase) ||
-                   header.Equals("Past-history - 3", StringComparison.OrdinalIgnoreCase);
+            return header.Equals("Past-history - 1", StringComparison.OrdinalIgnoreCase) || header.Equals("Past-history - 2", StringComparison.OrdinalIgnoreCase) || header.Equals("Past-history - 3", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -619,9 +612,7 @@ namespace HBP.Core.Tools
             if (string.IsNullOrEmpty(header))
                 return false;
 
-            return header.Equals("Comorbidity - 1", StringComparison.OrdinalIgnoreCase) ||
-                   header.Equals("Comorbidity - 2", StringComparison.OrdinalIgnoreCase) ||
-                   header.Equals("Comorbidity - 3", StringComparison.OrdinalIgnoreCase);
+            return header.Equals("Comorbidity - 1", StringComparison.OrdinalIgnoreCase) || header.Equals("Comorbidity - 2", StringComparison.OrdinalIgnoreCase) || header.Equals("Comorbidity - 3", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

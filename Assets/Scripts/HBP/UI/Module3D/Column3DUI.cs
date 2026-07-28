@@ -14,14 +14,17 @@ namespace HBP.UI.Module3D
     public class Column3DUI : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Minimum width of the column 3D ui in order to have enough space to display the overlay elements
         /// </summary>
         private const int MINIMUM_WIDTH_TO_DISPLAY_OVERLAY = 200;
+
         /// <summary>
         /// If the difference between the width of the column and the default minimum width of a column in the ResizableGrid is less than this value, it is considered minimized
         /// </summary>
         private const float MINIMIZED_THRESHOLD = 10.0f;
+
         /// <summary>
         /// Associated logical Column3D
         /// </summary>
@@ -31,63 +34,83 @@ namespace HBP.UI.Module3D
         /// Corresponding column of the ResizableGrid
         /// </summary>
         private Column m_GridColumn;
+
         /// <summary>
         /// Parent resizable grid
         /// </summary>
         public ResizableGrid ParentGrid { get; private set; }
+
         /// <summary>
         /// Reference to this object's RectTransform
         /// </summary>
         [SerializeField] private RectTransform m_RectTransform;
+
         /// <summary>
         /// GameObject to hide a minimized column
         /// </summary>
         [SerializeField] private GameObject m_MinimizedGameObject;
+
         /// <summary>
         /// Associated label overlay element
         /// </summary>
         [SerializeField] private ColumnLabel m_Label;
+
         /// <summary>
         /// Associated colormap overlay element
         /// </summary>
         [SerializeField] private Colormap m_Colormap;
+
         /// <summary>
         /// Associated colormap overlay element
         /// </summary>
-        public Colormap Colormap { get { return m_Colormap; } }
+        public Colormap Colormap
+        {
+            get { return m_Colormap; }
+        }
+
         /// <summary>
         /// Associated timeline overlay element
         /// </summary>
         [SerializeField] private TimeDisplay m_TimeDisplay;
+
         /// <summary>
         /// Associated Icon overlay element
         /// </summary>
         [SerializeField] private Icon m_Icon;
+
         /// <summary>
         /// Associated Icon overlay element
         /// </summary>
-        public Icon Icon { get { return m_Icon; } }
+        public Icon Icon
+        {
+            get { return m_Icon; }
+        }
+
         /// <summary>
         /// Associated information overlay element
         /// </summary>
         [SerializeField] private ColumnInformation m_Information;
+
         /// <summary>
         /// Associated resizer overlay element
         /// </summary>
         [SerializeField] private ColumnResizer m_Resizer;
+
         /// <summary>
         /// List of all the views of this column UI
         /// </summary>
         public List<View3DUI> Views { get; private set; } = new List<View3DUI>();
-        
+
         /// <summary>
         /// Used when drag and dropping a column onto this columnn
         /// </summary>
         [SerializeField] private RectTransform m_Middle;
+
         /// <summary>
         /// Used when drag and dropping a column onto the left part of this columnn
         /// </summary>
         [SerializeField] private RectTransform m_LeftBorder;
+
         /// <summary>
         /// Used when drag and dropping a column onto the right part of this columnn
         /// </summary>
@@ -99,20 +122,15 @@ namespace HBP.UI.Module3D
         /// </summary>
         public bool HasEnoughSpaceForOverlay
         {
-            get
-            {
-                return m_RectTransform.rect.width > MINIMUM_WIDTH_TO_DISPLAY_OVERLAY;
-            }
+            get { return m_RectTransform.rect.width > MINIMUM_WIDTH_TO_DISPLAY_OVERLAY; }
         }
+
         /// <summary>
         /// Is the column minimzed ?
         /// </summary>
         public bool IsMinimized
         {
-            get
-            {
-                return Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD;
-            }
+            get { return Mathf.Abs(m_RectTransform.rect.width - ParentGrid.MinimumViewWidth) <= MINIMIZED_THRESHOLD; }
         }
 
         /// <summary>
@@ -127,6 +145,7 @@ namespace HBP.UI.Module3D
                 return mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width && mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height;
             }
         }
+
         /// <summary>
         /// Is the mouse currently over the left part of this column ?
         /// </summary>
@@ -139,6 +158,7 @@ namespace HBP.UI.Module3D
                 return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
             }
         }
+
         /// <summary>
         /// Is the mouse currently over the right part of this column ?
         /// </summary>
@@ -151,21 +171,26 @@ namespace HBP.UI.Module3D
                 return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
             }
         }
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when changing the size of the column (on the update after the change)
         /// </summary>
         public UnityEvent OnChangeColumnSize = new();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             ParentGrid = GetComponentInParent<ResizableGrid>();
             m_GridColumn = GetComponent<Column>();
         }
+
         private void Update()
         {
             if (m_RectTransform.hasChanged)
@@ -177,6 +202,7 @@ namespace HBP.UI.Module3D
                 m_RectTransform.hasChanged = false;
             }
         }
+
         /// <summary>
         /// Hide or display the overlay elements depending on the available space
         /// </summary>
@@ -187,9 +213,11 @@ namespace HBP.UI.Module3D
             m_Icon.HandleEnoughSpace();
             m_Information.HandleEnoughSpace();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the column UI
         /// </summary>
@@ -209,6 +237,7 @@ namespace HBP.UI.Module3D
             m_Label.Setup(scene, column, this);
             m_Resizer.Setup(scene, column, this);
         }
+
         /// <summary>
         /// Expand this column (set the width becomes the maximum possible)
         /// </summary>
@@ -232,6 +261,7 @@ namespace HBP.UI.Module3D
                         availableWidth -= minimizedWidth;
                     }
                 }
+
                 float width = availableWidth / numberOfExpandedColumns;
                 for (int i = 0; i < ParentGrid.Columns.Count - 1; i++)
                 {
@@ -258,8 +288,10 @@ namespace HBP.UI.Module3D
                             ParentGrid.VerticalHandlers[i].Position = ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
                         }
                     }
+
                     ParentGrid.SetVerticalHandlersPosition(i);
                 }
+
                 ParentGrid.UpdateAnchors();
             }
             else
@@ -269,21 +301,24 @@ namespace HBP.UI.Module3D
                     ParentGrid.VerticalHandlers[id - 1].Position = 0.0f;
                     ParentGrid.SetVerticalHandlersPosition(id - 1);
                 }
+
                 if (id != ParentGrid.Columns.Count - 1)
                 {
                     ParentGrid.VerticalHandlers[id].Position = 1.0f;
                     ParentGrid.SetVerticalHandlersPosition(id);
                 }
+
                 ParentGrid.UpdateAnchors();
             }
         }
+
         /// <summary>
         /// Minimize this column (set the width to the minimum possible and put the column on the right)
         /// </summary>
         public void Minimize()
         {
             if (IsMinimized) return;
-            
+
             int id = ParentGrid.Columns.IndexOf(m_GridColumn);
             float minimizedWidth = (ParentGrid.MinimumViewWidth / ParentGrid.RectTransform.rect.width);
 
@@ -315,6 +350,7 @@ namespace HBP.UI.Module3D
                     availableWidth -= minimizedWidth;
                 }
             }
+
             for (int i = 0; i < widths.Count; i++)
             {
                 widths[i] /= totalWidth;
@@ -343,6 +379,7 @@ namespace HBP.UI.Module3D
                     {
                         ParentGrid.VerticalHandlers[i].Position = ParentGrid.VerticalHandlers[i - 1].Position + widths[widthIndex];
                     }
+
                     widthIndex++;
                 }
                 else
@@ -356,10 +393,13 @@ namespace HBP.UI.Module3D
                         ParentGrid.VerticalHandlers[i].Position = ParentGrid.VerticalHandlers[i - 1].Position + minimizedWidth;
                     }
                 }
+
                 ParentGrid.SetVerticalHandlersPosition(i);
             }
+
             ParentGrid.UpdateAnchors();
         }
+
         /// <summary>
         /// Move the column in a specific direction by a specific amount
         /// </summary>
@@ -377,6 +417,7 @@ namespace HBP.UI.Module3D
                 ParentGrid.SwapColumns(ParentGrid.Columns[id], ParentGrid.Columns[id + (int)Mathf.Sign(direction) * 1]);
             }
         }
+
         /// <summary>
         /// Swap this column with the hovered column
         /// </summary>
@@ -417,10 +458,12 @@ namespace HBP.UI.Module3D
                     {
                         ParentGrid.SwapColumns(m_GridColumn, column);
                     }
+
                     return;
                 }
             }
         }
+
         /// <summary>
         /// Update the visibility of the border depending on the position of the cursor
         /// </summary>
@@ -470,8 +513,10 @@ namespace HBP.UI.Module3D
                     }
                 }
             }
+
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         /// <summary>
         /// Update the position of the overlay
         /// </summary>
@@ -491,6 +536,7 @@ namespace HBP.UI.Module3D
                     break;
                 }
             }
+
             m_Label.SetVerticalOffset(topOffset);
             m_Colormap.SetVerticalOffset(topOffset);
             m_TimeDisplay.SetVerticalOffset(topOffset);
@@ -511,8 +557,10 @@ namespace HBP.UI.Module3D
                     break;
                 }
             }
+
             m_Information.SetVerticalOffset(bottomOffset);
         }
+
         #endregion
     }
 }

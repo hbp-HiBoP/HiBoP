@@ -9,48 +9,60 @@ namespace HBP.Data.Module3D
     public class FMRIDataParameters
     {
         #region Properties
+
         /// <summary>
         /// Calibration min factor of the FMRI (between 0 and 1)
         /// </summary>
         public float FMRINegativeCalMinFactor { get; private set; } = 0.05f;
+
         /// <summary>
         /// Calibration min factor of the FMRI (between 0 and 1)
         /// </summary>
         public float FMRINegativeCalMaxFactor { get; private set; } = 0.5f;
+
         /// <summary>
         /// Calibration max factor of the FMRI (between 0 and 1)
         /// </summary>
         public float FMRIPositiveCalMinFactor { get; private set; } = 0.05f;
+
         /// <summary>
         /// Calibration max factor of the FMRI (between 0 and 1)
         /// </summary>
         public float FMRIPositiveCalMaxFactor { get; private set; } = 0.5f;
+
         /// <summary>
         /// Hide the values under the lowest cal factor
         /// </summary>
         public bool HideLowerValues { get; private set; }
+
         /// <summary>
         /// Hide the values between the two middle factors
         /// </summary>
         public bool HideMiddleValues { get; private set; }
+
         /// <summary>
         /// Hide the values above the highest cal factor
         /// </summary>
         public bool HideHigherValues { get; private set; }
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when updating the span values (negative and positive min or max)
         /// </summary>
         public UnityEvent OnUpdateCalValues = new();
+
         /// <summary>
         /// Event called when updating which extreme values to hide (lower, middle or higher)
         /// </summary>
         public UnityEvent OnUpdateHideValues = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Set the span values all together
         /// </summary>
@@ -69,6 +81,7 @@ namespace HBP.Data.Module3D
             FMRIPositiveCalMaxFactor = positiveMax;
             OnUpdateCalValues.Invoke();
         }
+
         /// <summary>
         /// Reset span values to their default values
         /// </summary>
@@ -81,6 +94,7 @@ namespace HBP.Data.Module3D
             FMRIPositiveCalMaxFactor = 0.5f;
             OnUpdateCalValues.Invoke();
         }
+
         /// <summary>
         /// Set which extreme values to hide
         /// </summary>
@@ -94,6 +108,7 @@ namespace HBP.Data.Module3D
             HideHigherValues = higher;
             OnUpdateHideValues.Invoke();
         }
+
         public void ResetHideValues()
         {
             HideLowerValues = false;
@@ -101,6 +116,7 @@ namespace HBP.Data.Module3D
             HideHigherValues = false;
             OnUpdateHideValues.Invoke();
         }
+
         #endregion
     }
 }

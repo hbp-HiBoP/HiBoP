@@ -9,13 +9,12 @@ namespace HBP.UI.Tools.Lists
     public class ActionableList<T> : SelectableList<T>
     {
         #region Properties
+
         [SerializeField] protected bool m_Actionable = true;
+
         public bool Actionable
         {
-            get
-            {
-                return m_Actionable;
-            }
+            get { return m_Actionable; }
             set
             {
                 m_Actionable = value;
@@ -27,9 +26,11 @@ namespace HBP.UI.Tools.Lists
         }
 
         public GenericEvent<T, int> OnAction { get; } = new GenericEvent<T, int>();
+
         #endregion
 
         #region Public Methods
+
         public override void UpdateObject(T objectToUpdate)
         {
             int index = m_Objects.FindIndex(o => o.Equals(objectToUpdate));
@@ -37,7 +38,7 @@ namespace HBP.UI.Tools.Lists
             int displayedIndex = m_DisplayedObjects.FindIndex(o => o.Equals(objectToUpdate));
             m_DisplayedObjects[displayedIndex] = objectToUpdate;
 
-            T oldKey = m_SelectedStateByObject.Keys.FirstOrDefault(k => k.Equals(objectToUpdate) && !ReferenceEquals(k, objectToUpdate));  
+            T oldKey = m_SelectedStateByObject.Keys.FirstOrDefault(k => k.Equals(objectToUpdate) && !ReferenceEquals(k, objectToUpdate));
             if (oldKey != null)
             {
                 bool selected = m_SelectedStateByObject[oldKey];
@@ -63,6 +64,7 @@ namespace HBP.UI.Tools.Lists
                 OnUpdateObject.Invoke(objectToUpdate);
             }
         }
+
         public override void Refresh()
         {
             Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
@@ -81,18 +83,22 @@ namespace HBP.UI.Tools.Lists
                 item.OnAction.AddListener((actionID) => OnAction.Invoke(obj, actionID));
             }
         }
+
         #endregion
 
         #region Private Methods
+
         void OnValidate()
         {
             Validate();
         }
+
         protected override void Validate()
         {
             base.Validate();
             Actionable = Actionable;
         }
+
         protected void OnActionHandler(int action, T objectToUpdate)
         {
             if (m_Actionable)
@@ -100,6 +106,7 @@ namespace HBP.UI.Tools.Lists
                 OnAction.Invoke(objectToUpdate, action);
             }
         }
+
         protected override void SetItem(Item<T> item, T obj)
         {
             base.SetItem(item, obj);
@@ -107,6 +114,7 @@ namespace HBP.UI.Tools.Lists
             actionnableItem.OnAction.RemoveAllListeners();
             actionnableItem.OnAction.AddListener((actionID) => OnAction.Invoke(obj, actionID));
         }
+
         #endregion
     }
 }

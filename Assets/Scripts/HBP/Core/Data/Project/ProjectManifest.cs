@@ -41,18 +41,7 @@ namespace HBP.Core.Data
         private long ArchiveLength { get; }
         private DateTime ArchiveLastWriteTimeUtc { get; }
 
-        private ProjectManifest(
-            string path,
-            Dictionary<string, long> entries,
-            List<string> settingsEntries,
-            List<string> patientEntries,
-            List<string> groupEntries,
-            List<string> datasetEntries,
-            List<string> visualizationEntries,
-            ProjectPreferences preferences,
-            Exception preferencesLoadException,
-            long archiveLength,
-            DateTime archiveLastWriteTimeUtc)
+        private ProjectManifest(string path, Dictionary<string, long> entries, List<string> settingsEntries, List<string> patientEntries, List<string> groupEntries, List<string> datasetEntries, List<string> visualizationEntries, ProjectPreferences preferences, Exception preferencesLoadException, long archiveLength, DateTime archiveLastWriteTimeUtc)
         {
             Path = path;
             Name = System.IO.Path.GetFileNameWithoutExtension(path);
@@ -96,10 +85,12 @@ namespace HBP.Core.Data
                 {
                     continue;
                 }
+
                 if (!normalizedEntryNames.Add(entryName))
                 {
                     throw new InvalidDataException($"Duplicate project archive entry '{entryName}'.");
                 }
+
                 entries.Add(entry.FileName, entry.UncompressedSize);
 
                 if (entryName == "Patients/")
@@ -140,8 +131,7 @@ namespace HBP.Core.Data
                 }
             }
 
-            if (!hasPatientsDirectory || !hasGroupsDirectory || !hasDatasetsDirectory
-                || !hasVisualizationsDirectory || settingsEntries.Count == 0)
+            if (!hasPatientsDirectory || !hasGroupsDirectory || !hasDatasetsDirectory || !hasVisualizationsDirectory || settingsEntries.Count == 0)
             {
                 throw new DirectoryNotProjectException(path);
             }
@@ -168,26 +158,13 @@ namespace HBP.Core.Data
             }
 
             archiveFile.Refresh();
-            return new ProjectManifest(
-                path,
-                entries,
-                settingsEntries,
-                patientEntries,
-                groupEntries,
-                datasetEntries,
-                visualizationEntries,
-                preferences,
-                preferencesLoadException,
-                archiveFile.Length,
-                archiveFile.LastWriteTimeUtc);
+            return new ProjectManifest(path, entries, settingsEntries, patientEntries, groupEntries, datasetEntries, visualizationEntries, preferences, preferencesLoadException, archiveFile.Length, archiveFile.LastWriteTimeUtc);
         }
 
         internal bool IsCurrent()
         {
             FileInfo archiveFile = new(Path);
-            return archiveFile.Exists
-                && archiveFile.Length == ArchiveLength
-                && archiveFile.LastWriteTimeUtc == ArchiveLastWriteTimeUtc;
+            return archiveFile.Exists && archiveFile.Length == ArchiveLength && archiveFile.LastWriteTimeUtc == ArchiveLastWriteTimeUtc;
         }
 
         private static string NormalizeAndValidateEntryName(string entryName)
@@ -198,8 +175,7 @@ namespace HBP.Core.Data
             }
 
             string normalized = entryName.Replace('\\', '/');
-            if (normalized.StartsWith("/", StringComparison.Ordinal)
-                || (normalized.Length >= 2 && char.IsLetter(normalized[0]) && normalized[1] == ':'))
+            if (normalized.StartsWith("/", StringComparison.Ordinal) || (normalized.Length >= 2 && char.IsLetter(normalized[0]) && normalized[1] == ':'))
             {
                 throw new InvalidDataException($"Absolute project archive entry '{entryName}' is not allowed.");
             }
@@ -209,25 +185,23 @@ namespace HBP.Core.Data
             {
                 throw new InvalidDataException($"Unsafe project archive entry '{entryName}' is not allowed.");
             }
+
             return normalized;
         }
 
         private static bool IsProtocolsEntry(string entryName)
         {
-            return entryName.Equals("Protocols/", StringComparison.OrdinalIgnoreCase)
-                || entryName.StartsWith("Protocols/", StringComparison.OrdinalIgnoreCase);
+            return entryName.Equals("Protocols/", StringComparison.OrdinalIgnoreCase) || entryName.StartsWith("Protocols/", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsTopLevelEntry(string entryName, string extension)
         {
-            return entryName.IndexOf('/') < 0
-                && entryName.EndsWith(extension, StringComparison.OrdinalIgnoreCase);
+            return entryName.IndexOf('/') < 0 && entryName.EndsWith(extension, StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsDirectChildEntry(string entryName, string directory, string extension)
         {
-            if (!entryName.StartsWith(directory, StringComparison.Ordinal)
-                || !entryName.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+            if (!entryName.StartsWith(directory, StringComparison.Ordinal) || !entryName.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }

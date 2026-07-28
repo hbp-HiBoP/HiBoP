@@ -7,29 +7,30 @@ namespace HBP.UI.Toolbar
     public class TimelineSlider : Tool
     {
         #region Properties
+
         /// <summary>
         /// Slider to change the current sample of the timeline
         /// </summary>
         [SerializeField] private Slider m_Slider;
+
         /// <summary>
         /// Subtimelines of the timeline
         /// </summary>
         [SerializeField] private RectTransform m_SubTimelines;
+
         /// <summary>
         /// Prefab for the subtimeline
         /// </summary>
         [SerializeField] private GameObject m_TimelinePrefab;
 
         private bool m_IsGlobal = false;
+
         /// <summary>
         /// Do we need to perform the actions on all columns ?
         /// </summary>
         public bool IsGlobal
         {
-            get
-            {
-                return m_IsGlobal;
-            }
+            get { return m_IsGlobal; }
             set
             {
                 m_IsGlobal = value;
@@ -39,9 +40,11 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Display the subtimelines of the timeline
         /// </summary>
@@ -73,6 +76,7 @@ namespace HBP.UI.Toolbar
                 subTl.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
             }
         }
+
         /// <summary>
         /// Remove all subtimelines of the timeline
         /// </summary>
@@ -83,9 +87,11 @@ namespace HBP.UI.Toolbar
                 Destroy(subTimeline.gameObject);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -130,9 +136,11 @@ namespace HBP.UI.Toolbar
                         subTimeline.GetComponent<SubTimeline>().UpdateCurrentTime();
                     }
                 }
+
                 ListenerLock = false;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -142,6 +150,7 @@ namespace HBP.UI.Toolbar
             m_Slider.interactable = false;
             DeleteSubTimelines();
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -152,6 +161,7 @@ namespace HBP.UI.Toolbar
 
             m_Slider.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -167,6 +177,7 @@ namespace HBP.UI.Toolbar
                 DeleteSubTimelines();
             }
         }
+
         #endregion
     }
 }

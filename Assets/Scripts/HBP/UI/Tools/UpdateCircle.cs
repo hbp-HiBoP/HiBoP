@@ -6,6 +6,7 @@ namespace HBP.UI.Tools
     public class UpdateCircle : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private Image m_Image;
         [SerializeField] private RectTransform m_RectTransform;
 
@@ -15,9 +16,11 @@ namespace HBP.UI.Tools
         private float m_RotateSpeed = 1;
         private float m_FillInSpeed = 0.75f;
         private float m_FillOutSpeed = 0.8785f;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (m_IsActive)
@@ -43,19 +46,23 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void StartAnimation()
         {
             gameObject.SetActive(true);
             m_IsActive = true;
         }
+
         public void StopAnimation()
         {
             gameObject.SetActive(false);
             m_IsActive = false;
         }
+
         #endregion
     }
 }

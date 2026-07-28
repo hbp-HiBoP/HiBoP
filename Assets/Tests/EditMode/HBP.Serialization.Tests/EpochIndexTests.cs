@@ -34,23 +34,9 @@ namespace HBP.Tests.Serialization
         [TestCase(0, 2, -1, 0, 4, 6, 3, 4)]
         [TestCase(-2, 0, 1, 2, 2, 4, 5, 6)]
         [TestCase(-2, 2, -4, -3, 2, 6, 0, 1)]
-        public void WindowAndBaselineViews_PreserveInclusiveBounds(
-            int windowStart,
-            int windowEnd,
-            int baselineStart,
-            int baselineEnd,
-            int expectedWindowStart,
-            int expectedWindowEnd,
-            int expectedBaselineStart,
-            int expectedBaselineEnd)
+        public void WindowAndBaselineViews_PreserveInclusiveBounds(int windowStart, int windowEnd, int baselineStart, int baselineEnd, int expectedWindowStart, int expectedWindowEnd, int expectedBaselineStart, int expectedBaselineEnd)
         {
-            SubBloc subBloc = CreateSubBloc(
-                "main",
-                0,
-                MainSecondaryEnum.Main,
-                new TimeWindow(windowStart, windowEnd),
-                new TimeWindow(baselineStart, baselineEnd),
-                new Event("main", new[] { 1 }, MainSecondaryEnum.Main, "main-event"));
+            SubBloc subBloc = CreateSubBloc("main", 0, MainSecondaryEnum.Main, new TimeWindow(windowStart, windowEnd), new TimeWindow(baselineStart, baselineEnd), new Event("main", new[] { 1 }, MainSecondaryEnum.Main, "main-event"));
             BlocData blocData = CreateBlocData(new[] { subBloc }, (1, 4));
             SubTrial subTrial = blocData.Trials.Single().SubTrialBySubBloc[subBloc];
 
@@ -67,13 +53,11 @@ namespace HBP.Tests.Serialization
         {
             Event mainEvent = new("main", new[] { 1 }, MainSecondaryEnum.Main, "main-event");
             SubBloc subBloc = CreateSubBloc("main", 0, MainSecondaryEnum.Main, new TimeWindow(-1, 1), new TimeWindow(-1, 0), mainEvent);
-            TestDynamicData recording = new(
-                new Dictionary<string, float[]>
-                {
-                    { "A1", InclusiveValues(0, 9) },
-                    { "A2", InclusiveValues(10, 19) }
-                },
-                (1, 4));
+            TestDynamicData recording = new(new Dictionary<string, float[]>
+            {
+                { "A1", InclusiveValues(0, 9) },
+                { "A2", InclusiveValues(10, 19) }
+            }, (1, 4));
             BlocData blocData = new(recording, new Bloc("bloc", 0, string.Empty, string.Empty, new[] { subBloc }, "bloc"));
             SubTrial subTrial = blocData.Trials.Single().SubTrialBySubBloc[subBloc];
 
@@ -99,16 +83,7 @@ namespace HBP.Tests.Serialization
                 Baseline = baseline,
                 Factor = 2f
             };
-            SubBloc subBloc = new(
-                "main",
-                0,
-                MainSecondaryEnum.Main,
-                window,
-                baseline,
-                new[] { mainEvent },
-                Array.Empty<Icon>(),
-                new Treatment[] { treatment },
-                "main-subbloc");
+            SubBloc subBloc = new("main", 0, MainSecondaryEnum.Main, window, baseline, new[] { mainEvent }, Array.Empty<Icon>(), new Treatment[] { treatment }, "main-subbloc");
             BlocData blocData = CreateBlocData(new[] { subBloc }, (1, 4));
             SubTrial subTrial = blocData.Trials.Single().SubTrialBySubBloc[subBloc];
             EpochCompatibilityBuffer compatibilityBuffer = new();
@@ -126,14 +101,7 @@ namespace HBP.Tests.Serialization
         {
             Event mainEvent = new("main", new[] { 1 }, MainSecondaryEnum.Main, "main-event");
             Event secondaryEvent = new("secondary", new[] { 2 }, MainSecondaryEnum.Secondary, "secondary-event");
-            SubBloc subBloc = CreateSubBloc(
-                "main",
-                0,
-                MainSecondaryEnum.Main,
-                new TimeWindow(-2, 2),
-                new TimeWindow(-1, 0),
-                mainEvent,
-                secondaryEvent);
+            SubBloc subBloc = CreateSubBloc("main", 0, MainSecondaryEnum.Main, new TimeWindow(-2, 2), new TimeWindow(-1, 0), mainEvent, secondaryEvent);
             BlocData blocData = CreateBlocData(new[] { subBloc }, (1, 4), (2, 2), (2, 6), (2, 7));
             SubTrial subTrial = blocData.Trials.Single().SubTrialBySubBloc[subBloc];
 
@@ -168,16 +136,7 @@ namespace HBP.Tests.Serialization
             Bloc firstBloc = new("first", 0, string.Empty, string.Empty, new[] { firstSubBloc }, "first-bloc");
             Bloc secondBloc = new("second", 1, string.Empty, string.Empty, new[] { secondSubBloc }, "second-bloc");
             Protocol protocol = new("protocol", new[] { firstBloc, secondBloc }, "protocol");
-            IEEGDataInfo dataInfo = new(
-                "data",
-                protocol,
-                new HBP.Core.Data.Container.Elan(),
-                Array.Empty<HBP.Core.Errors.Error>(),
-                Array.Empty<HBP.Core.Errors.Warning>(),
-                null,
-                NormalizationType.None,
-                string.Empty,
-                "data");
+            IEEGDataInfo dataInfo = new("data", protocol, new HBP.Core.Data.Container.Elan(), Array.Empty<HBP.Core.Errors.Error>(), Array.Empty<HBP.Core.Errors.Warning>(), null, NormalizationType.None, string.Empty, "data");
             TestDynamicData recording = new(new Dictionary<string, float[]> { { "A1", InclusiveValues(0, 19) } }, (1, 3), (2, 12));
 
             IEEGData data = new(dataInfo, recording);
@@ -190,18 +149,10 @@ namespace HBP.Tests.Serialization
 
         private static BlocData CreateBlocData(IEnumerable<SubBloc> subBlocs, params (int code, int index)[] occurrences)
         {
-            return new BlocData(
-                new TestDynamicData(new Dictionary<string, float[]> { { "A1", InclusiveValues(0, 31) } }, occurrences),
-                new Bloc("bloc", 0, string.Empty, string.Empty, subBlocs, "bloc"));
+            return new BlocData(new TestDynamicData(new Dictionary<string, float[]> { { "A1", InclusiveValues(0, 31) } }, occurrences), new Bloc("bloc", 0, string.Empty, string.Empty, subBlocs, "bloc"));
         }
 
-        private static SubBloc CreateSubBloc(
-            string name,
-            int order,
-            MainSecondaryEnum type,
-            TimeWindow window,
-            TimeWindow baseline,
-            params Event[] events)
+        private static SubBloc CreateSubBloc(string name, int order, MainSecondaryEnum type, TimeWindow window, TimeWindow baseline, params Event[] events)
         {
             return new SubBloc(name, order, type, window, baseline, events, Array.Empty<Icon>(), Array.Empty<Treatment>(), $"{name}-subbloc");
         }
@@ -213,17 +164,9 @@ namespace HBP.Tests.Serialization
 
         private sealed class TestDynamicData : DynamicData
         {
-            public TestDynamicData(Dictionary<string, float[]> valuesByChannel, params (int code, int index)[] occurrences)
-                : base(
-                    valuesByChannel,
-                    valuesByChannel.Keys.ToDictionary(channel => channel, _ => "uV"),
-                    new Frequency(1000))
+            public TestDynamicData(Dictionary<string, float[]> valuesByChannel, params (int code, int index)[] occurrences) : base(valuesByChannel, valuesByChannel.Keys.ToDictionary(channel => channel, _ => "uV"), new Frequency(1000))
             {
-                m_OccurencesByCode = occurrences
-                    .GroupBy(occurrence => occurrence.code)
-                    .ToDictionary(
-                        group => group.Key,
-                        group => group.Select(occurrence => new EventOccurence(occurrence.code, occurrence.index, occurrence.index)).ToList());
+                m_OccurencesByCode = occurrences.GroupBy(occurrence => occurrence.code).ToDictionary(group => group.Key, group => group.Select(occurrence => new EventOccurence(occurrence.code, occurrence.index, occurrence.index)).ToList());
             }
         }
     }

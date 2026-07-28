@@ -10,11 +10,17 @@ namespace HBP.UI.Main
     public class AliasSelector : ObjectSelector<Core.Data.Alias>
     {
         #region Properties
+
         [SerializeField] AliasList m_List;
+
         /// <summary>
         /// UI aliases list.
         /// </summary>
-        protected override SelectableList<Core.Data.Alias> List { get => m_List; }
+        protected override SelectableList<Core.Data.Alias> List
+        {
+            get => m_List;
+        }
+
         #endregion
     }
 }

@@ -8,14 +8,17 @@ namespace HBP.UI.Tools
     public class Tab : MonoBehaviour //, IBeginDragHandler, IDropHandler
     {
         #region Properties
+
         [SerializeField] Text m_Text;
+
         public string Title
         {
-            get { return m_Text.text;  }
+            get { return m_Text.text; }
             set { m_Text.text = value; }
         }
 
         Toggle m_Toggle;
+
         public ToggleGroup Group
         {
             get { return m_Toggle.group; }
@@ -23,20 +26,29 @@ namespace HBP.UI.Tools
         }
 
         bool m_IsActive;
+
         public bool IsActive
         {
             get { return m_IsActive; }
-            set { m_IsActive = value;  m_Toggle.isOn = value; OnValueChanged.Invoke(value); }
+            set
+            {
+                m_IsActive = value;
+                m_Toggle.isOn = value;
+                OnValueChanged.Invoke(value);
+            }
         }
 
         UnityEvent<bool> m_OnValueChanged = new Toggle.ToggleEvent();
+
         public UnityEvent<bool> OnValueChanged
         {
             get { return m_OnValueChanged; }
         }
+
         #endregion
 
         #region Events
+
         //public void OnBeginDrag(PointerEventData data)
         //{
         //    Debug.Log("OnBeginDrag");
@@ -48,14 +60,17 @@ namespace HBP.UI.Tools
         //    Debug.Log("OnDrop");
         //    GetComponentInParent<TabGestion>().OnEndDrag(data.pointerCurrentRaycast.gameObject.transform.parent.parent);
         //}
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
             m_Toggle.onValueChanged.AddListener((value) => IsActive = value);
         }
+
         #endregion
     }
 }

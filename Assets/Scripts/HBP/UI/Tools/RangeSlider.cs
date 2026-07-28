@@ -9,9 +9,10 @@ namespace HBP.UI.Tools
 {
     [AddComponentMenu("UI/RangeSlider", 34)]
     [RequireComponent(typeof(RectTransform))]
-    public class RangeSlider : Selectable, IDragHandler, IInitializePotentialDragHandler , ICanvasElement
+    public class RangeSlider : Selectable, IDragHandler, IInitializePotentialDragHandler, ICanvasElement
     {
         #region Intern Class/Struts
+
         public enum Direction
         {
             LeftToRight,
@@ -19,11 +20,13 @@ namespace HBP.UI.Tools
             BottomToTop,
             TopToBottom,
         }
+
         public enum SliderType
         {
             Simplified,
             Complete
         }
+
         enum Handle
         {
             None,
@@ -31,88 +34,311 @@ namespace HBP.UI.Tools
             Fill,
             Max
         }
+
         enum Axis
         {
             Horizontal = 0,
             Vertical = 1
         }
+
         [Serializable]
-        public class RangeSliderEvent : UnityEvent<float, float> { }
+        public class RangeSliderEvent : UnityEvent<float, float>
+        {
+        }
+
         #endregion
 
         #region Properties
+
         [SerializeField] SliderType m_Type = SliderType.Complete;
-        public SliderType type { get { return m_Type; } set { if (SetPropertyUtility.SetStruct(ref m_Type, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
 
-        [SerializeField] RectTransform m_FillRect;
-        public RectTransform fillRect { get { return m_FillRect; } set { if (SetPropertyUtility.SetClass(ref m_FillRect, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] RectTransform m_MinHandleRect;
-        public RectTransform minHandleRect { get { return m_MinHandleRect; } set { if (SetPropertyUtility.SetClass(ref m_MinHandleRect, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] RectTransform m_MaxHandleRect;
-        public RectTransform maxHandleRect { get { return m_MaxHandleRect; } set { if (SetPropertyUtility.SetClass(ref m_MaxHandleRect, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] Graphic m_MinHandleTargetGraphic;
-        public Graphic minHandleTargetGraphic { get { return m_MinHandleTargetGraphic; } set { if(SetPropertyUtility.SetClass(ref m_MinHandleTargetGraphic, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] Graphic m_MaxHandleTargetGraphic;
-        public Graphic maxHandleTargetGraphic { get { return m_MaxHandleTargetGraphic; } set { if (SetPropertyUtility.SetClass(ref m_MaxHandleTargetGraphic, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] Graphic m_FillTargetGraphic;
-        public Graphic fillTargetGraphic { get { return m_FillTargetGraphic; } set { if (SetPropertyUtility.SetClass(ref m_FillTargetGraphic, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] AnimationTriggers m_FillAnimationTriggers;
-        public AnimationTriggers fillAnimationTriggers { get { return m_FillAnimationTriggers; } set { if (SetPropertyUtility.SetClass(ref m_FillAnimationTriggers, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] AnimationTriggers m_HandleAnimationTriggers;
-        public AnimationTriggers handleanimationTriggers { get { return m_HandleAnimationTriggers; } set { if (SetPropertyUtility.SetClass(ref m_HandleAnimationTriggers, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] SpriteState m_FillSpriteState;
-        public SpriteState fillSpriteState { get { return m_FillSpriteState; } set { if (SetPropertyUtility.SetStruct(ref m_FillSpriteState, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] SpriteState m_HandleSpriteState;
-        public SpriteState handleSpriteState { get { return m_HandleSpriteState; } set { if (SetPropertyUtility.SetStruct(ref m_HandleSpriteState, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] ColorBlock m_FillColors;
-        public ColorBlock fillColors { get { return m_FillColors; } set { if (SetPropertyUtility.SetStruct(ref m_FillColors, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] ColorBlock m_HandleColors;
-        public ColorBlock handleColors { get { return m_HandleColors; } set { if (SetPropertyUtility.SetStruct(ref m_HandleColors, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] Transition m_FillTransition;
-        public Transition FillTransition { get { return m_FillTransition; } set { if (SetPropertyUtility.SetStruct(ref m_FillTransition, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        [SerializeField] Transition m_HandleTransition;
-        public Transition handleTransition { get { return m_HandleTransition; } set { if (SetPropertyUtility.SetStruct(ref m_HandleTransition, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
-
-        public Animator FillAnimator { get { return m_FillRect != null ? m_FillRect.GetComponent<Animator>() : null; } }
-
-        public Animator minHandleAnimator { get { return m_MinHandleRect != null ? m_MinHandleRect.GetComponent<Animator>() : null; } } 
-
-        public Animator maxHandleAnimator { get { return m_MaxHandleRect != null ? m_MaxHandleRect.GetComponent<Animator>() : null; }  }
-
-        [SerializeField] Direction m_Direction = Direction.LeftToRight;
-        public Direction direction { get { return m_Direction; } set { if (SetPropertyUtility.SetStruct(ref m_Direction, value)) RequestVisualUpdate(); } }
-
-        [SerializeField] float m_MinLimit = 0;
-        public float minLimit { get { return m_MinLimit; } set { if (SetPropertyUtility.SetStruct(ref m_MinLimit, value)) { Set(m_MinValue, m_MaxValue, Handle.Min); RequestVisualUpdate(); } } }
-
-        [SerializeField] float m_MaxLimit = 1;
-        public float maxLimit { get { return m_MaxLimit; } set { if (SetPropertyUtility.SetStruct(ref m_MaxLimit, value)) { Set(m_MinValue, m_MaxValue, Handle.Max); RequestVisualUpdate(); } } }
-
-        [SerializeField] float m_MinValue = 0f;
-        public float minValue
+        public SliderType type
         {
-            get
-            {
-                return m_MinValue;
-            }
+            get { return m_Type; }
             set
             {
-                Set(value, m_MaxValue, Handle.Min);
+                if (SetPropertyUtility.SetStruct(ref m_Type, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
             }
         }
+
+        [SerializeField] RectTransform m_FillRect;
+
+        public RectTransform fillRect
+        {
+            get { return m_FillRect; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_FillRect, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] RectTransform m_MinHandleRect;
+
+        public RectTransform minHandleRect
+        {
+            get { return m_MinHandleRect; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_MinHandleRect, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] RectTransform m_MaxHandleRect;
+
+        public RectTransform maxHandleRect
+        {
+            get { return m_MaxHandleRect; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_MaxHandleRect, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] Graphic m_MinHandleTargetGraphic;
+
+        public Graphic minHandleTargetGraphic
+        {
+            get { return m_MinHandleTargetGraphic; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_MinHandleTargetGraphic, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] Graphic m_MaxHandleTargetGraphic;
+
+        public Graphic maxHandleTargetGraphic
+        {
+            get { return m_MaxHandleTargetGraphic; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_MaxHandleTargetGraphic, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] Graphic m_FillTargetGraphic;
+
+        public Graphic fillTargetGraphic
+        {
+            get { return m_FillTargetGraphic; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_FillTargetGraphic, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] AnimationTriggers m_FillAnimationTriggers;
+
+        public AnimationTriggers fillAnimationTriggers
+        {
+            get { return m_FillAnimationTriggers; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_FillAnimationTriggers, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] AnimationTriggers m_HandleAnimationTriggers;
+
+        public AnimationTriggers handleanimationTriggers
+        {
+            get { return m_HandleAnimationTriggers; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_HandleAnimationTriggers, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] SpriteState m_FillSpriteState;
+
+        public SpriteState fillSpriteState
+        {
+            get { return m_FillSpriteState; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_FillSpriteState, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] SpriteState m_HandleSpriteState;
+
+        public SpriteState handleSpriteState
+        {
+            get { return m_HandleSpriteState; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_HandleSpriteState, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] ColorBlock m_FillColors;
+
+        public ColorBlock fillColors
+        {
+            get { return m_FillColors; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_FillColors, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] ColorBlock m_HandleColors;
+
+        public ColorBlock handleColors
+        {
+            get { return m_HandleColors; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_HandleColors, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] Transition m_FillTransition;
+
+        public Transition FillTransition
+        {
+            get { return m_FillTransition; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_FillTransition, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] Transition m_HandleTransition;
+
+        public Transition handleTransition
+        {
+            get { return m_HandleTransition; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_HandleTransition, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        public Animator FillAnimator
+        {
+            get { return m_FillRect != null ? m_FillRect.GetComponent<Animator>() : null; }
+        }
+
+        public Animator minHandleAnimator
+        {
+            get { return m_MinHandleRect != null ? m_MinHandleRect.GetComponent<Animator>() : null; }
+        }
+
+        public Animator maxHandleAnimator
+        {
+            get { return m_MaxHandleRect != null ? m_MaxHandleRect.GetComponent<Animator>() : null; }
+        }
+
+        [SerializeField] Direction m_Direction = Direction.LeftToRight;
+
+        public Direction direction
+        {
+            get { return m_Direction; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_Direction, value)) RequestVisualUpdate();
+            }
+        }
+
+        [SerializeField] float m_MinLimit = 0;
+
+        public float minLimit
+        {
+            get { return m_MinLimit; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_MinLimit, value))
+                {
+                    Set(m_MinValue, m_MaxValue, Handle.Min);
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] float m_MaxLimit = 1;
+
+        public float maxLimit
+        {
+            get { return m_MaxLimit; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_MaxLimit, value))
+                {
+                    Set(m_MinValue, m_MaxValue, Handle.Max);
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] float m_MinValue = 0f;
+
+        public float minValue
+        {
+            get { return m_MinValue; }
+            set { Set(value, m_MaxValue, Handle.Min); }
+        }
+
         public float normalizedMinValue
         {
             get
@@ -121,24 +347,17 @@ namespace HBP.UI.Tools
                     return 0;
                 return Mathf.InverseLerp(minLimit, maxLimit, minValue);
             }
-            set
-            {
-                this.minValue = Mathf.Lerp(minLimit, maxLimit, value);
-            }
+            set { this.minValue = Mathf.Lerp(minLimit, maxLimit, value); }
         }
 
         [SerializeField] float m_MaxValue = 1f;
+
         public float maxValue
         {
-            get
-            {
-                return m_MaxValue;
-            }
-            set
-            {
-                Set(m_MinValue, value, Handle.Max);
-            }
+            get { return m_MaxValue; }
+            set { Set(m_MinValue, value, Handle.Max); }
         }
+
         public float normalizedMaxValue
         {
             get
@@ -147,10 +366,7 @@ namespace HBP.UI.Tools
                     return 0;
                 return Mathf.InverseLerp(minLimit, maxLimit, maxValue);
             }
-            set
-            {
-                this.maxValue = Mathf.Lerp(minLimit, maxLimit, value);
-            }
+            set { this.maxValue = Mathf.Lerp(minLimit, maxLimit, value); }
         }
 
         public Vector2 Values
@@ -160,7 +376,13 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] float m_Step = 0.1f;
-        public float step { get { return m_Step; } set { m_Step = value; } }
+
+        public float step
+        {
+            get { return m_Step; }
+            set { m_Step = value; }
+        }
+
         public float normalizedStep
         {
             get
@@ -169,18 +391,26 @@ namespace HBP.UI.Tools
                     return 0;
                 return Mathf.InverseLerp(0, maxLimit - minLimit, step);
             }
-            set
-            {
-                step = Mathf.Lerp(0, maxLimit - minLimit, value);
-            }
+            set { step = Mathf.Lerp(0, maxLimit - minLimit, value); }
         }
 
         [SerializeField] RangeSliderEvent m_OnValueChanged = new();
-        public RangeSliderEvent onValueChanged { get { return m_OnValueChanged; } set { m_OnValueChanged = value; } }
 
-        Axis axis { get { return (m_Direction == Direction.LeftToRight || m_Direction == Direction.RightToLeft) ? Axis.Horizontal : Axis.Vertical; } }
+        public RangeSliderEvent onValueChanged
+        {
+            get { return m_OnValueChanged; }
+            set { m_OnValueChanged = value; }
+        }
 
-        bool reverseValue { get { return m_Direction == Direction.RightToLeft || m_Direction == Direction.TopToBottom; } }
+        Axis axis
+        {
+            get { return (m_Direction == Direction.LeftToRight || m_Direction == Direction.RightToLeft) ? Axis.Horizontal : Axis.Vertical; }
+        }
+
+        bool reverseValue
+        {
+            get { return m_Direction == Direction.RightToLeft || m_Direction == Direction.TopToBottom; }
+        }
 
         // Private fields
         RectTransform m_FillContainerRect;
@@ -191,13 +421,46 @@ namespace HBP.UI.Tools
 
         bool m_VisualUpdateRequired;
         SelectionState m_MinHandleSelectionState;
-        SelectionState minHandleSelectionSate { get { return m_MinHandleSelectionState; } set { if (SetPropertyUtility.SetStruct(ref m_MinHandleSelectionState, value)) { m_VisualUpdateRequired = true; } } }
+
+        SelectionState minHandleSelectionSate
+        {
+            get { return m_MinHandleSelectionState; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_MinHandleSelectionState, value))
+                {
+                    m_VisualUpdateRequired = true;
+                }
+            }
+        }
 
         SelectionState m_MaxHandleSelectionState;
-        SelectionState maxHandleSelectionSate { get { return m_MaxHandleSelectionState; } set { if (SetPropertyUtility.SetStruct(ref m_MaxHandleSelectionState, value)) { m_VisualUpdateRequired = true; } } }
+
+        SelectionState maxHandleSelectionSate
+        {
+            get { return m_MaxHandleSelectionState; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_MaxHandleSelectionState, value))
+                {
+                    m_VisualUpdateRequired = true;
+                }
+            }
+        }
 
         SelectionState m_FillSelectionState;
-        SelectionState fillSelectionSate { get { return m_FillSelectionState; } set { if (SetPropertyUtility.SetStruct(ref m_FillSelectionState, value)) { m_VisualUpdateRequired = true; } } }
+
+        SelectionState fillSelectionSate
+        {
+            get { return m_FillSelectionState; }
+            set
+            {
+                if (SetPropertyUtility.SetStruct(ref m_FillSelectionState, value))
+                {
+                    m_VisualUpdateRequired = true;
+                }
+            }
+        }
 
         Handle m_SelectedHandle = Handle.None;
         Vector2 m_Offset = Vector2.zero;
@@ -206,9 +469,11 @@ namespace HBP.UI.Tools
         bool m_VisualUpdateScheduled;
         bool m_IsValidating;
 #endif
+
         #endregion
 
         #region Public Methods
+
         public virtual void Rebuild(CanvasUpdate executing)
         {
 #if UNITY_EDITOR
@@ -216,14 +481,17 @@ namespace HBP.UI.Tools
                 onValueChanged.Invoke(minValue, maxValue);
 #endif
         }
+
         public override void OnPointerEnter(PointerEventData eventData)
         {
             m_IsHovered = true;
         }
+
         public override void OnPointerExit(PointerEventData eventData)
         {
             m_IsHovered = false;
         }
+
         public override void OnPointerDown(PointerEventData eventData)
         {
             m_IsClicked = true;
@@ -253,6 +521,7 @@ namespace HBP.UI.Tools
                     {
                         m_SelectedHandle = distanceBetweenPointerAndMaxHandle > distanceBetweenPointerAndMinHandle ? Handle.Min : Handle.Max;
                     }
+
                     break;
                 default:
                     break;
@@ -273,6 +542,7 @@ namespace HBP.UI.Tools
                         // Outside the slider handle - jump to this point instead
                         UpdateDrag(eventData, eventData.pressEventCamera);
                     }
+
                     break;
                 case Handle.Max:
                     if (m_HandlesContainerRect != null && isOnMaxHandle)
@@ -286,6 +556,7 @@ namespace HBP.UI.Tools
                         // Outside the slider handle - jump to this point instead
                         UpdateDrag(eventData, eventData.pressEventCamera);
                     }
+
                     break;
                 case Handle.Fill:
                     if (m_FillContainerRect != null && isOnFill)
@@ -294,11 +565,13 @@ namespace HBP.UI.Tools
                         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(m_FillRect, eventData.position, eventData.pressEventCamera, out localMousePos))
                             m_Offset = localMousePos;
                     }
+
                     break;
                 default:
                     break;
             }
         }
+
         public virtual void OnDrag(PointerEventData eventData)
         {
             if (!MayDrag(eventData))
@@ -306,6 +579,7 @@ namespace HBP.UI.Tools
 
             UpdateDrag(eventData, eventData.pressEventCamera);
         }
+
         public override void OnMove(AxisEventData eventData)
         {
             if (!IsActive() || !IsInteractable())
@@ -328,6 +602,7 @@ namespace HBP.UI.Tools
                     }
                     else
                         base.OnMove(eventData);
+
                     break;
                 case MoveDirection.Right:
                     if (axis == Axis.Horizontal && FindSelectableOnRight() == null)
@@ -337,6 +612,7 @@ namespace HBP.UI.Tools
                     }
                     else
                         base.OnMove(eventData);
+
                     break;
                 case MoveDirection.Up:
                     if (axis == Axis.Vertical && FindSelectableOnUp() == null)
@@ -346,6 +622,7 @@ namespace HBP.UI.Tools
                     }
                     else
                         base.OnMove(eventData);
+
                     break;
                 case MoveDirection.Down:
                     if (axis == Axis.Vertical && FindSelectableOnDown() == null)
@@ -355,26 +632,32 @@ namespace HBP.UI.Tools
                     }
                     else
                         base.OnMove(eventData);
+
                     break;
             }
         }
+
         public override void OnPointerUp(PointerEventData eventData)
         {
             m_IsClicked = false;
             m_SelectedHandle = Handle.None;
         }
+
         public virtual void OnInitializePotentialDrag(PointerEventData eventData)
         {
             eventData.useDragThreshold = false;
         }
+
         public override void OnSelect(BaseEventData eventData)
         {
             m_IsSelected = true;
         }
+
         public override void OnDeselect(BaseEventData eventData)
         {
             m_IsSelected = false;
         }
+
         public void SetDirection(Direction direction, bool includeRectLayouts)
         {
             Axis oldAxis = axis;
@@ -390,45 +673,53 @@ namespace HBP.UI.Tools
             if (reverseValue != oldReverse)
                 RectTransformUtility.FlipLayoutOnAxis(transform as RectTransform, (int)axis, true, true);
         }
+
         public void LayoutComplete()
         {
             m_MinHandleTargetGraphic.LayoutComplete();
             m_MaxHandleTargetGraphic.LayoutComplete();
             m_FillTargetGraphic.LayoutComplete();
         }
+
         public void GraphicUpdateComplete()
         {
             m_MinHandleTargetGraphic.GraphicUpdateComplete();
             m_MaxHandleTargetGraphic.GraphicUpdateComplete();
             m_FillTargetGraphic.GraphicUpdateComplete();
         }
+
         public override Selectable FindSelectableOnLeft()
         {
             if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Horizontal)
                 return null;
             return base.FindSelectableOnLeft();
         }
+
         public override Selectable FindSelectableOnRight()
         {
             if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Horizontal)
                 return null;
             return base.FindSelectableOnRight();
         }
+
         public override Selectable FindSelectableOnUp()
         {
             if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Vertical)
                 return null;
             return base.FindSelectableOnUp();
         }
+
         public override Selectable FindSelectableOnDown()
         {
             if (navigation.mode == Navigation.Mode.Automatic && axis == Axis.Vertical)
                 return null;
             return base.FindSelectableOnDown();
         }
+
         #endregion
-        
+
         #region Private Methods
+
 #if UNITY_EDITOR
         protected override void OnValidate()
         {
@@ -460,6 +751,7 @@ namespace HBP.UI.Tools
             UpdateSelectionState();
             TransitionToSelectionState(true);
         }
+
         protected override void OnDisable()
         {
 #if UNITY_EDITOR
@@ -469,21 +761,25 @@ namespace HBP.UI.Tools
             m_Tracker.Clear();
             base.OnDisable();
         }
+
         protected void Update()
         {
             EvaluateAndTransitionToSelectionState();
         }
+
         protected override void OnRectTransformDimensionsChange()
         {
             base.OnRectTransformDimensionsChange();
             RequestVisualUpdate();
         }
+
         void Set(float movement)
         {
             if (minValue + movement < minLimit) movement = minLimit - minValue;
             if (maxValue + movement > maxLimit) movement = maxLimit - maxValue;
             Set(minValue + movement, maxValue + movement, Handle.None);
         }
+
         void Set(float minInput, float maxInput, Handle commanderHandle, bool sendCallback = true)
         {
             // Clamp the input
@@ -509,10 +805,12 @@ namespace HBP.UI.Tools
                     m_MaxValue = newMaxValue;
                     break;
             }
+
             RequestVisualUpdate();
             if (sendCallback)
                 m_OnValueChanged.Invoke(m_MinValue, m_MaxValue);
         }
+
         void UpdateCachedReferences()
         {
             if (m_FillRect != null && m_FillRect.parent != null)
@@ -591,6 +889,7 @@ namespace HBP.UI.Tools
                     anchorMin[(int)axis] = normalizedMinValue;
                     anchorMax[(int)axis] = normalizedMaxValue;
                 }
+
                 if (m_FillRect.anchorMin != anchorMin)
                     m_FillRect.anchorMin = anchorMin;
                 if (m_FillRect.anchorMax != anchorMax)
@@ -618,6 +917,7 @@ namespace HBP.UI.Tools
                     m_MaxHandleRect.anchorMax = anchorMax;
             }
         }
+
         void UpdateDrag(PointerEventData eventData, Camera cam)
         {
             RectTransform clickRect = m_HandlesContainerRect ?? m_FillContainerRect;
@@ -640,7 +940,7 @@ namespace HBP.UI.Tools
                         else normalizedMaxValue = RoundAtPrecision(reverseValue ? 1f - val : val, normalizedStep);
                         break;
                     case Handle.Fill:
-                        Vector2 delta = eventData.position - ((Vector2) m_FillRect.position + m_Offset);
+                        Vector2 delta = eventData.position - ((Vector2)m_FillRect.position + m_Offset);
                         float normalizedMovement = (reverseValue ? -1 : 1) * delta[(int)axis] / clickRect.rect.size[(int)axis];
                         normalizedMovement = RoundAtPrecision(normalizedMovement, normalizedStep);
                         float absMovement = Mathf.Lerp(0, m_MaxLimit - m_MinLimit, Mathf.Abs(normalizedMovement));
@@ -652,10 +952,12 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         bool MayDrag(PointerEventData eventData)
         {
             return IsActive() && IsInteractable() && eventData.button == PointerEventData.InputButton.Left;
         }
+
         float RoundAtPrecision(float number, float precision)
         {
             if (Mathf.Approximately(precision, 0f)) return number;
@@ -675,6 +977,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         void UpdateSelectionState()
         {
             if (!IsInteractable())
@@ -755,12 +1058,14 @@ namespace HBP.UI.Tools
                 fillSelectionSate = SelectionState.Normal;
             }
         }
+
         void TransitionToSelectionState(bool instant)
         {
             DoStateTransition(Handle.Min, m_MinHandleSelectionState, instant);
             DoStateTransition(Handle.Fill, m_FillSelectionState, instant);
             DoStateTransition(Handle.Max, m_MaxHandleSelectionState, instant);
         }
+
         void DoStateTransition(Handle handle, SelectionState state, bool instant)
         {
             Graphic targetGraphic;
@@ -800,7 +1105,8 @@ namespace HBP.UI.Tools
                 default:
                     return;
             }
-            if(gameObject.activeInHierarchy)
+
+            if (gameObject.activeInHierarchy)
             {
                 switch (transition)
                 {
@@ -820,6 +1126,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         void StartColorTween(Graphic graphic, ColorBlock colors, SelectionState state, bool instant)
         {
             if (graphic != null)
@@ -843,13 +1150,14 @@ namespace HBP.UI.Tools
                         targetColor = colors.normalColor;
                         break;
                 }
+
                 graphic.CrossFadeColor(targetColor * colors.colorMultiplier, instant ? 0f : colors.fadeDuration, true, true);
             }
-
         }
+
         void DoSpriteSwap(Graphic graphic, SpriteState spriteState, SelectionState state)
         {
-            if(graphic != null && graphic is Image)
+            if (graphic != null && graphic is Image)
             {
                 Image image = graphic as Image;
                 Sprite targetSprite;
@@ -871,9 +1179,11 @@ namespace HBP.UI.Tools
                         targetSprite = null;
                         break;
                 }
+
                 image.overrideSprite = targetSprite;
             }
         }
+
         void TriggerAnimation(Animator animator, AnimationTriggers animationTriggers, SelectionState state)
         {
             string triggerName;
@@ -905,6 +1215,7 @@ namespace HBP.UI.Tools
                 animator.SetTrigger(triggerName);
             }
         }
+
         #endregion
     }
 }

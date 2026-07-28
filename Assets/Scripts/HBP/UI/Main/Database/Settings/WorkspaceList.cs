@@ -9,13 +9,22 @@ namespace HBP.UI.Database
     public class WorkspaceList : ActionableList<Workspace>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -31,8 +40,10 @@ namespace HBP.UI.Database
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
         }
+
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -41,6 +52,7 @@ namespace HBP.UI.Database
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
         #endregion
     }
 }

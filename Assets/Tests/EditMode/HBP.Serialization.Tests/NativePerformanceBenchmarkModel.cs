@@ -57,15 +57,7 @@ namespace HBP.Tests.Serialization
         private readonly Func<string> m_Validate;
         private readonly Action m_Dispose;
 
-        public NativePerformanceScenario(
-            string name,
-            string domain,
-            string phase,
-            string workload,
-            int operationsPerIteration,
-            Func<ulong> action,
-            Func<string> validate = null,
-            Action dispose = null)
+        public NativePerformanceScenario(string name, string domain, string phase, string workload, int operationsPerIteration, Func<ulong> action, Func<string> validate = null, Action dispose = null)
         {
             Name = name;
             Domain = domain;
@@ -101,10 +93,7 @@ namespace HBP.Tests.Serialization
 
     internal static class NativePerformanceMeasurement
     {
-        public static NativePerformanceScenarioResult Run(
-            NativePerformanceScenario scenario,
-            int warmupIterations,
-            int measuredIterations)
+        public static NativePerformanceScenarioResult Run(NativePerformanceScenario scenario, int warmupIterations, int measuredIterations)
         {
             if (scenario.OperationsPerIteration <= 0)
             {
@@ -147,14 +136,13 @@ namespace HBP.Tests.Serialization
                     long managedAfter = GC.GetTotalMemory(forceFullCollection: false);
 
                     checksum = Mix(checksum, iterationChecksum);
-                    milliseconds[i] = (timestampAfter - timestampBefore) * 1000.0
-                        / Stopwatch.Frequency / scenario.OperationsPerIteration;
+                    milliseconds[i] = (timestampAfter - timestampBefore) * 1000.0 / Stopwatch.Frequency / scenario.OperationsPerIteration;
                     long threadAllocated = Math.Max(0L, allocatedAfter - allocatedBefore);
                     long liveManagedGrowth = Math.Max(0L, managedAfter - managedBefore);
-                    managedBytes[i] = Math.Max(threadAllocated, liveManagedGrowth)
-                        / scenario.OperationsPerIteration;
+                    managedBytes[i] = Math.Max(threadAllocated, liveManagedGrowth) / scenario.OperationsPerIteration;
                     sampler.SampleNow();
                 }
+
                 sampler.Stop();
 
                 ForceCollection();
@@ -198,9 +186,7 @@ namespace HBP.Tests.Serialization
             double[] sorted = (double[])values.Clone();
             Array.Sort(sorted);
             int middle = sorted.Length / 2;
-            return sorted.Length % 2 == 0
-                ? (sorted[middle - 1] + sorted[middle]) * 0.5
-                : sorted[middle];
+            return sorted.Length % 2 == 0 ? (sorted[middle - 1] + sorted[middle]) * 0.5 : sorted[middle];
         }
 
         private static double Percentile95(double[] values)
@@ -281,6 +267,7 @@ namespace HBP.Tests.Serialization
                 {
                     Stop();
                 }
+
                 m_Started.Dispose();
             }
 
@@ -297,6 +284,7 @@ namespace HBP.Tests.Serialization
                     {
                         return;
                     }
+
                     Thread.Sleep(1);
                 }
             }

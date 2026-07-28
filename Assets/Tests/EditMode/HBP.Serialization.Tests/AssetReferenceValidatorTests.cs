@@ -38,40 +38,27 @@ namespace HBP.Tests.Serialization
             File.WriteAllText(MRIPath, "mri");
             File.WriteAllText(wrongExtensionPath, "wrong");
 
-            Patient source = new(
-                "validation",
-                new BaseMesh[]
-                {
-                    new SingleMesh("valid", string.Empty, meshPath, string.Empty, "mesh-valid"),
-                    new SingleMesh("duplicate", string.Empty, meshPath, string.Empty, "mesh-duplicate"),
-                    new SingleMesh("missing", string.Empty, missingMeshPath, string.Empty, "mesh-missing"),
-                    new SingleMesh("wrong", string.Empty, wrongExtensionPath, string.Empty, "mesh-wrong"),
-                    new LeftRightMesh("pair", string.Empty, leftPath, rightPath, string.Empty, string.Empty, "mesh-pair")
-                },
-                new[]
-                {
-                    new MRI("valid", MRIPath, "mri-valid"),
-                    new MRI("missing", missingMRIPath, "mri-missing"),
-                    new MRI("wrong", wrongExtensionPath, "mri-wrong")
-                },
-                Array.Empty<Site>(),
-                Array.Empty<BaseTagValue>(),
-                "database",
-                "patient-validation");
+            Patient source = new("validation", new BaseMesh[]
+            {
+                new SingleMesh("valid", string.Empty, meshPath, string.Empty, "mesh-valid"),
+                new SingleMesh("duplicate", string.Empty, meshPath, string.Empty, "mesh-duplicate"),
+                new SingleMesh("missing", string.Empty, missingMeshPath, string.Empty, "mesh-missing"),
+                new SingleMesh("wrong", string.Empty, wrongExtensionPath, string.Empty, "mesh-wrong"),
+                new LeftRightMesh("pair", string.Empty, leftPath, rightPath, string.Empty, string.Empty, "mesh-pair")
+            }, new[]
+            {
+                new MRI("valid", MRIPath, "mri-valid"),
+                new MRI("missing", missingMRIPath, "mri-missing"),
+                new MRI("wrong", wrongExtensionPath, "mri-wrong")
+            }, Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "database", "patient-validation");
             string patientPath = temp.GetPath("patient.patient");
             Assert.That(ClassLoaderSaver.SaveToJSon(source, patientPath, true), Is.True);
 
-            Patient loaded =
-                ClassLoaderSaver.LoadFromJson<Patient>(patientPath);
+            Patient loaded = ClassLoaderSaver.LoadFromJson<Patient>(patientPath);
             Assert.That(loaded.Meshes.All(mesh => !mesh.WasUsable), Is.True);
             Assert.That(loaded.MRIs.All(MRI => !MRI.WasUsable), Is.True);
 
-            PatientAssetValidationResult result =
-                await new AssetReferenceValidator().ValidatePatientsAsync(
-                    new[] { loaded },
-                    4,
-                    CancellationToken.None,
-                    generation: 12);
+            PatientAssetValidationResult result = await new AssetReferenceValidator().ValidatePatientsAsync(new[] { loaded }, 4, CancellationToken.None, generation: 12);
             Assert.That(loaded.Meshes.All(mesh => !mesh.WasUsable), Is.True);
             Assert.That(loaded.MRIs.All(MRI => !MRI.WasUsable), Is.True);
             Assert.That(result.TryApply(12), Is.True);
@@ -82,6 +69,7 @@ namespace HBP.Tests.Serialization
                 bool validated = mesh.WasUsable;
                 Assert.That(validated, Is.EqualTo(mesh.IsUsable), mesh.Name);
             }
+
             foreach (MRI MRI in loaded.MRIs)
             {
                 bool validated = MRI.WasUsable;
@@ -96,28 +84,19 @@ namespace HBP.Tests.Serialization
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
 
-            PersistentDataManager.Aliases.SetAliases(
-                new[]
-                {
-                    new Alias("[WIN]", @"C:\validation-root", "alias-win"),
-                    new Alias("[LINUX]", "/mnt/validation-root", "alias-linux"),
-                    new Alias("[NETWORK]", @"\\server\share", "alias-network")
-                },
-                false);
+            PersistentDataManager.Aliases.SetAliases(new[]
+            {
+                new Alias("[WIN]", @"C:\validation-root", "alias-win"),
+                new Alias("[LINUX]", "/mnt/validation-root", "alias-linux"),
+                new Alias("[NETWORK]", @"\\server\share", "alias-network")
+            }, false);
 
             SingleMesh windows = DeserializeSingleMesh("[WIN]/windows.gii", "windows");
             SingleMesh windowsDuplicate = DeserializeSingleMesh("[WIN]/windows.gii", "windows-duplicate");
             SingleMesh linux = DeserializeSingleMesh("[LINUX]/linux.gii", "linux");
             SingleMesh network = DeserializeSingleMesh("[NETWORK]/network.gii", "network");
             SingleMesh project = DeserializeSingleMesh("./project.gii", "project");
-            Patient patient = new(
-                "aliases",
-                new BaseMesh[] { windows, windowsDuplicate, linux, network, project },
-                Array.Empty<MRI>(),
-                Array.Empty<Site>(),
-                Array.Empty<BaseTagValue>(),
-                "database",
-                "patient-aliases");
+            Patient patient = new("aliases", new BaseMesh[] { windows, windowsDuplicate, linux, network, project }, Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "database", "patient-aliases");
 
             ConcurrentBag<string> checkedPaths = new();
             List<(int Completed, int Total)> progressUpdates = new();
@@ -133,25 +112,16 @@ namespace HBP.Tests.Serialization
                 return !path.Contains("network", StringComparison.OrdinalIgnoreCase);
             });
 
-            PatientAssetValidationResult result = await validator.ValidatePatientsAsync(
-                new[] { patient },
-                2,
-                CancellationToken.None,
-                (completed, total) => progressUpdates.Add((completed, total)),
-                generation: 24);
+            PatientAssetValidationResult result = await validator.ValidatePatientsAsync(new[] { patient }, 2, CancellationToken.None, (completed, total) => progressUpdates.Add((completed, total)), generation: 24);
             await UniTask.SwitchToMainThread();
 
             Assert.That(checkedPaths, Has.Count.EqualTo(4));
-            Assert.That(
-                progressUpdates,
-                Is.EqualTo(new[] { (0, 4), (1, 4), (2, 4), (3, 4), (4, 4) }));
+            Assert.That(progressUpdates, Is.EqualTo(new[] { (0, 4), (1, 4), (2, 4), (3, 4), (4, 4) }));
             Assert.That(maximumActive, Is.LessThanOrEqualTo(2));
             Assert.That(checkedPaths, Does.Contain(@"C:\validation-root\windows.gii".StandardizeToEnvironement()));
             Assert.That(checkedPaths, Does.Contain(@"\mnt\validation-root\linux.gii".StandardizeToEnvironement()));
             Assert.That(checkedPaths, Does.Contain(@"\\server\share\network.gii".StandardizeToEnvironement()));
-            Assert.That(checkedPaths, Does.Contain(
-                (ApplicationState.ExtractProjectFolder + Path.DirectorySeparatorChar + "project.gii")
-                    .StandardizeToEnvironement()));
+            Assert.That(checkedPaths, Does.Contain((ApplicationState.ExtractProjectFolder + Path.DirectorySeparatorChar + "project.gii").StandardizeToEnvironement()));
             Assert.That(windows.WasUsable, Is.False);
             Assert.That(result.TryApply(23), Is.False);
             Assert.That(windows.WasUsable, Is.False);
@@ -170,14 +140,7 @@ namespace HBP.Tests.Serialization
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
             SingleMesh mesh = DeserializeSingleMesh(temp.GetPath("cancel.gii"), "cancel");
-            Patient patient = new(
-                "cancel",
-                new BaseMesh[] { mesh },
-                Array.Empty<MRI>(),
-                Array.Empty<Site>(),
-                Array.Empty<BaseTagValue>(),
-                "database",
-                "patient-cancel");
+            Patient patient = new("cancel", new BaseMesh[] { mesh }, Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "database", "patient-cancel");
             using CancellationTokenSource cancellation = new();
             int calls = 0;
             AssetReferenceValidator validator = new(_ =>
@@ -187,8 +150,7 @@ namespace HBP.Tests.Serialization
                 return true;
             });
 
-            Exception exception = await CaptureExceptionAsync(() =>
-                validator.ValidatePatientsAsync(new[] { patient }, 1, cancellation.Token).AsTask());
+            Exception exception = await CaptureExceptionAsync(() => validator.ValidatePatientsAsync(new[] { patient }, 1, cancellation.Token).AsTask());
             await UniTask.SwitchToMainThread();
 
             Assert.That(exception, Is.TypeOf<OperationCanceledException>());
@@ -219,8 +181,7 @@ namespace HBP.Tests.Serialization
                 {
                     return;
                 }
-            }
-            while (Interlocked.CompareExchange(ref maximum, value, observed) != observed);
+            } while (Interlocked.CompareExchange(ref maximum, value, observed) != observed);
         }
 
         private static async Task<Exception> CaptureExceptionAsync(Func<Task> action)

@@ -12,16 +12,25 @@ namespace HBP.UI.Database
     public class DatabasePatientList : SelectableList<Patient>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] Button m_ResetFiltersButton;
         [SerializeField] Toggle m_ShowFilteredObjectsToggle;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         protected override void AddObject(Patient obj)
         {
             SortByNone();
@@ -51,20 +60,23 @@ namespace HBP.UI.Database
             if (parentWindow)
                 parentWindow.WindowsReferencer.Add(filterWindow);
         }
+
         public void ResetFilters()
         {
             MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), !m_ShowFilteredObjectsToggle.isOn);
             SortByNone();
         }
+
         public override bool MaskList(bool[] mask, bool hide = true)
         {
             bool hasFilteredObjects = mask.Any(m => !m);
             m_ResetFiltersButton.interactable = hasFilteredObjects;
             m_ShowFilteredObjectsToggle.interactable = hasFilteredObjects;
             if (hasFilteredObjects) m_ShowFilteredObjectsToggle.isOn = !hide;
-            
+
             return base.MaskList(mask, hide);
         }
+
         public void OnShowFilteredObjectsToggleChanged(bool showFiltered)
         {
             HideMaskedObjects = !showFiltered;
@@ -85,8 +97,10 @@ namespace HBP.UI.Database
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
         }
+
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -101,13 +115,16 @@ namespace HBP.UI.Database
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override IEnumerable<Patient> DefaultSorting(IEnumerable<Patient> objects)
         {
             return objects.OrderBy(p => p.Name);
         }
+
         #endregion
     }
 }

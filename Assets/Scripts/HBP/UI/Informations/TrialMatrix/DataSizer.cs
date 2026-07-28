@@ -10,18 +10,23 @@ namespace HBP.UI.Informations.TrialMatrix
     public class DataSizer : MonoBehaviour
     {
         #region Properties
+
         private LayoutElement m_LayoutElement;
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_LayoutElement = GetComponent<LayoutElement>();
         }
+
         void OnRectTransformDimensionsChange()
         {
             SetSize();
         }
+
         void SetSize()
         {
             CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
@@ -39,6 +44,7 @@ namespace HBP.UI.Informations.TrialMatrix
                     break;
             }
         }
+
         #endregion
     }
 }

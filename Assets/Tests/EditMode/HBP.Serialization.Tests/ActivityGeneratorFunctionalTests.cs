@@ -111,9 +111,7 @@ namespace HBP.Tests.Serialization
             sites.UpdateMask(1, false);
             float[] activityValues = { -1.0f, 0.5f, 0.75f, -0.25f };
 
-            (Vector2[] activity, Vector2[] alpha, Color32[] cut) Render(
-                VolumeInterpolation interpolation,
-                bool historicalOverload)
+            (Vector2[] activity, Vector2[] alpha, Color32[] cut) Render(VolumeInterpolation interpolation, bool historicalOverload)
             {
                 using GeneratorSurface generatorSurface = new();
                 if (historicalOverload)
@@ -124,15 +122,10 @@ namespace HBP.Tests.Serialization
                 {
                     generatorSurface.Initialize(surface, volume, 8, interpolation);
                 }
+
                 using IEEGGenerator ieeg = new();
                 ieeg.Initialize(generatorSurface);
-                ieeg.ComputeActivity(
-                    sites,
-                    80.0f,
-                    activityValues,
-                    timelineLength: 2,
-                    numberOfSites: 2,
-                    siteInfluenceByDistance: SiteInfluenceByDistanceType.Linear);
+                ieeg.ComputeActivity(sites, 80.0f, activityValues, timelineLength: 2, numberOfSites: 2, siteInfluenceByDistance: SiteInfluenceByDistanceType.Linear);
                 ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
 
                 using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
@@ -146,18 +139,9 @@ namespace HBP.Tests.Serialization
                 geometry.Initialize(volume, cut, 16);
                 using CutGenerator cutGenerator = new();
                 cutGenerator.Initialize(ieeg, geometry, blurFactor: 0);
-                cutGenerator.FillTextureWithVolume(
-                    HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.Grayscale),
-                    0.0f,
-                    1.0f);
-                cutGenerator.FillTextureWithActivity(
-                    HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.MatLab),
-                    timelineIndex: 1,
-                    alpha: 0.35f);
-                return (
-                    surfaceGenerator.ActivityUV,
-                    surfaceGenerator.AlphaUV,
-                    cutGenerator.CopyOverlayPixels());
+                cutGenerator.FillTextureWithVolume(HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.Grayscale), 0.0f, 1.0f);
+                cutGenerator.FillTextureWithActivity(HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.MatLab), timelineIndex: 1, alpha: 0.35f);
+                return (surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV, cutGenerator.CopyOverlayPixels());
             }
 
             var historical = Render(VolumeInterpolation.Nearest, historicalOverload: true);
@@ -167,12 +151,9 @@ namespace HBP.Tests.Serialization
             Assert.That(nearest.activity, Is.EqualTo(historical.activity));
             Assert.That(nearest.alpha, Is.EqualTo(historical.alpha));
             Assert.That(nearest.cut, Is.EqualTo(historical.cut));
-            Assert.That(trilinear.activity, Is.EqualTo(nearest.activity),
-                "Surface values must remain independent from volume interpolation.");
-            Assert.That(trilinear.alpha, Is.EqualTo(nearest.alpha),
-                "Surface weights must remain independent from volume interpolation.");
-            Assert.That(trilinear.cut, Is.Not.EqualTo(nearest.cut),
-                "Trilinear interpolation should affect the sampled cut for this non-uniform fixture.");
+            Assert.That(trilinear.activity, Is.EqualTo(nearest.activity), "Surface values must remain independent from volume interpolation.");
+            Assert.That(trilinear.alpha, Is.EqualTo(nearest.alpha), "Surface weights must remain independent from volume interpolation.");
+            Assert.That(trilinear.cut, Is.Not.EqualTo(nearest.cut), "Trilinear interpolation should affect the sampled cut for this non-uniform fixture.");
         }
 
         [Test]
@@ -211,12 +192,9 @@ namespace HBP.Tests.Serialization
             Assert.That(surfaceGenerator.ActivityUV[firstIndex].x, Is.EqualTo(0.0f).Within(0.0005f));
             Assert.That(float.IsFinite(surfaceGenerator.ActivityUV[firstIndex].x), Is.True);
 
-            Assert.Throws<InvalidOperationException>(() =>
-                ieeg.ComputeActivity(oneSite, 1000.0f, new[] { float.NaN }, 1, 1, SiteInfluenceByDistanceType.Constant));
-            Assert.Throws<ArgumentException>(() =>
-                ieeg.ComputeActivity(oneSite, 1000.0f, Array.Empty<float>(), 1, 1, SiteInfluenceByDistanceType.Constant));
-            Assert.Throws<ArgumentException>(() =>
-                ieeg.ComputeActivity(oneSite, 1000.0f, new[] { 1.0f }, 1, 0, SiteInfluenceByDistanceType.Constant));
+            Assert.Throws<InvalidOperationException>(() => ieeg.ComputeActivity(oneSite, 1000.0f, new[] { float.NaN }, 1, 1, SiteInfluenceByDistanceType.Constant));
+            Assert.Throws<ArgumentException>(() => ieeg.ComputeActivity(oneSite, 1000.0f, Array.Empty<float>(), 1, 1, SiteInfluenceByDistanceType.Constant));
+            Assert.Throws<ArgumentException>(() => ieeg.ComputeActivity(oneSite, 1000.0f, new[] { 1.0f }, 1, 0, SiteInfluenceByDistanceType.Constant));
             Assert.Throws<InvalidOperationException>(() => ieeg.AdjustValues(0.0f, float.NegativeInfinity, 1.0f));
         }
 
@@ -252,6 +230,7 @@ namespace HBP.Tests.Serialization
                         float clamped = Mathf.Clamp(values[i], minValue, maxValue);
                         expected = new Vector2((clamped - minValue) / diff, 1.0f);
                     }
+
                     Assert.That(mesh.uv[i].x, Is.EqualTo(expected.x).Within(0.0005f), $"uv[{i}].x");
                     Assert.That(mesh.uv[i].y, Is.EqualTo(expected.y).Within(0.0005f), $"uv[{i}].y");
                 }
@@ -322,6 +301,7 @@ namespace HBP.Tests.Serialization
                         Assert.That(surfaceGenerator.AlphaUV[i].x, Is.EqualTo(1.0f).Within(0.0005f));
                         Assert.That(surfaceGenerator.AlphaUV[i].y, Is.EqualTo(0.0f).Within(0.0005f));
                     }
+
                     Assert.That(influenced, Is.GreaterThan(0));
                 }
                 finally
@@ -386,13 +366,9 @@ namespace HBP.Tests.Serialization
                     for (int i = 0; i < rawValues.Length; ++i)
                     {
                         float normalized = (rawValues[i] - globalMin) / (globalMax - globalMin) * 2.0f - 1.0f;
-                        bool hidden = hideLower && normalized < -0.75f
-                            || hideMiddle && normalized > -0.25f && normalized < 0.25f
-                            || hideHigher && normalized > 0.75f;
+                        bool hidden = hideLower && normalized < -0.75f || hideMiddle && normalized > -0.25f && normalized < 0.25f || hideHigher && normalized > 0.75f;
                         bool visible = referenceValues[i] > 0.0f && !hidden;
-                        Vector2 expected = visible
-                            ? new Vector2(0.1f * (1.0f - alpha) + alpha, 0.0f)
-                            : new Vector2(0.01f, 1.0f);
+                        Vector2 expected = visible ? new Vector2(0.1f * (1.0f - alpha) + alpha, 0.0f) : new Vector2(0.01f, 1.0f);
                         Assert.That(surfaceGenerator.AlphaUV[i].x, Is.EqualTo(expected.x).Within(0.0005f), $"flags={flags}, alpha[{i}].x");
                         Assert.That(surfaceGenerator.AlphaUV[i].y, Is.EqualTo(expected.y).Within(0.0005f), $"flags={flags}, alpha[{i}].y");
                     }
@@ -412,8 +388,7 @@ namespace HBP.Tests.Serialization
                 using Volume emptyMask = new();
                 ComputeVolumeActivity(generator, new[] { (nonFinite, emptyMask) });
                 surfaceGenerator.ComputeActivityUV(0, alpha);
-                Assert.That(surfaceGenerator.ActivityUV, Has.All.EqualTo(new Vector2(0.0f, 0.0f)),
-                    "niftilib normalizes non-finite NIfTI samples to visible zero activity before generation");
+                Assert.That(surfaceGenerator.ActivityUV, Has.All.EqualTo(new Vector2(0.0f, 0.0f)), "niftilib normalizes non-finite NIfTI samples to visible zero activity before generation");
                 Assert.That(surfaceGenerator.AlphaUV, Has.All.EqualTo(new Vector2(0.28f, 0.0f)));
                 Assert.That(generator.Progress, Is.EqualTo(1.0f));
                 Assert.Throws<InvalidOperationException>(() => ComputeVolumeActivity(generator, Array.Empty<(Volume, Volume)>()));
@@ -504,6 +479,7 @@ namespace HBP.Tests.Serialization
                         break;
                     }
                 }
+
                 Assert.That(second, Is.GreaterThanOrEqualTo(0));
                 return (mesh.vertices[first], mesh.vertices[second], first, second);
             }
@@ -530,6 +506,7 @@ namespace HBP.Tests.Serialization
             {
                 lines.Add($"{label},L,Frontal,fs_{label},Area{label},Area {label},0,255 0 0");
             }
+
             File.WriteAllLines(path, lines);
             return path;
         }
@@ -551,6 +528,7 @@ namespace HBP.Tests.Serialization
                     max = Mathf.Max(max, value);
                 }
             }
+
             if (float.IsFinite(min)) Buffer.BlockCopy(BitConverter.GetBytes(min), 0, bytes, 128, sizeof(float));
             if (float.IsFinite(max)) Buffer.BlockCopy(BitConverter.GetBytes(max), 0, bytes, 124, sizeof(float));
             string path = Path.Combine(directory, fileName);

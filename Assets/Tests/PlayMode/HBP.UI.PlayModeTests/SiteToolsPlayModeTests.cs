@@ -149,6 +149,7 @@ namespace HBP.Tests.PlayMode.UI
                 {
                     Object.Destroy(m_GameObject);
                 }
+
                 ResetSingleton();
             }
 

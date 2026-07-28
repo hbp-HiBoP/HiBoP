@@ -8,8 +8,9 @@ namespace HBP.UI.Tools.ResizableGrids
     public class ResizableGrid : MonoBehaviour
     {
         #region Properties
-        [SerializeField]
-        private RectTransform m_RectTransform;
+
+        [SerializeField] private RectTransform m_RectTransform;
+
         /// <summary>
         /// ResizableGrid's RectTransform
         /// </summary>
@@ -21,44 +22,39 @@ namespace HBP.UI.Tools.ResizableGrids
                 {
                     m_RectTransform = GetComponent<RectTransform>();
                 }
+
                 return m_RectTransform;
             }
         }
 
         private List<Column> m_Columns = new();
+
         /// <summary>
         /// Columns of the layout
         /// </summary>
         public ReadOnlyCollection<Column> Columns
         {
-            get
-            {
-                return new ReadOnlyCollection<Column>(m_Columns);
-            }
+            get { return new ReadOnlyCollection<Column>(m_Columns); }
         }
 
         private List<VerticalHandler> m_VerticalHandlers = new();
+
         /// <summary>
         /// Vertical handlers of the layout (to resize the columns)
         /// </summary>
         public ReadOnlyCollection<VerticalHandler> VerticalHandlers
         {
-            get
-            {
-                return new ReadOnlyCollection<VerticalHandler>(m_VerticalHandlers);
-            }
+            get { return new ReadOnlyCollection<VerticalHandler>(m_VerticalHandlers); }
         }
-        
+
         private List<HorizontalHandler> m_HorizontalHandlers = new();
+
         /// <summary>
         /// Horizontal handlers of the layout (to resize the views)
         /// </summary>
         public ReadOnlyCollection<HorizontalHandler> HorizontalHandlers
         {
-            get
-            {
-                return new ReadOnlyCollection<HorizontalHandler>(m_HorizontalHandlers);
-            }
+            get { return new ReadOnlyCollection<HorizontalHandler>(m_HorizontalHandlers); }
         }
 
         /// <summary>
@@ -73,28 +69,24 @@ namespace HBP.UI.Tools.ResizableGrids
 
         private const float MINIMUM_VIEW_HEIGHT_DEFAULT = 25.0f;
         private float m_MinimumViewHeight = MINIMUM_VIEW_HEIGHT_DEFAULT;
+
         /// <summary>
         /// Minimum height of a view
         /// </summary>
         public float MinimumViewHeight
         {
-            get
-            {
-                return m_MinimumViewHeight;
-            }
+            get { return m_MinimumViewHeight; }
         }
 
         private const float MINIMUM_VIEW_WIDTH_DEFAULT = 25.0f;
         private float m_MinimumViewWidth = MINIMUM_VIEW_WIDTH_DEFAULT;
+
         /// <summary>
         /// Minimum width of a view
         /// </summary>
         public float MinimumViewWidth
         {
-            get
-            {
-                return m_MinimumViewWidth;
-            }
+            get { return m_MinimumViewWidth; }
         }
 
         /// <summary>
@@ -102,11 +94,9 @@ namespace HBP.UI.Tools.ResizableGrids
         /// </summary>
         public int ColumnNumber
         {
-            get
-            {
-                return m_Columns.Count;
-            }
+            get { return m_Columns.Count; }
         }
+
         /// <summary>
         /// Maximum number of views of a column in the layout
         /// </summary>
@@ -122,29 +112,27 @@ namespace HBP.UI.Tools.ResizableGrids
                         maxViewNumber = column.ViewNumber;
                     }
                 }
+
                 return maxViewNumber;
             }
         }
+
         /// <summary>
         /// Number of vertical handlers in the layout
         /// </summary>
         public int VerticalHandlerNumber
         {
-            get
-            {
-                return m_VerticalHandlers.Count;
-            }
+            get { return m_VerticalHandlers.Count; }
         }
+
         /// <summary>
         /// Number of horizontal handlers in the layout
         /// </summary>
         public int HorizontalHandlerNumber
         {
-            get
-            {
-                return m_HorizontalHandlers.Count;
-            }
+            get { return m_HorizontalHandlers.Count; }
         }
+
         /// <summary>
         /// Number of corner handlers in the layout
         /// </summary>
@@ -157,6 +145,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 {
                     totalSize += columnCornerHandler.Count;
                 }
+
                 return totalSize;
             }
         }
@@ -171,9 +160,11 @@ namespace HBP.UI.Tools.ResizableGrids
         public GameObject VerticalHandlerPrefab;
         public GameObject HorizontalHandlerPrefab;
         public GameObject CornerHandlerPrefab;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_RectTransform.anchorMin = Vector2.zero;
@@ -182,6 +173,7 @@ namespace HBP.UI.Tools.ResizableGrids
             m_RectTransform.sizeDelta = Vector2.zero;
             m_RectTransform.pivot = new Vector2(0.5f, 0.5f);
         }
+
         private void Update()
         {
             //if (m_RectTransform.hasChanged)
@@ -195,6 +187,7 @@ namespace HBP.UI.Tools.ResizableGrids
             //    m_RectTransform.hasChanged = false;
             //}
         }
+
         private void OnRectTransformDimensionsChange()
         {
             m_MinimumViewHeight = Mathf.Min(MINIMUM_VIEW_HEIGHT_DEFAULT, m_RectTransform.rect.height / ViewNumber);
@@ -204,6 +197,7 @@ namespace HBP.UI.Tools.ResizableGrids
             SetHorizontalHandlersPosition();
             UpdateAnchors();
         }
+
         /// <summary>
         /// Update the position constraints on the handlers depending on the number of columns and views
         /// </summary>
@@ -214,15 +208,18 @@ namespace HBP.UI.Tools.ResizableGrids
                 m_VerticalHandlers[i].MinimumPosition = (i + 1) * (m_MinimumViewWidth / m_RectTransform.rect.width);
                 m_VerticalHandlers[i].MaximumPosition = 1 - (VerticalHandlerNumber - i) * (m_MinimumViewWidth / m_RectTransform.rect.width);
             }
+
             for (int i = 0; i < HorizontalHandlerNumber; i++)
             {
                 m_HorizontalHandlers[i].MinimumPosition = (HorizontalHandlerNumber - i) * (m_MinimumViewHeight / m_RectTransform.rect.height);
                 m_HorizontalHandlers[i].MaximumPosition = 1 - (i + 1) * (m_MinimumViewHeight / m_RectTransform.rect.height);
             }
+
             // Update position with new boundaries (call to setter)
             m_VerticalHandlers.ForEach((h) => h.Position = h.Position);
             m_HorizontalHandlers.ForEach((h) => h.Position = h.Position);
         }
+
         /// <summary>
         /// Set the position of every handler to their respective initial values
         /// </summary>
@@ -235,6 +232,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 m_VerticalHandlers[i].MagneticPosition = defaultPosition;
                 m_VerticalHandlers[i].MagneticThreshold = Mathf.Min(MAGNETIC_THRESHOLD, 0.1f * Mathf.Abs(m_VerticalHandlers[i].MaximumPosition - m_VerticalHandlers[i].MinimumPosition));
             }
+
             for (int i = 0; i < m_HorizontalHandlers.Count; i++)
             {
                 float defaultPosition = (m_HorizontalHandlers.Count - i) / (float)ViewNumber;
@@ -243,6 +241,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 m_HorizontalHandlers[i].MagneticThreshold = Mathf.Min(MAGNETIC_THRESHOLD, 0.1f * Mathf.Abs(m_HorizontalHandlers[i].MaximumPosition - m_HorizontalHandlers[i].MinimumPosition));
             }
         }
+
         /// <summary>
         /// Change the index of the elements of the layout in the siblings tree in order to make handlers to always be above views
         /// </summary>
@@ -253,14 +252,17 @@ namespace HBP.UI.Tools.ResizableGrids
             {
                 column.transform.SetSiblingIndex(transformIndex++);
             }
+
             foreach (VerticalHandler verticalHandler in m_VerticalHandlers)
             {
                 verticalHandler.transform.SetSiblingIndex(transformIndex++);
             }
+
             foreach (HorizontalHandler horizontalHandler in m_HorizontalHandlers)
             {
                 horizontalHandler.transform.SetSiblingIndex(transformIndex++);
             }
+
             foreach (List<CornerHandler> columnCornerHandler in m_CornerHandlers)
             {
                 foreach (CornerHandler cornerHandler in columnCornerHandler)
@@ -269,6 +271,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 }
             }
         }
+
         /// <summary>
         /// Update the name of the GameObjects
         /// </summary>
@@ -285,14 +288,17 @@ namespace HBP.UI.Tools.ResizableGrids
                     }
                 }
             }
+
             for (int i = 0; i < VerticalHandlerNumber; i++)
             {
                 m_VerticalHandlers[i].name = "Vertical Handler (" + i + "-" + (i + 1).ToString() + ")";
             }
+
             for (int i = 0; i < HorizontalHandlerNumber; i++)
             {
                 m_HorizontalHandlers[i].name = "Horizontal Handler (" + i + "-" + (i + 1).ToString() + ")";
             }
+
             for (int i = 0; i < m_CornerHandlers.Count; i++)
             {
                 for (int j = 0; j < m_CornerHandlers[i].Count; j++)
@@ -301,6 +307,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 }
             }
         }
+
         /// <summary>
         /// Package of methods to be called when a column or a view is added or removed
         /// </summary>
@@ -314,9 +321,11 @@ namespace HBP.UI.Tools.ResizableGrids
             SetHorizontalHandlersPosition();
             UpdateAnchors();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Update the size and the position of the columns and the views in order to match the position of the handlers
         /// </summary>
@@ -338,6 +347,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 }
             }
         }
+
         /// <summary>
         /// Change the position of the vertical handlers next to the selected handler to match order and width constraints
         /// </summary>
@@ -362,6 +372,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 }
             }
         }
+
         /// <summary>
         /// Change the position of the vertical handlers next to the selected handler to match order and height constraints
         /// </summary>
@@ -386,6 +397,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 }
             }
         }
+
         /// <summary>
         /// Reset the positions of the views
         /// </summary>
@@ -407,6 +419,7 @@ namespace HBP.UI.Tools.ResizableGrids
         {
             AddColumn(ColumnPrefab, ViewPrefab);
         }
+
         public void AddColumn(GameObject customColumnPrefab, GameObject customViewPrefab)
         {
             if (ColumnNumber > 0)
@@ -429,15 +442,17 @@ namespace HBP.UI.Tools.ResizableGrids
                     cornerHandler.SetCorrespondingHandlers(m_VerticalHandlers.Last(), m_HorizontalHandlers[i]);
                 }
             }
-            m_Columns.Add(Instantiate(customColumnPrefab?customColumnPrefab:ColumnPrefab, transform).GetComponent<Column>());
+
+            m_Columns.Add(Instantiate(customColumnPrefab ? customColumnPrefab : ColumnPrefab, transform).GetComponent<Column>());
 
             for (int i = 0; i < ViewNumber; i++)
             {
-                m_Columns.Last().AddView(customViewPrefab?customViewPrefab:ViewPrefab);
+                m_Columns.Last().AddView(customViewPrefab ? customViewPrefab : ViewPrefab);
             }
 
             ChangeNumberOfElementsCallback();
         }
+
         /// <summary>
         /// Remove a column from the layout
         /// </summary>
@@ -455,16 +470,18 @@ namespace HBP.UI.Tools.ResizableGrids
 
                 Destroy(m_VerticalHandlers.Last().gameObject);
                 m_VerticalHandlers.Remove(m_VerticalHandlers.Last());
-                
+
                 foreach (CornerHandler cornerHandler in m_CornerHandlers[columnCornerHandlerIndex])
                 {
                     Destroy(cornerHandler.gameObject);
                 }
+
                 m_CornerHandlers.RemoveAt(columnCornerHandlerIndex);
 
                 ChangeNumberOfElementsCallback();
             }
         }
+
         /// <summary>
         /// Add a view to every columns
         /// </summary>
@@ -472,6 +489,7 @@ namespace HBP.UI.Tools.ResizableGrids
         {
             AddViewLine(ViewPrefab);
         }
+
         public void AddViewLine(GameObject customViewPrefab)
         {
             if (ViewNumber > 0)
@@ -501,6 +519,7 @@ namespace HBP.UI.Tools.ResizableGrids
 
             ChangeNumberOfElementsCallback();
         }
+
         /// <summary>
         /// Remove a view from every columns
         /// </summary>
@@ -527,6 +546,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 ChangeNumberOfElementsCallback();
             }
         }
+
         /// <summary>
         /// Swap two columns
         /// </summary>
@@ -542,7 +562,7 @@ namespace HBP.UI.Tools.ResizableGrids
 
             int minID = Mathf.Min(id1, id2);
             int maxID = Mathf.Max(id1, id2);
-            
+
             List<float> widths = new();
             for (int i = minID; i <= maxID; i++)
             {
@@ -559,6 +579,7 @@ namespace HBP.UI.Tools.ResizableGrids
                     widths.Add(m_VerticalHandlers[i].Position - m_VerticalHandlers[i - 1].Position);
                 }
             }
+
             float tmp = widths[0];
             widths[0] = widths[widths.Count - 1];
             widths[widths.Count - 1] = tmp;
@@ -581,6 +602,7 @@ namespace HBP.UI.Tools.ResizableGrids
             UpdateNameOfGameObjects();
             UpdateAnchors();
         }
+
         #endregion
     }
 }

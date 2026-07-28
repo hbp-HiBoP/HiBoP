@@ -32,25 +32,31 @@ namespace HBP.Core.Data
     public struct ChannelSubTrial
     {
         #region Properties
+
         /// <summary>
         /// Informations by event.
         /// </summary>
         public Dictionary<Event, EventInformation> InformationsByEvent { get; set; }
+
         /// <summary>
         /// Unit of data contained in this channel.
         /// </summary>
         public string Unit { get; set; }
+
         /// <summary>
         /// Values for this sub-trial contained in this channel.
         /// </summary>
         public float[] Values { get; set; }
+
         /// <summary>
         /// True if the sub-trial is found, False otherwise.
         /// </summary>
         public bool Found { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new ChannelSubTrial instance.
         /// </summary>
@@ -65,6 +71,7 @@ namespace HBP.Core.Data
             Unit = unit;
             InformationsByEvent = informationsByEvent;
         }
+
         /// <summary>
         /// Create a new ChannelSubTrial instance.
         /// </summary>
@@ -76,19 +83,21 @@ namespace HBP.Core.Data
             if (Found)
             {
                 Values = subTrial.ValuesByChannel[channel];
-                Unit= subTrial.UnitByChannel[channel];
+                Unit = subTrial.UnitByChannel[channel];
             }
             else
             {
                 Values = new float[0];
                 Unit = "";
             }
-            InformationsByEvent = subTrial.InformationsByEvent;
 
+            InformationsByEvent = subTrial.InformationsByEvent;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Clear all the data in this ChannelSubTrial instance. Called by the Data manager.
         /// </summary>
@@ -98,6 +107,7 @@ namespace HBP.Core.Data
             {
                 eventInformation.Clear();
             }
+
             InformationsByEvent.Clear();
             InformationsByEvent = new Dictionary<Event, EventInformation>();
 
@@ -105,6 +115,7 @@ namespace HBP.Core.Data
             Values = new float[0];
             Found = false;
         }
+
         #endregion
     }
 }

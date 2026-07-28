@@ -7,33 +7,41 @@ namespace HBP.UI.Toolbar
     public class FMRIParameters : Tool
     {
         #region Properties
+
         /// <summary>
         /// Button to open the threshold MRI panel
         /// </summary>
         [SerializeField] private Button m_Button;
+
         /// <summary>
         /// Module to handle the threshold MRI
         /// </summary>
         [SerializeField] private ThresholdFMRI m_ThresholdFMRI;
+
         /// <summary>
         /// Toggle to hide the values under the lowest cal value
         /// </summary>
         [SerializeField] private Toggle m_LowerToggle;
+
         /// <summary>
         /// Toggle to hide the values between the two middle cal values
         /// </summary>
         [SerializeField] private Toggle m_MiddleToggle;
+
         /// <summary>
         /// Toggle to hide the values above the highest cal value
         /// </summary>
         [SerializeField] private Toggle m_HigherToggle;
+
         /// <summary>
         /// Are the changes applied to all columns ?
         /// </summary>
         public bool IsGlobal { get; set; }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -89,6 +97,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -100,6 +109,7 @@ namespace HBP.UI.Toolbar
             m_MiddleToggle.interactable = false;
             m_HigherToggle.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -115,6 +125,7 @@ namespace HBP.UI.Toolbar
             m_MiddleToggle.interactable = isColumnFMRI || isColumnMEG;
             m_HigherToggle.interactable = isColumnFMRI || isColumnMEG;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -135,6 +146,7 @@ namespace HBP.UI.Toolbar
                 m_HigherToggle.isOn = megColumn.MEGParameters.HideHigherValues;
             }
         }
+
         #endregion
     }
 }

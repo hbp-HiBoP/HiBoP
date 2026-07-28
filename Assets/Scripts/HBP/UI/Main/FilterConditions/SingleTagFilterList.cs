@@ -10,21 +10,32 @@ namespace HBP.UI.Main
     public class SingleTagFilterList : ActionableList<SingleTagFilter>
     {
         #region Properties
-        enum OrderBy { None, Description, DescendingDescription }
+
+        enum OrderBy
+        {
+            None,
+            Description,
+            DescendingDescription
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_DescriptionSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         protected override void AddObject(SingleTagFilter singleTagFilter)
         {
             SortByNone();
             base.AddObject(singleTagFilter);
         }
+
         #endregion
 
         #region SortingMethods
+
         public void SortByDescription(Sorting sorting)
         {
             switch (sorting)
@@ -40,8 +51,10 @@ namespace HBP.UI.Main
                     m_DescriptionSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
         }
+
         public void SortByDescription()
         {
             switch (m_OrderBy)
@@ -56,6 +69,7 @@ namespace HBP.UI.Main
             m_OrderBy = OrderBy.None;
             m_DescriptionSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

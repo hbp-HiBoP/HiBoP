@@ -157,78 +157,72 @@ namespace HBP.Tests.Serialization
 
         private static ActivityUvs ComputeDensityUvs(BenchmarkBackend backend, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Quadratic)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
-                {
-                    using Surface surface = LoadSurface();
-                    using Volume volume = LoadVolume("fmri_3d.nii");
-                    using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
-                    using RawSiteList rawSites = CreateRawSites(surface);
-                    using DensityGenerator density = new();
-                    density.Initialize(generatorSurface);
-                    density.ComputeActivity(rawSites, influenceDistance: 80.0f, mode);
-                    using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density);
-                    surfaceGenerator.ComputeActivityUV(timelineIndex: 0, alpha: 0.35f);
-                    return new ActivityUvs(surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV, density.MaxDensity);
-                });
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Surface surface = LoadSurface();
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                using RawSiteList rawSites = CreateRawSites(surface);
+                using DensityGenerator density = new();
+                density.Initialize(generatorSurface);
+                density.ComputeActivity(rawSites, influenceDistance: 80.0f, mode);
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density);
+                surfaceGenerator.ComputeActivityUV(timelineIndex: 0, alpha: 0.35f);
+                return new ActivityUvs(surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV, density.MaxDensity);
+            });
         }
 
         private static ActivityUvs ComputeIeegUvs(BenchmarkBackend backend, int timelineIndex, SiteInfluenceByDistanceType mode = SiteInfluenceByDistanceType.Linear)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Surface surface = LoadSurface();
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                using RawSiteList rawSites = CreateRawSites(surface);
+                using IEEGGenerator ieeg = new();
+                ieeg.Initialize(generatorSurface);
+
+                int timelineLength = 2;
+                float[] activity = new float[]
                 {
-                    using Surface surface = LoadSurface();
-                    using Volume volume = LoadVolume("fmri_3d.nii");
-                    using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
-                    using RawSiteList rawSites = CreateRawSites(surface);
-                    using IEEGGenerator ieeg = new();
-                    ieeg.Initialize(generatorSurface);
+                    -1.0f, 0.25f, 1.0f,
+                    0.75f, -0.5f, 0.0f
+                };
+                ieeg.ComputeActivity(rawSites, influenceDistance: 80.0f, activity, timelineLength, rawSites.NumberOfSites, mode);
+                ieeg.AdjustValues(middle: 0.0f, spanMin: -1.0f, spanMax: 1.0f);
 
-                    int timelineLength = 2;
-                    float[] activity = new float[]
-                    {
-                        -1.0f, 0.25f, 1.0f,
-                        0.75f, -0.5f, 0.0f
-                    };
-                    ieeg.ComputeActivity(rawSites, influenceDistance: 80.0f, activity, timelineLength, rawSites.NumberOfSites, mode);
-                    ieeg.AdjustValues(middle: 0.0f, spanMin: -1.0f, spanMax: 1.0f);
-
-                    using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
-                    surfaceGenerator.ComputeActivityUV(timelineIndex, alpha: 0.4f);
-                    return new ActivityUvs(surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV);
-                });
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
+                surfaceGenerator.ComputeActivityUV(timelineIndex, alpha: 0.4f);
+                return new ActivityUvs(surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV);
+            });
         }
 
         private static void ExportIeegNifti(BenchmarkBackend backend, string activityPath, string maskPath)
         {
-            NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Surface surface = LoadSurface();
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                using RawSiteList rawSites = CreateRawSites(surface);
+                using IEEGGenerator ieeg = new();
+                ieeg.Initialize(generatorSurface);
+
+                int timelineLength = 2;
+                float[] activity = new float[]
                 {
-                    using Surface surface = LoadSurface();
-                    using Volume volume = LoadVolume("fmri_3d.nii");
-                    using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
-                    using RawSiteList rawSites = CreateRawSites(surface);
-                    using IEEGGenerator ieeg = new();
-                    ieeg.Initialize(generatorSurface);
+                    -1.0f, 0.25f, 1.0f,
+                    0.75f, -0.5f, 0.0f
+                };
+                ieeg.ComputeActivity(rawSites, influenceDistance: 80.0f, activity, timelineLength, rawSites.NumberOfSites, SiteInfluenceByDistanceType.Linear);
 
-                    int timelineLength = 2;
-                    float[] activity = new float[]
-                    {
-                        -1.0f, 0.25f, 1.0f,
-                        0.75f, -0.5f, 0.0f
-                    };
-                    ieeg.ComputeActivity(rawSites, influenceDistance: 80.0f, activity, timelineLength, rawSites.NumberOfSites, SiteInfluenceByDistanceType.Linear);
-
-                    SubTimeline timeline = CreateTwoPointTimeline();
-                    Assert.That(ieeg.SaveActivityAsNifti(activityPath, timeline, "IEEG activity parity"), Is.True);
-                    Assert.That(ieeg.SaveMaskAsNifti(maskPath, "IEEG mask parity"), Is.True);
-                    Assert.That(File.Exists(activityPath), Is.True);
-                    Assert.That(File.Exists(maskPath), Is.True);
-                });
+                SubTimeline timeline = CreateTwoPointTimeline();
+                Assert.That(ieeg.SaveActivityAsNifti(activityPath, timeline, "IEEG activity parity"), Is.True);
+                Assert.That(ieeg.SaveMaskAsNifti(maskPath, "IEEG mask parity"), Is.True);
+                Assert.That(File.Exists(activityPath), Is.True);
+                Assert.That(File.Exists(maskPath), Is.True);
+            });
         }
 
         private static SubTimeline CreateTwoPointTimeline()
@@ -296,39 +290,37 @@ namespace HBP.Tests.Serialization
 
         private static ActivityUvs ComputeVolumeActivityUvs(BenchmarkBackend backend, GeneratorKind generatorKind)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Surface surface = LoadSurface();
+                using Volume referenceVolume = LoadVolume("fmri_3d.nii");
+                using Volume activityVolume = LoadVolume("fmri_3d.nii");
+                using Volume maskVolume = LoadVolume("mask_binary.nii");
+                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, referenceVolume);
+                using ActivityGenerator activity = CreateVolumeActivityGenerator(generatorKind);
+                activity.Initialize(generatorSurface);
+
+                if (activity is FMRIGenerator fmri)
                 {
-                    using Surface surface = LoadSurface();
-                    using Volume referenceVolume = LoadVolume("fmri_3d.nii");
-                    using Volume activityVolume = LoadVolume("fmri_3d.nii");
-                    using Volume maskVolume = LoadVolume("mask_binary.nii");
-                    using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, referenceVolume);
-                    using ActivityGenerator activity = CreateVolumeActivityGenerator(generatorKind);
-                    activity.Initialize(generatorSurface);
+                    fmri.ComputeActivity(new[] { (activityVolume, maskVolume) });
+                    fmri.AdjustValues(-1.0f, -0.25f, 0.25f, 1.0f);
+                    fmri.HideExtremeValues(hideLower: false, hideMiddle: false, hideHigher: false);
+                }
+                else if (activity is MEGGenerator meg)
+                {
+                    meg.ComputeActivity(new[] { (activityVolume, maskVolume) });
+                    meg.AdjustValues(-1.0f, -0.25f, 0.25f, 1.0f);
+                    meg.HideExtremeValues(hideLower: false, hideMiddle: false, hideHigher: false);
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException(nameof(generatorKind), generatorKind, null);
+                }
 
-                    if (activity is FMRIGenerator fmri)
-                    {
-                        fmri.ComputeActivity(new[] { (activityVolume, maskVolume) });
-                        fmri.AdjustValues(-1.0f, -0.25f, 0.25f, 1.0f);
-                        fmri.HideExtremeValues(hideLower: false, hideMiddle: false, hideHigher: false);
-                    }
-                    else if (activity is MEGGenerator meg)
-                    {
-                        meg.ComputeActivity(new[] { (activityVolume, maskVolume) });
-                        meg.AdjustValues(-1.0f, -0.25f, 0.25f, 1.0f);
-                        meg.HideExtremeValues(hideLower: false, hideMiddle: false, hideHigher: false);
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(generatorKind), generatorKind, null);
-                    }
-
-                    using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(activity);
-                    surfaceGenerator.ComputeActivityUV(timelineIndex: 0, alpha: 0.25f);
-                    return new ActivityUvs(surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV);
-                });
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(activity);
+                surfaceGenerator.ComputeActivityUV(timelineIndex: 0, alpha: 0.25f);
+                return new ActivityUvs(surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV);
+            });
         }
 
         private static ActivityGenerator CreateVolumeActivityGenerator(GeneratorKind generatorKind)
@@ -343,28 +335,26 @@ namespace HBP.Tests.Serialization
 
         private static Vector2[] ComputeMainUvs(BenchmarkBackend backend)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Surface surface = LoadSurface();
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                using DensityGenerator density = new();
+                density.Initialize(generatorSurface);
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density);
+                surfaceGenerator.ComputeMainUV(0.25f, 0.75f);
+                Mesh mesh = new();
+                try
                 {
-                    using Surface surface = LoadSurface();
-                    using Volume volume = LoadVolume("fmri_3d.nii");
-                    using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
-                    using DensityGenerator density = new();
-                    density.Initialize(generatorSurface);
-                    using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density);
-                    surfaceGenerator.ComputeMainUV(0.25f, 0.75f);
-                    Mesh mesh = new();
-                    try
-                    {
-                        surface.UpdateMeshFromDLL(mesh);
-                        return (Vector2[])mesh.uv.Clone();
-                    }
-                    finally
-                    {
-                        UnityEngine.Object.DestroyImmediate(mesh);
-                    }
-                });
+                    surface.UpdateMeshFromDLL(mesh);
+                    return (Vector2[])mesh.uv.Clone();
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(mesh);
+                }
+            });
         }
 
         private static Surface LoadSurface()
@@ -456,9 +446,7 @@ namespace HBP.Tests.Serialization
 
         private static Vector3 ToNativePosition(Surface surface, Vector3 position)
         {
-            return surface.Backend == BenchmarkBackend.HbpCore
-                ? new Vector3(ReferenceSystemConversion.ConvertX(position.x), position.y, position.z)
-                : position;
+            return surface.Backend == BenchmarkBackend.HbpCore ? new Vector3(ReferenceSystemConversion.ConvertX(position.x), position.y, position.z) : position;
         }
 
         private enum GeneratorKind
@@ -518,30 +506,7 @@ namespace HBP.Tests.Serialization
                 Array.Copy(bytes, 348, extensionFlag, 0, extensionFlag.Length);
                 float[] values = ReadValues(bytes, dimensions, datatype, voxelOffset);
 
-                return new NiftiFileSnapshot(
-                    dimensions,
-                    pixDim,
-                    voxelOffset,
-                    datatype,
-                    bitpix,
-                    sclSlope,
-                    sclInter,
-                    xyztUnits,
-                    calMin,
-                    calMax,
-                    startTime,
-                    intentCode,
-                    description,
-                    qformCode,
-                    sformCode,
-                    quaternions,
-                    qOffsets,
-                    srowX,
-                    srowY,
-                    srowZ,
-                    magic,
-                    extensionFlag,
-                    values);
+                return new NiftiFileSnapshot(dimensions, pixDim, voxelOffset, datatype, bitpix, sclSlope, sclInter, xyztUnits, calMin, calMax, startTime, intentCode, description, qformCode, sformCode, quaternions, qOffsets, srowX, srowY, srowZ, magic, extensionFlag, values);
             }
 
             private NiftiFileSnapshot(short[] dimensions, float[] pixDim, float voxelOffset, short datatype, short bitpix, float sclSlope, float sclInter, byte xyztUnits, float calMin, float calMax, float startTime, short intentCode, string description, short qformCode, short sformCode, float[] quaternions, float[] qOffsets, float[] srowX, float[] srowY, float[] srowZ, string magic, byte[] extensionFlag, float[] values)
@@ -650,6 +615,7 @@ namespace HBP.Tests.Serialization
                 {
                     values[i] = ReadSingle(bytes, offset + i * 4);
                 }
+
                 return values;
             }
 
@@ -660,6 +626,7 @@ namespace HBP.Tests.Serialization
                 {
                     ++end;
                 }
+
                 return Encoding.ASCII.GetString(bytes, offset, end - offset);
             }
 

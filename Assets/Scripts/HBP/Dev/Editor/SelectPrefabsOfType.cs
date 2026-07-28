@@ -8,7 +8,6 @@ namespace HBP.Dev
 {
     public class SelectPrefabsOfType : EditorWindow
     {
-
         [MenuItem("Tools/Prefab Finder...")]
         static void ShowWindow()
         {
@@ -54,10 +53,8 @@ namespace HBP.Dev
                     }
                 }
             }
-            _types.Sort((a, b) =>
-            {
-                return a.Name.CompareTo(b.Name);
-            });
+
+            _types.Sort((a, b) => { return a.Name.CompareTo(b.Name); });
 
             _typesArray = new string[_types.Count];
             for (var i = 0; i < _types.Count; i++)
@@ -120,10 +117,7 @@ namespace HBP.Dev
         void ShowSelectionInProjectHierarchy()
         {
             var pbType = GetType("UnityEditor.ProjectBrowser");
-            var meth = pbType.GetMethod("ShowSelectedObjectsInLastInteractedProjectBrowser",
-                BindingFlags.Public |
-                BindingFlags.NonPublic |
-                BindingFlags.Static);
+            var meth = pbType.GetMethod("ShowSelectedObjectsInLastInteractedProjectBrowser", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
             meth.Invoke(null, null);
         }
 

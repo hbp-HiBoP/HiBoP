@@ -9,12 +9,15 @@ namespace HBP.UI.Main
     public class FloatTagSubModifier : SubModifier<Core.Data.FloatTag>
     {
         #region Properties
+
         [SerializeField] Toggle m_ClampedToggle;
         [SerializeField] InputField m_MinInputField;
         [SerializeField] InputField m_MaxInputField;
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -22,26 +25,32 @@ namespace HBP.UI.Main
             m_MinInputField.onValueChanged.AddListener(OnChangeMin);
             m_MaxInputField.onValueChanged.AddListener(OnChangeMax);
         }
+
         #endregion
 
         #region Private Methods
+
         protected void OnChangeLimited(bool value)
         {
             Object.Clamped = value;
             m_MinInputField.interactable = value;
             m_MaxInputField.interactable = value;
         }
+
         protected void OnChangeMin(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float min)) Object.Min = min;
         }
+
         protected void OnChangeMax(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float max)) Object.Max = max;
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(Core.Data.FloatTag objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -52,6 +61,7 @@ namespace HBP.UI.Main
             m_MinInputField.text = objectToDisplay.Min.ToString("0.##", cultureInfo);
             m_MaxInputField.text = objectToDisplay.Max.ToString("0.##", cultureInfo);
         }
+
         #endregion
     }
 }

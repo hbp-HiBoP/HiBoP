@@ -10,6 +10,7 @@ namespace HBP.Tests.Serialization.LegacyNative
     public class MEGGenerator : ActivityGenerator
     {
         #region Public Methods
+
         public void ComputeActivity(IEnumerable<(Volume, Volume)> volumesAndMasks)
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
@@ -21,6 +22,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                     volumes.Add(volumeAndMask.Item1);
                     masks.Add(volumeAndMask.Item2);
                 }
+
                 ThrowIfFailed(hbp_meg_generator_compute_activity(_handle.Handle, ToNativeVolumeHandles(volumes, nameof(ComputeActivity)), ToNativeVolumeHandles(masks, nameof(ComputeActivity)), volumes.Count));
                 return;
             }
@@ -32,6 +34,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 multiVolume.AddVolume(volumeAndMask.Item1);
                 maskMultiVolume.AddVolume(volumeAndMask.Item2);
             }
+
             compute_activity_MEGGenerator(_handle, multiVolume.getHandle(), maskMultiVolume.getHandle());
         }
 
@@ -42,6 +45,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 ThrowIfFailed(hbp_meg_generator_adjust_values(_handle.Handle, fmriNegativeCalMinFactor, fmriNegativeCalMaxFactor, fmriPositiveCalMinFactor, fmriPositiveCalMaxFactor));
                 return;
             }
+
             adjust_values_MEGGenerator(_handle, fmriNegativeCalMinFactor, fmriNegativeCalMaxFactor, fmriPositiveCalMinFactor, fmriPositiveCalMaxFactor);
         }
 
@@ -52,11 +56,14 @@ namespace HBP.Tests.Serialization.LegacyNative
                 ThrowIfFailed(hbp_meg_generator_set_hide_values(_handle.Handle, hideLower ? 1 : 0, hideMiddle ? 1 : 0, hideHigher ? 1 : 0));
                 return;
             }
+
             set_hide_values_MEGGenerator(_handle, hideLower, hideMiddle, hideHigher);
         }
+
         #endregion
 
         #region Memory Management
+
         protected override void create_DLL_class()
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
@@ -65,6 +72,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 _handle = new HandleRef(this, generator);
                 return;
             }
+
             _handle = new HandleRef(this, create_MEGGenerator());
         }
 
@@ -75,32 +83,44 @@ namespace HBP.Tests.Serialization.LegacyNative
                 ThrowIfFailed(hbp_meg_generator_destroy(_handle.Handle));
                 return;
             }
+
             delete_MEGGenerator(_handle);
         }
+
         #endregion
 
         #region DLLImport
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "create_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr create_MEGGenerator();
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "delete_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_MEGGenerator(HandleRef generator);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "compute_activity_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void compute_activity_MEGGenerator(HandleRef generator, HandleRef multiVolume, HandleRef maskMultiVolume);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "adjust_values_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void adjust_values_MEGGenerator(HandleRef generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "set_hide_values_MEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void set_hide_values_MEGGenerator(HandleRef generator, bool lower, bool middle, bool higher);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_meg_generator_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_meg_generator_create(out IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_meg_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_meg_generator_destroy(IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_meg_generator_compute_activity", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_meg_generator_compute_activity(IntPtr generator, [In] IntPtr[] volumes, [In] IntPtr[] masks, int volumeCount);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_meg_generator_adjust_values", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_meg_generator_adjust_values(IntPtr generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_meg_generator_set_hide_values", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_meg_generator_set_hide_values(IntPtr generator, int lower, int middle, int higher);
+
         #endregion
     }
 }

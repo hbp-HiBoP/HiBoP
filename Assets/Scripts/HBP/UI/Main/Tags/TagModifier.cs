@@ -13,6 +13,7 @@ namespace HBP.UI.Main
     public class TagModifier : ObjectModifier<Core.Data.BaseTag>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_TypeDropdown;
 
@@ -27,6 +28,7 @@ namespace HBP.UI.Main
         List<Core.Data.BaseTag> m_TagsTemp;
 
         Type[] m_Types;
+
         /// <summary>
         /// True if interactable, False otherwise.
         /// </summary>
@@ -48,9 +50,11 @@ namespace HBP.UI.Main
                 m_EnumTagSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
@@ -59,9 +63,11 @@ namespace HBP.UI.Main
             m_Object = ObjectTemp;
             base.OK();
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -101,6 +107,7 @@ namespace HBP.UI.Main
                 new Core.Data.EnumTag()
             };
         }
+
         /// <summary>
         /// Set the fields
         /// </summary>
@@ -114,6 +121,7 @@ namespace HBP.UI.Main
 
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
         }
+
         /// <summary>
         /// Change the tag name.
         /// </summary>
@@ -122,6 +130,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Name = name;
         }
+
         /// <summary>
         /// Change the type of the tag.
         /// </summary>
@@ -142,6 +151,7 @@ namespace HBP.UI.Main
             subModifier.IsActive = true;
             subModifier.Object = ObjectTemp;
         }
+
         #endregion
     }
 }

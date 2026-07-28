@@ -15,6 +15,7 @@ namespace HBP.Core.DLL
         private Vector3 m_Normal;
 
         #region Properties
+
         /// <summary>
         /// Point on the plane.
         /// </summary>
@@ -27,6 +28,7 @@ namespace HBP.Core.DLL
                 UpdateNativePlane();
             }
         }
+
         /// <summary>
         /// Normal to the plane.
         /// </summary>
@@ -39,9 +41,11 @@ namespace HBP.Core.DLL
                 UpdateNativePlane();
             }
         }
+
         #endregion
 
         #region Constructors
+
         public Plane()
         {
             m_Point = Vector3.zero;
@@ -53,9 +57,11 @@ namespace HBP.Core.DLL
             m_Point = point;
             m_Normal = normal;
         }
+
         #endregion
 
         #region Public Methods
+
         public void Normalize()
         {
             ThrowIfFailed(hbp_plane_normalize(_handle.Handle));
@@ -84,9 +90,11 @@ namespace HBP.Core.DLL
             point = nativePoint.ToVector3();
             return intersects != 0;
         }
+
         #endregion
 
         #region Memory Management
+
         protected override void create_DLL_class()
         {
             _handle = new HandleRef(this, CreatePlane(Vector3.zero, Vector3.right));
@@ -96,6 +104,7 @@ namespace HBP.Core.DLL
         {
             ThrowIfFailed(hbp_plane_destroy(_handle.Handle));
         }
+
         #endregion
 
         private void UpdateNativePlane()

@@ -13,6 +13,7 @@ namespace HBP.UI.Main
     public class SingleTagFilterModifier : ObjectModifier<SingleTagFilter>
     {
         #region Properties
+
         [SerializeField] Dropdown m_TagDropdown;
 
         [SerializeField] EmptyTagFilterValueSubModifier m_EmptyTagFilterValueSubModifier;
@@ -29,6 +30,7 @@ namespace HBP.UI.Main
         Dictionary<Type, TagFilterValue> m_TagFilterValuesTemp;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
@@ -55,21 +57,26 @@ namespace HBP.UI.Main
                 m_EnumTagFilterValueSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void OK()
         {
             m_Object = ObjectTemp;
             base.OK();
         }
+
         #endregion
 
         #region Protected Methods
+
         private void Update()
         {
             m_ResultText.text = ObjectTemp.Description;
         }
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -102,16 +109,19 @@ namespace HBP.UI.Main
 
             UpdateAvailableTags();
         }
+
         protected override void SetFields(SingleTagFilter objectToDisplay)
         {
             var currentTag = m_Tags.FirstOrDefault(t => t == objectToDisplay.Tag);
             m_TagDropdown.SetValue(currentTag != null ? m_Tags.IndexOf(currentTag) : 0);
         }
+
         void UpdateAvailableTags()
         {
             m_Tags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToList();
             m_TagDropdown.options = m_Tags.Select(t => new Dropdown.OptionData(t.Name)).ToList();
         }
+
         void OnChangeTag(int value)
         {
             foreach (var sm in m_SubModifiers.Values)
@@ -136,6 +146,7 @@ namespace HBP.UI.Main
             subModifier.IsActive = true;
             subModifier.Object = ObjectTemp.Value;
         }
+
         #endregion
     }
 }

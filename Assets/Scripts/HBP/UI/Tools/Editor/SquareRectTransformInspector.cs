@@ -6,7 +6,9 @@ namespace HBP.UI.Tools
     public class SquareRectTransformInspector : Editor
     {
         #region Properties
+
         SerializedProperty m_TypeProperty;
+
         #endregion
 
         private void OnEnable()

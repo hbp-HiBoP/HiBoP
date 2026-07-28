@@ -360,9 +360,7 @@ namespace HBP.Tests.Serialization
 
                 Color32[] pixels = texture.GetPixels32();
                 int textPixelCount = pixels.Count(pixel => pixel.r == 220 && pixel.g == 220 && pixel.b == 220);
-                int topHalfTextPixelCount = pixels
-                    .Select((pixel, index) => new { pixel, y = index / texture.width })
-                    .Count(item => item.y >= texture.height / 2 && item.pixel.r == 220 && item.pixel.g == 220 && item.pixel.b == 220);
+                int topHalfTextPixelCount = pixels.Select((pixel, index) => new { pixel, y = index / texture.width }).Count(item => item.y >= texture.height / 2 && item.pixel.r == 220 && item.pixel.g == 220 && item.pixel.b == 220);
 
                 Assert.That(textPixelCount, Is.GreaterThan(0));
                 Assert.That(topHalfTextPixelCount, Is.EqualTo(textPixelCount));
@@ -422,18 +420,13 @@ namespace HBP.Tests.Serialization
         {
             Color32[] pixels = Enumerable.Repeat(new Color32(0, 0, 0, 255), 25).ToArray();
 
-            UnityTextureFactory.DrawSiteMarkers(
-                pixels,
-                5,
-                5,
-                new[]
-                {
-                    new Vector2(-2, -3),
-                    new Vector2(2, 3),
-                    new Vector2(float.NaN, 0.5f),
-                    new Vector2(float.PositiveInfinity, 0.5f)
-                },
-                radius: 1);
+            UnityTextureFactory.DrawSiteMarkers(pixels, 5, 5, new[]
+            {
+                new Vector2(-2, -3),
+                new Vector2(2, 3),
+                new Vector2(float.NaN, 0.5f),
+                new Vector2(float.PositiveInfinity, 0.5f)
+            }, radius: 1);
 
             Color32 red = new(255, 0, 0, 255);
             Assert.That(pixels[0], Is.EqualTo(red));
@@ -495,9 +488,7 @@ namespace HBP.Tests.Serialization
             foreach ((CutOrientation orientation, bool flip, int expectedWidth, int expectedHeight, byte[] expected) in cases)
             {
                 Color32[] rotated = UnityTextureFactory.RotateCutPixels(TestPixels2x3(), 2, 3, orientation, flip, out int width, out int height);
-                byte[] actual = Enumerable.Range(0, height)
-                    .SelectMany(row => Enumerable.Range(0, width).Select(column => PixelId(rotated, width, height, row, column)))
-                    .ToArray();
+                byte[] actual = Enumerable.Range(0, height).SelectMany(row => Enumerable.Range(0, width).Select(column => PixelId(rotated, width, height, row, column))).ToArray();
                 Assert.That(width, Is.EqualTo(expectedWidth), $"{orientation} flip={flip}");
                 Assert.That(height, Is.EqualTo(expectedHeight), $"{orientation} flip={flip}");
                 Assert.That(actual, Is.EqualTo(expected), $"{orientation} flip={flip}");
@@ -668,6 +659,7 @@ namespace HBP.Tests.Serialization
                 {
                     Assert.Ignore("hbp_export returned a null legacy texture.");
                 }
+
                 return texture.GetPixels(out _, out _);
             }
             catch (Exception exception) when (IsMissingLegacyTextureDependency(exception))
@@ -683,10 +675,7 @@ namespace HBP.Tests.Serialization
 
         private static bool IsMissingLegacyTextureDependency(Exception exception)
         {
-            return exception is DllNotFoundException
-                or EntryPointNotFoundException
-                or BadImageFormatException
-                || exception.InnerException != null && IsMissingLegacyTextureDependency(exception.InnerException);
+            return exception is DllNotFoundException or EntryPointNotFoundException or BadImageFormatException || exception.InnerException != null && IsMissingLegacyTextureDependency(exception.InnerException);
         }
     }
 }

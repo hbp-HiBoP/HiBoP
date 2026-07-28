@@ -11,6 +11,7 @@ namespace HBP.Theme
         public UnityEngine.Color DisabledColor;
         [Range(1, 5)] public float ColorMultiplier;
         public float FadeDuration;
+
         public UnityEngine.UI.ColorBlock Colors
         {
             get

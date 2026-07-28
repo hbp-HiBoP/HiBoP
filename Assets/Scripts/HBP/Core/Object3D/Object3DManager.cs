@@ -6,15 +6,18 @@ namespace HBP.Core.Object3D
     public static class Object3DManager
     {
         #region Properties
+
         public static MarsAtlas MarsAtlas { get; set; } = new MarsAtlas();
         public static JuBrainAtlas JuBrain { get; set; } = new JuBrainAtlas();
         public static MNIObjects MNI { get; set; } = new MNIObjects();
         public static DiFuMoObjects DiFuMo { get; set; } = new DiFuMoObjects();
         public static IBCObjects IBC { get; set; } = new IBCObjects();
         public static LocalizersObjects Localizers { get; set; } = new LocalizersObjects();
+
         #endregion
 
         #region Public Methods
+
         public static void Clean()
         {
             MNI?.Clean();
@@ -24,6 +27,7 @@ namespace HBP.Core.Object3D
             MarsAtlas?.Dispose();
             JuBrain?.Dispose();
         }
+
         public static void Reset()
         {
             try
@@ -40,6 +44,7 @@ namespace HBP.Core.Object3D
                 Localizers = new LocalizersObjects();
             }
         }
+
         public static void UnloadMarsAtlas()
         {
             if (MarsAtlas.Loaded)
@@ -48,6 +53,7 @@ namespace HBP.Core.Object3D
                 MarsAtlas = new MarsAtlas();
             }
         }
+
         public static void UnloadJuBrain()
         {
             if (JuBrain.Loaded)
@@ -56,6 +62,7 @@ namespace HBP.Core.Object3D
                 JuBrain = new JuBrainAtlas();
             }
         }
+
         public static void UnloadIBC()
         {
             if (IBC.Loaded)
@@ -64,14 +71,17 @@ namespace HBP.Core.Object3D
                 IBC = new IBCObjects();
             }
         }
+
         public static void UnloadDiFuMo(string atlas)
         {
             DiFuMo.Unload(atlas);
         }
+
         public static void UnloadLocalizer(string protocolName)
         {
             Localizers.Unload(protocolName);
         }
+
         #endregion
     }
 }

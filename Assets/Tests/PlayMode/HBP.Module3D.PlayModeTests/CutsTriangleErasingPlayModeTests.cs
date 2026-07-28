@@ -262,10 +262,7 @@ namespace HBP.Tests.PlayMode.Module3D
             int[] secondBrainBefore = secondScene.MeshManager.BrainSurface.VisibilityMask.ToArray();
             int[] secondSimplifiedBefore = secondScene.MeshManager.SimplifiedMeshToUse.VisibilityMask.ToArray();
 
-            AssertNoException("Apply first scene triangle masks", () =>
-            {
-                firstScene.TriangleEraser.CurrentMasks = new List<int[]> { firstBrainMask, firstSimplifiedMask };
-            });
+            AssertNoException("Apply first scene triangle masks", () => { firstScene.TriangleEraser.CurrentMasks = new List<int[]> { firstBrainMask, firstSimplifiedMask }; });
 
             Assert.That(firstScene.TriangleEraser.MeshHasInvisibleTriangles, Is.True);
             Assert.That(firstScene.TriangleEraser.CanCancelLastAction, Is.False);
@@ -287,10 +284,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(firstScene.TriangleEraser.CanCancelLastAction, Is.False);
             Assert.That(firstScene.TriangleEraser.CurrentMasks.SelectMany(mask => mask), Is.All.EqualTo(1));
 
-            AssertNoException("Reload first scene triangle masks", () =>
-            {
-                firstScene.TriangleEraser.CurrentMasks = savedMasks.Select(mask => mask.ToArray()).ToList();
-            });
+            AssertNoException("Reload first scene triangle masks", () => { firstScene.TriangleEraser.CurrentMasks = savedMasks.Select(mask => mask.ToArray()).ToList(); });
 
             Assert.That(firstScene.TriangleEraser.CurrentMasks[0], Is.EqualTo(savedMasks[0]));
             Assert.That(firstScene.TriangleEraser.CurrentMasks[1], Is.EqualTo(savedMasks[1]));
@@ -415,25 +409,16 @@ namespace HBP.Tests.PlayMode.Module3D
             initialBrainMask[0] = 0;
             initialSimplifiedMask[0] = 0;
 
-            AssertNoException("Apply initial native triangle masks", () =>
-            {
-                baseScene.TriangleEraser.CurrentMasks = new List<int[]> { initialBrainMask, initialSimplifiedMask };
-            });
+            AssertNoException("Apply initial native triangle masks", () => { baseScene.TriangleEraser.CurrentMasks = new List<int[]> { initialBrainMask, initialSimplifiedMask }; });
 
             int hiddenBeforeExpand = baseScene.TriangleEraser.CurrentMasks[0].Count(value => value == 0);
-            AssertNoException("Expand native triangle mask", () =>
-            {
-                baseScene.TriangleEraser.CurrentMode = TriEraserMode.Expand;
-            });
+            AssertNoException("Expand native triangle mask", () => { baseScene.TriangleEraser.CurrentMode = TriEraserMode.Expand; });
             int hiddenAfterExpand = baseScene.TriangleEraser.CurrentMasks[0].Count(value => value == 0);
 
             Assert.That(hiddenAfterExpand, Is.GreaterThanOrEqualTo(hiddenBeforeExpand));
 
             int[] beforeInvert = baseScene.TriangleEraser.CurrentMasks[0].ToArray();
-            AssertNoException("Invert native triangle mask", () =>
-            {
-                baseScene.TriangleEraser.CurrentMode = TriEraserMode.Invert;
-            });
+            AssertNoException("Invert native triangle mask", () => { baseScene.TriangleEraser.CurrentMode = TriEraserMode.Invert; });
             int[] afterInvert = baseScene.TriangleEraser.CurrentMasks[0];
 
             Assert.That(afterInvert, Is.EqualTo(beforeInvert.Select(value => value == 0 ? 1 : 0).ToArray()));
@@ -463,10 +448,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
         }
 
-        private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization)> InitializeSyntheticAnatomicSceneAsync(
-            PlayModeSceneScope scene,
-            string suffix = "alpha",
-            int anatomyColumnCount = 1)
+        private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization)> InitializeSyntheticAnatomicSceneAsync(PlayModeSceneScope scene, string suffix = "alpha", int anatomyColumnCount = 1)
         {
             Project project = CreateMinimalAnatomicProject(suffix, anatomyColumnCount);
             Base3DScene baseScene = CreateRuntimeBase3DScene(scene);
@@ -483,12 +465,7 @@ namespace HBP.Tests.PlayMode.Module3D
             return (project, baseScene, visualization);
         }
 
-        private static Base3DScene CreateIsolatedCutsTriangleErasingScene(
-            PlayModeSceneScope scene,
-            PlayModeTempDirectoryScope temp,
-            string suffix = "isolated",
-            bool includeSurface = true,
-            bool includeColumn = false)
+        private static Base3DScene CreateIsolatedCutsTriangleErasingScene(PlayModeSceneScope scene, PlayModeTempDirectoryScope temp, string suffix = "isolated", bool includeSurface = true, bool includeColumn = false)
         {
             Base3DScene baseScene = CreateRuntimeBase3DScene(scene);
             SetAutoProperty(baseScene, "BrainMaterials", new BrainMaterials());
@@ -512,17 +489,14 @@ namespace HBP.Tests.PlayMode.Module3D
             {
                 CreateSelectedColumn(scene, baseScene, suffix, displayedObjects.Brain);
             }
+
             baseScene.SceneInformation.Initialized = true;
             baseScene.SceneInformation.CompletelyLoaded = true;
             baseScene.enabled = false;
             return baseScene;
         }
 
-        private static void CreateSelectedColumn(
-            PlayModeSceneScope scene,
-            Base3DScene baseScene,
-            string suffix,
-            GameObject brainMesh)
+        private static void CreateSelectedColumn(PlayModeSceneScope scene, Base3DScene baseScene, string suffix, GameObject brainMesh)
         {
             GameObject columnObject = new($"CutsTriangleErasing Column {suffix}");
             SceneManager.MoveGameObjectToScene(columnObject, scene.Scene);
@@ -538,11 +512,7 @@ namespace HBP.Tests.PlayMode.Module3D
             sites.SetParent(columnObject.transform, false);
             views.SetParent(columnObject.transform, false);
 
-            SetAutoProperty(column, "ColumnData", new AnatomicColumn(
-                $"cuts-triangle-erasing-column-{suffix}",
-                new BaseConfiguration(),
-                new AnatomicConfiguration($"cuts-triangle-erasing-column-config-{suffix}"),
-                $"cuts-triangle-erasing-column-id-{suffix}"));
+            SetAutoProperty(column, "ColumnData", new AnatomicColumn($"cuts-triangle-erasing-column-{suffix}", new BaseConfiguration(), new AnatomicConfiguration($"cuts-triangle-erasing-column-config-{suffix}"), $"cuts-triangle-erasing-column-id-{suffix}"));
             SetAutoProperty(column, "Layer", "Default");
             SetPrivateField(column, "m_BrainSurfaceMeshesParent", brains);
             SetPrivateField(column, "m_CutMeshesParent", cuts);
@@ -595,14 +565,7 @@ namespace HBP.Tests.PlayMode.Module3D
             siteObject.transform.SetParent(parent, false);
             siteObject.transform.localPosition = new Vector3(0.2f, 0.3f, 0.4f);
             HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
-            Patient patient = new(
-                $"cuts-triangle-erasing-patient-{suffix}",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                Array.Empty<HBP.Core.Data.Site>(),
-                Array.Empty<BaseTagValue>(),
-                string.Empty,
-                $"cuts-triangle-erasing-patient-id-{suffix}");
+            Patient patient = new($"cuts-triangle-erasing-patient-{suffix}", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, $"cuts-triangle-erasing-patient-id-{suffix}");
             site.Information = new SiteInformation
             {
                 Patient = patient,
@@ -646,39 +609,11 @@ namespace HBP.Tests.PlayMode.Module3D
 
         private static Project CreateMinimalAnatomicProject(string suffix, int anatomyColumnCount = 1)
         {
-            HBP.Core.Data.Site site = new(
-                $"cuts-triangle-erasing-site-{suffix}",
-                new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"cuts-triangle-erasing-coordinate-{suffix}") },
-                Array.Empty<BaseTagValue>(),
-                $"cuts-triangle-erasing-site-id-{suffix}");
-            Patient patient = new(
-                $"cuts-triangle-erasing-patient-{suffix}",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                new[] { site },
-                Array.Empty<BaseTagValue>(),
-                string.Empty,
-                $"cuts-triangle-erasing-patient-id-{suffix}");
-            List<Column> columns = Enumerable.Range(0, anatomyColumnCount)
-                .Select(index => (Column)new AnatomicColumn(
-                    $"cuts-triangle-erasing-anatomy-{suffix}-{index}",
-                    new BaseConfiguration(),
-                    new AnatomicConfiguration($"cuts-triangle-erasing-anatomy-config-{suffix}-{index}"),
-                    $"cuts-triangle-erasing-column-anatomy-{suffix}-{index}"))
-                .ToList();
-            Visualization visualization = new(
-                $"cuts-triangle-erasing-visualization-{suffix}",
-                new[] { patient },
-                columns,
-                new VisualizationConfiguration(),
-                $"cuts-triangle-erasing-visualization-id-{suffix}");
-            Project project = new(
-                $"cuts-triangle-erasing-project-{suffix}",
-                new HBP.Core.Data.ProjectPreferences($"cuts-triangle-erasing-test-{suffix}", $"cuts-triangle-erasing-project-preferences-{suffix}"),
-                new[] { patient },
-                Array.Empty<Group>(),
-                Array.Empty<Dataset>(),
-                new[] { visualization });
+            HBP.Core.Data.Site site = new($"cuts-triangle-erasing-site-{suffix}", new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"cuts-triangle-erasing-coordinate-{suffix}") }, Array.Empty<BaseTagValue>(), $"cuts-triangle-erasing-site-id-{suffix}");
+            Patient patient = new($"cuts-triangle-erasing-patient-{suffix}", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { site }, Array.Empty<BaseTagValue>(), string.Empty, $"cuts-triangle-erasing-patient-id-{suffix}");
+            List<Column> columns = Enumerable.Range(0, anatomyColumnCount).Select(index => (Column)new AnatomicColumn($"cuts-triangle-erasing-anatomy-{suffix}-{index}", new BaseConfiguration(), new AnatomicConfiguration($"cuts-triangle-erasing-anatomy-config-{suffix}-{index}"), $"cuts-triangle-erasing-column-anatomy-{suffix}-{index}")).ToList();
+            Visualization visualization = new($"cuts-triangle-erasing-visualization-{suffix}", new[] { patient }, columns, new VisualizationConfiguration(), $"cuts-triangle-erasing-visualization-id-{suffix}");
+            Project project = new($"cuts-triangle-erasing-project-{suffix}", new HBP.Core.Data.ProjectPreferences($"cuts-triangle-erasing-test-{suffix}", $"cuts-triangle-erasing-project-preferences-{suffix}"), new[] { patient }, Array.Empty<Group>(), Array.Empty<Dataset>(), new[] { visualization });
             ApplicationState.LoadedProject = project;
             return project;
         }
@@ -795,6 +730,7 @@ namespace HBP.Tests.PlayMode.Module3D
             {
                 cameraObject.AddComponent(postProcessLayerType);
             }
+
             SetPrivateField(view, "m_Camera3D", camera3D);
             SetPrivateField(camera3D, "m_Camera", camera);
             SetPrivateField(camera3D, "m_CircleX", CreateLineRendererObject("Circle X", cameraObject));
@@ -875,12 +811,12 @@ namespace HBP.Tests.PlayMode.Module3D
             GameObject cutLinePrefab = new("Cut Line Prefab");
 
             foreach (Transform transform in new[]
-            {
-                image.transform, orientation.transform, positionParent.transform, plus.transform, minus.transform,
-                flip.transform, remove.transform, customValues.transform, customX.transform, customY.transform,
-                customZ.transform, positionTitle.transform, positionValue.transform, positionInformation.transform,
-                sites.transform, cutLines.transform
-            })
+                     {
+                         image.transform, orientation.transform, positionParent.transform, plus.transform, minus.transform,
+                         flip.transform, remove.transform, customValues.transform, customX.transform, customY.transform,
+                         customZ.transform, positionTitle.transform, positionValue.transform, positionInformation.transform,
+                         sites.transform, cutLines.transform
+                     })
             {
                 transform.SetParent(root.transform, false);
             }
@@ -1087,15 +1023,14 @@ namespace HBP.Tests.PlayMode.Module3D
                 if (field != null) return field;
                 type = type.BaseType;
             }
+
             Assert.Fail($"Missing field {fieldName}");
             return null;
         }
 
         private static Type FindLoadedType(string typeName)
         {
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .Select(assembly => assembly.GetType(typeName))
-                .FirstOrDefault(type => type != null);
+            return AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType(typeName)).FirstOrDefault(type => type != null);
         }
 
         private static void NoProgress(float progress, float duration, LoadingText text)
@@ -1137,15 +1072,7 @@ namespace HBP.Tests.PlayMode.Module3D
             public InputField CustomY { get; }
             public InputField CustomZ { get; }
 
-            public CutParameterUiHarness(
-                CutParametersController controller,
-                Slider position,
-                Dropdown orientation,
-                Toggle flip,
-                Button remove,
-                InputField customX,
-                InputField customY,
-                InputField customZ)
+            public CutParameterUiHarness(CutParametersController controller, Slider position, Dropdown orientation, Toggle flip, Button remove, InputField customX, InputField customY, InputField customZ)
             {
                 Controller = controller;
                 Position = position;

@@ -7,12 +7,23 @@ namespace HBP.UI.Tools
     public class NavigationGestion : MonoBehaviour
     {
         #region Properties
+
         public Selectable Selectable { get; private set; }
-        public enum DirectionType { Up, Down, Left, Right}
+
+        public enum DirectionType
+        {
+            Up,
+            Down,
+            Left,
+            Right
+        }
+
         public DirectionType Direction;
+
         #endregion
 
         #region Public Methods
+
         public void SelectNext()
         {
             Selectable next = null;
@@ -31,11 +42,14 @@ namespace HBP.UI.Tools
                     next = Selectable.FindSelectableOnRight();
                     break;
             }
+
             next?.Select();
         }
+
         #endregion
 
         #region Private Methods
+
         // Start is called before the first frame update
         void Start()
         {
@@ -46,7 +60,7 @@ namespace HBP.UI.Tools
         void Update()
         {
         }
-        #endregion
 
+        #endregion
     }
 }

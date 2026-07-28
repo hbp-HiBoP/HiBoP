@@ -53,7 +53,7 @@ namespace HBP.Data.BIDS
             {
                 "BIDS_ID,Original_Patient_ID"
             };
-            
+
             foreach (var bidsPatient in bidsPatients)
             {
                 if (bidsPatient.Patient != null)
@@ -61,7 +61,7 @@ namespace HBP.Data.BIDS
                     lines.Add($"{bidsPatient.ParticipantId},{bidsPatient.Patient.ID}");
                 }
             }
-            
+
             await File.WriteAllLinesAsync(filePath, lines);
         }
 
@@ -90,17 +90,16 @@ namespace HBP.Data.BIDS
         {
             // Create directories based on rules (dynamically determined from config)
             var sessionsNeeded = config.AnatomicalRules.Select(r => r.BIDSSession).Distinct();
-            
+
             foreach (var session in sessionsNeeded)
             {
                 var sessionDir = Directory.CreateDirectory(Path.Combine(datasetFolder, patient.ParticipantId, $"ses-{session}"));
                 var anatDir = Directory.CreateDirectory(Path.Combine(sessionDir.FullName, "anat"));
             }
-            
+
             // Hardcoded post session for IEEG (as per requirements)
-            var postIeegDirectory = Directory.CreateDirectory(
-                Path.Combine(datasetFolder, patient.ParticipantId, "ses-post", "ieeg"));
-            
+            var postIeegDirectory = Directory.CreateDirectory(Path.Combine(datasetFolder, patient.ParticipantId, "ses-post", "ieeg"));
+
             // Export using rules
             ExportAnatomicalData(patient, datasetFolder, config);
             CreateElectrodesFiles(patient, postIeegDirectory.FullName, config, selectedSiteTags);
@@ -189,17 +188,17 @@ namespace HBP.Data.BIDS
 
             return tsvBuilder.ToString();
         }
-        
+
         private static void ExportAnatomicalData(BIDSPatient patient, string datasetFolder, BIDSExportConfiguration config)
         {
             // Group rules by session
             var rulesBySession = config.AnatomicalRules.GroupBy(r => r.BIDSSession);
-            
+
             foreach (var sessionGroup in rulesBySession)
             {
                 string sessionName = sessionGroup.Key;
                 var anatDir = Path.Combine(datasetFolder, patient.ParticipantId, $"ses-{sessionName}", "anat");
-                
+
                 foreach (var rule in sessionGroup)
                 {
                     if (rule.DataType == "MRI")
@@ -213,26 +212,26 @@ namespace HBP.Data.BIDS
                 }
             }
         }
-        
+
         private static void ExportMRI(BIDSPatient patient, string destinationFolder, AnatomicalDataRule rule)
         {
             var mri = patient.Patient.MRIs.FirstOrDefault(m => m.Name == rule.SourceName);
             if (mri == null) return;
-            
+
             string filename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_{rule.BIDSSuffix}.nii";
             File.Copy(mri.File, Path.Combine(destinationFolder, filename), true);
         }
-        
+
         private static void ExportMesh(BIDSPatient patient, string destinationFolder, AnatomicalDataRule rule)
         {
             var mesh = patient.Patient.Meshes.FirstOrDefault(m => m.Name == rule.SourceName);
             if (mesh == null) return;
-            
+
             if (mesh is SingleMesh singleMesh)
             {
                 string meshFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_{rule.BIDSSuffix}.surf.gii";
                 File.Copy(singleMesh.Path, Path.Combine(destinationFolder, meshFilename), true);
-                
+
                 if (singleMesh.HasMarsAtlas)
                 {
                     string atlasFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_desc-marsatlas_dseg.label.gii";
@@ -245,7 +244,7 @@ namespace HBP.Data.BIDS
                 string rightFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_hemi-R_{rule.BIDSSuffix}.surf.gii";
                 File.Copy(leftRightMesh.LeftHemisphere, Path.Combine(destinationFolder, leftFilename), true);
                 File.Copy(leftRightMesh.RightHemisphere, Path.Combine(destinationFolder, rightFilename), true);
-                
+
                 if (leftRightMesh.HasMarsAtlas)
                 {
                     string leftAtlasFilename = $"{patient.ParticipantId}_ses-{rule.BIDSSession}_desc-marsatlas_hemi-L_dseg.label.gii";
@@ -254,7 +253,7 @@ namespace HBP.Data.BIDS
                     File.Copy(leftRightMesh.RightMarsAtlasHemisphere, Path.Combine(destinationFolder, rightAtlasFilename), true);
                 }
             }
-            
+
             // Export transformation if exists
             if (mesh.HasTransformation)
             {
@@ -262,7 +261,7 @@ namespace HBP.Data.BIDS
                 File.Copy(mesh.Transformation, Path.Combine(destinationFolder, trmFilename), true);
             }
         }
-        
+
         private static string SitesToElectrodesTSV(IEnumerable<Site> sites, string coordSystemString, IEnumerable<BaseTag> selectedSiteTags)
         {
             if (sites == null || !sites.Any())
@@ -321,6 +320,7 @@ namespace HBP.Data.BIDS
                 {
                     siteName = SiteTools.FixName(siteName);
                 }
+
                 rowValues.Add(siteName);
 
                 // Find coordinates for the specified coordinate system
@@ -361,7 +361,7 @@ namespace HBP.Data.BIDS
                     {
                         string letters = match.Groups[1].Value;
                         string prime = match.Groups[2].Value;
-                        
+
                         group = letters + prime;
                         hemisphere = !string.IsNullOrEmpty(prime) ? "L" : "R";
                     }
@@ -412,7 +412,7 @@ namespace HBP.Data.BIDS
 
             return tsvBuilder.ToString();
         }
-        
+
         private static string EEGFileToChannelsTSV(Core.DLL.EEG.File file)
         {
             var electrodes = file.Electrodes;
@@ -463,11 +463,11 @@ namespace HBP.Data.BIDS
                 {
                     electrode.Label,
                     type, // type
-                    electrode.Unit,   // units
-                    electrode.PrefilteringLowPassLimit.ToString(),  // low_cutoff
-                    electrode.PrefilteringHighPassLimit.ToString(),  // high_cutoff
-                    electrode.ReferenceLabel,  // reference
-                    group,  // group
+                    electrode.Unit, // units
+                    electrode.PrefilteringLowPassLimit.ToString(), // low_cutoff
+                    electrode.PrefilteringHighPassLimit.ToString(), // high_cutoff
+                    electrode.ReferenceLabel, // reference
+                    group, // group
                     file.SamplingFrequency.Value.ToString() // sampling_frequency
                 };
                 tsvBuilder.AppendLine(string.Join("\t", rowValues));
@@ -475,7 +475,7 @@ namespace HBP.Data.BIDS
 
             return tsvBuilder.ToString();
         }
-        
+
         private static TaskFile EEGFileToTaskFile(Core.DLL.EEG.File file, Patient patient, DataInfo dataInfo)
         {
             int numberOfSEEGChannels = 0;
@@ -527,22 +527,22 @@ namespace HBP.Data.BIDS
         private static void CreateElectrodesFiles(BIDSPatient patient, string ieegFolder, BIDSExportConfiguration config, IEnumerable<BaseTag> selectedSiteTags)
         {
             var sites = patient.Patient.Sites;
-            
+
             foreach (var coordRule in config.CoordinateSystemRules)
             {
                 string electrodesTsvContent = SitesToElectrodesTSV(sites, coordRule.CoordinateSystemName, selectedSiteTags);
-                
+
                 string spaceEntity = string.IsNullOrEmpty(coordRule.BIDSSpace) ? "" : $"_space-{coordRule.BIDSSpace}";
                 string electrodesTsvPath = Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post{spaceEntity}_electrodes.tsv");
                 File.WriteAllText(electrodesTsvPath, electrodesTsvContent);
-                
+
                 // Create coordsystem.json
                 string coordSystemValue = string.IsNullOrEmpty(coordRule.BIDSSpace) ? "scanner" : coordRule.BIDSSpace;
                 string coordSystemPath = Path.Combine(ieegFolder, $"{patient.ParticipantId}_ses-post{spaceEntity}_coordsystem.json");
                 ClassLoaderSaver.SaveToJSon(new CoordSystemFile(coordSystemValue), coordSystemPath);
             }
         }
-        
+
         private static void CreateFunctionalFiles(BIDSPatient patient, string ieegFolder)
         {
             foreach (var dataInfo in patient.DataInfos)
@@ -579,6 +579,7 @@ namespace HBP.Data.BIDS
                 {
                     throw new Exception("Invalid data container type");
                 }
+
                 using Core.DLL.EEG.File file = new(type, true, files);
 
                 // Create files

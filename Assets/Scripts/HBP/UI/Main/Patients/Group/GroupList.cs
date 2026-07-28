@@ -11,14 +11,25 @@ namespace HBP.UI.Main
     public class GroupList : ActionableList<Core.Data.Group>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Patients,
+            DescendingPatients
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_PatientsSortingDisplayer;
+
         #endregion
 
         #region Public methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -38,9 +49,11 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -72,9 +85,11 @@ namespace HBP.UI.Main
                     m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by patients.
         /// </summary>
@@ -95,6 +110,7 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

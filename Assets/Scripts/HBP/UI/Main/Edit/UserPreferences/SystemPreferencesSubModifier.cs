@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class SystemPreferencesSubModifier : SubModifier<SystemPreferences>
     {
         #region Properties
+
         [SerializeField] Toggle m_MultiThreading;
         [SerializeField] Slider m_MemorySizeSlider;
         [SerializeField] Slider m_SleepModeSlider;
@@ -17,10 +18,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -30,9 +28,11 @@ namespace HBP.UI.Main
                 m_SleepModeSlider.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -42,9 +42,11 @@ namespace HBP.UI.Main
             m_SleepModeSlider.onValueChanged.AddListener(value => Object.SleepModeAfter = Mathf.FloorToInt(value));
             m_TargetFramerateSlider.onValueChanged.AddListener(value => Object.TargetFramerate = Mathf.FloorToInt(value));
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(SystemPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -60,6 +62,7 @@ namespace HBP.UI.Main
             m_SleepModeSlider.value = objectToDisplay.SleepModeAfter;
             m_TargetFramerateSlider.value = objectToDisplay.TargetFramerate;
         }
+
         #endregion
     }
 }

@@ -45,8 +45,7 @@ namespace HBP.Tests.Serialization
         {
             const string expectedID = "existing-id-from-json";
 
-            StringTag tag = ClassLoaderSaver.LoadFromJsonString<StringTag>(
-                $"{{\"ID\":\"{expectedID}\",\"Name\":\"existing\"}}");
+            StringTag tag = ClassLoaderSaver.LoadFromJsonString<StringTag>($"{{\"ID\":\"{expectedID}\",\"Name\":\"existing\"}}");
 
             Assert.That(GetStoredID(tag), Is.EqualTo(expectedID));
             Assert.That(tag.ID, Is.EqualTo(expectedID));
@@ -118,9 +117,7 @@ namespace HBP.Tests.Serialization
         public async Task ConcurrentFirstAccess_ReturnsOneStableId()
         {
             StringTag tag = new("concurrent");
-            Task<string>[] readers = Enumerable.Range(0, 64)
-                .Select(_ => Task.Run(() => tag.ID))
-                .ToArray();
+            Task<string>[] readers = Enumerable.Range(0, 64).Select(_ => Task.Run(() => tag.ID)).ToArray();
 
             string[] IDs = await Task.WhenAll(readers);
 

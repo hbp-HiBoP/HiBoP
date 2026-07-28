@@ -13,6 +13,7 @@ namespace HBP.UI.Main
     public class VisualizationGestion : GestionWindow<Visualization>
     {
         #region Properties
+
         [SerializeField] Button m_DisplayButton;
         [SerializeField] VisualizationListGestion m_ListGestion;
         private Project m_ObservedProject;
@@ -20,10 +21,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -32,15 +30,18 @@ namespace HBP.UI.Main
                 SetDisplay();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void OK()
         {
             ApplicationState.LoadedProject.SetVisualizations(m_ListGestion.List.Objects);
             base.OK();
             UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
+
         public async void Display()
         {
             Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
@@ -50,6 +51,7 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Visualization already opened", "The following visualizations are already opened:\n" + string.Concat(alreadyOpenedVisualizations.Select(v => v.Name + "\n"))).Forget();
                 return;
             }
+
             DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, SystemInfo.systemMemorySize);
             UniTask loading = LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
             OK();
@@ -57,15 +59,18 @@ namespace HBP.UI.Main
             await UniTask.SwitchToMainThread();
             UITools.ShowMemoryCacheBudgetWarningIfNeeded();
         }
+
         public override void Close()
         {
             if (m_ListGestion.HasBeenModified)
                 LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Visualizations, update), false);
             base.Close();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -74,17 +79,14 @@ namespace HBP.UI.Main
             m_ListGestion.List.OnRemoveObject.AddListener((visualization) => SetDisplay());
             m_ListGestion.List.OnAddObject.AddListener((visualization) => SetDisplay());
         }
+
         void SetDisplay()
         {
             Visualization[] visualizationsSelected = m_ListGestion.List.ObjectsSelected;
-            bool validationPending =
-                ApplicationState.LoadedProject?.NeedsValidationWait ?? false;
-            m_DisplayButton.interactable =
-                visualizationsSelected.Length > 0 &&
-                (validationPending ||
-                 visualizationsSelected.All(visualization => visualization.IsVisualizable)) &&
-                Interactable;
+            bool validationPending = ApplicationState.LoadedProject?.NeedsValidationWait ?? false;
+            m_DisplayButton.interactable = visualizationsSelected.Length > 0 && (validationPending || visualizationsSelected.All(visualization => visualization.IsVisualizable)) && Interactable;
         }
+
         protected override void SetFields()
         {
             base.SetFields();
@@ -105,6 +107,7 @@ namespace HBP.UI.Main
             {
                 m_ObservedProject.OnValidationStateChanged -= SetDisplay;
             }
+
             m_ObservedProject = project;
             if (m_ObservedProject != null)
             {
@@ -119,6 +122,7 @@ namespace HBP.UI.Main
                 m_ObservedProject.OnValidationStateChanged -= SetDisplay;
             }
         }
+
         #endregion
     }
 }

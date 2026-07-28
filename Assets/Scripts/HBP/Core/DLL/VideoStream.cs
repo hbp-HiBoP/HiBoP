@@ -44,18 +44,22 @@ namespace HBP.Core.DLL
             {
                 throw new InvalidOperationException("The video stream is already open.");
             }
+
             if (string.IsNullOrWhiteSpace(path))
             {
                 throw new ArgumentException("The video path is empty.", nameof(path));
             }
+
             if (width <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(width));
             }
+
             if (height <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(height));
             }
+
             if (fps <= 0.0f || float.IsNaN(fps) || float.IsInfinity(fps))
             {
                 throw new ArgumentOutOfRangeException(nameof(fps));
@@ -87,32 +91,30 @@ namespace HBP.Core.DLL
             {
                 throw new ArgumentNullException(nameof(texture));
             }
+
             if (!m_IsOpen)
             {
                 throw new InvalidOperationException("The video stream is not open.");
             }
+
             if (texture.width != m_Width || texture.height != m_Height)
             {
                 throw new ArgumentException($"The frame size must be {m_Width}x{m_Height}.", nameof(texture));
             }
 
             NativeArray<byte> rawTextureData = texture.GetRawTextureData<byte>();
-            using NativeArray<byte> encodedFrame = ImageConversion.EncodeNativeArrayToJPG(
-                rawTextureData,
-                texture.graphicsFormat,
-                (uint)m_Width,
-                (uint)m_Height,
-                0,
-                JpegQuality);
+            using NativeArray<byte> encodedFrame = ImageConversion.EncodeNativeArrayToJPG(rawTextureData, texture.graphicsFormat, (uint)m_Width, (uint)m_Height, 0, JpegQuality);
             int frameByteCount = encodedFrame.Length;
             if (frameByteCount == 0)
             {
                 throw new InvalidOperationException("Failed to encode the video frame as JPEG.");
             }
+
             if (m_FrameBuffer == null || m_FrameBuffer.Length < frameByteCount)
             {
                 m_FrameBuffer = new byte[frameByteCount];
             }
+
             encodedFrame.CopyTo(m_FrameBuffer);
             m_MaxFrameByteSize = Math.Max(m_MaxFrameByteSize, frameByteCount);
 
@@ -126,9 +128,7 @@ namespace HBP.Core.DLL
                 m_Writer.Write((byte)0);
             }
 
-            m_IndexEntries.Add(new AviIndexEntry(
-                chunkStartPosition - m_MoviDataStartPosition,
-                (uint)frameByteCount));
+            m_IndexEntries.Add(new AviIndexEntry(chunkStartPosition - m_MoviDataStartPosition, (uint)frameByteCount));
             ++FrameCount;
         }
 
@@ -209,6 +209,7 @@ namespace HBP.Core.DLL
             {
                 m_Writer.Write((uint)0);
             }
+
             EndChunkOrList(chunkSizePosition);
         }
 
@@ -265,6 +266,7 @@ namespace HBP.Core.DLL
                 m_Writer.Write(checked((uint)entry.Offset));
                 m_Writer.Write(entry.Size);
             }
+
             EndChunkOrList(chunkSizePosition);
         }
 

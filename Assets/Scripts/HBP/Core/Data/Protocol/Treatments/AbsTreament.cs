@@ -43,11 +43,13 @@ namespace HBP.Core.Data
     public class AbsTreatment : Treatment
     {
         public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
+
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             int start, end;
-            if(UseOnWindow)
+            if (UseOnWindow)
             {
                 start = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
                 end = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
@@ -56,7 +58,8 @@ namespace HBP.Core.Data
                     values[i] = Math.Abs(values[i]);
                 }
             }
-            if(UseOnBaseline)
+
+            if (UseOnBaseline)
             {
                 start = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
                 end = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
@@ -65,26 +68,27 @@ namespace HBP.Core.Data
                     baseline[i] = Math.Abs(baseline[i]);
                 }
             }
-
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new AbsoluteTreatment instance.
         /// </summary>
         public AbsTreatment() : base()
         {
-
         }
+
         /// <summary>
         /// Create a new AbsoluteTreatment instance.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
         public AbsTreatment(string ID) : base(ID)
         {
-
         }
+
         /// <summary>
         /// Create a new AbsoluteTreatment window.
         /// </summary>
@@ -95,8 +99,8 @@ namespace HBP.Core.Data
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
         public AbsTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order) : base(useOnWindow, window, useOnBaseline, baseline, order)
         {
-
         }
+
         /// <summary>
         /// Create a new AbsoluteTreatment window.
         /// </summary>
@@ -108,15 +112,17 @@ namespace HBP.Core.Data
         /// <param name="ID">Unique identifier</param>
         public AbsTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
-
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new AbsTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
+
         #endregion
     }
 }

@@ -6,14 +6,8 @@ namespace HBP.UI.Tools
     {
         public bool Visible
         {
-            get
-            {
-                return Cursor.visible;
-            }
-            set
-            {
-                Cursor.visible = value;
-            }
+            get { return Cursor.visible; }
+            set { Cursor.visible = value; }
         }
     }
 }

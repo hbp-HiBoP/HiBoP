@@ -9,15 +9,28 @@ namespace HBP.UI.Database
     public class DatabaseReferenceList : ActionableList<DatabaseReference>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Type, DescendingType, LastUpdated, DescendingLastUpdated }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Type,
+            DescendingType,
+            LastUpdated,
+            DescendingLastUpdated
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_TypeSortingDisplayer;
         [SerializeField] SortingDisplayer m_LastUpdatedSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -33,10 +46,12 @@ namespace HBP.UI.Database
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_LastUpdatedSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -45,6 +60,7 @@ namespace HBP.UI.Database
                 default: SortByName(Sorting.Descending); break;
             }
         }
+
         public void SortByType(Sorting sorting)
         {
             switch (sorting)
@@ -60,10 +76,12 @@ namespace HBP.UI.Database
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_LastUpdatedSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByType()
         {
             switch (m_OrderBy)
@@ -72,6 +90,7 @@ namespace HBP.UI.Database
                 default: SortByType(Sorting.Descending); break;
             }
         }
+
         public void SortByLastUpdated(Sorting sorting)
         {
             switch (sorting)
@@ -87,10 +106,12 @@ namespace HBP.UI.Database
                     m_LastUpdatedSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByLastUpdated()
         {
             switch (m_OrderBy)
@@ -99,6 +120,7 @@ namespace HBP.UI.Database
                 default: SortByLastUpdated(Sorting.Descending); break;
             }
         }
+
         #endregion
     }
 }

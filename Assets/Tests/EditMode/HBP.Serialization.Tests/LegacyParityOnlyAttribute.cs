@@ -9,9 +9,7 @@ namespace HBP.Tests.Serialization
     internal sealed class LegacyParityOnlyAttribute : NUnitAttribute, IApplyToTest
     {
         public const string EnvironmentVariable = "HBP_RUN_LEGACY_PARITY";
-        private const string SkipReason =
-            "Legacy hbp_export parity is isolated from the production test run. " +
-            "Set HBP_RUN_LEGACY_PARITY=1 and run the NativeParity category explicitly.";
+        private const string SkipReason = "Legacy hbp_export parity is isolated from the production test run. " + "Set HBP_RUN_LEGACY_PARITY=1 and run the NativeParity category explicitly.";
 
         public void ApplyToTest(Test test)
         {

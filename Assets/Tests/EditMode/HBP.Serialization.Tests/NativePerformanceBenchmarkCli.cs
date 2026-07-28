@@ -48,11 +48,7 @@ namespace HBP.Tests.Serialization
                 NativePerformanceBenchmarkFixtures fixtures = new(fixtureRoot);
                 fixtures.Ensure();
                 bool includeVideo = HasArgument(arguments, IncludeVideoArgument);
-                List<Func<NativePerformanceScenario>> factories = NativePerformanceBenchmarkScenarios.Build(
-                    backend,
-                    fixtures,
-                    includeVideo,
-                    (name, domain) => Matches(name, domain, filters));
+                List<Func<NativePerformanceScenario>> factories = NativePerformanceBenchmarkScenarios.Build(backend, fixtures, includeVideo, (name, domain) => Matches(name, domain, filters));
                 foreach (Func<NativePerformanceScenario> factory in factories)
                 {
                     using NativePerformanceScenario scenario = factory();
@@ -86,6 +82,7 @@ namespace HBP.Tests.Serialization
                 {
                     throw new InvalidOperationException("The benchmark filter did not select any scenario.");
                 }
+
                 report.succeeded = true;
             }
             catch (Exception exception)
@@ -103,6 +100,7 @@ namespace HBP.Tests.Serialization
                 {
                     WriteReport(outputPath, report);
                 }
+
                 EditorApplication.Exit(exitCode);
             }
         }
@@ -113,9 +111,8 @@ namespace HBP.Tests.Serialization
             {
                 return true;
             }
-            return filters.Any(filter =>
-                name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0
-                || domain.Equals(filter, StringComparison.OrdinalIgnoreCase));
+
+            return filters.Any(filter => name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0 || domain.Equals(filter, StringComparison.OrdinalIgnoreCase));
         }
 
         private static HashSet<string> ParseFilters(string value)
@@ -124,24 +121,22 @@ namespace HBP.Tests.Serialization
             {
                 return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
-            return new HashSet<string>(
-                value.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(filter => filter.Trim()),
-                StringComparer.OrdinalIgnoreCase);
+
+            return new HashSet<string>(value.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries).Select(filter => filter.Trim()), StringComparer.OrdinalIgnoreCase);
         }
 
         private static BenchmarkBackend ParseBackend(string value)
         {
-            if (value.Equals("hbp_core", StringComparison.OrdinalIgnoreCase)
-                || value.Equals(nameof(BenchmarkBackend.HbpCore), StringComparison.OrdinalIgnoreCase))
+            if (value.Equals("hbp_core", StringComparison.OrdinalIgnoreCase) || value.Equals(nameof(BenchmarkBackend.HbpCore), StringComparison.OrdinalIgnoreCase))
             {
                 return BenchmarkBackend.HbpCore;
             }
-            if (value.Equals("hbp_export", StringComparison.OrdinalIgnoreCase)
-                || value.Equals(nameof(BenchmarkBackend.HbpExport), StringComparison.OrdinalIgnoreCase))
+
+            if (value.Equals("hbp_export", StringComparison.OrdinalIgnoreCase) || value.Equals(nameof(BenchmarkBackend.HbpExport), StringComparison.OrdinalIgnoreCase))
             {
                 return BenchmarkBackend.HbpExport;
             }
+
             throw new ArgumentException($"Unsupported benchmark backend: {value}.", BackendArgument);
         }
 
@@ -152,6 +147,7 @@ namespace HBP.Tests.Serialization
             {
                 throw new ArgumentException($"{name} must be an integer greater than or equal to {minimum}.");
             }
+
             return parsed;
         }
 
@@ -162,6 +158,7 @@ namespace HBP.Tests.Serialization
             {
                 throw new ArgumentException($"Missing required command-line argument {name}.");
             }
+
             return value;
         }
 
@@ -174,6 +171,7 @@ namespace HBP.Tests.Serialization
                     return arguments[i + 1];
                 }
             }
+
             return null;
         }
 
@@ -192,6 +190,7 @@ namespace HBP.Tests.Serialization
             {
                 File.Delete(fullPath);
             }
+
             File.Move(temporaryPath, fullPath);
         }
     }

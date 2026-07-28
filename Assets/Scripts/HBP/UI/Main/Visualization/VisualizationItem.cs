@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class VisualizationItem : ActionnableItem<Core.Data.Visualization>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_PatientsText;
         [SerializeField] Text m_ColumnsText;
@@ -23,10 +24,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Visualization Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
 
             set
             {
@@ -41,6 +39,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

@@ -12,33 +12,41 @@ namespace HBP.UI.Module3D
     public class CutSite : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
         #region Properties
+
         /// <summary>
         /// True if the cursor is currently inside the site
         /// </summary>
         private bool m_IsCursorInside;
+
         /// <summary>
         /// Corresponding site in the 3D scene
         /// </summary>
         private Core.Object3D.Site m_Site;
+
         /// <summary>
         /// Parent scene of the cuts panel
         /// </summary>
         private Base3DScene m_Scene;
+
         /// <summary>
         /// Image used to display the site on the texture
         /// </summary>
         [SerializeField] private Image m_Image;
+
         /// <summary>
         /// Reference to the RectTransform of this gameObject
         /// </summary>
         [SerializeField] private RectTransform m_RectTransform;
+
         /// <summary>
         /// Prefab to show feedback of the selected site on the cut image
         /// </summary>
         [SerializeField] private GameObject m_SelectionPrefab;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (m_IsCursorInside)
@@ -46,9 +54,11 @@ namespace HBP.UI.Module3D
                 Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the cut site
         /// </summary>
@@ -73,19 +83,23 @@ namespace HBP.UI.Module3D
                 selectedRectTransform.sizeDelta = new Vector2(6, 6);
             }
         }
+
         public void OnPointerEnter(PointerEventData eventData)
         {
             m_IsCursorInside = true;
         }
+
         public void OnPointerExit(PointerEventData eventData)
         {
             Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
             m_IsCursorInside = false;
         }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             m_Site.IsSelected = true;
         }
+
         #endregion
     }
 }

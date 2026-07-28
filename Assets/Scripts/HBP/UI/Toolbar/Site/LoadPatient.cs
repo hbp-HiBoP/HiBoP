@@ -9,13 +9,16 @@ namespace HBP.UI.Toolbar
     public class LoadPatient : Tool
     {
         #region Properties
+
         /// <summary>
         /// Button to load a single patient visualization from the selected site
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -28,6 +31,7 @@ namespace HBP.UI.Toolbar
                 ToolbarExternalActions.LoadSinglePatientVisualization(SelectedScene, SelectedColumn.SelectedSite.Information.Patient);
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -35,6 +39,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -44,6 +49,7 @@ namespace HBP.UI.Toolbar
 
             m_Button.interactable = isInteractable;
         }
+
         #endregion
     }
 }

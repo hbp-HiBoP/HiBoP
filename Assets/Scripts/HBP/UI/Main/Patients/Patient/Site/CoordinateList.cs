@@ -11,16 +11,31 @@ namespace HBP.UI.Main
     public class CoordinateList : ActionableList<Core.Data.Coordinate>
     {
         #region Properties
-        enum OrderBy { None, ReferenceSystem, DescendingReferenceSystem, X, DescendingX, Y, DescendingY, Z, DescendingZ }
+
+        enum OrderBy
+        {
+            None,
+            ReferenceSystem,
+            DescendingReferenceSystem,
+            X,
+            DescendingX,
+            Y,
+            DescendingY,
+            Z,
+            DescendingZ
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_ReferenceSystemSortingDisplayer;
         [SerializeField] SortingDisplayer m_XSortingDisplayer;
         [SerializeField] SortingDisplayer m_YSortingDisplayer;
         [SerializeField] SortingDisplayer m_ZSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a coordinate.
         /// </summary>
@@ -51,11 +66,13 @@ namespace HBP.UI.Main
                     m_ReferenceSystemSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_XSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_YSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ZSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by reference system.
         /// </summary>
@@ -87,11 +104,13 @@ namespace HBP.UI.Main
                     m_XSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ReferenceSystemSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_YSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ZSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by X.
         /// </summary>
@@ -123,11 +142,13 @@ namespace HBP.UI.Main
                     m_YSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ReferenceSystemSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_XSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ZSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by Y.
         /// </summary>
@@ -159,11 +180,13 @@ namespace HBP.UI.Main
                     m_ZSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ReferenceSystemSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_XSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_YSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by Z.
         /// </summary>
@@ -186,6 +209,7 @@ namespace HBP.UI.Main
             m_YSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
         }
+
         #endregion
     }
 }

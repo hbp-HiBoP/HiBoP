@@ -8,15 +8,19 @@ namespace HBP.Core.Data
     public class ProjectPreferences : BaseData
     {
         #region Properties
+
         /// <summary>
         /// Project settings extension.
         /// </summary>
         public const string EXTENSION = ".settings";
+
         [JsonProperty] public string Version { get; set; }
         [JsonIgnore] public bool CanLoadProject = true;
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new project settings instance.
         /// </summary>
@@ -27,20 +31,25 @@ namespace HBP.Core.Data
         {
             Version = version;
         }
+
         public ProjectPreferences(string version) : base()
         {
             Version = version;
         }
+
         public ProjectPreferences() : this("Unknown")
         {
         }
+
         #endregion
 
         #region Private Methods
+
         public override object Clone()
         {
             return new ProjectPreferences(Version, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -49,6 +58,7 @@ namespace HBP.Core.Data
                 Version = projectSettings.Version;
             }
         }
+
         #endregion
     }
 }

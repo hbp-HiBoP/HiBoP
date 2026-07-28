@@ -17,6 +17,7 @@ namespace HBP.UI.Module3D
     public class ImportFromCSVSection : SiteToolSection
     {
         #region Properties
+
         [SerializeField] private Toggle m_ImportHighlighted;
         [SerializeField] private Toggle m_ImportBlacklisted;
         [SerializeField] private Toggle m_ImportColor;
@@ -44,9 +45,11 @@ namespace HBP.UI.Module3D
         static bool m_ImportLabelsValue;
         static int m_LabelsImportModeValue;
         static int m_ScopeDropdownValue;
+
         #endregion
 
         #region Public Methods
+
         public override async UniTask ApplyAsync()
         {
             string csvPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "csv" }, "Load site states from");
@@ -68,6 +71,7 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+
         public override void StoreSettings()
         {
             m_ImportHighlightedValue = m_ImportHighlighted.isOn;
@@ -77,6 +81,7 @@ namespace HBP.UI.Module3D
             m_LabelsImportModeValue = m_LabelsImportModeDropdown.value;
             m_ScopeDropdownValue = m_ScopeDropdown.value;
         }
+
         public override void LoadSettings()
         {
             m_ImportHighlighted.isOn = m_ImportHighlightedValue;
@@ -86,9 +91,11 @@ namespace HBP.UI.Module3D
             m_LabelsImportModeDropdown.value = m_LabelsImportModeValue;
             m_ScopeDropdown.value = m_ScopeDropdownValue;
         }
+
         #endregion
 
         #region Private Methods
+
         private async UniTask ImportSitesAsync(string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -191,6 +198,7 @@ namespace HBP.UI.Module3D
                 kv.Key.State.ApplySpecificState(m_ImportHighlighted.isOn, kv.Value.IsHighlighted, m_ImportBlacklisted.isOn, kv.Value.IsBlackListed, m_ImportColor.isOn, kv.Value.Color, m_ImportLabels.isOn, kv.Value.Labels, mergeLabels);
             }
         }
+
         #endregion
     }
 }

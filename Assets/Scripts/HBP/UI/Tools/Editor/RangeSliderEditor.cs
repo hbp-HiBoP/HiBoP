@@ -13,6 +13,7 @@ namespace HBP.UI.Tools
     public class RangeSliderEditor : Editor
     {
         #region Properties
+
         SerializedProperty m_InteractableProperty;
         SerializedProperty m_TypeProperty;
 
@@ -58,9 +59,11 @@ namespace HBP.UI.Tools
         static string s_ShowNavigationKey = "SelectableEditor.ShowNavigation";
         const float kArrowThickness = 2.5f;
         const float kArrowHeadSize = 1.2f;
+
         #endregion
 
         #region Public Methods
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -85,45 +88,51 @@ namespace HBP.UI.Tools
             EditorGUILayout.PropertyField(m_HandleTransitionProperty, new GUIContent("Transition"));
             EditorGUI.indentLevel++;
 
-            if(handleTransition == Selectable.Transition.ColorTint || handleTransition == Selectable.Transition.SpriteSwap)
+            if (handleTransition == Selectable.Transition.ColorTint || handleTransition == Selectable.Transition.SpriteSwap)
             {
                 EditorGUILayout.PropertyField(m_MinHandleTargetGraphicProperty);
                 EditorGUILayout.PropertyField(m_MaxHandleTargetGraphicProperty);
             }
+
             switch (handleTransition)
             {
                 case Selectable.Transition.ColorTint:
-                    if(minHandleGraphic == null || maxHandleGraphic == null)
+                    if (minHandleGraphic == null || maxHandleGraphic == null)
                     {
                         EditorGUILayout.HelpBox("You must have both Graphic targets in order to use a color transition.", MessageType.Warning);
                     }
+
                     break;
                 case Selectable.Transition.SpriteSwap:
                     if (minHandleGraphic as Image == null || maxHandleGraphic as Image == null)
                     {
                         EditorGUILayout.HelpBox("You must have both Image targets in order to use a sprite swap transition.", MessageType.Warning);
                     }
+
                     break;
             }
 
-            if(EditorGUILayout.BeginFadeGroup(m_HandleShowColorTint.faded))
+            if (EditorGUILayout.BeginFadeGroup(m_HandleShowColorTint.faded))
             {
                 EditorGUILayout.PropertyField(m_HandleColorsProperty);
                 EditorGUILayout.Space();
             }
+
             EditorGUILayout.EndFadeGroup();
 
-            if(EditorGUILayout.BeginFadeGroup(m_HandleShowSpriteTrasition.faded))
+            if (EditorGUILayout.BeginFadeGroup(m_HandleShowSpriteTrasition.faded))
             {
                 EditorGUILayout.PropertyField(m_HandleSpriteStateProperty);
                 EditorGUILayout.Space();
             }
+
             EditorGUILayout.EndFadeGroup();
 
-            if(EditorGUILayout.BeginFadeGroup(m_HandleShowAnimTransition.faded))
+            if (EditorGUILayout.BeginFadeGroup(m_HandleShowAnimTransition.faded))
             {
                 EditorGUILayout.PropertyField(m_HandleAnimationTriggersProperty);
             }
+
             EditorGUILayout.EndFadeGroup();
             EditorGUI.indentLevel--;
             EditorGUI.indentLevel--;
@@ -146,10 +155,11 @@ namespace HBP.UI.Tools
                 EditorGUILayout.PropertyField(m_FillTransitionProperty, new GUIContent("Transition"));
                 EditorGUI.indentLevel++;
 
-                if(fillTransition == Selectable.Transition.ColorTint || fillTransition == Selectable.Transition.SpriteSwap)
+                if (fillTransition == Selectable.Transition.ColorTint || fillTransition == Selectable.Transition.SpriteSwap)
                 {
                     EditorGUILayout.PropertyField(m_FillTargetGraphicProperty);
                 }
+
                 switch (fillTransition)
                 {
                     case Selectable.Transition.ColorTint:
@@ -168,6 +178,7 @@ namespace HBP.UI.Tools
                     EditorGUILayout.PropertyField(m_FillColorsProperty);
                     EditorGUILayout.Space();
                 }
+
                 EditorGUILayout.EndFadeGroup();
 
                 if (EditorGUILayout.BeginFadeGroup(m_FillShowSpriteTrasition.faded))
@@ -175,12 +186,14 @@ namespace HBP.UI.Tools
                     EditorGUILayout.PropertyField(m_FillSpriteStateProperty);
                     EditorGUILayout.Space();
                 }
+
                 EditorGUILayout.EndFadeGroup();
 
                 if (EditorGUILayout.BeginFadeGroup(m_FillShowAnimTransition.faded))
                 {
                     EditorGUILayout.PropertyField(m_FillAnimationTriggersProperty);
                 }
+
                 EditorGUILayout.EndFadeGroup();
 
                 EditorGUI.indentLevel--;
@@ -197,6 +210,7 @@ namespace HBP.UI.Tools
                 EditorPrefs.SetBool(s_ShowNavigationKey, s_ShowNavigation);
                 SceneView.RepaintAll();
             }
+
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(m_FillRectProperty);
@@ -216,6 +230,7 @@ namespace HBP.UI.Tools
                     slider.SetDirection(dir, true);
                 }
             }
+
             EditorGUILayout.PropertyField(m_MinLimitProperty);
             EditorGUILayout.PropertyField(m_MaxLimitProperty);
             EditorGUILayout.PropertyField(m_StepProperty);
@@ -241,9 +256,11 @@ namespace HBP.UI.Tools
             // Apply modified properties.
             serializedObject.ApplyModifiedProperties();
         }
+
         #endregion
 
         #region Private Methods
+
         protected virtual void OnEnable()
         {
             m_InteractableProperty = serializedObject.FindProperty("m_Interactable");
@@ -297,6 +314,7 @@ namespace HBP.UI.Tools
 
             s_ShowNavigation = EditorPrefs.GetBool(s_ShowNavigationKey);
         }
+
         protected virtual void OnDisable()
         {
             m_HandleShowColorTint.valueChanged.RemoveListener(Repaint);
@@ -308,26 +326,31 @@ namespace HBP.UI.Tools
             s_Editors.Remove(this);
             RegisterStaticOnSceneGUI();
         }
+
         protected virtual void RegisterStaticOnSceneGUI()
         {
             SceneView.duringSceneGui -= StaticOnSceneGUI;
             if (s_Editors.Count > 0)
                 SceneView.duringSceneGui += StaticOnSceneGUI;
         }
+
         protected static Selectable.Transition GetTransition(SerializedProperty transition)
         {
-            return (Selectable.Transition) transition.enumValueIndex;
+            return (Selectable.Transition)transition.enumValueIndex;
         }
+
         protected static RangeSlider.SliderType GetSliderType(SerializedProperty type)
         {
-            return (RangeSlider.SliderType) type.enumValueIndex;
+            return (RangeSlider.SliderType)type.enumValueIndex;
         }
+
         private static string GetSaveControllerPath(Selectable target)
         {
             var defaultName = target.gameObject.name;
             var message = string.Format("Create a new animator for the game object '{0}':", defaultName);
             return EditorUtility.SaveFilePanelInProject("New Animation Contoller", defaultName, "controller", message);
         }
+
         private static void SetUpCurves(AnimationClip highlightedClip, AnimationClip pressedClip, string animationPath)
         {
             string[] channels = { "m_LocalScale.x", "m_LocalScale.y", "m_LocalScale.z" };
@@ -342,6 +365,7 @@ namespace HBP.UI.Tools
             foreach (var channel in channels)
                 AnimationUtility.SetEditorCurve(pressedClip, EditorCurveBinding.FloatCurve(animationPath, typeof(Transform), channel), pressedCurve);
         }
+
         private static string BuildAnimationPath(Selectable target)
         {
             // if no target don't hook up any curves.
@@ -374,6 +398,7 @@ namespace HBP.UI.Tools
 
             return animPath.ToString();
         }
+
         private static AnimationClip GenerateTriggerableTransition(string name, AnimatorController controller)
         {
             // Create the clip
@@ -394,6 +419,7 @@ namespace HBP.UI.Tools
             condition.parameter = name;
             return clip;
         }
+
         private static void StaticOnSceneGUI(SceneView view)
         {
             if (!s_ShowNavigation)
@@ -404,6 +430,7 @@ namespace HBP.UI.Tools
                 DrawNavigationForSelectable(Selectable.allSelectablesArray[i]);
             }
         }
+
         private static void DrawNavigationForSelectable(Selectable sel)
         {
             if (sel == null)
@@ -417,6 +444,7 @@ namespace HBP.UI.Tools
             DrawNavigationArrow(Vector2.up, sel, sel.FindSelectableOnUp());
             DrawNavigationArrow(-Vector2.up, sel, sel.FindSelectableOnDown());
         }
+
         private static void DrawNavigationArrow(Vector2 direction, Selectable fromObj, Selectable toObj)
         {
             if (fromObj == null || toObj == null)
@@ -439,6 +467,7 @@ namespace HBP.UI.Tools
             Handles.DrawAAPolyLine(kArrowThickness, toPoint, toPoint + toTransform.rotation * (-direction - sideDir) * toSize * kArrowHeadSize);
             Handles.DrawAAPolyLine(kArrowThickness, toPoint, toPoint + toTransform.rotation * (-direction + sideDir) * toSize * kArrowHeadSize);
         }
+
         private static Vector3 GetPointOnRectEdge(RectTransform rect, Vector2 dir)
         {
             if (rect == null)
@@ -448,6 +477,7 @@ namespace HBP.UI.Tools
             dir = rect.rect.center + Vector2.Scale(rect.rect.size, dir * 0.5f);
             return dir;
         }
+
         #endregion
     }
 }

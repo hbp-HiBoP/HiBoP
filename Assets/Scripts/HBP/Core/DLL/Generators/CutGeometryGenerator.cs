@@ -29,13 +29,7 @@ namespace HBP.Core.DLL
         {
             if (volume == null) throw new ArgumentNullException(nameof(volume));
             if (cut == null) throw new ArgumentNullException(nameof(cut));
-            ThrowIfFailed(hbp_cut_geometry_generator_initialize(
-                _handle.Handle,
-                volume.getHandle().Handle,
-                cut.getHandle().Handle,
-                (int)cut.Orientation,
-                cut.Flip ? 1 : 0,
-                maxTextureSize));
+            ThrowIfFailed(hbp_cut_geometry_generator_initialize(_handle.Handle, volume.getHandle().Handle, cut.getHandle().Handle, (int)cut.Orientation, cut.Flip ? 1 : 0, maxTextureSize));
         }
 
         public void UpdateSurfaceUV(Surface cutSurface)
@@ -76,16 +70,22 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_create(out IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_destroy(IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_initialize(IntPtr generator, IntPtr volume, IntPtr plane, int cutOrientation, int flip, int maxTextureSize);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_get_texture_size", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_get_texture_size(IntPtr generator, out TextureSize outSize);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_get_bounding_box(IntPtr generator, out IntPtr bbox);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_update_surface_uv", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_update_surface_uv(IntPtr generator, IntPtr surface);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_get_position_ratio_on_texture", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_get_position_ratio_on_texture(IntPtr generator, ref Vec3 point, out Vec2 ratio);
     }

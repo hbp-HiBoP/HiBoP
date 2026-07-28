@@ -34,9 +34,7 @@ namespace HBP.Tests.Serialization
 
                 Assert.That(legacy.SelectMany(electrode => electrode.Sites).Select(site => site.Name), Is.EqualTo(managed.Select(site => site.Name)));
                 Assert.That(legacy.Select(electrode => electrode.Name), Is.EqualTo(new[] { "A", "B" }));
-                Vector3[] managedPositions = managed
-                    .Select(site => site.Coordinates.Single(coordinate => coordinate.ReferenceSystem == "Patient").Position.ToVector3())
-                    .ToArray();
+                Vector3[] managedPositions = managed.Select(site => site.Coordinates.Single(coordinate => coordinate.ReferenceSystem == "Patient").Position.ToVector3()).ToArray();
                 Vector3[] legacyPositions = legacy.SelectMany(electrode => electrode.Sites).Select(site => site.Position).ToArray();
                 Assert.That(managedPositions, Is.EqualTo(legacyPositions));
             }
@@ -73,9 +71,7 @@ namespace HBP.Tests.Serialization
 
                 List<Site> roundTrip = Site.LoadSitesFromPTSFile("Patient", path);
                 Assert.That(roundTrip.Select(site => site.Name), Is.EqualTo(source.Select(site => site.Name)));
-                Assert.That(
-                    roundTrip.Select(site => site.Coordinates.Single().Position.ToVector3()),
-                    Is.EqualTo(source.Select(site => site.Coordinates.Single(coordinate => coordinate.ReferenceSystem == "Patient").Position.ToVector3())));
+                Assert.That(roundTrip.Select(site => site.Coordinates.Single().Position.ToVector3()), Is.EqualTo(source.Select(site => site.Coordinates.Single(coordinate => coordinate.ReferenceSystem == "Patient").Position.ToVector3())));
             }
             finally
             {
@@ -104,9 +100,7 @@ namespace HBP.Tests.Serialization
 
                 Assert.That(legacy.Select(electrode => electrode.Name), Is.EqualTo(new[] { "A", "B" }));
                 Assert.That(legacy.SelectMany(electrode => electrode.Sites).Select(site => site.Name), Is.EqualTo(source.Select(site => site.Name)));
-                Assert.That(
-                    legacy.SelectMany(electrode => electrode.Sites).Select(site => site.Position),
-                    Is.EqualTo(source.Select(site => site.Coordinates.Single(coordinate => coordinate.ReferenceSystem == "Patient").Position.ToVector3())));
+                Assert.That(legacy.SelectMany(electrode => electrode.Sites).Select(site => site.Position), Is.EqualTo(source.Select(site => site.Coordinates.Single(coordinate => coordinate.ReferenceSystem == "Patient").Position.ToVector3())));
             }
             finally
             {
@@ -123,9 +117,7 @@ namespace HBP.Tests.Serialization
 
             try
             {
-                Assert.That(
-                    () => Site.SaveSitesToPTSFile(new[] { site }, "Patient", path),
-                    Throws.TypeOf<InvalidDataException>().With.Message.Contains("A1"));
+                Assert.That(() => Site.SaveSitesToPTSFile(new[] { site }, "Patient", path), Throws.TypeOf<InvalidDataException>().With.Message.Contains("A1"));
                 Assert.That(File.Exists(path), Is.False);
             }
             finally
@@ -136,10 +128,7 @@ namespace HBP.Tests.Serialization
 
         private static Site CreateSite(string name, Vector3 patient, Vector3 mni)
         {
-            return new Site(
-                name,
-                new[] { new Coordinate("Patient", patient), new Coordinate("MNI", mni) },
-                Array.Empty<BaseTagValue>());
+            return new Site(name, new[] { new Coordinate("Patient", patient), new Coordinate("MNI", mni) }, Array.Empty<BaseTagValue>());
         }
 
         private static string TemporaryPtsPath()

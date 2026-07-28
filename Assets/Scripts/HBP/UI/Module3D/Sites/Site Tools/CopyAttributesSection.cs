@@ -12,6 +12,7 @@ namespace HBP.UI.Module3D
     public class CopyAttributesSection : SiteToolSection
     {
         #region Properties
+
         [SerializeField] private Dropdown m_ColumnDropdown;
 
         public override Base3DScene Scene
@@ -25,10 +26,13 @@ namespace HBP.UI.Module3D
                 m_ColumnDropdown.SetValue(m_Columns.IndexOf(value.SelectedColumn));
             }
         }
+
         private List<Column3D> m_Columns;
+
         #endregion
 
         #region Public Methods
+
         public override async UniTask ApplyAsync()
         {
             var column = m_Columns[m_ColumnDropdown.value];
@@ -36,14 +40,17 @@ namespace HBP.UI.Module3D
             if (result == 0)
                 Scene.ApplySiteStatesToOtherColumns(column);
         }
+
         public override void StoreSettings()
         {
             // No settings to store
         }
+
         public override void LoadSettings()
         {
             // No settings to load
         }
+
         #endregion
     }
 }

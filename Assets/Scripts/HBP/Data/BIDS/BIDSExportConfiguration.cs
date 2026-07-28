@@ -15,12 +15,12 @@ namespace HBP.Data.BIDS
         /// Rules for exporting anatomical data (MRIs and Meshes).
         /// </summary>
         [JsonProperty] public List<AnatomicalDataRule> AnatomicalRules { get; set; } = new List<AnatomicalDataRule>();
-        
+
         /// <summary>
         /// Rules for exporting coordinate systems.
         /// </summary>
         [JsonProperty] public List<CoordinateSystemRule> CoordinateSystemRules { get; set; } = new List<CoordinateSystemRule>();
-        
+
         /// <summary>
         /// Configuration version for future compatibility.
         /// </summary>
@@ -37,17 +37,17 @@ namespace HBP.Data.BIDS
         /// Type of data to export. Valid values: "MRI" or "Mesh".
         /// </summary>
         [JsonProperty] public string DataType { get; set; }
-        
+
         /// <summary>
         /// Name to match in Patient.MRIs or Patient.Meshes (e.g., "Preimplantation", "Grey matter").
         /// </summary>
         [JsonProperty] public string SourceName { get; set; }
-        
+
         /// <summary>
         /// BIDS suffix to use in the filename (e.g., "T1w", "T2w", "CT", "pial", "white").
         /// </summary>
         [JsonProperty] public string BIDSSuffix { get; set; }
-        
+
         /// <summary>
         /// BIDS session name (e.g., "pre", "post").
         /// </summary>
@@ -64,7 +64,7 @@ namespace HBP.Data.BIDS
         /// Name to match in Site.Coordinates[].ReferenceSystem (e.g., "Patient", "MNI").
         /// </summary>
         [JsonProperty] public string CoordinateSystemName { get; set; }
-        
+
         /// <summary>
         /// BIDS space entity value. Use empty string for scanner space, or "MNI152Lin", etc.
         /// </summary>

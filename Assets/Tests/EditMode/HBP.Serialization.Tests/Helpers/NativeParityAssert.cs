@@ -55,13 +55,11 @@ namespace HBP.Tests.Serialization.Helpers
 
         public static void WithBackend(BenchmarkBackend backend, Action action)
         {
-            WithBackend(
-                backend,
-                () =>
-                {
-                    action();
-                    return true;
-                });
+            WithBackend(backend, () =>
+            {
+                action();
+                return true;
+            });
         }
 
         public static T ExecuteNativeOrIgnore<T>(Func<T> action, string context)
@@ -84,6 +82,7 @@ namespace HBP.Tests.Serialization.Helpers
             {
                 path = Path.Combine(path, part);
             }
+
             return path;
         }
 
@@ -97,20 +96,10 @@ namespace HBP.Tests.Serialization.Helpers
         public static void AssertUnityVectorMatchesLegacyNative(Vector3 actualUnity, Vector3 legacyNative, float tolerance = DefaultTolerance, string context = null)
         {
             Vector3 expectedUnity = NativeToUnity(legacyNative);
-            AssertVector(
-                actualUnity,
-                expectedUnity,
-                tolerance,
-                $"{context ?? "coordinate"} (actual=hbp_core Unity; expected=R*hbp_export native; R=diag({(ReferenceSystemConversion.InvertX ? "-1" : "1")},1,1))");
+            AssertVector(actualUnity, expectedUnity, tolerance, $"{context ?? "coordinate"} (actual=hbp_core Unity; expected=R*hbp_export native; R=diag({(ReferenceSystemConversion.InvertX ? "-1" : "1")},1,1))");
         }
 
-        public static void AssertUnityBoundsMatchLegacyNative(
-            Vector3 actualUnityMin,
-            Vector3 actualUnityMax,
-            Vector3 legacyNativeMin,
-            Vector3 legacyNativeMax,
-            float tolerance = DefaultTolerance,
-            string context = null)
+        public static void AssertUnityBoundsMatchLegacyNative(Vector3 actualUnityMin, Vector3 actualUnityMax, Vector3 legacyNativeMin, Vector3 legacyNativeMax, float tolerance = DefaultTolerance, string context = null)
         {
             NativeBoundsToUnity(legacyNativeMin, legacyNativeMax, out Vector3 expectedUnityMin, out Vector3 expectedUnityMax);
             string conversion = $"{context ?? "bounds"} (actual=hbp_core Unity; expected=R*hbp_export native with min/max reordered)";
@@ -231,12 +220,11 @@ namespace HBP.Tests.Serialization.Helpers
             {
                 Vector3 expectedEnd1 = NativeToUnity(legacySegment.End1);
                 Vector3 expectedEnd2 = NativeToUnity(legacySegment.End2);
-                int foundIndex = remaining.FindIndex(actualSegment =>
-                    VectorsEqual(actualSegment.End1, expectedEnd1, tolerance) && VectorsEqual(actualSegment.End2, expectedEnd2, tolerance)
-                    || VectorsEqual(actualSegment.End1, expectedEnd2, tolerance) && VectorsEqual(actualSegment.End2, expectedEnd1, tolerance));
+                int foundIndex = remaining.FindIndex(actualSegment => VectorsEqual(actualSegment.End1, expectedEnd1, tolerance) && VectorsEqual(actualSegment.End2, expectedEnd2, tolerance) || VectorsEqual(actualSegment.End1, expectedEnd2, tolerance) && VectorsEqual(actualSegment.End2, expectedEnd1, tolerance));
                 Assert.That(foundIndex, Is.GreaterThanOrEqualTo(0), $"Missing Unity segment converted from legacy native {legacySegment.End1} -> {legacySegment.End2}");
                 remaining.RemoveAt(foundIndex);
             }
+
             Assert.That(remaining, Is.Empty, "Unexpected additional Unity segments");
         }
 
@@ -267,20 +255,18 @@ namespace HBP.Tests.Serialization.Helpers
                     return true;
                 }
             }
+
             return false;
         }
 
         private static bool SegmentsEqual(Segment3 actual, Segment3 expected, float tolerance)
         {
-            return VectorsEqual(actual.End1, expected.End1, tolerance) && VectorsEqual(actual.End2, expected.End2, tolerance)
-                || VectorsEqual(actual.End1, expected.End2, tolerance) && VectorsEqual(actual.End2, expected.End1, tolerance);
+            return VectorsEqual(actual.End1, expected.End1, tolerance) && VectorsEqual(actual.End2, expected.End2, tolerance) || VectorsEqual(actual.End1, expected.End2, tolerance) && VectorsEqual(actual.End2, expected.End1, tolerance);
         }
 
         private static bool VectorsEqual(Vector3 actual, Vector3 expected, float tolerance)
         {
-            return Mathf.Abs(actual.x - expected.x) <= tolerance
-                && Mathf.Abs(actual.y - expected.y) <= tolerance
-                && Mathf.Abs(actual.z - expected.z) <= tolerance;
+            return Mathf.Abs(actual.x - expected.x) <= tolerance && Mathf.Abs(actual.y - expected.y) <= tolerance && Mathf.Abs(actual.z - expected.z) <= tolerance;
         }
     }
 }

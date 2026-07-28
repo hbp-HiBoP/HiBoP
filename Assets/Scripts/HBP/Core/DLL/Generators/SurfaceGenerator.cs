@@ -78,16 +78,22 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_create(out IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_destroy(IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_initialize(IntPtr generator, IntPtr activityGenerator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_compute_main_uv", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_compute_main_uv(IntPtr generator, float calMin, float calMax);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_compute_activity_uv", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_compute_activity_uv(IntPtr generator, int timelineIndex, float alpha);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_copy_activity_uvs", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_copy_activity_uvs(IntPtr generator, [Out] Vec2[] uvs, int uvCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_copy_alpha_uvs", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_copy_alpha_uvs(IntPtr generator, [Out] Vec2[] uvs, int uvCapacity);
     }

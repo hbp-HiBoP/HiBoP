@@ -16,12 +16,7 @@ namespace HBP.Tests.Serialization
         {
             DataInfo dataInfo = CreateInvalidDataInfo();
 
-            DataInfoValidationResult result = await new DataInfoValidator().ValidateAsync(
-                new[] { dataInfo },
-                true,
-                2,
-                CancellationToken.None,
-                generation: 17);
+            DataInfoValidationResult result = await new DataInfoValidator().ValidateAsync(new[] { dataInfo }, true, 2, CancellationToken.None, generation: 17);
 
             Assert.That(dataInfo.Errors, Is.Empty);
             Assert.That(dataInfo.Warnings, Is.Empty);
@@ -30,13 +25,11 @@ namespace HBP.Tests.Serialization
             Assert.That(dataInfo.Errors, Is.Empty);
 
             Assert.That(result.TryApply(17), Is.True);
-            Assert.That(
-                dataInfo.Errors.Select(error => error.GetType()),
-                Is.EquivalentTo(new[]
-                {
-                    typeof(LabelEmptyError),
-                    typeof(RequiredFieldEmptyError)
-                }));
+            Assert.That(dataInfo.Errors.Select(error => error.GetType()), Is.EquivalentTo(new[]
+            {
+                typeof(LabelEmptyError),
+                typeof(RequiredFieldEmptyError)
+            }));
         }
 
         [Test]
@@ -45,11 +38,7 @@ namespace HBP.Tests.Serialization
             DataInfo included = CreateInvalidDataInfo();
             DataInfo excluded = CreateInvalidDataInfo();
 
-            DataInfoValidationResult result = await new DataInfoValidator().ValidateAsync(
-                new[] { included },
-                true,
-                1,
-                CancellationToken.None);
+            DataInfoValidationResult result = await new DataInfoValidator().ValidateAsync(new[] { included }, true, 1, CancellationToken.None);
             Assert.That(result.TryApply(0), Is.True);
 
             Assert.That(included.Errors, Is.Not.Empty);
@@ -63,19 +52,11 @@ namespace HBP.Tests.Serialization
             expected.CheckErrorsAndWarnings(true);
             DataInfo actual = CreateInvalidDataInfo();
 
-            DataInfoValidationResult result = await new DataInfoValidator().ValidateAsync(
-                new[] { actual },
-                true,
-                1,
-                CancellationToken.None);
+            DataInfoValidationResult result = await new DataInfoValidator().ValidateAsync(new[] { actual }, true, 1, CancellationToken.None);
             result.TryApply(0);
 
-            Assert.That(
-                actual.Errors.Select(error => error.GetType()),
-                Is.EqualTo(expected.Errors.Select(error => error.GetType())));
-            Assert.That(
-                actual.Warnings.Select(warning => warning.GetType()),
-                Is.EqualTo(expected.Warnings.Select(warning => warning.GetType())));
+            Assert.That(actual.Errors.Select(error => error.GetType()), Is.EqualTo(expected.Errors.Select(error => error.GetType())));
+            Assert.That(actual.Warnings.Select(warning => warning.GetType()), Is.EqualTo(expected.Warnings.Select(warning => warning.GetType())));
         }
 
         [Test]
@@ -85,12 +66,7 @@ namespace HBP.Tests.Serialization
             using CancellationTokenSource cancellation = new();
             cancellation.Cancel();
 
-            Exception exception = await CaptureExceptionAsync(async () =>
-                await new DataInfoValidator().ValidateAsync(
-                    new[] { dataInfo },
-                    true,
-                    1,
-                    cancellation.Token));
+            Exception exception = await CaptureExceptionAsync(async () => await new DataInfoValidator().ValidateAsync(new[] { dataInfo }, true, 1, cancellation.Token));
 
             Assert.That(exception, Is.TypeOf<OperationCanceledException>());
             Assert.That(dataInfo.Errors, Is.Empty);

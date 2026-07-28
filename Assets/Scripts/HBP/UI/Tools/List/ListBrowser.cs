@@ -6,7 +6,12 @@ namespace HBP.UI.Tools.Lists
     public class ListBrowser : MonoBehaviour
     {
         #region Properties
-        public enum Direction { UpDown, LeftRight }
+
+        public enum Direction
+        {
+            UpDown,
+            LeftRight
+        }
 
         [SerializeField] private Direction m_Direction = Direction.UpDown;
         [SerializeField] private float m_KeyHoldDelay = 0.5f;
@@ -16,20 +21,25 @@ namespace HBP.UI.Tools.Lists
         private float m_UpKeyHoldTimer = 0f;
 
         private Selector m_ParentSelector;
+
         #endregion
 
         #region Events
+
         public UnityEvent OnSelectNext = new();
         public UnityEvent OnSelectPrevious = new();
         public UnityEvent OnReachEnd = new();
         public UnityEvent OnReachBeginning = new();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_ParentSelector = GetComponentInParent<Selector>();
         }
+
         private void Update()
         {
             if (m_ParentSelector != null && !m_ParentSelector.Selected)
@@ -79,6 +89,7 @@ namespace HBP.UI.Tools.Lists
                 m_UpKeyHoldTimer = 0f;
             }
         }
+
         #endregion
     }
 }

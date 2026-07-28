@@ -11,14 +11,25 @@ namespace HBP.UI.Informations
     public class ChannelStructList : SelectableList<ChannelStruct>
     {
         #region Properties
-        enum OrderBy { None, Channel, DescendingChannel, Patient, DescendingPatient }
+
+        enum OrderBy
+        {
+            None,
+            Channel,
+            DescendingChannel,
+            Patient,
+            DescendingPatient
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_ChannelSortingDisplayer;
         [SerializeField] SortingDisplayer m_PatientSortingDisplayer;
+
         #endregion
 
         #region Private Methods
+
         protected override void AddObject(ChannelStruct objectToAdd)
         {
             base.AddObject(objectToAdd);
@@ -44,18 +55,22 @@ namespace HBP.UI.Informations
                     break;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void SelectFilteredSites()
         {
             var filteredSites = Module3DMain.SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked && s.State.IsFiltered).Select(s => new ChannelStruct(s));
             DeselectAll();
             Select(filteredSites);
         }
+
         #endregion
 
         #region Sorting Methods
+
         public void SortByChannel(Sorting sorting)
         {
             switch (sorting)
@@ -71,9 +86,11 @@ namespace HBP.UI.Informations
                     m_ChannelSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByChannel()
         {
             switch (m_OrderBy)
@@ -82,6 +99,7 @@ namespace HBP.UI.Informations
                 default: SortByChannel(Sorting.Descending); break;
             }
         }
+
         public void SortByPatient(Sorting sorting)
         {
             switch (sorting)
@@ -97,9 +115,11 @@ namespace HBP.UI.Informations
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ChannelSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByPatient()
         {
             switch (m_OrderBy)
@@ -108,12 +128,14 @@ namespace HBP.UI.Informations
                 default: SortByPatient(Sorting.Descending); break;
             }
         }
+
         public void SortByNone()
         {
             m_OrderBy = OrderBy.None;
             m_ChannelSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

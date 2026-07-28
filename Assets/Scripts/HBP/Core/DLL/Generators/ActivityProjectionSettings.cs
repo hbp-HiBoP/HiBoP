@@ -30,6 +30,7 @@ namespace HBP.Core.DLL
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
+
                 s_VolumeInterpolation = value;
             }
         }

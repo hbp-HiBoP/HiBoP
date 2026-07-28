@@ -6,13 +6,16 @@ namespace HBP.UI.Toolbar
     public class ResetErasing : Tool
     {
         #region Properties
+
         /// <summary>
         /// Reset the erasing area
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -25,6 +28,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.TriangleEraser.ResetEraser();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -32,6 +36,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -41,6 +46,7 @@ namespace HBP.UI.Toolbar
 
             m_Button.interactable = haveTrianglesBeenErased;
         }
+
         #endregion
     }
 }

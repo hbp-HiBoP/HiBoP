@@ -10,17 +10,16 @@ namespace HBP.UI.Main
     public class Menu : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
+
         [SerializeField] RectTransform m_SubMenu;
         private InteractableConditions m_InteractableConditions;
         private Button m_Button;
 
         bool m_IsOpen;
+
         public bool IsOpen
         {
-            get
-            {
-                return m_IsOpen;
-            }
+            get { return m_IsOpen; }
             set
             {
                 if (m_IsOpen != value)
@@ -34,12 +33,10 @@ namespace HBP.UI.Main
         }
 
         bool m_IsHovered;
+
         public bool IsHovered
         {
-            get
-            {
-                return m_IsHovered;
-            }
+            get { return m_IsHovered; }
             set
             {
                 if (m_IsHovered != value)
@@ -52,38 +49,47 @@ namespace HBP.UI.Main
 
         public GenericEvent<bool> OnChangeOpenState { get; } = new GenericEvent<bool>();
         public GenericEvent<bool> OnHover { get; } = new GenericEvent<bool>();
+
         #endregion
 
         #region Private Methods
+
         protected virtual void Awake()
         {
             m_InteractableConditions = GetComponent<InteractableConditions>();
             m_Button = GetComponent<Button>();
             m_Button.onClick.AddListener(SwapOpenState);
         }
+
         #endregion
 
         #region Public Methods
+
         public void Open()
         {
             IsOpen = true;
         }
+
         public void Close()
         {
             IsOpen = false;
         }
+
         public void SwapOpenState()
         {
             IsOpen = !IsOpen;
         }
+
         public void OnPointerEnter(PointerEventData data)
         {
             IsHovered = true;
         }
+
         public void OnPointerExit(PointerEventData data)
         {
             IsHovered = false;
         }
+
         #endregion
     }
 }

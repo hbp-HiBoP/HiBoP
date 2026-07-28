@@ -5,11 +5,14 @@ namespace HBP.Core.Data
     public class FMRIData : Data
     {
         #region Properties
+
         public MRI FMRI { get; private set; } = new MRI();
         public MRI Mask { get; set; } = new MRI();
+
         #endregion
 
         #region Constructors
+
         public FMRIData(FMRIDataInfo dataInfo)
         {
             if (dataInfo.DataContainer is Container.Nifti niftiDataContainer)
@@ -26,6 +29,7 @@ namespace HBP.Core.Data
                 Mask = new MRI(dataInfo.Name + "_mask", dataInfo.MaskDataContainer.File);
             }
         }
+
         public FMRIData(SharedFMRIDataInfo dataInfo)
         {
             if (dataInfo.DataContainer is Container.Nifti niftiDataContainer)
@@ -42,14 +46,17 @@ namespace HBP.Core.Data
                 Mask = new MRI(dataInfo.Name + "_mask", dataInfo.MaskDataContainer.File);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Clear()
         {
             FMRI = null;
             Mask = null;
         }
+
         #endregion
     }
 }

@@ -9,35 +9,37 @@ namespace HBP.Data.Informations.TrialMatrix
     public class ChannelBloc
     {
         #region Properties
+
         public bool IsFound { get; set; }
         public ChannelStruct Channel { get; set; }
         public Core.Data.Bloc Bloc { get; set; }
         public SubBloc[] SubBlocs { get; set; }
         bool m_IsHovered;
+
         public bool IsHovered
         {
-            get
-            {
-                return m_IsHovered;
-            }
+            get { return m_IsHovered; }
             set
             {
                 m_IsHovered = value;
                 OnChangeIsHovered.Invoke(value);
             }
         }
+
         public BoolEvent OnChangeIsHovered;
+
         #endregion
 
         #region Constructors
+
         public ChannelBloc(Core.Data.Bloc bloc, TrialMatrixGrid.TrialMatrixData data, ChannelStruct channel)
         {
             Core.Data.DataInfo dataInfo = null;
-            if(data is TrialMatrixGrid.IEEGTrialMatrixData iEEGDataStruct)
+            if (data is TrialMatrixGrid.IEEGTrialMatrixData iEEGDataStruct)
             {
                 dataInfo = iEEGDataStruct.Dataset.GetIEEGDataInfos().FirstOrDefault(d => d.Name == iEEGDataStruct.Name && d.Patient == channel.Patient);
             }
-            else if(data is TrialMatrixGrid.CCEPTrialMatrixData ccepDataStruct)
+            else if (data is TrialMatrixGrid.CCEPTrialMatrixData ccepDataStruct)
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().FirstOrDefault(d => d.Name == ccepDataStruct.Name && d.Patient == channel.Patient && d.Patient == ccepDataStruct.Source.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel);
             }
@@ -59,6 +61,7 @@ namespace HBP.Data.Informations.TrialMatrix
                     SubBloc dataSubBloc = new(subBloc, subTrials.ToArray());
                     subBlocs.Add(dataSubBloc);
                 }
+
                 SubBlocs = subBlocs.ToArray();
             }
             else
@@ -69,10 +72,12 @@ namespace HBP.Data.Informations.TrialMatrix
                     SubBloc dataSubBloc = new(subBloc, new SubTrial[0]);
                     subBlocs.Add(dataSubBloc);
                 }
+
                 SubBlocs = subBlocs.ToArray();
             }
         }
-        public void Standardize(Tuple<Tuple<Core.Data.Bloc,Core.Data.SubBloc>[],Core.Tools.TimeWindow>[] subBlocsAndWindowByColumn)
+
+        public void Standardize(Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Core.Tools.TimeWindow>[] subBlocsAndWindowByColumn)
         {
             List<SubBloc> subBlocs = SubBlocs.ToList();
             for (int c = 0; c < subBlocsAndWindowByColumn.Length; c++)
@@ -88,8 +93,10 @@ namespace HBP.Data.Informations.TrialMatrix
                     subBloc.Window = pair.Item2;
                 }
             }
+
             SubBlocs = subBlocs.ToArray();
         }
+
         #endregion
     }
 }

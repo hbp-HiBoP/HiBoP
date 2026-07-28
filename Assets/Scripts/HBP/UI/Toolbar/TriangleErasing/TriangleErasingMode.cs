@@ -8,21 +8,26 @@ namespace HBP.UI.Toolbar
     public class TriangleErasingMode : Tool
     {
         #region Properties
+
         /// <summary>
         /// Dropdown to select the erasing mode
         /// </summary>
         [SerializeField] private Dropdown m_Dropdown;
+
         /// <summary>
         /// Parent of the inputfield to set the degrees of the area
         /// </summary>
         [SerializeField] private RectTransform m_InputFieldParent;
+
         /// <summary>
         /// Inputfield to set the degrees beyond which the triangles are not erased
         /// </summary>
         [SerializeField] private InputField m_InputField;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -47,6 +52,7 @@ namespace HBP.UI.Toolbar
                 m_InputField.text = degrees.ToString();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -58,6 +64,7 @@ namespace HBP.UI.Toolbar
             m_InputField.text = "30";
             m_InputFieldParent.gameObject.SetActive(false);
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -70,6 +77,7 @@ namespace HBP.UI.Toolbar
             m_Dropdown.interactable = true;
             m_InputField.interactable = isZoneModeEnabled;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -88,6 +96,7 @@ namespace HBP.UI.Toolbar
                 m_InputFieldParent.gameObject.SetActive(true);
             }
         }
+
         #endregion
     }
 }

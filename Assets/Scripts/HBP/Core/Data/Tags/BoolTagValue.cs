@@ -24,6 +24,7 @@ namespace HBP.Core.Data
     public class BoolTagValue : TagValue<BoolTag, bool>
     {
         #region Constructors
+
         /// <summary>
         /// Create a new instance of BoolTagValue.
         /// </summary>
@@ -33,6 +34,7 @@ namespace HBP.Core.Data
         public BoolTagValue(BoolTag tag, bool value, string ID) : base(tag, value, ID)
         {
         }
+
         /// <summary>
         /// Create a new instance of BoolTagValue.
         /// </summary>
@@ -41,19 +43,23 @@ namespace HBP.Core.Data
         public BoolTagValue(BoolTag tag, bool value) : base(tag, value)
         {
         }
+
         /// <summary>
         /// Create a new instance of BoolTagValue.
         /// </summary>
         public BoolTagValue() : this(null, default)
         {
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new BoolTagValue(Tag, Value, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -61,11 +67,13 @@ namespace HBP.Core.Data
             {
                 Value = Convert.ToBoolean(intTagValue.Value);
             }
+
             if (copy is FloatTagValue floatTagValue)
             {
                 Value = Convert.ToBoolean(floatTagValue.Value);
             }
         }
+
         #endregion
     }
 }

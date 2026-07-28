@@ -51,10 +51,13 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_generator_surface_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_generator_surface_create(out IntPtr generatorSurface);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_generator_surface_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_generator_surface_destroy(IntPtr generatorSurface);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_generator_surface_initialize", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_generator_surface_initialize(IntPtr generatorSurface, IntPtr surface, IntPtr volume, int dimension);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_generator_surface_set_volume_interpolation", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_generator_surface_set_volume_interpolation(IntPtr generatorSurface, VolumeInterpolation interpolation);
     }

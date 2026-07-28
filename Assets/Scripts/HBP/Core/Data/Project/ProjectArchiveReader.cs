@@ -35,10 +35,7 @@ namespace HBP.Core.Data
             }
         }
 
-        public async UniTask<T> ReadAsync<T>(
-            ProjectManifest manifest,
-            string entryName,
-            CancellationToken token)
+        public async UniTask<T> ReadAsync<T>(ProjectManifest manifest, string entryName, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
             await m_AvailableReaderSlots.WaitAsync(token);
@@ -65,6 +62,7 @@ namespace HBP.Core.Data
                 {
                     m_AvailableReaders.Enqueue(reader);
                 }
+
                 m_AvailableReaderSlots.Release();
             }
         }
@@ -75,10 +73,12 @@ namespace HBP.Core.Data
             {
                 reader.Dispose();
             }
+
             m_Readers.Clear();
             while (m_AvailableReaders.TryDequeue(out _))
             {
             }
+
             m_AvailableReaderSlots?.Dispose();
         }
     }

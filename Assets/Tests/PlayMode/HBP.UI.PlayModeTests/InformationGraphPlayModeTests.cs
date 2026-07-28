@@ -151,13 +151,7 @@ namespace HBP.Tests.PlayMode.UI
             LocalizersGraphsWorker worker = new();
             int progressCalls = 0;
 
-            Dictionary<HBP.Data.Informations.ChannelStruct, List<LocalizerCurveData>> result =
-                await worker.GenerateLocalizersGraphsVoxelAsync(
-                    "synthetic",
-                    new List<ProtocolItem>(),
-                    new RescalingParameters(false, 0f, 1f, 0f),
-                    (_, _, _) => progressCalls++,
-                    CancellationToken.None);
+            Dictionary<HBP.Data.Informations.ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsVoxelAsync("synthetic", new List<ProtocolItem>(), new RescalingParameters(false, 0f, 1f, 0f), (_, _, _) => progressCalls++, CancellationToken.None);
 
             Assert.That(result, Is.Empty);
             Assert.That(progressCalls, Is.Zero);
@@ -170,14 +164,7 @@ namespace HBP.Tests.PlayMode.UI
             LocalizersGraphsWorker worker = new();
             int progressCalls = 0;
 
-            Dictionary<HBP.Data.Informations.ChannelStruct, List<LocalizerCurveData>> result =
-                await worker.GenerateLocalizersGraphsRegionAsync(
-                    1,
-                    "synthetic",
-                    new List<ProtocolItem>(),
-                    new RescalingParameters(false, 0f, 1f, 0f),
-                    (_, _, _) => progressCalls++,
-                    CancellationToken.None);
+            Dictionary<HBP.Data.Informations.ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsRegionAsync(1, "synthetic", new List<ProtocolItem>(), new RescalingParameters(false, 0f, 1f, 0f), (_, _, _) => progressCalls++, CancellationToken.None);
 
             Assert.That(result, Is.Empty);
             Assert.That(progressCalls, Is.Zero);
@@ -203,12 +190,7 @@ namespace HBP.Tests.PlayMode.UI
                 SyntheticLocalizersGraphsWorker worker = new(new[] { site });
                 ProtocolItem protocolItem = CreateSelectedProtocolItem(scene, protocolName, blocName);
 
-                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsVoxelAsync(
-                    dataType,
-                    new List<ProtocolItem> { protocolItem },
-                    new RescalingParameters(true, 1f, 2f, -1f),
-                    null,
-                    CancellationToken.None);
+                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsVoxelAsync(dataType, new List<ProtocolItem> { protocolItem }, new RescalingParameters(true, 1f, 2f, -1f), null, CancellationToken.None);
 
                 ChannelStruct channel = new(site.Information.Name, patient);
                 Assert.That(result, Does.ContainKey(channel));
@@ -247,13 +229,7 @@ namespace HBP.Tests.PlayMode.UI
                 SyntheticLocalizersGraphsWorker worker = new(new[] { site });
                 ProtocolItem protocolItem = CreateSelectedProtocolItem(scene, protocolName, blocName);
 
-                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsRegionAsync(
-                    1,
-                    dataType,
-                    new List<ProtocolItem> { protocolItem },
-                    new RescalingParameters(false, 0f, 1f, 0f),
-                    null,
-                    CancellationToken.None);
+                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsRegionAsync(1, dataType, new List<ProtocolItem> { protocolItem }, new RescalingParameters(false, 0f, 1f, 0f), null, CancellationToken.None);
 
                 LocalizerCurveData curve = result[new ChannelStruct(site.Information.Name, patient)].Single();
                 Assert.That(curve.Points.Select(point => point.y), Is.EqualTo(new[] { 10f, 20f, 30f }));
@@ -277,11 +253,7 @@ namespace HBP.Tests.PlayMode.UI
             using PlayModeSceneScope scene = new("InformationGraphNativeLocalizersVoxel");
             HBP.Core.Object3D.LocalizersObjects previousLocalizers = HBP.Core.Object3D.Object3DManager.Localizers;
             HBP.Core.Object3D.Object3DManager.Localizers = new HBP.Core.Object3D.LocalizersObjects();
-            HBP.Core.Object3D.FMRI fmri = new(
-                "bloc-alpha",
-                NativeFixturePath("Localizers", "protocol-alpha", "signal-alpha", "bloc-alpha.nii"),
-                NativeFixturePath("Localizers", "protocol-alpha", "signal-alpha", "bloc-alpha_MASK.nii"),
-                false);
+            HBP.Core.Object3D.FMRI fmri = new("bloc-alpha", NativeFixturePath("Localizers", "protocol-alpha", "signal-alpha", "bloc-alpha.nii"), NativeFixturePath("Localizers", "protocol-alpha", "signal-alpha", "bloc-alpha_MASK.nii"), false);
 
             try
             {
@@ -298,12 +270,7 @@ namespace HBP.Tests.PlayMode.UI
                 NativeLocalizersGraphsWorker worker = new(new[] { site });
                 ProtocolItem protocolItem = CreateSelectedProtocolItem(scene, protocolName, blocName);
 
-                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsVoxelAsync(
-                    dataType,
-                    new List<ProtocolItem> { protocolItem },
-                    new RescalingParameters(false, 0f, 1f, 0f),
-                    null,
-                    CancellationToken.None);
+                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsVoxelAsync(dataType, new List<ProtocolItem> { protocolItem }, new RescalingParameters(false, 0f, 1f, 0f), null, CancellationToken.None);
 
                 ChannelStruct channel = new(site.Information.Name, patient);
                 Assert.That(result, Does.ContainKey(channel));
@@ -342,13 +309,7 @@ namespace HBP.Tests.PlayMode.UI
                 SyntheticLocalizersGraphsWorker worker = new(new[] { site });
                 ProtocolItem protocolItem = CreateSelectedProtocolItem(scene, protocolName, blocName);
 
-                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsAtlasAsync(
-                    LocalizersGraphsAtlas.MarsAtlas,
-                    dataType,
-                    new List<ProtocolItem> { protocolItem },
-                    new RescalingParameters(true, 10f, 2f, 1f),
-                    null,
-                    CancellationToken.None);
+                Dictionary<ChannelStruct, List<LocalizerCurveData>> result = await worker.GenerateLocalizersGraphsAtlasAsync(LocalizersGraphsAtlas.MarsAtlas, dataType, new List<ProtocolItem> { protocolItem }, new RescalingParameters(true, 10f, 2f, 1f), null, CancellationToken.None);
 
                 LocalizerCurveData curve = result[new ChannelStruct(site.Information.Name, patient)].Single();
                 Assert.That(curve.Points.Select(point => point.y), Is.EqualTo(new[] { 15f, 35f, 55f }));
@@ -372,10 +333,7 @@ namespace HBP.Tests.PlayMode.UI
             try
             {
                 GraphsGrid grid = CreateGraphsGridHarness(scene);
-                HBP.Data.Informations.Column column = new(
-                    "Column A",
-                    new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc),
-                    Array.Empty<ChannelStructsGroup>());
+                HBP.Data.Informations.Column column = new("Column A", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>());
                 ChannelStruct channel = new(fixture.Channel, fixture.Patient);
                 ChannelStruct[] displayRequests = null;
                 ChannelStruct[] filterRequests = null;
@@ -425,15 +383,9 @@ namespace HBP.Tests.PlayMode.UI
                 PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing = false;
                 UITrialMatrixGrid grid = CreateTrialMatrixGridHarness(scene);
                 ChannelStruct channel = new(fixture.Channel, fixture.Patient);
-                HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData dataStruct = new(
-                    fixture.Dataset,
-                    fixture.DataInfo.Name,
-                    fixture.Protocol.OrderedBlocs.ToList());
+                HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData dataStruct = new(fixture.Dataset, fixture.DataInfo.Name, fixture.Protocol.OrderedBlocs.ToList());
 
-                grid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(
-                    new[] { channel },
-                    new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { dataStruct }),
-                    colormap);
+                grid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(new[] { channel }, new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { dataStruct }), colormap);
 
                 Assert.That(grid.Data, Has.Count.EqualTo(1));
                 UITrialMatrixData renderedData = grid.Data[0];
@@ -483,21 +435,12 @@ namespace HBP.Tests.PlayMode.UI
                 PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing = false;
                 UITrialMatrixGrid trialMatrixGrid = CreateTrialMatrixGridHarness(scene);
                 ChannelStruct channel = new(fixture.Channel, fixture.Patient);
-                HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData dataStruct = new(
-                    fixture.Dataset,
-                    fixture.DataInfo.Name,
-                    fixture.Protocol.OrderedBlocs.ToList());
-                trialMatrixGrid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(
-                    new[] { channel },
-                    new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { dataStruct }),
-                    colormap);
+                HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData dataStruct = new(fixture.Dataset, fixture.DataInfo.Name, fixture.Protocol.OrderedBlocs.ToList());
+                trialMatrixGrid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(new[] { channel }, new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { dataStruct }), colormap);
 
                 GraphZone graphZone = CreateGraphZoneHarness(scene, trialMatrixGrid);
                 graphZone.CreateGraphPool(1);
-                HBP.Data.Informations.Column column = new(
-                    "Column A",
-                    new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc),
-                    Array.Empty<ChannelStructsGroup>());
+                HBP.Data.Informations.Column column = new("Column A", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>());
 
                 graphZone.Display(new[] { channel }, new[] { column });
 
@@ -578,17 +521,9 @@ namespace HBP.Tests.PlayMode.UI
                 PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing = false;
                 DBTrialMatrixGrid grid = CreateExplorerTrialMatrixGridHarness(scene);
                 ChannelStruct channel = new(fixture.Channel, fixture.Patient);
-                HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData dataStruct = new(
-                    fixture.Dataset,
-                    fixture.DataInfo.Name,
-                    fixture.Protocol.OrderedBlocs.ToList());
+                HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData dataStruct = new(fixture.Dataset, fixture.DataInfo.Name, fixture.Protocol.OrderedBlocs.ToList());
 
-                grid.Display(
-                    new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(
-                        new[] { channel },
-                        new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { dataStruct }),
-                    "patient-trial-matrix - protocol-trial-matrix - trial-matrix-ieeg - A1",
-                    colormap);
+                grid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(new[] { channel }, new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { dataStruct }), "patient-trial-matrix - protocol-trial-matrix - trial-matrix-ieeg - A1", colormap);
 
                 RectTransform titleContainer = GetPrivateField<RectTransform>(grid, "m_TitleHeaderContainer");
                 Assert.That(titleContainer.childCount, Is.EqualTo(1));
@@ -617,19 +552,8 @@ namespace HBP.Tests.PlayMode.UI
             PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag }, false);
             PersistentDataManager.Tags.SetSiteTags(new BaseTag[] { siteTag }, false);
 
-            Site site = new(
-                "A1",
-                new[] { new Coordinate("information-graph-space", Vector3.one, "information-graph-info-coordinate-001") },
-                new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "information-graph-info-site-tag-value-001") },
-                "information-graph-info-site-001");
-            Patient patient = new(
-                "patient-info",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                new[] { site },
-                new BaseTagValue[] { new BoolTagValue(patientTag, true, "information-graph-info-patient-tag-value-001") },
-                string.Empty,
-                "information-graph-info-patient-001");
+            Site site = new("A1", new[] { new Coordinate("information-graph-space", Vector3.one, "information-graph-info-coordinate-001") }, new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "information-graph-info-site-tag-value-001") }, "information-graph-info-site-001");
+            Patient patient = new("patient-info", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { site }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "information-graph-info-patient-tag-value-001") }, string.Empty, "information-graph-info-patient-001");
 
             DBInformationPanels panels = CreateInformationPanelsHarness(scene);
             DBTagDisplaySettingsContextMenu patientMenu = GetPrivateField<DBTagDisplaySettingsContextMenu>(panels, "m_PatientTagDisplaySettingsContextMenu");
@@ -1222,28 +1146,10 @@ namespace HBP.Tests.PlayMode.UI
         private static IEEGGraphFixture CreateInjectedIEGGraphFixture()
         {
             Patient patient = new("patient-grid", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-graph-grid-patient-001");
-            CoreSubBloc subBloc = new(
-                "response",
-                0,
-                MainSecondaryEnum.Main,
-                new TimeWindow(0, 2),
-                new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-graph-grid-event-001") },
-                Array.Empty<CoreIcon>(),
-                Array.Empty<Treatment>(),
-                "information-graph-grid-subbloc-001");
+            CoreSubBloc subBloc = new("response", 0, MainSecondaryEnum.Main, new TimeWindow(0, 2), new TimeWindow(0, 1), new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-graph-grid-event-001") }, Array.Empty<CoreIcon>(), Array.Empty<Treatment>(), "information-graph-grid-subbloc-001");
             CoreBloc bloc = new("grid-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-graph-grid-bloc-001");
             Protocol protocol = new("protocol-grid", new[] { bloc }, "information-graph-grid-protocol-001");
-            IEEGDataInfo dataInfo = new(
-                "grid-ieeg",
-                protocol,
-                new Elan(),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                NormalizationType.None,
-                "information-graph-db",
-                "information-graph-grid-ieeg-001");
+            IEEGDataInfo dataInfo = new("grid-ieeg", protocol, new Elan(), Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.None, "information-graph-db", "information-graph-grid-ieeg-001");
             Dataset dataset = new("dataset-grid", protocol, new[] { dataInfo }, "information-graph-grid-dataset-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
@@ -1274,28 +1180,10 @@ namespace HBP.Tests.PlayMode.UI
         private static IEEGTrialMatrixFixture CreateInjectedTrialMatrixFixture()
         {
             Patient patient = new("patient-trial-matrix", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-graph-trial-matrix-patient-001");
-            CoreSubBloc subBloc = new(
-                "response",
-                0,
-                MainSecondaryEnum.Main,
-                new TimeWindow(0, 2),
-                new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-graph-trial-matrix-event-001") },
-                Array.Empty<CoreIcon>(),
-                Array.Empty<Treatment>(),
-                "information-graph-trial-matrix-subbloc-001");
+            CoreSubBloc subBloc = new("response", 0, MainSecondaryEnum.Main, new TimeWindow(0, 2), new TimeWindow(0, 1), new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-graph-trial-matrix-event-001") }, Array.Empty<CoreIcon>(), Array.Empty<Treatment>(), "information-graph-trial-matrix-subbloc-001");
             CoreBloc bloc = new("trial-matrix-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-graph-trial-matrix-bloc-001");
             Protocol protocol = new("protocol-trial-matrix", new[] { bloc }, "information-graph-trial-matrix-protocol-001");
-            IEEGDataInfo dataInfo = new(
-                "trial-matrix-ieeg",
-                protocol,
-                new Elan(),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                NormalizationType.None,
-                "information-graph-db",
-                "information-graph-trial-matrix-ieeg-001");
+            IEEGDataInfo dataInfo = new("trial-matrix-ieeg", protocol, new Elan(), Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.None, "information-graph-db", "information-graph-trial-matrix-ieeg-001");
             Dataset dataset = new("dataset-trial-matrix", protocol, new[] { dataInfo }, "information-graph-trial-matrix-dataset-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
@@ -1338,19 +1226,8 @@ namespace HBP.Tests.PlayMode.UI
                     })
                 }
             };
-            EpochDescriptor descriptor = new(
-                new EpochRange(0, values.Length - 1),
-                new EpochRange(values.Length, values.Length + baselineValues.Length - 1),
-                0,
-                0,
-                0,
-                informationsByEvent);
-            return new HBP.Core.Data.SubTrial(
-                new Dictionary<string, float[]> { { "A1", values.Concat(baselineValues).ToArray() } },
-                new Dictionary<string, string> { { "A1", "uV" } },
-                descriptor,
-                subBloc,
-                new Frequency(1000));
+            EpochDescriptor descriptor = new(new EpochRange(0, values.Length - 1), new EpochRange(values.Length, values.Length + baselineValues.Length - 1), 0, 0, 0, informationsByEvent);
+            return new HBP.Core.Data.SubTrial(new Dictionary<string, float[]> { { "A1", values.Concat(baselineValues).ToArray() } }, new Dictionary<string, string> { { "A1", "uV" } }, descriptor, subBloc, new Frequency(1000));
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)
@@ -1378,6 +1255,7 @@ namespace HBP.Tests.PlayMode.UI
                 FieldInfo field = current.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
                 if (field != null) return field;
             }
+
             throw new MissingFieldException(type.FullName, fieldName);
         }
 
@@ -1425,6 +1303,7 @@ namespace HBP.Tests.PlayMode.UI
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -1435,6 +1314,7 @@ namespace HBP.Tests.PlayMode.UI
             {
                 path = Path.Combine(path, part);
             }
+
             return path;
         }
 
@@ -1445,6 +1325,7 @@ namespace HBP.Tests.PlayMode.UI
             {
                 Directory.CreateDirectory(directory.Replace(sourceDirectory, targetDirectory));
             }
+
             foreach (string file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
             {
                 File.Copy(file, file.Replace(sourceDirectory, targetDirectory), true);
@@ -1522,14 +1403,12 @@ namespace HBP.Tests.PlayMode.UI
 
             protected override (float[], float[][]) GetRegionData(Vector3 voxel, HBP.Core.Object3D.LocalizerBloc bloc, int precision)
             {
-                return (
-                    new[] { 10f, 20f, 30f },
-                    new[]
-                    {
-                        new[] { 8f, 12f },
-                        new[] { 18f, 22f },
-                        new[] { 28f, 32f }
-                    });
+                return (new[] { 10f, 20f, 30f }, new[]
+                {
+                    new[] { 8f, 12f },
+                    new[] { 18f, 22f },
+                    new[] { 28f, 32f }
+                });
             }
         }
 
@@ -1555,14 +1434,10 @@ namespace HBP.Tests.PlayMode.UI
 
         private sealed class TestOpenTrialMatrixExplorerSection : OpenTrialMatrixExplorerSection
         {
-            [NonSerialized]
-            public List<ChannelStruct> OpenedChannels;
-            [NonSerialized]
-            public List<IEEGDataInfo> OpenedDataInfos;
-            [NonSerialized]
-            public string OpenedDataName;
-            [NonSerialized]
-            public List<ObjectSite> TestSites = new();
+            [NonSerialized] public List<ChannelStruct> OpenedChannels;
+            [NonSerialized] public List<IEEGDataInfo> OpenedDataInfos;
+            [NonSerialized] public string OpenedDataName;
+            [NonSerialized] public List<ObjectSite> TestSites = new();
 
             protected override List<ObjectSite> Sites => TestSites;
 

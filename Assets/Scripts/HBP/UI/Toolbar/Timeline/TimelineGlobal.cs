@@ -9,20 +9,25 @@ namespace HBP.UI.Toolbar
     public class TimelineGlobal : Tool
     {
         #region Properties
+
         /// <summary>
         /// Toggle global mode
         /// </summary>
         [SerializeField] private Toggle m_Toggle;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when changing the global mode
         /// </summary>
         public GenericEvent<bool> OnChangeValue = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -31,10 +36,11 @@ namespace HBP.UI.Toolbar
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
-                
+
                 OnChangeValue.Invoke(isOn);
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -42,6 +48,7 @@ namespace HBP.UI.Toolbar
         {
             m_Toggle.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -52,6 +59,7 @@ namespace HBP.UI.Toolbar
 
             m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -59,6 +67,7 @@ namespace HBP.UI.Toolbar
         {
             m_Toggle.isOn = GetComponentInParent<TimelineToolbar>(true).IsGlobal;
         }
+
         #endregion
     }
 }

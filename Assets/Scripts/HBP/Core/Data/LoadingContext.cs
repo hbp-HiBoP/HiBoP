@@ -30,8 +30,7 @@ namespace HBP.Core.Data
     {
         public ReadOnlyCollection<LoadingReferenceIssue> Issues { get; }
 
-        public ReferenceResolutionException(IEnumerable<LoadingReferenceIssue> issues)
-            : base(BuildMessage(issues))
+        public ReferenceResolutionException(IEnumerable<LoadingReferenceIssue> issues) : base(BuildMessage(issues))
         {
             Issues = new ReadOnlyCollection<LoadingReferenceIssue>(issues.ToList());
         }
@@ -39,8 +38,7 @@ namespace HBP.Core.Data
         private static string BuildMessage(IEnumerable<LoadingReferenceIssue> issues)
         {
             LoadingReferenceIssue[] issueArray = issues.ToArray();
-            return "Reference resolution failed:" + Environment.NewLine
-                + string.Join(Environment.NewLine, issueArray.Select(issue => " - " + issue));
+            return "Reference resolution failed:" + Environment.NewLine + string.Join(Environment.NewLine, issueArray.Select(issue => " - " + issue));
         }
     }
 
@@ -59,11 +57,7 @@ namespace HBP.Core.Data
         public IReadOnlyDictionary<string, IReadOnlyDictionary<string, Bloc>> BlocByIdByProtocolId { get; }
         public ReadOnlyCollection<LoadingReferenceIssue> Issues => new(m_Issues);
 
-        public LoadingContext(
-            IEnumerable<BaseTag> tags,
-            IEnumerable<Protocol> protocols,
-            IEnumerable<Patient> patients = null,
-            IEnumerable<Dataset> datasets = null)
+        public LoadingContext(IEnumerable<BaseTag> tags, IEnumerable<Protocol> protocols, IEnumerable<Patient> patients = null, IEnumerable<Dataset> datasets = null)
         {
             TagById = BuildIndex(tags, "tag");
             ProtocolById = BuildIndex(protocols, "protocol");
@@ -87,11 +81,7 @@ namespace HBP.Core.Data
             ThrowIfInvalid();
         }
 
-        public void ResolveProject(
-            IEnumerable<Patient> patients,
-            IEnumerable<Group> groups,
-            IEnumerable<Dataset> datasets,
-            IEnumerable<Visualization> visualizations)
+        public void ResolveProject(IEnumerable<Patient> patients, IEnumerable<Group> groups, IEnumerable<Dataset> datasets, IEnumerable<Visualization> visualizations)
         {
             foreach (Patient patient in patients ?? Enumerable.Empty<Patient>())
             {
@@ -149,12 +139,7 @@ namespace HBP.Core.Data
             }
         }
 
-        internal T ResolveRequired<T>(
-            IReadOnlyDictionary<string, T> index,
-            string id,
-            string referenceType,
-            string owner)
-            where T : class
+        internal T ResolveRequired<T>(IReadOnlyDictionary<string, T> index, string id, string referenceType, string owner) where T : class
         {
             if (!string.IsNullOrEmpty(id) && index.TryGetValue(id, out T value))
             {
@@ -165,18 +150,14 @@ namespace HBP.Core.Data
             return null;
         }
 
-        internal T ResolveOptional<T>(IReadOnlyDictionary<string, T> index, string id)
-            where T : class
+        internal T ResolveOptional<T>(IReadOnlyDictionary<string, T> index, string id) where T : class
         {
             return !string.IsNullOrEmpty(id) && index.TryGetValue(id, out T value) ? value : null;
         }
 
         internal Bloc ResolveBloc(string protocolId, string blocId, string owner)
         {
-            if (!string.IsNullOrEmpty(protocolId)
-                && BlocByIdByProtocolId.TryGetValue(protocolId, out IReadOnlyDictionary<string, Bloc> blocs)
-                && !string.IsNullOrEmpty(blocId)
-                && blocs.TryGetValue(blocId, out Bloc bloc))
+            if (!string.IsNullOrEmpty(protocolId) && BlocByIdByProtocolId.TryGetValue(protocolId, out IReadOnlyDictionary<string, Bloc> blocs) && !string.IsNullOrEmpty(blocId) && blocs.TryGetValue(blocId, out Bloc bloc))
             {
                 return bloc;
             }
@@ -203,12 +184,14 @@ namespace HBP.Core.Data
                     {
                         ResolveFilterCondition(child);
                     }
+
                     break;
                 case AnyFilterCondition any:
                     foreach (BaseFilterCondition child in any.Conditions ?? Enumerable.Empty<BaseFilterCondition>())
                     {
                         ResolveFilterCondition(child);
                     }
+
                     break;
             }
         }
@@ -221,10 +204,7 @@ namespace HBP.Core.Data
             }
         }
 
-        private static IReadOnlyDictionary<string, T> BuildIndex<T>(
-            IEnumerable<T> values,
-            string referenceType)
-            where T : BaseData
+        private static IReadOnlyDictionary<string, T> BuildIndex<T>(IEnumerable<T> values, string referenceType) where T : BaseData
         {
             Dictionary<string, T> result = new(StringComparer.Ordinal);
             foreach (T value in values ?? Enumerable.Empty<T>())
@@ -241,24 +221,24 @@ namespace HBP.Core.Data
                     {
                         throw new InvalidOperationException($"Duplicate {referenceType} ID '{id}'.");
                     }
+
                     continue;
                 }
 
                 result.Add(id, value);
             }
+
             return result;
         }
 
-        private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, Bloc>> BuildBlocIndexes(
-            IEnumerable<Protocol> protocols)
+        private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, Bloc>> BuildBlocIndexes(IEnumerable<Protocol> protocols)
         {
             Dictionary<string, IReadOnlyDictionary<string, Bloc>> result = new(StringComparer.Ordinal);
             foreach (Protocol protocol in protocols)
             {
-                result.Add(
-                    protocol.ID,
-                    BuildIndex(protocol.Blocs, $"bloc in protocol '{protocol.ID}'"));
+                result.Add(protocol.ID, BuildIndex(protocol.Blocs, $"bloc in protocol '{protocol.ID}'"));
             }
+
             return result;
         }
     }

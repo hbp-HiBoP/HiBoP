@@ -45,6 +45,7 @@ namespace HBP.Dev
         private void Start()
         {
         }
+
         private async UniTask SaveActivityAsNifti(Action<float, float, LoadingText> onChangeProgress)
         {
             async UniTaskVoid checkProgress(CancellationToken cancellationToken)
@@ -56,13 +57,16 @@ namespace HBP.Dev
                     await UniTask.WaitForSeconds(0.05f);
                 }
             }
+
             CancellationTokenSource source = new();
             checkProgress(source.Token).Forget();
             await UniTask.SwitchToThreadPool();
             Module3DMain.SelectedColumn.ActivityGenerator.SaveActivityAsNifti(Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "test_nifti.nii.gz"), (Module3DMain.SelectedColumn as Column3DIEEG).CurrentProjectionSubtimeline, "IEEG Activity");
             source.Cancel();
         }
+
         [SerializeField] private GameObject m_CubePrefab;
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F1))
@@ -184,6 +188,7 @@ namespace HBP.Dev
         {
             LoadingManager.Load(TestLoadCancelAsync);
         }
+
         private async UniTask TestLoadCancelAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             for (int i = 0; i < 10; i++)
@@ -205,9 +210,11 @@ namespace HBP.Dev
             {
                 patients.Add(await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName));
             }
+
             watch.Stop();
             Debug.Log("Time : " + watch.ElapsedMilliseconds);
         }
+
         private async UniTaskVoid TestLoadPatients2()
         {
             System.Diagnostics.Stopwatch watch = new();
@@ -220,9 +227,11 @@ namespace HBP.Dev
             {
                 patients.Add(ClassLoaderSaver.LoadFromJson<Patient>(file.FullName));
             }
+
             watch.Stop();
             Debug.Log("Time : " + watch.ElapsedMilliseconds);
         }
+
         private async UniTaskVoid TestLoadPatients4()
         {
             System.Diagnostics.Stopwatch watch = new();
@@ -234,6 +243,7 @@ namespace HBP.Dev
             watch.Stop();
             Debug.Log("Time : " + watch.ElapsedMilliseconds);
         }
+
         private async UniTaskVoid TestLoadPatients5()
         {
             await UniTask.SwitchToThreadPool();
@@ -243,18 +253,11 @@ namespace HBP.Dev
             DirectoryInfo patientDirectory = new DirectoryInfo(@"C:\HBP\Projects\VISU_full").GetDirectories("Patients", SearchOption.TopDirectoryOnly)[0];
             FileInfo[] patientFiles = patientDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
             var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () => await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)));
-            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(
-                tasks,
-                0,
-                1,
-                "tutu",
-                (a, b, c) => { },
-                LoadingConcurrencyPolicy.Current.GetLimit(
-                    LoadingWorkCategory.JsonAndZip),
-                true);
+            await Core.Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "tutu", (a, b, c) => { }, LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip), true);
             watch.Stop();
             Debug.Log("Time : " + watch.ElapsedMilliseconds);
         }
+
         private async UniTaskVoid TestLoadPatients6()
         {
             await UniTask.SwitchToThreadPool();
@@ -287,22 +290,27 @@ namespace HBP.Dev
             {
                 result = JsonConvert.DeserializeObject<T>(streamReader.ReadToEnd(), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
             }
+
             return result;
         }
+
         private async UniTaskVoid ThrowError()
         {
             await ThrowErrorAsync();
         }
+
         private async UniTask ThrowErrorAsync()
         {
             await ThrowErrorAsync2();
             throw new Exception("Test");
         }
+
         private async UniTask ThrowErrorAsync2()
         {
             await UniTask.WaitForSeconds(1);
             throw new Exception("Test2");
         }
+
         private void CheckProjectAndDatabaseIntegrity()
         {
             // Database
@@ -313,6 +321,7 @@ namespace HBP.Dev
                     Debug.LogError(string.Format("Patient of {0} not found in database", patientDataInfo.Name));
                 }
             }
+
             // Project
             if (ApplicationState.LoadedProject == null) return;
             foreach (var dataset in ApplicationState.LoadedProject.Datasets)
@@ -326,6 +335,7 @@ namespace HBP.Dev
                 }
             }
         }
+
         private void MarsAtlasCCEP()
         {
             //DirectoryInfo dir = new DirectoryInfo(@"D:\HBP\CCEP\07-bids_20190416\converted");
@@ -335,6 +345,7 @@ namespace HBP.Dev
             //    ApplicationState.LoadedProject.Datasets[0].AddData(new CCEPDataInfo("ccep", new Core.Data.Container.BrainVision(file.FullName, Guid.NewGuid().ToString()), ApplicationState.LoadedProject.Patients[0], file.Name.Replace(file.Extension, ""), ""));
             //}
         }
+
         private void GetAllCCEPData()
         {
             //string ccepDB = @"D:\HBP\CCEP\07-bids_20190416\07-bids";
@@ -356,11 +367,13 @@ namespace HBP.Dev
             //    }
             //}
         }
+
         private async void ScreenshotWindow()
         {
             string path = await FileBrowser.GetSavedFileNameAsync();
             StartCoroutine(c_ScreenshotWindow(path));
         }
+
         private IEnumerator c_ScreenshotWindow(string path)
         {
             yield return new WaitForEndOfFrame();
@@ -372,6 +385,7 @@ namespace HBP.Dev
                 image.SaveToPNG(path);
             }
         }
+
         private void TestOrientation()
         {
             Vector3 orientation = Module3DMain.SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);

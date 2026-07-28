@@ -7,66 +7,76 @@ namespace HBP.UI.Tools
     public class VerticalUIFitter : MonoBehaviour, ILayoutSelfController
     {
         #region Properties
-        [SerializeField, HideInInspector]
-        DrivenRectTransformTracker m_tracker = new();
-        [SerializeField, HideInInspector]
-        RectTransform m_rectTransform;
-        [SerializeField, HideInInspector]
-        RectTransform m_parentRectTransform;
 
-        [SerializeField]
-        private DirectionEnum m_direction;
+        [SerializeField, HideInInspector] DrivenRectTransformTracker m_tracker = new();
+        [SerializeField, HideInInspector] RectTransform m_rectTransform;
+        [SerializeField, HideInInspector] RectTransform m_parentRectTransform;
+
+        [SerializeField] private DirectionEnum m_direction;
+
         public DirectionEnum direction
         {
-            get
-            {
-                return m_direction;
-            }
+            get { return m_direction; }
             set
             {
                 m_direction = value;
                 UpdateRectTransform();
             }
         }
-        public enum DirectionEnum { BotToTop, TopToBot };
+
+        public enum DirectionEnum
+        {
+            BotToTop,
+            TopToBot
+        };
+
         #endregion
 
         #region Public Methods
+
         public void SetLayoutHorizontal()
         {
             UpdateRectTransform();
         }
+
         public void SetLayoutVertical()
         {
             UpdateRectTransform();
         }
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_rectTransform = GetComponent<RectTransform>();
             m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
             UpdateRectTransform();
         }
+
         void Start()
         {
             UpdateRectTransform();
         }
+
         void OnEnable()
         {
             m_tracker.Add(this, m_rectTransform, DrivenTransformProperties.All);
             UpdateRectTransform();
         }
+
         void OnDisable()
         {
             m_tracker.Clear();
         }
+
         void OnTransformParentChanged()
         {
             m_parentRectTransform = transform.parent.GetComponent<RectTransform>();
             UpdateRectTransform();
         }
+
         void Update()
         {
             if (transform.hasChanged)
@@ -75,6 +85,7 @@ namespace HBP.UI.Tools
                 transform.hasChanged = false;
             }
         }
+
         void UpdateRectTransform()
         {
             switch (m_direction)
@@ -90,10 +101,12 @@ namespace HBP.UI.Tools
                     m_rectTransform.anchorMax = Vector2.one;
                     break;
             }
+
             m_rectTransform.localScale = Vector3.one;
             m_rectTransform.pivot = new Vector2(0, 1);
             m_rectTransform.sizeDelta = new Vector2(m_parentRectTransform.rect.height, m_parentRectTransform.rect.width);
         }
+
         #endregion
     }
 }

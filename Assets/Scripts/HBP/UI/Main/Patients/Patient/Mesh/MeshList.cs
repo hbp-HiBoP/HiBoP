@@ -11,16 +11,31 @@ namespace HBP.UI.Main
     public class MeshList : ActionableList<Core.Data.BaseMesh>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Mesh, DescendingMesh, MarsAtlas, DescendingMarsAtlas, Transformation, DescendingTransformation }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Mesh,
+            DescendingMesh,
+            MarsAtlas,
+            DescendingMarsAtlas,
+            Transformation,
+            DescendingTransformation
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_MeshSortingDisplayer;
         [SerializeField] SortingDisplayer m_MarsAtlasSortingDisplayer;
         [SerializeField] SortingDisplayer m_TransformationSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add mesh.
         /// </summary>
@@ -31,9 +46,11 @@ namespace HBP.UI.Main
             SortByNone();
             base.AddObject(objectToAdd);
         }
+
         #endregion
 
         #region SortingMethods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -53,11 +70,13 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -89,11 +108,13 @@ namespace HBP.UI.Main
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by mesh.
         /// </summary>
@@ -125,11 +146,13 @@ namespace HBP.UI.Main
                     m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by Mars atlas.
         /// </summary>
@@ -161,11 +184,13 @@ namespace HBP.UI.Main
                     m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by transformation.
         /// </summary>
@@ -189,6 +214,7 @@ namespace HBP.UI.Main
             m_MarsAtlasSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TransformationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

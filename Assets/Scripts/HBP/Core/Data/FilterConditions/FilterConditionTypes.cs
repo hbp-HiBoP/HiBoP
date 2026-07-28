@@ -8,6 +8,7 @@ namespace HBP.Core.Data
         public FilterConditionAttribute() : base()
         {
         }
+
         public FilterConditionAttribute(params Type[] type) : base(type)
         {
         }

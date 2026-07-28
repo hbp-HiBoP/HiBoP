@@ -11,13 +11,12 @@ namespace HBP.UI.Informations.Graphs
     public class CurvesDisplayer : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] Vector2 m_AbscissaDisplayRange;
+
         public Vector2 AbscissaDisplayRange
         {
-            get
-            {
-                return m_AbscissaDisplayRange;
-            }
+            get { return m_AbscissaDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
@@ -28,12 +27,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] Vector2 m_OrdinateDisplayRange;
+
         public Vector2 OrdinateDisplayRange
         {
-            get
-            {
-                return m_OrdinateDisplayRange;
-            }
+            get { return m_OrdinateDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
@@ -44,40 +41,45 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] List<CurveData> m_Curves;
+
         public ReadOnlyCollection<CurveData> Curves
         {
-            get
-            {
-                return new ReadOnlyCollection<CurveData>(m_Curves);
-            }
+            get { return new ReadOnlyCollection<CurveData>(m_Curves); }
         }
 
         [SerializeField] List<Curve> m_DisplayedCurves;
         [SerializeField] GameObject m_CurvePrefab;
         [SerializeField] GameObject m_ShapedCurvePrefab;
+
         #endregion
 
         #region Public Methods
+
         public void SetCurves(CurveData[] curveDatas)
         {
             m_Curves = new List<CurveData>(curveDatas);
             SetCurves(false);
         }
+
         public void AddCurve(CurveData curveData)
         {
             SetCurves(false);
         }
+
         public void RemoveCurve(CurveData curveData)
         {
             SetCurves(false);
         }
+
         #endregion
 
         #region Setters
+
         void OnValidate()
         {
             SetCurves(true);
         }
+
         void AddCurve(CurveData curveData, bool onValidate = false)
         {
             Curve curve;
@@ -96,8 +98,10 @@ namespace HBP.UI.Informations.Graphs
                 curve.AbscissaDisplayRange = m_AbscissaDisplayRange;
                 curve.Data = curveData;
             }
+
             m_DisplayedCurves.Add(curve);
         }
+
         void RemoveCurve(CurveData curveData, bool onValidate = false)
         {
             if (!onValidate) m_Curves.Remove(curveData);
@@ -112,14 +116,12 @@ namespace HBP.UI.Informations.Graphs
                 else
                 {
 #if UNITY_EDITOR
-                    UnityEditor.EditorApplication.delayCall += () =>
-                    {
-                        DestroyImmediate(curveToRemove.gameObject);
-                    };
+                    UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(curveToRemove.gameObject); };
 #endif
                 }
             }
         }
+
         void SetAbscissaDisplayRange()
         {
             foreach (var curve in m_DisplayedCurves)
@@ -127,6 +129,7 @@ namespace HBP.UI.Informations.Graphs
                 curve.AbscissaDisplayRange = m_AbscissaDisplayRange;
             }
         }
+
         void SetOrdinateDisplayRange()
         {
             foreach (var curve in m_DisplayedCurves)
@@ -134,6 +137,7 @@ namespace HBP.UI.Informations.Graphs
                 curve.OrdinateDisplayRange = m_OrdinateDisplayRange;
             }
         }
+
         void SetCurves(bool onValidate)
         {
             CurveData[] curvesToRemove = m_DisplayedCurves.Where(curve => !m_Curves.Any(c => c == curve.Data)).Select(c => c.Data).ToArray();
@@ -142,6 +146,7 @@ namespace HBP.UI.Informations.Graphs
             CurveData[] curvesToAdd = m_Curves.Where(curve => !m_DisplayedCurves.Any(c => c.Data == curve)).ToArray();
             foreach (var curve in curvesToAdd) AddCurve(curve, onValidate);
         }
+
         #endregion
     }
 }

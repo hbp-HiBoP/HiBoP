@@ -7,25 +7,31 @@ namespace HBP.UI.Toolbar
     public abstract class Toolbar : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Reference to the toolbar menu
         /// </summary>
         protected ToolbarMenu m_ToolbarMenu;
+
         /// <summary>
         /// List of the tools of the toolbar
         /// </summary>
         protected List<Tool> m_Tools = new();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_ToolbarMenu = FindAnyObjectByType<ToolbarMenu>();
         }
+
         /// <summary>
         /// Link elements to the toolbar
         /// </summary>
         protected abstract void AddTools();
+
         /// <summary>
         /// Add the listeners to the elements of the toolbar
         /// </summary>
@@ -54,12 +60,13 @@ namespace HBP.UI.Toolbar
             Module3DMain.OnSelectScene.AddListener(OnChangeScene);
             Module3DMain.OnSelectColumn.AddListener(OnChangeColumn);
             Module3DMain.OnSelectView.AddListener(OnChangeView);
-            
+
             foreach (Tool tool in m_Tools)
             {
                 tool.Initialize();
             }
         }
+
         /// <summary>
         /// Set the toolbar elements to their default state
         /// </summary>
@@ -70,6 +77,7 @@ namespace HBP.UI.Toolbar
                 tool.DefaultState();
             }
         }
+
         /// <summary>
         /// Callback when the selected scene is changed
         /// </summary>
@@ -80,8 +88,10 @@ namespace HBP.UI.Toolbar
             {
                 tool.SelectedScene = scene;
             }
+
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Callback when the selected column is changed
         /// </summary>
@@ -92,8 +102,10 @@ namespace HBP.UI.Toolbar
             {
                 tool.SelectedColumn = column;
             }
+
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Callback when the selected view is changed
         /// </summary>
@@ -104,11 +116,14 @@ namespace HBP.UI.Toolbar
             {
                 tool.SelectedView = view;
             }
+
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -120,20 +135,21 @@ namespace HBP.UI.Toolbar
             DefaultState();
             m_Tools.ForEach((t) => t.ListenerLock = false);
         }
+
         /// <summary>
         /// Called when showing this toolbar
         /// </summary>
         public virtual void ShowToolbarCallback()
         {
-
         }
+
         /// <summary>
         /// Called when hiding this toolbar
         /// </summary>
         public virtual void HideToolbarCallback()
         {
-
         }
+
         /// <summary>
         /// Update all the tools
         /// </summary>
@@ -144,8 +160,10 @@ namespace HBP.UI.Toolbar
             {
                 tool.UpdateTool();
             }
+
             m_Tools.ForEach((t) => t.ListenerLock = false);
         }
+
         #endregion
     }
 }

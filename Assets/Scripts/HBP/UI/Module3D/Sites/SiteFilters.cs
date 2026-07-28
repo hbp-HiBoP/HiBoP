@@ -12,6 +12,7 @@ namespace HBP.UI.Module3D
     public class SiteFilters : MonoBehaviour
     {
         #region Properties
+
         private Base3DScene m_Scene;
 
         [SerializeField] private BasicSiteConditions m_BasicSiteConditions;
@@ -28,13 +29,17 @@ namespace HBP.UI.Module3D
         private bool m_Filtering;
         private CancellationTokenSource m_FilterSource;
         private CancellationTokenSource m_ProgressSource;
+
         #endregion
 
         #region Events
+
         public UnityEvent OnRequestListUpdate = new();
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(Base3DScene scene)
         {
             m_Scene = scene;
@@ -45,6 +50,7 @@ namespace HBP.UI.Module3D
             m_AdvancedSiteConditions.OnEndFilter.AddListener(StopFiltering);
             m_AdvancedSiteConditions.OnFilter.AddListener(m_ProgressBar.Progress);
         }
+
         public void ApplyFilters()
         {
             foreach (var column in m_Scene.Columns)
@@ -83,6 +89,7 @@ namespace HBP.UI.Module3D
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
         }
+
         public void ResetFilters()
         {
             foreach (var column in m_Scene.Columns)
@@ -93,9 +100,11 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_OnOffToggle.onValueChanged.AddListener(m_FiltersPanel.gameObject.SetActive);
@@ -104,6 +113,7 @@ namespace HBP.UI.Module3D
             m_ApplyButton.onClick.AddListener(ApplyButtonClicked);
             m_ResetButton.onClick.AddListener(ResetButtonClicked);
         }
+
         private void StopFiltering(bool filterCompleted)
         {
             m_FilterSource?.Cancel();
@@ -113,6 +123,7 @@ namespace HBP.UI.Module3D
             if (!filterCompleted) ResetFilters();
             OnRequestListUpdate.Invoke();
         }
+
         private void ApplyButtonClicked()
         {
             if (m_Filtering)
@@ -124,6 +135,7 @@ namespace HBP.UI.Module3D
                 ApplyFilters();
             }
         }
+
         private void ResetButtonClicked()
         {
             if (m_Filtering)
@@ -136,6 +148,7 @@ namespace HBP.UI.Module3D
                 StopFiltering(true);
             }
         }
+
         #endregion
     }
 }

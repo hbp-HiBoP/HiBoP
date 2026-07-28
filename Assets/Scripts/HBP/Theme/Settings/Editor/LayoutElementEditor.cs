@@ -20,16 +20,16 @@ namespace HBP.Theme
             SerializedProperty minWidthProperty = serializedObject.FindProperty("MinWidth");
             EditorGUILayout.PrefixLabel("Min Width");
             bool minWidthEnable = !Mathf.Approximately(minWidthProperty.floatValue, -1f);
-            if(EditorGUILayout.Toggle(minWidthEnable, new GUILayoutOption[] { GUILayout.Width(16) }))
+            if (EditorGUILayout.Toggle(minWidthEnable, new GUILayoutOption[] { GUILayout.Width(16) }))
             {
                 if (!minWidthEnable) minWidthProperty.floatValue = 0;
                 minWidthProperty.floatValue = EditorGUILayout.FloatField(minWidthProperty.floatValue);
-
             }
             else
             {
                 minWidthProperty.floatValue = -1;
             }
+
             EditorGUILayout.EndHorizontal();
 
             // Min Height.
@@ -41,12 +41,12 @@ namespace HBP.Theme
             {
                 if (!minHeightEnable) minHeightProperty.floatValue = 0;
                 minHeightProperty.floatValue = EditorGUILayout.FloatField(minHeightProperty.floatValue);
-
             }
             else
             {
                 minHeightProperty.floatValue = -1;
             }
+
             EditorGUILayout.EndHorizontal();
 
             // Preferred Width.
@@ -58,12 +58,12 @@ namespace HBP.Theme
             {
                 if (!preferredWidthEnable) preferredWidthProperty.floatValue = 0;
                 preferredWidthProperty.floatValue = EditorGUILayout.FloatField(preferredWidthProperty.floatValue);
-
             }
             else
             {
                 preferredWidthProperty.floatValue = -1;
             }
+
             EditorGUILayout.EndHorizontal();
 
             // Preferred Height.
@@ -75,12 +75,12 @@ namespace HBP.Theme
             {
                 if (!preferredHeightEnable) preferredHeightProperty.floatValue = 0;
                 preferredHeightProperty.floatValue = EditorGUILayout.FloatField(preferredHeightProperty.floatValue);
-
             }
             else
             {
                 preferredHeightProperty.floatValue = -1;
             }
+
             EditorGUILayout.EndHorizontal();
 
             // Flexible Width.
@@ -92,12 +92,12 @@ namespace HBP.Theme
             {
                 if (!flexibleWidthEnable) flexibleWidthProperty.floatValue = 0;
                 flexibleWidthProperty.floatValue = EditorGUILayout.FloatField(flexibleWidthProperty.floatValue);
-
             }
             else
             {
                 flexibleWidthProperty.floatValue = -1;
             }
+
             EditorGUILayout.EndHorizontal();
 
             // Flexible Height.
@@ -109,12 +109,12 @@ namespace HBP.Theme
             {
                 if (!flexibleHeightEnable) flexibleHeightProperty.floatValue = 0;
                 flexibleHeightProperty.floatValue = EditorGUILayout.FloatField(flexibleHeightProperty.floatValue);
-
             }
             else
             {
                 flexibleHeightProperty.floatValue = -1;
             }
+
             EditorGUILayout.EndHorizontal();
 
             serializedObject.ApplyModifiedProperties();

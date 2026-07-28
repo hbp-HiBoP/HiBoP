@@ -10,22 +10,22 @@ namespace HBP.Data.Module3D
     public class ROI : MonoBehaviour
     {
         #region Properties
+
         private string m_Name = "ROI";
+
         /// <summary>
         /// Name of the ROI
         /// </summary>
         public string Name
         {
-            get
-            {
-                return m_Name;
-            }
+            get { return m_Name; }
             set
             {
                 m_Name = value;
                 OnUpdateROIName.Invoke();
             }
         }
+
         /// <summary>
         /// Layer on which the ROI will be displayed
         /// </summary>
@@ -35,15 +35,13 @@ namespace HBP.Data.Module3D
         /// Index of the selected sphere of this ROI
         /// </summary>
         public int SelectedSphereID { get; set; }
+
         /// <summary>
         /// Currently selected sphere of this ROI
         /// </summary>
         public Sphere SelectedSphere
         {
-            get
-            {
-                return SelectedSphereID == -1 ? null : Spheres[SelectedSphereID];
-            }
+            get { return SelectedSphereID == -1 ? null : Spheres[SelectedSphereID]; }
         }
 
         /// <summary>
@@ -55,32 +53,40 @@ namespace HBP.Data.Module3D
         /// Prefab for the sphere game object
         /// </summary>
         [SerializeField] private GameObject m_SpherePrefab;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when updating the name of the ROI
         /// </summary>
         public UnityEvent OnUpdateROIName = new();
+
         /// <summary>
         /// Event called when adding of removing a sphere in this ROI
         /// </summary>
         public UnityEvent OnChangeNumberOfSpheres = new();
+
         /// <summary>
         /// Event called when modifying a sphere of this ROI
         /// </summary>
         public UnityEvent OnChangeSphereParameters = new();
+
         /// <summary>
         /// Event called when selecting or deselecting a sphere
         /// </summary>
         public UnityEvent OnChangeSphereSelectionState = new();
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             SelectedSphereID = -1;
         }
+
         /// <summary>
         /// Unselect the currently selected sphere of this ROI
         /// </summary>
@@ -90,13 +96,16 @@ namespace HBP.Data.Module3D
             {
                 Spheres[SelectedSphereID].Selected = false;
             }
+
             SelectedSphereID = -1;
 
             OnChangeSphereSelectionState.Invoke();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Display or hide all spheres of this ROI
         /// </summary>
@@ -112,6 +121,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Enable or disable the rendering of the spheres of this ROI
         /// </summary>
@@ -124,6 +134,7 @@ namespace HBP.Data.Module3D
                 Spheres[ii].gameObject.layer = (state ? m_Layer : inactiveLayer);
             }
         }
+
         /// <summary>
         /// Update the ROI mask of the sites using this ROI
         /// </summary>
@@ -136,6 +147,7 @@ namespace HBP.Data.Module3D
                 mask[ii] = !Contains(sites[ii].Information.DefaultPosition);
             }
         }
+
         /// <summary>
         /// Return true if the input position is inside this ROI.
         /// </summary>
@@ -150,8 +162,10 @@ namespace HBP.Data.Module3D
                     return true;
                 }
             }
+
             return false;
         }
+
         /// <summary>
         /// Select the closest sphere from a raycast
         /// </summary>
@@ -180,6 +194,7 @@ namespace HBP.Data.Module3D
 
             SelectSphere(minDistId);
         }
+
         /// <summary>
         /// Select a sphere of this ROI given its index
         /// </summary>
@@ -196,8 +211,10 @@ namespace HBP.Data.Module3D
                 Spheres[sphereID].Selected = true;
                 SelectedSphereID = sphereID;
             }
+
             OnChangeSphereSelectionState.Invoke();
         }
+
         /// <summary>
         /// Add a new sphere to this ROI
         /// </summary>
@@ -210,15 +227,13 @@ namespace HBP.Data.Module3D
             m_Layer = LayerMask.NameToLayer(layer);
             Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
             sphere.Initialize(m_Layer, name, radius, position);
-            sphere.OnChangeRadius.AddListener(() =>
-            {
-                OnChangeSphereParameters.Invoke();
-            });
+            sphere.OnChangeRadius.AddListener(() => { OnChangeSphereParameters.Invoke(); });
             Spheres.Add(sphere);
 
             OnChangeNumberOfSpheres.Invoke();
             SelectSphere(Spheres.Count - 1);
         }
+
         /// <summary>
         /// Move the selected sphere by a specific amount
         /// </summary>
@@ -232,6 +247,7 @@ namespace HBP.Data.Module3D
                 OnChangeSphereParameters.Invoke();
             }
         }
+
         /// <summary>
         /// Remove a sphere from this ROI given its index
         /// </summary>
@@ -245,7 +261,7 @@ namespace HBP.Data.Module3D
             Spheres.RemoveAt(sphereID);
 
             OnChangeNumberOfSpheres.Invoke();
-            
+
             if (SelectedSphereID - 1 == -1 && Spheres.Count > 0)
             {
                 SelectSphere(SelectedSphereID);
@@ -255,6 +271,7 @@ namespace HBP.Data.Module3D
                 SelectSphere(SelectedSphereID - 1);
             }
         }
+
         /// <summary>
         /// Remove the currently selected sphere
         /// </summary>
@@ -262,6 +279,7 @@ namespace HBP.Data.Module3D
         {
             RemoveSphere(SelectedSphereID);
         }
+
         /// <summary>
         /// Increase or decrease the size of the selected sphere by 10%
         /// </summary>
@@ -277,6 +295,7 @@ namespace HBP.Data.Module3D
                 OnChangeSphereParameters.Invoke();
             }
         }
+
         #endregion
     }
 }
