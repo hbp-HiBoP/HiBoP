@@ -266,6 +266,55 @@ namespace HBP.Core.Data
             RequireErrorCheck = false;
         }
 
+        internal virtual void ApplyValidationState(DataInfo validatedSnapshot, ValidationRequest request)
+        {
+            if (validatedSnapshot == null)
+            {
+                throw new ArgumentNullException(nameof(validatedSnapshot));
+            }
+
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            EnsureValidationStates();
+            validatedSnapshot.EnsureValidationStates();
+            string previousSourceSignature = request.Matches(this, ValidationAspect.SourceAvailability) ? GetValidationState(ValidationAspect.SourceAvailability, string.Empty)?.Signature : null;
+            foreach (ValidationAspect aspect in AtomicDataInfoAspects)
+            {
+                if (!request.Matches(this, aspect))
+                {
+                    continue;
+                }
+
+                IReadOnlyCollection<string> targetedSubBlocIDs = request.GetTargetedSubBlocIDs(this);
+                if (aspect == ValidationAspect.Epoching && targetedSubBlocIDs.Count > 0)
+                {
+                    m_ValidationStates.RemoveAll(state => state.Aspect == aspect && (string.IsNullOrEmpty(state.ScopeID) || targetedSubBlocIDs.Contains(state.ScopeID)));
+                    m_ValidationStates.AddRange(validatedSnapshot.m_ValidationStates.Where(state => state.Aspect == aspect && (string.IsNullOrEmpty(state.ScopeID) || targetedSubBlocIDs.Contains(state.ScopeID))).Select(state => state.Clone()));
+                }
+                else
+                {
+                    m_ValidationStates.RemoveAll(state => state.Aspect == aspect);
+                    m_ValidationStates.AddRange(validatedSnapshot.m_ValidationStates.Where(state => state.Aspect == aspect).Select(state => state.Clone()));
+                }
+            }
+
+            if (request.Matches(this, ValidationAspect.SourceAvailability))
+            {
+                m_DataContainer.ApplyValidationState(validatedSnapshot.m_DataContainer);
+                string validatedSourceSignature = validatedSnapshot.GetValidationState(ValidationAspect.SourceAvailability, string.Empty)?.Signature;
+                if (!string.IsNullOrEmpty(previousSourceSignature) && !string.Equals(previousSourceSignature, validatedSourceSignature, StringComparison.Ordinal))
+                {
+                    MarkValidationStale(ValidationAspect.SourceReadability | ValidationAspect.StaticContent | ValidationAspect.Epoching | ValidationAspect.ChannelMapping);
+                }
+            }
+
+            RefreshFlattenedIssues();
+            RequireErrorCheck = false;
+        }
+
         public bool IsValidationCurrent(ValidationAspect aspects, ValidationRequest request = null)
         {
             EnsureValidationStates();

@@ -343,11 +343,21 @@ namespace HBP.Data.Module3D
             Project project = ApplicationState.LoadedProject;
             DataInfo[] requiredDataInfos = visualizationSnapshot.SelectMany(visualization => visualization.GetRequiredDataInfos()).Distinct().ToArray();
             Patient[] requiredPatients = visualizationSnapshot.SelectMany(visualization => visualization.Patients).Distinct().ToArray();
-            ValidationRequest validationRequest = new ValidationRequest(ValidationAspect.DataInfoAll, dataInfoIDs: requiredDataInfos.Select(dataInfo => dataInfo.ID)).Merge(new ValidationRequest(ValidationAspect.PatientAssets, patientIDs: requiredPatients.Select(patient => patient.ID)));
+            ValidationRequest validationRequest = new(ValidationAspect.None);
+            if (requiredDataInfos.Length > 0)
+            {
+                validationRequest = validationRequest.Merge(new ValidationRequest(ValidationAspect.DataInfoAll, dataInfoIDs: requiredDataInfos.Select(dataInfo => dataInfo.ID)));
+            }
+
+            if (requiredPatients.Length > 0)
+            {
+                validationRequest = validationRequest.Merge(new ValidationRequest(ValidationAspect.PatientAssets, patientIDs: requiredPatients.Select(patient => patient.ID)));
+            }
+
             float validationWeight = project != null && project.RequiresValidation(validationRequest) ? 0.25f : 0;
             if (project != null && validationWeight > 0)
             {
-                await project.EnsureProjectValidatedAsync(validationRequest, (progress, duration, text) => onChangeProgress(progress * validationWeight, duration, text), token);
+                await project.EnsureProjectValidatedForImmediateLoadAsync(validationRequest, (progress, duration, text) => onChangeProgress(progress * validationWeight, duration, text), token);
             }
 
             token.ThrowIfCancellationRequested();

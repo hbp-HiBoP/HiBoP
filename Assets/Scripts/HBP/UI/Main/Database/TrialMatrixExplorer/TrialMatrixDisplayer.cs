@@ -84,8 +84,14 @@ namespace HBP.UI.Database
             m_ChannelStructs = channelStructs.OrderBy(c => c.Channel, new SiteNameComparer()).ToList();
             m_Patients = channelStructs.Select(cs => cs.Patient).Distinct().ToList();
             m_DataName = dataName;
-            m_DataInfos = dataInfos.Where(d => d.Name == m_DataName).ToList();
+            m_DataInfos = SelectDataInfos(dataInfos, m_Patients, m_DataName);
             LoadingManager.Load((update, token) => LoadDataAsync(update, token));
+        }
+
+        internal static List<IEEGDataInfo> SelectDataInfos(IEnumerable<IEEGDataInfo> dataInfos, IEnumerable<Patient> patients, string dataName)
+        {
+            HashSet<string> patientIDs = new(patients.Where(patient => patient != null).Select(patient => patient.ID), StringComparer.Ordinal);
+            return dataInfos.Where(dataInfo => dataInfo != null && dataInfo.Patient != null && patientIDs.Contains(dataInfo.Patient.ID) && string.Equals(dataInfo.Name, dataName, StringComparison.Ordinal)).ToList();
         }
 
         public void Display(ChannelStruct channelStruct, IEEGDataInfo dataInfo)
@@ -222,7 +228,14 @@ namespace HBP.UI.Database
                         updateProgress(patientProgress + (dataProgress / totalPatients), 0, new LoadingText("Loading data for ", $"{patient.Name} - {dataInfo.Protocol.Name}", $" {currentPatientIndex + 1} / {totalPatients}"));
                         try
                         {
-                            patientLoadedData.Add(DataManager.GetData(dataInfo) as Core.Data.IEEGData);
+                            Core.Data.IEEGData loadedData = DataManager.GetData(dataInfo) as Core.Data.IEEGData;
+                            if (loadedData == null)
+                            {
+                                string validationDetails = string.Join("\n", dataInfo.Errors.Select(error => error.Message));
+                                throw new CannotLoadDataInfoException(dataInfo, string.IsNullOrEmpty(validationDetails) ? "Validation prevented the data from being loaded." : validationDetails);
+                            }
+
+                            patientLoadedData.Add(loadedData);
                         }
                         catch (HBPException e)
                         {
@@ -282,12 +295,16 @@ namespace HBP.UI.Database
         {
             GlobalDatabase database = DatabaseManager.Database;
             await UniTask.SwitchToMainThread();
-            m_DataInfos = database.DataInfos.OfType<IEEGDataInfo>().Where(dataInfo => dataInfo.Name == m_DataName).ToList();
-            ValidationRequest validationRequest = new(ValidationAspect.SourceAvailability | ValidationAspect.SourceReadability | ValidationAspect.Epoching | ValidationAspect.ChannelMapping, dataInfoIDs: m_DataInfos.Select(dataInfo => dataInfo.ID));
-            float validationWeight = database.RequiresValidation(validationRequest) ? 0.2f : 0;
-            if (validationWeight > 0)
+            m_DataInfos = SelectDataInfos(database.DataInfos.OfType<IEEGDataInfo>(), m_Patients, m_DataName);
+            float validationWeight = 0;
+            if (m_DataInfos.Count > 0)
             {
-                await database.EnsureDatabaseValidatedAsync(validationRequest, (progress, duration, text) => updateProgress(progress * validationWeight, duration, text), token);
+                ValidationRequest validationRequest = new(ValidationAspect.SourceAvailability | ValidationAspect.SourceReadability | ValidationAspect.Epoching | ValidationAspect.ChannelMapping, dataInfoIDs: m_DataInfos.Select(dataInfo => dataInfo.ID));
+                validationWeight = database.RequiresValidation(validationRequest) ? 0.2f : 0;
+                if (validationWeight > 0)
+                {
+                    await database.EnsureDatabaseValidatedForImmediateLoadAsync(validationRequest, (progress, duration, text) => updateProgress(progress * validationWeight, duration, text), token);
+                }
             }
 
             await LoadDataAsync((progress, duration, text) => updateProgress(validationWeight + progress * (1 - validationWeight), duration, text), token);

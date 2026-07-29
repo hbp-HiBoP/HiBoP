@@ -67,6 +67,74 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public async Task ConcurrentAspectResults_MergeWithoutOverwritingEachOther()
+        {
+            string sourcePath = m_FixtureTemp.GetPath("concurrent-validation.edf");
+            File.WriteAllBytes(sourcePath, new byte[] { 1, 2, 3 });
+            Protocol protocol = CreateProtocol("concurrent-protocol", 10, 20);
+            Patient patient = new("patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[]
+            {
+                new Site("A1", Array.Empty<Coordinate>(), Array.Empty<BaseTagValue>(), "site")
+            }, Array.Empty<BaseTagValue>(), string.Empty, "patient");
+            IEEGDataInfo dataInfo = new("data", protocol, new EDF(sourcePath, Array.Empty<Error>(), Array.Empty<Warning>()), Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.Auto, string.Empty, "data");
+            ValidationRequest availabilityRequest = new(ValidationAspect.SourceAvailability, dataInfoIDs: new[] { dataInfo.ID }, force: true);
+            ValidationRequest semanticRequest = new(ValidationAspect.Epoching | ValidationAspect.ChannelMapping, dataInfoIDs: new[] { dataInfo.ID }, force: true);
+            CountingMetadataReader metadataReader = new(new[] { 10, 20 }, new[] { "A1" });
+
+            DataInfoValidationResult initial = await new DataInfoValidator(metadataReader).ValidateAsync(new[] { dataInfo }, availabilityRequest.Merge(semanticRequest), 1, CancellationToken.None, generation: 3);
+            Assert.That(initial.TryApply(3), Is.True);
+            dataInfo.MarkValidationStale(ValidationAspect.Epoching | ValidationAspect.ChannelMapping);
+
+            DataInfoValidationResult availability = await new DataInfoValidator().ValidateAsync(new[] { dataInfo }, availabilityRequest, 1, CancellationToken.None, generation: 4);
+            DataInfoValidationResult semantics = await new DataInfoValidator(metadataReader).ValidateAsync(new[] { dataInfo }, semanticRequest, 1, CancellationToken.None, generation: 4);
+
+            Assert.That(semantics.TryApply(4), Is.True);
+            Assert.That(availability.TryApply(4), Is.True);
+            Assert.That(dataInfo.ValidationStates.Any(state => state.Aspect == ValidationAspect.SourceAvailability && state.Status == ValidationStatus.Current), Is.True);
+            Assert.That(dataInfo.ValidationStates.Any(state => state.Aspect == ValidationAspect.Epoching && state.Status == ValidationStatus.Current), Is.True);
+            Assert.That(dataInfo.ValidationStates.Any(state => state.Aspect == ValidationAspect.ChannelMapping && state.Status == ValidationStatus.Current), Is.True);
+        }
+
+        [Test]
+        public void PreloadingMetadataReader_ReusesTheRawRecordingCache()
+        {
+            Protocol protocol = new("preload-protocol", Array.Empty<Bloc>(), "preload-protocol");
+            IEEGDataInfo dataInfo = CreateIEEG("preload-data", protocol, new Patient());
+            int loadCount = 0;
+            DataManager.Clear();
+            DataManager.RawRecordingLoader = _ =>
+            {
+                loadCount++;
+                return new DynamicData(new Dictionary<string, float[]>
+                {
+                    { "A1", new[] { 1f, 2f } }
+                }, new Dictionary<string, string>
+                {
+                    { "A1", "uV" }
+                }, new Frequency(1000));
+            };
+
+            try
+            {
+                IEEGValidationMetadataReader reader = DataManager.CreatePreloadingValidationMetadataReader();
+
+                EEGValidationMetadata first = reader.Read(dataInfo);
+                EEGValidationMetadata second = reader.Read(dataInfo);
+                HBP.Core.Data.Data loaded = DataManager.GetData(dataInfo);
+
+                Assert.That(loadCount, Is.EqualTo(1));
+                Assert.That(first.ChannelLabels, Is.EquivalentTo(new[] { "A1" }));
+                Assert.That(second.ChannelLabels, Is.EquivalentTo(first.ChannelLabels));
+                Assert.That(loaded, Is.TypeOf<IEEGData>());
+            }
+            finally
+            {
+                DataManager.Clear();
+                DataManager.ResetRawRecordingLoader();
+            }
+        }
+
+        [Test]
         public async Task Epoching_ValidatesEverySubBlocMainEvent_AndAcceptsAlternativeCodes()
         {
             Protocol protocol = CreateProtocol("protocol", 10, 20);
@@ -177,6 +245,24 @@ namespace HBP.Tests.Serialization
             ValidationState staticState = dataInfo.ValidationStates.Single(state => state.Aspect == ValidationAspect.StaticContent);
             Assert.That(staticState.Status, Is.EqualTo(ValidationStatus.Stale));
             Assert.That(staticState.Errors, Is.Empty);
+        }
+
+        [Test]
+        public async Task AvailabilityResult_WithChangedFingerprint_MarksExistingContentStale()
+        {
+            string csvPath = m_FixtureTemp.GetPath("scoped-fingerprint.csv");
+            File.WriteAllText(csvPath, "name,value\nrow,1");
+            StaticDataInfo dataInfo = new("static", CreateProtocol("protocol", 10, 20), new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>()), Array.Empty<Error>(), Array.Empty<Warning>(), new Patient(), string.Empty, "static-data");
+            ValidationRequest initialRequest = new(ValidationAspect.SourceAvailability | ValidationAspect.StaticContent, force: true);
+            DataInfoValidationResult initial = await new DataInfoValidator().ValidateAsync(new[] { dataInfo }, initialRequest, 1, CancellationToken.None, generation: 7);
+            Assert.That(initial.TryApply(7), Is.True);
+
+            File.WriteAllText(csvPath, "name,value\nrow,not-a-number-and-a-different-length");
+            ValidationRequest availabilityRequest = new(ValidationAspect.SourceAvailability, force: true);
+            DataInfoValidationResult availability = await new DataInfoValidator().ValidateAsync(new[] { dataInfo }, availabilityRequest, 1, CancellationToken.None, generation: 8);
+
+            Assert.That(availability.TryApply(8), Is.True);
+            Assert.That(dataInfo.ValidationStates.Single(state => state.Aspect == ValidationAspect.StaticContent).Status, Is.EqualTo(ValidationStatus.Stale));
         }
 
         [Test]

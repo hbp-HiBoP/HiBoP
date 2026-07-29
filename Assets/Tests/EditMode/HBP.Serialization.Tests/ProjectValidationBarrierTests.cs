@@ -59,7 +59,7 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
-        public async Task Module3DLoadAsync_UsesTheCentralProjectBarrier()
+        public async Task Module3DLoadAsync_WithNoVisualizations_DoesNotValidateProject()
         {
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope applicationState = new(temp.Path);
@@ -68,13 +68,9 @@ namespace HBP.Tests.Serialization
             ApplicationState.LoadedProject = project;
 
             Task load = Module3DMain.LoadAsync(Array.Empty<Visualization>(), NoProgress, CancellationToken.None).AsTask();
-            await project.ValidationStarted.Task;
-
-            Assert.That(load.IsCompleted, Is.False);
-            project.ReleaseValidation.SetResult(true);
             await load;
 
-            Assert.That(project.ValidationCalls, Is.EqualTo(1));
+            Assert.That(project.ValidationCalls, Is.Zero);
         }
 
         private static readonly Action<float, float, LoadingText> NoProgress = (_, _, _) => { };
@@ -95,6 +91,12 @@ namespace HBP.Tests.Serialization
                 ValidationStarted.TrySetResult(true);
                 await ReleaseValidation.Task;
                 token.ThrowIfCancellationRequested();
+            }
+
+            public override UniTask EnsureProjectValidatedForImmediateLoadAsync(ValidationRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
+            {
+                ValidationCalls++;
+                return UniTask.CompletedTask;
             }
         }
     }

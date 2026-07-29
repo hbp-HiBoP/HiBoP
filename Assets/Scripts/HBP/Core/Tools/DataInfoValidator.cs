@@ -10,13 +10,15 @@ namespace HBP.Core.Data
     public sealed class DataInfoValidationResult
     {
         private readonly IReadOnlyList<Entry> m_Entries;
+        private readonly ValidationRequest m_Request;
 
         public long Generation { get; }
         public bool HasIssues => m_Entries.Any(entry => entry.ValidatedSnapshot.Errors.Count > 0 || entry.ValidatedSnapshot.Warnings.Count > 0);
 
-        internal DataInfoValidationResult(long generation, IReadOnlyList<Entry> entries)
+        internal DataInfoValidationResult(long generation, ValidationRequest request, IReadOnlyList<Entry> entries)
         {
             Generation = generation;
+            m_Request = request ?? throw new ArgumentNullException(nameof(request));
             m_Entries = entries;
         }
 
@@ -29,7 +31,7 @@ namespace HBP.Core.Data
 
             foreach (Entry entry in m_Entries)
             {
-                entry.Target.ApplyValidationState(entry.ValidatedSnapshot);
+                entry.Target.ApplyValidationState(entry.ValidatedSnapshot, m_Request);
             }
 
             return true;
@@ -90,7 +92,7 @@ namespace HBP.Core.Data
             LoadingWorkCategory category = GetWorkCategory(request);
             DataInfoValidationResult.Entry[] results = await LoadingWorkScheduler.Shared.RunAsync(tasks, category, priorityProvider, token, updateProgress, maxConcurrency);
             token.ThrowIfCancellationRequested();
-            return new DataInfoValidationResult(generation, results.Where(result => result != null).ToArray());
+            return new DataInfoValidationResult(generation, request, results.Where(result => result != null).ToArray());
         }
 
         internal static LoadingWorkCategory GetWorkCategory(ValidationRequest request)

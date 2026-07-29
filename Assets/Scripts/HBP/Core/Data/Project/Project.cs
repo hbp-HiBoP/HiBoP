@@ -767,6 +767,28 @@ namespace HBP.Core.Data
             await EnsureProjectValidatedAsync(updateProgress, token);
         }
 
+        public virtual async UniTask EnsureProjectValidatedForImmediateLoadAsync(ValidationRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (request.Aspects == ValidationAspect.None)
+            {
+                return;
+            }
+
+            await UniTask.SwitchToMainThread();
+            long generation;
+            lock (m_LoadingOperationLock)
+            {
+                generation = m_LoadingGeneration;
+            }
+
+            await ValidateProjectCoreAsync(updateProgress, token, generation, request, () => LoadingWorkPriority.Foreground, DataManager.CreatePreloadingValidationMetadataReader(), false);
+        }
+
         public void InvalidateValidation(ValidationRequest request = null)
         {
             request ??= ValidationRequest.Full;
@@ -832,7 +854,7 @@ namespace HBP.Core.Data
             return operation;
         }
 
-        private async UniTask<bool> ValidateProjectCoreAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token, long generation, ValidationRequest request, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<bool> ValidateProjectCoreAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token, long generation, ValidationRequest request, Func<LoadingWorkPriority> priorityProvider, IEEGValidationMetadataReader metadataReader = null, bool publishValidation = true)
         {
             try
             {
@@ -846,7 +868,7 @@ namespace HBP.Core.Data
 
                 PatientAssetValidationResult assetResult = await new AssetReferenceValidator().ValidatePatientsAsync(patients, pathConcurrency, token, (completed, total) => updateProgress((total == 0 ? 1 : (float)completed / total) * pathWeight, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating patient file references") : new LoadingText("Validating patient file references", " ", completed + "/" + total)), generation, priorityProvider);
 
-                DataInfoValidationResult dataInfoResult = await new DataInfoValidator().ValidateAsync(dataInfos, request, dataInfoConcurrency, token, (completed, total) => updateProgress(pathWeight + (total == 0 ? 1 : (float)completed / total) * (1 - pathWeight), completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating project data") : new LoadingText("Validating project data", " ", completed + "/" + total)), generation, priorityProvider);
+                DataInfoValidationResult dataInfoResult = await new DataInfoValidator(metadataReader).ValidateAsync(dataInfos, request, dataInfoConcurrency, token, (completed, total) => updateProgress(pathWeight + (total == 0 ? 1 : (float)completed / total) * (1 - pathWeight), completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating project data") : new LoadingText("Validating project data", " ", completed + "/" + total)), generation, priorityProvider);
 
                 token.ThrowIfCancellationRequested();
                 await UniTask.SwitchToMainThread();
@@ -857,7 +879,10 @@ namespace HBP.Core.Data
                         throw new OperationCanceledException("The project validation generation is obsolete.", token);
                     }
 
-                    m_ValidationPublished = true;
+                    if (publishValidation)
+                    {
+                        m_ValidationPublished = true;
+                    }
                 }
 
                 OnValidationStateChanged?.Invoke();

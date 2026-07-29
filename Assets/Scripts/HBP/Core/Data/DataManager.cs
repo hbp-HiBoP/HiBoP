@@ -361,6 +361,11 @@ namespace HBP.Core.Data
             RawRecordingLoader = source => new DynamicData(source);
         }
 
+        internal static IEEGValidationMetadataReader CreatePreloadingValidationMetadataReader()
+        {
+            return new PreloadingValidationMetadataReader();
+        }
+
         public static Data GetData(DataInfo dataInfo)
         {
             return GetData(dataInfo, true);
@@ -815,7 +820,7 @@ namespace HBP.Core.Data
         {
             EEGRecordingSource source = EEGRecordingSource.From(request.DataInfo);
             RawRecordingSourceKey sourceKey = RawRecordingSourceKey.From(source);
-            DynamicData rawData = m_RawRecordingCache.GetOrLoad(sourceKey, () => RawRecordingLoader(source));
+            DynamicData rawData = GetOrLoadRawRecording(source, sourceKey);
             PublishLoadedValidationMetadata(request.DataInfo, rawData.ValidationMetadata);
 
             Data data;
@@ -871,6 +876,17 @@ namespace HBP.Core.Data
                 m_RawRecordingCache.RetainOnlyUnpinned(sourceKey);
         }
 
+        private static DynamicData GetOrLoadRawRecording(DataInfo dataInfo)
+        {
+            EEGRecordingSource source = EEGRecordingSource.From(dataInfo);
+            return GetOrLoadRawRecording(source, RawRecordingSourceKey.From(source));
+        }
+
+        private static DynamicData GetOrLoadRawRecording(EEGRecordingSource source, RawRecordingSourceKey sourceKey)
+        {
+            return m_RawRecordingCache.GetOrLoad(sourceKey, () => RawRecordingLoader(source));
+        }
+
         private static void PublishLoadedValidationMetadata(DataInfo dataInfo, EEGValidationMetadata metadata)
         {
             ValidationAspect aspects = ValidationAspect.SourceReadability;
@@ -884,7 +900,7 @@ namespace HBP.Core.Data
             DataInfo snapshot = dataInfo.CreateValidationSnapshot(request, true, new LoadedMetadataReader(metadata));
             if (snapshot != null && string.Equals(sourceDefinition, DataInfoValidationContext.GetSourceDefinitionSignature(dataInfo), StringComparison.Ordinal))
             {
-                dataInfo.ApplyValidationState(snapshot);
+                dataInfo.ApplyValidationState(snapshot, request);
             }
         }
 
@@ -900,6 +916,14 @@ namespace HBP.Core.Data
             public EEGValidationMetadata Read(DataInfo dataInfo)
             {
                 return m_Metadata;
+            }
+        }
+
+        private sealed class PreloadingValidationMetadataReader : IEEGValidationMetadataReader
+        {
+            public EEGValidationMetadata Read(DataInfo dataInfo)
+            {
+                return GetOrLoadRawRecording(dataInfo).ValidationMetadata;
             }
         }
 

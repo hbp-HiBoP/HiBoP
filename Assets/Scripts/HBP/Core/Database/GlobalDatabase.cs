@@ -397,6 +397,35 @@ namespace HBP.Core.Database
             await EnsureDatabaseValidatedAsync(updateProgress, token);
         }
 
+        public async UniTask EnsureDatabaseValidatedForImmediateLoadAsync(ValidationRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            if (request.Aspects == ValidationAspect.None)
+            {
+                return;
+            }
+
+            if (!IsLoaded)
+            {
+                await EnsureDatabaseReadyAsync(updateProgress, token);
+            }
+
+            await UniTask.SwitchToMainThread();
+            long generation;
+            string workspaceID;
+            lock (m_LoadingOperationLock)
+            {
+                generation = m_LoadingGeneration;
+                workspaceID = m_PublishedWorkspaceID;
+            }
+
+            await ValidateDatabaseCoreAsync(workspaceID, updateProgress, token, generation, request, () => LoadingWorkPriority.Foreground, DataManager.CreatePreloadingValidationMetadataReader(), false);
+        }
+
         public async UniTask LoadDatabaseAsync(Action<float, float, LoadingText> updateProgress)
         {
             await EnsureDatabaseValidatedAsync(updateProgress);
@@ -665,7 +694,7 @@ namespace HBP.Core.Database
             }
         }
 
-        private async UniTask<bool> ValidateDatabaseCoreAsync(string workspaceID, Action<float, float, LoadingText> updateProgress, CancellationToken token, long generation, ValidationRequest request, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<bool> ValidateDatabaseCoreAsync(string workspaceID, Action<float, float, LoadingText> updateProgress, CancellationToken token, long generation, ValidationRequest request, Func<LoadingWorkPriority> priorityProvider, IEEGValidationMetadataReader metadataReader = null, bool publishValidation = true)
         {
             try
             {
@@ -690,7 +719,7 @@ namespace HBP.Core.Database
 
                 PatientAssetValidationResult assetResult = await new AssetReferenceValidator().ValidatePatientsAsync(patients, pathConcurrency, token, (completed, total) => updateProgress((total == 0 ? 1 : (float)completed / total) * pathWeight, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database file references") : new LoadingText("Validating database file references", " ", completed + "/" + total)), generation, priorityProvider);
 
-                DataInfoValidationResult dataInfoResult = await new DataInfoValidator().ValidateAsync(dataInfos, request, dataInfoConcurrency, token, (completed, total) => updateProgress(pathWeight + (total == 0 ? 1 : (float)completed / total) * (1 - pathWeight), completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database data") : new LoadingText("Validating database data", " ", completed + "/" + total)), generation, priorityProvider);
+                DataInfoValidationResult dataInfoResult = await new DataInfoValidator(metadataReader).ValidateAsync(dataInfos, request, dataInfoConcurrency, token, (completed, total) => updateProgress(pathWeight + (total == 0 ? 1 : (float)completed / total) * (1 - pathWeight), completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database data") : new LoadingText("Validating database data", " ", completed + "/" + total)), generation, priorityProvider);
 
                 token.ThrowIfCancellationRequested();
                 await UniTask.SwitchToMainThread();
@@ -701,7 +730,10 @@ namespace HBP.Core.Database
                         throw new OperationCanceledException("The database validation generation is obsolete.", token);
                     }
 
-                    m_ValidationPublished = true;
+                    if (publishValidation)
+                    {
+                        m_ValidationPublished = true;
+                    }
                 }
 
                 OnValidationStateChanged?.Invoke();

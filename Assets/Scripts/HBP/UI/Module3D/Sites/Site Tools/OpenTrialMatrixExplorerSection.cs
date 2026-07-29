@@ -127,7 +127,14 @@ namespace HBP.UI.Module3D
                 return;
             }
 
-            List<IEEGDataInfo> selectedDataInfos = m_IEEGDataInfos.Where(info => info.Name == selectedDataName).ToList();
+            List<Patient> selectedPatients = channelStructs.Select(channelStruct => channelStruct.Patient).Distinct().ToList();
+            List<IEEGDataInfo> selectedDataInfos = TrialMatrixDisplayer.SelectDataInfos(m_IEEGDataInfos, selectedPatients, selectedDataName);
+            if (selectedDataInfos.Count == 0)
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Data not found", $"No IEEG data named '{selectedDataName}' was found for the selected patients.").Forget();
+                return;
+            }
+
             ValidationRequest validationRequest = new(ValidationAspect.SourceAvailability | ValidationAspect.SourceReadability | ValidationAspect.Epoching | ValidationAspect.ChannelMapping, dataInfoIDs: selectedDataInfos.Select(info => info.ID));
             try
             {
@@ -136,7 +143,7 @@ namespace HBP.UI.Module3D
                     GlobalDatabase database = DatabaseManager.Database;
                     if (database.RequiresValidation(validationRequest))
                     {
-                        await LoadingManager.LoadAsync((update, token) => database.EnsureDatabaseValidatedAsync(validationRequest, update, token));
+                        await LoadingManager.LoadAsync((update, token) => database.EnsureDatabaseValidatedForImmediateLoadAsync(validationRequest, update, token));
                     }
                 }
                 else
@@ -144,7 +151,7 @@ namespace HBP.UI.Module3D
                     Project project = ApplicationState.LoadedProject;
                     if (project != null && project.RequiresValidation(validationRequest))
                     {
-                        await LoadingManager.LoadAsync((update, token) => project.EnsureProjectValidatedAsync(validationRequest, update, token));
+                        await LoadingManager.LoadAsync((update, token) => project.EnsureProjectValidatedForImmediateLoadAsync(validationRequest, update, token));
                     }
                 }
             }

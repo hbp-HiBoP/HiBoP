@@ -128,6 +128,15 @@ namespace HBP.Core.Data
             m_MaskDataContainer.ApplyValidationState(((MEGvDataInfo)validatedSnapshot).m_MaskDataContainer);
         }
 
+        internal override void ApplyValidationState(DataInfo validatedSnapshot, ValidationRequest request)
+        {
+            base.ApplyValidationState(validatedSnapshot, request);
+            if (request.Matches(this, ValidationAspect.SourceAvailability))
+            {
+                m_MaskDataContainer.ApplyValidationState(((MEGvDataInfo)validatedSnapshot).m_MaskDataContainer);
+            }
+        }
+
         #endregion
 
         #region Private Methods
