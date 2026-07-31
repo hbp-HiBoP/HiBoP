@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -36,6 +37,16 @@ namespace HBP.Data.Module3D
         /// List of all the loaded meshes
         /// </summary>
         public List<Core.Object3D.Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
+        /// <summary>
+        /// Whether this scene contains a patient mesh backed by persistent patient data.
+        /// </summary>
+        public bool HasPersistentPatientMesh => Meshes.Any(mesh =>
+            mesh.Type == MeshType.Patient && mesh is not Core.Object3D.RuntimeSingleMesh3D);
+        /// <summary>
+        /// Transient MRI previews owned by this scene, one for each successfully processed patient MRI.
+        /// </summary>
+        public List<Core.Object3D.RuntimeSingleMesh3D> RuntimePreviewMeshes =>
+            Meshes.OfType<Core.Object3D.RuntimeSingleMesh3D>().ToList();
         /// <summary>
         /// Selected Mesh3D ID
         /// </summary>
@@ -133,6 +144,21 @@ namespace HBP.Data.Module3D
             }
         }
         /// <summary>
+        /// Adds a loaded, scene-owned MRI preview without mutating persistent patient data or preload caches.
+        /// </summary>
+        public void AddRuntime(Core.Object3D.RuntimeSingleMesh3D mesh)
+        {
+            if (mesh == null) throw new ArgumentNullException(nameof(mesh));
+            if (!mesh.IsLoaded || mesh.Both == null || mesh.SimplifiedBoth == null)
+                throw new ArgumentException("A runtime mesh must contain loaded complete and simplified surfaces.", nameof(mesh));
+            if (RuntimePreviewMeshes.Any(preview => ReferenceEquals(preview.SourceMRI, mesh.SourceMRI)))
+                throw new InvalidOperationException($"A runtime mesh for MRI '{mesh.SourceMRIName}' is already registered.");
+
+            MeshPartToDisplay = MeshPart.Both;
+            Meshes.Add(mesh);
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+        /// <summary>
         /// Add a mesh to the mesh manager preloaded meshes
         /// </summary>
         /// <param name="mesh">Mesh data to be converted to 3D mesh</param>
@@ -156,32 +182,101 @@ namespace HBP.Data.Module3D
             int meshID = Meshes.FindIndex(m => m.Name == meshName);
             if (meshID == -1 || (onlyIfAlreadyLoaded && !Meshes[meshID].IsLoaded)) meshID = 0;
 
+            SelectAtIndex(meshID);
+        }
+        /// <summary>
+        /// Applies the initial single-patient selection policy without ever treating a transient
+        /// preview name as persistent configuration.
+        /// </summary>
+        public void SelectInitialMeshForScene(string configuredMeshName, string preferredMeshName, string sourceMRIName)
+        {
+            int meshID = FindLoadedPersistentMesh(configuredMeshName);
+            if (meshID == -1 && HasPersistentPatientMesh)
+            {
+                meshID = FindLoadedPersistentPatientMesh(preferredMeshName);
+            }
+            if (meshID == -1 && !HasPersistentPatientMesh)
+            {
+                Core.Object3D.RuntimeSingleMesh3D preview = RuntimePreviewMeshes.FirstOrDefault(mesh =>
+                    string.Equals(mesh.SourceMRIName, sourceMRIName, StringComparison.OrdinalIgnoreCase))
+                    ?? RuntimePreviewMeshes.FirstOrDefault();
+                if (preview != null)
+                {
+                    meshID = Meshes.IndexOf(preview);
+                    MeshPartToDisplay = MeshPart.Both;
+                }
+            }
+            if (meshID == -1) meshID = 0;
+
+            SelectAtIndex(meshID);
+        }
+
+        private int FindLoadedPersistentMesh(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return -1;
+            return Meshes.FindIndex(mesh =>
+                mesh is not Core.Object3D.RuntimeSingleMesh3D
+                && mesh.IsLoaded
+                && string.Equals(mesh.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private int FindLoadedPersistentPatientMesh(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return -1;
+            return Meshes.FindIndex(mesh =>
+                mesh.Type == MeshType.Patient
+                && mesh is not Core.Object3D.RuntimeSingleMesh3D
+                && mesh.IsLoaded
+                && string.Equals(mesh.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void SelectAtIndex(int meshID)
+        {
+            if (meshID < 0 || meshID >= Meshes.Count)
+                throw new InvalidOperationException("No mesh is available for selection.");
+
             SelectedMeshID = meshID;
-            if (m_Scene.AtlasManager.DisplayMarsAtlas && (!SelectedMesh.IsMarsAtlasLoaded || SelectedMesh.Type != MeshType.MNI))
-            {
-                m_Scene.AtlasManager.DisplayMarsAtlas = false;
-            }
-            if (m_Scene.AtlasManager.DisplayJuBrainAtlas && SelectedMesh.Type != MeshType.MNI)
-            {
-                m_Scene.AtlasManager.DisplayJuBrainAtlas = false;
-            }
-            if (m_Scene.FMRIManager.DisplayIBCContrasts && SelectedMesh.Type != MeshType.MNI)
-            {
-                m_Scene.FMRIManager.DisplayIBCContrasts = false;
-            }
-            if (m_Scene.FMRIManager.DisplayDiFuMo && SelectedMesh.Type != MeshType.MNI)
-            {
-                m_Scene.FMRIManager.DisplayDiFuMo = false;
-            }
-            if (m_Scene.FMRIManager.DisplayLocalizers && SelectedMesh.Type != MeshType.MNI)
-            {
-                m_Scene.FMRIManager.DisplayLocalizers = false;
-            }
+            ApplySelectedMeshCapabilities();
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
 
             m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+
+        private void ApplySelectedMeshCapabilities()
+        {
+            if (!SelectedMesh.SupportsHemispheres)
+            {
+                MeshPartToDisplay = MeshPart.Both;
+            }
+            if (m_Scene.AtlasManager.DisplayMarsAtlas && !SelectedMesh.SupportsMarsAtlas)
+            {
+                m_Scene.AtlasManager.DisplayMarsAtlas = false;
+            }
+            if (m_Scene.AtlasManager.DisplayJuBrainAtlas && !SelectedMesh.SupportsMNIResources)
+            {
+                m_Scene.AtlasManager.DisplayJuBrainAtlas = false;
+            }
+            if (m_Scene.FMRIManager.DisplayIBCContrasts && !SelectedMesh.SupportsMNIResources)
+            {
+                m_Scene.FMRIManager.DisplayIBCContrasts = false;
+            }
+            if (m_Scene.FMRIManager.DisplayDiFuMo && !SelectedMesh.SupportsMNIResources)
+            {
+                m_Scene.FMRIManager.DisplayDiFuMo = false;
+            }
+            if (m_Scene.FMRIManager.DisplayLocalizers && !SelectedMesh.SupportsMNIResources)
+            {
+                m_Scene.FMRIManager.DisplayLocalizers = false;
+            }
+            if (!SelectedMesh.SupportsMarsAtlas)
+            {
+                foreach (Column3DCCEP column in m_Scene.ColumnsCCEP.Where(column => column.Mode == Column3DCCEP.CCEPMode.MarsAtlas))
+                {
+                    column.Mode = Column3DCCEP.CCEPMode.Site;
+                }
+            }
         }
         /// <summary>
         /// Set the mesh part to be displayed in the scene
@@ -189,7 +284,7 @@ namespace HBP.Data.Module3D
         /// <param name="meshPartToDisplay">Mesh part to be displayed</param>
         public void SelectMeshPart(MeshPart meshPartToDisplay)
         {
-            MeshPartToDisplay = meshPartToDisplay;
+            MeshPartToDisplay = SelectedMesh.SupportsHemispheres ? meshPartToDisplay : MeshPart.Both;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.ResetGenerators();
         }

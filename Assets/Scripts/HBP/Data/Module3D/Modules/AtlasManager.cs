@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using HBP.Core.Enums;
 using HBP.Core.Object3D;
 
 namespace HBP.Data.Module3D
@@ -34,12 +33,11 @@ namespace HBP.Data.Module3D
             }
             set
             {
-                m_DisplayMarsAtlas = value;
-                m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayMarsAtlas);
-                if (m_Scene.MeshManager.SelectedMesh.Type == MeshType.MNI)
-                {
-                    UpdateAtlasIndices();
-                }
+                m_DisplayMarsAtlas = value
+                    && Object3DManager.MarsAtlas.Loaded
+                    && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas;
+                m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
+                UpdateAtlasIndices();
             }
         }
 
@@ -55,8 +53,10 @@ namespace HBP.Data.Module3D
             }
             set
             {
-                m_DisplayJuBrainAtlas = value;
-                m_Scene.BrainMaterials.SetDisplayAtlas(m_DisplayJuBrainAtlas);
+                m_DisplayJuBrainAtlas = value
+                    && Object3DManager.JuBrain.Loaded
+                    && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
+                m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
                 UpdateAtlasIndices();
             }
         }
@@ -68,7 +68,7 @@ namespace HBP.Data.Module3D
         {
             get
             {
-                return m_DisplayJuBrainAtlas || (m_DisplayMarsAtlas && m_Scene.MeshManager.SelectedMesh.Type == MeshType.MNI);
+                return m_DisplayJuBrainAtlas || m_DisplayMarsAtlas;
             }
         }
         /// <summary>
@@ -134,8 +134,20 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateAtlasIndices()
         {
-            m_JuBrainAtlasIndices = Object3DManager.JuBrain.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
-            m_MarsAtlasIndices = Object3DManager.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+            m_JuBrainAtlasIndices = null;
+            m_MarsAtlasIndices = null;
+            if (m_DisplayJuBrainAtlas
+                && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources
+                && Object3DManager.JuBrain.Loaded)
+            {
+                m_JuBrainAtlasIndices = Object3DManager.JuBrain.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+            }
+            if (m_DisplayMarsAtlas
+                && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas
+                && Object3DManager.MarsAtlas.Loaded)
+            {
+                m_MarsAtlasIndices = Object3DManager.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+            }
             UpdateAtlasColors();
         }
         /// <summary>
@@ -146,10 +158,13 @@ namespace HBP.Data.Module3D
             if (SelectedAtlas != null)
             {
                 int[] indices = SelectedAtlas is Core.DLL.MarsAtlas ? m_MarsAtlasIndices : m_JuBrainAtlasIndices;
-                Color[] colors = SelectedAtlas.ConvertIndicesToColors(indices, HoveredArea);
-                m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
-                foreach (Column3D column in m_Scene.Columns)
-                    column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                if (indices != null)
+                {
+                    Color[] colors = SelectedAtlas.ConvertIndicesToColors(indices, HoveredArea);
+                    m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
+                    foreach (Column3D column in m_Scene.Columns)
+                        column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                }
             }
             m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
         }

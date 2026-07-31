@@ -70,7 +70,9 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnCCEPAndMarsAtlasModeEnabled = SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas;
+            bool isColumnCCEPAndMarsAtlasModeEnabled = SelectedColumn is Column3DCCEP ccepColumn
+                && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas
+                && SelectedScene.MeshManager.SelectedMesh.SupportsMarsAtlas;
 
             m_MarsAtlasDropdown.interactable = isColumnCCEPAndMarsAtlasModeEnabled;
             gameObject.SetActive(isColumnCCEPAndMarsAtlasModeEnabled);
@@ -82,7 +84,9 @@ namespace HBP.UI.Toolbar
         {
             m_MarsAtlasAreas.Clear();
             m_MarsAtlasDropdown.options.Clear();
-            if (SelectedColumn is Column3DCCEP ccepColumn && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas)
+            if (SelectedColumn is Column3DCCEP ccepColumn
+                && ccepColumn.Mode == Column3DCCEP.CCEPMode.MarsAtlas
+                && SelectedScene.MeshManager.SelectedMesh.SupportsMarsAtlas)
             {
                 int[] marsAtlasLabels = Object3DManager.MarsAtlas.Labels();
                 StringTag marsAtlasTag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;

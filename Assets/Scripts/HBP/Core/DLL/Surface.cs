@@ -90,6 +90,17 @@ namespace HBP.Core.DLL
         {
         }
 
+        internal static Surface FromOwnedLoadedHandle(IntPtr handle)
+        {
+            if (handle == IntPtr.Zero) throw new ArgumentException("A loaded surface requires a non-zero native handle.", nameof(handle));
+            return new Surface(handle) { IsLoaded = true };
+        }
+
+        internal static HbpCoreStatus DestroyOwnedHandle(IntPtr handle)
+        {
+            return handle == IntPtr.Zero ? HbpCoreStatus.Ok : hbp_surface_destroy(handle);
+        }
+
         public Surface(Surface other) : base(CloneNativeSurface(other))
         {
             m_Vertices = (Vector3[])other.m_Vertices.Clone();
@@ -303,7 +314,7 @@ namespace HBP.Core.DLL
 
         protected override void delete_DLL_class()
         {
-            ThrowIfFailed(hbp_surface_destroy(_handle.Handle));
+            ThrowIfFailed(DestroyOwnedHandle(_handle.Handle));
         }
 
         private static IntPtr[] ToPlaneHandles(IEnumerable<Object3D.Cut> cutPlanes)

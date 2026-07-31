@@ -57,7 +57,9 @@ namespace HBP.UI.Toolbar
         public override void UpdateInteractable()
         {
             bool isColumnCCEP = SelectedColumn is Column3DCCEP;
-            bool isMarsAtlasAvailable = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") != null && Object3DManager.MarsAtlas.Loaded;
+            bool isMarsAtlasAvailable = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") != null
+                && Object3DManager.MarsAtlas.Loaded
+                && SelectedScene.MeshManager.SelectedMesh.SupportsMarsAtlas;
 
             gameObject.SetActive(isColumnCCEP);
             m_Site.interactable = isColumnCCEP;

@@ -1,6 +1,6 @@
 # Plan d'implémentation d'un maillage de secours généré depuis une IRM
 
-Statut : plan d'architecture, aucune implémentation réalisée.
+Statut : plan d'architecture ; incréments 0 à 5 implémentés le 31 juillet 2026.
 
 Date de l'étude : 28 juillet 2026.
 
@@ -8,20 +8,21 @@ Date de l'étude : 28 juillet 2026.
 
 Lorsqu'une visualisation mono-patient ne dispose d'aucun maillage patient
 utilisable, HiBoP doit pouvoir générer automatiquement une isosurface
-approximative depuis une IRM anatomique déjà associée au patient.
+approximative pour chaque IRM anatomique associée au patient.
 
-Cette surface :
+Ces surfaces :
 
-- est générée en mémoire par `hbp_core` ;
-- est exposée à HiBoP comme un `Mesh3D` mono-surface utilisable par le pipeline
+- sont générées en mémoire par `hbp_core` ;
+- sont exposées à HiBoP comme des `Mesh3D` mono-surface utilisables par le pipeline
   existant ;
-- est sélectionnée comme surface patient par défaut pour la scène ;
-- n'est pas ajoutée à `Patient.Meshes` ;
-- n'est ni sérialisée comme un `SingleMesh`, ni enregistrée comme GIfTI ;
-- n'est jamais présentée comme une reconstruction corticale validée ;
-- est libérée avec la scène, sauf si un cache mémoire explicite en devient
+- restent associées à leur IRM source ; celle correspondant à l'IRM configurée est
+  sélectionnée par défaut pour la scène ;
+- ne sont pas ajoutées à `Patient.Meshes` ;
+- ne sont ni sérialisées comme des `SingleMesh`, ni enregistrées comme GIfTI ;
+- ne sont jamais présentées comme des reconstructions corticales validées ;
+- sont libérées avec la scène, sauf si un cache mémoire explicite en devient
   propriétaire ;
-- ne supporte ni MarsAtlas, ni les fonctions dépendant d'hémisphères ou de
+- ne supportent ni MarsAtlas, ni les fonctions dépendant d'hémisphères ou de
   labels de surface pré-calculés.
 
 Le moteur d'extraction recommandé est Marching Cubes 33, via MC33++ 5.4, intégré
@@ -145,7 +146,7 @@ retournée par l'extracteur puisse être considérée comme chargée.
 Patient sans mesh persistant
           |
           v
-Choix déterministe de l'IRM anatomique
+Pour chaque IRM anatomique du patient
           |
           v
 MRI3D.Volume (hbp_Volume déjà chargé)
@@ -262,7 +263,6 @@ target_include_directories(hbp_core_mc33
 target_compile_features(hbp_core_mc33 PRIVATE cxx_std_17)
 target_compile_definitions(hbp_core_mc33
     PRIVATE
-        GRD_ORTHOGONAL
         MC33_DOUBLE_PRECISION=0
         USE_MM_RSQRT_SS=0)
 
@@ -278,10 +278,13 @@ convient pas au job macOS arm64 de `hbp_core`. Une optimisation SIMD pourra êtr
 réintroduite ultérieurement derrière des branches d'architecture testées, sans
 modifier les résultats de référence.
 
-`GRD_ORTHOGONAL` est acceptable parce que MC33 travaillera dans l'espace voxel
-orthogonal. L'affine NIfTI complète sera appliquée aux vertices après
-l'extraction. MC33 n'a donc pas à représenter directement la rotation, le
-cisaillement ou la réflexion du volume.
+Le commit `252dabd7ea6dea3d0529e66b047adbe878caf2fa` ne compile pas sous MSVC
+avec `GRD_ORTHOGONAL` : certains lecteurs upstream référencent encore le membre
+`nonortho` que cette macro retire. Les sources vendored restent intactes et la
+macro n'est donc pas définie. L'extracteur fournit néanmoins une grille mémoire
+orthogonale par `grid3d::set_data_pointer`. L'affine NIfTI complète est appliquée
+aux vertices après l'extraction ; MC33 ne représente directement ni rotation,
+ni cisaillement, ni réflexion du volume.
 
 ## 6. Développement natif dans `hbp_core`
 
@@ -485,10 +488,9 @@ L'algorithme recommandé suit cet ordre.
 4. Valider `maximum_grid_dimension` dans `[32, 256]`.
 5. Valider `target_triangle_count` dans `[1000, 200000]`.
 6. Valider les nombres d'itérations dans une petite plage, par exemple `[0, 4]`.
-7. Travailler sur les données 3D déjà contenues dans `Volume`. Le chargeur
-   actuel convertit le temps `t = 0` dans `Volume`, même quand le NIfTI possède
-   plusieurs volumes temporels. Le choix de l'IRM source doit donc exclure les
-   séries fonctionnelles autant que possible.
+7. Travailler sur les données 3D déjà contenues dans `Volume`. Le contrat
+   HiBoP garantit que les entrées de `Patient.MRIs` sont anatomiques ; chaque
+   entrée est donc une source valide pour son propre preview.
 
 #### Étape B — Estimation robuste des intensités
 
@@ -718,7 +720,8 @@ Ajouter une classe spécialisée dans
 ```csharp
 public sealed class RuntimeSingleMesh3D : SingleMesh3D
 {
-    public string SourceMRIName { get; }
+    public MRI3D SourceMRI { get; }
+    public string SourceMRIName => SourceMRI.Name;
     public RuntimeMeshOrigin Origin => RuntimeMeshOrigin.GeneratedFromMRI;
     public bool IsTransient => true;
     public bool SupportsMarsAtlas => false;
@@ -758,13 +761,14 @@ public enum NativeObjectLifetime
 Ce refactor n'est pas requis pour le premier incrément si
 `RuntimeSingleMesh3D` est clairement scene-owned.
 
-### 8.3 Identité stable
+### 8.3 Identité runtime
 
-Utiliser un identifiant réservé stable, distinct du texte affiché :
+Chaque mesh conserve la référence de son objet `MRI3D` source. Le manager
+refuse uniquement un second preview pour cette même instance d'IRM. Le texte
+affiché reste dérivé du nom de l'IRM :
 
 ```text
-Stable ID    : __runtime_mri_preview__
-Display name : Aperçu IRM – <nom de l'IRM>
+Display name : MRI preview – <MRI name>
 ```
 
 La configuration actuelle enregistre uniquement `MeshName`. Deux choix sont
@@ -789,7 +793,7 @@ public void AddRuntime(RuntimeSingleMesh3D mesh)
 Elle doit :
 
 - valider que le mesh est chargé ;
-- refuser un doublon de l'identifiant réservé ;
+- refuser un doublon pour la même `MRI3D` source ;
 - l'ajouter uniquement à `MeshManager.Meshes` ;
 - ne jamais toucher à `Patient.Meshes` ni `PreloadedMeshes` ;
 - conserver `MeshPartToDisplay = MeshPart.Both` ;
@@ -800,7 +804,7 @@ Ajouter des propriétés explicites :
 
 ```csharp
 public bool HasPersistentPatientMesh { get; }
-public RuntimeSingleMesh3D RuntimePreviewMesh { get; }
+public List<RuntimeSingleMesh3D> RuntimePreviewMeshes { get; }
 ```
 
 Ne pas déduire l'absence de mesh patient de l'index ou du nombre total de
@@ -809,31 +813,15 @@ meshes, car les trois surfaces MNI sont toujours chargées en premier.
 `SelectMeshPart` doit forcer `Both` ou refuser `Left`/`Right` lorsque le mesh
 sélectionné ne possède pas d'hémisphères.
 
-## 10. Choix de l'IRM source
+## 10. Ensemble des IRM sources
 
 La génération automatique est limitée aux visualisations mono-patient.
 
-Ordre de sélection recommandé :
-
-1. IRM patient correspondant à `Visualization.Configuration.MRIName`, si elle
-   est utilisable et n'est pas MNI ;
-2. préférence
-   `DefaultSelectedMRIInSinglePatientVisualization`, généralement
-   `Preimplantation` ;
-3. IRM nommée `Preimplantation`, comparaison insensible à la casse ;
-4. première IRM patient utilisable dont le nom n'indique pas `CT`, `fMRI`,
-   `BOLD`, `localizer` ou `functional` ;
-5. première IRM patient utilisable, avec avertissement ;
-6. aucune génération si aucun candidat n'existe.
-
-Le modèle `MRI` ne contient actuellement pas de champ de modalité. La sélection
-par nom n'est donc qu'une heuristique. Une amélioration propre serait d'ajouter
-ultérieurement une modalité explicite aux données patient, mais ce changement
-ne doit pas bloquer le premier incrément.
-
-Un CT ne doit pas être choisi automatiquement : son histogramme et ses
-structures dominantes produiraient plutôt la peau ou l'os. Une génération
-manuelle depuis un CT pourrait être proposée plus tard avec un preset distinct.
+Toutes les entrées du champ `Patient.MRIs` sont considérées comme anatomiques.
+Chaque `MRI3D` patient utilisable doit donc produire son propre preview. Les
+objets partagés chargés hors patient, en particulier MNI, sont exclus. Aucune
+heuristique basée sur `Preimplantation`, `CT`, `fMRI`, `BOLD` ou le nom du
+volume n'est appliquée.
 
 ## 11. Modification de la séquence de chargement
 
@@ -841,7 +829,7 @@ Dans `Base3DScene.InitializeAsync`, ajouter après le chargement des IRM patient
 et avant le chargement des sites :
 
 ```text
-EnsureRuntimePatientMeshAsync
+EnsureRuntimePatientMeshAsync pour chaque IRM patient
 ```
 
 Pseudo-flux :
@@ -850,8 +838,7 @@ Pseudo-flux :
 if (Type == SceneType.SinglePatient
     && !MeshManager.HasPersistentPatientMesh)
 {
-    MRI3D source = SelectPreviewMeshSourceMRI();
-    if (source != null)
+    foreach (MRI3D source in MRIManager.PatientMRIs)
     {
         // Accéder à source.Volume sur le thread de travail afin que son
         // éventuel chargement paresseux ne bloque pas le thread Unity.
@@ -889,12 +876,15 @@ natif annulable ne sera justifié que si les benchmarks dépassent ce budget.
 `onlyIfAlreadyLoaded = true`, puis retombe sur l'index zéro, donc MNI. Il faut
 modifier la politique de sélection :
 
-1. si la configuration référence un véritable mesh patient chargé, le
+1. si la configuration référence un véritable mesh chargé, le
    respecter ;
 2. sinon, si un mesh patient persistant est disponible, appliquer la préférence
    actuelle ;
-3. sinon, si le runtime preview existe, le sélectionner ;
-4. sinon, utiliser le mesh MNI actuel.
+3. sinon, sélectionner le runtime preview associé à
+   `Visualization.Configuration.MRIName` ou à la préférence d'IRM ;
+4. si ce preview n'a pas pu être généré, sélectionner le premier runtime
+   preview disponible ;
+5. sinon, utiliser le mesh MNI actuel.
 
 Cette décision doit être centralisée dans
 `MeshManager.SelectInitialMeshForScene(...)`, plutôt que répétée dans
@@ -902,15 +892,16 @@ Cette décision doit être centralisée dans
 
 ### 11.2 Progression de chargement
 
-Ajouter un poids spécifique, par exemple `LOADING_PREVIEW_MESH_WEIGHT`, utilisé
-uniquement lorsque le fallback est nécessaire.
+Ajouter un poids spécifique par IRM, par exemple
+`LOADING_PREVIEW_MESH_WEIGHT`, utilisé uniquement lorsque le fallback est
+nécessaire.
 
 Messages suggérés :
 
 ```text
-Préparation de l'aperçu anatomique
-Extraction de la surface IRM
-Optimisation de la surface
+Preparing MRI preview
+Generating MRI preview <MRI name> [<index>/<count>]
+Optimizing MRI preview
 ```
 
 Les messages ne doivent pas employer « segmentation cérébrale ».
@@ -1004,7 +995,7 @@ La génération doit être automatique uniquement lorsque :
 
 - la scène est mono-patient ;
 - aucun mesh patient persistant utilisable n'est défini ;
-- une IRM source utilisable existe ;
+- au moins une IRM patient utilisable existe ;
 - la préférence globale « Générer un aperçu IRM en l'absence de mesh » est
   activée. Elle peut être activée par défaut après validation des performances.
 
@@ -1137,40 +1128,58 @@ Si ces budgets ne sont pas atteints :
 |---|---|
 | Aucun mesh, aucune IRM patient | Conserver MNI et afficher une information |
 | IRM illisible | Erreur de chargement actuelle, pas de faux preview |
-| Volume constant ou vide | Log d'erreur, conserver MNI |
+| Volume constant ou vide | Log d'erreur, ignorer ce preview ; conserver les autres ou MNI |
 | Seuil ne produisant aucune surface | Réessayer une fois avec le seuil automatique si l'utilisateur avait donné un seuil manuel, sinon conserver MNI |
 | Surface trop grande | Simplifier ; si limite de sécurité dépassée, abandonner |
 | Surface dégénérée/non fermée | Accepter seulement si les outils ciblés restent sûrs ; sinon abandonner et conserver MNI |
-| Annulation de la scène | Disposer le handle retourné, ne rien ajouter |
+| Annulation de la scène | Disposer le handle retourné, ne plus ajouter de preview |
 | Échec de régénération | Conserver l'ancien preview |
 | Véritable mesh ajouté | Sélectionner selon l'action utilisateur, puis disposer le preview lorsqu'il n'est plus référencé |
 
-Le fallback MNI doit rester disponible comme dernier recours. Un échec de
+Les échecs sont indépendants pour chaque IRM. Le fallback MNI reste disponible
+comme dernier recours lorsqu'aucun preview n'a pu être généré. Un échec de
 Marching Cubes ne doit jamais empêcher l'ouverture de la visualisation.
 
 ## 17. Plan de réalisation par incréments
 
 ### Incrément 0 — Fixtures et mesures de référence
 
+Statut : **réalisé**, avec un périmètre recentré sur la correction du nouvel
+extracteur plutôt que sur les performances des fonctionnalités HiBoP déjà
+implémentées.
+
 Dans `hbp_core` :
 
-- ajouter un petit volume synthétique de sphère ;
-- ajouter une fixture anatomique non sensible ou synthétique avec affine
-  réaliste ;
-- enregistrer temps de chargement, mémoire et tailles attendues ;
-- documenter le corpus réel utilisé manuellement sans l'ajouter au dépôt s'il
-  contient des données patient.
+- générateur déterministe d'une sphère binaire isotrope ;
+- générateur déterministe d'un fantôme anatomique synthétique avec intensités
+  multiples, cavités, composante parasite et affine anisotrope réaliste ;
+- variante du fantôme avec déterminant affine négatif ;
+- oracles exécutables pour dimensions, intensités, centre, bornes, occupation,
+  composantes 26-connexes et remplissage des cavités ;
+- contrat géométrique futur pour rayon, orientation, fermeture et winding ;
+- limites de sécurité initiales sur la grille, les triangles, les entiers ABI
+  et la mémoire ;
+- protocole non versionné pour le corpus anatomique réel.
 
-Dans HiBoP :
+Les fichiers de référence sont dans
+`C:\HBP\Software\hbp_core\tests\native\preview_surface_fixtures.*` et
+`C:\HBP\Software\hbp_core\docs\preview_surface_fixture_baseline.md`. Le CTest
+`hbp_core_preview_surface_fixture_test` matérialise temporairement les NIfTI et
+les recharge par l'ABI publique. Aucun code produit, GIfTI ou donnée patient
+n'a été ajouté.
 
-- mesurer une scène mono-patient normale avec GIfTI ;
-- mesurer le coût des générateurs sur 10 000, 20 000 et 30 000 triangles ;
-- mesurer la distribution de distance sites-surface sur quelques cas
-  représentatifs.
+Les mesures d'une scène GIfTI, du coût des générateurs et des distances
+sites-surface sont retirées de cet incrément. Elles n'influencent pas la
+correction de la création du mesh depuis l'IRM ; le diagnostic de distance
+reste à l'incrément 5.
 
-Critère de sortie : budgets et fixtures reproductibles, sans code produit.
+Critère de sortie : fixtures et oracles reproductibles, limites de sécurité
+documentées et CTest vert, sans code produit.
 
 ### Incrément 1 — Dépendance MC33 et primitive native
+
+Statut : **réalisé localement sur Windows x64**. Linux x64 et macOS arm64
+seront validés par la matrice GitHub Actions lors du push.
 
 Dans `hbp_core` :
 
@@ -1182,14 +1191,31 @@ Dans `hbp_core` :
 - ajouter les tests de géométrie, affine, erreurs et ownership ;
 - mettre à jour la baseline ABI.
 
-Critère de sortie : CTest passe sur Windows x64, Linux x64 et macOS arm64, et
-les dépendances dynamiques du paquet sont inchangées.
+La primitive de cet incrément extrait directement le champ scalaire dans sa
+grille d'origine. Elle applique le seuil explicite, normalisé ou un Otsu
+préliminaire sur l'étendue complète, puis l'affine NIfTI et la correction de
+winding. Le rééchantillonnage, les bornes robustes, la morphologie, les
+composantes, les cavités et la simplification restent à l'incrément 2. Les
+champs ABI correspondants sont déjà validés mais ne sont pas encore appliqués.
+
+MC33++ 5.4 est figé au commit
+`252dabd7ea6dea3d0529e66b047adbe878caf2fa`. La version de `hbp_core` passe à
+0.2.0 et la baseline ABI à 210 symboles.
+
+Critère de sortie local : CTest et inspection des dépendances passent sur
+Windows x64, sans nouvelle dépendance dynamique. Les deux autres plateformes
+restent un gate CI avant merge.
 
 ### Incrément 2 — Prétraitement robuste
 
+Statut : **réalisé localement sur Windows x64**. Linux x64 et macOS arm64
+seront validés par la matrice GitHub Actions lors du push. La validation
+visuelle a été effectuée dans 3D Slicer sur plusieurs IRM réelles non
+versionnées ; les résultats ont été jugés corrects.
+
 Dans `hbp_core` :
 
-- Otsu et seuil explicite ;
+- Otsu sur bornes robustes et seuil explicite finalisé ;
 - rééchantillonnage ;
 - composante principale ;
 - fermeture/cavités/bordure ;
@@ -1197,10 +1223,33 @@ Dans `hbp_core` :
 - simplification et rapport ;
 - benchmarks.
 
+Le pipeline utilise les percentiles robustes 0,5/99,5, un rééchantillonnage
+trilinéaire qui conserve les extrémités, des composantes 26-connexes, une
+fermeture binaire, un remplissage 6-connexe des cavités, une bordure de fond et
+un lissage scalaire séparable. Il vérifie l'occupation, pré-estime la taille
+MC33, remappe l'IJK réduit dans l'affine NIfTI, nettoie les triangles et
+simplifie avec un second nettoyage.
+
+Les oracles synthétiques couvrent aussi les affines de déterminant négatif,
+les NaN/Inf, le déterminisme exact, les limites d'occupation et le cycle de
+propriété. Le benchmark natif dédié au nouvel extracteur traite le fantôme
+`160 x 192 x 144`, réduit à `107 x 128 x 96`, en environ 0,30 s sur la machine
+Windows de développement et simplifie 62 600 triangles à 20 000. Cette mesure
+n'inclut aucune fonctionnalité HiBoP existante et ne constitue pas un budget
+multi-plateforme.
+
+L'outil autonome `hbp_core_preview_surface_export` permet de convertir une IRM
+locale en OBJ marqué `SPACE=RAS`, d'enregistrer le rapport JSON et de superposer
+le résultat au NIfTI dans 3D Slicer sans HiBoP. Le protocole complet est décrit
+dans `C:\HBP\Software\hbp_core\docs\preview_surface_visual_validation.md`.
+
 Critère de sortie : résultats stables sur les fixtures synthétiques et le
 corpus anatomique manuel ; aucun crash sur les cas limites.
 
 ### Incrément 3 — Wrapper et runtime mesh
+
+Statut : **réalisé localement sur Windows x64**. Le chargement automatique
+reste volontairement hors de cet incrément et commence à l'incrément 4.
 
 Dans HiBoP :
 
@@ -1210,25 +1259,90 @@ Dans HiBoP :
 - `MeshManager.AddRuntime` ;
 - tests EditMode de propriété, chargement et nettoyage.
 
+Le wrapper managed initialise et vérifie les layouts ABI, conserve le message
+d'erreur natif et transfère le handle uniquement à une `Surface` chargée et
+propriétaire. `RuntimeSingleMesh3D` possède deux handles distincts pour la
+surface complète et sa copie simplifiée, refuse le clone avec partage implicite
+et est libéré par le nettoyage normal de la scène. `MeshManager.AddRuntime`
+enregistre cette instance uniquement dans la liste runtime, force l'affichage
+`Both`, refuse le doublon réservé et ne modifie ni les meshes persistants du
+patient ni le cache de préchargement.
+
+Validation locale : les six tests EditMode ciblés passent sous Unity
+6000.5.2f1. Ils couvrent le layout managed/native, le refus d'un volume non
+chargé, l'extraction depuis une fixture NIfTI, la création d'un
+`UnityEngine.Mesh`, le chargement sans GIfTI, le double nettoyage sans double
+libération et la séparation persistante/runtime en présence des trois meshes
+MNI. Le test d'inventaire `DllImport` passe également avec 246 imports au total,
+dont 192 vers `hbp_core`. La DLL Windows installée correspond au paquet natif à
+210 symboles ABI.
+
 Critère de sortie : une surface native synthétique peut devenir
 `BrainSurface`, créer un `UnityEngine.Mesh` et être libérée sans fuite.
 
 ### Incrément 4 — Chargement automatique
 
+Statut : **réalisé localement sur Windows x64**. Les autres plateformes seront
+validées par la matrice GitHub Actions lors du push.
+
 Dans HiBoP :
 
-- sélection de l'IRM source ;
+- génération d'un preview distinct pour chaque IRM patient ;
+- association directe de chaque preview à sa `MRI3D` source ;
 - génération après les IRM et avant les sites ;
 - progression et annulation post-appel ;
 - sélection initiale du preview ;
 - fallback MNI ;
 - aucune mutation de `Patient.Meshes` ou de la configuration persistante.
 
-Critère de sortie : une scène mono-patient sans mesh s'ouvre automatiquement
-sur l'aperçu ; les scènes avec mesh et les scènes multi-patients ne changent
-pas.
+Toutes les IRM patient sont traitées, sans heuristique sur leur nom. Les objets
+MNI chargés hors patient ne peuvent pas devenir une source d'extraction.
+
+La génération est lancée sur un thread de travail après le chargement des IRM
+et avant celui des sites. L'annulation est vérifiée avant et après l'appel
+natif ; une surface produite après annulation est immédiatement libérée et
+n'est jamais enregistrée. L'échec d'une IRM est journalisé sans interrompre les
+autres extractions ; la scène utilise MNI seulement si aucune ne réussit.
+
+La politique de sélection initiale conserve un mesh chargé explicitement nommé
+par la configuration, puis la préférence de mesh patient si elle existe. En
+l'absence de mesh patient persistant, elle sélectionne le
+`RuntimeSingleMesh3D` lié à l'IRM configurée, puis le premier preview réussi, et
+force l'affichage de la surface complète ; MNI reste le dernier recours. Un
+preview runtime n'est jamais recopié dans
+`Visualization.Configuration.MeshName` lors d'une sauvegarde.
+
+Validation locale sous Unity 6000.5.2f1 :
+
+- 7 tests EditMode ciblés passent pour l'ABI, l'ownership, plusieurs runtime
+  meshes et l'inventaire des IRM patient ;
+- 5 tests PlayMode ciblés passent pour un preview par IRM, la sélection selon
+  l'IRM configurée, la présence d'un mesh persistant, les échecs partiels ou
+  complets et la scène multi-patients ;
+- 2 tests PlayMode de non-régression passent pour le graphe de scène historique
+  et le cycle chargement/sauvegarde de la configuration.
+
+Critère de sortie : une scène mono-patient sans mesh crée un preview par IRM et
+s'ouvre sur celui de l'IRM configurée ; les scènes avec mesh et les scènes
+multi-patients ne changent pas.
 
 ### Incrément 5 — Capacités et régressions fonctionnelles
+
+Statut : **réalisé localement sur Windows x64**. Le runtime mesh expose
+maintenant explicitement ses capacités : pas d'hémisphères indépendants, pas de
+MarsAtlas et pas de ressources réservées au repère MNI. Le gestionnaire de mesh
+applique ces capacités à chaque sélection : affichage forcé sur `Both`, atlas et
+fMRI MNI désactivés, et toute colonne CCEP en mode MarsAtlas revient au mode
+`Site`. Les mêmes conditions pilotent les contrôles correspondants dans la
+toolbar. La génération CCEP MarsAtlas possède en plus une garde défensive avant
+l'appel natif.
+
+Après le chargement de la configuration, une scène utilisant un runtime mesh
+calcule les distances de chaque site au sommet de surface le plus proche et
+produit P50, P90 et P95. Si au moins 25 % des sites dépassent la plus petite
+distance d'influence active, un avertissement propose une valeur indicative
+arrondie à `P90 + 2 mm`. Ce diagnostic est strictement informatif : il ne
+modifie ni les colonnes ni la configuration persistée.
 
 Dans HiBoP :
 
@@ -1237,6 +1351,17 @@ Dans HiBoP :
 - projections iEEG, CCEP, densité et export NIfTI ;
 - coupes, triangle eraser, ROI et fMRI alignée ;
 - diagnostic des distances sites-surface.
+
+Validation Windows x64 :
+
+- 9 tests EditMode ciblés passent pour les distances, la densité, l'iEEG avec
+  les trois lois de distance, le chemin CCEP MarsAtlas, les UV de
+  surface, les activités fMRI/MEG volumiques et l'export/rechargement NIfTI ;
+- 4 tests PlayMode ciblés passent pour les garde-fous Atlas/hémisphères/fMRI/
+  CCEP, les coupes et projections de surface sur le runtime mesh, le triangle
+  eraser et les ROI ;
+- les 5 tests PlayMode de l'incrément 4 et les 2 tests de régression de
+  configuration passent encore.
 
 Critère de sortie : matrice de compatibilité testée, aucune commande
 incompatible proposée silencieusement.
@@ -1326,6 +1451,7 @@ Ajouter au minimum :
 - `RuntimeSingleMesh3D.Load()` ne cherche jamais un GIfTI ;
 - `Clean()` détruit chaque surface une fois ;
 - `MeshManager.AddRuntime()` n'altère pas `Patient.Meshes` ;
+- plusieurs previews peuvent coexister, sans doublon pour une même IRM ;
 - détection correcte malgré les trois meshes MNI ;
 - sélection `Both` forcée ;
 - sauvegarde de configuration sans référence invalide ;
@@ -1337,18 +1463,19 @@ Ajouter au minimum :
 
 Scénarios :
 
-1. patient sans mesh avec IRM préimplantation ;
+1. patient sans mesh avec plusieurs IRM anatomiques ;
 2. patient avec véritable mesh et IRM ;
 3. patient sans mesh et sans IRM ;
-4. extraction native en échec ;
-5. fermeture de scène pendant la génération ;
-6. deux scènes sans mesh ouvertes successivement ;
-7. mesh de secours avec activité iEEG synthétique ;
-8. coupe et triangle eraser ;
-9. fMRI alignée synthétique ;
-10. tentative d'activation MarsAtlas et Left/Right ;
-11. sauvegarde/rechargement de visualisation ;
-12. passage du preview à un véritable mesh.
+4. extraction native en échec pour toutes les IRM ;
+5. extraction en échec pour une IRM mais réussie pour une autre ;
+6. fermeture de scène pendant la génération ;
+7. deux scènes sans mesh ouvertes successivement ;
+8. mesh de secours avec activité iEEG synthétique ;
+9. coupe et triangle eraser ;
+10. fMRI alignée synthétique ;
+11. tentative d'activation MarsAtlas et Left/Right ;
+12. sauvegarde/rechargement de visualisation ;
+13. passage des previews à un véritable mesh.
 
 ### 18.5 Validation visuelle manuelle
 
@@ -1369,7 +1496,8 @@ La fonctionnalité est prête à être activée par défaut lorsque :
 
 - une visualisation mono-patient sans mesh mais avec IRM s'ouvre sans action
   manuelle ;
-- le preview devient la `BrainSurface` active ;
+- un preview est généré pour chaque IRM patient et celui associé à l'IRM
+  configurée devient la `BrainSurface` active ;
 - aucune donnée patient persistante n'est modifiée ;
 - aucun fichier dérivé n'est écrit ;
 - les fonctions annoncées dans la matrice sont opérationnelles ;
@@ -1414,7 +1542,8 @@ Les recommandations par défaut sont :
    par benchmark.
 5. **Seuil automatique** : Otsu sur plage robuste, puis enveloppe binaire.
 6. **Déclenchement** : uniquement mono-patient sans mesh patient persistant.
-7. **IRM** : préimplantation/configurée avant toute autre.
+7. **IRM** : un preview pour chaque entrée de `Patient.MRIs` ; l'IRM
+   configurée détermine seulement la sélection initiale.
 8. **Persistance** : aucune surface ni entrée patient persistée.
 9. **Durée de vie** : propriété de la scène, pas de cache initial.
 10. **Atlas** : MarsAtlas et atlas MNI désactivés.

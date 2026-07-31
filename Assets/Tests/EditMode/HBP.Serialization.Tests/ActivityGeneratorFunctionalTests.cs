@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using HBP.Core.Data;
 using HBP.Core.DLL;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
@@ -64,6 +65,7 @@ namespace HBP.Tests.Serialization
         [TestCase(SiteInfluenceByDistanceType.Linear, 0.5f)]
         [TestCase(SiteInfluenceByDistanceType.Quadratic, 0.25f)]
         [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
         public void DensityAndIeegGenerators_ApplyEveryDistanceMode(SiteInfluenceByDistanceType mode, float expectedWeight)
         {
             using Surface surface = LoadSurface();
@@ -222,6 +224,7 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
         public void SurfaceGenerator_ComputeMainUvMatchesVolumeOracleAndRejectsInvalidInputs()
         {
             using Surface surface = LoadSurface();
@@ -272,6 +275,7 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
         public void IeegGenerator_ComputeActivityAtlasCoversTimelinesMasksAndRepeatedCalls()
         {
             string tempDirectory = CreateTempDirectory();
@@ -349,6 +353,7 @@ namespace HBP.Tests.Serialization
         [TestCase(GeneratorKind.Fmri)]
         [TestCase(GeneratorKind.Meg)]
         [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
         public void VolumeActivityGenerator_CoversMultiVolumeEveryHideModeAndRepeatedCalls(GeneratorKind kind)
         {
             string tempDirectory = CreateTempDirectory();
@@ -417,6 +422,59 @@ namespace HBP.Tests.Serialization
                 Assert.That(surfaceGenerator.AlphaUV, Has.All.EqualTo(new Vector2(0.28f, 0.0f)));
                 Assert.That(generator.Progress, Is.EqualTo(1.0f));
                 Assert.Throws<InvalidOperationException>(() => ComputeVolumeActivity(generator, Array.Empty<(Volume, Volume)>()));
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, true);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
+        public void IeegGenerator_ExportsActivityAndMaskAsReadableNifti()
+        {
+            string tempDirectory = CreateTempDirectory();
+            try
+            {
+                string activityPath = Path.Combine(tempDirectory, "ieeg-activity.nii.gz");
+                string maskPath = Path.Combine(tempDirectory, "ieeg-mask.nii.gz");
+                using Surface surface = LoadSurface();
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                (Vector3 first, _, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+                using RawSiteList sites = new();
+                sites.AddSite("S1", ToNative(first), 0, 0);
+                sites.UpdateMask(0, false);
+                using IEEGGenerator ieeg = new();
+                ieeg.Initialize(generatorSurface);
+                ieeg.ComputeActivity(
+                    sites,
+                    influenceDistance: 80.0f,
+                    new[] { 0.5f },
+                    timelineLength: 1,
+                    numberOfSites: 1,
+                    SiteInfluenceByDistanceType.Linear);
+
+                HBP.Core.Object3D.FMRI fmri = new();
+                try
+                {
+                    fmri.Volumes.Add(new Volume());
+                    SubTimeline timeline = new(fmri);
+                    Assert.That(ieeg.SaveActivityAsNifti(activityPath, timeline, "IEEG activity"), Is.True);
+                    Assert.That(ieeg.SaveMaskAsNifti(maskPath, "IEEG mask"), Is.True);
+                }
+                finally
+                {
+                    fmri.Clean();
+                }
+
+                using NIFTI activity = new();
+                using NIFTI mask = new();
+                Assert.That(activity.Load(activityPath), Is.True);
+                Assert.That(mask.Load(maskPath), Is.True);
+                Assert.That(activity.NumberOfVolumes, Is.GreaterThanOrEqualTo(1));
+                Assert.That(mask.NumberOfVolumes, Is.EqualTo(1));
             }
             finally
             {

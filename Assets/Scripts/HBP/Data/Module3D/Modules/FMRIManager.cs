@@ -34,7 +34,7 @@ namespace HBP.Data.Module3D
             }
             set
             {
-                m_DisplayIBCContrasts = value;
+                m_DisplayIBCContrasts = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
@@ -67,7 +67,7 @@ namespace HBP.Data.Module3D
             }
             set
             {
-                m_DisplayDiFuMo = value;
+                m_DisplayDiFuMo = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
@@ -120,7 +120,7 @@ namespace HBP.Data.Module3D
             }
             set
             {
-                m_DisplayLocalizers = value;
+                m_DisplayLocalizers = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }

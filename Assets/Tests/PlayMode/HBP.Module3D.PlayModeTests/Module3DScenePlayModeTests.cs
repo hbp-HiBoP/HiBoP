@@ -569,6 +569,7 @@ namespace HBP.Tests.PlayMode.Module3D
         [UnityTest]
         [Category("PlayMode.Module3DScene")]
         [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
         public IEnumerator ROI_UpdateMaskTracksSphereAddResizeMoveAndRemove()
         {
             using PlayModeSceneScope scene = new("Module3DSceneManagedROIMask");
@@ -727,6 +728,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        [Category("MeshScene.ConfigurationRegression")]
         public async Task Base3DScene_InitializeAsync_WithSyntheticMNIAndAnatomyColumnCreatesLoadedSceneGraph()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -755,9 +757,279 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        [Category("PreviewSurface.Increment4")]
+        public async Task Base3DScene_InitializeAsync_WithoutPatientMeshGeneratesOnePreviewPerMRIAndSelectsConfiguredMRI()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DSceneRuntimeMRIPreview");
+            const string configuredMeshName = "previous-persistent-mesh";
+            MRI preimplantationMRI = new("Preimplantation", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-preview-mri-pre");
+            MRI postimplantationMRI = new("Postimplantation", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-preview-mri-post");
+            Base3DScene baseScene = null;
+            try
+            {
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(
+                    temp,
+                    scene,
+                    patientMRIs: new[] { preimplantationMRI, postimplantationMRI },
+                    configuredMeshName: configuredMeshName,
+                    configuredMRIName: postimplantationMRI.Name);
+                baseScene = initialized.BaseScene;
+                List<RuntimeSingleMesh3D> previews = baseScene.MeshManager.RuntimePreviewMeshes;
+                RuntimeSingleMesh3D preview = previews.Single(mesh => mesh.SourceMRIName == postimplantationMRI.Name);
+
+                Assert.That(previews, Has.Count.EqualTo(2));
+                Assert.That(previews.Select(mesh => mesh.SourceMRIName), Is.EqualTo(new[] { "Preimplantation", "Postimplantation" }));
+                Assert.That(previews.Select(mesh => mesh.SourceMRI), Is.EqualTo(baseScene.MRIManager.PatientMRIs));
+                Assert.That(previews.Select(mesh => mesh.Name), Is.EqualTo(new[] { "MRI preview – Preimplantation", "MRI preview – Postimplantation" }));
+                Assert.That(preview.IsLoaded, Is.True);
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(5));
+                Assert.That(baseScene.MeshManager.SelectedMesh, Is.SameAs(preview));
+                Assert.That(baseScene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Both));
+                Assert.That(baseScene.Visualization.Patients.Single().Meshes, Is.Empty);
+                Assert.That(baseScene.Visualization.Configuration.MeshName, Is.EqualTo(configuredMeshName));
+                Assert.That(initialized.LoadingMessages.Count(message => message.StartsWith("Generating MRI preview")), Is.EqualTo(2));
+
+                baseScene.SaveConfiguration();
+                Assert.That(baseScene.Visualization.Configuration.MeshName, Is.EqualTo(configuredMeshName));
+            }
+            finally
+            {
+                CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        [Category("PreviewSurface.Increment4")]
+        public async Task Base3DScene_InitializeAsync_WithPersistentPatientMeshDoesNotGeneratePreview()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DScenePersistentMeshNoPreview");
+            MRI patientMRI = new("Preimplantation", NativeFixturePath("Nifti", "mri_t1.nii"), "persistent-mesh-mri");
+            SingleMesh patientMesh = new(
+                "Grey matter",
+                string.Empty,
+                NativeFixturePath("Meshes", "single_surface.gii"),
+                string.Empty,
+                "persistent-patient-mesh");
+            Base3DScene baseScene = null;
+            try
+            {
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(
+                    temp,
+                    scene,
+                    patientMRIs: new[] { patientMRI },
+                    patientMeshes: new BaseMesh[] { patientMesh },
+                    configuredMeshName: patientMesh.Name);
+                baseScene = initialized.BaseScene;
+
+                Assert.That(baseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
+                Assert.That(baseScene.MeshManager.HasPersistentPatientMesh, Is.True);
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(4));
+                Assert.That(baseScene.MeshManager.SelectedMesh.Type, Is.EqualTo(MeshType.Patient));
+                Assert.That(baseScene.MeshManager.SelectedMesh.Name, Is.EqualTo(patientMesh.Name));
+                Assert.That(initialized.LoadingMessages.Any(message => message.StartsWith("Generating MRI preview")), Is.False);
+                Assert.That(baseScene.Visualization.Patients.Single().Meshes, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        [Category("PreviewSurface.Increment4")]
+        public async Task Base3DScene_InitializeAsync_WhenPreviewExtractionFailsFallsBackToMNI()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DSceneFailedPreviewFallback");
+            string invalidNifti = temp.GetPath("invalid-preview.nii");
+            File.WriteAllText(invalidNifti, "not a NIfTI file");
+            MRI patientMRI = new("Preimplantation", invalidNifti, "invalid-preview-mri");
+            Base3DScene baseScene = null;
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Unable to generate the approximate MRI preview"));
+            try
+            {
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(
+                    temp,
+                    scene,
+                    patientMRIs: new[] { patientMRI });
+                baseScene = initialized.BaseScene;
+
+                Assert.That(baseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
+                Assert.That(baseScene.MeshManager.SelectedMesh.Type, Is.EqualTo(MeshType.MNI));
+                Assert.That(initialized.LoadingMessages.Any(message => message.StartsWith("Generating MRI preview")), Is.True);
+                Assert.That(baseScene.Visualization.Patients.Single().Meshes, Is.Empty);
+            }
+            finally
+            {
+                CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        [Category("PreviewSurface.Increment4")]
+        public async Task Base3DScene_InitializeAsync_WhenOnePreviewFailsKeepsTheOtherMRIStagesIndependent()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DScenePartialPreviewFailure");
+            string invalidNifti = temp.GetPath("invalid-partial-preview.nii");
+            File.WriteAllText(invalidNifti, "not a NIfTI file");
+            MRI invalidMRI = new("Preimplantation", invalidNifti, "invalid-partial-preview-mri");
+            MRI validMRI = new("Postimplantation", NativeFixturePath("Nifti", "mri_t1.nii"), "valid-partial-preview-mri");
+            Base3DScene baseScene = null;
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Unable to generate the approximate MRI preview from 'Preimplantation'"));
+            try
+            {
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(
+                    temp,
+                    scene,
+                    patientMRIs: new[] { invalidMRI, validMRI },
+                    configuredMRIName: invalidMRI.Name);
+                baseScene = initialized.BaseScene;
+
+                RuntimeSingleMesh3D preview = baseScene.MeshManager.RuntimePreviewMeshes.Single();
+                Assert.That(preview.SourceMRIName, Is.EqualTo(validMRI.Name));
+                Assert.That(baseScene.MeshManager.SelectedMesh, Is.SameAs(preview));
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(4));
+                Assert.That(initialized.LoadingMessages.Count(message => message.StartsWith("Generating MRI preview")), Is.EqualTo(2));
+                Assert.That(baseScene.Visualization.Patients.Single().Meshes, Is.Empty);
+            }
+            finally
+            {
+                CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        [Category("PreviewSurface.Increment4")]
+        public async Task Base3DScene_InitializeAsync_MultiPatientSceneDoesNotGeneratePreview()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DSceneMultiPatientNoPreview");
+            MRI patientMRI = new("Preimplantation", NativeFixturePath("Nifti", "mri_t1.nii"), "multi-patient-preview-mri");
+            Base3DScene baseScene = null;
+            try
+            {
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(
+                    temp,
+                    scene,
+                    patientMRIs: new[] { patientMRI },
+                    patientCount: 2);
+                baseScene = initialized.BaseScene;
+
+                Assert.That(baseScene.Type, Is.EqualTo(SceneType.MultiPatients));
+                Assert.That(baseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
+                Assert.That(baseScene.MRIManager.MRIs, Has.Count.EqualTo(1));
+                Assert.That(initialized.LoadingMessages.Any(message => message.StartsWith("Generating MRI preview")), Is.False);
+            }
+            finally
+            {
+                CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        [Category("PreviewSurface.Increment5")]
+        public async Task Base3DScene_RuntimePreviewEnforcesAtlasHemisphereFmriAndCcepCapabilities()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DSceneRuntimePreviewCapabilities");
+            MRI patientMRI = new("Anatomical MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-preview-capabilities-mri");
+            Base3DScene baseScene = null;
+            try
+            {
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(
+                    temp,
+                    scene,
+                    patientMRIs: new[] { patientMRI });
+                baseScene = initialized.BaseScene;
+                RuntimeSingleMesh3D preview = baseScene.MeshManager.RuntimePreviewMeshes.Single();
+
+                Assert.That(baseScene.MeshManager.SelectedMesh, Is.SameAs(preview));
+                Assert.That(preview.SupportsMarsAtlas, Is.False);
+                Assert.That(preview.SupportsMNIResources, Is.False);
+                Assert.That(preview.SupportsHemispheres, Is.False);
+
+                baseScene.MeshManager.SelectMeshPart(MeshPart.Left);
+                Assert.That(baseScene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Both));
+
+                baseScene.FMRIManager.DisplayIBCContrasts = true;
+                baseScene.FMRIManager.DisplayDiFuMo = true;
+                baseScene.FMRIManager.DisplayLocalizers = true;
+                Assert.That(baseScene.FMRIManager.DisplayIBCContrasts, Is.False);
+                Assert.That(baseScene.FMRIManager.DisplayDiFuMo, Is.False);
+                Assert.That(baseScene.FMRIManager.DisplayLocalizers, Is.False);
+
+                SetPrivateField(baseScene.AtlasManager, "m_MarsAtlasIndices", new[] { 1 });
+                SetPrivateField(baseScene.AtlasManager, "m_JuBrainAtlasIndices", new[] { 1 });
+                baseScene.AtlasManager.UpdateAtlasIndices();
+                Assert.That(GetPrivateField<int[]>(baseScene.AtlasManager, "m_MarsAtlasIndices"), Is.Null);
+                Assert.That(GetPrivateField<int[]>(baseScene.AtlasManager, "m_JuBrainAtlasIndices"), Is.Null);
+
+                GameObject ccepObject = new("Runtime preview CCEP capability probe");
+                ccepObject.transform.SetParent(baseScene.transform, false);
+                Column3DCCEP ccep = ccepObject.AddComponent<Column3DCCEP>();
+                baseScene.Columns.Add(ccep);
+                ccep.Mode = Column3DCCEP.CCEPMode.MarsAtlas;
+
+                MethodInfo applyCapabilities = typeof(MeshManager).GetMethod(
+                    "ApplySelectedMeshCapabilities",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(applyCapabilities, Is.Not.Null);
+                applyCapabilities.Invoke(baseScene.MeshManager, null);
+
+                Assert.That(ccep.Mode, Is.EqualTo(Column3DCCEP.CCEPMode.Site));
+            }
+            finally
+            {
+                CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
         [Category("NativeMigration")]
         [Category("NativeDll")]
         [Category("HbpCoreOnly")]
+        [Category("PreviewSurface.Increment5")]
         public async Task Base3DScene_HbpCoreComputesRuntimeCutTexturesAndSurfaceActivity()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -778,10 +1050,12 @@ namespace HBP.Tests.PlayMode.Module3D
                 SetPrivateField(module, "m_SharedMaterials", CreateSharedMaterials());
                 SetPrivateField(module, "m_Scenes", new List<Base3DScene>());
                 SetModule3DMainInstance(module);
-                var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
+                MRI patientMRI = new("Anatomical MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-cut-activity-mri");
+                var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, patientMRIs: new[] { patientMRI });
                 Base3DScene baseScene = initialized.BaseScene;
                 Column3D column = baseScene.Columns.Single();
 
+                Assert.That(baseScene.MeshManager.SelectedMesh, Is.TypeOf<RuntimeSingleMesh3D>());
                 Assert.That(baseScene.MRIManager.SelectedMRI.Volume.IsLoaded, Is.True);
 
                 await WaitForConditionAsync(() =>
@@ -821,6 +1095,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 Mesh brainMesh = column.BrainMesh.GetComponent<MeshFilter>().mesh;
                 Assert.That(brainMesh.uv2, Has.Length.EqualTo(brainMesh.vertexCount));
                 Assert.That(brainMesh.uv3, Has.Length.EqualTo(brainMesh.vertexCount));
+                CleanSceneOwnedAnatomy(baseScene);
         }
 
         [Test]
@@ -881,14 +1156,18 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        [Category("PreviewSurface.Increment5")]
         public async Task Base3DScene_TriangleEraserToggleControlsGeneratedInvisibleMesh()
         {
+            RequireHbpCore();
             using PlayModeTempDirectoryScope temp = new();
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DSceneModule3DCleanGeneratedObjects");
-            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
+            MRI patientMRI = new("Anatomical MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-triangle-eraser-mri");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, patientMRIs: new[] { patientMRI });
             Base3DScene baseScene = initialized.BaseScene;
             DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
             GameObject brain = displayedObjects.Brain;
@@ -896,6 +1175,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Core.Object3D.Cut cut = baseScene.AddCutPlane();
             GameObject cutObject = displayedObjects.BrainCutMeshes.Single();
 
+            Assert.That(baseScene.MeshManager.SelectedMesh, Is.TypeOf<RuntimeSingleMesh3D>());
             Assert.That(brain, Is.Not.Null);
             Assert.That(simplifiedBrain, Is.Not.Null);
             displayedObjects.InstantiateInvisibleMesh(false);
@@ -914,6 +1194,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(invisibleBrain.activeSelf, Is.False);
             Assert.That(cut, Is.Not.Null);
             Assert.That(cutObject, Is.Not.Null);
+            CleanSceneOwnedAnatomy(baseScene);
         }
 
         [Test]
@@ -1016,6 +1297,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        [Category("MeshScene.ConfigurationRegression")]
         public async Task Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -1221,11 +1503,18 @@ namespace HBP.Tests.PlayMode.Module3D
             PlayModeTempDirectoryScope temp,
             PlayModeSceneScope scene,
             int anatomyColumnCount = 1,
-            string patientSuffix = "alpha")
+            string patientSuffix = "alpha",
+            IEnumerable<MRI> patientMRIs = null,
+            IEnumerable<BaseMesh> patientMeshes = null,
+            string configuredMeshName = null,
+            string configuredMRIName = null,
+            int patientCount = 1)
         {
-            Project project = CreateMinimalAnatomicProject(anatomyColumnCount, patientSuffix);
+            Project project = CreateMinimalAnatomicProject(anatomyColumnCount, patientSuffix, patientMRIs, patientMeshes, patientCount);
             Base3DScene baseScene = CreateRuntimeBase3DScene(scene);
             Visualization visualization = project.Visualizations.Single();
+            visualization.Configuration.MeshName = configuredMeshName;
+            visualization.Configuration.MRIName = configuredMRIName;
             List<string> loadingMessages = new();
 
             baseScene.Initialize(visualization);
@@ -1475,7 +1764,12 @@ namespace HBP.Tests.PlayMode.Module3D
             return material;
         }
 
-        private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1, string patientSuffix = "alpha")
+        private static Project CreateMinimalAnatomicProject(
+            int anatomyColumnCount = 1,
+            string patientSuffix = "alpha",
+            IEnumerable<MRI> patientMRIs = null,
+            IEnumerable<BaseMesh> patientMeshes = null,
+            int patientCount = 1)
         {
             HBP.Core.Data.Site site = new(
                 $"module3d-scene-site-{patientSuffix}",
@@ -1484,12 +1778,24 @@ namespace HBP.Tests.PlayMode.Module3D
                 $"module3d-scene-site-{patientSuffix}");
             Patient patient = new(
                 $"module3d-scene-patient-{patientSuffix}",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
+                patientMeshes ?? Array.Empty<BaseMesh>(),
+                patientMRIs ?? Array.Empty<MRI>(),
                 new[] { site },
                 Array.Empty<BaseTagValue>(),
                 string.Empty,
                 $"module3d-scene-patient-{patientSuffix}");
+            List<Patient> patients = new() { patient };
+            for (int index = 1; index < patientCount; ++index)
+            {
+                patients.Add(new Patient(
+                    $"module3d-scene-patient-{patientSuffix}-{index}",
+                    Array.Empty<BaseMesh>(),
+                    Array.Empty<MRI>(),
+                    Array.Empty<HBP.Core.Data.Site>(),
+                    Array.Empty<BaseTagValue>(),
+                    string.Empty,
+                    $"module3d-scene-patient-{patientSuffix}-{index}"));
+            }
             List<Column> columns = Enumerable.Range(0, anatomyColumnCount)
                 .Select(index => (Column)new AnatomicColumn(
                     $"module3d-scene-anatomy-{index}",
@@ -1499,14 +1805,14 @@ namespace HBP.Tests.PlayMode.Module3D
                 .ToList();
             Visualization visualization = new(
                 $"module3d-scene-visualization-{patientSuffix}",
-                new[] { patient },
+                patients,
                 columns,
                 new VisualizationConfiguration(),
                 $"module3d-scene-visualization-{patientSuffix}");
             Project project = new(
                 $"module3d-scene-project-{patientSuffix}",
                 new HBP.Core.Data.ProjectPreferences("module3d-scene-test", $"module3d-scene-project-preferences-{patientSuffix}"),
-                new[] { patient },
+                patients,
                 Array.Empty<Group>(),
                 Array.Empty<Dataset>(),
                 new[] { visualization });
@@ -1604,6 +1910,27 @@ namespace HBP.Tests.PlayMode.Module3D
                 path = Path.Combine(path, part);
             }
             return path;
+        }
+
+        private static void RequireHbpCore()
+        {
+            if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
+            {
+                Assert.Ignore($"hbp_core is not installed: {error}");
+            }
+        }
+
+        private static void CleanSceneOwnedAnatomy(Base3DScene baseScene)
+        {
+            if (baseScene == null) return;
+            foreach (Mesh3D mesh in baseScene.MeshManager.Meshes.Where(mesh => !mesh.HasBeenLoadedOutside).Distinct())
+            {
+                mesh.Clean();
+            }
+            foreach (MRI3D mri in baseScene.MRIManager.MRIs.Where(mri => !mri.HasBeenLoadedOutside).Distinct())
+            {
+                mri.Clean();
+            }
         }
 
         private static Module3DMain GetModule3DMainInstance()

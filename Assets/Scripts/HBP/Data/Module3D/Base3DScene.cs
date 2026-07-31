@@ -586,6 +586,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         private const int LOADING_MRI_WEIGHT = 1500;
         /// <summary>
+        /// Weight of the approximate MRI preview extraction step.
+        /// </summary>
+        private const int LOADING_PREVIEW_MESH_WEIGHT = 1000;
+        /// <summary>
         /// Weight of the implantation loading step
         /// </summary>
         private const int LOADING_IMPLANTATIONS_WEIGHT = 50;
@@ -1546,7 +1550,19 @@ namespace HBP.Data.Module3D
             m_MRIManager.SetCalValues(Visualization.Configuration.MRICalMinFactor, Visualization.Configuration.MRICalMaxFactor);
             CameraType = Visualization.Configuration.CameraType;
 
-            if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName)) m_MeshManager.Select(Visualization.Configuration.MeshName);
+            if (Type == SceneType.SinglePatient)
+            {
+                m_MeshManager.SelectInitialMeshForScene(
+                    Visualization.Configuration.MeshName,
+                    PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization,
+                    !string.IsNullOrEmpty(Visualization.Configuration.MRIName)
+                        ? Visualization.Configuration.MRIName
+                        : PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization);
+            }
+            else if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName))
+            {
+                m_MeshManager.Select(Visualization.Configuration.MeshName);
+            }
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) m_MRIManager.Select(Visualization.Configuration.MRIName);
             if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) m_ImplantationManager.Select(Visualization.Configuration.ImplantationName);
 
@@ -1580,9 +1596,69 @@ namespace HBP.Data.Module3D
                 column.LoadConfiguration(false);
             }
 
+            LogRuntimePreviewSiteDistanceDiagnostic();
+
             SceneInformation.SitesNeedUpdate = true;
 
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+        /// <summary>
+        /// Logs a non-blocking warning when the runtime preview is farther from many sites than
+        /// the smallest active projection distance. The configured distance is never modified.
+        /// </summary>
+        private void LogRuntimePreviewSiteDistanceDiagnostic()
+        {
+            if (m_MeshManager.SelectedMesh is not RuntimeSingleMesh3D preview) return;
+            Implantation3D implantation = m_ImplantationManager.SelectedImplantation;
+            if (implantation?.SiteInfos == null || implantation.SiteInfos.Count == 0) return;
+
+            float influenceDistance = Columns
+                .Select(GetInfluenceDistance)
+                .Where(distance => !float.IsNaN(distance) && !float.IsInfinity(distance) && distance >= 0f)
+                .DefaultIfEmpty(15f)
+                .Min();
+
+            Mesh vertexBuffer = new();
+            RuntimePreviewDistanceReport report;
+            try
+            {
+                preview.Both.UpdateMeshFromDLL(
+                    vertexBuffer,
+                    all: false,
+                    vertices: true,
+                    normals: false,
+                    uv: false,
+                    triangles: false,
+                    colors: false);
+                report = RuntimePreviewDistanceDiagnostic.Evaluate(
+                    vertexBuffer.vertices,
+                    implantation.SiteInfos.Select(site => site.UnityPosition).ToArray(),
+                    influenceDistance);
+            }
+            finally
+            {
+                Destroy(vertexBuffer);
+            }
+
+            if (report.ShouldWarn)
+            {
+                Debug.LogWarning(
+                    $"MRI preview site-distance diagnostic for '{preview.SourceMRIName}': "
+                    + $"P50={report.Percentile50:0.0} mm, P90={report.Percentile90:0.0} mm, P95={report.Percentile95:0.0} mm; "
+                    + $"{report.FractionBeyondInfluence:P0} of sites exceed the minimum active influence distance of {report.InfluenceDistance:0.0} mm. "
+                    + $"A non-persistent value of at least {report.SuggestedInfluenceDistance:0.0} mm may be more appropriate for this scene.");
+            }
+        }
+
+        private static float GetInfluenceDistance(Column3D column)
+        {
+            return column switch
+            {
+                Column3DAnatomy anatomy => anatomy.AnatomyParameters.InfluenceDistance,
+                Column3DDynamic dynamicColumn => dynamicColumn.DynamicParameters.InfluenceDistance,
+                Column3DStatic staticColumn => staticColumn.StaticParameters.InfluenceDistance,
+                _ => float.NaN
+            };
         }
         /// <summary>
         /// Save the current settings of this scene to the configuration of the linked visualization
@@ -1593,7 +1669,10 @@ namespace HBP.Data.Module3D
             Visualization.Configuration.BrainCutColor = CutColor;
             Visualization.Configuration.Colormap = Colormap;
             Visualization.Configuration.MeshPart = MeshManager.MeshPartToDisplay;
-            Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
+            if (m_MeshManager.SelectedMesh is not RuntimeSingleMesh3D)
+            {
+                Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
+            }
             Visualization.Configuration.MRIName = m_MRIManager.SelectedMRI.Name;
             Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation != null ? m_ImplantationManager.SelectedImplantation.Name : "";
             Visualization.Configuration.ShowEdges = EdgeMode;
@@ -1660,7 +1739,10 @@ namespace HBP.Data.Module3D
             switch (Type)
             {
                 case SceneType.SinglePatient:
-                    m_MeshManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, true);
+                    m_MeshManager.SelectInitialMeshForScene(
+                        null,
+                        PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization,
+                        PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization);
                     m_MRIManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization, true);
                     m_ImplantationManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
                     break;
@@ -1843,14 +1925,38 @@ namespace HBP.Data.Module3D
         {
             // Compute progress variables
             float progress = 0f;
-            float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
+            float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingPreviewMeshProgress = 0, loadingPreviewMeshTime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
+            bool reusePreloadedPatientData = PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization;
+            bool reusePreloadedMeshes = reusePreloadedPatientData && Visualization.Configuration.PreloadedMeshes.Count > 0;
+            bool reusePreloadedMRIs = reusePreloadedPatientData && Visualization.Configuration.PreloadedMRIs.Count > 0;
+            bool persistentPatientMeshPlanned = reusePreloadedMeshes
+                ? Visualization.Configuration.PreloadedMeshes.Any(mesh =>
+                    mesh != null
+                    && mesh.Type == MeshType.Patient
+                    && mesh is not RuntimeSingleMesh3D
+                    && mesh.IsLoaded)
+                : Visualization.Patients[0].Meshes.Any(mesh => mesh.IsUsable);
+            int patientMRICountPlanned = reusePreloadedMRIs
+                ? Visualization.Configuration.PreloadedMRIs.Count(mri =>
+                    mri != null
+                    && !mri.HasBeenLoadedOutside
+                    && mri.IsLoaded)
+                : Visualization.Patients[0].MRIs.Count(mri => mri.IsUsable);
+            int previewMeshCountPlanned = Type == SceneType.SinglePatient && !persistentPatientMeshPlanned
+                ? patientMRICountPlanned
+                : 0;
             if (Type == SceneType.SinglePatient)
             {
-                totalProgress = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT;
+                totalProgress = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT + previewMeshCountPlanned * LOADING_PREVIEW_MESH_WEIGHT;
                 loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
                 loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
                 loadingMRIProgress = LOADING_MRI_WEIGHT / totalProgress;
                 loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
+                if (previewMeshCountPlanned > 0)
+                {
+                    loadingPreviewMeshProgress = LOADING_PREVIEW_MESH_WEIGHT / totalProgress;
+                    loadingPreviewMeshTime = LOADING_PREVIEW_MESH_WEIGHT / 1000.0f;
+                }
                 loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalProgress;
                 loadingImplantationsTime = LOADING_IMPLANTATIONS_WEIGHT / 1000.0f;
                 loadingMNIProgress = LOADING_MNI_WEIGHT / totalProgress;
@@ -1980,6 +2086,23 @@ namespace HBP.Data.Module3D
                 }
             }
 
+            // Generate one approximate patient surface per MRI after MRI loading and before sites.
+            List<Core.Object3D.MRI3D> previewSources = Type == SceneType.SinglePatient && !m_MeshManager.HasPersistentPatientMesh
+                ? m_MRIManager.PatientMRIs
+                : new List<Core.Object3D.MRI3D>();
+            for (int i = 0; i < previewSources.Count; ++i)
+            {
+                Core.Object3D.MRI3D previewSource = previewSources[i];
+                token.ThrowIfCancellationRequested();
+                progress += loadingPreviewMeshProgress;
+                await UniTask.SwitchToMainThread();
+                onChangeProgress.Invoke(
+                    progress,
+                    loadingPreviewMeshTime,
+                    new LoadingText("Generating MRI preview ", previewSource.Name, $" [{i + 1}/{previewSources.Count}]"));
+                await EnsureRuntimePatientMeshAsync(previewSource, token);
+            }
+
             // Loading Sites
             token.ThrowIfCancellationRequested();
             progress += loadingImplantationsProgress;
@@ -1995,6 +2118,15 @@ namespace HBP.Data.Module3D
             // Finalization
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
+            if (Type == SceneType.SinglePatient)
+            {
+                m_MeshManager.SelectInitialMeshForScene(
+                    Visualization.Configuration.MeshName,
+                    PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization,
+                    !string.IsNullOrEmpty(Visualization.Configuration.MRIName)
+                        ? Visualization.Configuration.MRIName
+                        : PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization);
+            }
             foreach (Column3D column in Columns)
             {
                 column.InitializeColumnMeshes(m_DisplayedObjects.Brain);
@@ -2018,6 +2150,50 @@ namespace HBP.Data.Module3D
             {
                 Debug.LogException(e);
                 throw new CanNotLoadNIIFile(mri.File);
+            }
+        }
+        /// <summary>
+        /// Generates and registers the approximate MRI preview. Native extraction stays on a worker;
+        /// registration and notifications return to the Unity thread.
+        /// </summary>
+        private async UniTask EnsureRuntimePatientMeshAsync(Core.Object3D.MRI3D source, CancellationToken token)
+        {
+            Core.DLL.Surface extractedSurface = null;
+            RuntimeSingleMesh3D preview = null;
+            try
+            {
+                await UniTask.SwitchToThreadPool();
+                token.ThrowIfCancellationRequested();
+
+                Core.DLL.Volume volume = source.Volume;
+                token.ThrowIfCancellationRequested();
+                extractedSurface = volume.ExtractPreviewSurface(
+                    Core.DLL.PreviewSurfaceOptions.Default,
+                    out Core.DLL.PreviewSurfaceReport report);
+                token.ThrowIfCancellationRequested();
+
+                preview = new RuntimeSingleMesh3D(source, extractedSurface, report);
+                extractedSurface = null;
+                token.ThrowIfCancellationRequested();
+
+                await UniTask.SwitchToMainThread();
+                token.ThrowIfCancellationRequested();
+                m_MeshManager.AddRuntime(preview);
+            }
+            catch (OperationCanceledException)
+            {
+                preview?.Clean();
+                throw;
+            }
+            catch (Exception exception)
+            {
+                preview?.Clean();
+                await UniTask.SwitchToMainThread();
+                Debug.LogWarning($"Unable to generate the approximate MRI preview from '{source.Name}'. This MRI preview will be skipped. {exception.Message}");
+            }
+            finally
+            {
+                extractedSurface?.Dispose();
             }
         }
         /// <summary>
@@ -2190,7 +2366,14 @@ namespace HBP.Data.Module3D
                     Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
                     currentGenerator = generator;
                     if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                    {
+                        if (!m_MeshManager.SelectedMesh.SupportsMarsAtlas)
+                        {
+                            Debug.LogWarning("MarsAtlas CCEP projection was skipped because the selected mesh does not support MarsAtlas.");
+                            continue;
+                        }
                         generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.ProjectionTimeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
+                    }
                     else
                         generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.ProjectionTimeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
                     dynamicColumn.UpdateProjectionMemoryAccounting(generator.GetLastComputeMetrics());

@@ -104,7 +104,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D;
+            bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh.SupportsHemispheres;
 
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
@@ -140,7 +140,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public void ChangeBrainTypeCallback()
         {
-            m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D;
+            m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh.SupportsHemispheres;
             if (!m_IsMeshLeftRight)
             {
                 m_Left.isOn = false;

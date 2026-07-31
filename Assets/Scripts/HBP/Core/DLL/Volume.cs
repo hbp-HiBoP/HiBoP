@@ -7,6 +7,64 @@ using UnityEngine;
 
 namespace HBP.Core.DLL
 {
+    public enum PreviewThresholdMode
+    {
+        AutoOtsu = 0,
+        Absolute = 1,
+        Normalized = 2
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PreviewSurfaceOptions
+    {
+        public uint StructSize;
+        public PreviewThresholdMode ThresholdMode;
+        public float Threshold;
+        public int MaximumGridDimension;
+        public int TargetTriangleCount;
+        public int BinaryClosingIterations;
+        public int ScalarSmoothingIterations;
+        public int KeepLargestComponent;
+        public int FillInternalCavities;
+        public int PadWithBackground;
+
+        public static PreviewSurfaceOptions Default => new()
+        {
+            StructSize = (uint)Marshal.SizeOf<PreviewSurfaceOptions>(),
+            ThresholdMode = PreviewThresholdMode.AutoOtsu,
+            Threshold = 0.0f,
+            MaximumGridDimension = 160,
+            TargetTriangleCount = 20000,
+            BinaryClosingIterations = 1,
+            ScalarSmoothingIterations = 1,
+            KeepLargestComponent = 1,
+            FillInternalCavities = 1,
+            PadWithBackground = 1
+        };
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PreviewSurfaceReport
+    {
+        public uint StructSize;
+        public float AppliedThreshold;
+        public int InputX;
+        public int InputY;
+        public int InputZ;
+        public int SampledX;
+        public int SampledY;
+        public int SampledZ;
+        public int ForegroundVoxelCount;
+        public int ComponentCount;
+        public int VertexCountBeforeSimplification;
+        public int TriangleCountBeforeSimplification;
+        public int VertexCountAfterSimplification;
+        public int TriangleCountAfterSimplification;
+        public double PreprocessingMilliseconds;
+        public double ExtractionMilliseconds;
+        public double PostprocessingMilliseconds;
+    }
+
     /// <summary>Volume loaded from a NIFTI file.</summary>
     public class Volume : CppDLLImportBase
     {
@@ -68,6 +126,45 @@ namespace HBP.Core.DLL
         {
             IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
             return IsLoaded;
+        }
+
+        /// <summary>
+        /// Extracts a transient preview surface from the loaded MRI and transfers ownership of the
+        /// returned native handle to the managed <see cref="Surface"/>.
+        /// </summary>
+        public Surface ExtractPreviewSurface(PreviewSurfaceOptions options, out PreviewSurfaceReport report)
+        {
+            if (!IsLoaded)
+            {
+                throw new InvalidOperationException("A NIfTI volume must be loaded before extracting a preview surface.");
+            }
+
+            options.StructSize = (uint)Marshal.SizeOf<PreviewSurfaceOptions>();
+            report = new PreviewSurfaceReport
+            {
+                StructSize = (uint)Marshal.SizeOf<PreviewSurfaceReport>()
+            };
+
+            HbpCoreStatus status = hbp_volume_extract_preview_surface(
+                _handle.Handle,
+                ref options,
+                out IntPtr surfaceHandle,
+                ref report);
+            if (status != HbpCoreStatus.Ok)
+            {
+                string nativeError = HbpCoreRuntime.LastError;
+                if (surfaceHandle != IntPtr.Zero)
+                {
+                    Surface.DestroyOwnedHandle(surfaceHandle);
+                }
+                throw new InvalidOperationException($"hbp_core preview surface extraction failed with status {status}: {nativeError}");
+            }
+            if (surfaceHandle == IntPtr.Zero)
+            {
+                throw new InvalidOperationException("hbp_core preview surface extraction succeeded without returning a surface handle.");
+            }
+
+            return Surface.FromOwnedLoadedHandle(surfaceHandle);
         }
 
         public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
@@ -206,6 +303,8 @@ namespace HBP.Core.DLL
         private static extern HbpCoreStatus hbp_volume_get_average_value_around_position_with_mask(IntPtr volume, ref Vec3 position, int precision, IntPtr mask, out float average, [Out] float[] rawValues, int rawValueCapacity, out int actualCount);
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_size_offset_cut_plane(IntPtr volume, IntPtr plane, int cutCount, out float offset);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_extract_preview_surface", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_extract_preview_surface(IntPtr volume, ref PreviewSurfaceOptions options, out IntPtr surface, ref PreviewSurfaceReport report);
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]

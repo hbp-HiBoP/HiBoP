@@ -36,6 +36,12 @@ namespace HBP.Data.Module3D
         /// </summary>
         public List<Core.Object3D.MRI3D> LoadedMRIs { get { return (from mri in MRIs where mri.IsLoaded select mri).ToList(); } }
         /// <summary>
+        /// Anatomical MRIs belonging to the patient, excluding the shared MNI volume.
+        /// </summary>
+        public List<Core.Object3D.MRI3D> PatientMRIs => MRIs
+            .Where(mri => mri != null && !mri.HasBeenLoadedOutside)
+            .ToList();
+        /// <summary>
         /// Selected MRI3D ID
         /// </summary>
         public int SelectedMRIID { get; private set; }
@@ -148,6 +154,7 @@ namespace HBP.Data.Module3D
                 if (!mri.IsLoaded) mri.Load();
             }
         }
+
         #endregion
     }
 }

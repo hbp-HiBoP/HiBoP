@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Enums;
 using HBP.Core.Object3D;
 
 namespace HBP.UI.Toolbar
@@ -84,11 +83,12 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isIBCAvailable = Object3DManager.IBC.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool isJuBrainAtlasAvailable = Object3DManager.JuBrain.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool canUseMarsAtlas = Object3DManager.MarsAtlas.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI);
-            bool isDiFuMoAvailable = Object3DManager.DiFuMo.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool isLocalizersAvailable = Object3DManager.Localizers.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
+            bool supportsMNIResources = SelectedScene.MeshManager.SelectedMesh.SupportsMNIResources;
+            bool isIBCAvailable = Object3DManager.IBC.Loaded && supportsMNIResources;
+            bool isJuBrainAtlasAvailable = Object3DManager.JuBrain.Loaded && supportsMNIResources;
+            bool canUseMarsAtlas = Object3DManager.MarsAtlas.Loaded && SelectedScene.MeshManager.SelectedMesh.SupportsMarsAtlas;
+            bool isDiFuMoAvailable = Object3DManager.DiFuMo.Loaded && supportsMNIResources;
+            bool isLocalizersAvailable = Object3DManager.Localizers.Loaded && supportsMNIResources;
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;
