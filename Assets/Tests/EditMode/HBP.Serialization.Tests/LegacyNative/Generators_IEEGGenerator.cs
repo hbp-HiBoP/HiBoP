@@ -12,6 +12,7 @@ namespace HBP.Tests.Serialization.LegacyNative
         private const int MaximumParallelWorkerCount = 16;
 
         #region Public Methods
+
         public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, float[] activityValues, int timelineLength, int numberOfSites, SiteInfluenceByDistanceType siteInfluenceByDistance)
         {
             if (rawElectrodes == null) throw new ArgumentNullException(nameof(rawElectrodes));
@@ -21,6 +22,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 throw new ArgumentException("numberOfSites must match the raw site list count.", nameof(numberOfSites));
             }
+
             int expectedValueCount = checked(timelineLength * numberOfSites);
             if (activityValues.Length != expectedValueCount)
             {
@@ -29,15 +31,10 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             if (m_Backend == BenchmarkBackend.HbpCore)
             {
-                ThrowIfFailed(hbp_ieeg_generator_compute_activity_from_sites(
-                    _handle.Handle,
-                    rawElectrodes.getHandle().Handle,
-                    influenceDistance,
-                    activityValues,
-                    timelineLength,
-                    (int)siteInfluenceByDistance));
+                ThrowIfFailed(hbp_ieeg_generator_compute_activity_from_sites(_handle.Handle, rawElectrodes.getHandle().Handle, influenceDistance, activityValues, timelineLength, (int)siteInfluenceByDistance));
                 return;
             }
+
             compute_activity_IEEGGenerator(_handle, rawElectrodes.getHandle(), influenceDistance, activityValues, timelineLength, numberOfSites, (int)siteInfluenceByDistance);
         }
 
@@ -59,9 +56,11 @@ namespace HBP.Tests.Serialization.LegacyNative
                 {
                     throw new InvalidOperationException($"IEEGGenerator.ComputeActivityAtlas cannot use a {marsAtlas.Backend} atlas with hbp_core.");
                 }
+
                 ThrowIfFailed(hbp_ieeg_generator_compute_activity_atlas(_handle.Handle, activityValues, timelineLength, areaMask.Length, areaMask, marsAtlas.getHandle().Handle));
                 return;
             }
+
             compute_activity_atlas_IEEGGenerator(_handle, activityValues, timelineLength, areaMask, marsAtlas.getHandle());
         }
 
@@ -72,6 +71,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 ThrowIfFailed(hbp_ieeg_generator_adjust_values(_handle.Handle, middle, spanMin, spanMax));
                 return;
             }
+
             adjust_values_IEEGGenerator(_handle, middle, spanMin, spanMax);
         }
 
@@ -81,6 +81,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 throw new NotSupportedException("Detailed iEEG performance metrics are only available with hbp_core.");
             }
+
             ThrowIfFailed(hbp_ieeg_generator_enable_performance_metrics(_handle.Handle, enabled ? 1 : 0));
         }
 
@@ -90,6 +91,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 throw new NotSupportedException("Parallel iEEG options are only available with hbp_core.");
             }
+
             if (workerCount < 0 || workerCount > MaximumParallelWorkerCount) throw new ArgumentOutOfRangeException(nameof(workerCount));
             if (neighborBatchSize < 0) throw new ArgumentOutOfRangeException(nameof(neighborBatchSize));
             ThrowIfFailed(hbp_ieeg_generator_set_parallel_options(_handle.Handle, workerCount, neighborBatchSize));
@@ -101,12 +103,15 @@ namespace HBP.Tests.Serialization.LegacyNative
             {
                 throw new NotSupportedException("Detailed iEEG performance metrics are only available with hbp_core.");
             }
+
             ThrowIfFailed(hbp_ieeg_generator_get_last_compute_metrics(_handle.Handle, out IEEGComputeMetrics metrics));
             return metrics;
         }
+
         #endregion
 
         #region Memory Management
+
         protected override void create_DLL_class()
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
@@ -115,6 +120,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 _handle = new HandleRef(this, generator);
                 return;
             }
+
             _handle = new HandleRef(this, create_IEEGGenerator());
         }
 
@@ -125,38 +131,53 @@ namespace HBP.Tests.Serialization.LegacyNative
                 ThrowIfFailed(hbp_ieeg_generator_destroy(_handle.Handle));
                 return;
             }
+
             delete_IEEGGenerator(_handle);
         }
+
         #endregion
 
         #region DLLImport
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "create_IEEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr create_IEEGGenerator();
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "delete_IEEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_IEEGGenerator(HandleRef generator);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "compute_activity_IEEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void compute_activity_IEEGGenerator(HandleRef generator, HandleRef rawSiteList, float maxDistance, float[] activity, int timelineLength, int sitesNumber, int ratioDistance);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "compute_activity_atlas_IEEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void compute_activity_atlas_IEEGGenerator(HandleRef generator, float[] activity, int timelineLength, int[] mask, HandleRef marsAtlas);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "adjust_values_IEEGGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void adjust_values_IEEGGenerator(HandleRef generator, float middle, float min, float max);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_create(out IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_destroy(IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_set_parallel_options", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_set_parallel_options(IntPtr generator, int workerCount, int neighborBatchSize);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_enable_performance_metrics", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_enable_performance_metrics(IntPtr generator, int enabled);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_get_last_compute_metrics", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_get_last_compute_metrics(IntPtr generator, out IEEGComputeMetrics metrics);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_compute_activity_from_sites", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_compute_activity_from_sites(IntPtr generator, IntPtr sites, float maxDistance, [In] float[] activity, int timelineLength, int ratioDistance);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_compute_activity_atlas", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_compute_activity_atlas(IntPtr generator, [In] float[] activity, int timelineLength, int areaCount, [In] int[] mask, IntPtr atlas);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_ieeg_generator_adjust_values", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_ieeg_generator_adjust_values(IntPtr generator, float middle, float min, float max);
+
         #endregion
     }
 }

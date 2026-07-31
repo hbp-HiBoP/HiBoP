@@ -13,11 +13,13 @@ namespace UnityEngine.UI.Extensions
             End,
             Full,
         }
+
         public enum JoinType
         {
             Bevel,
             Miter
         }
+
         // A bevel 'nice' join displaces the vertices of the line segment instead of simply rendering a
         // quad to connect the endpoints. This improves the look of textured and transparent lines, since
         // there is no overlapping.
@@ -39,16 +41,15 @@ namespace UnityEngine.UI.Extensions
 
         [SerializeField, Tooltip("Points to draw lines between\n Can be improved using the Resolution Option")]
         private Vector2[] m_points;
+
         [System.NonSerialized] private int m_PointCount = -1;
+
         /// <summary>
         /// Points to be drawn in the line.
         /// </summary>
         public Vector2[] Points
         {
-            get
-            {
-                return m_points;
-            }
+            get { return m_points; }
 
             set
             {
@@ -76,10 +77,7 @@ namespace UnityEngine.UI.Extensions
 
         public float LineThickness
         {
-            get
-            {
-                return m_LineThickness;
-            }
+            get { return m_LineThickness; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_LineThickness, value))
@@ -92,8 +90,7 @@ namespace UnityEngine.UI.Extensions
         [Tooltip("The type of Join used between lines, Square/Mitre or Curved/Bevel")]
         public JoinType LineJoins = JoinType.Bevel;
 
-        [HideInInspector]
-        public bool drivenExternally = false;
+        [HideInInspector] public bool drivenExternally = false;
 
         protected override void OnPopulateMesh(VertexHelper vh)
         {
@@ -112,6 +109,7 @@ namespace UnityEngine.UI.Extensions
                     pointsToDraw = new Vector2[pointCount];
                     System.Array.Copy(m_points, pointsToDraw, pointCount);
                 }
+
                 pointsToDraw = IncreaseResolution(pointsToDraw);
                 pointCount = pointsToDraw.Length;
             }
@@ -136,6 +134,7 @@ namespace UnityEngine.UI.Extensions
                     end = pointsToDraw[i] - rectTransform.pivot;
                     segments.Add(CreateLineSegment(start, end, SegmentType.Middle));
                 }
+
                 start = pointsToDraw[pointCount - 2] - rectTransform.pivot;
                 end = pointsToDraw[pointCount - 1] - rectTransform.pivot;
                 segments.Add(CreateLineSegment(start, end, SegmentType.End));
@@ -196,8 +195,10 @@ namespace UnityEngine.UI.Extensions
                     var join = new UIVertex[] { segments[i][2], segments[i][3], segments[i + 1][0], segments[i + 1][1] };
                     vh.AddUIVertexQuad(join);
                 }
+
                 vh.AddUIVertexQuad(segments[i]);
             }
+
             vh.AddUIVertexQuad(segments[max]);
             if (vh.currentVertCount > 64000)
             {
@@ -236,6 +237,7 @@ namespace UnityEngine.UI.Extensions
                     uvs = middleUvs;
                     break;
             }
+
             return SetVbo(new[] { start - startOffset, start + startOffset, end + endOffset, end - endOffset }, uvs);
         }
 

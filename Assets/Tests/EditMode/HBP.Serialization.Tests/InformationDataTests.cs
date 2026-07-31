@@ -318,54 +318,14 @@ namespace HBP.Tests.Serialization
 
             Component graphSettings = FindComponent(graphSettingsWindow, "HBP.UI.Informations.GraphSettingsWindow");
             AssertSerializedReferences(graphSettings, "m_ChannelStructGroupsPanel", "m_LocalizersPanel", "m_ColorsPanel");
-            AssertSerializedReferences(
-                FindComponent(graphSettingsWindow, "HBP.UI.Informations.ChannelStructGroupsPanel"),
-                "m_ChannelStructsGroupListGestion");
-            AssertSerializedReferences(
-                FindComponent(graphSettingsWindow, "HBP.UI.Informations.LocalizersPanel"),
-                "m_LocalizersGraphsModeDropdown",
-                "m_LocalizersGraphsAtlasDropdown",
-                "m_LocalizersGraphsPrecisionSlider",
-                "m_LocalizersGraphsVoxelSettingsContainer",
-                "m_LocalizersGraphsRegionSettingsContainer",
-                "m_LocalizersGraphsAtlasSettingsContainer",
-                "m_RescalingContainer",
-                "m_EnableRescalingToggle",
-                "m_BaselineValueInputField",
-                "m_GainFactorInputField",
-                "m_OffsetInputField",
-                "m_RescalingFormulaText",
-                "m_DataTypeDropdown",
-                "m_ProtocolItemPrefab",
-                "m_ProtocolsContainer",
-                "m_GenerateLocalizersGraphsButton");
+            AssertSerializedReferences(FindComponent(graphSettingsWindow, "HBP.UI.Informations.ChannelStructGroupsPanel"), "m_ChannelStructsGroupListGestion");
+            AssertSerializedReferences(FindComponent(graphSettingsWindow, "HBP.UI.Informations.LocalizersPanel"), "m_LocalizersGraphsModeDropdown", "m_LocalizersGraphsAtlasDropdown", "m_LocalizersGraphsPrecisionSlider", "m_LocalizersGraphsVoxelSettingsContainer", "m_LocalizersGraphsRegionSettingsContainer", "m_LocalizersGraphsAtlasSettingsContainer", "m_RescalingContainer", "m_EnableRescalingToggle", "m_BaselineValueInputField", "m_GainFactorInputField", "m_OffsetInputField", "m_RescalingFormulaText", "m_DataTypeDropdown", "m_ProtocolItemPrefab", "m_ProtocolsContainer", "m_GenerateLocalizersGraphsButton");
 
             Component explorer = FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.TrialMatrixExplorerWindow");
             AssertSerializedReferences(explorer, "m_SelectPatientsButton", "m_PatientsSelectedText", "m_DataDropdown", "m_DisplayMatrixButton", "m_TrialMatrixDisplayer", "m_ConfigurationContainer");
-            AssertSerializedReferences(
-                FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.TrialMatrixDisplayer"),
-                "m_TrialMatrixGrid",
-                "m_TrialMatrixGridContainer",
-                "m_NoDataContainer",
-                "m_NoDataText",
-                "m_ChannelList",
-                "m_PatientDropdown",
-                "m_TrialMatrixActionsButton",
-                "m_ProtocolDropdown",
-                "m_InformationPanels",
-                "m_Colormap");
-            AssertSerializedReferences(
-                FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.TrialMatrixGrid"),
-                "m_DataContainer",
-                "m_DataPrefab",
-                "m_TitleHeaderContainer",
-                "m_TitleHeaderPrefab");
-            AssertSerializedReferences(
-                FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.InformationPanels"),
-                "m_PatientInformationText",
-                "m_PatientTagDisplaySettingsContextMenu",
-                "m_SiteInformationText",
-                "m_SiteTagDisplaySettingsContextMenu");
+            AssertSerializedReferences(FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.TrialMatrixDisplayer"), "m_TrialMatrixGrid", "m_TrialMatrixGridContainer", "m_NoDataContainer", "m_NoDataText", "m_ChannelList", "m_PatientDropdown", "m_TrialMatrixActionsButton", "m_ProtocolDropdown", "m_InformationPanels", "m_Colormap");
+            AssertSerializedReferences(FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.TrialMatrixGrid"), "m_DataContainer", "m_DataPrefab", "m_TitleHeaderContainer", "m_TitleHeaderPrefab");
+            AssertSerializedReferences(FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.InformationPanels"), "m_PatientInformationText", "m_PatientTagDisplaySettingsContextMenu", "m_SiteInformationText", "m_SiteTagDisplaySettingsContextMenu");
 
             Component siteTools = FindComponent(siteToolsWindow, "HBP.UI.Module3D.SiteToolsWindow");
             AssertSerializedReferences(siteTools, "m_SelectToolDropdown", "m_ApplyForDropdown", "m_ApplyChangesButton");
@@ -425,29 +385,11 @@ namespace HBP.Tests.Serialization
         private static IEEGEpochFixture CreateInjectedIEEGFixture()
         {
             Patient patient = new("patient-a", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-data-patient-001");
-            CoreSubBloc subBloc = new(
-                "response",
-                0,
-                MainSecondaryEnum.Main,
-                new TimeWindow(0, 2),
-                new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-data-event-001") },
-                Array.Empty<Icon>(),
-                Array.Empty<Treatment>(),
-                "information-data-subbloc-001");
+            CoreSubBloc subBloc = new("response", 0, MainSecondaryEnum.Main, new TimeWindow(0, 2), new TimeWindow(0, 1), new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-data-event-001") }, Array.Empty<Icon>(), Array.Empty<Treatment>(), "information-data-subbloc-001");
             CoreBloc bloc = new("response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-data-bloc-001");
 
             Protocol protocol = new("protocol-a", new[] { bloc }, "information-data-protocol-001");
-            IEEGDataInfo dataInfo = new(
-                "ieeg-data",
-                protocol,
-                new Elan(),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                NormalizationType.None,
-                "information-data-db",
-                "information-data-ieeg-001");
+            IEEGDataInfo dataInfo = new("ieeg-data", protocol, new Elan(), Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.None, "information-data-db", "information-data-ieeg-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
             blocData.Frequency = new Frequency(1000);
@@ -477,29 +419,11 @@ namespace HBP.Tests.Serialization
         private static CCEPEpochFixture CreateInjectedCCEPFixture()
         {
             Patient patient = new("patient-ccep", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "information-data-ccep-patient-001");
-            CoreSubBloc subBloc = new(
-                "response",
-                0,
-                MainSecondaryEnum.Main,
-                new TimeWindow(0, 2),
-                new TimeWindow(0, 1),
-                new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-data-ccep-event-001") },
-                Array.Empty<Icon>(),
-                Array.Empty<Treatment>(),
-                "information-data-ccep-subbloc-001");
+            CoreSubBloc subBloc = new("response", 0, MainSecondaryEnum.Main, new TimeWindow(0, 2), new TimeWindow(0, 1), new[] { new CoreEvent("stim", new[] { 1 }, MainSecondaryEnum.Main, "information-data-ccep-event-001") }, Array.Empty<Icon>(), Array.Empty<Treatment>(), "information-data-ccep-subbloc-001");
             CoreBloc bloc = new("ccep-response-bloc", 0, string.Empty, "response_stim_CODE", new[] { subBloc }, "information-data-ccep-bloc-001");
 
             Protocol protocol = new("protocol-ccep", new[] { bloc }, "information-data-ccep-protocol-001");
-            CCEPDataInfo dataInfo = new(
-                "ccep-data",
-                protocol,
-                new Elan(),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                "Stim",
-                "information-data-db",
-                "information-data-ccep-001");
+            CCEPDataInfo dataInfo = new("ccep-data", protocol, new Elan(), Array.Empty<Error>(), Array.Empty<Warning>(), patient, "Stim", "information-data-db", "information-data-ccep-001");
 
             BlocData blocData = (BlocData)FormatterServices.GetUninitializedObject(typeof(BlocData));
             blocData.Frequency = new Frequency(1000);
@@ -546,19 +470,8 @@ namespace HBP.Tests.Serialization
                     })
                 }
             };
-            EpochDescriptor descriptor = new(
-                new EpochRange(0, values.Length - 1),
-                new EpochRange(values.Length, values.Length + baselineValues.Length - 1),
-                0,
-                0,
-                0,
-                informationsByEvent);
-            return new HBP.Core.Data.SubTrial(
-                new Dictionary<string, float[]> { { channel, values.Concat(baselineValues).ToArray() } },
-                new Dictionary<string, string> { { channel, "uV" } },
-                descriptor,
-                subBloc,
-                new Frequency(1000));
+            EpochDescriptor descriptor = new(new EpochRange(0, values.Length - 1), new EpochRange(values.Length, values.Length + baselineValues.Length - 1), 0, 0, 0, informationsByEvent);
+            return new HBP.Core.Data.SubTrial(new Dictionary<string, float[]> { { channel, values.Concat(baselineValues).ToArray() } }, new Dictionary<string, string> { { channel, "uV" } }, descriptor, subBloc, new Frequency(1000));
         }
 
         private static void AddCacheEntry(string fieldName, object key, object value)

@@ -9,12 +9,14 @@ namespace HBP.UI.Main
     public class BasicBlocItem : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private Text m_IndexText;
         [SerializeField] private InputField m_NameInputField;
         [SerializeField] private InputField m_MainCodesInputField;
         [SerializeField] private InputField m_SecondaryCodesInputField;
 
         private Bloc m_Bloc;
+
         public Bloc Bloc
         {
             get => m_Bloc;
@@ -41,20 +43,26 @@ namespace HBP.UI.Main
 
         private Toggle m_Toggle;
         public bool Selected => m_Toggle != null ? m_Toggle.isOn : false;
+
         #endregion
 
         #region Events
+
         public Toggle.ToggleEvent OnValueChanged => m_Toggle?.onValueChanged ?? new Toggle.ToggleEvent();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_Toggle = GetComponent<Toggle>();
         }
+
         #endregion
 
         #region Public Methods
+
         public void OnChangeName(string name)
         {
             if (m_Bloc == null)
@@ -65,6 +73,7 @@ namespace HBP.UI.Main
             if (m_Bloc.MainSubBloc != null && m_Bloc.MainSubBloc.MainEvent != null)
                 m_Bloc.MainSubBloc.MainEvent.Name = name;
         }
+
         public void OnChangeMainCodes(string codes)
         {
             if (m_Bloc == null)
@@ -81,6 +90,7 @@ namespace HBP.UI.Main
             if (m_MainCodesInputField.text != codes)
                 m_MainCodesInputField.text = m_Bloc.MainSubBloc.MainEvent.CodesString;
         }
+
         public void OnChangeSecondaryCodes(string codes)
         {
             if (m_Bloc == null)
@@ -103,10 +113,12 @@ namespace HBP.UI.Main
             if (m_SecondaryCodesInputField.text != codes)
                 m_SecondaryCodesInputField.text = m_Bloc.MainSubBloc.SecondaryEvents[0].CodesString;
         }
+
         public void Refresh()
         {
             Bloc = m_Bloc;
         }
+
         #endregion
     }
 }

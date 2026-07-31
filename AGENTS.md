@@ -1,5 +1,17 @@
 # Codex Notes For HiBoP
 
+## C# Formatting
+
+Before reviewing or handing off C# changes, run:
+
+```powershell
+.\Tools\format-code.cmd
+```
+
+By default, this formats only staged, unstaged, and untracked C# files. Use
+`-Base origin/develop` to include committed branch changes, or `-All` to format
+all C# files under `Assets`.
+
 ## Prefab-First GameObject Workflow
 
 When adding or changing UI elements or other GameObjects, edit or create the

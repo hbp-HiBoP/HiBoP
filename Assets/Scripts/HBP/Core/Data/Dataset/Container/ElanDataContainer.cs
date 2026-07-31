@@ -34,18 +34,22 @@ namespace HBP.Core.Data.Container
     public class Elan : DataContainer
     {
         #region Properties
+
         /// <summary>
         /// EEG files extension.
         /// </summary>
         public const string EEG_EXTENSION = ".eeg";
+
         /// <summary>
         /// EEG Header files extension.
         /// </summary>
         public const string HEADER_EXTENSION = ".ent";
+
         /// <summary>
         /// POS files extension.
         /// </summary>
         public const string POS_EXTENSION = ".pos";
+
         /// <summary>
         /// Notes files extension.
         /// </summary>
@@ -55,6 +59,7 @@ namespace HBP.Core.Data.Container
         /// Path to the EEG file with Alias.
         /// </summary>
         [JsonProperty("EEG")] public string SavedEEG { get; protected set; } = "";
+
         /// <summary>
         /// Path to the EEG file without Alias.
         /// </summary>
@@ -63,21 +68,20 @@ namespace HBP.Core.Data.Container
             get { return SavedEEG?.ConvertToFullPath(); }
             set { SavedEEG = value?.ConvertToShortPath(); }
         }
+
         /// <summary>
         /// Path to the EEG header file.
         /// </summary>
         public string EEGHeader
         {
-            get
-            {
-                return EEG + HEADER_EXTENSION;
-            }
+            get { return EEG + HEADER_EXTENSION; }
         }
 
         /// <summary>
         /// Path to the POS file with Alias.
         /// </summary>
         [JsonProperty("POS")] public string SavedPOS { get; protected set; } = "";
+
         /// <summary>
         /// Path of the POS file without Alias.
         /// </summary>
@@ -91,6 +95,7 @@ namespace HBP.Core.Data.Container
         /// Path to the notes file with Alias.
         /// </summary>
         [JsonProperty("Notes")] public string SavedNotes { get; protected set; } = "";
+
         /// <summary>
         /// Path of the notes file without Alias.
         /// </summary>
@@ -99,9 +104,11 @@ namespace HBP.Core.Data.Container
             get { return SavedNotes?.ConvertToFullPath(); }
             set { SavedNotes = value?.ConvertToShortPath(); }
         }
+
         #endregion
 
         #region Public Methods
+
         public override Error[] GetErrors()
         {
             List<Error> errors = new();
@@ -138,6 +145,7 @@ namespace HBP.Core.Data.Container
                     }
                 }
             }
+
             if (string.IsNullOrEmpty(POS))
             {
                 errors.Add(new RequiredFieldEmptyError("POS file path is empty"));
@@ -157,15 +165,18 @@ namespace HBP.Core.Data.Container
                     }
                 }
             }
+
             m_Errors = errors.ToArray();
             return m_Errors;
         }
+
         public override Warning[] GetWarnings()
         {
             List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }
+
         public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
             EEGHeader.CopyToDirectory(destinationDirectory);
@@ -173,15 +184,18 @@ namespace HBP.Core.Data.Container
             SavedPOS = POS.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
             SavedNotes = Notes.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
+
         public override void ConvertAllPathsToFullPaths()
         {
             SavedEEG = SavedEEG.ConvertToFullPath();
             SavedPOS = SavedPOS.ConvertToFullPath();
             SavedNotes = SavedNotes.ConvertToFullPath();
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new Elan data container.
         /// </summary>
@@ -195,6 +209,7 @@ namespace HBP.Core.Data.Container
             POS = pos;
             Notes = notes;
         }
+
         /// <summary>
         /// Create a new Elan data container.
         /// </summary>
@@ -207,15 +222,18 @@ namespace HBP.Core.Data.Container
             POS = pos;
             Notes = notes;
         }
+
         /// <summary>
         /// Create a new Elan data container with default values.
         /// </summary>
         public Elan() : base()
         {
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -224,6 +242,7 @@ namespace HBP.Core.Data.Container
         {
             return new Elan(EEG, POS, Notes, Errors, Warnings, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -234,9 +253,11 @@ namespace HBP.Core.Data.Container
                 Notes = elan.Notes;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             SavedEEG = SavedEEG.StandardizeToEnvironement();
@@ -244,6 +265,7 @@ namespace HBP.Core.Data.Container
             SavedNotes = SavedNotes.StandardizeToEnvironement();
             base.OnDeserialized();
         }
+
         #endregion
     }
 }

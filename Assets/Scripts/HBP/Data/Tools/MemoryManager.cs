@@ -8,11 +8,14 @@ namespace HBP.Data.Tools
     public class MemoryManager : Manager<MemoryManager>
     {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR
+
         #region Properties
+
         const float DELAY = 5.0f; // in s.
         const long MEMORY_LIMIT = 1000; // in MB
 
         private long m_AvailableMemory;
+
         /// <summary>
         /// Available memory in MB.
         /// </summary>
@@ -24,25 +27,36 @@ namespace HBP.Data.Tools
                 return m_AvailableMemory;
             }
         }
-        public bool EnoughAvailableMemory { get { return AvailableMemory > MEMORY_LIMIT; } }
+
+        public bool EnoughAvailableMemory
+        {
+            get { return AvailableMemory > MEMORY_LIMIT; }
+        }
+
         public static UnityEvent OnNotEnoughAvailableMemory = new();
+
         #endregion
 
         #region Private Methods
+
         private void Start()
         {
             //InvokeRepeating("CheckMemory", 0, DELAY);
         }
+
         #endregion
 
         #region Public Methods
+
         public static void CheckMemory()
         {
             if (!m_Instance.EnoughAvailableMemory) OnNotEnoughAvailableMemory.Invoke();
         }
+
         #endregion
 
         #region Internal Class
+
         static class PerformanceInfo
         {
             [DllImport("psapi.dll", SetLastError = true)]
@@ -79,7 +93,6 @@ namespace HBP.Data.Tools
                 {
                     return -1;
                 }
-
             }
 
             public static Int64 GetTotalMemoryInMiB()
@@ -93,10 +106,11 @@ namespace HBP.Data.Tools
                 {
                     return -1;
                 }
-
             }
         }
+
         #endregion
+
 #endif
     }
 }

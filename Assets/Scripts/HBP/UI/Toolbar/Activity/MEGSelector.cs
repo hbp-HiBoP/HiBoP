@@ -8,13 +8,16 @@ namespace HBP.UI.Toolbar
     public class MEGSelector : Tool
     {
         #region Properties
+
         /// <summary>
         /// Dropdown to select the contrast to display
         /// </summary>
         [SerializeField] private Dropdown m_Dropdown;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -28,6 +31,7 @@ namespace HBP.UI.Toolbar
                     megColumn.SelectedMEGIndex = value;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -35,6 +39,7 @@ namespace HBP.UI.Toolbar
         {
             m_Dropdown.gameObject.SetActive(false);
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -44,6 +49,7 @@ namespace HBP.UI.Toolbar
 
             m_Dropdown.gameObject.SetActive(isColumnMEG);
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -66,10 +72,13 @@ namespace HBP.UI.Toolbar
                         m_Dropdown.options.Add(new Dropdown.OptionData(fmri.Label));
                     }
                 }
+
                 m_Dropdown.value = megColumn.SelectedMEGIndex;
             }
+
             m_Dropdown.RefreshShownValue();
         }
+
         #endregion
     }
 }

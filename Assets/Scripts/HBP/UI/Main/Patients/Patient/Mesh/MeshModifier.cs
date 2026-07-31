@@ -11,8 +11,9 @@ namespace HBP.UI.Main
     /// Window to modify a mesh.
     /// </summary>
     public class MeshModifier : ObjectModifier<Core.Data.BaseMesh>
-{
+    {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_TypeDropdown;
         [SerializeField] FileSelector m_TransformationFileSelector;
@@ -29,10 +30,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -46,9 +44,11 @@ namespace HBP.UI.Main
                 m_LeftRightMeshSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
@@ -58,9 +58,11 @@ namespace HBP.UI.Main
             m_Object.RecalculateUsable();
             base.OK();
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -88,8 +90,8 @@ namespace HBP.UI.Main
                 new Core.Data.SingleMesh(),
                 new Core.Data.LeftRightMesh()
             };
-
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -103,13 +105,14 @@ namespace HBP.UI.Main
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
             m_TransformationFileSelector.File = objectToDisplay.SavedTransformation;
         }
+
         /// <summary>
         /// Change the name of the mesh.
         /// </summary>
         /// <param name="name">Name</param>
         protected void ChangeName(string name)
         {
-            if(name != "")
+            if (name != "")
             {
                 ObjectTemp.Name = name;
             }
@@ -118,6 +121,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Change the type of the mesh.
         /// </summary>
@@ -138,6 +142,7 @@ namespace HBP.UI.Main
             newSubModifier.IsActive = true;
             newSubModifier.Object = m_ObjectTemp;
         }
+
         /// <summary>
         /// Change the path to the transformation file of the mesh.
         /// </summary>
@@ -146,6 +151,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Transformation = path;
         }
+
         #endregion
     }
 }

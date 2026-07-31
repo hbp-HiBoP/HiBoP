@@ -17,6 +17,7 @@ namespace HBP.UI.Toolbar
     public class ExportActivityToNiftiWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] private GameObject m_ColumnItemPrefab;
         [SerializeField] private Transform m_ColumnItemContainer;
         private List<ExportActivityColumnItem> m_ColumnItems = new();
@@ -25,9 +26,11 @@ namespace HBP.UI.Toolbar
         [SerializeField] private Toggle m_NiiGzToggle;
         [SerializeField] private FolderSelector m_ExportFolderSelector;
         [SerializeField] private Toggle m_ExportMaskToggle;
+
         #endregion
 
         #region Public Methods
+
         public override async void OK()
         {
             if (!Module3DMain.SelectedScene.IsGeneratorUpToDate)
@@ -35,28 +38,34 @@ namespace HBP.UI.Toolbar
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Activity not projected", "The activity is not projected on the brain. Please project the activity before exporting it as Nifti.", "OK").Forget();
                 return;
             }
+
             if (!new DirectoryInfo(m_ExportFolderSelector.Folder).Exists)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Folder does not exist", "The selected export folder does not exist. Please select an existing folder.", "OK").Forget();
                 return;
             }
+
             if (m_ColumnItems.Any(c => c.FileName == string.Empty))
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Empty file name", "Please fill all the file names.", "OK").Forget();
                 return;
             }
+
             if (m_ColumnItems.Where(c => c.IsSelected).Count() == 0)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No column selected", "Please select at least one column to export.", "OK").Forget();
                 return;
             }
+
             base.OK();
             await LoadingManager.LoadAsync(SaveActivityAsNifti);
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Export complete", "The export of the activity to Nifti is complete.", "OK").Forget();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -87,6 +96,7 @@ namespace HBP.UI.Toolbar
 
             m_ExportFolderSelector.Folder = PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
         }
+
         private void OnSelectScene(Base3DScene scene)
         {
             foreach (GameObject item in m_ColumnItemContainer)
@@ -104,6 +114,7 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         private async UniTask SaveActivityAsNifti(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             var selectedColumns = m_ColumnItems.Where(c => c.IsSelected).ToList();
@@ -111,6 +122,7 @@ namespace HBP.UI.Toolbar
             LoadingText currentMessage = new();
             int currentColumn = 0;
             int numberOfColumns = selectedColumns.Count;
+
             async UniTaskVoid checkProgress(CancellationToken cancellationToken)
             {
                 while (true)
@@ -121,10 +133,12 @@ namespace HBP.UI.Toolbar
                     {
                         currentProgress = ((float)currentColumn / numberOfColumns) + (currentGenerator.Progress / numberOfColumns);
                     }
+
                     onChangeProgress.Invoke(currentProgress, 0, currentMessage);
                     await UniTask.WaitForSeconds(0.05f);
                 }
             }
+
             CancellationTokenSource source = new();
             checkProgress(source.Token).Forget();
 
@@ -143,6 +157,7 @@ namespace HBP.UI.Toolbar
                     {
                         throw new HBPException("Export failed", $"The export of the activity for column {item.AssociatedColumn.Name} failed.");
                     }
+
                     if (m_ExportMaskToggle.isOn)
                     {
                         currentMessage = new LoadingText($"Exporting activity mask of ", $"{column.Name}", $" [{currentColumn + 1}/{numberOfColumns}]");
@@ -153,10 +168,13 @@ namespace HBP.UI.Toolbar
                         }
                     }
                 }
+
                 currentColumn++;
             }
+
             source.Cancel();
         }
+
         #endregion
     }
 }

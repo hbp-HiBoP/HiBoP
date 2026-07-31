@@ -12,9 +12,10 @@ namespace HBP.Core.Data
     public class GroupFilterCondition : BaseFilterCondition
     {
         #region Properties
-        public override string Description 
-        { 
-            get 
+
+        public override string Description
+        {
+            get
             {
                 if (string.IsNullOrEmpty(GroupFilePath))
                     return "No group file selected";
@@ -45,30 +46,38 @@ namespace HBP.Core.Data
                         m_LoadedGroup = loadedGroup;
                     }
                 }
+
                 return m_LoadedGroup;
             }
         }
+
         #endregion
 
         #region Constructors
+
         public GroupFilterCondition() : this("", false)
         {
         }
+
         public GroupFilterCondition(string groupFilePath, bool isNot) : base(isNot)
         {
             GroupFilePath = groupFilePath;
         }
+
         public GroupFilterCondition(string groupFilePath, bool isNot, string ID) : base(isNot, ID)
         {
             GroupFilePath = groupFilePath;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new GroupFilterCondition(GroupFilePath, IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -78,9 +87,11 @@ namespace HBP.Core.Data
                 m_LoadedGroup = null;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is Patient patient)
@@ -92,8 +103,10 @@ namespace HBP.Core.Data
                 bool isInGroup = group.PatientsID.Contains(patient.ID);
                 return IsNot ? !isInGroup : isInGroup;
             }
+
             return false;
         }
+
         #endregion
     }
 }

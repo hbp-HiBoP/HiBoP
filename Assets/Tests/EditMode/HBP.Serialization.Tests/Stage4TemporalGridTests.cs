@@ -115,13 +115,10 @@ namespace HBP.Tests.Serialization
             for (int i = 0; i < nativeValues.Length; ++i)
                 nativeValues[i] = i;
             BlocChannelStatistics statistics = (BlocChannelStatistics)FormatterServices.GetUninitializedObject(typeof(BlocChannelStatistics));
-            statistics.Trial = new ChannelTrialStat(
-                new Dictionary<SubBloc, ChannelSubTrialStat>
-                {
-                    { subBloc, new ChannelSubTrialStat(nativeValues, new float[nativeValues.Length]) }
-                },
-                1,
-                1);
+            statistics.Trial = new ChannelTrialStat(new Dictionary<SubBloc, ChannelSubTrialStat>
+            {
+                { subBloc, new ChannelSubTrialStat(nativeValues, new float[nativeValues.Length]) }
+            }, 1, 1);
             data.DataByChannelID.Add(channel, null);
             data.StatisticsByChannelID.Add(channel, statistics);
             GetFrequencyByChannel(data).Add(channel, new Frequency(64));
@@ -150,12 +147,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void TemporalPolicy_IsSerializedClonedAndDefaultsToInterpolationInUserPreferences()
         {
-            EEGPreferences preferences = new(
-                AveragingType.Mean,
-                NormalizationType.None,
-                0.05f,
-                true,
-                TemporalSamplingPolicy.Round);
+            EEGPreferences preferences = new(AveragingType.Mean, NormalizationType.None, 0.05f, true, TemporalSamplingPolicy.Round);
             string json = JsonConvert.SerializeObject(preferences);
             EEGPreferences restored = JsonConvert.DeserializeObject<EEGPreferences>(json);
             EEGPreferences clone = (EEGPreferences)preferences.Clone();
@@ -221,9 +213,7 @@ namespace HBP.Tests.Serialization
             {
                 new EventInformation.EventOccurence(1, 0, 0, 0, 0f, timeFromStart, 0f)
             });
-            return new SubBlocEventsStatistics(
-                new Dictionary<Event, EventInformation[]> { { subBloc.MainEvent, new[] { information } } },
-                AveragingType.Mean);
+            return new SubBlocEventsStatistics(new Dictionary<Event, EventInformation[]> { { subBloc.MainEvent, new[] { information } } }, AveragingType.Mean);
         }
 
         private static List<Frequency> GetFrequencies(ProcessedIEEGData data)

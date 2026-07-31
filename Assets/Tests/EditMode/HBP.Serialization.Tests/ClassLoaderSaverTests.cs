@@ -22,11 +22,7 @@ namespace HBP.Tests.Serialization
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
 
-            TagCollection source = new(
-                new BaseTag[] { new StringTag("general-alpha", "tag-general-alpha") },
-                new BaseTag[] { new BoolTag("patient-alpha", "tag-patient-alpha") },
-                new BaseTag[] { new EnumTag("site-alpha", new[] { "one", "two" }, "tag-site-alpha") },
-                "tag-collection-alpha");
+            TagCollection source = new(new BaseTag[] { new StringTag("general-alpha", "tag-general-alpha") }, new BaseTag[] { new BoolTag("patient-alpha", "tag-patient-alpha") }, new BaseTag[] { new EnumTag("site-alpha", new[] { "one", "two" }, "tag-site-alpha") }, "tag-collection-alpha");
 
             string path = temp.GetPath("tags.json");
             Assert.That(ClassLoaderSaver.SaveToJSon(source, path, true), Is.True);
@@ -85,8 +81,7 @@ namespace HBP.Tests.Serialization
         {
             const string json = "{\"$type\":\"Untrusted.Payload, Untrusted.Assembly\"}";
 
-            JsonSerializationException exception = Assert.Throws<JsonSerializationException>(
-                () => ClassLoaderSaver.LoadFromJsonString<object>(json));
+            JsonSerializationException exception = Assert.Throws<JsonSerializationException>(() => ClassLoaderSaver.LoadFromJsonString<object>(json));
 
             Assert.That(exception.Message, Does.Contain("Untrusted.Payload"));
             Assert.That(exception.Message, Does.Contain("generated HiBoP type registry"));
@@ -129,11 +124,7 @@ namespace HBP.Tests.Serialization
             byte[] json = Encoding.UTF8.GetBytes("{\"Name\":\"payload-alpha\",\"Value\":42}");
             using MemoryStream stream = new(json);
 
-            ConstructorOnlyPayload loaded = ClassLoaderSaver.LoadFromJson<ConstructorOnlyPayload>(
-                stream,
-                json.Length,
-                LoadingDiagnostics.Phase.None,
-                LoadingDiagnostics.Phase.None);
+            ConstructorOnlyPayload loaded = ClassLoaderSaver.LoadFromJson<ConstructorOnlyPayload>(stream);
 
             Assert.That(loaded.Name, Is.EqualTo("payload-alpha"));
             Assert.That(loaded.Value, Is.EqualTo(42));
@@ -182,11 +173,9 @@ namespace HBP.Tests.Serialization
         [JsonObject(MemberSerialization.OptIn)]
         private sealed class ConstructorOnlyPayload
         {
-            [JsonProperty]
-            public string Name { get; }
+            [JsonProperty] public string Name { get; }
 
-            [JsonProperty]
-            public int Value { get; }
+            [JsonProperty] public int Value { get; }
 
             [JsonConstructor]
             public ConstructorOnlyPayload(string name, int value)

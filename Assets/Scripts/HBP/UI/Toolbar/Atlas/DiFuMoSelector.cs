@@ -8,17 +8,21 @@ namespace HBP.UI.Toolbar
     public class DiFuMoSelector : Tool
     {
         #region Properties
+
         /// <summary>
         /// Dropdown to select the altas to display
         /// </summary>
         [SerializeField] private Dropdown m_AtlasDropdown;
+
         /// <summary>
         /// Dropdown to select the contrast to display
         /// </summary>
         [SerializeField] private Dropdown m_AreaDropdown;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -37,6 +41,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.FMRIManager.SelectedDiFuMoArea = value;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -44,6 +49,7 @@ namespace HBP.UI.Toolbar
         {
             gameObject.SetActive(false);
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -53,6 +59,7 @@ namespace HBP.UI.Toolbar
 
             gameObject.SetActive(isDiFuMoDisplayed);
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -70,6 +77,7 @@ namespace HBP.UI.Toolbar
                     count++;
                 }
             }
+
             m_AtlasDropdown.RefreshShownValue();
 
             m_AreaDropdown.options.Clear();
@@ -79,10 +87,13 @@ namespace HBP.UI.Toolbar
                 {
                     m_AreaDropdown.options.Add(new Dropdown.OptionData(label.Name));
                 }
+
                 m_AreaDropdown.value = SelectedScene.FMRIManager.SelectedDiFuMoArea;
             }
+
             m_AreaDropdown.RefreshShownValue();
         }
+
         #endregion
     }
 }

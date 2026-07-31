@@ -5,7 +5,6 @@ namespace TMPro.Examples
 {
     public class TMP_TextEventCheck : MonoBehaviour
     {
-
         public TMP_TextEventHandler TextEventHandler;
 
         private TMP_Text m_TextComponent;
@@ -16,7 +15,7 @@ namespace TMPro.Examples
             {
                 // Get a reference to the text component
                 m_TextComponent = TextEventHandler.GetComponent<TMP_Text>();
-                
+
                 TextEventHandler.onCharacterSelection.AddListener(OnCharacterSelection);
                 TextEventHandler.onSpriteSelection.AddListener(OnSpriteSelection);
                 TextEventHandler.onWordSelection.AddListener(OnWordSelection);
@@ -65,9 +64,8 @@ namespace TMPro.Examples
             {
                 TMP_LinkInfo linkInfo = m_TextComponent.textInfo.linkInfo[linkIndex];
             }
-            
+
             Debug.Log("Link Index: " + linkIndex + " with ID [" + linkID + "] and Text \"" + linkText + "\" has been selected.");
         }
-
     }
 }

@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class MeshItem : ActionnableItem<Core.Data.BaseMesh>
     {
         #region Properties
+
         [SerializeField] UnityEngine.UI.Text m_NameInputField;
         [SerializeField] ThemeElement m_MeshThemeElement;
         [SerializeField] ThemeElement m_MarsAtlasThemeElement;
@@ -22,10 +23,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.BaseMesh Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -42,6 +40,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

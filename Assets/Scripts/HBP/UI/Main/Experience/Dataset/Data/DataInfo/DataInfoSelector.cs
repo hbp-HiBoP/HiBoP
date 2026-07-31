@@ -10,11 +10,14 @@ namespace HBP.UI.Main
     public class DataInfoSelector : ObjectSelector<Core.Data.DataInfo>
     {
         #region Properties
+
         [SerializeField] DataInfoList m_List;
+
         /// <summary>
         /// UI dataInfos list.
         /// </summary>
         protected override SelectableList<Core.Data.DataInfo> List => m_List;
+
         #endregion
     }
 }

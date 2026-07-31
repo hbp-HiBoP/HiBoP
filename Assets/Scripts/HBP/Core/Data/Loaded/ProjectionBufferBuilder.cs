@@ -5,13 +5,7 @@ namespace HBP.Core.Data
 {
     public static class ProjectionBufferBuilder
     {
-        public static float[] FlattenTimeMajor(
-            IReadOnlyList<float[]> valuesBySite,
-            IReadOnlyList<bool> maskedSites,
-            int timelineLength,
-            out RunningStatistics unmaskedStatistics,
-            out float minimum,
-            out float maximum)
+        public static float[] FlattenTimeMajor(IReadOnlyList<float[]> valuesBySite, IReadOnlyList<bool> maskedSites, int timelineLength, out RunningStatistics unmaskedStatistics, out float minimum, out float maximum)
         {
             if (valuesBySite == null)
                 throw new ArgumentNullException(nameof(valuesBySite));
@@ -52,6 +46,7 @@ namespace HBP.Core.Data
                 minimum = -1f;
                 maximum = 1f;
             }
+
             return flattened;
         }
     }

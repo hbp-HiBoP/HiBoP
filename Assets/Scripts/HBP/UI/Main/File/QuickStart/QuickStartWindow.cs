@@ -10,6 +10,7 @@ namespace HBP.UI.Main.QuickStart
     public class QuickStartWindow : Window
     {
         #region Properties
+
         [SerializeField] private Button m_Back;
         [SerializeField] private Button m_Next;
         [SerializeField] private IntroductionPanel m_IntroductionPanel;
@@ -19,12 +20,10 @@ namespace HBP.UI.Main.QuickStart
         [SerializeField] private FunctionalPanel m_FunctionalDataPanel;
         [SerializeField] private FinalizationPanel m_FinalizationPanel;
         private QuickStartPanel m_CurrentPanel;
+
         public QuickStartPanel CurrentPanel
         {
-            get
-            {
-                return m_CurrentPanel;
-            }
+            get { return m_CurrentPanel; }
             set
             {
                 m_CurrentPanel = value;
@@ -51,9 +50,11 @@ namespace HBP.UI.Main.QuickStart
         }
 
         private HBP.UI.Tools.ProjectWorkflowSnapshot m_QuickStartSnapshot;
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -73,19 +74,23 @@ namespace HBP.UI.Main.QuickStart
             });
             m_QuickStartSnapshot = ProjectWorkflowService.Default.QuickStartBegin(Application.dataPath);
         }
+
         private async UniTaskVoid Finish()
         {
             base.Close();
             await ProjectWorkflowService.Default.QuickStartFinishAsync();
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Close()
         {
             base.Close();
             ProjectWorkflowService.Default.QuickStartCancel(m_QuickStartSnapshot);
         }
+
         #endregion
     }
 }

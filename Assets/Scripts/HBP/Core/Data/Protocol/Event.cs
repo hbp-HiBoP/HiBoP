@@ -34,47 +34,52 @@ namespace HBP.Core.Data
     /// </item>
     /// </list>
     /// </remarks>
-	[JsonObject(MemberSerialization.OptIn), Preserve]
+    [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Event : BaseData, INameable
-	{
+    {
         #region Properties
+
         /// <summary>
         /// Code string separator.
         /// </summary>
         private const char SEPARATOR = ',';
+
         /// <summary>
         /// Name.
         /// </summary>
         [JsonProperty] public string Name { get; set; }
+
         /// <summary>
         /// Codes.
         /// </summary>
         [JsonProperty] public List<int> Codes { get; set; }
+
         /// <summary>
         /// Type (main or secondary).
         /// </summary>
         [JsonProperty] public Enums.MainSecondaryEnum Type { get; set; }
+
         /// <summary>
         /// Codes of the event in a string format with code separate with the string separator.
         /// </summary>
         [JsonIgnore] public string CodesString
         {
             get { return GetStringFromCodes(Codes.ToArray()); }
-            set {Codes = GetCodesFromString(value).ToList(); }
+            set { Codes = GetCodesFromString(value).ToList(); }
         }
+
         /// <summary>
         /// True if is visualizable, False otherwise.
         /// </summary>
         public bool IsVisualizable
         {
-            get
-            {
-                return Codes.Count > 0;
-            }
+            get { return Codes.Count > 0; }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new Event instance.
         /// </summary>
@@ -88,6 +93,7 @@ namespace HBP.Core.Data
             Codes = codes.ToList();
             Type = type;
         }
+
         /// <summary>
         /// Create a new Event instance.
         /// </summary>
@@ -100,63 +106,71 @@ namespace HBP.Core.Data
             Codes = codes.ToList();
             Type = type;
         }
+
         /// <summary>
         /// Create a new Event instance.
         /// </summary>
         /// <param name="type">Type (main or secondary)</param>
-        public Event(Enums.MainSecondaryEnum type) : this("New Event",new int[0],type)
+        public Event(Enums.MainSecondaryEnum type) : this("New Event", new int[0], type)
         {
-
         }
+
         /// <summary>
         /// Create a new Event instance with default parameters
         /// </summary>
         public Event() : this(Enums.MainSecondaryEnum.Main)
-		{
-		}
+        {
+        }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Get string from code array.
         /// </summary>
         /// <param name="codes">Codes to translate.</param>
         /// <returns>Codes string translated.</returns>
         public static string GetStringFromCodes(int[] codes)
-		{
+        {
             string result = string.Empty;
-			for(int i=0 ;i < codes.Length;i++)
-			{
-				result += codes[i].ToString();
-				if(i < codes.Length-1)
-				{
-					result += SEPARATOR;
-				}
-			}
-			return result;
-		}		
+            for (int i = 0; i < codes.Length; i++)
+            {
+                result += codes[i].ToString();
+                if (i < codes.Length - 1)
+                {
+                    result += SEPARATOR;
+                }
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Get code array from string.
         /// </summary>
         /// <param name="codesString">String to translate.</param>
         /// <returns>Codes array.</returns>
-		public static int[] GetCodesFromString(string codesString)
-		{
-			string[] codes = codesString.Split(new char[] { SEPARATOR },StringSplitOptions.RemoveEmptyEntries);
-			List<int> result = new();
-			for(int i=0;i<codes.Length;i++)
-			{
+        public static int[] GetCodesFromString(string codesString)
+        {
+            string[] codes = codesString.Split(new char[] { SEPARATOR }, StringSplitOptions.RemoveEmptyEntries);
+            List<int> result = new();
+            for (int i = 0; i < codes.Length; i++)
+            {
                 int code;
-                if(int.TryParse(codes[i],out code))
+                if (int.TryParse(codes[i], out code))
                 {
                     result.Add(code);
                 }
-			}
-			return result.ToArray();
-		}
+            }
+
+            return result.ToArray();
+        }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone a Event instance.
         /// </summary>
@@ -165,16 +179,18 @@ namespace HBP.Core.Data
         {
             return new Event(Name, Codes, Type, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is Event eve)
+            if (obj is Event eve)
             {
                 Name = eve.Name;
                 Codes = eve.Codes;
                 Type = eve.Type;
             }
         }
+
         #endregion
     }
 }

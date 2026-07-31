@@ -6,18 +6,23 @@ namespace HBP.UI.Main
     public class ResponseCodeSelectionPanel : BasicBlocImporterPanel
     {
         #region Properties
+
         [SerializeField] private Transform m_CodesContainer;
         [SerializeField] private GameObject m_CodeItemPrefab;
+
         #endregion
 
         #region Public Methods
+
         public override bool CanProceed()
         {
             return true;
         }
+
         public override void OnProceed()
         {
         }
+
         public override void Refresh()
         {
             foreach (Transform child in m_CodesContainer)
@@ -35,9 +40,11 @@ namespace HBP.UI.Main
                 item.OnSelectionChanged.AddListener(OnSelectionChanged);
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void OnSelectionChanged(bool value)
         {
             m_Data.SelectedResponseCodes.Clear();
@@ -53,6 +60,7 @@ namespace HBP.UI.Main
 
             OnUpdateNavigation.Invoke();
         }
+
         #endregion
     }
 }

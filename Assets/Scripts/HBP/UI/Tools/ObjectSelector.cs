@@ -11,50 +11,44 @@ namespace HBP.UI.Tools
     public abstract class ObjectSelector<T> : DialogWindow
     {
         #region Properties
+
         /// <summary>
         /// List in the UI.
         /// </summary>
         protected abstract SelectableList<T> List { get; }
+
         /// <summary>
         /// Possible objects.
         /// </summary>
         public T[] Objects
         {
-            get
-            {
-                return List.Objects.ToArray();
-            }
-            set
-            {
-                List.Set(value);
-            }
+            get { return List.Objects.ToArray(); }
+            set { List.Set(value); }
         }
+
         /// <summary>
         /// Objects selected.
         /// </summary>
         public T[] ObjectsSelected
         {
-            get
-            {
-                return List.ObjectsSelected;
-            }
-            set
-            {
-                List.ObjectsSelected = value;
-            }
+            get { return List.ObjectsSelected; }
+            set { List.ObjectsSelected = value; }
         }
 
-        public enum SelectionType { Single, Multi}
+        public enum SelectionType
+        {
+            Single,
+            Multi
+        }
+
         [SerializeField] SelectionType m_Selection;
+
         /// <summary>
         /// Selection type.
         /// </summary>
         public SelectionType Selection
         {
-            get
-            {
-                return m_Selection;
-            }
+            get { return m_Selection; }
             set
             {
                 m_Selection = value;
@@ -71,6 +65,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         /// <summary>
         /// True if open window modifier return the objects selected.
         /// </summary>
@@ -81,10 +76,7 @@ namespace HBP.UI.Tools
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -92,9 +84,11 @@ namespace HBP.UI.Tools
                 List.Interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -106,6 +100,7 @@ namespace HBP.UI.Tools
 
             base.Initialize();
         }
+
         /// <summary>
         /// Update button state.
         /// </summary>
@@ -113,6 +108,7 @@ namespace HBP.UI.Tools
         {
             m_OKButton.interactable = Interactable && ObjectsSelected.Length > 0;
         }
+
         #endregion
     }
 }

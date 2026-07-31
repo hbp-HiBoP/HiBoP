@@ -50,6 +50,7 @@ namespace HBP.Core.DLL
             {
                 result[i] = Vec3.FromVector3(positions[i]);
             }
+
             return result;
         }
 
@@ -61,6 +62,7 @@ namespace HBP.Core.DLL
                 Volume volume = volumes[i];
                 result[i] = volume == null ? IntPtr.Zero : volume.getHandle().Handle;
             }
+
             return result;
         }
 
@@ -74,10 +76,13 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_activity_generator_initialize(IntPtr generator, IntPtr generatorSurface);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_get_progress", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_activity_generator_get_progress(IntPtr generator, out float progress);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_save_activity_nifti", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_activity_generator_save_activity_nifti(IntPtr generator, string path, int timelineLength, float samplingFrequency, float startTime, string description);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_save_mask_nifti", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_activity_generator_save_mask_nifti(IntPtr generator, string path, string description);
     }

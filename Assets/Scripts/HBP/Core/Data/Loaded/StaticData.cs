@@ -10,19 +10,24 @@ namespace HBP.Core.Data
     public class StaticData : Data
     {
         #region Properties
+
         public string[] Labels { get; set; }
         public Dictionary<string, float[]> ValuesByChannel { get; set; }
+
         #endregion
 
         #region Constructors
+
         public StaticData() : this(new string[0], new Dictionary<string, float[]>())
         {
         }
+
         public StaticData(string[] labels, Dictionary<string, float[]> valuesByChannel)
         {
             Labels = labels;
             ValuesByChannel = valuesByChannel;
         }
+
         public StaticData(StaticDataInfo dataInfo) : this()
         {
             if (dataInfo.DataContainer is Container.CSV csvDataContainer)
@@ -52,13 +57,16 @@ namespace HBP.Core.Data
                 throw new Exception("Invalid data container type");
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Clear()
         {
             ValuesByChannel.Clear();
         }
+
         #endregion
     }
 }

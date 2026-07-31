@@ -101,6 +101,7 @@ namespace HBP.Tests.Serialization
             ApplicationState.LoadedProjectLocation = Path.GetDirectoryName(archivePath);
 
             await loaded.LoadAsync(info, NoProgress, CancellationToken.None);
+            await loaded.CurrentLoadingOperation.Validated;
 
             Dataset dataset = loaded.Datasets.Single();
             Assert.That(loaded.Patients, Has.Count.EqualTo(1));
@@ -115,10 +116,12 @@ namespace HBP.Tests.Serialization
                 {
                     Assert.That(fmriDataInfo.MaskDataContainer.GetErrors(), Is.Empty, dataInfo.Name);
                 }
+
                 if (dataInfo is MEGvDataInfo megvDataInfo)
                 {
                     Assert.That(megvDataInfo.MaskDataContainer.GetErrors(), Is.Empty, dataInfo.Name);
                 }
+
                 if (dataInfo is SharedFMRIDataInfo sharedFMRIDataInfo)
                 {
                     Assert.That(sharedFMRIDataInfo.MaskDataContainer.GetErrors(), Is.Empty, dataInfo.Name);
@@ -147,9 +150,7 @@ namespace HBP.Tests.Serialization
 
             foreach (IEEGDataInfo dataInfo in CreateNativeIEEGDataInfos())
             {
-                IEEGData data = ExecuteNativeOrIgnore(
-                    () => (IEEGData)DataManager.GetData(dataInfo),
-                    dataInfo.Name);
+                IEEGData data = ExecuteNativeOrIgnore(() => (IEEGData)DataManager.GetData(dataInfo), dataInfo.Name);
 
                 Assert.That(data.Frequency.Value, Is.EqualTo(200), dataInfo.Name);
                 Assert.That(data.UnitByChannel.Keys, Is.SupersetOf(new[] { "A1", "A2", "A3" }), dataInfo.Name);
@@ -163,11 +164,7 @@ namespace HBP.Tests.Serialization
         [Category("NativeDll")]
         public async Task NativeNiftiFixture_LoadsVolumeAndMask_WhenNativeDllsAreAvailable()
         {
-            HBP.Core.Object3D.FMRI fmri = new(
-                "native-fmri",
-                NativePath("Nifti", "fmri_4d.nii.gz"),
-                NativePath("Nifti", "mask_binary.nii"),
-                false);
+            HBP.Core.Object3D.FMRI fmri = new("native-fmri", NativePath("Nifti", "fmri_4d.nii.gz"), NativePath("Nifti", "mask_binary.nii"), false);
 
             try
             {
@@ -186,19 +183,12 @@ namespace HBP.Tests.Serialization
         private static IEnumerable<IEEGDataInfo> CreateNativeIEEGDataInfos()
         {
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
-            Patient patient = new(
-                "native-eeg-patient",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                new[]
-                {
-                    new Site("A1", Array.Empty<Coordinate>(), Array.Empty<BaseTagValue>(), "native-eeg-site-a1"),
-                    new Site("A2", Array.Empty<Coordinate>(), Array.Empty<BaseTagValue>(), "native-eeg-site-a2"),
-                    new Site("A3", Array.Empty<Coordinate>(), Array.Empty<BaseTagValue>(), "native-eeg-site-a3")
-                },
-                Array.Empty<BaseTagValue>(),
-                string.Empty,
-                "native-eeg-patient-001");
+            Patient patient = new("native-eeg-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[]
+            {
+                new Site("A1", Array.Empty<Coordinate>(), Array.Empty<BaseTagValue>(), "native-eeg-site-a1"),
+                new Site("A2", Array.Empty<Coordinate>(), Array.Empty<BaseTagValue>(), "native-eeg-site-a2"),
+                new Site("A3", Array.Empty<Coordinate>(), Array.Empty<BaseTagValue>(), "native-eeg-site-a3")
+            }, Array.Empty<BaseTagValue>(), string.Empty, "native-eeg-patient-001");
 
             yield return CreateIEEGDataInfo("native-brainvision", protocol, patient, new BrainVision(NativePath("EEG", "BrainVision", "native_brainvision_alpha.vhdr"), Array.Empty<Error>(), Array.Empty<Warning>(), "native-brainvision-container"));
             yield return CreateIEEGDataInfo("native-edf", protocol, patient, new EDF(NativePath("EEG", "EDF", "native_edf.edf"), Array.Empty<Error>(), Array.Empty<Warning>(), "native-edf-container"));
@@ -209,16 +199,7 @@ namespace HBP.Tests.Serialization
 
         private static IEEGDataInfo CreateIEEGDataInfo(string name, Protocol protocol, Patient patient, DataContainer container)
         {
-            return new IEEGDataInfo(
-                name,
-                protocol,
-                container,
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                NormalizationType.None,
-                "native-fixture-db",
-                $"{name}-data-info");
+            return new IEEGDataInfo(name, protocol, container, Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.None, "native-fixture-db", $"{name}-data-info");
         }
 
         private static T ExecuteNativeOrIgnore<T>(Func<T> action, string context)
@@ -255,14 +236,13 @@ namespace HBP.Tests.Serialization
                     return true;
                 }
             }
+
             return false;
         }
 
         private static void RegisterNativeFixtureAlias()
         {
-            PersistentDataManager.Aliases.SetAliases(
-                new[] { new Alias("[HIBOP_NATIVE_FIXTURES]", NativeRoot(), "native-fixture-test-alias-001") },
-                false);
+            PersistentDataManager.Aliases.SetAliases(new[] { new Alias("[HIBOP_NATIVE_FIXTURES]", NativeRoot(), "native-fixture-test-alias-001") }, false);
         }
 
         private static string NativeRoot()
@@ -277,6 +257,7 @@ namespace HBP.Tests.Serialization
             {
                 path = Path.Combine(path, part);
             }
+
             return path;
         }
 
@@ -287,6 +268,7 @@ namespace HBP.Tests.Serialization
             {
                 Directory.CreateDirectory(directory.Replace(sourceDirectory, targetDirectory));
             }
+
             foreach (string file in Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories))
             {
                 File.Copy(file, file.Replace(sourceDirectory, targetDirectory), true);

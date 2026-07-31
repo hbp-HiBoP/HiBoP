@@ -9,15 +9,18 @@ namespace HBP.Core.Database
     public class DatabaseReference : BaseData
     {
         #region Properties
+
         public const string EXTENSION = ".hibopdb";
         [JsonProperty("Name")] public string Name { get; set; }
         [JsonProperty("Type")] public DatabaseType Type { get; set; }
         [JsonProperty("Path")] public string Path { get; set; }
         [JsonProperty("Parameters")] public DatabaseReferenceParameters Parameters { get; set; }
         [JsonProperty("LastUpdated")] public DateTime LastUpdated { get; set; } = DateTime.MinValue;
+
         #endregion
 
         #region Constructors
+
         public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters, DateTime lastUpdated, string ID) : base(ID)
         {
             Name = name;
@@ -26,6 +29,7 @@ namespace HBP.Core.Database
             Parameters = parameters;
             LastUpdated = lastUpdated;
         }
+
         public DatabaseReference(string name, DatabaseType type, string path, DatabaseReferenceParameters parameters, DateTime lastUpdated) : base()
         {
             Name = name;
@@ -34,16 +38,20 @@ namespace HBP.Core.Database
             Parameters = parameters;
             LastUpdated = lastUpdated;
         }
+
         public DatabaseReference() : this("New Database", DatabaseType.Brainvisa, "", null, DateTime.MinValue)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override object Clone()
         {
             return new DatabaseReference(Name, Type, Path, Parameters?.Clone() as DatabaseReferenceParameters, LastUpdated, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -56,13 +64,13 @@ namespace HBP.Core.Database
                 LastUpdated = databaseReference.LastUpdated;
             }
         }
+
         #endregion
     }
 
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public abstract class DatabaseReferenceParameters : BaseData
     {
-
     }
 
     [JsonObject(MemberSerialization.OptIn), Preserve]
@@ -72,6 +80,7 @@ namespace HBP.Core.Database
         {
             return new BrainvisaDatabaseParameters();
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -89,6 +98,7 @@ namespace HBP.Core.Database
         {
             return new LocalizerDatabaseParameters() { IncludeRaw = IncludeRaw, Frequencies = Frequencies, TemporalSmoothings = TemporalSmoothings };
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -108,6 +118,7 @@ namespace HBP.Core.Database
         {
             return new BIDSDatabaseParameters();
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -121,6 +132,7 @@ namespace HBP.Core.Database
         {
             return new TagsDatabaseParameters();
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);

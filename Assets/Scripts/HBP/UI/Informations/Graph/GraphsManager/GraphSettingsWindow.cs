@@ -14,6 +14,7 @@ namespace HBP.UI.Informations
     public class GraphSettingsWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] private ChannelStructGroupsPanel m_ChannelStructGroupsPanel;
         [SerializeField] private LocalizersPanel m_LocalizersPanel;
         [SerializeField] private ColorsPanel m_ColorsPanel;
@@ -23,22 +24,28 @@ namespace HBP.UI.Informations
             get => m_ChannelStructGroupsPanel.ChannelStructsGroups;
             set => m_ChannelStructGroupsPanel.ChannelStructsGroups = value;
         }
+
         #endregion
 
         #region Events
+
         public GenericEvent<List<ChannelStructsGroup>> OnDisplayChannelStructsGroupsGraphs => m_ChannelStructGroupsPanel.OnDisplayChannelStructsGroupsGraphs;
         public GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>> OnGenerateLocalizersGraphs => m_LocalizersPanel.OnGenerateLocalizersGraphs;
+
         #endregion
 
         #region Public Methods
+
         public override void OK()
         {
             base.OK();
             m_ChannelStructGroupsPanel.DisplayGraphs();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields()
         {
             base.SetFields();
@@ -46,6 +53,7 @@ namespace HBP.UI.Informations
             m_ChannelStructGroupsPanel.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
             m_LocalizersPanel.Initialize();
         }
+
         #endregion
     }
 }

@@ -9,17 +9,22 @@ namespace HBP.UI.Database
     public class TrialMatrixActionsContextMenu : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] TrialMatrixDisplayer m_TrialMatrixDisplayer;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             gameObject.SetActive(false);
         }
+
         #endregion
 
         #region Public Methods
+
         public async void AddCurrentPatientToProjectGroup()
         {
             gameObject.SetActive(false);
@@ -66,16 +71,19 @@ namespace HBP.UI.Database
                         DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No group selected", "Please select a group to add the patient to.").Forget();
                         return;
                     }
+
                     var selectedGroup = groupSelector.ObjectsSelected[0];
                     selectedGroup?.Patients.Add(patient);
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Patient added", $"Patient {patient.Name} has been added to group {selectedGroup.Name}.").Forget();
                 });
             }
         }
+
         protected virtual void OpenDialog(Core.Enums.DialogBoxType type, string title, string message)
         {
             DialogBoxManager.Open(type, title, message).Forget();
         }
+
         #endregion
     }
 }

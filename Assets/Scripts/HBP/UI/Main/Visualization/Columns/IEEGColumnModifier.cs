@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class IEEGColumnModifier : SubModifier<IEEGColumn>
     {
         #region Properties
+
         [SerializeField] Dropdown m_ProtocolDropdown, m_BlocDropdown, m_DatasetDropdown, m_DataNameDropdown;
         [SerializeField] Image m_InformationImage;
 
@@ -33,14 +34,11 @@ namespace HBP.UI.Main
 
         public override IEEGColumn Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 base.Object = value;
-                if(value != null && m_Patients != null)
+                if (value != null && m_Patients != null)
                 {
                     SetProtocolDropdown();
                 }
@@ -52,12 +50,10 @@ namespace HBP.UI.Main
         }
 
         Patient[] m_Patients;
+
         public Patient[] Patients
         {
-            get
-            {
-                return m_Patients;
-            }
+            get { return m_Patients; }
             set
             {
                 m_Patients = value;
@@ -71,9 +67,11 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
+
         public override void Initialize()
         {
             m_ProtocolDropdown.onValueChanged.AddListener(OnChangeProtocol);
@@ -90,15 +88,18 @@ namespace HBP.UI.Main
             m_Protocols = DatabaseManager.Database.Protocols.Where(p => p.IsVisualizable).ToList();
             SetProtocolDropdownInteractable(m_Protocols != null && m_Patients != null && m_Protocols.Count > 0 && m_Patients.Length > 0);
         }
+
         void OnChangeProtocol(int value)
         {
             if (m_Protocols != null && m_Protocols.Count > value)
             {
                 m_SelectedProtocol = m_Protocols[value];
             }
+
             SetBlocDropdown();
             SetDatasetDropdown();
         }
+
         void SetProtocolDropdownInteractable(bool interactable)
         {
             m_ProtocolDropdown.interactable = interactable;
@@ -114,6 +115,7 @@ namespace HBP.UI.Main
                 SetBlocDropdownInteractable(false);
                 SetDatasetDropdownInteractable(false);
             }
+
             m_ProtocolDropdown.RefreshShownValue();
         }
 
@@ -122,13 +124,15 @@ namespace HBP.UI.Main
         {
             SetBlocDropdownInteractable(m_SelectedProtocol != null && m_SelectedProtocol.Blocs.Count > 0 && m_ProtocolDropdown.interactable);
         }
+
         void OnChangeBloc(int value)
         {
-            if(m_SelectedProtocol != null && m_SelectedProtocol.Blocs.Count > value)
+            if (m_SelectedProtocol != null && m_SelectedProtocol.Blocs.Count > value)
             {
                 Object.Bloc = m_SelectedProtocol.Blocs[value];
             }
         }
+
         void SetBlocDropdownInteractable(bool interactable)
         {
             m_BlocDropdown.interactable = interactable;
@@ -142,6 +146,7 @@ namespace HBP.UI.Main
             {
                 m_BlocDropdown.ClearOptions();
             }
+
             m_BlocDropdown.RefreshShownValue();
         }
 
@@ -151,11 +156,13 @@ namespace HBP.UI.Main
             if (m_Datasets != null && m_Datasets.Count > value) Object.Dataset = m_Datasets[value];
             SetDataNameDropdown();
         }
+
         void SetDatasetDropdown()
         {
             m_Datasets = ApplicationState.LoadedProject.Datasets.Where((d) => d.Protocol == m_SelectedProtocol).ToList();
             SetDatasetDropdownInteractable(m_Datasets != null && m_Patients != null && m_Datasets.Count > 0 && m_ProtocolDropdown.interactable && m_Patients.Length > 0);
         }
+
         void SetDatasetDropdownInteractable(bool interactable)
         {
             m_DatasetDropdown.interactable = interactable;
@@ -176,13 +183,14 @@ namespace HBP.UI.Main
                 m_DatasetDropdown.ClearOptions();
                 SetDataNameDropdownInteractable(false);
             }
+
             m_DatasetDropdown.RefreshShownValue();
         }
 
         // Data.
         void OnChangeDataName(int value)
         {
-            if(m_DataNames != null && m_DataNames.Count > value)
+            if (m_DataNames != null && m_DataNames.Count > value)
             {
                 Object.DataName = m_DataNames[value];
                 var invalidPatients = m_Patients.Where((patient) => !Object.Dataset.GetIEEGDataInfos().Any(d => d.Patient == patient && d.Name == Object.DataName && d.IsOk)).ToArray();
@@ -197,9 +205,10 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         void SetDataNameDropdown()
         {
-            if(Object.Dataset != null)
+            if (Object.Dataset != null)
             {
                 m_DataNames = (from data in Object.Dataset.Data select data.Name).Distinct().Where((name) => m_Patients.Any((patient) => Object.Dataset.GetIEEGDataInfos().Any((dataInfo) => dataInfo.IsOk && dataInfo.Name == name && dataInfo.Patient == patient))).ToList();
             }
@@ -207,8 +216,10 @@ namespace HBP.UI.Main
             {
                 m_DataNames = new List<string>();
             }
+
             SetDataNameDropdownInteractable(m_DataNames != null && m_DataNames.Count > 0 && m_DatasetDropdown.interactable);
         }
+
         void SetDataNameDropdownInteractable(bool interactable)
         {
             m_DataNameDropdown.interactable = interactable;
@@ -221,8 +232,10 @@ namespace HBP.UI.Main
             {
                 m_DataNameDropdown.ClearOptions();
             }
+
             m_DataNameDropdown.RefreshShownValue();
         }
+
         #endregion
     }
 }

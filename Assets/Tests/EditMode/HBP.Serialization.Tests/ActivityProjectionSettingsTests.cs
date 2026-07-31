@@ -20,10 +20,8 @@ namespace HBP.Tests.Serialization
         public void DefaultsAndOverrides_AreCentralizedAndValidated()
         {
             ActivityProjectionSettings.ResetDefaults();
-            Assert.That(ActivityProjectionSettings.VolumeGridDimension,
-                Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
-            Assert.That(ActivityProjectionSettings.VolumeInterpolation,
-                Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
+            Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
+            Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
 
             ActivityProjectionSettings.VolumeGridDimension = 80;
             ActivityProjectionSettings.VolumeInterpolation = VolumeInterpolation.Trilinear;
@@ -31,8 +29,7 @@ namespace HBP.Tests.Serialization
             Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Trilinear));
 
             Assert.Throws<ArgumentOutOfRangeException>(() => ActivityProjectionSettings.VolumeGridDimension = 1);
-            Assert.Throws<ArgumentOutOfRangeException>(() =>
-                ActivityProjectionSettings.VolumeInterpolation = (VolumeInterpolation)99);
+            Assert.Throws<ArgumentOutOfRangeException>(() => ActivityProjectionSettings.VolumeInterpolation = (VolumeInterpolation)99);
         }
 
         [Test]
@@ -62,10 +59,8 @@ namespace HBP.Tests.Serialization
                 serializedManager.ApplyModifiedPropertiesWithoutUndo();
                 manager.ApplyActivityProjectionSettings();
 
-                Assert.That(manager.ActivityProjectionVolumeGridDimension,
-                    Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
-                Assert.That(manager.ActivityProjectionVolumeInterpolation,
-                    Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
+                Assert.That(manager.ActivityProjectionVolumeGridDimension, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
+                Assert.That(manager.ActivityProjectionVolumeInterpolation, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
             }
             finally
             {

@@ -42,13 +42,7 @@ namespace HBP.Tests.Serialization.Helpers
             Visualization visualization = CreateVisualization(patient, dataset, protocol.Blocs[0]);
             Group group = new("synthetic-group-alpha", new[] { patient }, "synthetic-group-001");
 
-            Project project = new(
-                ProjectName,
-                new HBP.Core.Data.ProjectPreferences("test-version", ProjectId),
-                new[] { patient },
-                new[] { group },
-                new[] { dataset },
-                new[] { visualization });
+            Project project = new(ProjectName, new HBP.Core.Data.ProjectPreferences("test-version", ProjectId), new[] { patient }, new[] { group }, new[] { dataset }, new[] { visualization });
 
             ApplicationState.LoadedProject = project;
             return project;
@@ -58,36 +52,16 @@ namespace HBP.Tests.Serialization.Helpers
         {
             HBP.Core.Data.Event mainEvent = new("event-alpha", new[] { 11 }, MainSecondaryEnum.Main, "synthetic-event-001");
             TimeWindow window = new(-100, 250);
-            SubBloc subBloc = new(
-                "subbloc-alpha",
-                0,
-                MainSecondaryEnum.Main,
-                window,
-                new TimeWindow(-100, 0),
-                new[] { mainEvent },
-                new[] { new Icon("icon-alpha", string.Empty, window, "synthetic-icon-001") },
-                new Treatment[] { new MeanTreatment(true, window, false, new TimeWindow(), 0, "synthetic-treatment-001") },
-                "synthetic-subbloc-001");
+            SubBloc subBloc = new("subbloc-alpha", 0, MainSecondaryEnum.Main, window, new TimeWindow(-100, 0), new[] { mainEvent }, new[] { new Icon("icon-alpha", string.Empty, window, "synthetic-icon-001") }, new Treatment[] { new MeanTreatment(true, window, false, new TimeWindow(), 0, "synthetic-treatment-001") }, "synthetic-subbloc-001");
             Bloc bloc = new("bloc-alpha", 0, string.Empty, "subbloc-alpha_event-alpha_CODE", new[] { subBloc }, "synthetic-bloc-001");
             return new Protocol("protocol-alpha", new[] { bloc }, ProtocolId);
         }
 
         public static Patient CreatePatient(BoolTag patientTag, StringTag siteTag)
         {
-            Site site = new(
-                "site-alpha",
-                new[] { new Coordinate("synthetic-space", new Vector3(1, 2, 3), "synthetic-coordinate-001") },
-                new BaseTagValue[] { new StringTagValue(siteTag, "plot-value-alpha", "synthetic-site-tag-value-001") },
-                SiteId);
+            Site site = new("site-alpha", new[] { new Coordinate("synthetic-space", new Vector3(1, 2, 3), "synthetic-coordinate-001") }, new BaseTagValue[] { new StringTagValue(siteTag, "plot-value-alpha", "synthetic-site-tag-value-001") }, SiteId);
 
-            return new Patient(
-                "patient-alpha",
-                new BaseMesh[0],
-                new MRI[0],
-                new[] { site },
-                new BaseTagValue[] { new BoolTagValue(patientTag, true, "synthetic-patient-tag-value-001") },
-                "synthetic-database-link-001",
-                PatientId);
+            return new Patient("patient-alpha", new BaseMesh[0], new MRI[0], new[] { site }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "synthetic-patient-tag-value-001") }, "synthetic-database-link-001", PatientId);
         }
 
         public static Dataset CreateDataset(Protocol protocol, Patient patient)
@@ -126,13 +100,10 @@ namespace HBP.Tests.Serialization.Helpers
 
         private static BaseConfiguration CreateBaseConfiguration(string suffix)
         {
-            return new BaseConfiguration(
-                0.75f,
-                new Dictionary<string, SiteConfiguration>
+            return new BaseConfiguration(0.75f, new Dictionary<string, SiteConfiguration>
                 {
                     { SiteId, new SiteConfiguration(false, true, Color.cyan, new[] { "label-alpha" }, $"synthetic-site-config-{suffix}-001") }
-                },
-                $"synthetic-base-config-{suffix}-001");
+                }, $"synthetic-base-config-{suffix}-001");
         }
     }
 }

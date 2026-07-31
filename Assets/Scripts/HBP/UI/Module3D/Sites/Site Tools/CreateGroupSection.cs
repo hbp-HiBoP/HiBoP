@@ -9,6 +9,7 @@ namespace HBP.UI.Module3D
     public class CreateGroupSection : SiteToolSection
     {
         #region Public Methods
+
         public override async UniTask ApplyAsync()
         {
             await UniTask.SwitchToMainThread();
@@ -28,20 +29,25 @@ namespace HBP.UI.Module3D
                         count++;
                         name = string.Format("{0}({1})", group.Name, count);
                     }
+
                     group.Name = name;
                 }
+
                 ApplicationState.LoadedProject.AddGroup(group);
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Group added to project", string.Format("The group {0} containing the {1} patients of the filtered sites has been added to the project.", group.Name, patients.Count())).Forget();
             });
         }
+
         public override void StoreSettings()
         {
             // No settings to store
         }
+
         public override void LoadSettings()
         {
             // No settings to load
         }
+
         #endregion
     }
 }

@@ -87,8 +87,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void InvalidJaggedInput_IsRejected()
         {
-            Assert.Throws<ArgumentException>(() => TrialMatrixTileBuilder.Build(
-                new[] { new[] { 0f }, new[] { 0f, 1f } }, Limits, Grayscale(), false, 1, false, 8));
+            Assert.Throws<ArgumentException>(() => TrialMatrixTileBuilder.Build(new[] { new[] { 0f }, new[] { 0f, 1f } }, Limits, Grayscale(), false, 1, false, 8));
         }
 
         [Test]
@@ -111,6 +110,7 @@ namespace HBP.Tests.Serialization
                 for (int x = 0; x < width; x++)
                     result[y][x] = (y * width + x) / (float)Math.Max(1, height * width - 1);
             }
+
             return result;
         }
 
@@ -134,6 +134,7 @@ namespace HBP.Tests.Serialization
                 for (int x = 0; x < width; x++)
                     result[y * width + x] = colors[Mathf.RoundToInt(Mathf.Clamp01(row[x]) * 255)];
             }
+
             return result;
         }
 
@@ -151,6 +152,7 @@ namespace HBP.Tests.Serialization
                     Array.Copy(tile.Pixels, source, pixels, destination, tile.CoreWidth);
                 }
             }
+
             return pixels;
         }
 

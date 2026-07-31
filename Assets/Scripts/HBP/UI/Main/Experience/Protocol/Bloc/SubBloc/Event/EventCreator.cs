@@ -10,24 +10,22 @@ namespace HBP.UI.Main
     public class EventCreator : ObjectCreator<Core.Data.Event>
     {
         #region Properties
+
         [SerializeField] MainSecondaryEnum m_Type;
+
         /// <summary>
         /// Default event type created.
         /// </summary>
         public MainSecondaryEnum Type
         {
-            get
-            {
-                return m_Type;
-            }
-            set
-            {
-                m_Type = value;
-            }
+            get { return m_Type; }
+            set { m_Type = value; }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Create event from scratch with the default type.
         /// </summary>
@@ -35,6 +33,7 @@ namespace HBP.UI.Main
         {
             OpenModifier(new Core.Data.Event(Type));
         }
+
         #endregion
     }
 }

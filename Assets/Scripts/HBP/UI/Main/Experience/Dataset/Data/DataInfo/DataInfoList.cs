@@ -14,7 +14,20 @@ namespace HBP.UI.Main
     public class DataInfoList : ActionableList<Core.Data.DataInfo>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Patient, DescendingPatient, State, DescendingState, Type, DescendingType }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Patient,
+            DescendingPatient,
+            State,
+            DescendingState,
+            Type,
+            DescendingType
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] Button m_ResetFiltersButton;
@@ -24,9 +37,11 @@ namespace HBP.UI.Main
         public SortingDisplayer m_PatientSortingDisplayer;
         public SortingDisplayer m_TypeSortingDisplayer;
         public SortingDisplayer m_StateSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add dataInfo.
         /// </summary>
@@ -37,6 +52,7 @@ namespace HBP.UI.Main
             SortByNone();
             base.AddObject(objectToAdd);
         }
+
         public void OpenFilterWindow()
         {
             var filteringObjects = Objects.Select(o => (object)o).ToList();
@@ -60,27 +76,32 @@ namespace HBP.UI.Main
             if (parentWindow)
                 parentWindow.WindowsReferencer.Add(filterWindow);
         }
+
         public void ResetFilters()
         {
             MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), !m_ShowFilteredObjectsToggle.isOn);
             SortByNone();
         }
+
         public override bool MaskList(bool[] mask, bool hide = true)
         {
             bool hasFilteredObjects = mask.Any(m => !m);
             m_ResetFiltersButton.interactable = hasFilteredObjects;
             m_ShowFilteredObjectsToggle.interactable = hasFilteredObjects;
             if (hasFilteredObjects) m_ShowFilteredObjectsToggle.isOn = !hide;
-            
+
             return base.MaskList(mask, hide);
         }
+
         public void OnShowFilteredObjectsToggleChanged(bool showFiltered)
         {
             HideMaskedObjects = !showFiltered;
         }
+
         #endregion
 
         #region Sorting Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -100,11 +121,13 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -130,6 +153,7 @@ namespace HBP.UI.Main
                 if (data is Core.Data.PatientDataInfo patientData) patientDataInfo.Add(patientData);
                 else otherDataInfo.Add(data);
             }
+
             switch (sorting)
             {
                 case Sorting.Ascending:
@@ -145,11 +169,13 @@ namespace HBP.UI.Main
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by patient.
         /// </summary>
@@ -181,11 +207,13 @@ namespace HBP.UI.Main
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by sate.
         /// </summary>
@@ -217,11 +245,13 @@ namespace HBP.UI.Main
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by sate.
         /// </summary>
@@ -245,6 +275,7 @@ namespace HBP.UI.Main
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

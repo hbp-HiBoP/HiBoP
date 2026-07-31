@@ -27,7 +27,7 @@ namespace HBP.UI.Main
         {
             using UnityWebRequest request = UnityWebRequest.Get("https://api.github.com/repos/hbp-HiBoP/HiBoP/releases/latest");
             request.SetRequestHeader("User-Agent", "Other");
-            
+
             var operation = request.SendWebRequest();
             await UniTask.WaitUntil(() => operation.isDone);
 

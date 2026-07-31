@@ -14,6 +14,7 @@ namespace HBP.UI.Main
     public class SiteModifier : ObjectModifier<Site>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] CoordinateListGestion m_CoordinateListGestion;
         [SerializeField] TagValueListGestion m_TagValueListGestion;
@@ -23,10 +24,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -41,9 +39,11 @@ namespace HBP.UI.Main
                 m_TagValueListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -63,6 +63,7 @@ namespace HBP.UI.Main
             m_TagValueListGestion.List.OnRemoveObject.AddListener(OnRemoveTag);
             m_TagValueListGestion.List.OnUpdateObject.AddListener(OnUpdateTag);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -74,13 +75,14 @@ namespace HBP.UI.Main
             m_TagValueListGestion.Tags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(objectToDisplay.Tags);
         }
+
         /// <summary>
         /// Called when the value on the nameInputField changed.
         /// </summary>
         /// <param name="value"></param>
         protected void OnChangeName(string value)
         {
-            if(value != "")
+            if (value != "")
             {
                 ObjectTemp.Name = value;
             }
@@ -89,6 +91,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Called when a coordinate is added to the site.
         /// </summary>
@@ -97,6 +100,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Coordinates.AddIfAbsent(coordinate);
         }
+
         /// <summary>
         /// Called when a coordinate is removed from the site.
         /// </summary>
@@ -105,6 +109,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Coordinates.Remove(coordinate);
         }
+
         /// <summary>
         /// Called when a coordinate is updated from the site.
         /// </summary>
@@ -117,6 +122,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Coordinates[index] = coordinate;
             }
         }
+
         /// <summary>
         /// Called when a tag is added to the site.
         /// </summary>
@@ -125,6 +131,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Tags.AddIfAbsent(tag);
         }
+
         /// <summary>
         /// Called when a tag is removed from the site.
         /// </summary>
@@ -133,6 +140,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Tags.Remove(tag);
         }
+
         /// <summary>
         /// Called when a tag is updated from the site.
         /// </summary>
@@ -140,11 +148,12 @@ namespace HBP.UI.Main
         protected void OnUpdateTag(BaseTagValue tag)
         {
             int index = ObjectTemp.Tags.FindIndex(t => t.Equals(tag));
-            if(index != -1)
+            if (index != -1)
             {
                 ObjectTemp.Tags[index] = tag;
             }
         }
+
         #endregion
     }
 }

@@ -7,30 +7,38 @@ namespace HBP.Core.Data
     public class BaseFilterCondition : BaseData
     {
         #region Properties
+
         public virtual string Description => "";
 
         [JsonProperty("IsNot")] public bool IsNot { get; set; }
+
         #endregion
 
         #region Constructors
+
         public BaseFilterCondition() : this(false)
         {
         }
+
         public BaseFilterCondition(bool isNot) : base()
         {
             IsNot = isNot;
         }
+
         public BaseFilterCondition(bool isNot, string ID) : base(ID)
         {
             IsNot = isNot;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new BaseFilterCondition(IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -39,19 +47,24 @@ namespace HBP.Core.Data
                 IsNot = filterCondition.IsNot;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public virtual void BeforeCheck()
         {
         }
+
         public virtual bool Check(object obj)
         {
             return true;
         }
+
         public virtual void AfterCheck()
         {
         }
+
         #endregion
     }
 }

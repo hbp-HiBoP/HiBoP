@@ -6,24 +6,35 @@ namespace HBP.UI.Tools
     public class SquareRectTransform : LayoutElement
     {
         #region Properties
-        public enum ControlType { HeightControlsWidth, WidthControlsHeight }
+
+        public enum ControlType
+        {
+            HeightControlsWidth,
+            WidthControlsHeight
+        }
+
         public ControlType Type;
         RectTransform m_RectTransform;
+
         #endregion
 
         #region Public Methods
+
         public override void CalculateLayoutInputHorizontal()
         {
             base.CalculateLayoutInputHorizontal();
             CalculateLayoutParameters();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void OnEnable()
         {
             m_RectTransform = GetComponent<RectTransform>();
         }
+
         void CalculateLayoutParameters()
         {
             switch (Type)
@@ -44,6 +55,7 @@ namespace HBP.UI.Tools
                     break;
             }
         }
+
         #endregion
     }
 }

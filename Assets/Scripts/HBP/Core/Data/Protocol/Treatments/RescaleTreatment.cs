@@ -60,26 +60,33 @@ namespace HBP.Core.Data
     public class RescaleTreatment : Treatment
     {
         public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
+
         #region Properties
+
         /// <summary>
         /// Minimum Value before rescaled the values.
         /// </summary>
         [JsonProperty] public float BeforeMin { get; set; }
+
         /// <summary>
         /// Maximum Value before rescaled the values.
         /// </summary>
         [JsonProperty] public float BeforeMax { get; set; }
+
         /// <summary>
         /// Minimum Value after rescaled the values.
         /// </summary>
         [JsonProperty] public float AfterMin { get; set; }
+
         /// <summary>
         /// Maximum Value after rescaled the values.
         /// </summary>
         [JsonProperty] public float AfterMax { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new RescaleTreatment instance with default values.
         /// </summary>
@@ -90,6 +97,7 @@ namespace HBP.Core.Data
             AfterMin = -1;
             AfterMax = 1;
         }
+
         /// <summary>
         /// Create a new RescaleTreatment instance with default values and a specified unique identifier.
         /// </summary>
@@ -101,6 +109,7 @@ namespace HBP.Core.Data
             AfterMin = -1;
             AfterMax = 1;
         }
+
         /// <summary>
         /// Create a new RescaleTreatment instance.
         /// </summary>
@@ -121,9 +130,11 @@ namespace HBP.Core.Data
             AfterMin = afterMin;
             AfterMax = afterMax;
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             float ratio = (AfterMax - AfterMin) / (BeforeMax - BeforeMin);
@@ -136,7 +147,8 @@ namespace HBP.Core.Data
                     values[i] = ratio * (values[i] - BeforeMin) + AfterMin;
                 }
             }
-            if(UseOnBaseline)
+
+            if (UseOnBaseline)
             {
                 int startIndex = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
                 int endIndex = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
@@ -146,17 +158,20 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new RescaleTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, BeforeMin, BeforeMax, AfterMin, AfterMax, Order, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is RescaleTreatment treatment)
+            if (copy is RescaleTreatment treatment)
             {
                 BeforeMin = treatment.BeforeMin;
                 BeforeMax = treatment.BeforeMax;
@@ -164,6 +179,7 @@ namespace HBP.Core.Data
                 AfterMax = treatment.AfterMax;
             }
         }
+
         #endregion
     }
 }

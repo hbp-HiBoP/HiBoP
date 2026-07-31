@@ -6,13 +6,16 @@ namespace HBP.UI.Toolbar
     public class EdgeMode : Tool
     {
         #region Properties
+
         /// <summary>
         /// Toggle edges on the mesh
         /// </summary>
         [SerializeField] private Toggle m_Toggle;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -25,6 +28,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.EdgeMode = isOn;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -33,6 +37,7 @@ namespace HBP.UI.Toolbar
             m_Toggle.isOn = false;
             m_Toggle.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -40,6 +45,7 @@ namespace HBP.UI.Toolbar
         {
             m_Toggle.interactable = true;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -47,6 +53,7 @@ namespace HBP.UI.Toolbar
         {
             m_Toggle.isOn = SelectedScene.EdgeMode;
         }
+
         #endregion
     }
 }

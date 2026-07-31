@@ -11,10 +11,12 @@ namespace HBP.UI.Main
     public class FilterConditionsPresetModifier : ObjectModifier<FilterConditionsPreset>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] FilterConditionListGestion m_FilterConditionsListGestion;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
@@ -35,9 +37,11 @@ namespace HBP.UI.Main
                 m_FilterConditionsListGestion.Interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -49,6 +53,7 @@ namespace HBP.UI.Main
             m_FilterConditionsListGestion.List.OnRemoveObject.AddListener(RemoveCondition);
             m_FilterConditionsListGestion.List.OnUpdateObject.AddListener(UpdateCondition);
         }
+
         protected override void SetFields(FilterConditionsPreset preset)
         {
             m_NameInputField.text = preset.Name;
@@ -62,6 +67,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Conditions.Add(condition);
             }
         }
+
         private void RemoveCondition(BaseFilterCondition condition)
         {
             if (ObjectTemp.Conditions.Contains(condition))
@@ -69,6 +75,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Conditions.Remove(condition);
             }
         }
+
         private void UpdateCondition(BaseFilterCondition condition)
         {
             int index = ObjectTemp.Conditions.IndexOf(condition);
@@ -77,9 +84,11 @@ namespace HBP.UI.Main
                 ObjectTemp.Conditions[index] = condition;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public async void CopyFromCurrent()
         {
             int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Overwrite conditions", "This will overwrite the current preset with all the conditions of the currently used filter. Are you sure you want to do this?", "Overwrite", "Cancel");
@@ -89,6 +98,7 @@ namespace HBP.UI.Main
                 SetFields(m_ObjectTemp);
             }
         }
+
         #endregion
     }
 }

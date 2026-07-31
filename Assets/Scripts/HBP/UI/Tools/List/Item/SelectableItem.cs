@@ -13,6 +13,7 @@ namespace HBP.UI.Tools.Lists
     public abstract class SelectableItem<T> : Item<T>
     {
         #region Properties
+
         Toggle m_Toggle;
         bool m_isLock;
 
@@ -20,6 +21,7 @@ namespace HBP.UI.Tools.Lists
         /// Event called when the item is selected or deselected.
         /// </summary>
         public virtual GenericEvent<bool> OnChangeSelected { get; } = new GenericEvent<bool>();
+
         /// <summary>
         /// True if selected, False otherwise.
         /// </summary>
@@ -27,17 +29,24 @@ namespace HBP.UI.Tools.Lists
         {
             get { return m_Toggle.isOn; }
         }
+
         /// <summary>
         /// True if interactable, False otherwise.
         /// </summary>
         public override bool Interactable
         {
             get { return m_Toggle.interactable; }
-            set { m_Toggle.interactable = value; if (m_Object != null) Object = m_Object; }
+            set
+            {
+                m_Toggle.interactable = value;
+                if (m_Object != null) Object = m_Object;
+            }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Select the item with a specified transition.
         /// </summary>
@@ -46,6 +55,7 @@ namespace HBP.UI.Tools.Lists
         {
             ChangeSelectionValue(true, transition);
         }
+
         /// <summary>
         /// Deselect the item with a specified transition.
         /// </summary>
@@ -54,6 +64,7 @@ namespace HBP.UI.Tools.Lists
         {
             ChangeSelectionValue(false, transition);
         }
+
         /// <summary>
         /// Inverse the item selection.
         /// </summary>
@@ -61,6 +72,7 @@ namespace HBP.UI.Tools.Lists
         {
             ChangeSelectionValue(!Selected, m_Toggle.toggleTransition);
         }
+
         /// <summary>
         /// Change the item selection value.
         /// </summary>
@@ -75,13 +87,20 @@ namespace HBP.UI.Tools.Lists
             m_Toggle.toggleTransition = mode;
             m_isLock = false;
         }
+
         #endregion
 
         #region Private Methods
+
         protected virtual void Awake()
         {
-            if (TryGetComponent(out m_Toggle)) m_Toggle.onValueChanged.AddListener((value) => { if (!m_isLock) OnChangeSelected.Invoke(value); });
+            if (TryGetComponent(out m_Toggle))
+                m_Toggle.onValueChanged.AddListener((value) =>
+                {
+                    if (!m_isLock) OnChangeSelected.Invoke(value);
+                });
         }
+
         #endregion
     }
 }

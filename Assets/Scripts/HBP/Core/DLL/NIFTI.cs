@@ -98,6 +98,7 @@ namespace HBP.Core.DLL
                 m_CachedHistogramMin = min;
                 m_CachedHistogramMax = max;
             }
+
             return (int[])m_CachedHistogramBins.Clone();
         }
 
@@ -122,22 +123,31 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_create(out IntPtr nifti);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_destroy(IntPtr nifti);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_load", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_load(IntPtr nifti, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_convert_to_volume", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_convert_to_volume(IntPtr nifti, IntPtr volume, int t);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_number_of_volumes", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_get_number_of_volumes(IntPtr nifti, out int count);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_extrema", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_get_extrema(IntPtr nifti, out VolumeExtrema extrema);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_start_time", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_get_start_time(IntPtr nifti, out float startTime);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_time_step", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_get_time_step(IntPtr nifti, out float timeStep);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_get_time_unit", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_get_time_unit(IntPtr nifti, out IntPtr timeUnit);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_copy_histogram_bins(IntPtr nifti, int[] bins, int binCount, float minValue, float maxValue);
     }

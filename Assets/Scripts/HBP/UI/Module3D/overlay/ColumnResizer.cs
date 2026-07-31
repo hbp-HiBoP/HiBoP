@@ -11,17 +11,21 @@ namespace HBP.UI.Module3D
     public class ColumnResizer : ColumnOverlayElement, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
+
         /// <summary>
         /// Button used to completely expand a column
         /// </summary>
         [SerializeField] private Button m_Expand;
+
         /// <summary>
         /// Button used to minimize a column at most
         /// </summary>
         [SerializeField] private Button m_Minimize;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Setup the overlay element
         /// </summary>
@@ -31,25 +35,22 @@ namespace HBP.UI.Module3D
         public override void Setup(Base3DScene scene, Column3D column, Column3DUI columnUI)
         {
             base.Setup(scene, column, columnUI);
-            m_Expand.onClick.AddListener(() =>
-            {
-                columnUI.Expand();
-            });
-            m_Minimize.onClick.AddListener(() =>
-            {
-                columnUI.Minimize();
-            });
+            m_Expand.onClick.AddListener(() => { columnUI.Expand(); });
+            m_Minimize.onClick.AddListener(() => { columnUI.Minimize(); });
         }
+
         public void OnPointerEnter(PointerEventData eventData)
         {
             m_Expand.gameObject.SetActive(true);
             m_Minimize.gameObject.SetActive(true);
         }
+
         public void OnPointerExit(PointerEventData eventData)
         {
             m_Expand.gameObject.SetActive(false);
             m_Minimize.gameObject.SetActive(false);
         }
+
         #endregion
     }
 }

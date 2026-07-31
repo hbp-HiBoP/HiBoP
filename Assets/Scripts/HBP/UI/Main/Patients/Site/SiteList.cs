@@ -12,15 +12,28 @@ namespace HBP.UI.Main
     public class SiteList : ActionableList<Core.Data.Site>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Coordinate, DescendingCoordinate, Tag, DescendingTag }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Coordinate,
+            DescendingCoordinate,
+            Tag,
+            DescendingTag
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_CoordinateSortingDisplayer;
         [SerializeField] SortingDisplayer m_TagSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         protected override void AddObject(Core.Data.Site obj)
         {
             SortByNone();
@@ -46,10 +59,12 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_CoordinateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -81,10 +96,12 @@ namespace HBP.UI.Main
                     m_CoordinateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by number of coordinates.
         /// </summary>
@@ -116,10 +133,12 @@ namespace HBP.UI.Main
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_CoordinateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by number of tags.
         /// </summary>
@@ -142,6 +161,7 @@ namespace HBP.UI.Main
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
         }
+
         #endregion
     }
 }

@@ -99,10 +99,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(ReadUInt32(bytes, streamHeader + 32), Is.EqualTo((uint)Math.Round(fps * 1000.0f)), "dwRate");
                 Assert.That(ReadUInt32(bytes, streamHeader + 40), Is.EqualTo(3u), "stream frame count");
                 Assert.That(ReadUInt32(bytes, aviHeader + 24), Is.EqualTo(3u), "AVI frame count");
-                Assert.That(
-                    ReadUInt32(bytes, aviHeader + 8),
-                    Is.EqualTo((uint)Math.Round(1000000.0 / fps)).Within(1u),
-                    "microseconds per frame");
+                Assert.That(ReadUInt32(bytes, aviHeader + 8), Is.EqualTo((uint)Math.Round(1000000.0 / fps)).Within(1u), "microseconds per frame");
 
                 AssertSeekableIndex(bytes, expectedFrameCount: 3);
             }
@@ -199,6 +196,7 @@ namespace HBP.Tests.Serialization
             {
                 pixels[i] = color;
             }
+
             texture.SetPixels(pixels);
             texture.Apply(updateMipmaps: false);
             return texture;
@@ -216,6 +214,7 @@ namespace HBP.Tests.Serialization
                     pixels[y * width + x] = color;
                 }
             }
+
             texture.SetPixels32(pixels);
             texture.Apply(updateMipmaps: false);
             return texture;
@@ -255,6 +254,7 @@ namespace HBP.Tests.Serialization
                 int size = checked((int)ReadUInt32(bytes, entryOffset + 12));
                 frames[entry] = (chunkStart + 8, size);
             }
+
             Assert.That(index + 8 + indexSize, Is.EqualTo(bytes.Length), "idx1 must terminate the stream");
             return frames;
         }
@@ -269,6 +269,7 @@ namespace HBP.Tests.Serialization
                 UnityEngine.Object.DestroyImmediate(decoded);
                 Assert.Fail("Unity failed to decode an indexed MJPEG frame.");
             }
+
             return decoded;
         }
 
@@ -305,11 +306,13 @@ namespace HBP.Tests.Serialization
                         break;
                     }
                 }
+
                 if (matches)
                 {
                     return i;
                 }
             }
+
             return -1;
         }
 

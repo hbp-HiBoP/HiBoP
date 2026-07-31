@@ -5,19 +5,23 @@ namespace HBP.Core.Data
     public class IEEGRawData : DynamicData
     {
         #region Properties
+
         /// <summary>
         /// Patient of the data.
         /// </summary>
         public Patient Patient { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new Data instance with default values.
         /// </summary>
-        public IEEGRawData(): this(new Dictionary < string, float[] >(), new Dictionary<string, string>(), new Tools.Frequency(), new Patient())
+        public IEEGRawData() : this(new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Tools.Frequency(), new Patient())
         {
         }
+
         /// <summary>
         /// Create a new Data instance.
         /// </summary>
@@ -26,10 +30,11 @@ namespace HBP.Core.Data
         /// <param name="pos">POS file.</param>
         /// <param name="frequency">Values frequency.</param>
         /// <param name="patient">Patient.</param>
-        public IEEGRawData(Dictionary<string,float[]> valuesBySite, Dictionary<string,string> unitBySite, Tools.Frequency frequency, Patient patient): base(valuesBySite, unitBySite, frequency)
+        public IEEGRawData(Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Tools.Frequency frequency, Patient patient) : base(valuesBySite, unitBySite, frequency)
         {
             Patient = patient;
         }
+
         /// <summary>
         /// Create a new Data instance.
         /// </summary>
@@ -39,6 +44,7 @@ namespace HBP.Core.Data
         {
             Patient = dataInfo.Patient;
         }
+
         #endregion
     }
 }

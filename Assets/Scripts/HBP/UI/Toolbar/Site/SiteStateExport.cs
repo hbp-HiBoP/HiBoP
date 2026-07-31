@@ -11,17 +11,21 @@ namespace HBP.UI.Toolbar
     public class SiteStateExport : Tool
     {
         #region Properties
+
         /// <summary>
         /// Import states from a file
         /// </summary>
         [SerializeField] private Button m_Import;
+
         /// <summary>
         /// Export states to a file
         /// </summary>
         [SerializeField] private Button m_Export;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -30,7 +34,7 @@ namespace HBP.UI.Toolbar
             m_Import.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-                
+
                 LoadSiteStatesToSelectedColumn();
             });
             m_Export.onClick.AddListener(() =>
@@ -40,6 +44,7 @@ namespace HBP.UI.Toolbar
                 SaveSiteStatesOfSelectedColumn();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -48,6 +53,7 @@ namespace HBP.UI.Toolbar
             m_Import.interactable = false;
             m_Export.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -56,9 +62,11 @@ namespace HBP.UI.Toolbar
             m_Import.interactable = true;
             m_Export.interactable = true;
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Save the sites of the selected column
         /// </summary>
@@ -70,6 +78,7 @@ namespace HBP.UI.Toolbar
                 SaveSiteStates(savePath);
             }
         }
+
         /// <summary>
         /// Save the state of the sites of the selected column to a file
         /// </summary>
@@ -86,6 +95,7 @@ namespace HBP.UI.Toolbar
                         sw.WriteLine("{0},{1},{2},{3},{4}", site.Key, site.Value.IsBlackListed, site.Value.IsHighlighted, site.Value.Color.ToHexString(), string.Join(";", site.Value.Labels));
                     }
                 }
+
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Site states saved", "Site states of the selected column have been saved to <color=#3080ffff>" + path + "</color>").Forget();
             }
             catch (System.Exception e)
@@ -94,6 +104,7 @@ namespace HBP.UI.Toolbar
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not save site states", "Please verify your rights.").Forget();
             }
         }
+
         /// <summary>
         /// Load the sites of the selected column
         /// </summary>
@@ -107,6 +118,7 @@ namespace HBP.UI.Toolbar
                 LoadSiteStates(loadPath, result == 0);
             }
         }
+
         /// <summary>
         /// Load the states of the sites to this column from a file
         /// </summary>
@@ -126,6 +138,7 @@ namespace HBP.UI.Toolbar
                     string split = firstLineSplits[i];
                     indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : split == "Labels" ? 4 : i;
                 }
+
                 // Fill states
                 string line;
                 while ((line = sr.ReadLine()) != null)
@@ -185,6 +198,7 @@ namespace HBP.UI.Toolbar
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not load site states", "Please verify your files and try again.").Forget();
             }
         }
+
         #endregion
     }
 }

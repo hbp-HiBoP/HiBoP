@@ -179,8 +179,7 @@ namespace HBP.Tests.PlayMode.Workflow
             Dropdown temporalSamplingDropdown = GetPrivateField<Dropdown>(eegPreferences, "m_TemporalSamplingDropdown");
             Assert.That(normalizationDropdown.options.Select(option => option.text), Does.Not.Contain("Auto"));
             Assert.That(temporalSamplingDropdown, Is.Not.Null);
-            Assert.That(temporalSamplingDropdown.options.Select(option => option.text),
-                Is.EqualTo(new[] { "Floor", "Round", "Interpolate" }));
+            Assert.That(temporalSamplingDropdown.options.Select(option => option.text), Is.EqualTo(new[] { "Floor", "Round", "Interpolate" }));
             normalizationDropdown.value = normalizationDropdown.options.FindIndex(option => option.text == "Protocol");
             Assert.That(DataManager.DefaultNormalization, Is.EqualTo(NormalizationType.Protocol));
             userPreferences.Close();
@@ -269,12 +268,7 @@ namespace HBP.Tests.PlayMode.Workflow
 
         private static Visualization CreateVisualization(string name, Patient patient, Dataset dataset, string id)
         {
-            return new Visualization(
-                name,
-                new[] { patient },
-                new Column[] { new AnatomicColumn(name + "-column", new BaseConfiguration(), new AnatomicConfiguration()) },
-                new VisualizationConfiguration(),
-                id);
+            return new Visualization(name, new[] { patient }, new Column[] { new AnatomicColumn(name + "-column", new BaseConfiguration(), new AnatomicConfiguration()) }, new VisualizationConfiguration(), id);
         }
 
         private static void DestroyWindowHarness(PlayModeWindowHarness window)
@@ -283,6 +277,7 @@ namespace HBP.Tests.PlayMode.Workflow
             {
                 Object.Destroy(window.EventSystem.gameObject);
             }
+
             if (window.Root != null)
             {
                 Object.Destroy(window.Root);
@@ -298,6 +293,7 @@ namespace HBP.Tests.PlayMode.Workflow
                 {
                     throw new TimeoutException("Timed out while waiting for main workflow workflow state.");
                 }
+
                 await UniTask.Yield();
             }
         }
@@ -325,6 +321,7 @@ namespace HBP.Tests.PlayMode.Workflow
                 FieldInfo field = current.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
                 if (field != null) return field;
             }
+
             return null;
         }
 
@@ -345,6 +342,7 @@ namespace HBP.Tests.PlayMode.Workflow
                 {
                     Object.Destroy(m_GameObject);
                 }
+
                 ResetSingleton();
             }
 
@@ -372,6 +370,7 @@ namespace HBP.Tests.PlayMode.Workflow
                 {
                     Object.Destroy(m_GameObject);
                 }
+
                 ResetSingleton();
             }
 

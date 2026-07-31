@@ -13,8 +13,10 @@ namespace HBP.Tests.Serialization.LegacyNative
         private BenchmarkBackend m_Backend = OracleBackendContext.Current;
 
         #region Properties
+
         internal BenchmarkBackend Backend => m_Backend;
         public bool UsesHbpCore => m_Backend == BenchmarkBackend.HbpCore;
+
         public Vector2Int TextureSize
         {
             get
@@ -28,6 +30,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return new Vector2Int(size.width, size.height);
             }
         }
+
         public BBox BoundingBox
         {
             get
@@ -41,21 +44,17 @@ namespace HBP.Tests.Serialization.LegacyNative
                 return new BBox(bounding_box_CutGeometryGenerator(_handle));
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(Volume volume, Object3D.Cut cut, int maxTextureSize)
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
             {
                 EnsureHbpCoreVolume(volume, nameof(Initialize));
-                ThrowIfFailed(hbp_cut_geometry_generator_initialize(
-                    _handle.Handle,
-                    volume.getHandle().Handle,
-                    cut.getHandle().Handle,
-                    (int)cut.Orientation,
-                    cut.Flip ? 1 : 0,
-                    maxTextureSize));
+                ThrowIfFailed(hbp_cut_geometry_generator_initialize(_handle.Handle, volume.getHandle().Handle, cut.getHandle().Handle, (int)cut.Orientation, cut.Flip ? 1 : 0, maxTextureSize));
                 return;
             }
 
@@ -73,6 +72,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 {
                     throw new InvalidOperationException($"hbp_core CutGeometryGenerator.UpdateSurfaceUV failed with status {status}: {HbpCoreRuntime.LastError} Vertices={cutSurface.NumberOfVertices} Triangles={cutSurface.NumberOfTriangles} TextureSize={TextureSize.x}x{TextureSize.y}");
                 }
+
                 return;
             }
 
@@ -93,9 +93,11 @@ namespace HBP.Tests.Serialization.LegacyNative
             get_position_ratio_on_texture_CutGeometryGenerator(_handle, pointArray, resultArray);
             return new Vector2(resultArray[0], resultArray[1]);
         }
+
         #endregion
 
         #region Memory Management
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -110,6 +112,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             _handle = new HandleRef(this, create_CutGeometryGenerator());
         }
+
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -123,6 +126,7 @@ namespace HBP.Tests.Serialization.LegacyNative
 
             delete_CutGeometryGenerator(_handle);
         }
+
         #endregion
 
         private static void EnsureHbpCoreVolume(Volume volume, string methodName)
@@ -150,33 +154,46 @@ namespace HBP.Tests.Serialization.LegacyNative
         }
 
         #region DLLImport
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "create_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr create_CutGeometryGenerator();
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "delete_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_CutGeometryGenerator(HandleRef generator);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "initialize_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void initialize_CutGeometryGenerator(HandleRef generator, HandleRef volume, float[] planeCut, int orientation, bool flip, int maxTextureSize);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "update_mesh_UV_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void update_mesh_UV_CutGeometryGenerator(HandleRef generator, HandleRef surface);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "get_position_ratio_on_texture_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void get_position_ratio_on_texture_CutGeometryGenerator(HandleRef generator, float[] point, float[] result);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "bounding_box_CutGeometryGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr bounding_box_CutGeometryGenerator(HandleRef generator);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_geometry_generator_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_geometry_generator_create(out IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_geometry_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_geometry_generator_destroy(IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_geometry_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_geometry_generator_initialize(IntPtr generator, IntPtr volume, IntPtr plane, int cutOrientation, int flip, int maxTextureSize);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_geometry_generator_get_texture_size", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_geometry_generator_get_texture_size(IntPtr generator, out TextureSize outSize);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_geometry_generator_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_geometry_generator_get_bounding_box(IntPtr generator, out IntPtr bbox);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_geometry_generator_update_surface_uv", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_geometry_generator_update_surface_uv(IntPtr generator, IntPtr surface);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_cut_geometry_generator_get_position_ratio_on_texture", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_geometry_generator_get_position_ratio_on_texture(IntPtr generator, ref Vec3 point, out Vec2 ratio);
+
         #endregion
     }
 }

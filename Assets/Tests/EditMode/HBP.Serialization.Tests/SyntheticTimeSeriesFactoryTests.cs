@@ -10,9 +10,7 @@ namespace HBP.Tests.Serialization
         public void ValueAt_IsDeterministicBoundedAndTupleDependent()
         {
             float expected = SyntheticTimeSeriesFactory.ValueAt(2, 3, 4, 5);
-            float[] values = Enumerable.Range(0, 1000)
-                .Select(index => SyntheticTimeSeriesFactory.ValueAt(2, 3, 4, index))
-                .ToArray();
+            float[] values = Enumerable.Range(0, 1000).Select(index => SyntheticTimeSeriesFactory.ValueAt(2, 3, 4, index)).ToArray();
 
             Assert.That(SyntheticTimeSeriesFactory.ValueAt(2, 3, 4, 5), Is.EqualTo(expected));
             Assert.That(expected, Is.InRange(SyntheticTimeSeriesFactory.MinimumValue, SyntheticTimeSeriesFactory.MaximumValue));
@@ -46,9 +44,7 @@ namespace HBP.Tests.Serialization
         [TestCase(0, 2048, 1)]
         public void InclusiveSampleCount_IncludesBothWindowBounds(int durationMilliseconds, int frequencyHz, int expected)
         {
-            Assert.That(
-                SyntheticTimeSeriesFactory.InclusiveSampleCount(durationMilliseconds, frequencyHz),
-                Is.EqualTo(expected));
+            Assert.That(SyntheticTimeSeriesFactory.InclusiveSampleCount(durationMilliseconds, frequencyHz), Is.EqualTo(expected));
         }
 
         [Test]
@@ -79,17 +75,12 @@ namespace HBP.Tests.Serialization
         [Test]
         public void ProjectionProfiles_ContainProductAndControlledHighFrequencyReferences()
         {
-            var product = NativeProjectionLoadBenchmarkScenarios.Build(
-                "Product", 12, false, HBP.Core.Enums.VolumeInterpolation.Nearest, null);
-            var extreme = NativeProjectionLoadBenchmarkScenarios.Build(
-                "Extreme", 12, false, HBP.Core.Enums.VolumeInterpolation.Nearest, null);
+            var product = NativeProjectionLoadBenchmarkScenarios.Build("Product", 12, false, HBP.Core.Enums.VolumeInterpolation.Nearest, null);
+            var extreme = NativeProjectionLoadBenchmarkScenarios.Build("Extreme", 12, false, HBP.Core.Enums.VolumeInterpolation.Nearest, null);
 
-            Assert.That(product, Has.Some.Matches<NativeProjectionLoadScenarioDefinition>(scenario =>
-                scenario.SiteCount == 30000 && scenario.TimelineLength == 100));
-            Assert.That(extreme, Has.Some.Matches<NativeProjectionLoadScenarioDefinition>(scenario =>
-                scenario.SamplingFrequencyHz == 64 && scenario.TimelineLength == 97));
-            Assert.That(extreme, Has.Some.Matches<NativeProjectionLoadScenarioDefinition>(scenario =>
-                scenario.SamplingFrequencyHz == 2048 && scenario.TimelineLength == 3073));
+            Assert.That(product, Has.Some.Matches<NativeProjectionLoadScenarioDefinition>(scenario => scenario.SiteCount == 30000 && scenario.TimelineLength == 100));
+            Assert.That(extreme, Has.Some.Matches<NativeProjectionLoadScenarioDefinition>(scenario => scenario.SamplingFrequencyHz == 64 && scenario.TimelineLength == 97));
+            Assert.That(extreme, Has.Some.Matches<NativeProjectionLoadScenarioDefinition>(scenario => scenario.SamplingFrequencyHz == 2048 && scenario.TimelineLength == 3073));
         }
     }
 }

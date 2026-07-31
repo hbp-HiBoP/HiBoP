@@ -44,6 +44,7 @@ namespace HBP.Core.DLL.HbpCore
             {
                 s_DebugCallback = callback;
             }
+
             return status;
         }
 
@@ -54,6 +55,7 @@ namespace HBP.Core.DLL.HbpCore
             {
                 s_DebugCallback = null;
             }
+
             return status;
         }
 
@@ -184,6 +186,5 @@ namespace HBP.Core.DLL.HbpCore
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_core_debug_message", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_core_debug_message([MarshalAs(UnmanagedType.LPUTF8Str)] string message, HbpCoreLogType type);
-
     }
 }

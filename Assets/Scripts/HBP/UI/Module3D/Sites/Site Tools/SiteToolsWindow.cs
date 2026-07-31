@@ -14,7 +14,9 @@ namespace HBP.UI.Module3D
     public class SiteToolsWindow : Window
     {
         #region Properties
+
         private Base3DScene m_Scene;
+
         /// <summary>
         /// Associated 3D scene
         /// </summary>
@@ -40,16 +42,20 @@ namespace HBP.UI.Module3D
 
         static int m_SelectToolDropdownValue;
         static int m_ApplyForDropdownValue;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when requesting an update in the sites list
         /// </summary>
         public UnityEvent OnToolApplied = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Apply the configured action to the filitered sites
         /// </summary>
@@ -59,6 +65,7 @@ namespace HBP.UI.Module3D
             await UniTask.SwitchToMainThread();
             OnToolApplied.Invoke();
         }
+
         public override void Close()
         {
             base.Close();
@@ -66,19 +73,23 @@ namespace HBP.UI.Module3D
             StoreSettings();
             foreach (var section in m_SiteToolSections) section.StoreSettings();
         }
+
         public void StoreSettings()
         {
             m_SelectToolDropdownValue = m_SelectToolDropdown.value;
             m_ApplyForDropdownValue = m_ApplyForDropdown.value;
         }
+
         public void LoadSettings()
         {
             m_SelectToolDropdown.SetValue(m_SelectToolDropdownValue);
             m_ApplyForDropdown.Set(typeof(ApplyFor), m_ApplyForDropdownValue);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             m_ApplyChangesButton.onClick.AddListener(Apply);
@@ -88,22 +99,30 @@ namespace HBP.UI.Module3D
 
             base.Initialize();
         }
+
         protected override void SetFields()
         {
             base.SetFields();
             LoadSettings();
         }
+
         private void OnChangeSelectedTool(int index)
         {
             foreach (var section in m_SiteToolSections) section.gameObject.SetActive(false);
             m_SiteToolSections[index].gameObject.SetActive(true);
         }
+
         private void OnChangeApplyFor(int index)
         {
             foreach (var section in m_SiteToolSections) section.ApplyFor = (ApplyFor)index;
         }
+
         #endregion
     }
 
-    public enum ApplyFor { FilteredSites, AllSites }
+    public enum ApplyFor
+    {
+        FilteredSites,
+        AllSites
+    }
 }

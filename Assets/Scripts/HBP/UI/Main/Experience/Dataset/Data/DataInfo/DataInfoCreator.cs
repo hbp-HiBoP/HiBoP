@@ -15,6 +15,7 @@ namespace HBP.UI.Main
     public class DataInfoCreator : ObjectCreator<DataInfo>
     {
         #region Public Methods
+
         /// <summary>
         /// Create a new DataInfo from scratch.
         /// </summary>
@@ -35,11 +36,14 @@ namespace HBP.UI.Main
             {
                 dataInfo.Protocol = DatabaseManager.Database.Protocols.FirstOrDefault();
             }
+
             OpenModifier(dataInfo);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override async UniTaskVoid SaveSelector(ObjectSelector<DataInfo> selector, bool generateNewIDs)
         {
             if (!generateNewIDs)
@@ -62,6 +66,7 @@ namespace HBP.UI.Main
                         {
                             nameList += ", ...";
                         }
+
                         message = $"{numberOfExistingObjects} data will be overridden ({nameList}). Are you sure you want to override them?";
                     }
 
@@ -72,6 +77,7 @@ namespace HBP.UI.Main
 
             base.SaveSelector(selector, generateNewIDs).Forget();
         }
+
         protected override async UniTaskVoid LoadFromDirectory()
         {
             string[] paths = await FileBrowser.GetExistingDirectoryNamesAsync();
@@ -90,6 +96,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         #endregion
     }
 }

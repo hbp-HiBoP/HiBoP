@@ -23,10 +23,12 @@ namespace HBP.UI.Module3D
     public class Scene3DWindow : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Associated logical scene
         /// </summary>
         private Base3DScene m_Scene;
+
         /// <summary>
         /// Reference the RectTransform of this object
         /// </summary>
@@ -36,14 +38,17 @@ namespace HBP.UI.Module3D
         /// Scene UI of this scene window
         /// </summary>
         public Scene3DUI Scene3DUI { get; private set; }
+
         /// <summary>
         /// Informations panel (graphs and trial matrices)
         /// </summary>
         public Informations.InformationsWrapper Informations { get; private set; }
+
         /// <summary>
         /// Sites informations panel (list and filter)
         /// </summary>
         public SitesInformations SitesInformations { get; private set; }
+
         /// <summary>
         /// Cut controller of this scene
         /// </summary>
@@ -53,21 +58,26 @@ namespace HBP.UI.Module3D
         /// Prefab for the 3D scene column
         /// </summary>
         [SerializeField] private GameObject m_SceneUIPrefab;
+
         /// <summary>
         /// Prefab for the cuts panel column
         /// </summary>
         [SerializeField] private GameObject m_CutUIPrefab;
+
         /// <summary>
         /// Prefab for the informations panel column
         /// </summary>
         [SerializeField] private GameObject m_InformationsUIPrefab;
+
         /// <summary>
         /// Prefab for the site list column
         /// </summary>
         [SerializeField] private GameObject m_SitesInformationsPrefab;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (Input.GetMouseButtonDown(0))
@@ -93,9 +103,11 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the scene window
         /// </summary>
@@ -136,10 +148,7 @@ namespace HBP.UI.Module3D
                     Destroy(gameObject);
                 }
             }, gameObject);
-            scene.OnChangeVisibleState.AddListener((value) =>
-            {
-                gameObject.SetActive(value);
-            });
+            scene.OnChangeVisibleState.AddListener((value) => { gameObject.SetActive(value); });
             Informations.OnExpand.AddListener(() =>
             {
                 grid.VerticalHandlers[0].Position = grid.VerticalHandlers[0].MagneticPosition;
@@ -153,6 +162,7 @@ namespace HBP.UI.Module3D
                 grid.UpdateAnchors();
             });
         }
+
         /// <summary>
         /// Take a screenshot of this scene
         /// </summary>
@@ -170,6 +180,7 @@ namespace HBP.UI.Module3D
                 DialogBoxManager.Open(DialogBoxType.Error, "Screenshots could not be saved", "Please verify your rights").Forget();
             }
         }
+
         /// <summary>
         /// Take a video of the timeline of the scene
         /// </summary>
@@ -178,9 +189,11 @@ namespace HBP.UI.Module3D
         {
             LoadingManager.Load(update => VideoAsync(m_Scene.GenerateExportDirectory(), update));
         }
+
         #endregion
 
         #region Coroutines
+
         /// <summary>
         /// Coroutine to take a screenshot of this scene
         /// </summary>
@@ -211,6 +224,7 @@ namespace HBP.UI.Module3D
                         }
                     }
                 }
+
                 // Cuts
                 CutController cutUI = GetComponentInChildren<CutController>();
                 Tuple<CutOrientation, Texture2D>[] cutTextures = cutUI.CutTextures;
@@ -219,6 +233,7 @@ namespace HBP.UI.Module3D
                     string cutFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Cut.png", openedProjectName, m_Scene.Name, cutTextures[i].Item1.ToString())).GenerateUniqueFilePath();
                     cutTextures[i].Item2.SaveToPNG(cutFilePath);
                 }
+
                 // Graph and Trial Matrix
                 Informations.InformationsWrapper informations = GetComponentInChildren<Informations.InformationsWrapper>();
                 Informations.ChannelInformations channelInformations = informations.GetComponentInChildren<Informations.ChannelInformations>();
@@ -239,6 +254,7 @@ namespace HBP.UI.Module3D
                             {
                                 sw.Write(graph.ToSVG());
                             }
+
                             Dictionary<string, string> curveValues = graph.ToCSV();
                             foreach (var curve in curveValues)
                             {
@@ -247,6 +263,7 @@ namespace HBP.UI.Module3D
                                 sw.Write(curve.Value);
                             }
                         }
+
                         if (!Mathf.Approximately(channelInformations.GetComponent<ZoneResizer>().Ratio, 0.0f))
                         {
                             ScrollRect trialMatrixScrollRect = channelInformations.GetComponentInChildren<TrialMatrixGrid>().GetComponent<ScrollRect>();
@@ -268,6 +285,7 @@ namespace HBP.UI.Module3D
                                         position = 1.0f;
                                         isFinished = true;
                                     }
+
                                     trialMatrixScrollRect.verticalNormalizedPosition = position;
                                     await UniTask.WaitForEndOfFrame();
                                     Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
@@ -279,6 +297,7 @@ namespace HBP.UI.Module3D
                             {
                                 trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
                             }
+
                             List<string> names = new();
                             Patient currentPatient = null;
                             foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
@@ -288,8 +307,10 @@ namespace HBP.UI.Module3D
                                     currentPatient = channelStruct.Patient;
                                     names.Add(currentPatient.Name);
                                 }
+
                                 names.Add(channelStruct.Channel);
                             }
+
                             string trialMatrixFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names))).GenerateUniqueFilePath();
                             trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                             trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
@@ -305,6 +326,7 @@ namespace HBP.UI.Module3D
                         }
                     }
                 }
+
                 // Feedback
                 DialogBoxManager.Open(DialogBoxType.Informational, "Screenshots saved", "Screenshots have been saved in " + path).Forget();
             }
@@ -317,6 +339,7 @@ namespace HBP.UI.Module3D
                 DialogBoxManager.Open(DialogBoxType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath).Forget();
             }
         }
+
         /// <summary>
         /// Take a video of the current timeline
         /// </summary>
@@ -344,7 +367,7 @@ namespace HBP.UI.Module3D
             videoStream.Open(videoPath, totalWidth, totalHeight, fps);
 
             Texture2D texture2D = new(totalWidth, totalHeight);
-            
+
             Color[] timelineColors = Enumerable.Repeat(new Color((float)220 / 255, (float)220 / 255, (float)220 / 255, 1.0f), timelineSize * totalWidth).ToArray();
             Color[] mainEventColors = Enumerable.Repeat(new Color(1, 0, 0, 1.0f), timelineSize * timelineSize).ToArray();
             Color[] timelineCursorColors = Enumerable.Repeat(Color.black, timelineSize * timelineSize).ToArray();
@@ -402,6 +425,7 @@ namespace HBP.UI.Module3D
                     int mainEventPosition = mainEventIndex * ((totalWidth - timelineSize) / (timelineLength - 1));
                     texture2D.SetPixels(mainEventPosition, 0, timelineSize, timelineSize, mainEventColors);
                 }
+
                 int cursorPosition = i * ((totalWidth - timelineSize) / (timelineLength - 1));
                 texture2D.SetPixels(cursorPosition, 0, timelineSize, timelineSize, timelineCursorColors);
 
@@ -414,10 +438,12 @@ namespace HBP.UI.Module3D
 
                 videoStream.WriteFrame(texture2D);
             }
+
             videoStream.Dispose();
             updateProgress.Invoke(1, 0, new LoadingText("Finished"));
             DialogBoxManager.Open(DialogBoxType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath).Forget();
         }
+
         #endregion
     }
 }

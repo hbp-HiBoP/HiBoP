@@ -23,10 +23,7 @@ namespace HBP.Tests.Serialization
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
 
-            Protocol roughBasicProtocol = new(
-                "protocol-dataset-basic-protocol",
-                new[] { new Bloc("basic-bloc", 0, string.Empty, string.Empty, Array.Empty<SubBloc>(), "protocol-dataset-basic-bloc-001") },
-                "protocol-dataset-basic-protocol-001");
+            Protocol roughBasicProtocol = new("protocol-dataset-basic-protocol", new[] { new Bloc("basic-bloc", 0, string.Empty, string.Empty, Array.Empty<SubBloc>(), "protocol-dataset-basic-bloc-001") }, "protocol-dataset-basic-protocol-001");
 
             roughBasicProtocol.SetBasicProtocolFeatures();
 
@@ -34,31 +31,13 @@ namespace HBP.Tests.Serialization
             Assert.That(roughBasicProtocol.Blocs[0].MainSubBloc.MainEvent.Name, Is.EqualTo("basic-bloc"));
             Assert.That(roughBasicProtocol.Blocs[0].Sort, Is.EqualTo("Main_basic-bloc_CODE"));
 
-            Protocol basicProtocol = new(
-                "protocol-dataset-basic-protocol",
-                new[]
+            Protocol basicProtocol = new("protocol-dataset-basic-protocol", new[]
+            {
+                new Bloc("basic-bloc", 0, string.Empty, "main_stimulus_CODE", new[]
                 {
-                    new Bloc(
-                        "basic-bloc",
-                        0,
-                        string.Empty,
-                        "main_stimulus_CODE",
-                        new[]
-                        {
-                            new SubBloc(
-                                "main",
-                                0,
-                                MainSecondaryEnum.Main,
-                                new TimeWindow(-100, 250),
-                                new TimeWindow(-100, 0),
-                                new[] { new Event("stimulus", new[] { 1 }, MainSecondaryEnum.Main, "protocol-dataset-basic-event-001") },
-                                Array.Empty<Icon>(),
-                                Array.Empty<Treatment>(),
-                                "protocol-dataset-basic-subbloc-001")
-                        },
-                        "protocol-dataset-basic-bloc-visualizable-001")
-                },
-                "protocol-dataset-basic-protocol-visualizable-001");
+                    new SubBloc("main", 0, MainSecondaryEnum.Main, new TimeWindow(-100, 250), new TimeWindow(-100, 0), new[] { new Event("stimulus", new[] { 1 }, MainSecondaryEnum.Main, "protocol-dataset-basic-event-001") }, Array.Empty<Icon>(), Array.Empty<Treatment>(), "protocol-dataset-basic-subbloc-001")
+                }, "protocol-dataset-basic-bloc-visualizable-001")
+            }, "protocol-dataset-basic-protocol-visualizable-001");
             basicProtocol.SetBasicProtocolFeatures();
 
             Assert.That(basicProtocol.IsAdvanced, Is.False);
@@ -74,21 +53,19 @@ namespace HBP.Tests.Serialization
             Assert.That(loadedAdvancedBloc.SubBlocs.Select(subBloc => subBloc.Type), Is.EquivalentTo(new[] { MainSecondaryEnum.Main, MainSecondaryEnum.Secondary }));
             Assert.That(loadedAdvancedBloc.MainSubBloc.Events.Select(e => e.ID), Is.EquivalentTo(new[] { "protocol-dataset-event-main-001", "protocol-dataset-event-secondary-001", "protocol-dataset-event-secondary-002" }));
             Assert.That(loadedAdvancedBloc.MainSubBloc.Icons.Select(icon => icon.ID), Is.EquivalentTo(new[] { "protocol-dataset-icon-main-001", "protocol-dataset-icon-secondary-001" }));
-            Assert.That(
-                loadedAdvancedBloc.MainSubBloc.Treatments.Select(treatment => treatment.GetType()),
-                Is.EquivalentTo(new[]
-                {
-                    typeof(AbsTreatment),
-                    typeof(ClampTreatment),
-                    typeof(FactorTreatment),
-                    typeof(MeanTreatment),
-                    typeof(MedianTreatment),
-                    typeof(MinTreatment),
-                    typeof(MaxTreatment),
-                    typeof(OffsetTreatment),
-                    typeof(RescaleTreatment),
-                    typeof(ThresholdTreatment)
-                }));
+            Assert.That(loadedAdvancedBloc.MainSubBloc.Treatments.Select(treatment => treatment.GetType()), Is.EquivalentTo(new[]
+            {
+                typeof(AbsTreatment),
+                typeof(ClampTreatment),
+                typeof(FactorTreatment),
+                typeof(MeanTreatment),
+                typeof(MedianTreatment),
+                typeof(MinTreatment),
+                typeof(MaxTreatment),
+                typeof(OffsetTreatment),
+                typeof(RescaleTreatment),
+                typeof(ThresholdTreatment)
+            }));
             Assert.That(loadedAdvancedBloc.MainSubBloc.Treatments.Select(treatment => treatment.ID), Is.EquivalentTo(AllTreatmentIds()));
             Assert.That(loadedAdvancedBloc.MainSubBloc.Treatments.Select(treatment => treatment.Order), Is.EquivalentTo(Enumerable.Range(0, 10)));
             Assert.That(((ClampTreatment)loadedAdvancedBloc.MainSubBloc.Treatments.Single(t => t is ClampTreatment)).Max, Is.EqualTo(2.5f).Within(0.0001f));
@@ -110,27 +87,13 @@ namespace HBP.Tests.Serialization
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
             Patient patient = SyntheticProjectFactory.CreatePatient(patientTag, siteTag);
             DatabaseManager.Database.SetProtocols(new[] { protocol });
-            Project contextProject = new(
-                "protocol-dataset-project",
-                new ProjectPreferences("protocol-dataset-version", "protocol-dataset-project-preferences-001"),
-                new[] { patient },
-                Array.Empty<Group>(),
-                Array.Empty<Dataset>(),
-                Array.Empty<Visualization>());
+            Project contextProject = new("protocol-dataset-project", new ProjectPreferences("protocol-dataset-version", "protocol-dataset-project-preferences-001"), new[] { patient }, Array.Empty<Group>(), Array.Empty<Dataset>(), Array.Empty<Visualization>());
             ApplicationState.LoadedProject = contextProject;
 
             Dataset source = SyntheticProjectFactory.CreateDataset(protocol, patient);
             Dataset loaded = RoundTrip(temp, source, "protocol-dataset-dataset.json");
-            LoadingContext context = new(
-                PersistentDataManager.Tags.AllTags,
-                new[] { protocol },
-                new[] { patient },
-                new[] { loaded });
-            context.ResolveProject(
-                new[] { patient },
-                Array.Empty<Group>(),
-                new[] { loaded },
-                Array.Empty<Visualization>());
+            LoadingContext context = new(PersistentDataManager.Tags.AllTags, new[] { protocol }, new[] { patient }, new[] { loaded });
+            context.ResolveProject(new[] { patient }, Array.Empty<Group>(), new[] { loaded }, Array.Empty<Visualization>());
 
             Assert.That(loaded.Protocol, Is.SameAs(protocol));
             Assert.That(loaded.Data.Select(data => data.Protocol), Is.All.SameAs(protocol));
@@ -146,19 +109,17 @@ namespace HBP.Tests.Serialization
             Assert.That(loaded.GetFMRIDataInfos()[0].MaskDataContainer.ID, Is.EqualTo("synthetic-container-mask-001"));
             Assert.That(loaded.GetSharedFMRIDataInfos()[0].MaskDataContainer.ID, Is.EqualTo("synthetic-container-shared-mask-001"));
 
-            Assert.That(
-                loaded.Data.Select(data => data.DataContainer.GetType()),
-                Is.EquivalentTo(new[]
-                {
-                    typeof(Elan),
-                    typeof(Micromed),
-                    typeof(EDF),
-                    typeof(Nifti),
-                    typeof(BrainVision),
-                    typeof(FIF),
-                    typeof(CSV),
-                    typeof(Nifti)
-                }));
+            Assert.That(loaded.Data.Select(data => data.DataContainer.GetType()), Is.EquivalentTo(new[]
+            {
+                typeof(Elan),
+                typeof(Micromed),
+                typeof(EDF),
+                typeof(Nifti),
+                typeof(BrainVision),
+                typeof(FIF),
+                typeof(CSV),
+                typeof(Nifti)
+            }));
         }
 
         [Test]
@@ -242,56 +203,17 @@ namespace HBP.Tests.Serialization
             Event mainEvent = new("stimulus", new[] { 10, 11 }, MainSecondaryEnum.Main, "protocol-dataset-event-main-001");
             Event responseEvent = new("response", new[] { 20 }, MainSecondaryEnum.Secondary, "protocol-dataset-event-secondary-001");
             Event markerEvent = new("marker", new[] { 30 }, MainSecondaryEnum.Secondary, "protocol-dataset-event-secondary-002");
-            SubBloc mainSubBloc = new(
-                "main",
-                1,
-                MainSecondaryEnum.Main,
-                mainWindow,
-                baseline,
-                new[] { mainEvent, responseEvent, markerEvent },
-                new[]
-                {
-                    new Icon("stimulus-icon", string.Empty, new TimeWindow(-20, 20), "protocol-dataset-icon-main-001"),
-                    new Icon("response-icon", string.Empty, new TimeWindow(50, 120), "protocol-dataset-icon-secondary-001")
-                },
-                CreateAllTreatments(),
-                "protocol-dataset-subbloc-main-001");
-            SubBloc secondarySubBloc = new(
-                "secondary",
-                0,
-                MainSecondaryEnum.Secondary,
-                new TimeWindow(-50, 150),
-                new TimeWindow(-50, 0),
-                new[] { new Event("secondary-main", new[] { 40 }, MainSecondaryEnum.Main, "protocol-dataset-event-secondary-main-001") },
-                Array.Empty<Icon>(),
-                Array.Empty<Treatment>(),
-                "protocol-dataset-subbloc-secondary-001");
-            Bloc advancedBloc = new(
-                "advanced-bloc",
-                1,
-                string.Empty,
-                "main_response_LATENCY;main_stimulus_CODE",
-                new[] { mainSubBloc, secondarySubBloc },
-                "protocol-dataset-bloc-advanced-001");
-            Bloc comparisonBloc = new(
-                "comparison-bloc",
-                0,
-                string.Empty,
-                "main_stimulus_CODE",
-                new[]
-                {
-                    new SubBloc(
-                        "main",
-                        0,
-                        MainSecondaryEnum.Main,
-                        new TimeWindow(-100, 250),
-                        new TimeWindow(-100, 0),
-                        new[] { new Event("stimulus", new[] { 12 }, MainSecondaryEnum.Main, "protocol-dataset-event-comparison-main-001") },
-                        Array.Empty<Icon>(),
-                        Array.Empty<Treatment>(),
-                        "protocol-dataset-subbloc-comparison-001")
-                },
-                "protocol-dataset-bloc-comparison-001");
+            SubBloc mainSubBloc = new("main", 1, MainSecondaryEnum.Main, mainWindow, baseline, new[] { mainEvent, responseEvent, markerEvent }, new[]
+            {
+                new Icon("stimulus-icon", string.Empty, new TimeWindow(-20, 20), "protocol-dataset-icon-main-001"),
+                new Icon("response-icon", string.Empty, new TimeWindow(50, 120), "protocol-dataset-icon-secondary-001")
+            }, CreateAllTreatments(), "protocol-dataset-subbloc-main-001");
+            SubBloc secondarySubBloc = new("secondary", 0, MainSecondaryEnum.Secondary, new TimeWindow(-50, 150), new TimeWindow(-50, 0), new[] { new Event("secondary-main", new[] { 40 }, MainSecondaryEnum.Main, "protocol-dataset-event-secondary-main-001") }, Array.Empty<Icon>(), Array.Empty<Treatment>(), "protocol-dataset-subbloc-secondary-001");
+            Bloc advancedBloc = new("advanced-bloc", 1, string.Empty, "main_response_LATENCY;main_stimulus_CODE", new[] { mainSubBloc, secondarySubBloc }, "protocol-dataset-bloc-advanced-001");
+            Bloc comparisonBloc = new("comparison-bloc", 0, string.Empty, "main_stimulus_CODE", new[]
+            {
+                new SubBloc("main", 0, MainSecondaryEnum.Main, new TimeWindow(-100, 250), new TimeWindow(-100, 0), new[] { new Event("stimulus", new[] { 12 }, MainSecondaryEnum.Main, "protocol-dataset-event-comparison-main-001") }, Array.Empty<Icon>(), Array.Empty<Treatment>(), "protocol-dataset-subbloc-comparison-001")
+            }, "protocol-dataset-bloc-comparison-001");
 
             return new Protocol("protocol-dataset-advanced-protocol", new[] { comparisonBloc, advancedBloc }, "protocol-dataset-advanced-protocol-001");
         }

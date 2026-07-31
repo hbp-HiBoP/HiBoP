@@ -19,6 +19,7 @@ namespace HBP.UI.Module3D
     public class ExportToCSVSection : SiteToolSection
     {
         #region Properties
+
         [SerializeField] private Toggle m_ExportHighlighted;
         [SerializeField] private Toggle m_ExportBlacklisted;
         [SerializeField] private Toggle m_ExportColor;
@@ -36,9 +37,11 @@ namespace HBP.UI.Module3D
         static bool m_ExportDataValue;
         static bool m_ExportTagsValue;
         static int m_ExportModeValue;
+
         #endregion
 
         #region Public Methods
+
         public override async UniTask ApplyAsync()
         {
             if (m_ExportModeDropdown.value == 0)
@@ -86,9 +89,11 @@ namespace HBP.UI.Module3D
             m_ExportTags.isOn = m_ExportTagsValue;
             m_ExportModeDropdown.value = m_ExportModeValue;
         }
+
         #endregion
 
         #region Private Methods
+
         private async UniTask ExportSitesAsync(List<Core.Object3D.Site> sites, string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             // Prepare data and generate CSV file
@@ -133,6 +138,7 @@ namespace HBP.UI.Module3D
                             dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                         }
                     }
+
                     progress = 0.5f * ((float)(i + 1) / length);
                     updateProgress(progress, 0, new LoadingText(""));
                 }
@@ -186,17 +192,13 @@ namespace HBP.UI.Module3D
                 if (m_ExportLabels.isOn) rowBuilder.AppendFormat(",{0}", string.Join(";", site.State.Labels));
                 if (m_ExportPosition.isOn)
                 {
-                    rowBuilder.AppendFormat(",{0},{1},{2},{3}",
-                        sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture),
-                        Scene.ImplantationManager.SelectedImplantation.Name);
+                    rowBuilder.AppendFormat(",{0},{1},{2},{3}", sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), Scene.ImplantationManager.SelectedImplantation.Name);
                 }
+
                 if (m_ExportData.isOn)
                 {
                     DataInfo dataInfo = null;
-                    if ((Scene.SelectedColumn is Column3DDynamic || Scene.SelectedColumn is Column3DStatic)
-                        && dataInfoByPatient.ContainsKey(site.Information.Patient))
+                    if ((Scene.SelectedColumn is Column3DDynamic || Scene.SelectedColumn is Column3DStatic) && dataInfoByPatient.ContainsKey(site.Information.Patient))
                     {
                         dataInfo = dataInfoByPatient[site.Information.Patient];
                     }
@@ -233,6 +235,7 @@ namespace HBP.UI.Module3D
 
                     rowBuilder.AppendFormat(",{0},{1}", dataType, dataFiles);
                 }
+
                 if (m_ExportTags.isOn)
                 {
                     List<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList();
@@ -247,6 +250,7 @@ namespace HBP.UI.Module3D
                             {
                                 value = string.Format("\"{0}\"", value);
                             }
+
                             rowBuilder.Append(value);
                         }
                     }
@@ -335,6 +339,7 @@ namespace HBP.UI.Module3D
                     mergedHeaders.Add(header);
                 }
             }
+
             // Add new headers
             foreach (string header in newHeaders)
             {
@@ -390,20 +395,12 @@ namespace HBP.UI.Module3D
                     rowBuilder.Append(",");
 
                     // Special handling for Labels column - merge labels from both sources
-                    if (header == "Labels" && newData.TryGetValue(siteId, out var newRow) &&
-                        existingRow.TryGetValue(header, out string existingLabels) &&
-                        newRow.TryGetValue(header, out string newLabels))
+                    if (header == "Labels" && newData.TryGetValue(siteId, out var newRow) && existingRow.TryGetValue(header, out string existingLabels) && newRow.TryGetValue(header, out string newLabels))
                     {
                         // Parse labels from both sources
-                        var existingLabelsList = existingLabels
-                            .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(l => l.Trim())
-                            .ToList();
+                        var existingLabelsList = existingLabels.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToList();
 
-                        var newLabelsList = newLabels
-                            .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(l => l.Trim())
-                            .ToList();
+                        var newLabelsList = newLabels.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToList();
 
                         // Merge labels ensuring uniqueness
                         HashSet<string> mergedLabels = new(existingLabelsList);
@@ -463,6 +460,7 @@ namespace HBP.UI.Module3D
             using StreamWriter sw = new(csvPath);
             sw.Write(mergedCsvContent.ToString());
         }
+
         #endregion
     }
 }

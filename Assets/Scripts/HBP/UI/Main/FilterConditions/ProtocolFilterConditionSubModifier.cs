@@ -12,14 +12,13 @@ namespace HBP.UI.Main
     public class ProtocolFilterConditionSubModifier : SubModifier<ProtocolFilterCondition>
     {
         #region Properties
+
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
-            set
-            {
-                m_FilteringObjects = value;
-            }
+            set { m_FilteringObjects = value; }
         }
 
         private List<FilterToggle> m_Toggles = new();
@@ -33,9 +32,11 @@ namespace HBP.UI.Main
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Toggle m_ExactMatchToggle;
         [SerializeField] Toggle m_CaseSensitiveToggle;
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -58,9 +59,11 @@ namespace HBP.UI.Main
             m_ExactMatchToggle.onValueChanged.AddListener(OnChangeExactMatch);
             m_CaseSensitiveToggle.onValueChanged.AddListener(OnChangeCaseSensitive);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(ProtocolFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -86,10 +89,12 @@ namespace HBP.UI.Main
             m_ExactMatchToggle.isOn = objectToDisplay.ExactMatch;
             m_CaseSensitiveToggle.isOn = objectToDisplay.CaseSensitive;
         }
+
         private void OnChangeLogic(int value)
         {
             Object.Logic = (ProtocolFilterCondition.CheckLogic)value;
         }
+
         private void OnChangeScope(int value)
         {
             Object.Scope = (ProtocolFilterCondition.CheckScope)value;
@@ -99,14 +104,17 @@ namespace HBP.UI.Main
         {
             Object.Name = value;
         }
+
         private void OnChangeExactMatch(bool value)
         {
             Object.ExactMatch = value;
         }
+
         private void OnChangeCaseSensitive(bool value)
         {
             Object.CaseSensitive = value;
         }
+
         #endregion
     }
 }

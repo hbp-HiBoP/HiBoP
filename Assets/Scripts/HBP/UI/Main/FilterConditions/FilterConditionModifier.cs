@@ -11,6 +11,7 @@ namespace HBP.UI.Main
     public class FilterConditionModifier : ObjectModifier<BaseFilterCondition>
     {
         #region Properties
+
         [SerializeField] Dropdown m_TypeDropdown;
         [SerializeField] Dropdown m_EvaluateDropdown;
 
@@ -37,6 +38,7 @@ namespace HBP.UI.Main
         List<BaseFilterCondition> m_FilterConditionsTemp;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
@@ -69,12 +71,10 @@ namespace HBP.UI.Main
         }
 
         FilterConditionAttribute m_FilterConditionAttribute = new(null);
+
         public FilterConditionAttribute FilterConditionAttribute
         {
-            get
-            {
-                return m_FilterConditionAttribute;
-            }
+            get { return m_FilterConditionAttribute; }
             set
             {
                 m_FilterConditionAttribute = value;
@@ -84,6 +84,7 @@ namespace HBP.UI.Main
         }
 
         Type[] m_Types;
+
         public override bool Interactable
         {
             get => base.Interactable;
@@ -112,21 +113,26 @@ namespace HBP.UI.Main
                 m_MRIMaskFilterConditionSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void OK()
         {
             m_Object = ObjectTemp;
             base.OK();
         }
+
         #endregion
 
         #region Protected Methods
+
         private void Update()
         {
             m_ResultText.text = ObjectTemp.Description;
         }
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -190,6 +196,7 @@ namespace HBP.UI.Main
                 new MRIMaskFilterCondition()
             };
         }
+
         protected override void SetFields(BaseFilterCondition objectToDisplay)
         {
             int index = m_FilterConditionsTemp.FindIndex(fc => fc.GetType() == ObjectTemp.GetType());
@@ -200,6 +207,7 @@ namespace HBP.UI.Main
 
             m_EvaluateDropdown.SetValue(objectToDisplay.IsNot ? 1 : 0);
         }
+
         protected void OnChangeType(int index)
         {
             Type type = m_Types[index];
@@ -214,6 +222,7 @@ namespace HBP.UI.Main
             subModifier.IsActive = true;
             subModifier.Object = ObjectTemp;
         }
+
         #endregion
     }
 }

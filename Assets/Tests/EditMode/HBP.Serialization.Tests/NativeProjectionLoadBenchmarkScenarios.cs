@@ -11,71 +11,37 @@ namespace HBP.Tests.Serialization
 {
     internal static class NativeProjectionLoadBenchmarkScenarios
     {
-        public static List<NativeProjectionLoadScenarioDefinition> Build(
-            string profile,
-            int timelineLength,
-            bool includeExport,
-            VolumeInterpolation volumeInterpolation,
-            string filter)
+        public static List<NativeProjectionLoadScenarioDefinition> Build(string profile, int timelineLength, bool includeExport, VolumeInterpolation volumeInterpolation, string filter)
         {
             List<NativeProjectionLoadScenarioDefinition> scenarios = new();
             HashSet<string> keys = new(StringComparer.OrdinalIgnoreCase);
 
-            void Add(
-                string prefix,
-                int dimension,
-                int sites,
-                float radius,
-                int columns = 1,
-                bool export = false,
-                int timeline = 0,
-                int samplingFrequencyHz = 0,
-                SyntheticTimeSeriesDefinition syntheticTimeSeries = null)
+            void Add(string prefix, int dimension, int sites, float radius, int columns = 1, bool export = false, int timeline = 0, int samplingFrequencyHz = 0, SyntheticTimeSeriesDefinition syntheticTimeSeries = null)
             {
                 int scenarioTimelineLength = timeline > 0 ? timeline : timelineLength;
                 string name = $"{prefix}.d{dimension}.s{sites}.t{scenarioTimelineLength}.r{radius:R}.c{columns}";
-                if (!string.IsNullOrWhiteSpace(filter)
-                    && name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
+                if (!string.IsNullOrWhiteSpace(filter) && name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
                 {
                     return;
                 }
+
                 string key = $"{dimension}:{sites}:{scenarioTimelineLength}:{radius:R}:{columns}:{export}";
                 if (!keys.Add(key)) return;
-                scenarios.Add(new NativeProjectionLoadScenarioDefinition(
-                    name,
-                    dimension,
-                    sites,
-                    scenarioTimelineLength,
-                    radius,
-                    columns,
-                    export,
-                    volumeInterpolation,
-                    samplingFrequencyHz: samplingFrequencyHz,
-                    syntheticTimeSeries: syntheticTimeSeries ?? DefaultSyntheticLayout(sites, scenarioTimelineLength, samplingFrequencyHz)));
+                scenarios.Add(new NativeProjectionLoadScenarioDefinition(name, dimension, sites, scenarioTimelineLength, radius, columns, export, volumeInterpolation, samplingFrequencyHz: samplingFrequencyHz, syntheticTimeSeries: syntheticTimeSeries ?? DefaultSyntheticLayout(sites, scenarioTimelineLength, samplingFrequencyHz)));
             }
 
             void AddRadii(string prefix, int dimension, int sites, params float[] radii)
             {
                 string radiusSlug = string.Join("-", radii.Select(value => value.ToString("R")));
                 string name = $"{prefix}.d{dimension}.s{sites}.t{timelineLength}.r{radiusSlug}.c{radii.Length}";
-                if (!string.IsNullOrWhiteSpace(filter)
-                    && name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
+                if (!string.IsNullOrWhiteSpace(filter) && name.IndexOf(filter, StringComparison.OrdinalIgnoreCase) < 0)
                 {
                     return;
                 }
+
                 string key = $"{dimension}:{sites}:{timelineLength}:{radiusSlug}:{radii.Length}:false";
                 if (!keys.Add(key)) return;
-                scenarios.Add(new NativeProjectionLoadScenarioDefinition(
-                    name,
-                    dimension,
-                    sites,
-                    timelineLength,
-                    radii[0],
-                    radii.Length,
-                    false,
-                    volumeInterpolation,
-                    radii,
-                    syntheticTimeSeries: DefaultSyntheticLayout(sites, timelineLength, 0)));
+                scenarios.Add(new NativeProjectionLoadScenarioDefinition(name, dimension, sites, timelineLength, radii[0], radii.Length, false, volumeInterpolation, radii, syntheticTimeSeries: DefaultSyntheticLayout(sites, timelineLength, 0)));
             }
 
             if (profile.Equals("Smoke", StringComparison.OrdinalIgnoreCase))
@@ -89,26 +55,20 @@ namespace HBP.Tests.Serialization
             {
                 Add("projection.site-scale", 96, sites, 15.0f);
             }
+
             foreach (float radius in new[] { 5.0f, 15.0f, 30.0f, 50.0f })
             {
                 Add("projection.radius-scale", 96, 5000, radius);
             }
+
             foreach (int dimension in new[] { 80, 96, 120 })
             {
                 Add("projection.dimension-scale", dimension, 5000, 15.0f);
             }
-            SyntheticTimeSeriesDefinition productTimeSeries = new(
-                250,
-                120,
-                100,
-                100 * 2001,
-                2001,
-                501,
-                1000);
-            Add("projection.product-reference", 80, 30000, 15.0f,
-                timeline: 100, syntheticTimeSeries: productTimeSeries);
-            Add("projection.product-reference-multicolumn", 80, 30000, 15.0f,
-                columns: 3, timeline: 100, syntheticTimeSeries: productTimeSeries);
+
+            SyntheticTimeSeriesDefinition productTimeSeries = new(250, 120, 100, 100 * 2001, 2001, 501, 1000);
+            Add("projection.product-reference", 80, 30000, 15.0f, timeline: 100, syntheticTimeSeries: productTimeSeries);
+            Add("projection.product-reference-multicolumn", 80, 30000, 15.0f, columns: 3, timeline: 100, syntheticTimeSeries: productTimeSeries);
             Add("projection.multicolumn", 96, 5000, 15.0f, columns: 3);
             if (includeExport) Add("projection.export", 96, 5000, 15.0f, export: true);
 
@@ -116,12 +76,8 @@ namespace HBP.Tests.Serialization
             {
                 int lowFrequencyLength = SyntheticTimeSeriesFactory.InclusiveSampleCount(1500, 64);
                 int highFrequencyLength = SyntheticTimeSeriesFactory.InclusiveSampleCount(1500, 2048);
-                Add("projection.high-frequency", 24, 1000, 15.0f,
-                    timeline: lowFrequencyLength,
-                    samplingFrequencyHz: 64);
-                Add("projection.high-frequency", 24, 1000, 15.0f,
-                    timeline: highFrequencyLength,
-                    samplingFrequencyHz: 2048);
+                Add("projection.high-frequency", 24, 1000, 15.0f, timeline: lowFrequencyLength, samplingFrequencyHz: 64);
+                Add("projection.high-frequency", 24, 1000, 15.0f, timeline: highFrequencyLength, samplingFrequencyHz: 2048);
                 Add("projection.memory-reference", 120, 1000, 15.0f);
                 Add("projection.cache-reference", 120, 1000, 15.0f, columns: 3);
                 AddRadii("projection.cache-churn", 120, 1000, 5.0f, 15.0f, 30.0f, 15.0f, 5.0f);
@@ -129,17 +85,11 @@ namespace HBP.Tests.Serialization
                 Add("projection.extreme-radius", 120, 25000, 50.0f);
                 Add("projection.extreme-multicolumn", 120, 25000, 15.0f, columns: 3);
             }
+
             return scenarios;
         }
 
-        public static NativeProjectionLoadScenarioResult Run(
-            NativeProjectionLoadScenarioDefinition definition,
-            string surfacePath,
-            string volumePath,
-            string exportRoot,
-            int repetitions,
-            int workerCount,
-            int neighborBatchSize)
+        public static NativeProjectionLoadScenarioResult Run(NativeProjectionLoadScenarioDefinition definition, string surfacePath, string volumePath, string exportRoot, int repetitions, int workerCount, int neighborBatchSize)
         {
             NativeProjectionLoadScenarioResult result = new()
             {
@@ -158,19 +108,11 @@ namespace HBP.Tests.Serialization
 
             for (int repetition = 0; repetition < repetitions; ++repetition)
             {
-                result.samples.Add(RunSample(
-                    definition,
-                    surfacePath,
-                    volumePath,
-                    exportRoot,
-                    repetition,
-                    workerCount,
-                    neighborBatchSize));
+                result.samples.Add(RunSample(definition, surfacePath, volumePath, exportRoot, repetition, workerCount, neighborBatchSize));
             }
 
             NativeProjectionLoadSampleResult first = result.samples[0];
-            Require(result.samples.All(sample => sample.checksum == first.checksum),
-                $"Scenario {definition.Name} produced different checksums across repetitions.");
+            Require(result.samples.All(sample => sample.checksum == first.checksum), $"Scenario {definition.Name} produced different checksums across repetitions.");
             result.surfaceVertexCount = LoadSurfaceVertexCount(surfacePath);
             result.generatedPointCount = first.generatedPointCount;
             result.activeSiteCount = first.activeSiteCount;
@@ -209,11 +151,7 @@ namespace HBP.Tests.Serialization
             SyntheticTimeSeriesDefinition timeSeries = definition.SyntheticTimeSeries;
             result.memoryLayers = new NativeProjectionMemoryLayerResult
             {
-                syntheticManagedLayerBasis = timeSeries == null
-                    ? "not measured"
-                    : $"{timeSeries.PatientCount} patients; {timeSeries.ChannelsPerPatient} channels/patient; " +
-                      $"{timeSeries.TrialCount} trials; {timeSeries.RecordingSampleCount} raw samples/channel; " +
-                      $"{timeSeries.WindowSampleCount} window samples; {timeSeries.BaselineSampleCount} baseline samples",
+                syntheticManagedLayerBasis = timeSeries == null ? "not measured" : $"{timeSeries.PatientCount} patients; {timeSeries.ChannelsPerPatient} channels/patient; " + $"{timeSeries.TrialCount} trials; {timeSeries.RecordingSampleCount} raw samples/channel; " + $"{timeSeries.WindowSampleCount} window samples; {timeSeries.BaselineSampleCount} baseline samples",
                 managedRawSignalBytes = timeSeries?.ManagedRawSignalBytes ?? 0L,
                 managedEpochBytes = timeSeries?.ManagedEpochBytes ?? 0L,
                 managedDerivedBytes = timeSeries?.ManagedDerivedBytes ?? 0L,
@@ -226,29 +164,12 @@ namespace HBP.Tests.Serialization
             return result;
         }
 
-        private static SyntheticTimeSeriesDefinition DefaultSyntheticLayout(
-            int channels,
-            int samples,
-            int samplingFrequencyHz)
+        private static SyntheticTimeSeriesDefinition DefaultSyntheticLayout(int channels, int samples, int samplingFrequencyHz)
         {
-            return new SyntheticTimeSeriesDefinition(
-                1,
-                channels,
-                1,
-                samples,
-                samples,
-                0,
-                samplingFrequencyHz > 0 ? samplingFrequencyHz : 1000);
+            return new SyntheticTimeSeriesDefinition(1, channels, 1, samples, samples, 0, samplingFrequencyHz > 0 ? samplingFrequencyHz : 1000);
         }
 
-        private static NativeProjectionLoadSampleResult RunSample(
-            NativeProjectionLoadScenarioDefinition definition,
-            string surfacePath,
-            string volumePath,
-            string exportRoot,
-            int repetition,
-            int workerCount,
-            int neighborBatchSize)
+        private static NativeProjectionLoadSampleResult RunSample(NativeProjectionLoadScenarioDefinition definition, string surfacePath, string volumePath, string exportRoot, int repetition, int workerCount, int neighborBatchSize)
         {
             using Surface surface = LoadSurface(surfacePath);
             using Volume volume = LoadVolume(volumePath);
@@ -260,8 +181,7 @@ namespace HBP.Tests.Serialization
             NativeProjectionProcessMemorySnapshot baselineMemory = NativeProjectionProcessMemory.Read(process);
             long baselinePrivate = baselineMemory.PrivateBytes;
             long baselineWorkingSet = baselineMemory.WorkingSetBytes;
-            Require(baselinePrivate > 0 && baselineWorkingSet > 0,
-                "Process memory counters must be available for the projection benchmark.");
+            Require(baselinePrivate > 0 && baselineWorkingSet > 0, "Process memory counters must be available for the projection benchmark.");
             TimeSpan cpuStart = process.TotalProcessorTime;
             long totalStart = Stopwatch.GetTimestamp();
             long totalEnd = totalStart;
@@ -329,12 +249,7 @@ namespace HBP.Tests.Serialization
                 try
                 {
                     generatorSurface = new GeneratorSurface();
-                    Measure(process, () => generatorSurface.Initialize(
-                            surface,
-                            volume,
-                            definition.Dimension,
-                            definition.VolumeInterpolation),
-                        out generatorSurfaceWall, out generatorSurfaceCpu);
+                    Measure(process, () => generatorSurface.Initialize(surface, volume, definition.Dimension, definition.VolumeInterpolation), out generatorSurfaceWall, out generatorSurfaceCpu);
 
                     cut = new HBP.Core.Object3D.Cut(volume.Center, Vector3.forward)
                     {
@@ -344,8 +259,7 @@ namespace HBP.Tests.Serialization
                     cutGeometry = new CutGeometryGenerator();
                     cutGeometry.Initialize(volume, cut, -1);
                     cutTexturePixelCount = cutGeometry.TextureSize.x * cutGeometry.TextureSize.y;
-                    estimatedCutStencilPayloadBytes = (long)cutTexturePixelCount
-                        * (definition.VolumeInterpolation == VolumeInterpolation.Nearest ? sizeof(int) : 16L);
+                    estimatedCutStencilPayloadBytes = (long)cutTexturePixelCount * (definition.VolumeInterpolation == VolumeInterpolation.Nearest ? sizeof(int) : 16L);
                     Color32[] grayscale = CreateColorScheme(grayscale: true);
                     Color32[] activityColors = CreateColorScheme(grayscale: false);
 
@@ -357,15 +271,7 @@ namespace HBP.Tests.Serialization
                         generator.SetParallelOptions(workerCount, neighborBatchSize);
                         generator.EnablePerformanceMetrics(true);
 
-                        Measure(process, () => generator.ComputeActivity(
-                                sites,
-                                definition.InfluenceDistances[column],
-                                activity,
-                                definition.TimelineLength,
-                                definition.SiteCount,
-                                SiteInfluenceByDistanceType.Linear),
-                            out double columnComputeWall,
-                            out double columnComputeCpu);
+                        Measure(process, () => generator.ComputeActivity(sites, definition.InfluenceDistances[column], activity, definition.TimelineLength, definition.SiteCount, SiteInfluenceByDistanceType.Linear), out double columnComputeWall, out double columnComputeCpu);
                         computeWall += columnComputeWall;
                         computeCpu += columnComputeCpu;
 
@@ -388,45 +294,33 @@ namespace HBP.Tests.Serialization
                         maxSpatialIndexCacheEntries = Math.Max(maxSpatialIndexCacheEntries, metrics.spatialIndexCacheEntryCount);
                         maxSpatialIndexCacheBytes = Math.Max(maxSpatialIndexCacheBytes, metrics.spatialIndexCacheBytes);
                         if (spatialIndexGeometryVersion == 0) spatialIndexGeometryVersion = metrics.spatialIndexGeometryVersion;
-                        Require(metrics.spatialIndexGeometryVersion == spatialIndexGeometryVersion,
-                            "The geometry version changed during a scenario.");
+                        Require(metrics.spatialIndexGeometryVersion == spatialIndexGeometryVersion, "The geometry version changed during a scenario.");
                         if (parallelWorkerCount == 0) parallelWorkerCount = metrics.parallelWorkerCount;
-                        Require(metrics.parallelWorkerCount == parallelWorkerCount,
-                            "The effective parallel worker count changed during a scenario.");
+                        Require(metrics.parallelWorkerCount == parallelWorkerCount, "The effective parallel worker count changed during a scenario.");
                         if (actualNeighborBatchSize == 0) actualNeighborBatchSize = metrics.neighborBatchSize;
-                        Require(metrics.neighborBatchSize == actualNeighborBatchSize,
-                            "The effective neighbor batch size changed during a scenario.");
+                        Require(metrics.neighborBatchSize == actualNeighborBatchSize, "The effective neighbor batch size changed during a scenario.");
                         neighborBatchCount += metrics.neighborBatchCount;
-                        temporaryNeighborPeakBytes = Math.Max(
-                            temporaryNeighborPeakBytes,
-                            metrics.temporaryNeighborPeakBytes);
+                        temporaryNeighborPeakBytes = Math.Max(temporaryNeighborPeakBytes, metrics.temporaryNeighborPeakBytes);
                         if (temporaryNeighborBudgetBytes == 0)
                         {
                             temporaryNeighborBudgetBytes = metrics.temporaryNeighborBudgetBytes;
                         }
-                        Require(metrics.temporaryNeighborBudgetBytes == temporaryNeighborBudgetBytes,
-                            "The temporary-neighbor budget changed during a scenario.");
-                        Require(metrics.temporaryNeighborPeakBytes <= metrics.temporaryNeighborBudgetBytes * 2,
-                            "The temporary-neighbor allocation exceeded the bounded-capacity guard.");
-                        Require(metrics.spatialIndexCacheEntryCount >= 1 && metrics.spatialIndexCacheEntryCount <= 2,
-                            "The spatial-index cache must contain one or two entries.");
-                        Require(metrics.storedValueCount == metrics.generatedPointCount * definition.TimelineLength,
-                            "The contiguous value buffer has an unexpected size.");
-                        Require(metrics.storedWeightCount == metrics.generatedPointCount,
-                            "Weights must be stored once per generated point.");
+
+                        Require(metrics.temporaryNeighborBudgetBytes == temporaryNeighborBudgetBytes, "The temporary-neighbor budget changed during a scenario.");
+                        Require(metrics.temporaryNeighborPeakBytes <= metrics.temporaryNeighborBudgetBytes * 2, "The temporary-neighbor allocation exceeded the bounded-capacity guard.");
+                        Require(metrics.spatialIndexCacheEntryCount >= 1 && metrics.spatialIndexCacheEntryCount <= 2, "The spatial-index cache must contain one or two entries.");
+                        Require(metrics.storedValueCount == metrics.generatedPointCount * definition.TimelineLength, "The contiguous value buffer has an unexpected size.");
+                        Require(metrics.storedWeightCount == metrics.generatedPointCount, "Weights must be stored once per generated point.");
 
                         SurfaceGenerator output = new();
                         outputs.Add(output);
                         output.Initialize(generator);
-                        Measure(process, () => output.ComputeActivityUV(definition.TimelineLength / 2, 0.25f),
-                            out double columnDisplayWall,
-                            out double columnDisplayCpu);
+                        Measure(process, () => output.ComputeActivityUV(definition.TimelineLength / 2, 0.25f), out double columnDisplayWall, out double columnDisplayCpu);
                         displayWall += columnDisplayWall;
                         displayCpu += columnDisplayCpu;
                         Vector2[] uvs = output.ActivityUV;
                         Require(uvs.Length == surface.NumberOfVertices, "Unexpected activity UV count.");
-                        Require(uvs.All(value => float.IsFinite(value.x) && float.IsFinite(value.y)),
-                            "Activity UV output contains a non-finite value.");
+                        Require(uvs.All(value => float.IsFinite(value.x) && float.IsFinite(value.y)), "Activity UV output contains a non-finite value.");
                         checksum = Mix(checksum, Hash(uvs));
 
                         CutGenerator cutOutput = new();
@@ -435,34 +329,29 @@ namespace HBP.Tests.Serialization
                         cutOutput.FillTextureWithVolume(grayscale, 0.0f, 1.0f);
                         Color32[] preparedPixels = null;
                         Measure(process, () =>
-                            {
-                                cutOutput.FillTextureWithActivity(activityColors, 0, 0.25f);
-                                preparedPixels = cutOutput.CopyOverlayPixels();
-                            },
-                            out double columnCutPreparationWall,
-                            out double columnCutPreparationCpu);
+                        {
+                            cutOutput.FillTextureWithActivity(activityColors, 0, 0.25f);
+                            preparedPixels = cutOutput.CopyOverlayPixels();
+                        }, out double columnCutPreparationWall, out double columnCutPreparationCpu);
                         cutPreparationWall += columnCutPreparationWall;
                         cutPreparationCpu += columnCutPreparationCpu;
-                        Require(preparedPixels.Length == cutGeometry.TextureSize.x * cutGeometry.TextureSize.y,
-                            "Unexpected prepared cut pixel count.");
+                        Require(preparedPixels.Length == cutGeometry.TextureSize.x * cutGeometry.TextureSize.y, "Unexpected prepared cut pixel count.");
 
                         const int updateCount = 512;
                         Color32[] updatedPixels = null;
                         Measure(process, () =>
+                        {
+                            for (int update = 0; update < updateCount; ++update)
                             {
-                                for (int update = 0; update < updateCount; ++update)
-                                {
-                                    int timelineIndex = update % definition.TimelineLength;
-                                    long fillStart = Stopwatch.GetTimestamp();
-                                    cutOutput.FillTextureWithActivity(activityColors, timelineIndex, 0.25f);
-                                    cutTimelineFillsWall += ElapsedMilliseconds(fillStart, Stopwatch.GetTimestamp());
-                                    long copyStart = Stopwatch.GetTimestamp();
-                                    updatedPixels = cutOutput.CopyOverlayPixels();
-                                    cutTimelineCopiesWall += ElapsedMilliseconds(copyStart, Stopwatch.GetTimestamp());
-                                }
-                            },
-                            out double columnCutUpdatesWall,
-                            out double columnCutUpdatesCpu);
+                                int timelineIndex = update % definition.TimelineLength;
+                                long fillStart = Stopwatch.GetTimestamp();
+                                cutOutput.FillTextureWithActivity(activityColors, timelineIndex, 0.25f);
+                                cutTimelineFillsWall += ElapsedMilliseconds(fillStart, Stopwatch.GetTimestamp());
+                                long copyStart = Stopwatch.GetTimestamp();
+                                updatedPixels = cutOutput.CopyOverlayPixels();
+                                cutTimelineCopiesWall += ElapsedMilliseconds(copyStart, Stopwatch.GetTimestamp());
+                            }
+                        }, out double columnCutUpdatesWall, out double columnCutUpdatesCpu);
                         cutTimelineUpdatesWall += columnCutUpdatesWall;
                         cutTimelineUpdatesCpu += columnCutUpdatesCpu;
                         cutTimelineUpdateCount += updateCount;
@@ -475,14 +364,7 @@ namespace HBP.Tests.Serialization
                         exportPath = Path.Combine(exportRoot, $"{definition.Name}-r{repetition}.nii");
                         IEEGGenerator generator = generators[generators.Count - 1];
                         bool saved = false;
-                        Measure(process, () => saved = generator.SaveActivityAsNifti(
-                                exportPath,
-                                definition.TimelineLength,
-                                100.0f,
-                                0.0f,
-                                "hbp_core projection load benchmark"),
-                            out exportWall,
-                            out exportCpu);
+                        Measure(process, () => saved = generator.SaveActivityAsNifti(exportPath, definition.TimelineLength, 100.0f, 0.0f, "hbp_core projection load benchmark"), out exportWall, out exportCpu);
                         Require(saved && File.Exists(exportPath), "Activity NIfTI export failed.");
                         exportFileBytes = new FileInfo(exportPath).Length;
                     }
@@ -524,8 +406,7 @@ namespace HBP.Tests.Serialization
             double phaseSum = allocation + spatialIndex + neighborQuery + accumulation + normalization;
             double unattributed = Math.Max(0.0, nativeTotal - phaseSum);
             long estimatedBytes = checked((storedValues + storedWeights) * sizeof(float));
-            Require(spatialIndexCacheHits + spatialIndexCacheMisses == definition.ColumnCount,
-                "Every spatial-index lookup must be reported as a hit or miss.");
+            Require(spatialIndexCacheHits + spatialIndexCacheMisses == definition.ColumnCount, "Every spatial-index lookup must be reported as a hit or miss.");
             return new NativeProjectionLoadSampleResult
             {
                 repetition = repetition,
@@ -541,18 +422,10 @@ namespace HBP.Tests.Serialization
                 cutPreparationCpuMilliseconds = cutPreparationCpu,
                 cutTimelineUpdatesWallMilliseconds = cutTimelineUpdatesWall,
                 cutTimelineUpdatesCpuMilliseconds = cutTimelineUpdatesCpu,
-                meanCutTimelineUpdateWallMilliseconds = cutTimelineUpdateCount > 0
-                    ? cutTimelineUpdatesWall / cutTimelineUpdateCount
-                    : 0.0,
-                meanCutTimelineUpdateCpuMilliseconds = cutTimelineUpdateCount > 0
-                    ? cutTimelineUpdatesCpu / cutTimelineUpdateCount
-                    : 0.0,
-                meanCutTimelineFillWallMilliseconds = cutTimelineUpdateCount > 0
-                    ? cutTimelineFillsWall / cutTimelineUpdateCount
-                    : 0.0,
-                meanCutTimelineCopyWallMilliseconds = cutTimelineUpdateCount > 0
-                    ? cutTimelineCopiesWall / cutTimelineUpdateCount
-                    : 0.0,
+                meanCutTimelineUpdateWallMilliseconds = cutTimelineUpdateCount > 0 ? cutTimelineUpdatesWall / cutTimelineUpdateCount : 0.0,
+                meanCutTimelineUpdateCpuMilliseconds = cutTimelineUpdateCount > 0 ? cutTimelineUpdatesCpu / cutTimelineUpdateCount : 0.0,
+                meanCutTimelineFillWallMilliseconds = cutTimelineUpdateCount > 0 ? cutTimelineFillsWall / cutTimelineUpdateCount : 0.0,
+                meanCutTimelineCopyWallMilliseconds = cutTimelineUpdateCount > 0 ? cutTimelineCopiesWall / cutTimelineUpdateCount : 0.0,
                 cutTimelineUpdateCount = cutTimelineUpdateCount,
                 exportWallMilliseconds = exportWall,
                 exportCpuMilliseconds = exportCpu,
@@ -618,13 +491,11 @@ namespace HBP.Tests.Serialization
                 for (int i = 0; i < siteCount; ++i)
                 {
                     int sequenceIndex = i + 1;
-                    Vector3 nativePosition = new(
-                        Mathf.Lerp(min.x, max.x, Halton(sequenceIndex, 2)),
-                        Mathf.Lerp(min.y, max.y, Halton(sequenceIndex, 3)),
-                        Mathf.Lerp(min.z, max.z, Halton(sequenceIndex, 5)));
+                    Vector3 nativePosition = new(Mathf.Lerp(min.x, max.x, Halton(sequenceIndex, 2)), Mathf.Lerp(min.y, max.y, Halton(sequenceIndex, 3)), Mathf.Lerp(min.z, max.z, Halton(sequenceIndex, 5)));
                     sites.AddSite($"S{i}", nativePosition, i / 100, i % 100);
                     sites.UpdateMask(i, false);
                 }
+
                 return sites;
             }
             catch
@@ -641,10 +512,10 @@ namespace HBP.Tests.Serialization
             {
                 for (int site = 0; site < siteCount; ++site)
                 {
-                    activity[timeline * siteCount + site] =
-                        SyntheticTimeSeriesFactory.ValueAt(0, site, 0, timeline);
+                    activity[timeline * siteCount + site] = SyntheticTimeSeriesFactory.ValueAt(0, site, 0, timeline);
                 }
             }
+
             return activity;
         }
 
@@ -654,10 +525,9 @@ namespace HBP.Tests.Serialization
             for (int index = 0; index < colors.Length; ++index)
             {
                 byte value = (byte)index;
-                colors[index] = grayscale
-                    ? new Color32(value, value, value, 255)
-                    : new Color32(value, (byte)(255 - value), (byte)(value / 2), 255);
+                colors[index] = grayscale ? new Color32(value, value, value, 255) : new Color32(value, (byte)(255 - value), (byte)(value / 2), 255);
             }
+
             return colors;
         }
 
@@ -671,6 +541,7 @@ namespace HBP.Tests.Serialization
                 index /= radix;
                 fraction /= radix;
             }
+
             return result;
         }
 
@@ -682,6 +553,7 @@ namespace HBP.Tests.Serialization
                 surface.Dispose();
                 throw new InvalidOperationException($"Could not load MNI surface {path}.");
             }
+
             return surface;
         }
 
@@ -699,6 +571,7 @@ namespace HBP.Tests.Serialization
                 volume.Dispose();
                 throw new InvalidOperationException($"Could not load MNI volume {path}.");
             }
+
             return volume;
         }
 
@@ -724,9 +597,7 @@ namespace HBP.Tests.Serialization
         {
             double[] sorted = values.OrderBy(value => value).ToArray();
             int middle = sorted.Length / 2;
-            return sorted.Length % 2 == 0
-                ? (sorted[middle - 1] + sorted[middle]) * 0.5
-                : sorted[middle];
+            return sorted.Length % 2 == 0 ? (sorted[middle - 1] + sorted[middle]) * 0.5 : sorted[middle];
         }
 
         private static double Percentile95(IEnumerable<double> values)
@@ -745,6 +616,7 @@ namespace HBP.Tests.Serialization
                 checksum = Mix(checksum, unchecked((ulong)(uint)Mathf.RoundToInt(values[i].x * 100000.0f)));
                 checksum = Mix(checksum, unchecked((ulong)(uint)Mathf.RoundToInt(values[i].y * 100000.0f)));
             }
+
             return checksum;
         }
 
@@ -760,6 +632,7 @@ namespace HBP.Tests.Serialization
                 checksum = Mix(checksum, value.b);
                 checksum = Mix(checksum, value.a);
             }
+
             return checksum;
         }
 

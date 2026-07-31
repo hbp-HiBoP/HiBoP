@@ -6,17 +6,21 @@ namespace HBP.UI.Toolbar
     public class ComputeActivity : Tool
     {
         #region Properties
+
         /// <summary>
         /// Trigger the computation of the projection of the iEEG activity
         /// </summary>
         [SerializeField] private Button m_Compute;
+
         /// <summary>
         /// Remove the projection of the iEEG activity
         /// </summary>
         [SerializeField] private Button m_Remove;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -38,6 +42,7 @@ namespace HBP.UI.Toolbar
                 UpdateInteractable();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -46,6 +51,7 @@ namespace HBP.UI.Toolbar
             m_Compute.interactable = false;
             m_Remove.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -56,6 +62,7 @@ namespace HBP.UI.Toolbar
             m_Compute.interactable = SelectedScene.CanComputeFunctionalValues;
             m_Remove.interactable = isGeneratorUpToDate;
         }
+
         #endregion
     }
 }

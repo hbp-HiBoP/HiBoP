@@ -9,15 +9,13 @@ namespace HBP.UI.Main
     public class IconCreator : ObjectCreator<Core.Data.Icon>
     {
         Core.Tools.TimeWindow m_Window;
+
         /// <summary>
         /// SubBloc window.
         /// </summary>
         public Core.Tools.TimeWindow Window
         {
-            get
-            {
-                return m_Window;
-            }
+            get { return m_Window; }
             set
             {
                 m_Window = value;

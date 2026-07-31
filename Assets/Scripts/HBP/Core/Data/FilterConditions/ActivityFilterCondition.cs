@@ -11,6 +11,7 @@ namespace HBP.Core.Data
     public class ActivityFilterCondition : BaseFilterCondition
     {
         #region Properties
+
         [JsonProperty("MeasureType")] public MeasureType MeasureType { get; set; }
         [JsonProperty("ComparisonType")] public NumberComparisonType ComparisonType { get; set; }
         [JsonProperty("Value")] public float Value { get; set; }
@@ -35,13 +36,16 @@ namespace HBP.Core.Data
                 return $"The {valueTypeStr} of this site's activity is{(IsNot ? " not" : "")} {comparisonStr}";
             }
         }
+
         #endregion
 
         #region Constructors
-        public ActivityFilterCondition() : this(MeasureType.Mean, NumberComparisonType.Equal, 0, 0, 0, false) { }
 
-        public ActivityFilterCondition(MeasureType valueType, NumberComparisonType comparisonType, float value, float min, float max, bool isNot)
-            : base(isNot)
+        public ActivityFilterCondition() : this(MeasureType.Mean, NumberComparisonType.Equal, 0, 0, 0, false)
+        {
+        }
+
+        public ActivityFilterCondition(MeasureType valueType, NumberComparisonType comparisonType, float value, float min, float max, bool isNot) : base(isNot)
         {
             MeasureType = valueType;
             ComparisonType = comparisonType;
@@ -50,8 +54,7 @@ namespace HBP.Core.Data
             Max = max;
         }
 
-        public ActivityFilterCondition(MeasureType valueType, NumberComparisonType comparisonType, float value, float min, float max, bool isNot, string ID)
-            : base(isNot, ID)
+        public ActivityFilterCondition(MeasureType valueType, NumberComparisonType comparisonType, float value, float min, float max, bool isNot, string ID) : base(isNot, ID)
         {
             MeasureType = valueType;
             ComparisonType = comparisonType;
@@ -59,9 +62,11 @@ namespace HBP.Core.Data
             Min = min;
             Max = max;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new ActivityFilterCondition(MeasureType, ComparisonType, Value, Min, Max, IsNot, ID);
@@ -79,9 +84,11 @@ namespace HBP.Core.Data
                 Max = activityFilter.Max;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is Object3D.Site site)
@@ -120,8 +127,10 @@ namespace HBP.Core.Data
 
                 return result != IsNot;
             }
+
             return false;
         }
+
         #endregion
     }
 }

@@ -6,6 +6,7 @@ namespace HBP.Theme
     public class LayoutElement : Settings
     {
         #region Properties
+
         public bool IgnoreLayout = false;
         public float MinWidth = -1;
         public float MinHeight = -1;
@@ -13,14 +14,16 @@ namespace HBP.Theme
         public float PreferredHeight = -1;
         public float FlexibleWidth = -1;
         public float FlexibleHeight = -1;
+
         #endregion
 
         #region Public Methods
+
         public override void Set(GameObject gameObject)
         {
             UnityEngine.UI.LayoutElement layoutElement = gameObject.GetComponent<UnityEngine.UI.LayoutElement>();
             if (layoutElement)
-            {              
+            {
                 layoutElement.ignoreLayout = IgnoreLayout;
                 layoutElement.minWidth = MinWidth;
                 layoutElement.minHeight = MinHeight;
@@ -30,7 +33,7 @@ namespace HBP.Theme
                 layoutElement.flexibleHeight = FlexibleHeight;
             }
         }
-        #endregion
 
+        #endregion
     }
 }

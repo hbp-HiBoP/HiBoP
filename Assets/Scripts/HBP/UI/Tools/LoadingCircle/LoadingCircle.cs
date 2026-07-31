@@ -11,6 +11,7 @@ namespace HBP.UI.Tools
     public class LoadingCircle : MonoBehaviour
     {
         #region Properties
+
         float m_TargetProgress;
         float m_LastProgress;
         public float Progress { get; set; }
@@ -36,13 +37,17 @@ namespace HBP.UI.Tools
         [SerializeField] Text m_SuffixText;
         [SerializeField] GameObject m_CancelButtonContainer;
         [SerializeField] Button m_CancelButton;
+
         #endregion
 
         #region Events
+
         public UnityEvent OnCancel { get; } = new UnityEvent();
+
         #endregion
 
         #region Public Methods
+
         public void Initialize()
         {
             m_Sprites = new Sprite[101];
@@ -51,9 +56,11 @@ namespace HBP.UI.Tools
                 string path = Path.Combine("BrainAnim", i.ToString());
                 m_Sprites[i] = Resources.Load<Sprite>(path);
             }
+
             m_CancelButton.onClick.AddListener(Cancel);
             Close();
         }
+
         public void ChangePercentage(float progress, float durationInSeconds, LoadingText message)
         {
             m_LastProgress = m_TargetProgress;
@@ -62,6 +69,7 @@ namespace HBP.UI.Tools
             m_CurrentDurationInSeconds = 0;
             Text = message;
         }
+
         public async void Open(bool showInformations = true, bool cancelable = false)
         {
             await UniTask.SwitchToMainThread();
@@ -73,6 +81,7 @@ namespace HBP.UI.Tools
             ChangePercentage(0, 0, new LoadingText());
             if (showInformations) ShowInformations();
         }
+
         public async void Close()
         {
             await UniTask.SwitchToMainThread();
@@ -81,19 +90,23 @@ namespace HBP.UI.Tools
             gameObject.SetActive(false);
             Reset();
         }
+
         public void ShowInformations()
         {
             Animator animator = transform.GetComponent<Animator>();
             animator.Play("ShowInformations");
         }
+
         public void HideInformations()
         {
             Animator animator = transform.GetComponent<Animator>();
             animator.Play("HideInformations");
         }
+
         #endregion
 
         #region Coroutines
+
         private async UniTaskVoid TextLoadingEffect(CancellationToken token)
         {
             try
@@ -123,14 +136,17 @@ namespace HBP.UI.Tools
             {
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_TextAnimationCancellationTokenSource = new();
             TextLoadingEffect(m_TextAnimationCancellationTokenSource.Token).Forget();
         }
+
         private void Update()
         {
             if (!m_IsCancelling)
@@ -144,6 +160,7 @@ namespace HBP.UI.Tools
                     m_IconProgress.sprite = m_Sprites[percentage];
                     m_CurrentDurationInSeconds += Time.deltaTime;
                 }
+
                 if (Text != m_LastText)
                 {
                     m_PrefixText.text = Text.Prefix;
@@ -153,6 +170,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         private void Reset()
         {
             m_IconProgress.sprite = m_Sprites[0];
@@ -162,11 +180,13 @@ namespace HBP.UI.Tools
             m_Informations.sizeDelta = Vector2.zero;
             m_IsCancelling = false;
         }
+
         private void OnDestroy()
         {
             m_TextAnimationCancellationTokenSource.Cancel();
             m_TextAnimationCancellationTokenSource.Dispose();
         }
+
         private void Cancel()
         {
             m_IsCancelling = true;
@@ -176,6 +196,7 @@ namespace HBP.UI.Tools
             m_CancelButtonContainer.SetActive(false);
             OnCancel.Invoke();
         }
+
         #endregion
     }
 }

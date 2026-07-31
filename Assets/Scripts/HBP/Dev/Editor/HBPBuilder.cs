@@ -45,6 +45,7 @@ namespace HBP.Dev
                     os = "macos64";
                     break;
             }
+
             string buildName = string.Format("{0}.{1}.{2}", Application.productName, Application.version, os);
             string buildDirectory = buildsDirectory + buildName + "/";
             string dataDirectory = buildDirectory;
@@ -68,6 +69,7 @@ namespace HBP.Dev
             {
                 buildOptions |= BuildOptions.ConnectWithProfiler;
             }
+
             BuildPlayerOptions buildPlayerOptions = new()
             {
                 locationPathName = buildDirectory + hibopName,
@@ -90,6 +92,7 @@ namespace HBP.Dev
             {
                 file.Delete();
             }
+
             foreach (var file in dataDirectoryInfo.GetFiles("*.obj", SearchOption.AllDirectories))
             {
                 file.Delete();
@@ -112,10 +115,11 @@ namespace HBP.Dev
             {
                 string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
                 DirectoryInfo pluginsDirectory = new(pluginsPath);
-                DirectoryInfo arm64PluginsDirectory = new(Path.Join(pluginsPath, "ARM64")); 
+                DirectoryInfo arm64PluginsDirectory = new(Path.Join(pluginsPath, "ARM64"));
                 arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
                 arm64PluginsDirectory.Delete(true);
             }
+
             if (target == BuildTarget.StandaloneLinux64)
             {
                 DirectoryInfo pluginsDirectory = new(Application.dataPath + "/Plugins/x86_64/Linux");
@@ -200,6 +204,7 @@ namespace HBP.Dev
             {
                 m_BuildDirectory = EditorUtility.OpenFolderPanel("Select the builds folder", m_BuildDirectory, "");
             }
+
             GUILayout.EndHorizontal();
             m_DevelopmentBuild = GUILayout.Toggle(m_DevelopmentBuild, "Development Build");
             m_ConnectProfiler = GUILayout.Toggle(m_ConnectProfiler, "Connect Profiler");
@@ -213,18 +218,22 @@ namespace HBP.Dev
                 {
                     m_BuildDirectory += '/';
                 }
+
                 if (m_Windows)
                 {
                     HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64, m_ConnectProfiler);
                 }
+
                 if (m_Linux)
                 {
                     HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneLinux64, m_ConnectProfiler);
                 }
+
                 if (m_MacOSX)
                 {
                     HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX, m_ConnectProfiler);
                 }
+
                 Close();
             }
         }

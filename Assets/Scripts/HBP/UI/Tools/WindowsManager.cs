@@ -9,6 +9,7 @@ namespace HBP.UI.Tools
     public class WindowsManager : Manager<WindowsManager>
     {
         #region Properties
+
         [SerializeField] GameObject[] m_Windows;
         [SerializeField] private RectTransform m_ParentContainer;
         private List<RectTransform> m_Containers = new();
@@ -16,9 +17,11 @@ namespace HBP.UI.Tools
         public static WindowsReferencer WindowsReferencer = new();
         public Dictionary<Type, Vector2> SizeDeltaByWindow = new();
         public Vector2 Offset;
+
         #endregion
 
         #region Public Methods
+
         public static Window Open(string name, Window parent, bool interactable = true)
         {
             Window window = WindowsReferencer.Windows.FirstOrDefault(w => w.name == name);
@@ -38,8 +41,10 @@ namespace HBP.UI.Tools
                     window = m_Instance.CreateWindow(prefab, parent, interactable);
                 }
             }
+
             return window;
         }
+
         public static T Open<T>(string name, Window parent, bool interactable = true) where T : Window
         {
             T window = default;
@@ -48,8 +53,10 @@ namespace HBP.UI.Tools
             {
                 window = m_Instance.CreateWindow(prefab, parent, interactable) as T;
             }
+
             return window;
         }
+
         public static ObjectModifier<T> OpenModifier<T>(T obj, Window parent, bool interactable = true) where T : Core.Data.BaseData
         {
             ObjectModifier<T> modifier = WindowsReferencer.Windows.OfType<ObjectModifier<T>>().FirstOrDefault(w => w.Object.ID == obj.ID);
@@ -70,8 +77,10 @@ namespace HBP.UI.Tools
                     modifier.Object = obj;
                 }
             }
+
             return modifier;
         }
+
         public static ObjectSelector<T> OpenSelector<T>(IEnumerable<T> objects, Window parent, bool multiSelection = true, bool openModifiers = false, bool interactable = true)
         {
             var openedSelector = WindowsReferencer.Windows.OfType<ObjectSelector<T>>().ToArray();
@@ -79,6 +88,7 @@ namespace HBP.UI.Tools
             {
                 sel.Close();
             }
+
             ObjectSelector<T> selector = default;
             GameObject prefab = m_Instance.GetWindowPrefab(typeof(ObjectSelector<T>));
             if (prefab)
@@ -89,8 +99,10 @@ namespace HBP.UI.Tools
                 else selector.Selection = ObjectSelector<T>.SelectionType.Single;
                 selector.OpenModifiers = openModifiers;
             }
+
             return selector;
         }
+
         public static void CloseAll()
         {
             var windows = WindowsReferencer.Windows.ToArray();
@@ -99,15 +111,18 @@ namespace HBP.UI.Tools
                 window.Close();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialization()
         {
             base.Initialization();
             m_Windows = Resources.LoadAll<GameObject>("Prefabs/UI/Windows/");
             WindowsReferencer.OnCloseWindow.AddListener(OnCloseWindow);
         }
+
         Window CreateWindow(GameObject prefab, Window parent, bool interactable)
         {
             GameObject gameObject = Instantiate(prefab, m_ParentContainer);
@@ -126,6 +141,7 @@ namespace HBP.UI.Tools
                     m_Instance.m_Containers[i].name = i.ToString();
                 }
             }
+
             window.transform.SetParent(m_Instance.m_Containers[window.Height]);
 
             Window existingWindow = WindowsReferencer.Windows.FirstOrDefault(w => w.GetType() == window.GetType());
@@ -149,14 +165,17 @@ namespace HBP.UI.Tools
             {
                 rectTransform.anchoredPosition = (rectTransform.pivot - new Vector2(0.5f, 0.5f)) * rectTransform.sizeDelta;
             }
+
             window.Interactable = interactable;
             WindowsReferencer.Add(window);
             return window;
         }
+
         GameObject GetWindowPrefab(string name)
         {
             return m_Windows.First(w => w.name == name);
         }
+
         GameObject GetWindowPrefab(Type type)
         {
             return m_Windows.FirstOrDefault(g => g.GetComponent(type) != null);
@@ -166,6 +185,7 @@ namespace HBP.UI.Tools
         {
             SizeDeltaByWindow[window.GetType()] = window.GetComponent<RectTransform>().sizeDelta;
         }
+
         #endregion
     }
 }

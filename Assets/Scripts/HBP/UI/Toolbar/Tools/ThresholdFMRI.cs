@@ -10,38 +10,61 @@ namespace HBP.UI.Toolbar
     public class ThresholdFMRI : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Texture to be applied to the image
         /// </summary>
         private Texture2D m_MRIHistogram;
+
         /// <summary>
         /// Minimum value of the FMRI
         /// </summary>
         private float m_Min = -1f;
+
         /// <summary>
         /// Maximum value of the FMRI
         /// </summary>
         private float m_Max = 1f;
+
         /// <summary>
         /// Minimum Cal value
         /// </summary>
         private float m_NegativeMin = 0.0f;
-        private float NegativeMinValue { get { return m_NegativeMin * m_Min; } }
+
+        private float NegativeMinValue
+        {
+            get { return m_NegativeMin * m_Min; }
+        }
+
         /// <summary>
         /// Maximum Cal value
         /// </summary>
         private float m_NegativeMax = 1.0f;
-        private float NegativeMaxValue { get { return m_NegativeMax * m_Min; } }
+
+        private float NegativeMaxValue
+        {
+            get { return m_NegativeMax * m_Min; }
+        }
+
         /// <summary>
         /// Minimum Cal value
         /// </summary>
         private float m_PositiveMin = 0.0f;
-        private float PositiveMinValue { get { return m_PositiveMin * m_Max; } }
+
+        private float PositiveMinValue
+        {
+            get { return m_PositiveMin * m_Max; }
+        }
+
         /// <summary>
         /// Maximum Cal value
         /// </summary>
         private float m_PositiveMax = 1.0f;
-        private float PositiveMaxValue { get { return m_PositiveMax * m_Max; } }
+
+        private float PositiveMaxValue
+        {
+            get { return m_PositiveMax * m_Max; }
+        }
 
         /// <summary>
         /// Used to display the current histogram
@@ -50,7 +73,7 @@ namespace HBP.UI.Toolbar
 
         [SerializeField] private Text m_MinText;
         [SerializeField] private Text m_MaxText;
-        
+
         [SerializeField] private RectTransform m_NegativeFields;
         [SerializeField] private InputField m_NegativeMinInputfield;
         [SerializeField] private InputField m_NegativeMaxInputfield;
@@ -63,22 +86,27 @@ namespace HBP.UI.Toolbar
         /// Zone in which the handlers can move
         /// </summary>
         [SerializeField] private RectTransform m_NegativeHandlerZone;
+
         /// <summary>
         /// Handler responsible for the minimum value
         /// </summary>
         [SerializeField] private ThresholdHandler m_NegativeMinHandler;
+
         /// <summary>
         /// Handler responsible for the maximum value
         /// </summary>
         [SerializeField] private ThresholdHandler m_NegativeMaxHandler;
+
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
         [SerializeField] private RectTransform m_PositiveHandlerZone;
+
         /// <summary>
         /// Handler responsible for the minimum value
         /// </summary>
         [SerializeField] private ThresholdHandler m_PositiveMinHandler;
+
         /// <summary>
         /// Handler responsible for the maximum value
         /// </summary>
@@ -88,13 +116,17 @@ namespace HBP.UI.Toolbar
         /// Is the module initialized ?
         /// </summary>
         private bool m_Initialized;
+
         #endregion
 
         #region Events
+
         public GenericEvent<float, float, float, float> OnChangeValues = new();
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
@@ -110,6 +142,7 @@ namespace HBP.UI.Toolbar
                 if (m_MRIHistogram == null) m_MRIHistogram = new(1, 1);
                 UnityTextureFactory.UpdateSolidTexture(m_MRIHistogram, 440, 440, new Color32(0, 0, 0, 255));
             }
+
             m_Histogram.texture = m_MRIHistogram;
         }
 
@@ -135,6 +168,7 @@ namespace HBP.UI.Toolbar
                 OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
             }
         }
+
         private void SetPositiveValues(float min, float max)
         {
             // Logical values
@@ -157,9 +191,11 @@ namespace HBP.UI.Toolbar
                 OnChangeValues.Invoke(m_NegativeMin, m_NegativeMax, m_PositiveMin, m_PositiveMax);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this module
         /// </summary>
@@ -174,14 +210,8 @@ namespace HBP.UI.Toolbar
             m_PositiveMaxHandler.MinimumPosition = 0.0f;
             m_PositiveMaxHandler.MaximumPosition = 1.0f;
 
-            m_NegativeMinHandler.OnChangePosition.AddListener((deplacement) =>
-            {
-                SetNegativeValues(1f - m_NegativeMinHandler.Position, m_NegativeMax);
-            });
-            m_NegativeMaxHandler.OnChangePosition.AddListener((deplacement) =>
-            {
-                SetNegativeValues(m_NegativeMin, 1f - m_NegativeMaxHandler.Position);
-            });
+            m_NegativeMinHandler.OnChangePosition.AddListener((deplacement) => { SetNegativeValues(1f - m_NegativeMinHandler.Position, m_NegativeMax); });
+            m_NegativeMaxHandler.OnChangePosition.AddListener((deplacement) => { SetNegativeValues(m_NegativeMin, 1f - m_NegativeMaxHandler.Position); });
             m_NegativeMinInputfield.onEndEdit.AddListener((value) =>
             {
                 if (NumberExtension.TryParseFloat(value, out float result))
@@ -207,14 +237,8 @@ namespace HBP.UI.Toolbar
                 }
             });
 
-            m_PositiveMinHandler.OnChangePosition.AddListener((deplacement) =>
-            {
-                SetPositiveValues(m_PositiveMinHandler.Position, m_PositiveMax);
-            });
-            m_PositiveMaxHandler.OnChangePosition.AddListener((deplacement) =>
-            {
-                SetPositiveValues(m_PositiveMin, m_PositiveMaxHandler.Position);
-            });
+            m_PositiveMinHandler.OnChangePosition.AddListener((deplacement) => { SetPositiveValues(m_PositiveMinHandler.Position, m_PositiveMax); });
+            m_PositiveMaxHandler.OnChangePosition.AddListener((deplacement) => { SetPositiveValues(m_PositiveMin, m_PositiveMaxHandler.Position); });
             m_PositiveMinInputfield.onEndEdit.AddListener((value) =>
             {
                 if (NumberExtension.TryParseFloat(value, out float result))
@@ -240,6 +264,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Update Maximum and Minimum Cal value
         /// </summary>
@@ -287,6 +312,7 @@ namespace HBP.UI.Toolbar
 
             m_Initialized = true;
         }
+
         #endregion
     }
 }

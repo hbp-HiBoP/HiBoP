@@ -13,6 +13,7 @@ namespace HBP.Data.BIDS
     public class BIDSPatient
     {
         #region Properties
+
         public Patient Patient { get; private set; }
         public List<IEEGDataInfo> DataInfos { get; private set; } = new();
 
@@ -20,9 +21,11 @@ namespace HBP.Data.BIDS
         /// BIDS-formatted participant ID (e.g., "sub-001" or "sub-patient01").
         /// </summary>
         public string ParticipantId { get; private set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new BIDSPatient instance.
         /// </summary>
@@ -34,9 +37,11 @@ namespace HBP.Data.BIDS
             DataInfos = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Where(di => di.Patient == Patient && protocols.Contains(di.Protocol) && dataNames.Contains(di.Name)).ToList();
             ParticipantId = $"sub-{subjectId}";
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Create a non-anonymized BIDS patient with alphanumeric-only ID.
         /// </summary>
@@ -46,7 +51,7 @@ namespace HBP.Data.BIDS
         {
             // Remove non-alphanumeric characters from patient name
             string cleanId = Regex.Replace(patient.ID, @"[^a-zA-Z0-9]", "");
-            
+
             // Ensure the ID is not empty
             if (string.IsNullOrEmpty(cleanId))
             {
@@ -77,6 +82,7 @@ namespace HBP.Data.BIDS
         {
             return ParticipantId;
         }
+
         #endregion
     }
 }

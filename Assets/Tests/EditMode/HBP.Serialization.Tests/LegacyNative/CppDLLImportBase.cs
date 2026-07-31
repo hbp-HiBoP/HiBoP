@@ -12,6 +12,7 @@ namespace HBP.Tests.Serialization.LegacyNative
     public abstract class CppDLLImportBase : IDisposable
     {
         #region Properties
+
         /// <summary>
         /// pointer to C+ dll class
         /// </summary>
@@ -19,9 +20,11 @@ namespace HBP.Tests.Serialization.LegacyNative
 #if UNITY_EDITOR
         private readonly Guid m_ID = Guid.NewGuid();
 #endif
+
         #endregion
 
         #region Memory Management
+
         /// <summary>
         /// CppDLLImportBase default constructor
         /// </summary>
@@ -32,6 +35,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             DLLDebugManager.AddDLLObject(ToString(), m_ID);
 #endif
         }
+
         /// <summary>
         /// CppDLLImportBase constructor with an already allocated dll class
         /// </summary>
@@ -43,6 +47,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             DLLDebugManager.AddDLLObject(ToString(), m_ID);
 #endif
         }
+
         /// <summary>
         /// CppDLLImportBase Destructor
         /// </summary>
@@ -53,14 +58,17 @@ namespace HBP.Tests.Serialization.LegacyNative
 #endif
             Cleanup(suppressExceptions: true);
         }
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
         abstract protected void create_DLL_class();
+
         /// <summary>
         /// Clean DLL memory
         /// </summary>
         abstract protected void delete_DLL_class();
+
         /// <summary>
         /// Force delete C++ DLL data (remove GC for this object)
         /// </summary>
@@ -72,6 +80,7 @@ namespace HBP.Tests.Serialization.LegacyNative
             Cleanup(suppressExceptions: false);
             GC.SuppressFinalize(this);
         }
+
         /// <summary>
         /// Delete C+ DLL data, and set handle to IntPtr.Zero
         /// </summary>
@@ -91,6 +100,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 _handle = new HandleRef(this, IntPtr.Zero);
             }
         }
+
         /// <summary>
         /// Return pointer to C++ DLL
         /// </summary>
@@ -99,6 +109,7 @@ namespace HBP.Tests.Serialization.LegacyNative
         {
             return _handle;
         }
+
         #endregion
     }
 }

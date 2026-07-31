@@ -18,17 +18,13 @@ namespace HBP.Tests.Workflow
         [Test]
         public void LegacyAssemblyType_RoundTripsThroughGeneratedRegistry()
         {
-            const string legacyJson =
-                "{\"$type\":\"HBP.Core.Data.BoolTag, Assembly-CSharp\"," +
-                "\"Name\":\"legacy-bool\",\"ID\":\"legacy-bool-id\"}";
+            const string legacyJson = "{\"$type\":\"HBP.Core.Data.BoolTag, Assembly-CSharp\"," + "\"Name\":\"legacy-bool\",\"ID\":\"legacy-bool-id\"}";
 
             BoolTag legacyTag = ClassLoaderSaver.LoadFromJsonString<BoolTag>(legacyJson);
             Assert.That(legacyTag, Is.Not.Null);
             Assert.That(legacyTag.ID, Is.EqualTo("legacy-bool-id"));
 
-            string path = Path.Combine(
-                UnityEngine.Application.temporaryCachePath,
-                $"hibop-registry-{Guid.NewGuid():N}.json");
+            string path = Path.Combine(UnityEngine.Application.temporaryCachePath, $"hibop-registry-{Guid.NewGuid():N}.json");
             try
             {
                 Assert.That(ClassLoaderSaver.SaveToJSon(legacyTag, path, true), Is.True);

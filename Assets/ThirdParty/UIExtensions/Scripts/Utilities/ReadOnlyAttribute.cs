@@ -3,5 +3,7 @@
 
 namespace UnityEngine.UI.Extensions
 {
-    public class ReadOnlyAttribute : PropertyAttribute { }
+    public class ReadOnlyAttribute : PropertyAttribute
+    {
+    }
 }

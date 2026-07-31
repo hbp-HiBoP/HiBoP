@@ -11,14 +11,25 @@ namespace HBP.UI.Main
     public class AliasList : ActionableList<Core.Data.Alias>
     {
         #region Properties
-        enum OrderBy { None, Key, DescendingKey, Value, DescendingValue }
+
+        enum OrderBy
+        {
+            None,
+            Key,
+            DescendingKey,
+            Value,
+            DescendingValue
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_KeySortingDisplayer;
         [SerializeField] SortingDisplayer m_ValueSortingDisplayer;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Add alias.
         /// </summary>
@@ -29,9 +40,11 @@ namespace HBP.UI.Main
             SortByNone();
             base.AddObject(objectToAdd);
         }
+
         #endregion
 
         #region Sorting Methods
+
         /// <summary>
         /// Sort by key.
         /// </summary>
@@ -51,9 +64,11 @@ namespace HBP.UI.Main
                     m_KeySortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by key.
         /// </summary>
@@ -65,6 +80,7 @@ namespace HBP.UI.Main
                 default: SortByKey(Sorting.Descending); break;
             }
         }
+
         /// <summary>
         /// Sort by value.
         /// </summary>
@@ -84,9 +100,11 @@ namespace HBP.UI.Main
                     m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_KeySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by value.
         /// </summary>
@@ -98,6 +116,7 @@ namespace HBP.UI.Main
                 default: SortByValue(Sorting.Descending); break;
             }
         }
+
         /// <summary>
         /// Sort by none.
         /// </summary>
@@ -107,6 +126,7 @@ namespace HBP.UI.Main
             m_KeySortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ValueSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

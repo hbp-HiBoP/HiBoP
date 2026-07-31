@@ -6,15 +6,18 @@ namespace HBP.Theme
     public class SelectableStateSetter : MonoBehaviour
     {
         #region Properties
+
         public State Interactable;
         public State NotInteractble;
         public StateEvent OnChangeState;
 
         UnityEngine.UI.Selectable m_Selectable;
         bool m_lastState;
+
         #endregion
 
         #region Private Methods
+
         void OnEnable()
         {
             m_Selectable = GetComponent<UnityEngine.UI.Selectable>();
@@ -43,6 +46,7 @@ namespace HBP.Theme
                 OnChangeState.Invoke(NotInteractble);
             }
         }
+
         #endregion
     }
 }

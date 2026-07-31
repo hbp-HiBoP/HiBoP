@@ -14,6 +14,7 @@ namespace HBP.UI.Main
     public class SubBlocModifier : ObjectModifier<SubBloc>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_OrderInputField;
         [SerializeField] Dropdown m_TypeDropdown;
@@ -29,10 +30,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -53,9 +51,11 @@ namespace HBP.UI.Main
                 m_TreatmentListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -85,6 +85,7 @@ namespace HBP.UI.Main
             m_TreatmentListGestion.List.OnRemoveObject.AddListener(RemoveTreatment);
             m_TreatmentListGestion.List.OnUpdateObject.AddListener(UpdateTreatment);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -111,13 +112,14 @@ namespace HBP.UI.Main
             m_IconListGestion.List.Set(objectToDisplay.Icons);
             m_TreatmentListGestion.List.Set(objectToDisplay.Treatments);
         }
+
         /// <summary>
         /// Change the name.
         /// </summary>
         /// <param name="value">Name</param>
         protected void ChangeName(string value)
         {
-            if(value != "")
+            if (value != "")
             {
                 ObjectTemp.Name = value;
             }
@@ -126,6 +128,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Change the order.
         /// </summary>
@@ -141,6 +144,7 @@ namespace HBP.UI.Main
                 m_OrderInputField.text = ObjectTemp.Order.ToString();
             }
         }
+
         /// <summary>
         /// Change the type.
         /// </summary>
@@ -149,6 +153,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Type = (MainSecondaryEnum)value;
         }
+
         /// <summary>
         /// Change the window.
         /// </summary>
@@ -161,6 +166,7 @@ namespace HBP.UI.Main
             m_TreatmentListGestion.Window = m_ObjectTemp.Window;
             m_TreatmentListGestion.Baseline = m_ObjectTemp.Baseline;
         }
+
         /// <summary>
         /// Change the baseline.
         /// </summary>
@@ -171,6 +177,7 @@ namespace HBP.UI.Main
             ObjectTemp.Baseline = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
             m_TreatmentListGestion.Baseline = m_ObjectTemp.Baseline;
         }
+
         /// <summary>
         /// Add event to the subBloc.
         /// </summary>
@@ -179,6 +186,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Events.AddIfAbsent(@event);
         }
+
         /// <summary>
         /// Remove event to the subBloc.
         /// </summary>
@@ -187,6 +195,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Events.Remove(@event);
         }
+
         /// <summary>
         /// Update event to the subBloc.
         /// </summary>
@@ -199,6 +208,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Events[index] = @event;
             }
         }
+
         /// <summary>
         /// Add icon to the subBloc.
         /// </summary>
@@ -207,6 +217,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Icons.AddIfAbsent(icon);
         }
+
         /// <summary>
         /// Remove icon from the subBloc.
         /// </summary>
@@ -215,6 +226,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Icons.Remove(icon);
         }
+
         /// <summary>
         /// Update icon from the subBloc.
         /// </summary>
@@ -227,6 +239,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Icons[index] = icon;
             }
         }
+
         /// <summary>
         /// Add treatment to the subBloc.
         /// </summary>
@@ -235,6 +248,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Treatments.AddIfAbsent(treatment);
         }
+
         /// <summary>
         /// Remove treatment from the subBloc.
         /// </summary>
@@ -243,6 +257,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Treatments.Remove(treatment);
         }
+
         /// <summary>
         /// Update treatment to the subBloc.
         /// </summary>
@@ -250,11 +265,12 @@ namespace HBP.UI.Main
         protected void UpdateTreatment(Treatment treatment)
         {
             int index = ObjectTemp.Treatments.FindIndex(t => t.Equals(treatment));
-            if(index != -1)
+            if (index != -1)
             {
                 ObjectTemp.Treatments[index] = treatment;
             }
         }
+
         #endregion
     }
 }

@@ -7,13 +7,16 @@ namespace HBP.UI.Toolbar
     public class ExpandErasing : Tool
     {
         #region Properties
+
         /// <summary>
         /// Expand the erased area
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -26,6 +29,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.TriangleEraser.CurrentMode = TriEraserMode.Expand;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -33,6 +37,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -42,6 +47,7 @@ namespace HBP.UI.Toolbar
 
             m_Button.interactable = haveTrianglesBeenErased;
         }
+
         #endregion
     }
 }

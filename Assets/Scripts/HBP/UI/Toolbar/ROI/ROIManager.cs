@@ -7,37 +7,46 @@ namespace HBP.UI.Toolbar
     public class ROIManager : Tool
     {
         #region Properties
+
         /// <summary>
         /// Button to add a ROI to the scene
         /// </summary>
         [SerializeField] private Button m_AddROI;
+
         /// <summary>
         /// Dropdown to select a ROI
         /// </summary>
         [SerializeField] private Dropdown m_ROISelector;
+
         /// <summary>
         /// RectTransform of the label to display the name of the selected ROI
         /// </summary>
         [SerializeField] private RectTransform m_ROINameParent;
+
         /// <summary>
         /// Inputfield to change the name of the ROI
         /// </summary>
         [SerializeField] private InputField m_ROIName;
+
         /// <summary>
         /// Remove the selected ROI
         /// </summary>
         [SerializeField] private Button m_RemoveROI;
+
         /// <summary>
         /// Select a sphere of the selected ROI
         /// </summary>
         [SerializeField] private Dropdown m_SphereSelector;
+
         /// <summary>
         /// Remove the selected sphere of the selected ROI
         /// </summary>
         [SerializeField] private Button m_RemoveSphere;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Update the available options on the ROI dropdown
         /// </summary>
@@ -57,8 +66,10 @@ namespace HBP.UI.Toolbar
                     m_ROISelector.options.Add(new Dropdown.OptionData(roi.Name));
                 }
             }
+
             m_ROISelector.RefreshShownValue();
         }
+
         /// <summary>
         /// Update the available options on the sphere dropdown
         /// </summary>
@@ -75,8 +86,10 @@ namespace HBP.UI.Toolbar
                     m_SphereSelector.options.Add(new Dropdown.OptionData("Sphere " + i + " (R=" + sphere.Radius.ToString("N1") + ")"));
                 }
             }
+
             m_SphereSelector.RefreshShownValue();
         }
+
         /// <summary>
         /// Update the tool for the selected ROI
         /// </summary>
@@ -93,17 +106,21 @@ namespace HBP.UI.Toolbar
             {
                 m_ROIName.text = "";
             }
+
             UpdateInteractable();
             UpdateVolumeDropdownOptions();
             if (roiID != -1)
             {
                 m_SphereSelector.value = SelectedScene.ROIManager.SelectedROI.SelectedSphereID + 1;
             }
+
             ListenerLock = false;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -147,6 +164,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.ROIManager.SelectedROI.RemoveSelectedSphere();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -160,6 +178,7 @@ namespace HBP.UI.Toolbar
             m_SphereSelector.interactable = false;
             m_RemoveSphere.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -179,6 +198,7 @@ namespace HBP.UI.Toolbar
             m_SphereSelector.interactable = hasVolume;
             m_RemoveSphere.interactable = hasVolume;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -187,6 +207,7 @@ namespace HBP.UI.Toolbar
             UpdateROIDropdownOptions();
             UpdateSelectedROIUI();
         }
+
         #endregion
     }
 }

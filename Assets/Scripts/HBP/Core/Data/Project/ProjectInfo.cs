@@ -1,13 +1,11 @@
 using HBP.Core.Exceptions;
-using HBP.Core.Tools;
-using LoadingOperation = HBP.Core.Tools.LoadingDiagnostics.Operation;
-using LoadingPhase = HBP.Core.Tools.LoadingDiagnostics.Phase;
 
 namespace HBP.Core.Data
 {
     public class ProjectInfo
     {
         #region Properties
+
         public string Name { get; set; }
         public ProjectPreferences Settings { get; set; }
         public int Patients { get; set; }
@@ -17,9 +15,11 @@ namespace HBP.Core.Data
         public string Path { get; set; }
         public System.Exception SettingsLoadException { get; private set; }
         public ProjectManifest Manifest { get; private set; }
+
         #endregion
 
         #region Constructors
+
         public ProjectInfo()
         {
             Name = string.Empty;
@@ -35,41 +35,20 @@ namespace HBP.Core.Data
 
         public ProjectInfo(string path) : this()
         {
-            // TEMP-LOADING-PROFILING
-            using LoadingDiagnostics.SessionScope session = LoadingDiagnostics.BeginSession(LoadingOperation.Project);
             try
             {
-                using (LoadingDiagnostics.BeginPhase(
-                    LoadingPhase.ProjectManifest,
-                    fileCount: 1,
-                    byteCount: LoadingDiagnostics.GetFileLength(path)))
-                {
-                    try
-                    {
-                        ApplyManifest(ProjectManifest.Read(path, true));
-                    }
-                    catch (DirectoryNotProjectException)
-                    {
-                        throw;
-                    }
-                    catch (System.Exception exception)
-                    {
-                        throw new DirectoryNotProjectException(path, exception);
-                    }
-                }
-
-                if (SettingsLoadException != null)
-                {
-                    session.MarkFailed(SettingsLoadException);
-                }
-                session.MarkSucceeded();
+                ApplyManifest(ProjectManifest.Read(path, true));
+            }
+            catch (DirectoryNotProjectException)
+            {
+                throw;
             }
             catch (System.Exception exception)
             {
-                session.MarkFailed(exception);
-                throw;
+                throw new DirectoryNotProjectException(path, exception);
             }
         }
+
         #endregion
 
         internal ProjectManifest GetCurrentManifest()
@@ -78,6 +57,7 @@ namespace HBP.Core.Data
             {
                 ApplyManifest(ProjectManifest.Read(Path, true));
             }
+
             return Manifest;
         }
 

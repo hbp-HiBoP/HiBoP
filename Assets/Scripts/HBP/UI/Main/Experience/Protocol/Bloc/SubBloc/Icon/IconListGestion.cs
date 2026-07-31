@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class IconListGestion : ListGestion<Core.Data.Icon>
     {
         #region Properties
+
         [SerializeField] protected IconList m_List;
         public override ActionableList<Core.Data.Icon> List => m_List;
 
@@ -15,12 +16,10 @@ namespace HBP.UI.Main
         public override ObjectCreator<Core.Data.Icon> ObjectCreator => m_ObjectCreator;
 
         [SerializeField] Core.Tools.TimeWindow m_Window;
+
         public Core.Tools.TimeWindow Window
         {
-            get
-            {
-                return m_Window;
-            }
+            get { return m_Window; }
             set
             {
                 m_Window = value;
@@ -31,15 +30,18 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override ObjectModifier<Core.Data.Icon> OpenModifier(Core.Data.Icon item)
         {
             IconModifier modifier = base.OpenModifier(item) as IconModifier;
             modifier.Window = Window;
             return modifier;
         }
+
         #endregion
     }
 }

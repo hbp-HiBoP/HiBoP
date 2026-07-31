@@ -8,13 +8,16 @@ namespace HBP.UI.Toolbar
     public class TimelineRecord : Tool
     {
         #region Properties
+
         /// <summary>
         /// Record a video of the timeline of the scene
         /// </summary>
         [SerializeField] private Button m_RecordVideo;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -27,6 +30,7 @@ namespace HBP.UI.Toolbar
                 ToolbarExternalActions.RecordVideo(SelectedScene);
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -34,6 +38,7 @@ namespace HBP.UI.Toolbar
         {
             m_RecordVideo.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -44,6 +49,7 @@ namespace HBP.UI.Toolbar
 
             m_RecordVideo.interactable = isColumnDynamic && areAmplitudesComputed;
         }
+
         #endregion
     }
 }

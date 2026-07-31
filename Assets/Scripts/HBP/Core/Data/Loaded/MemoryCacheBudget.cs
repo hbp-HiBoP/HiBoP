@@ -84,6 +84,7 @@ namespace HBP.Core.Data
                     Evict = evict
                 };
             }
+
             Trim();
         }
 
@@ -106,6 +107,7 @@ namespace HBP.Core.Data
                     entry.LastAccess = ++m_Clock;
                 }
             }
+
             if (!pinned)
                 Trim();
         }
@@ -137,11 +139,7 @@ namespace HBP.Core.Data
             lock (m_Gate)
             {
                 long used = m_Entries.Values.Sum(entry => entry.Bytes);
-                foreach (Entry entry in m_Entries.Values
-                    .Where(entry => !entry.Pinned)
-                    .OrderBy(entry => entry.Category)
-                    .ThenBy(entry => entry.LastAccess)
-                    .ToArray())
+                foreach (Entry entry in m_Entries.Values.Where(entry => !entry.Pinned).OrderBy(entry => entry.Category).ThenBy(entry => entry.LastAccess).ToArray())
                 {
                     if (used <= LimitBytes)
                         break;
@@ -152,6 +150,7 @@ namespace HBP.Core.Data
                             evictions.Add(entry.Evict);
                     }
                 }
+
                 snapshot = SnapshotLocked();
             }
 
@@ -171,6 +170,7 @@ namespace HBP.Core.Data
                 if (entry.Pinned)
                     pinned += entry.Bytes;
             }
+
             return new MemoryCacheSnapshot(LimitBytes, used, pinned);
         }
     }

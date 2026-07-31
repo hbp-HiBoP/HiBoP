@@ -10,10 +10,11 @@ namespace HBP.UI.Main
     /// <summary>
     /// Component to display event in list.
     /// </summary>
-	public class EventItem : ActionnableItem<Core.Data.Event> 
-	{
-		#region Properties
-		[SerializeField] UnityEngine.UI.Text m_NameText;
+    public class EventItem : ActionnableItem<Core.Data.Event>
+    {
+        #region Properties
+
+        [SerializeField] UnityEngine.UI.Text m_NameText;
 
         [SerializeField] UnityEngine.UI.Text m_CodeText;
         [SerializeField] Tooltip m_CodeTooltip;
@@ -26,10 +27,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Event Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -46,12 +44,14 @@ namespace HBP.UI.Main
                     if (i < codes.Length - 1) stringBuilder.AppendLine("  \u2022 " + codes[i]);
                     else stringBuilder.Append("  \u2022 " + codes[i]);
                 }
+
                 if (codes.Length == 0)
                 {
                     m_CodeText.GetComponent<ThemeElement>().Set(m_ErrorState);
                     stringBuilder.Append("  \u2022 None");
                 }
                 else m_CodeText.GetComponent<ThemeElement>().Set();
+
                 m_CodeTooltip.Text = stringBuilder.ToString();
                 m_CodeText.text = codes.Length.ToString();
 
@@ -64,6 +64,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

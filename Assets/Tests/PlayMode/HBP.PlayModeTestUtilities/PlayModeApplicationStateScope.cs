@@ -62,6 +62,7 @@ namespace HBP.Tests.PlayMode.Utilities
             PropertyInfo property = typeof(ApplicationState).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
             property.SetValue(null, value);
         }
+
         private static void ResetSingleton<T>() where T : MonoBehaviour
         {
             FieldInfo field = typeof(Singleton<T>).GetField("m_Instance", BindingFlags.NonPublic | BindingFlags.Static);

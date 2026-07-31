@@ -9,6 +9,7 @@ namespace HBP.UI.Main
     public class InfoSubModifier : SubModifier<ProjectPreferences>
     {
         #region Properties
+
         //[SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_LocationInputField;
         [SerializeField] InputField m_IDInputField;
@@ -24,17 +25,21 @@ namespace HBP.UI.Main
                 m_IDInputField.interactable = false;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
             //m_NameInputField.onValueChanged.AddListener((name) => Object.Name = name);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -42,6 +47,7 @@ namespace HBP.UI.Main
             m_LocationInputField.text = ApplicationState.LoadedProjectLocation;
             m_IDInputField.text = objectToDisplay.ID;
         }
+
         #endregion
     }
 }

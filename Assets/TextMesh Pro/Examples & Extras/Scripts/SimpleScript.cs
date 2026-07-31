@@ -3,10 +3,8 @@
 
 namespace TMPro.Examples
 {
-
     public class SimpleScript : MonoBehaviour
     {
-
         private TextMeshPro m_textMeshPro;
         //private TMP_FontAsset m_FontAsset;
 
@@ -52,6 +50,5 @@ namespace TMPro.Examples
             m_textMeshPro.SetText(label, m_frame % 1000);
             m_frame += 1 * Time.deltaTime;
         }
-
     }
 }

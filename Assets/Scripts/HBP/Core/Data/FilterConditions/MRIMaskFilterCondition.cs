@@ -11,6 +11,7 @@ namespace HBP.Core.Data
     public class MRIMaskFilterCondition : BaseFilterCondition
     {
         #region Properties
+
         [JsonProperty("NiftiFilePath")] public string NiftiFilePath { get; set; } = "";
         [JsonProperty("ComparisonType")] public NumberComparisonType ComparisonType { get; set; }
         [JsonProperty("Value")] public float Value { get; set; }
@@ -43,10 +44,14 @@ namespace HBP.Core.Data
                 return $"The voxel value at the site's position in '{Path.GetFileName(NiftiFilePath)}' is{(IsNot ? " not" : "")} {comparisonStr}";
             }
         }
+
         #endregion
 
         #region Constructors
-        public MRIMaskFilterCondition() : this("", NumberComparisonType.Equal, 0, 0, 0, false) { }
+
+        public MRIMaskFilterCondition() : this("", NumberComparisonType.Equal, 0, 0, 0, false)
+        {
+        }
 
         public MRIMaskFilterCondition(string niftiFilePath, NumberComparisonType comparisonType, float value, float min, float max, bool isNot) : base(isNot)
         {
@@ -65,9 +70,11 @@ namespace HBP.Core.Data
             Min = min;
             Max = max;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new MRIMaskFilterCondition(NiftiFilePath, ComparisonType, Value, Min, Max, IsNot, ID);
@@ -85,9 +92,11 @@ namespace HBP.Core.Data
                 Max = mriMaskFilter.Max;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void BeforeCheck()
         {
             if (string.IsNullOrEmpty(NiftiFilePath) || !File.Exists(NiftiFilePath))
@@ -128,6 +137,7 @@ namespace HBP.Core.Data
 
                 return result != IsNot;
             }
+
             return false;
         }
 
@@ -136,6 +146,7 @@ namespace HBP.Core.Data
             m_LoadedVolume?.Dispose();
             m_LoadedVolume = null;
         }
+
         #endregion
     }
 }

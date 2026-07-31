@@ -8,13 +8,16 @@ namespace HBP.Core.Data
     public struct EventStatistics
     {
         #region Properties
+
         public int RoundedTimeFromStart { get; set; }
         public float TimeFromStart { get; set; }
         public float NumberOfOccurenceBySubTrial { get; set; }
         public int NumberOfOccurences { get; set; }
+
         #endregion
 
         #region Constructors
+
         public EventStatistics(EventInformation[] eventInformation, Enums.AveragingType averaging) : this()
         {
             if (!eventInformation.Any(e => e.IsFound))
@@ -23,12 +26,8 @@ namespace HBP.Core.Data
             int occurrenceCount = eventInformation.Sum(info => info.Occurences.Length);
             RunningStatistics timeStatistics = new();
             int totalOccurrencesBySubTrial = 0;
-            float[] times = averaging == Enums.AveragingType.Median
-                ? ArrayPool<float>.Shared.Rent(occurrenceCount)
-                : null;
-            int[] occurrencesBySubTrial = averaging == Enums.AveragingType.Median
-                ? ArrayPool<int>.Shared.Rent(eventInformation.Length)
-                : null;
+            float[] times = averaging == Enums.AveragingType.Median ? ArrayPool<float>.Shared.Rent(occurrenceCount) : null;
+            int[] occurrencesBySubTrial = averaging == Enums.AveragingType.Median ? ArrayPool<int>.Shared.Rent(eventInformation.Length) : null;
             int timeIndex = 0;
             int subTrialIndex = 0;
             try
@@ -60,6 +59,7 @@ namespace HBP.Core.Data
                         NumberOfOccurenceBySubTrial = StreamingStatistics.Median(occurrencesBySubTrial, eventInformation.Length);
                         break;
                 }
+
                 RoundedTimeFromStart = Mathf.RoundToInt(TimeFromStart);
             }
             finally
@@ -70,9 +70,11 @@ namespace HBP.Core.Data
                     ArrayPool<int>.Shared.Return(occurrencesBySubTrial);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public static EventStatistics Average(IEnumerable<EventStatistics> eventStatistics)
         {
             EventStatistics result = new();
@@ -82,6 +84,7 @@ namespace HBP.Core.Data
                 result.NumberOfOccurenceBySubTrial += eventStat.NumberOfOccurenceBySubTrial * eventStat.NumberOfOccurences;
                 result.NumberOfOccurences += eventStat.NumberOfOccurences;
             }
+
             if (result.NumberOfOccurences > 0)
             {
                 result.TimeFromStart /= result.NumberOfOccurences;
@@ -95,8 +98,10 @@ namespace HBP.Core.Data
                 result.NumberOfOccurenceBySubTrial = 0;
                 result.NumberOfOccurences = 0;
             }
+
             return result;
         }
+
         #endregion
     }
 }

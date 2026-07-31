@@ -114,74 +114,62 @@ namespace HBP.Tests.Serialization
 
         private static Surface[] CutCube(BenchmarkBackend backend, string objPath, bool strongCuts, params Func<HBP.Core.Object3D.Cut>[] cutFactories)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Surface surface = LoadSurface(objPath);
+                HBP.Core.Object3D.Cut[] cuts = new HBP.Core.Object3D.Cut[cutFactories.Length];
+                try
                 {
-                    using Surface surface = LoadSurface(objPath);
-                    HBP.Core.Object3D.Cut[] cuts = new HBP.Core.Object3D.Cut[cutFactories.Length];
-                    try
+                    for (int i = 0; i < cutFactories.Length; ++i)
                     {
-                        for (int i = 0; i < cutFactories.Length; ++i)
-                        {
-                            cuts[i] = cutFactories[i]();
-                        }
-                        return surface.Cut(cuts, noHoles: false, strongCuts: strongCuts);
+                        cuts[i] = cutFactories[i]();
                     }
-                    finally
+
+                    return surface.Cut(cuts, noHoles: false, strongCuts: strongCuts);
+                }
+                finally
+                {
+                    foreach (HBP.Core.Object3D.Cut cut in cuts)
                     {
-                        foreach (HBP.Core.Object3D.Cut cut in cuts)
-                        {
-                            cut?.Dispose();
-                        }
+                        cut?.Dispose();
                     }
-                });
+                }
+            });
         }
 
         private static List<Surface> GenerateCuts(BenchmarkBackend backend, string objPath, bool raw)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
-                {
-                    using Surface surface = LoadSurface(objPath);
-                    using HBP.Core.Object3D.Cut cut = CreateHalfXCut();
-                    List<HBP.Core.Object3D.Cut> cuts = new() { cut };
-                    return raw
-                        ? surface.GenerateRawCutSurfaces(cuts, noHoles: false, strongCuts: true)
-                        : surface.GenerateCutSurfaces(cuts, noHoles: false, strongCuts: true);
-                });
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Surface surface = LoadSurface(objPath);
+                using HBP.Core.Object3D.Cut cut = CreateHalfXCut();
+                List<HBP.Core.Object3D.Cut> cuts = new() { cut };
+                return raw ? surface.GenerateRawCutSurfaces(cuts, noHoles: false, strongCuts: true) : surface.GenerateCutSurfaces(cuts, noHoles: false, strongCuts: true);
+            });
         }
 
         private static List<Surface> GenerateKnownMniAxialCut(BenchmarkBackend backend)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
-                {
-                    string meshDirectory = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Meshes");
-                    using Surface left = new();
-                    using Surface right = new();
-                    using Volume volume = new();
-                    Assert.That(left.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Lhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
-                    Assert.That(right.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Rhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
-                    Assert.That(volume.LoadNIFTIFile(Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "IRM", "MNI.nii")), Is.True);
-                    left.FlipTriangles();
-                    right.FlipTriangles();
-                    left.Append(right);
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                string meshDirectory = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "Meshes");
+                using Surface left = new();
+                using Surface right = new();
+                using Volume volume = new();
+                Assert.That(left.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Lhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+                Assert.That(right.LoadGIIFile(Path.Combine(meshDirectory, "MNI_Rhemi.gii"), Path.Combine(meshDirectory, "MNI.trm")), Is.True);
+                Assert.That(volume.LoadNIFTIFile(Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Data", "IRM", "MNI.nii")), Is.True);
+                left.FlipTriangles();
+                right.FlipTriangles();
+                left.Append(right);
 
-                    using HBP.Core.Object3D.Cut cut = new(
-                        new Vector3(0.47999573f, -15.199997f, -14.565386f),
-                        Vector3.forward);
-                    List<Surface> cuts = left.GenerateCutSurfaces(
-                        new List<HBP.Core.Object3D.Cut> { cut },
-                        noHoles: false,
-                        strongCuts: true);
-                    using CutGeometryGenerator geometry = new();
-                    geometry.Initialize(volume, cut, -1);
-                    geometry.UpdateSurfaceUV(cuts.Single());
-                    return cuts;
-                });
+                using HBP.Core.Object3D.Cut cut = new(new Vector3(0.47999573f, -15.199997f, -14.565386f), Vector3.forward);
+                List<Surface> cuts = left.GenerateCutSurfaces(new List<HBP.Core.Object3D.Cut> { cut }, noHoles: false, strongCuts: true);
+                using CutGeometryGenerator geometry = new();
+                geometry.Initialize(volume, cut, -1);
+                geometry.UpdateSurfaceUV(cuts.Single());
+                return cuts;
+            });
         }
 
         private static double MeasureSurfaceArea(Surface surface)
@@ -200,6 +188,7 @@ namespace HBP.Tests.Serialization
                     Vector3 c = vertices[triangles[i + 2]];
                     area += Vector3.Cross(b - a, c - a).magnitude * 0.5;
                 }
+
                 return area;
             }
             finally
@@ -252,13 +241,7 @@ namespace HBP.Tests.Serialization
 
                 using BBox actualBBox = actual[i].BoundingBox;
                 using BBox expectedBBox = expected[i].BoundingBox;
-                NativeParityAssert.AssertUnityBoundsMatchLegacyNative(
-                    actualBBox.Min,
-                    actualBBox.Max,
-                    expectedBBox.Min,
-                    expectedBBox.Max,
-                    0.0005f,
-                    $"cut surface {i}");
+                NativeParityAssert.AssertUnityBoundsMatchLegacyNative(actualBBox.Min, actualBBox.Max, expectedBBox.Min, expectedBBox.Max, 0.0005f, $"cut surface {i}");
             }
         }
 
@@ -294,45 +277,7 @@ namespace HBP.Tests.Serialization
 
         private static string CubeObjFixture()
         {
-            return string.Join(
-                Environment.NewLine,
-                "v 0 0 0",
-                "v 1 0 0",
-                "v 1 1 0",
-                "v 0 1 0",
-                "v 0 0 1",
-                "v 1 0 1",
-                "v 1 1 1",
-                "v 0 1 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vt 0 0",
-                "vt 1 0",
-                "vt 1 1",
-                "vt 0 1",
-                "vt 0 0",
-                "vt 1 0",
-                "vt 1 1",
-                "vt 0 1",
-                "f 1/1/1 2/2/2 3/3/3",
-                "f 1/1/1 3/3/3 4/4/4",
-                "f 5/5/5 7/7/7 6/6/6",
-                "f 5/5/5 8/8/8 7/7/7",
-                "f 1/1/1 5/5/5 6/6/6",
-                "f 1/1/1 6/6/6 2/2/2",
-                "f 2/2/2 6/6/6 7/7/7",
-                "f 2/2/2 7/7/7 3/3/3",
-                "f 3/3/3 7/7/7 8/8/8",
-                "f 3/3/3 8/8/8 4/4/4",
-                "f 4/4/4 8/8/8 5/5/5",
-                "f 4/4/4 5/5/5 1/1/1",
-                string.Empty);
+            return string.Join(Environment.NewLine, "v 0 0 0", "v 1 0 0", "v 1 1 0", "v 0 1 0", "v 0 0 1", "v 1 0 1", "v 1 1 1", "v 0 1 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1", "vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1", "f 1/1/1 2/2/2 3/3/3", "f 1/1/1 3/3/3 4/4/4", "f 5/5/5 7/7/7 6/6/6", "f 5/5/5 8/8/8 7/7/7", "f 1/1/1 5/5/5 6/6/6", "f 1/1/1 6/6/6 2/2/2", "f 2/2/2 6/6/6 7/7/7", "f 2/2/2 7/7/7 3/3/3", "f 3/3/3 7/7/7 8/8/8", "f 3/3/3 8/8/8 4/4/4", "f 4/4/4 8/8/8 5/5/5", "f 4/4/4 5/5/5 1/1/1", string.Empty);
         }
     }
 }

@@ -11,13 +11,16 @@ namespace HBP.Core.Data
     public struct ChannelSubTrialStat
     {
         #region Properties
+
         public float[] Values { get; set; }
         public float[] SEM { get; set; }
         public int TotalNumberOfSubTrials { get; set; }
         public int NumberOfFoundSubTrials { get; set; }
+
         #endregion
 
         #region Constructors
+
         public ChannelSubTrialStat(float[] values, float[] sem) : this()
         {
             Values = values;
@@ -46,9 +49,11 @@ namespace HBP.Core.Data
             Values = values;
             SEM = sem;
         }
+
         #endregion
 
         #region Public Methods
+
         public void Clear()
         {
             Values = Array.Empty<float>();
@@ -56,6 +61,7 @@ namespace HBP.Core.Data
             TotalNumberOfSubTrials = 0;
             NumberOfFoundSubTrials = 0;
         }
+
         #endregion
     }
 }

@@ -11,26 +11,32 @@ namespace HBP.UI.Module3D
     public class AtlasInfoDisplayer : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Area to display MarsAtlas information
         /// </summary>
         [SerializeField] RectTransform m_MarsAtlasArea;
+
         /// <summary>
         /// Display the name of the hovered MarsAtlas area
         /// </summary>
         [SerializeField] Text m_MarsAtlasNameText;
+
         /// <summary>
         /// Display all the parent areas of the hovered MarsAtlas area
         /// </summary>
         [SerializeField] Text m_HemisphereText;
+
         /// <summary>
         /// Display the area label of the hovered MarsAtlas area
         /// </summary>
         [SerializeField] Text m_LobeText;
+
         /// <summary>
         /// Display the status of the hovered MarsAtlas area
         /// </summary>
         [SerializeField] Text m_NameFSText;
+
         /// <summary>
         /// Display the DOI of the hovered MarsAtlas area
         /// </summary>
@@ -40,22 +46,27 @@ namespace HBP.UI.Module3D
         /// Area to display JuBrain information
         /// </summary>
         [SerializeField] RectTransform m_JuBrainArea;
+
         /// <summary>
         /// Display the name of the hovered JuBrain area
         /// </summary>
         [SerializeField] Text m_JuBrainNameText;
+
         /// <summary>
         /// Display all the parent areas of the hovered JuBrain area
         /// </summary>
         [SerializeField] Text m_LocationText;
+
         /// <summary>
         /// Display the area label of the hovered JuBrain area
         /// </summary>
         [SerializeField] Text m_AreaLabelText;
+
         /// <summary>
         /// Display the status of the hovered JuBrain area
         /// </summary>
         [SerializeField] Text m_StatusText;
+
         /// <summary>
         /// Display the DOI of the hovered JuBrain area
         /// </summary>
@@ -65,13 +76,16 @@ namespace HBP.UI.Module3D
         /// Parent canvas of this object
         /// </summary>
         [SerializeField] RectTransform m_Canvas;
+
         /// <summary>
         /// Reference to the RectTransform of this object
         /// </summary>
         RectTransform m_RectTransform;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this object (add a listener to know when to display it)
         /// </summary>
@@ -104,11 +118,14 @@ namespace HBP.UI.Module3D
                             //m_DOIText.text = atlasInfo.Information5;
                             break;
                     }
+
                     m_RectTransform.ClampToRectTransform(m_Canvas, new RectOffset(30, 30, 30, 30));
                 }
+
                 gameObject.SetActive(atlasInfo.Enabled);
             });
         }
+
         #endregion
     }
 }

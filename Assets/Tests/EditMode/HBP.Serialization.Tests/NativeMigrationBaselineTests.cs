@@ -23,9 +23,7 @@ namespace HBP.Tests.Serialization
 {
     public class NativeMigrationBaselineTests
     {
-        private static readonly Regex DllImportRegex = new(
-            "\\[DllImport\\((?:\"(?<dll>[^\"]+)\"|HbpCoreLibrary\\.Name)\\s*,\\s*EntryPoint\\s*=\\s*\"(?<entry>[^\"]+)\"",
-            RegexOptions.Compiled);
+        private static readonly Regex DllImportRegex = new("\\[DllImport\\((?:\"(?<dll>[^\"]+)\"|HbpCoreLibrary\\.Name)\\s*,\\s*EntryPoint\\s*=\\s*\"(?<entry>[^\"]+)\"", RegexOptions.Compiled);
 
         [Test]
         [Category("NativeMigration")]
@@ -60,11 +58,8 @@ namespace HBP.Tests.Serialization
         {
             if (Environment.GetEnvironmentVariable("HBP_EXPECT_NO_LEGACY_DLL") == "1")
             {
-                string legacyDllPath = Path.Combine(
-                    TestPathUtility.ProjectRoot,
-                    "Assets", "Plugins", "x86_64", "Windows", "hbp_export.dll");
-                Assert.That(File.Exists(legacyDllPath), Is.False,
-                    "The no-legacy validation must physically remove hbp_export.dll from the project.");
+                string legacyDllPath = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "Windows", "hbp_export.dll");
+                Assert.That(File.Exists(legacyDllPath), Is.False, "The no-legacy validation must physically remove hbp_export.dll from the project.");
             }
         }
 
@@ -78,11 +73,7 @@ namespace HBP.Tests.Serialization
             Assert.That(imports.Count(imported => imported.Dll == "hbp_export"), Is.Zero);
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
-            string[] hbpCoreImportFiles = imports
-                .Where(imported => imported.Dll == "hbp_core")
-                .Select(imported => imported.RelativeFile)
-                .Distinct()
-                .ToArray();
+            string[] hbpCoreImportFiles = imports.Where(imported => imported.Dll == "hbp_core").Select(imported => imported.RelativeFile).Distinct().ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(192));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
@@ -97,11 +88,7 @@ namespace HBP.Tests.Serialization
         [Category("NativeMigration")]
         public void RuntimeAssemblyReflectionContainsNoLegacyDllImports()
         {
-            MethodInfo[] offenders = typeof(Volume).Assembly.GetTypes()
-                .Where(type => type.Namespace != null && type.Namespace.StartsWith("HBP.Core", StringComparison.Ordinal))
-                .SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
-                .Where(method => method.GetCustomAttribute<DllImportAttribute>()?.Value == "hbp_export")
-                .ToArray();
+            MethodInfo[] offenders = typeof(Volume).Assembly.GetTypes().Where(type => type.Namespace != null && type.Namespace.StartsWith("HBP.Core", StringComparison.Ordinal)).SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)).Where(method => method.GetCustomAttribute<DllImportAttribute>()?.Value == "hbp_export").ToArray();
             Assert.That(offenders, Is.Empty);
         }
 
@@ -110,21 +97,12 @@ namespace HBP.Tests.Serialization
         public void LegacyImportsAreConfinedToAssetsTests()
         {
             string scriptsFolder = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Scripts");
-            string[] unexpectedFiles = Directory
-                .GetFiles(scriptsFolder, "*.cs", SearchOption.AllDirectories)
-                .Where(file => Regex.IsMatch(
-                    File.ReadAllText(file),
-                    "DllImport\\s*\\(\\s*\"hbp_export\""))
-                .Select(file => file.Substring(scriptsFolder.Length).TrimStart('\\', '/').Replace('\\', '/'))
-                .ToArray();
+            string[] unexpectedFiles = Directory.GetFiles(scriptsFolder, "*.cs", SearchOption.AllDirectories).Where(file => Regex.IsMatch(File.ReadAllText(file), "DllImport\\s*\\(\\s*\"hbp_export\"")).Select(file => file.Substring(scriptsFolder.Length).TrimStart('\\', '/').Replace('\\', '/')).ToArray();
 
-            Assert.That(unexpectedFiles, Is.Empty,
-                "hbp_export imports are allowed only under Assets/Tests.");
+            Assert.That(unexpectedFiles, Is.Empty, "hbp_export imports are allowed only under Assets/Tests.");
 
             string testsFolder = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Tests");
-            Assert.That(Directory.GetFiles(testsFolder, "*.cs", SearchOption.AllDirectories)
-                .Any(file => File.ReadAllText(file).Contains("hbp_export")), Is.True,
-                "The Editor-only oracle adapters must remain available to parity tests.");
+            Assert.That(Directory.GetFiles(testsFolder, "*.cs", SearchOption.AllDirectories).Any(file => File.ReadAllText(file).Contains("hbp_export")), Is.True, "The Editor-only oracle adapters must remain available to parity tests.");
         }
 
         [Test]
@@ -147,8 +125,7 @@ namespace HBP.Tests.Serialization
                 string contents = File.ReadAllText(file);
                 foreach (string forbiddenSymbol in forbiddenSymbols)
                 {
-                    Assert.That(contents, Does.Not.Contain(forbiddenSymbol),
-                        $"{file} still contains the legacy runtime symbol {forbiddenSymbol}.");
+                    Assert.That(contents, Does.Not.Contain(forbiddenSymbol), $"{file} still contains the legacy runtime symbol {forbiddenSymbol}.");
                 }
             }
         }
@@ -275,15 +252,11 @@ namespace HBP.Tests.Serialization
                 ["Electrodes.cs"] = 1,
                 ["Volume.cs"] = 1
             };
-            Dictionary<string, int> actualFalseConversions = Directory
-                .GetFiles(dllFolder, "*.cs", SearchOption.AllDirectories)
-                .Select(file => new
-                {
-                    RelativeFile = file.Substring(dllFolder.Length).TrimStart('\\', '/').Replace('\\', '/'),
-                    Count = Regex.Matches(File.ReadAllText(file), "convertReferenceSystem:\\s*false").Count
-                })
-                .Where(item => item.Count > 0)
-                .ToDictionary(item => item.RelativeFile, item => item.Count);
+            Dictionary<string, int> actualFalseConversions = Directory.GetFiles(dllFolder, "*.cs", SearchOption.AllDirectories).Select(file => new
+            {
+                RelativeFile = file.Substring(dllFolder.Length).TrimStart('\\', '/').Replace('\\', '/'),
+                Count = Regex.Matches(File.ReadAllText(file), "convertReferenceSystem:\\s*false").Count
+            }).Where(item => item.Count > 0).ToDictionary(item => item.RelativeFile, item => item.Count);
 
             Assert.That(actualFalseConversions, Is.EquivalentTo(allowedFalseConversions));
 
@@ -314,9 +287,7 @@ namespace HBP.Tests.Serialization
         [LegacyParityOnly]
         public void HistoricalWrapper_LoadsThroughHbpExportWithoutHbpCoreMigration()
         {
-            LegacyBBox bbox = ExecuteNativeOrIgnore(
-                () => NativeParityAssert.WithBackend(BenchmarkBackend.HbpExport, () => new LegacyBBox()),
-                "historical BBox wrapper");
+            LegacyBBox bbox = ExecuteNativeOrIgnore(() => NativeParityAssert.WithBackend(BenchmarkBackend.HbpExport, () => new LegacyBBox()), "historical BBox wrapper");
             try
             {
                 Assert.That(bbox.getHandle().Handle, Is.Not.EqualTo(IntPtr.Zero));
@@ -434,11 +405,7 @@ namespace HBP.Tests.Serialization
             }
 
             string transformPath = Path.Combine(Path.GetTempPath(), "hbp_core_transformation_from_file_test.trm");
-            File.WriteAllText(transformPath, string.Join(Environment.NewLine,
-                "10 20 30",
-                "0 -1 0",
-                "1 0 0",
-                "0 0 1"));
+            File.WriteAllText(transformPath, string.Join(Environment.NewLine, "10 20 30", "0 -1 0", "1 0 0", "0 0 1"));
             try
             {
                 using Transformation3 transformation = Transformation3.FromFile(transformPath);
@@ -496,19 +463,13 @@ namespace HBP.Tests.Serialization
             HbpSegment3 segment = bbox.IntersectionSegmentBetweenTwoPlanes(planeA, planeB);
 
             Assert.That(segment, Is.Not.Null);
-            AssertSameVectorSet(
-                new[] { segment.End1, segment.End2 },
-                new[] { new Vector3(1, 1, -3), new Vector3(1, 1, 5) });
+            AssertSameVectorSet(new[] { segment.End1, segment.End2 }, new[] { new Vector3(1, 1, -3), new Vector3(1, 1, 5) });
             Assert.That(segment.Length, Is.EqualTo(8.0f).Within(0.0001f));
             segment.Dispose();
             Assert.That(bbox.SizeOffsetCutPlane(planeA, 4), Is.InRange(1.0f, 1.01f));
 
             string transformPath = Path.Combine(Path.GetTempPath(), "hbp_core_bbox_transform_test.trm");
-            File.WriteAllText(transformPath, string.Join(Environment.NewLine,
-                "10 20 30",
-                "1 0 0",
-                "0 1 0",
-                "0 0 1"));
+            File.WriteAllText(transformPath, string.Join(Environment.NewLine, "10 20 30", "1 0 0", "0 1 0", "0 0 1"));
             try
             {
                 using Transformation3 transformation = Transformation3.FromFile(transformPath);
@@ -540,9 +501,7 @@ namespace HBP.Tests.Serialization
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
 
-            using LegacyVolume volume = ExecuteNativeOrIgnore(
-                () => NativeParityAssert.WithBackend(BenchmarkBackend.HbpExport, () => new LegacyVolume()),
-                "historical Volume wrapper");
+            using LegacyVolume volume = ExecuteNativeOrIgnore(() => NativeParityAssert.WithBackend(BenchmarkBackend.HbpExport, () => new LegacyVolume()), "historical Volume wrapper");
             Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
 
             using LegacyBBox hbpExportBBox = volume.BoundingBox;
@@ -560,9 +519,7 @@ namespace HBP.Tests.Serialization
             DisposeSegments(hbpExportSegments);
 
             using HbpPlane plane = new(NativeToUnity(hbpExportBBox.Center), Vector3.forward);
-            AssertSameVectorSet(
-                hbpCoreBBox.IntersectionPointsWithPlane(plane),
-                NativeToUnity(hbpExportBBox.IntersectionPointsWithPlane(plane)));
+            AssertSameVectorSet(hbpCoreBBox.IntersectionPointsWithPlane(plane), NativeToUnity(hbpExportBBox.IntersectionPointsWithPlane(plane)));
 
             using HbpPlane planeA = new(NativeToUnity(hbpExportBBox.Center), Vector3.right);
             using HbpPlane planeB = new(NativeToUnity(hbpExportBBox.Center), Vector3.up);
@@ -571,9 +528,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(hbpCoreSegment, Is.Not.Null);
             Assert.That(hbpExportSegment, Is.Not.Null);
-            AssertSameVectorSet(
-                new[] { hbpCoreSegment.End1, hbpCoreSegment.End2 },
-                NativeToUnity(new[] { hbpExportSegment.End1, hbpExportSegment.End2 }));
+            AssertSameVectorSet(new[] { hbpCoreSegment.End1, hbpCoreSegment.End2 }, NativeToUnity(new[] { hbpExportSegment.End1, hbpExportSegment.End2 }));
             hbpCoreSegment.Dispose();
             hbpExportSegment.Dispose();
         }
@@ -588,6 +543,7 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             try
             {
                 using Volume hbpCoreVolume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
@@ -629,33 +585,30 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             Mesh mesh = new();
             try
             {
                 using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
-                surface.SetBuffers(
-                    new[]
-                    {
-                        new Vector3(0, 0, 0),
-                        new Vector3(1, 0, 0),
-                        new Vector3(1, 1, 0),
-                        new Vector3(0, 1, 0)
-                    },
-                    new[] { 0, 1, 2, 0, 2, 3 },
-                    uv: new[]
-                    {
-                        new Vector2(0, 0),
-                        new Vector2(1, 0),
-                        new Vector2(1, 1),
-                        new Vector2(0, 1)
-                    },
-                    colors: new[]
-                    {
-                        Color.red,
-                        Color.green,
-                        Color.blue,
-                        Color.white
-                    });
+                surface.SetBuffers(new[]
+                {
+                    new Vector3(0, 0, 0),
+                    new Vector3(1, 0, 0),
+                    new Vector3(1, 1, 0),
+                    new Vector3(0, 1, 0)
+                }, new[] { 0, 1, 2, 0, 2, 3 }, uv: new[]
+                {
+                    new Vector2(0, 0),
+                    new Vector2(1, 0),
+                    new Vector2(1, 1),
+                    new Vector2(0, 1)
+                }, colors: new[]
+                {
+                    Color.red,
+                    Color.green,
+                    Color.blue,
+                    Color.white
+                });
                 surface.ComputeNormals();
                 surface.UpdateMeshFromDLL(mesh);
 
@@ -707,6 +660,7 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             Surface[] cutSurfaces = Array.Empty<Surface>();
             List<Surface> generatedCuts = new();
             List<Surface> rawCuts = new();
@@ -753,6 +707,7 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             Mesh mesh = new();
             try
             {
@@ -785,23 +740,8 @@ namespace HBP.Tests.Serialization
             using TempDirectoryScope temp = new();
             string triPath = temp.GetPath("transformed_surface.tri");
             string transformationPath = temp.GetPath("transformed_surface.trm");
-            File.WriteAllText(triPath, string.Join(
-                Environment.NewLine,
-                "4 2",
-                "0 0 0 0 0 1 1 0 0",
-                "1 0 0 0 0 1 0 1 0",
-                "1 1 0 0 0 1 0 0 1",
-                "0 1 0 0 0 1 1 1 1",
-                "- 2 0 0",
-                "0 1 2",
-                "0 2 3",
-                string.Empty));
-            File.WriteAllText(transformationPath, string.Join(
-                Environment.NewLine,
-                "10 20 30",
-                "1 0 0",
-                "0 1 0",
-                "0 0 1"));
+            File.WriteAllText(triPath, string.Join(Environment.NewLine, "4 2", "0 0 0 0 0 1 1 0 0", "1 0 0 0 0 1 0 1 0", "1 1 0 0 0 1 0 0 1", "0 1 0 0 0 1 1 1 1", "- 2 0 0", "0 1 2", "0 2 3", string.Empty));
+            File.WriteAllText(transformationPath, string.Join(Environment.NewLine, "10 20 30", "1 0 0", "0 1 0", "0 0 1"));
             try
             {
                 using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core transformed TRI Surface wrapper");
@@ -825,6 +765,7 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             Mesh cutMesh = new();
             try
             {
@@ -857,9 +798,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(volumeOnlyPixels.Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
 
                 using Surface cutSurface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
-                cutSurface.SetBuffers(
-                    new[] { new Vector3(1, 1, 2), new Vector3(3, 1, 2), new Vector3(1, 3, 2) },
-                    new[] { 0, 1, 2 });
+                cutSurface.SetBuffers(new[] { new Vector3(1, 1, 2), new Vector3(3, 1, 2), new Vector3(1, 3, 2) }, new[] { 0, 1, 2 });
                 geometryGenerator.UpdateSurfaceUV(cutSurface);
                 cutSurface.UpdateMeshFromDLL(cutMesh);
                 Assert.That(cutMesh.uv, Has.Length.EqualTo(3));
@@ -913,6 +852,7 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             Texture2D texture = null;
             try
             {
@@ -997,6 +937,7 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             try
             {
                 using RawSiteList rawSites = ExecuteNativeOrIgnore(() => new RawSiteList(), "hbp_core RawSiteList wrapper");
@@ -1025,14 +966,7 @@ namespace HBP.Tests.Serialization
         public void PatientSiteLoader_LoadsPtsSitesWithoutPatientElectrodesList()
         {
             string ptsPath = Path.Combine(Path.GetTempPath(), "hbp_core_patient_sites_loader.pts");
-            File.WriteAllText(
-                ptsPath,
-                string.Join(
-                    Environment.NewLine,
-                    "ptsfile",
-                    "2",
-                    "A1 1 2 3",
-                    "B2 4 5 6"));
+            File.WriteAllText(ptsPath, string.Join(Environment.NewLine, "ptsfile", "2", "A1 1 2 3", "B2 4 5 6"));
 
             try
             {
@@ -1064,17 +998,11 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             HBP.Core.Object3D.Implantation3D implantation = null;
             try
             {
-                HBP.Core.Data.Patient patient = new(
-                    "Patient A",
-                    Array.Empty<HBP.Core.Data.BaseMesh>(),
-                    Array.Empty<HBP.Core.Data.MRI>(),
-                    Array.Empty<HBP.Core.Data.Site>(),
-                    Array.Empty<HBP.Core.Data.BaseTagValue>(),
-                    "",
-                    "patient-a");
+                HBP.Core.Data.Patient patient = new("Patient A", Array.Empty<HBP.Core.Data.BaseMesh>(), Array.Empty<HBP.Core.Data.MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<HBP.Core.Data.BaseTagValue>(), "", "patient-a");
 
                 List<HBP.Core.Object3D.Implantation3D.SiteInfo> siteInfos = new()
                 {
@@ -1124,15 +1052,14 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             try
             {
                 using Volume volume = ExecuteNativeOrIgnore(() => new Volume(), "hbp_core Volume wrapper");
                 Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
 
                 using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
-                surface.SetBuffers(
-                    new[] { new Vector3(1, 1, 2), new Vector3(3, 1, 2), new Vector3(1, 3, 2) },
-                    new[] { 0, 1, 2 });
+                surface.SetBuffers(new[] { new Vector3(1, 1, 2), new Vector3(3, 1, 2), new Vector3(1, 3, 2) }, new[] { 0, 1, 2 });
 
                 using GeneratorSurface generatorSurface = ExecuteNativeOrIgnore(() => new GeneratorSurface(), "hbp_core GeneratorSurface wrapper");
                 generatorSurface.Initialize(surface, volume, 8);
@@ -1176,16 +1103,14 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             Mesh mesh = new();
             string parcelsPath = Path.Combine(Path.GetTempPath(), "hbp_core_unity_mars_parcels.gii");
             try
             {
                 File.WriteAllText(parcelsPath, MarsParcelsGiftiFixture());
                 using MarsAtlas atlas = ExecuteNativeOrIgnore(() => new MarsAtlas(), "hbp_core MarsAtlas wrapper");
-                Assert.That(atlas.Load(
-                    AtlasPath("mars_atlas_index.csv"),
-                    AtlasPath("brodmann_areas.txt"),
-                    AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
+                Assert.That(atlas.Load(AtlasPath("mars_atlas_index.csv"), AtlasPath("brodmann_areas.txt"), AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
 
                 Assert.That(atlas.Label("L_VCcm"), Is.EqualTo(1));
                 Assert.That(atlas.Hemisphere(1), Is.EqualTo("L"));
@@ -1201,10 +1126,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(colors[0].r, Is.GreaterThan(0.9f));
                 Assert.That(colors[1].a, Is.EqualTo(0.0f).Within(0.0001f));
 
-                Assert.That(atlas.Load(
-                    AtlasPath("mars_atlas_index.csv"),
-                    AtlasPath("brodmann_areas.txt"),
-                    AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
+                Assert.That(atlas.Load(AtlasPath("mars_atlas_index.csv"), AtlasPath("brodmann_areas.txt"), AtlasPath("colin27_MNI_MarsAtlas.nii")), Is.True);
                 Assert.That(atlas.FullName(1), Does.Contain("Caudal Medial Visual Cortex"));
                 Assert.That(atlas.ConvertIndicesToColors(new[] { 1 }, 1)[0].r, Is.GreaterThan(0.9f));
 
@@ -1237,6 +1159,7 @@ namespace HBP.Tests.Serialization
             {
                 Assert.Ignore($"hbp_core is not installed next to hbp_export yet: {error}");
             }
+
             try
             {
                 using JuBrainAtlas atlas = ExecuteNativeOrIgnore(() => new JuBrainAtlas(), "hbp_core JuBrainAtlas wrapper");
@@ -1294,9 +1217,7 @@ namespace HBP.Tests.Serialization
             Mesh hbpCoreMesh = new();
             try
             {
-                using LegacySurface hbpExportSurface = ExecuteNativeOrIgnore(
-                    () => NativeParityAssert.WithBackend(BenchmarkBackend.HbpExport, () => new LegacySurface()),
-                    "hbp_export Surface wrapper");
+                using LegacySurface hbpExportSurface = ExecuteNativeOrIgnore(() => NativeParityAssert.WithBackend(BenchmarkBackend.HbpExport, () => new LegacySurface()), "hbp_export Surface wrapper");
                 Assert.That(hbpExportSurface.LoadOBJFile(objPath), Is.True);
                 hbpExportSurface.UpdateMeshFromDLL(hbpExportMesh);
 
@@ -1330,12 +1251,7 @@ namespace HBP.Tests.Serialization
         private static List<DllImportSignature> ReadCurrentDllImports()
         {
             string dllFolder = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Scripts", "HBP", "Core", "DLL");
-            return Directory
-                .GetFiles(dllFolder, "*.cs", SearchOption.AllDirectories)
-                .SelectMany(ReadDllImportsFromFile)
-                .OrderBy(imported => imported.RelativeFile, StringComparer.Ordinal)
-                .ThenBy(imported => imported.Entry, StringComparer.Ordinal)
-                .ToList();
+            return Directory.GetFiles(dllFolder, "*.cs", SearchOption.AllDirectories).SelectMany(ReadDllImportsFromFile).OrderBy(imported => imported.RelativeFile, StringComparer.Ordinal).ThenBy(imported => imported.Entry, StringComparer.Ordinal).ToList();
         }
 
         private static IEnumerable<DllImportSignature> ReadDllImportsFromFile(string file)
@@ -1345,14 +1261,9 @@ namespace HBP.Tests.Serialization
 
             foreach (Match match in DllImportRegex.Matches(File.ReadAllText(file)))
             {
-                string dll = match.Groups["dll"].Success
-                    ? match.Groups["dll"].Value
-                    : "hbp_core";
+                string dll = match.Groups["dll"].Success ? match.Groups["dll"].Value : "hbp_core";
 
-                yield return new DllImportSignature(
-                    dll,
-                    match.Groups["entry"].Value,
-                    relativeFile);
+                yield return new DllImportSignature(dll, match.Groups["entry"].Value, relativeFile);
             }
         }
 
@@ -1378,6 +1289,7 @@ namespace HBP.Tests.Serialization
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -1388,6 +1300,7 @@ namespace HBP.Tests.Serialization
             {
                 path = Path.Combine(path, part);
             }
+
             return path;
         }
 
@@ -1398,82 +1311,36 @@ namespace HBP.Tests.Serialization
 
         private static string CubeObjFixture()
         {
-            return string.Join(
-                Environment.NewLine,
-                "v 0 0 0 1 0 0",
-                "v 1 0 0 0 1 0",
-                "v 1 1 0 0 0 1",
-                "v 0 1 0 1 1 0",
-                "v 0 0 1 1 0 1",
-                "v 1 0 1 0 1 1",
-                "v 1 1 1 1 1 1",
-                "v 0 1 1 0.5 0.5 0.5",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vn 0 0 1",
-                "vt 0 0",
-                "vt 1 0",
-                "vt 1 1",
-                "vt 0 1",
-                "vt 0 0",
-                "vt 1 0",
-                "vt 1 1",
-                "vt 0 1",
-                "f 1/1/1 2/2/2 3/3/3",
-                "f 1/1/1 3/3/3 4/4/4",
-                "f 5/5/5 7/7/7 6/6/6",
-                "f 5/5/5 8/8/8 7/7/7",
-                "f 1/1/1 5/5/5 6/6/6",
-                "f 1/1/1 6/6/6 2/2/2",
-                "f 2/2/2 6/6/6 7/7/7",
-                "f 2/2/2 7/7/7 3/3/3",
-                "f 3/3/3 7/7/7 8/8/8",
-                "f 3/3/3 8/8/8 4/4/4",
-                "f 4/4/4 8/8/8 5/5/5",
-                "f 4/4/4 5/5/5 1/1/1",
-                string.Empty);
+            return string.Join(Environment.NewLine, "v 0 0 0 1 0 0", "v 1 0 0 0 1 0", "v 1 1 0 0 0 1", "v 0 1 0 1 1 0", "v 0 0 1 1 0 1", "v 1 0 1 0 1 1", "v 1 1 1 1 1 1", "v 0 1 1 0.5 0.5 0.5", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vn 0 0 1", "vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1", "vt 0 0", "vt 1 0", "vt 1 1", "vt 0 1", "f 1/1/1 2/2/2 3/3/3", "f 1/1/1 3/3/3 4/4/4", "f 5/5/5 7/7/7 6/6/6", "f 5/5/5 8/8/8 7/7/7", "f 1/1/1 5/5/5 6/6/6", "f 1/1/1 6/6/6 2/2/2", "f 2/2/2 6/6/6 7/7/7", "f 2/2/2 7/7/7 3/3/3", "f 3/3/3 7/7/7 8/8/8", "f 3/3/3 8/8/8 4/4/4", "f 4/4/4 8/8/8 5/5/5", "f 4/4/4 5/5/5 1/1/1", string.Empty);
         }
 
         private static string MarsParcelsGiftiFixture()
         {
-            return string.Join(
-                Environment.NewLine,
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-                "<GIFTI Version=\"1.0\" NumberOfDataArrays=\"1\"><MetaData /><LabelTable />",
-                "<DataArray Intent=\"NIFTI_INTENT_NONE\" DataType=\"NIFTI_TYPE_INT32\" ArrayIndexingOrder=\"RowMajorOrder\" Dimensionality=\"1\" Encoding=\"ASCII\" Endian=\"LittleEndian\" ExternalFileName=\"\" ExternalFileOffset=\"0\" Dim0=\"4\">",
-                "<MetaData /><Data>1 2 1 2</Data></DataArray></GIFTI>",
-                string.Empty);
+            return string.Join(Environment.NewLine, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<GIFTI Version=\"1.0\" NumberOfDataArrays=\"1\"><MetaData /><LabelTable />", "<DataArray Intent=\"NIFTI_INTENT_NONE\" DataType=\"NIFTI_TYPE_INT32\" ArrayIndexingOrder=\"RowMajorOrder\" Dimensionality=\"1\" Encoding=\"ASCII\" Endian=\"LittleEndian\" ExternalFileName=\"\" ExternalFileOffset=\"0\" Dim0=\"4\">", "<MetaData /><Data>1 2 1 2</Data></DataArray></GIFTI>", string.Empty);
         }
 
         private static Surface CreateHbpCoreCubeSurface()
         {
             Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
-            surface.SetBuffers(
-                new[]
-                {
-                    new Vector3(0, 0, 0),
-                    new Vector3(1, 0, 0),
-                    new Vector3(1, 1, 0),
-                    new Vector3(0, 1, 0),
-                    new Vector3(0, 0, 1),
-                    new Vector3(1, 0, 1),
-                    new Vector3(1, 1, 1),
-                    new Vector3(0, 1, 1)
-                },
-                new[]
-                {
-                    0, 1, 2, 0, 2, 3,
-                    4, 6, 5, 4, 7, 6,
-                    0, 4, 5, 0, 5, 1,
-                    3, 2, 6, 3, 6, 7,
-                    0, 3, 7, 0, 7, 4,
-                    1, 5, 6, 1, 6, 2
-                });
+            surface.SetBuffers(new[]
+            {
+                new Vector3(0, 0, 0),
+                new Vector3(1, 0, 0),
+                new Vector3(1, 1, 0),
+                new Vector3(0, 1, 0),
+                new Vector3(0, 0, 1),
+                new Vector3(1, 0, 1),
+                new Vector3(1, 1, 1),
+                new Vector3(0, 1, 1)
+            }, new[]
+            {
+                0, 1, 2, 0, 2, 3,
+                4, 6, 5, 4, 7, 6,
+                0, 4, 5, 0, 5, 1,
+                3, 2, 6, 3, 6, 7,
+                0, 3, 7, 0, 7, 4,
+                1, 5, 6, 1, 6, 2
+            });
             surface.ComputeNormals();
             return surface;
         }
@@ -1520,6 +1387,7 @@ namespace HBP.Tests.Serialization
             {
                 (result[i + 1], result[i + 2]) = (result[i + 2], result[i + 1]);
             }
+
             return result;
         }
 
@@ -1571,9 +1439,7 @@ namespace HBP.Tests.Serialization
 
         private static bool VectorsEqual(Vector3 actual, Vector3 expected)
         {
-            return Mathf.Abs(actual.x - expected.x) <= 0.0001f
-                && Mathf.Abs(actual.y - expected.y) <= 0.0001f
-                && Mathf.Abs(actual.z - expected.z) <= 0.0001f;
+            return Mathf.Abs(actual.x - expected.x) <= 0.0001f && Mathf.Abs(actual.y - expected.y) <= 0.0001f && Mathf.Abs(actual.z - expected.z) <= 0.0001f;
         }
 
         private readonly struct DllImportSignature

@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class DataInfoItem : ActionnableItem<Core.Data.DataInfo>
     {
         #region Properties
+
         [SerializeField] UnityEngine.UI.Text m_NameText;
         [SerializeField] UnityEngine.UI.Text m_PatientText;
         [SerializeField] UnityEngine.UI.Text m_TypeText;
@@ -27,10 +28,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.DataInfo Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -66,6 +64,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

@@ -15,7 +15,9 @@ namespace HBP.UI.Tools
     public class ShortcutManager : Manager<ShortcutManager>
     {
         #region Properties
+
         private MainMenu m_MainMenu;
+
         private MainMenu MainMenu
         {
             get
@@ -28,163 +30,125 @@ namespace HBP.UI.Tools
 
         private bool IsControlPressed
         {
-            get
-            {
-                return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
-            }
+            get { return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl); }
         }
+
         private bool IsAltPressed
         {
-            get
-            {
-                return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
-            }
+            get { return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt); }
         }
+
         private bool IsShiftPressed
         {
-            get
-            {
-                return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-            }
+            get { return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift); }
         }
-        private bool IsModPressed { get { return IsControlPressed || IsAltPressed || IsShiftPressed; } }
+
+        private bool IsModPressed
+        {
+            get { return IsControlPressed || IsAltPressed || IsShiftPressed; }
+        }
+
         private bool IsArrowKeyPressed
         {
-            get
-            {
-                return Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow);
-            }
+            get { return Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow); }
         }
+
         private bool IsArrowKeyDown
         {
-            get
-            {
-                return Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow);
-            }
+            get { return Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow); }
         }
+
         private List<KeyCode> m_ChangeColorActions = new() { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9, KeyCode.Alpha0 };
+
         private List<KeyCode> ChangeSiteStateActions
         {
-            get
-            {
-                return new List<KeyCode>(m_ChangeColorActions) { KeyCode.H, KeyCode.B };
-            }
+            get { return new List<KeyCode>(m_ChangeColorActions) { KeyCode.H, KeyCode.B }; }
         }
+
         private bool IsSiteStateActionDown
         {
-            get
-            {
-                return ChangeSiteStateActions.Any(a => Input.GetKeyDown(a));
-            }
+            get { return ChangeSiteStateActions.Any(a => Input.GetKeyDown(a)); }
         }
+
         private bool NewProjectActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.N);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.N); }
         }
+
         private bool OpenProjectActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.O);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.O); }
         }
+
         private bool SaveActionPerformed
         {
-            get
-            {
-                return IsControlPressed && !IsShiftPressed && Input.GetKeyDown(KeyCode.S);
-            }
+            get { return IsControlPressed && !IsShiftPressed && Input.GetKeyDown(KeyCode.S); }
         }
+
         private bool SaveAsActionPerformed
         {
-            get
-            {
-                return IsControlPressed && IsShiftPressed && Input.GetKeyDown(KeyCode.S);
-            }
+            get { return IsControlPressed && IsShiftPressed && Input.GetKeyDown(KeyCode.S); }
         }
+
         private bool QuitActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.Q);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.Q); }
         }
+
         private bool OpenPreferencesActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.U);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.U); }
         }
+
         private bool OpenProjectPreferencesActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.T);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.T); }
         }
+
         private bool OpenPatientsActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.P);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.P); }
         }
+
         private bool OpenGroupsActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.G);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.G); }
         }
+
         private bool OpenProtocolsActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.E);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.E); }
         }
+
         private bool OpenDatasetsActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKeyDown(KeyCode.D);
-            }
+            get { return IsControlPressed && Input.GetKeyDown(KeyCode.D); }
         }
+
         private bool OpenVisualizationsActionPerformed
         {
-            get
-            {
-                return IsControlPressed && Input.GetKey(KeyCode.Y);
-            }
+            get { return IsControlPressed && Input.GetKey(KeyCode.Y); }
         }
+
         private const float SITE_SELECTION_DELAY = 0.2f;
         private const float CUT_ACTION_DELAY = 0.02f;
         private float m_Timer = 0.0f;
+
         private bool SiteSelectionActionPerformed
         {
-            get
-            {
-                return ((IsArrowKeyPressed && m_Timer >= SITE_SELECTION_DELAY) || IsArrowKeyDown) && !IsModPressed && !IsWindowSelected;
-            }
+            get { return ((IsArrowKeyPressed && m_Timer >= SITE_SELECTION_DELAY) || IsArrowKeyDown) && !IsModPressed && !IsWindowSelected; }
         }
+
         private bool CutModificationActionPerformed
         {
-            get
-            {
-                return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed && !IsWindowSelected;
-            }
+            get { return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed && !IsWindowSelected; }
         }
+
         private bool ChangeSiteStateActionPerformed
         {
-            get
-            {
-                return IsControlPressed && IsSiteStateActionDown && !IsWindowSelected;
-            }
+            get { return IsControlPressed && IsSiteStateActionDown && !IsWindowSelected; }
         }
+
         private bool IsWritingInInputField
         {
             get
@@ -205,13 +169,17 @@ namespace HBP.UI.Tools
                         }
                     }
                 }
+
                 return false;
             }
         }
+
         private bool IsWindowSelected => SelectionManager.IsAnySelected;
+
         #endregion
 
         #region Private Methods
+
         void Update()
         {
             m_Timer += Time.deltaTime;
@@ -219,6 +187,7 @@ namespace HBP.UI.Tools
             {
                 return;
             }
+
             if (NewProjectActionPerformed)
             {
                 NewProject();
@@ -283,58 +252,72 @@ namespace HBP.UI.Tools
                 PerformActionOnCut();
             }
         }
+
         private void NewProject()
         {
             MainMenu.FileMenu.NewProjectButton.Action();
         }
+
         private void OpenProject()
         {
             MainMenu.FileMenu.OpenProjectButton.Action();
         }
+
         private void Save()
         {
             MainMenu.FileMenu.SaveButton.Action();
         }
+
         private void SaveAs()
         {
             MainMenu.FileMenu.SaveAsButton.Action();
         }
+
         private void Quit()
         {
             MainMenu.FileMenu.QuitButton.Action();
         }
+
         private void UserPreferences()
         {
             MainMenu.EditMenu.OpenPreferencesButton.Action();
         }
+
         private void TagsManager()
         {
             MainMenu.EditMenu.OpenTagsManagerButton.Action();
         }
+
         private void ProjectPreferences()
         {
             MainMenu.ProjectMenu.OpenProjectPreferencesButton.Action();
         }
+
         private void Patients()
         {
             MainMenu.ProjectMenu.OpenPatientGestionButton.Action();
         }
+
         private void Groups()
         {
             MainMenu.ProjectMenu.OpenGroupGestionButton.Action();
         }
+
         private void Datasets()
         {
             MainMenu.ProjectMenu.OpenDatasetGestionButton.Action();
         }
+
         private void Visualizations()
         {
             MainMenu.ProjectMenu.OpenVisualizationGestionButton.Action();
         }
+
         private void Protocols()
         {
             MainMenu.DatabaseMenu.OpenProtocolGestionButton.Action();
         }
+
         private void ChangeSiteSelection(SiteNavigationDirection direction)
         {
             Base3DScene scene = Module3DMain.SelectedScene;
@@ -360,13 +343,15 @@ namespace HBP.UI.Tools
                                 if (id > selectedColumn.Sites.Count - 1) id = 0;
                                 break;
                         }
+
                         site = selectedColumn.Sites[id];
-                    }
-                    while ((!site.State.IsFiltered || site.State.IsMasked || (!scene.ShowAllSites && scene.ROIManager.SelectedROI != null && site.State.IsOutOfROI)) && ++count < selectedColumn.Sites.Count);
+                    } while ((!site.State.IsFiltered || site.State.IsMasked || (!scene.ShowAllSites && scene.ROIManager.SelectedROI != null && site.State.IsOutOfROI)) && ++count < selectedColumn.Sites.Count);
+
                     site.IsSelected = true;
                 }
             }
         }
+
         private void ChangeSelectedSiteState()
         {
             Base3DScene scene = Module3DMain.SelectedScene;
@@ -400,6 +385,7 @@ namespace HBP.UI.Tools
                         {
                             sites.Add(selectedSite);
                         }
+
                         sites = sites.Where(s => s.State.IsFiltered).ToList();
                         KeyCode downAction = ChangeSiteStateActions.FirstOrDefault(a => Input.GetKeyDown(a));
                         switch (downAction)
@@ -430,6 +416,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         private void PerformActionOnCut()
         {
             CutController selectedCutController = Module3DUI.Scenes.FirstOrDefault(s => s.Key.IsSelected).Value?.CutController;
@@ -444,6 +431,7 @@ namespace HBP.UI.Tools
                 {
                     selectedCutController.OpenNextController();
                 }
+
                 Cut selectedCut = selectedCutController.SelectedCut;
                 if (selectedCut != null)
                 {
@@ -463,10 +451,12 @@ namespace HBP.UI.Tools
                     {
                         selectedCut.Orientation = (CutOrientation)(((int)selectedCut.Orientation + 1) % 3);
                     }
+
                     Module3DMain.SelectedScene.UpdateCutPlane(selectedCut, true);
                 }
             }
         }
+
         #endregion
     }
 }

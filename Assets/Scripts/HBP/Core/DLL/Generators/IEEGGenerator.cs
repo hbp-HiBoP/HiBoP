@@ -18,19 +18,14 @@ namespace HBP.Core.DLL
             {
                 throw new ArgumentException("numberOfSites must match the raw site list count.", nameof(numberOfSites));
             }
+
             int expectedValueCount = checked(timelineLength * numberOfSites);
             if (activityValues.Length != expectedValueCount)
             {
                 throw new ArgumentException($"Expected {expectedValueCount} activity values, received {activityValues.Length}.", nameof(activityValues));
             }
 
-            ThrowIfFailed(hbp_ieeg_generator_compute_activity_from_sites(
-                _handle.Handle,
-                rawElectrodes.getHandle().Handle,
-                influenceDistance,
-                activityValues,
-                timelineLength,
-                (int)siteInfluenceByDistance));
+            ThrowIfFailed(hbp_ieeg_generator_compute_activity_from_sites(_handle.Handle, rawElectrodes.getHandle().Handle, influenceDistance, activityValues, timelineLength, (int)siteInfluenceByDistance));
         }
 
         public void ComputeActivityAtlas(float[] activityValues, int timelineLength, int[] areaMask, MarsAtlas marsAtlas)
@@ -84,18 +79,25 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_create(out IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_destroy(IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_set_parallel_options", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_set_parallel_options(IntPtr generator, int workerCount, int neighborBatchSize);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_enable_performance_metrics", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_enable_performance_metrics(IntPtr generator, int enabled);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_get_last_compute_metrics", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_get_last_compute_metrics(IntPtr generator, out IEEGComputeMetrics metrics);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_compute_activity_from_sites", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_compute_activity_from_sites(IntPtr generator, IntPtr sites, float maxDistance, [In] float[] activity, int timelineLength, int ratioDistance);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_compute_activity_atlas", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_compute_activity_atlas(IntPtr generator, [In] float[] activity, int timelineLength, int areaCount, [In] int[] mask, IntPtr atlas);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_ieeg_generator_adjust_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_ieeg_generator_adjust_values(IntPtr generator, float middle, float min, float max);
     }

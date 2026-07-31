@@ -29,9 +29,7 @@ namespace HBP.Dev
         public static void GenerateFromMenu()
         {
             bool changed = Generate();
-            Debug.Log(changed
-                ? "HiBoP serialization type registry generated. Unity will recompile the updated sources."
-                : "HiBoP serialization type registry is already up to date.");
+            Debug.Log(changed ? "HiBoP serialization type registry generated. Unity will recompile the updated sources." : "HiBoP serialization type registry is already up to date.");
         }
 
         public static bool Generate()
@@ -49,6 +47,7 @@ namespace HBP.Dev
                 AssetDatabase.ImportAsset(expectedFile.Key, ImportAssetOptions.ForceUpdate);
                 changed = true;
             }
+
             return changed;
         }
 
@@ -67,8 +66,7 @@ namespace HBP.Dev
                     if (string.Equals(current, expectedFile.Value, StringComparison.Ordinal)) continue;
 
                     staleFiles.Add(expectedFile.Key);
-                    foreach (SerializableTypeEntry entry in DiscoverSerializableTypes()
-                        .Where(entry => OutputPathFor(entry.Type) == expectedFile.Key))
+                    foreach (SerializableTypeEntry entry in DiscoverSerializableTypes().Where(entry => OutputPathFor(entry.Type) == expectedFile.Key))
                     {
                         if (current == null || !current.Contains($"typeof(global::{GetCSharpTypeName(entry.Type)})"))
                         {
@@ -83,13 +81,8 @@ namespace HBP.Dev
                     return true;
                 }
 
-                string missingTypeDetails = missingTypes.Count == 0
-                    ? string.Empty
-                    : $"\nMissing types: {string.Join(", ", missingTypes.OrderBy(value => value))}.";
-                error =
-                    $"The generated HiBoP serialization type registry is out of date: " +
-                    $"{string.Join(", ", staleFiles)}.{missingTypeDetails}\n" +
-                    $"Run '{GenerateMenuPath}' and wait for Unity to finish compiling.";
+                string missingTypeDetails = missingTypes.Count == 0 ? string.Empty : $"\nMissing types: {string.Join(", ", missingTypes.OrderBy(value => value))}.";
+                error = $"The generated HiBoP serialization type registry is out of date: " + $"{string.Join(", ", staleFiles)}.{missingTypeDetails}\n" + $"Run '{GenerateMenuPath}' and wait for Unity to finish compiling.";
                 return false;
             }
             catch (Exception exception)
@@ -103,9 +96,7 @@ namespace HBP.Dev
         {
             if (Generate())
             {
-                throw new BuildFailedException(
-                    "The HiBoP serialization type registry was updated. Wait for Unity to finish compiling, " +
-                    "then launch the build again.");
+                throw new BuildFailedException("The HiBoP serialization type registry was updated. Wait for Unity to finish compiling, " + "then launch the build again.");
             }
 
             if (!TryValidate(out string error))
@@ -135,14 +126,7 @@ namespace HBP.Dev
                 typeof(BIDSExportConfiguration).Assembly
             };
 
-            return assemblies
-                .Distinct()
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => type.IsClass && !type.IsAbstract)
-                .Where(type => type.GetCustomAttributes(typeof(JsonObjectAttribute), true).Length > 0)
-                .OrderBy(type => type.Assembly.GetName().Name)
-                .ThenBy(type => type.FullName)
-                .Select(type => new SerializableTypeEntry(type));
+            return assemblies.Distinct().SelectMany(assembly => assembly.GetTypes()).Where(type => type.IsClass && !type.IsAbstract).Where(type => type.GetCustomAttributes(typeof(JsonObjectAttribute), true).Length > 0).OrderBy(type => type.Assembly.GetName().Name).ThenBy(type => type.FullName).Select(type => new SerializableTypeEntry(type));
         }
 
         private static AliasConfiguration LoadAliasConfiguration()
@@ -153,8 +137,7 @@ namespace HBP.Dev
                 throw new InvalidOperationException($"Alias configuration not found at '{AliasConfigurationPath}'.");
             }
 
-            AliasConfiguration configuration =
-                JsonConvert.DeserializeObject<AliasConfiguration>(File.ReadAllText(absolutePath));
+            AliasConfiguration configuration = JsonConvert.DeserializeObject<AliasConfiguration>(File.ReadAllText(absolutePath));
             if (configuration == null || configuration.SchemaVersion != 1)
             {
                 throw new InvalidOperationException("SerializationTypeAliases.json must use schemaVersion 1.");
@@ -167,10 +150,8 @@ namespace HBP.Dev
 
         private static void ApplyAliases(IReadOnlyCollection<SerializableTypeEntry> entries, AliasConfiguration configuration)
         {
-            Dictionary<string, SerializableTypeEntry> entriesByCurrentName = entries
-                .ToDictionary(entry => entry.Type.FullName, StringComparer.Ordinal);
-            Dictionary<string, SerializableTypeEntry> entriesBySerializedName = entries
-                .ToDictionary(entry => entry.Type.FullName, StringComparer.Ordinal);
+            Dictionary<string, SerializableTypeEntry> entriesByCurrentName = entries.ToDictionary(entry => entry.Type.FullName, StringComparer.Ordinal);
+            Dictionary<string, SerializableTypeEntry> entriesBySerializedName = entries.ToDictionary(entry => entry.Type.FullName, StringComparer.Ordinal);
 
             foreach (NamespaceAlias namespaceAlias in configuration.NamespaceAliases)
             {
@@ -179,19 +160,15 @@ namespace HBP.Dev
                     throw new InvalidOperationException("Namespace aliases require serializedPrefix and currentPrefix.");
                 }
 
-                SerializableTypeEntry[] targets = entries
-                    .Where(entry => entry.Type.FullName.StartsWith(namespaceAlias.CurrentPrefix, StringComparison.Ordinal))
-                    .ToArray();
+                SerializableTypeEntry[] targets = entries.Where(entry => entry.Type.FullName.StartsWith(namespaceAlias.CurrentPrefix, StringComparison.Ordinal)).ToArray();
                 if (targets.Length == 0)
                 {
-                    throw new InvalidOperationException(
-                        $"Namespace alias current prefix '{namespaceAlias.CurrentPrefix}' does not match any serializable type.");
+                    throw new InvalidOperationException($"Namespace alias current prefix '{namespaceAlias.CurrentPrefix}' does not match any serializable type.");
                 }
 
                 foreach (SerializableTypeEntry target in targets)
                 {
-                    string serializedName =
-                        namespaceAlias.SerializedPrefix + target.Type.FullName[namespaceAlias.CurrentPrefix.Length..];
+                    string serializedName = namespaceAlias.SerializedPrefix + target.Type.FullName[namespaceAlias.CurrentPrefix.Length..];
                     AddAlias(entriesBySerializedName, target, serializedName);
                 }
             }
@@ -205,27 +182,22 @@ namespace HBP.Dev
 
                 if (!entriesByCurrentName.TryGetValue(typeAlias.CurrentType, out SerializableTypeEntry target))
                 {
-                    throw new InvalidOperationException(
-                        $"Type alias target '{typeAlias.CurrentType}' is not a current serializable type.");
+                    throw new InvalidOperationException($"Type alias target '{typeAlias.CurrentType}' is not a current serializable type.");
                 }
 
                 AddAlias(entriesBySerializedName, target, typeAlias.SerializedType);
             }
         }
 
-        private static void AddAlias(
-            IDictionary<string, SerializableTypeEntry> entriesBySerializedName,
-            SerializableTypeEntry target,
-            string serializedName)
+        private static void AddAlias(IDictionary<string, SerializableTypeEntry> entriesBySerializedName, SerializableTypeEntry target, string serializedName)
         {
             if (entriesBySerializedName.TryGetValue(serializedName, out SerializableTypeEntry existing))
             {
                 if (existing.Type != target.Type)
                 {
-                    throw new InvalidOperationException(
-                        $"Serialized type alias '{serializedName}' targets both " +
-                        $"'{existing.Type.FullName}' and '{target.Type.FullName}'.");
+                    throw new InvalidOperationException($"Serialized type alias '{serializedName}' targets both " + $"'{existing.Type.FullName}' and '{target.Type.FullName}'.");
                 }
+
                 return;
             }
 
@@ -274,15 +246,11 @@ namespace HBP.Dev
             return source.ToString();
         }
 
-        private static void AppendRegistrations(
-            StringBuilder source,
-            IEnumerable<SerializableTypeEntry> entries,
-            string registryTypeName)
+        private static void AppendRegistrations(StringBuilder source, IEnumerable<SerializableTypeEntry> entries, string registryTypeName)
         {
             foreach (SerializableTypeEntry entry in entries.OrderBy(value => value.Type.FullName))
             {
-                IEnumerable<string> serializedNames =
-                    new[] { entry.Type.FullName }.Concat(entry.Aliases.OrderBy(value => value));
+                IEnumerable<string> serializedNames = new[] { entry.Type.FullName }.Concat(entry.Aliases.OrderBy(value => value));
                 source.Append("            ");
                 source.Append(registryTypeName);
                 source.Append(".RegisterGenerated(typeof(global::");
@@ -300,8 +268,7 @@ namespace HBP.Dev
             {
                 "HBP.Core.Runtime" => CoreOutputPath,
                 "HBP.Data.Runtime" => DataOutputPath,
-                _ => throw new InvalidOperationException(
-                    $"Serializable type '{type.FullName}' belongs to unsupported assembly '{assemblyName}'.")
+                _ => throw new InvalidOperationException($"Serializable type '{type.FullName}' belongs to unsupported assembly '{assemblyName}'.")
             };
         }
 
@@ -309,9 +276,9 @@ namespace HBP.Dev
         {
             if (type.FullName.Contains("`"))
             {
-                throw new InvalidOperationException(
-                    $"Generic serializable type '{type.FullName}' requires an explicit generator implementation.");
+                throw new InvalidOperationException($"Generic serializable type '{type.FullName}' requires an explicit generator implementation.");
             }
+
             return type.FullName.Replace("+", ".");
         }
 
@@ -334,32 +301,25 @@ namespace HBP.Dev
 
         private sealed class AliasConfiguration
         {
-            [JsonProperty("schemaVersion")]
-            public int SchemaVersion { get; set; }
+            [JsonProperty("schemaVersion")] public int SchemaVersion { get; set; }
 
-            [JsonProperty("namespaceAliases")]
-            public List<NamespaceAlias> NamespaceAliases { get; set; }
+            [JsonProperty("namespaceAliases")] public List<NamespaceAlias> NamespaceAliases { get; set; }
 
-            [JsonProperty("typeAliases")]
-            public List<TypeAlias> TypeAliases { get; set; }
+            [JsonProperty("typeAliases")] public List<TypeAlias> TypeAliases { get; set; }
         }
 
         private sealed class NamespaceAlias
         {
-            [JsonProperty("serializedPrefix")]
-            public string SerializedPrefix { get; set; }
+            [JsonProperty("serializedPrefix")] public string SerializedPrefix { get; set; }
 
-            [JsonProperty("currentPrefix")]
-            public string CurrentPrefix { get; set; }
+            [JsonProperty("currentPrefix")] public string CurrentPrefix { get; set; }
         }
 
         private sealed class TypeAlias
         {
-            [JsonProperty("serializedType")]
-            public string SerializedType { get; set; }
+            [JsonProperty("serializedType")] public string SerializedType { get; set; }
 
-            [JsonProperty("currentType")]
-            public string CurrentType { get; set; }
+            [JsonProperty("currentType")] public string CurrentType { get; set; }
         }
     }
 

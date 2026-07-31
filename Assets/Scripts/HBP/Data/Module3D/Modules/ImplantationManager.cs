@@ -15,10 +15,12 @@ namespace HBP.Data.Module3D
     public class ImplantationManager : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene of the manager
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+
         /// <summary>
         /// Component containing references to GameObjects of the 3D scene
         /// </summary>
@@ -28,35 +30,33 @@ namespace HBP.Data.Module3D
         /// List of the implantation3Ds of the scene
         /// </summary>
         public List<Core.Object3D.Implantation3D> Implantations { get; } = new List<Core.Object3D.Implantation3D>();
+
         /// <summary>
         /// Selected implantation3D ID
         /// </summary>
         public int SelectedImplantationID { get; set; }
+
         /// <summary>
         /// Selected implantation3D
         /// </summary>
         public Core.Object3D.Implantation3D SelectedImplantation
         {
-            get
-            {
-                return Implantations.Count > 0 ? Implantations[SelectedImplantationID] : null;
-            }
+            get { return Implantations.Count > 0 ? Implantations[SelectedImplantationID] : null; }
         }
 
         /// <summary>
         /// Site to compare with when using the comparing site feature
         /// </summary>
         public Core.Object3D.Site SiteToCompare { get; private set; }
+
         private bool m_ComparingSites;
+
         /// <summary>
         /// Are we comparing sites ?
         /// </summary>
         public bool ComparingSites
         {
-            get
-            {
-                return m_ComparingSites;
-            }
+            get { return m_ComparingSites; }
             set
             {
                 m_ComparingSites = value;
@@ -70,9 +70,11 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void OnDestroy()
         {
             foreach (var implantation in Implantations)
@@ -80,9 +82,11 @@ namespace HBP.Data.Module3D
                 implantation.Clean();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a new implantation to the manager
         /// </summary>
@@ -102,6 +106,7 @@ namespace HBP.Data.Module3D
                 throw new CanNotLoadImplantation(name);
             }
         }
+
         /// <summary>
         /// Set the implantation to be used
         /// </summary>
@@ -111,7 +116,7 @@ namespace HBP.Data.Module3D
             int implantationID = Implantations.FindIndex(i => i.Name == implantationName);
             SelectedImplantationID = implantationID > 0 ? implantationID : 0;
             m_DisplayedObjects.InstantiateImplantation(SelectedImplantation);
-            
+
             // reset selected site
             for (int ii = 0; ii < m_Scene.Columns.Count; ++ii)
             {
@@ -120,6 +125,7 @@ namespace HBP.Data.Module3D
 
             m_Scene.ResetGenerators();
         }
+
         /// <summary>
         /// Display information about the site under the mouse
         /// </summary>
@@ -142,6 +148,7 @@ namespace HBP.Data.Module3D
                     CCEPLatency = ccepColumn.Latencies[siteID].ToString();
                     CCEPAmplitude = ccepColumn.Amplitudes[siteID].ToString();
                 }
+
                 // iEEG
                 if (column is Column3DDynamic columnIEEG)
                 {
@@ -153,6 +160,7 @@ namespace HBP.Data.Module3D
                     iEEGUnit = "";
                     iEEGActivity = columnStatic.ActivityValuesByLabelIDBySiteID[siteID][columnStatic.SelectedLabelIndex];
                 }
+
                 // Send Event
                 SiteInformationDisplayMode displayMode;
                 if (m_Scene.IsGeneratorUpToDate)
@@ -174,6 +182,7 @@ namespace HBP.Data.Module3D
                 {
                     displayMode = SiteInformationDisplayMode.Anatomy;
                 }
+
                 Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
             }
             else
@@ -181,6 +190,7 @@ namespace HBP.Data.Module3D
                 Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
             }
         }
+
         #endregion
     }
 }

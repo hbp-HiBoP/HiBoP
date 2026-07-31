@@ -35,13 +35,7 @@ namespace HBP.Core.Data
             }
         }
 
-        public async UniTask<T> ReadAsync<T>(
-            ProjectManifest manifest,
-            string entryName,
-            LoadingDiagnostics.Phase readPhase,
-            LoadingDiagnostics.Phase deserializePhase,
-            int concurrency,
-            CancellationToken token)
+        public async UniTask<T> ReadAsync<T>(ProjectManifest manifest, string entryName, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
             await m_AvailableReaderSlots.WaitAsync(token);
@@ -60,12 +54,7 @@ namespace HBP.Core.Data
                 }
 
                 using Stream stream = entry.OpenReader();
-                return ClassLoaderSaver.LoadFromJson<T>(
-                    stream,
-                    manifest.GetEntrySize(entryName),
-                    readPhase,
-                    deserializePhase,
-                    concurrency);
+                return ClassLoaderSaver.LoadFromJson<T>(stream);
             }
             finally
             {
@@ -73,6 +62,7 @@ namespace HBP.Core.Data
                 {
                     m_AvailableReaders.Enqueue(reader);
                 }
+
                 m_AvailableReaderSlots.Release();
             }
         }
@@ -83,10 +73,12 @@ namespace HBP.Core.Data
             {
                 reader.Dispose();
             }
+
             m_Readers.Clear();
             while (m_AvailableReaders.TryDequeue(out _))
             {
             }
+
             m_AvailableReaderSlots?.Dispose();
         }
     }

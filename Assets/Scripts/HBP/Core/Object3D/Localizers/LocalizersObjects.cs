@@ -8,15 +8,18 @@ using Cysharp.Threading.Tasks;
 namespace HBP.Core.Object3D
 {
     #region Shared Helpers
+
     internal static class LocalizersHelpers
     {
         public static readonly string[] NiftiExtensions = { ".nii", ".nii.gz", ".img" };
+
         public static bool IsMaskFile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath)) return false;
             string fileName = Path.GetFileName(filePath).ToUpperInvariant();
             return fileName.EndsWith("_MASK.NII") || fileName.EndsWith("_MASK.NII.GZ") || fileName.EndsWith("_MASK.IMG");
         }
+
         public static string GetBlocNameFromFile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath)) return string.Empty;
@@ -33,17 +36,21 @@ namespace HBP.Core.Object3D
             {
                 return fileName[..^4];
             }
+
             return Path.GetFileNameWithoutExtension(fileName);
         }
     }
+
     #endregion
 
     public class LocalizersObjects
     {
         #region Properties
+
         public List<LocalizerProtocol> Protocols { get; private set; } = new List<LocalizerProtocol>();
         public bool Loaded => Protocols.Count > 0 && Protocols.All(p => p.Loaded);
         private static string LocalizersPath => Path.Combine(ApplicationState.DataPath, "Atlases", "Localizers");
+
         public List<string> AvailableProtocolNames
         {
             get
@@ -53,9 +60,11 @@ namespace HBP.Core.Object3D
                 {
                     return Directory.GetDirectories(localizersPath).Select(Path.GetFileName).OrderBy(n => n).ToList();
                 }
+
                 return new List<string>();
             }
         }
+
         public List<string> AvailableDataNames
         {
             get
@@ -70,12 +79,15 @@ namespace HBP.Core.Object3D
                         names.Add(Path.GetFileName(dataDirectory));
                     }
                 }
+
                 return names.OrderBy(n => n).ToList();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void Clean()
         {
             foreach (var protocol in Protocols)
@@ -83,15 +95,17 @@ namespace HBP.Core.Object3D
                 protocol?.Clean();
             }
         }
+
         public bool IsAvailable(string protocol)
         {
             string protocolDirectory = Path.Combine(LocalizersPath, protocol);
             return Directory.Exists(protocolDirectory);
         }
+
         public bool TryLoad(string protocol)
         {
             string protocolDirectory = Path.Combine(LocalizersPath, protocol);
-            
+
             if (Directory.Exists(protocolDirectory))
             {
                 LocalizerProtocol localizerProtocol = new(protocol, protocolDirectory);
@@ -101,6 +115,7 @@ namespace HBP.Core.Object3D
 
             return false;
         }
+
         public void Unload(string protocolName)
         {
             var protocol = Protocols.FirstOrDefault(p => p.Name == protocolName);
@@ -155,11 +170,7 @@ namespace HBP.Core.Object3D
                 if (existingBloc == null)
                 {
                     // Find the bloc file
-                    var niftiFiles = Directory.GetFiles(dataDirectory)
-                        .Where(file => LocalizersHelpers.NiftiExtensions.Any(ext => file.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                        .Where(file => !LocalizersHelpers.IsMaskFile(file))
-                        .Where(file => LocalizersHelpers.GetBlocNameFromFile(file).Equals(blocName, StringComparison.OrdinalIgnoreCase))
-                        .ToList();
+                    var niftiFiles = Directory.GetFiles(dataDirectory).Where(file => LocalizersHelpers.NiftiExtensions.Any(ext => file.EndsWith(ext, StringComparison.OrdinalIgnoreCase))).Where(file => !LocalizersHelpers.IsMaskFile(file)).Where(file => LocalizersHelpers.GetBlocNameFromFile(file).Equals(blocName, StringComparison.OrdinalIgnoreCase)).ToList();
 
                     if (niftiFiles.Count > 0)
                     {
@@ -167,7 +178,7 @@ namespace HBP.Core.Object3D
                         string maskFile = data.FindMaskFileForBloc(dataDirectory, blocName, LocalizersHelpers.NiftiExtensions);
                         var bloc = new LocalizerBloc(blocName, niftiFile, maskFile);
                         data.Blocs.Add(bloc);
-                        
+
                         // Wait for the bloc to load
                         await UniTask.WaitUntil(() => bloc.Loaded);
                         loadedBlocs.Add(blocName);
@@ -235,6 +246,7 @@ namespace HBP.Core.Object3D
             var bloc = data?.Blocs.FirstOrDefault(b => b.Name == blocName);
             return bloc?.FMRI;
         }
+
         /// <summary>
         /// Return all available bloc names for a protocol by parsing directories (does not use loaded data).
         /// </summary>
@@ -247,9 +259,7 @@ namespace HBP.Core.Object3D
 
             foreach (var dataDirectory in Directory.GetDirectories(protocolDirectory))
             {
-                var files = Directory.GetFiles(dataDirectory)
-                    .Where(f => LocalizersHelpers.NiftiExtensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                    .Where(f => !LocalizersHelpers.IsMaskFile(f));
+                var files = Directory.GetFiles(dataDirectory).Where(f => LocalizersHelpers.NiftiExtensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase))).Where(f => !LocalizersHelpers.IsMaskFile(f));
                 foreach (var file in files)
                 {
                     result.Add(LocalizersHelpers.GetBlocNameFromFile(file));
@@ -258,18 +268,22 @@ namespace HBP.Core.Object3D
 
             return result.OrderBy(n => n).ToList();
         }
+
         #endregion
     }
 
     public class LocalizerProtocol
     {
         #region Properties
+
         public string Name { get; private set; }
         public List<LocalizerData> Datas { get; private set; } = new List<LocalizerData>();
         public bool Loaded => Datas.All(d => d.Loaded);
+
         #endregion
 
         #region Constructors
+
         public LocalizerProtocol(string name, string protocolDirectory, bool loadBlocs = true)
         {
             Name = name;
@@ -278,9 +292,11 @@ namespace HBP.Core.Object3D
                 LoadDatasFromDirectory(protocolDirectory);
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void LoadDatasFromDirectory(string directory)
         {
             if (!Directory.Exists(directory))
@@ -297,9 +313,11 @@ namespace HBP.Core.Object3D
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void Clean()
         {
             foreach (var data in Datas)
@@ -307,18 +325,22 @@ namespace HBP.Core.Object3D
                 data?.Clean();
             }
         }
+
         #endregion
     }
 
     public class LocalizerData
     {
         #region Properties
+
         public string Name { get; private set; }
         public List<LocalizerBloc> Blocs { get; private set; } = new List<LocalizerBloc>();
         public bool Loaded => Blocs.All(b => b.Loaded);
+
         #endregion
 
         #region Constructors
+
         public LocalizerData(string name, string dataDirectory, bool loadBlocs = true)
         {
             Name = name;
@@ -327,19 +349,18 @@ namespace HBP.Core.Object3D
                 LoadBlocsFromDirectory(dataDirectory);
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void LoadBlocsFromDirectory(string directory)
         {
             if (!Directory.Exists(directory))
                 return;
 
             var niftiExtensions = LocalizersHelpers.NiftiExtensions;
-            var niftiFiles = Directory.GetFiles(directory)
-                .Where(file => niftiExtensions.Any(ext => file.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                .Where(file => !LocalizersHelpers.IsMaskFile(file))
-                .ToList();
+            var niftiFiles = Directory.GetFiles(directory).Where(file => niftiExtensions.Any(ext => file.EndsWith(ext, StringComparison.OrdinalIgnoreCase))).Where(file => !LocalizersHelpers.IsMaskFile(file)).ToList();
 
             foreach (string niftiFile in niftiFiles)
             {
@@ -349,9 +370,11 @@ namespace HBP.Core.Object3D
                 Blocs.Add(bloc);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public string FindMaskFileForBloc(string directory, string blocName, string[] extensions)
         {
             foreach (string extension in extensions)
@@ -363,6 +386,7 @@ namespace HBP.Core.Object3D
                     return maskFiles[0];
                 }
             }
+
             return string.Empty;
         }
 
@@ -373,30 +397,37 @@ namespace HBP.Core.Object3D
                 bloc?.Clean();
             }
         }
+
         #endregion
     }
 
     public class LocalizerBloc
     {
         #region Properties
+
         public string Name { get; private set; }
         public FMRI FMRI { get; private set; }
         public bool Loaded => FMRI?.Loaded ?? false;
+
         #endregion
 
         #region Constructors
+
         public LocalizerBloc(string name, string fmriFile, string maskFile = "")
         {
             Name = name;
             FMRI = new FMRI(name, fmriFile, maskFile);
         }
+
         #endregion
 
         #region Public Methods
+
         public void Clean()
         {
             FMRI?.Clean();
         }
+
         #endregion
     }
 }

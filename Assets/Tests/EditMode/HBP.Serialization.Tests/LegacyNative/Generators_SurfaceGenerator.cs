@@ -13,6 +13,7 @@ namespace HBP.Tests.Serialization.LegacyNative
         private BenchmarkBackend m_Backend = OracleBackendContext.Current;
 
         #region Properties
+
         internal BenchmarkBackend Backend => m_Backend;
         public bool UsesHbpCore => m_Backend == BenchmarkBackend.HbpCore;
         public ActivityGenerator ActivityGenerator { get; private set; }
@@ -21,9 +22,11 @@ namespace HBP.Tests.Serialization.LegacyNative
         public Vector2[] NullUV { get; private set; } = new Vector2[0];
         private GCHandle m_UVActivityHandle;
         private GCHandle m_UVAlphaHandle;
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(ActivityGenerator activityGenerator)
         {
             ActivityGenerator = activityGenerator;
@@ -33,9 +36,11 @@ namespace HBP.Tests.Serialization.LegacyNative
                 {
                     throw new InvalidOperationException($"SurfaceGenerator.Initialize cannot use a {activityGenerator.Backend} activity generator with hbp_core.");
                 }
+
                 ThrowIfFailed(hbp_surface_generator_initialize(_handle.Handle, activityGenerator.getHandle().Handle));
                 return;
             }
+
             initialize_SurfaceGenerator(_handle, activityGenerator.getHandle());
         }
 
@@ -46,6 +51,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 ThrowIfFailed(hbp_surface_generator_compute_main_uv(_handle.Handle, calMin, calMax));
                 return;
             }
+
             compute_UV_main_SurfaceGenerator(_handle, calMin, calMax);
         }
 
@@ -66,6 +72,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                     ActivityUV[i] = nativeActivity[i].ToVector2();
                     AlphaUV[i] = nativeAlpha[i].ToVector2();
                 }
+
                 return;
             }
 
@@ -77,9 +84,11 @@ namespace HBP.Tests.Serialization.LegacyNative
             NullUV = new Vector2[ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices];
             NullUV.Fill(new Vector2(0.01f, 1f));
         }
+
         #endregion
 
         #region Memory Management
+
         protected override void create_DLL_class()
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
@@ -88,6 +97,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 _handle = new HandleRef(this, generator);
                 return;
             }
+
             _handle = new HandleRef(this, create_SurfaceGenerator());
         }
 
@@ -101,8 +111,10 @@ namespace HBP.Tests.Serialization.LegacyNative
                 ThrowIfFailed(hbp_surface_generator_destroy(_handle.Handle));
                 return;
             }
+
             delete_SurfaceGenerator(_handle);
         }
+
         #endregion
 
         private void EnsureUvArrays(int nbVertices)
@@ -113,6 +125,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                 if (m_UVActivityHandle.IsAllocated) m_UVActivityHandle.Free();
                 m_UVActivityHandle = GCHandle.Alloc(ActivityUV, GCHandleType.Pinned);
             }
+
             if (AlphaUV.Length != nbVertices)
             {
                 AlphaUV = new Vector2[nbVertices];
@@ -130,31 +143,43 @@ namespace HBP.Tests.Serialization.LegacyNative
         }
 
         #region DLLImport
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "create_SurfaceGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern IntPtr create_SurfaceGenerator();
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "delete_SurfaceGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void delete_SurfaceGenerator(HandleRef generator);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "initialize_SurfaceGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void initialize_SurfaceGenerator(HandleRef generator, HandleRef activityGenerator);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "compute_UV_main_SurfaceGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void compute_UV_main_SurfaceGenerator(HandleRef generator, float calMin, float calMax);
+
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "compute_UV_activity_SurfaceGenerator", CallingConvention = CallingConvention.Cdecl)]
         static private extern void compute_UV_activity_SurfaceGenerator(HandleRef generator, int timelineIndex, float alpha, IntPtr uvActivity, IntPtr uvAlpha);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_create(out IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_destroy(IntPtr generator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_initialize(IntPtr generator, IntPtr activityGenerator);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_compute_main_uv", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_compute_main_uv(IntPtr generator, float calMin, float calMax);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_compute_activity_uv", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_compute_activity_uv(IntPtr generator, int timelineIndex, float alpha);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_copy_activity_uvs", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_copy_activity_uvs(IntPtr generator, [Out] Vec2[] uvs, int uvCapacity);
+
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_copy_alpha_uvs", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_copy_alpha_uvs(IntPtr generator, [Out] Vec2[] uvs, int uvCapacity);
+
         #endregion
     }
 }

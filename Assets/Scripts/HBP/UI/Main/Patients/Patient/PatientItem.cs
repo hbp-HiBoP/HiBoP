@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class PatientItem : ActionnableItem<Core.Data.Patient>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
 
         [SerializeField] Text m_MeshText;
@@ -26,10 +27,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Patient Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -45,6 +43,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

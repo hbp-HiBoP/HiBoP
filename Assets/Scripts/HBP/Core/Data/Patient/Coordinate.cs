@@ -31,17 +31,21 @@ namespace HBP.Core.Data
     public class Coordinate : BaseData
     {
         #region Properties
+
         /// <summary>
         /// Reference system of the coordinate.
         /// </summary>
         [JsonProperty] public string ReferenceSystem { get; set; }
+
         /// <summary>
         /// Position in the reference system.
         /// </summary>
         [JsonProperty] public SerializableVector3 Position { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new instance of coordinate.
         /// </summary>
@@ -53,6 +57,7 @@ namespace HBP.Core.Data
             ReferenceSystem = referenceSystem;
             Position = new SerializableVector3(position);
         }
+
         /// <summary>
         /// Create a new instance of coordinate.
         /// </summary>
@@ -63,15 +68,18 @@ namespace HBP.Core.Data
             ReferenceSystem = referenceSystem;
             Position = new SerializableVector3(position);
         }
+
         /// <summary>
         /// Create a new instance of coordinate.
         /// </summary>
         public Coordinate() : this("Unknown", new Vector3())
         {
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -80,6 +88,7 @@ namespace HBP.Core.Data
         {
             return new Coordinate(ReferenceSystem, Position.ToVector3(), ID);
         }
+
         /// <summary>
         /// Copy the instance.
         /// </summary>
@@ -93,6 +102,7 @@ namespace HBP.Core.Data
                 Position = coordinate.Position;
             }
         }
+
         #endregion
     }
 }

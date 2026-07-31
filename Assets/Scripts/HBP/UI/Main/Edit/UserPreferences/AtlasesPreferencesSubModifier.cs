@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class AtlasesPreferencesSubModifier : SubModifier<AtlasesPreferences>
     {
         #region Properties
+
         [SerializeField] Toggle m_MarsAtlas;
         [SerializeField] Toggle m_JuBrain;
         [SerializeField] Toggle m_IBC;
@@ -75,10 +76,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -118,9 +116,11 @@ namespace HBP.UI.Main
                 m_LoadVISU.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -152,6 +152,7 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.MarsAtlas.Load();
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.MarsAtlas.Loaded);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
@@ -165,6 +166,7 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.JuBrain.Load();
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.JuBrain.Loaded);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
@@ -178,6 +180,7 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.IBC.Load();
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.IBC.Loaded);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
@@ -191,6 +194,7 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.DiFuMo.Load("64");
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("64"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
@@ -204,6 +208,7 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.DiFuMo.Load("128");
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("128"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
@@ -217,6 +222,7 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.DiFuMo.Load("256");
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("256"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
@@ -230,6 +236,7 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.DiFuMo.Load("512");
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("512"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
@@ -243,41 +250,18 @@ namespace HBP.UI.Main
                 {
                     Object3DManager.DiFuMo.Load("1024");
                 }
+
                 await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("1024"));
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            m_LoadAUDI.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("AUDI");
-            });
-            m_LoadLEC1.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("LEC1");
-            });
-            m_LoadLEC2.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("LEC2");
-            });
-            m_LoadMCSE.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("MCSE");
-            });
-            m_LoadMOTO.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("MOTO");
-            });
-            m_LoadMVEB.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("MVEB");
-            });
-            m_LoadMVIS.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("MVIS");
-            });
-            m_LoadVISU.onClick.AddListener(async () =>
-            {
-                await ToggleLocalizerAsync("VISU");
-            });
+            m_LoadAUDI.onClick.AddListener(async () => { await ToggleLocalizerAsync("AUDI"); });
+            m_LoadLEC1.onClick.AddListener(async () => { await ToggleLocalizerAsync("LEC1"); });
+            m_LoadLEC2.onClick.AddListener(async () => { await ToggleLocalizerAsync("LEC2"); });
+            m_LoadMCSE.onClick.AddListener(async () => { await ToggleLocalizerAsync("MCSE"); });
+            m_LoadMOTO.onClick.AddListener(async () => { await ToggleLocalizerAsync("MOTO"); });
+            m_LoadMVEB.onClick.AddListener(async () => { await ToggleLocalizerAsync("MVEB"); });
+            m_LoadMVIS.onClick.AddListener(async () => { await ToggleLocalizerAsync("MVIS"); });
+            m_LoadVISU.onClick.AddListener(async () => { await ToggleLocalizerAsync("VISU"); });
 
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
             m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://julich-brain-atlas.de/"));
@@ -285,15 +269,17 @@ namespace HBP.UI.Main
             m_DiFuMoWebsite.onClick.AddListener(() => Application.OpenURL(@"https://parietal-inria.github.io/DiFuMo/"));
             m_LocalizersWebsite.onClick.AddListener(() => Application.OpenURL(@"https://github.com/CRNL-Eduwell/Localizer"));
         }
+
         #endregion
 
         #region Protected Methods
+
         protected void Update()
         {
             UpdateButtonStatus(Object3DManager.MarsAtlas.Loaded, Object3DManager.MarsAtlas.Loading, m_LoadMarsAtlas, m_LoadMarsAtlasThemeElement);
             UpdateButtonStatus(Object3DManager.JuBrain.Loaded, Object3DManager.JuBrain.Loading, m_LoadJuBrain, m_LoadJuBrainThemeElement);
             UpdateButtonStatus(Object3DManager.IBC.Loaded, Object3DManager.IBC.Loading, m_LoadIBC, m_LoadIBCThemeElement);
-            
+
             UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("64"), Object3DManager.DiFuMo.IsLoading("64"), m_LoadDiFuMo64, m_LoadDiFuMo64ThemeElement);
             UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("128"), Object3DManager.DiFuMo.IsLoading("128"), m_LoadDiFuMo128, m_LoadDiFuMo128ThemeElement);
             UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("256"), Object3DManager.DiFuMo.IsLoading("256"), m_LoadDiFuMo256, m_LoadDiFuMo256ThemeElement);
@@ -309,6 +295,7 @@ namespace HBP.UI.Main
             UpdateLocalizerButtonStatus("MVIS", m_LoadMVIS, m_LoadMVISThemeElement);
             UpdateLocalizerButtonStatus("VISU", m_LoadVISU, m_LoadVISUThemeElement);
         }
+
         protected override void SetFields(AtlasesPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -330,6 +317,7 @@ namespace HBP.UI.Main
             m_MVIS.isOn = objectToDisplay.PreloadLocalizerMVIS;
             m_VISU.isOn = objectToDisplay.PreloadLocalizerVISU;
         }
+
         private async UniTask ToggleLocalizerAsync(string protocolName)
         {
             var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
@@ -349,6 +337,7 @@ namespace HBP.UI.Main
             await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == protocolName && p.Loaded));
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         private void UpdateButtonStatus(bool loaded, bool loading, Button button, Theme.ThemeElement element)
         {
             if (loaded)
@@ -370,6 +359,7 @@ namespace HBP.UI.Main
                 element.Set(m_NotLoadedState);
             }
         }
+
         private void UpdateLocalizerButtonStatus(string protocolName, Button button, Theme.ThemeElement element)
         {
             var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
@@ -398,7 +388,7 @@ namespace HBP.UI.Main
                 element.Set(m_NotLoadedState);
             }
         }
+
         #endregion
     }
 }
-

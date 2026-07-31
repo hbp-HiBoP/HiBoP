@@ -39,23 +39,12 @@ namespace HBP.Tests.Serialization
             PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag }, false);
             PersistentDataManager.Tags.SetSiteTags(new BaseTag[] { siteTag }, false);
 
-            Site site = new(
-                "A1",
-                new[]
-                {
-                    new Coordinate("scanner", new Vector3(1.25f, -2.5f, 3.75f), "patients-groups-tags-sites-coordinate-scanner-001"),
-                    new Coordinate("mni", new Vector3(-4, 5, 6), "patients-groups-tags-sites-coordinate-mni-001")
-                },
-                new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "patients-groups-tags-sites-site-tag-value-001") },
-                "patients-groups-tags-sites-site-001");
-            Patient patient = new(
-                "patients-groups-tags-sites-patient-alpha",
-                new BaseMesh[] { new SingleMesh("patients-groups-tags-sites-mesh", transformPath, meshPath, atlasPath, "patients-groups-tags-sites-mesh-001") },
-                new[] { new MRI("patients-groups-tags-sites-mri", mriPath, "patients-groups-tags-sites-mri-001") },
-                new[] { site },
-                new BaseTagValue[] { new BoolTagValue(patientTag, true, "patients-groups-tags-sites-patient-tag-value-001") },
-                "patients-groups-tags-sites-database-link-001",
-                "patients-groups-tags-sites-patient-001");
+            Site site = new("A1", new[]
+            {
+                new Coordinate("scanner", new Vector3(1.25f, -2.5f, 3.75f), "patients-groups-tags-sites-coordinate-scanner-001"),
+                new Coordinate("mni", new Vector3(-4, 5, 6), "patients-groups-tags-sites-coordinate-mni-001")
+            }, new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "patients-groups-tags-sites-site-tag-value-001") }, "patients-groups-tags-sites-site-001");
+            Patient patient = new("patients-groups-tags-sites-patient-alpha", new BaseMesh[] { new SingleMesh("patients-groups-tags-sites-mesh", transformPath, meshPath, atlasPath, "patients-groups-tags-sites-mesh-001") }, new[] { new MRI("patients-groups-tags-sites-mri", mriPath, "patients-groups-tags-sites-mri-001") }, new[] { site }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "patients-groups-tags-sites-patient-tag-value-001") }, "patients-groups-tags-sites-database-link-001", "patients-groups-tags-sites-patient-001");
 
             Patient loaded = RoundTrip(temp, patient, "patients-groups-tags-sites-patient.json");
 
@@ -80,25 +69,12 @@ namespace HBP.Tests.Serialization
 
             Patient firstPatient = new("patients-groups-tags-sites-patient-alpha", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "patients-groups-tags-sites-patient-alpha-id");
             Patient secondPatient = new("patients-groups-tags-sites-patient-beta", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "patients-groups-tags-sites-patient-beta-id");
-            ApplicationState.LoadedProject = new Project(
-                "patients-groups-tags-sites-project",
-                new ProjectPreferences("patients-groups-tags-sites-version", "patients-groups-tags-sites-project-id"),
-                new[] { firstPatient, secondPatient },
-                Array.Empty<Group>(),
-                Array.Empty<Dataset>(),
-                Array.Empty<Visualization>());
+            ApplicationState.LoadedProject = new Project("patients-groups-tags-sites-project", new ProjectPreferences("patients-groups-tags-sites-version", "patients-groups-tags-sites-project-id"), new[] { firstPatient, secondPatient }, Array.Empty<Group>(), Array.Empty<Dataset>(), Array.Empty<Visualization>());
             Group group = new("patients-groups-tags-sites-group", new[] { firstPatient, secondPatient }, "patients-groups-tags-sites-group-001");
 
             Group loaded = RoundTrip(temp, group, "patients-groups-tags-sites-group.json");
-            LoadingContext context = new(
-                PersistentDataManager.Tags.AllTags,
-                Array.Empty<Protocol>(),
-                new[] { firstPatient, secondPatient });
-            context.ResolveProject(
-                new[] { firstPatient, secondPatient },
-                new[] { loaded },
-                Array.Empty<Dataset>(),
-                Array.Empty<Visualization>());
+            LoadingContext context = new(PersistentDataManager.Tags.AllTags, Array.Empty<Protocol>(), new[] { firstPatient, secondPatient });
+            context.ResolveProject(new[] { firstPatient, secondPatient }, new[] { loaded }, Array.Empty<Dataset>(), Array.Empty<Visualization>());
 
             Assert.That(loaded.PatientsID, Is.EquivalentTo(new[] { firstPatient.ID, secondPatient.ID }));
             Assert.That(loaded.Patients.Select(patient => patient.ID), Is.EquivalentTo(new[] { firstPatient.ID, secondPatient.ID }));
@@ -122,22 +98,10 @@ namespace HBP.Tests.Serialization
 
                 site.LoadConfiguration();
                 site.IsSelected = true;
-                site.State.ApplySpecificState(
-                    importHighlighted: true,
-                    isHighlighted: true,
-                    importBlacklisted: true,
-                    isBlacklisted: false,
-                    importColor: true,
-                    color: Color.cyan,
-                    importLabels: true,
-                    labels: new[] { "new-label" },
-                    mergeLabels: true);
+                site.State.ApplySpecificState(importHighlighted: true, isHighlighted: true, importBlacklisted: true, isBlacklisted: false, importColor: true, color: Color.cyan, importLabels: true, labels: new[] { "new-label" }, mergeLabels: true);
                 site.SaveConfiguration();
 
-                BaseConfiguration baseConfiguration = new(
-                    0.42f,
-                    new() { { "patients-groups-tags-sites-site-001", site.Configuration } },
-                    "patients-groups-tags-sites-base-config-001");
+                BaseConfiguration baseConfiguration = new(0.42f, new() { { "patients-groups-tags-sites-site-001", site.Configuration } }, "patients-groups-tags-sites-base-config-001");
                 VisualizationConfiguration visualizationConfiguration = new()
                 {
                     SiteGain = 2.5f,
@@ -175,19 +139,8 @@ namespace HBP.Tests.Serialization
             PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag }, false);
             PersistentDataManager.Tags.SetSiteTags(new BaseTag[] { siteTag }, false);
 
-            Site siteData = new(
-                "A1",
-                new[] { new Coordinate("scanner", new Vector3(-3, 4, 5), "patients-groups-tags-sites-filter-coordinate-001") },
-                new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "patients-groups-tags-sites-filter-site-tag-value-001") },
-                "patients-groups-tags-sites-filter-site-001");
-            Patient patient = new(
-                "patients-groups-tags-sites-patient-alpha",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                new[] { siteData },
-                new BaseTagValue[] { new BoolTagValue(patientTag, true, "patients-groups-tags-sites-filter-patient-tag-value-001") },
-                "",
-                "patients-groups-tags-sites-filter-patient-001");
+            Site siteData = new("A1", new[] { new Coordinate("scanner", new Vector3(-3, 4, 5), "patients-groups-tags-sites-filter-coordinate-001") }, new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "patients-groups-tags-sites-filter-site-tag-value-001") }, "patients-groups-tags-sites-filter-site-001");
+            Patient patient = new("patients-groups-tags-sites-patient-alpha", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { siteData }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "patients-groups-tags-sites-filter-patient-tag-value-001") }, "", "patients-groups-tags-sites-filter-patient-001");
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
             IEEGDataInfo okData = new("patients-groups-tags-sites-ieeg", protocol, new Elan("synthetic.eeg", "synthetic.pos", "", Array.Empty<Error>(), Array.Empty<Warning>()), Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.Auto, "patients-groups-tags-sites-db", "patients-groups-tags-sites-filter-data-ok");
             StaticDataInfo errorData = new("patients-groups-tags-sites-static", protocol, new CSV("missing.csv", Array.Empty<Error>(), Array.Empty<Warning>()), new Error[] { new RequiredFieldEmptyError("patients-groups-tags-sites") }, Array.Empty<Warning>(), patient, "patients-groups-tags-sites-db", "patients-groups-tags-sites-filter-data-error");
@@ -206,8 +159,7 @@ namespace HBP.Tests.Serialization
                 site.Information.DefaultPosition = siteData.Coordinates[0].Position.ToVector3();
                 site.State.IsOutOfROI = false;
 
-                SpecificSiteLocationFilterCondition.SceneLocationEvaluator = (condition, evaluatedSite) =>
-                    ReferenceEquals(evaluatedSite, site) && condition.LocationType == SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh;
+                SpecificSiteLocationFilterCondition.SceneLocationEvaluator = (condition, evaluatedSite) => ReferenceEquals(evaluatedSite, site) && condition.LocationType == SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh;
 
                 Assert.That(new NameFilterCondition("a1", true, false, false).Check(site), Is.True);
                 Assert.That(new SiteTagFilterCondition(SiteTagFilterCondition.TargetType.Site, siteTag, new StringTagFilterValue { Value = "temp", ExactMatch = false }, false).Check(site), Is.True);

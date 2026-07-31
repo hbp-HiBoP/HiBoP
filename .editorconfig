@@ -38,6 +38,21 @@ resharper_csharp_wrap_before_invocation_lpar = false
 resharper_csharp_wrap_after_invocation_lpar = false
 resharper_csharp_wrap_before_invocation_rpar = false
 
+resharper_csharp_keep_existing_declaration_parens_arrangement = false
+resharper_csharp_wrap_parameters_style = wrap_if_long
+resharper_csharp_max_formal_parameters_on_line = 1000
+resharper_csharp_wrap_before_declaration_lpar = false
+resharper_csharp_wrap_after_declaration_lpar = false
+resharper_csharp_wrap_before_declaration_rpar = false
+
+resharper_csharp_keep_existing_attribute_arrangement = false
+resharper_csharp_max_attribute_length_for_same_line = 10000
+resharper_csharp_place_accessorholder_attribute_on_same_line = always
+resharper_csharp_place_field_attribute_on_same_line = always
+
+resharper_csharp_keep_existing_expr_member_arrangement = false
+resharper_csharp_place_expr_property_on_single_line = true
+
 resharper_csharp_wrap_ternary_expr_style = wrap_if_long
 
 csharp_new_line_between_query_expression_clauses = false

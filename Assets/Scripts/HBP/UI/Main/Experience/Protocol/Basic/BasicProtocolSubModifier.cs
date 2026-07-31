@@ -11,6 +11,7 @@ namespace HBP.UI.Main
     public class BasicProtocolSubModifier : SubModifier<Protocol>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] RangeSlider m_WindowSlider;
         [SerializeField] RangeSlider m_BaselineSlider;
@@ -39,9 +40,11 @@ namespace HBP.UI.Main
                 m_BasicBlocListManager.Object = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -51,9 +54,11 @@ namespace HBP.UI.Main
             m_BaselineSlider.onValueChanged.AddListener(ChangeBaseline);
             m_BasicBlocListManager.OnAddBloc.AddListener(OnAddBloc);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(Protocol objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -73,6 +78,7 @@ namespace HBP.UI.Main
             m_BaselineSlider.step = preferences.Step;
             m_BaselineSlider.Values = firstSubBloc != null ? firstSubBloc.Baseline.ToVector2() : new Vector2(-300, 0);
         }
+
         protected void ChangeName(string value)
         {
             if (value != "")
@@ -84,6 +90,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = Object.Name;
             }
         }
+
         protected void ChangeWindow(float min, float max)
         {
             foreach (var subBloc in Object.Blocs.SelectMany(b => b.SubBlocs))
@@ -91,6 +98,7 @@ namespace HBP.UI.Main
                 subBloc.Window = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
             }
         }
+
         protected void ChangeBaseline(float min, float max)
         {
             foreach (var subBloc in Object.Blocs.SelectMany(b => b.SubBlocs))
@@ -98,11 +106,13 @@ namespace HBP.UI.Main
                 subBloc.Baseline = new TimeWindow(Mathf.RoundToInt(min), Mathf.RoundToInt(max));
             }
         }
+
         protected void OnAddBloc(Bloc bloc)
         {
             bloc.MainSubBloc.Window = new TimeWindow(Mathf.RoundToInt(m_WindowSlider.Values.x), Mathf.RoundToInt(m_WindowSlider.Values.y));
             bloc.MainSubBloc.Baseline = new TimeWindow(Mathf.RoundToInt(m_BaselineSlider.Values.x), Mathf.RoundToInt(m_BaselineSlider.Values.y));
         }
+
         #endregion
     }
 }

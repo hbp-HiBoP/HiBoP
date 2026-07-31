@@ -20,15 +20,18 @@ namespace HBP.Core.Data
         private long m_ManagedBytes;
 
         #region Properties
+
         public bool Found { get; private set; }
         public EpochDescriptor Descriptor { get; private set; }
         public Dictionary<Event, EventInformation> InformationsByEvent => Descriptor?.InformationsByEvent ?? m_EmptyInformationsByEvent;
         public Dictionary<string, string> UnitByChannel { get; private set; }
         public Dictionary<string, float[]> ValuesByChannel { get; set; }
         public IEnumerable<string> Channels => m_ChannelLayout?.Channels ?? Array.Empty<string>();
+
         #endregion
 
         #region Constructors
+
         public SubTrial(bool found)
         {
             Found = found;
@@ -43,23 +46,11 @@ namespace HBP.Core.Data
             m_NormalizedChannels = Array.Empty<bool>();
         }
 
-        public SubTrial(
-            Dictionary<string, float[]> sourceByChannel,
-            Dictionary<string, string> unitByChannel,
-            EpochDescriptor descriptor,
-            SubBloc subBloc,
-            Tools.Frequency frequency)
-            : this(sourceByChannel, unitByChannel, descriptor, subBloc, frequency, new EpochCompatibilityBuffer())
+        public SubTrial(Dictionary<string, float[]> sourceByChannel, Dictionary<string, string> unitByChannel, EpochDescriptor descriptor, SubBloc subBloc, Tools.Frequency frequency) : this(sourceByChannel, unitByChannel, descriptor, subBloc, frequency, new EpochCompatibilityBuffer())
         {
         }
 
-        internal SubTrial(
-            Dictionary<string, float[]> sourceByChannel,
-            Dictionary<string, string> unitByChannel,
-            EpochDescriptor descriptor,
-            SubBloc subBloc,
-            Tools.Frequency frequency,
-            EpochCompatibilityBuffer compatibilityBuffer)
+        internal SubTrial(Dictionary<string, float[]> sourceByChannel, Dictionary<string, string> unitByChannel, EpochDescriptor descriptor, SubBloc subBloc, Tools.Frequency frequency, EpochCompatibilityBuffer compatibilityBuffer)
         {
             if (sourceByChannel == null) throw new ArgumentNullException(nameof(sourceByChannel));
             UnitByChannel = unitByChannel ?? throw new ArgumentNullException(nameof(unitByChannel));
@@ -80,16 +71,7 @@ namespace HBP.Core.Data
             }
         }
 
-        internal SubTrial(
-            Dictionary<string, float[]> sourceByChannel,
-            Dictionary<string, string> unitByChannel,
-            EventOccurence mainEventOccurence,
-            SubBloc subBloc,
-            Dictionary<Event, BlocData.EventOccurences> occurencesByEvent,
-            Tools.Frequency frequency,
-            int trialIndex,
-            int subTrialIndex,
-            EpochCompatibilityBuffer compatibilityBuffer)
+        internal SubTrial(Dictionary<string, float[]> sourceByChannel, Dictionary<string, string> unitByChannel, EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.Frequency frequency, int trialIndex, int subTrialIndex, EpochCompatibilityBuffer compatibilityBuffer)
         {
             int startIndex = mainEventOccurence.Index + frequency.ConvertToCeiledNumberOfSamples(subBloc.Window.Start);
             int endIndex = mainEventOccurence.Index + frequency.ConvertToFlooredNumberOfSamples(subBloc.Window.End);
@@ -113,13 +95,7 @@ namespace HBP.Core.Data
 
             EpochRange window = CreateRange(sourceByChannel, startIndex, endIndex);
             EpochRange baseline = CreateRange(sourceByChannel, baselineStartIndex, baselineEndIndex);
-            EpochDescriptor descriptor = new(
-                window,
-                baseline,
-                mainEventOccurence.Index,
-                trialIndex,
-                subTrialIndex,
-                FindEvents(mainEventOccurence, subBloc, occurencesByEvent, frequency, window));
+            EpochDescriptor descriptor = new(window, baseline, mainEventOccurence.Index, trialIndex, subTrialIndex, FindEvents(mainEventOccurence, subBloc, occurencesByEvent, frequency, window));
 
             UnitByChannel = unitByChannel;
             Descriptor = descriptor;
@@ -138,17 +114,17 @@ namespace HBP.Core.Data
                 m_ManagedBytes += processedValues.LongLength * sizeof(float);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public EpochView GetWindow(string channel)
         {
             if (!Found || m_ChannelLayout == null || !m_ChannelLayout.TryGetIndex(channel, out int channelIndex))
                 throw new KeyNotFoundException(channel);
             int channelOffset = channelIndex * m_CompactChannelLength;
-            return new EpochView(m_CompactSource, new EpochRange(
-                channelOffset + m_StoredWindow.StartIndex,
-                channelOffset + m_StoredWindow.EndIndex));
+            return new EpochView(m_CompactSource, new EpochRange(channelOffset + m_StoredWindow.StartIndex, channelOffset + m_StoredWindow.EndIndex));
         }
 
         public EpochView GetBaseline(string channel)
@@ -156,9 +132,7 @@ namespace HBP.Core.Data
             if (!Found || m_ChannelLayout == null || !m_ChannelLayout.TryGetIndex(channel, out int channelIndex))
                 throw new KeyNotFoundException(channel);
             int channelOffset = channelIndex * m_CompactChannelLength;
-            return new EpochView(m_CompactSource, new EpochRange(
-                channelOffset + m_StoredBaseline.StartIndex,
-                channelOffset + m_StoredBaseline.EndIndex));
+            return new EpochView(m_CompactSource, new EpochRange(channelOffset + m_StoredBaseline.StartIndex, channelOffset + m_StoredBaseline.EndIndex));
         }
 
         public void Clear()
@@ -191,21 +165,17 @@ namespace HBP.Core.Data
         {
             Normalize(average, standardDeviation, channel, new EpochCompatibilityBuffer());
         }
+
         #endregion
 
         #region Internal Methods
-        internal void Normalize(
-            float average,
-            float standardDeviation,
-            string channel,
-            EpochCompatibilityBuffer compatibilityBuffer,
-            bool normalizedResult = true)
+
+        internal void Normalize(float average, float standardDeviation, string channel, EpochCompatibilityBuffer compatibilityBuffer, bool normalizedResult = true)
         {
             if (!Found || m_ChannelLayout == null || !m_ChannelLayout.TryGetIndex(channel, out int channelIndex))
                 return;
 
-            bool hasUsableValues = ValuesByChannel.TryGetValue(channel, out float[] existing)
-                && existing.Length == Descriptor.Window.Length;
+            bool hasUsableValues = ValuesByChannel.TryGetValue(channel, out float[] existing) && existing.Length == Descriptor.Window.Length;
             long previousBytes = existing?.LongLength * sizeof(float) ?? 0;
             float[] values = hasUsableValues ? existing : new float[Descriptor.Window.Length];
             if (m_NormalizedChannels[channelIndex] || !hasUsableValues)
@@ -244,9 +214,11 @@ namespace HBP.Core.Data
             for (int i = 0; i < Descriptor.Baseline.Length; ++i)
                 statistics.Add(processedBaseline[i]);
         }
+
         #endregion
 
         #region Private Methods
+
         private float[] MaterializeProcessedValues(string channel, float[] values, EpochCompatibilityBuffer compatibilityBuffer)
         {
             GetWindow(channel).CopyTo(values);
@@ -283,9 +255,7 @@ namespace HBP.Core.Data
 
         internal long ManagedBytes => m_ManagedBytes;
 
-        private void InitializeCompactSources(
-            Dictionary<string, float[]> sourceByChannel,
-            EpochCompatibilityBuffer compatibilityBuffer)
+        private void InitializeCompactSources(Dictionary<string, float[]> sourceByChannel, EpochCompatibilityBuffer compatibilityBuffer)
         {
             foreach (float[] source in sourceByChannel.Values)
             {
@@ -296,12 +266,8 @@ namespace HBP.Core.Data
             int compactStart = Math.Min(Descriptor.Window.StartIndex, Descriptor.Baseline.StartIndex);
             int compactEnd = Math.Max(Descriptor.Window.EndIndex, Descriptor.Baseline.EndIndex);
             int compactLength = compactEnd - compactStart + 1;
-            m_StoredWindow = new EpochRange(
-                Descriptor.Window.StartIndex - compactStart,
-                Descriptor.Window.EndIndex - compactStart);
-            m_StoredBaseline = new EpochRange(
-                Descriptor.Baseline.StartIndex - compactStart,
-                Descriptor.Baseline.EndIndex - compactStart);
+            m_StoredWindow = new EpochRange(Descriptor.Window.StartIndex - compactStart, Descriptor.Window.EndIndex - compactStart);
+            m_StoredBaseline = new EpochRange(Descriptor.Baseline.StartIndex - compactStart, Descriptor.Baseline.EndIndex - compactStart);
             m_ChannelLayout = compatibilityBuffer.GetChannelLayout(sourceByChannel);
             m_CompactChannelLength = compactLength;
             m_CompactSource = new float[checked(compactLength * m_ChannelLayout.Channels.Length)];
@@ -311,6 +277,7 @@ namespace HBP.Core.Data
                 string channel = m_ChannelLayout.Channels[channelIndex];
                 Array.Copy(sourceByChannel[channel], compactStart, m_CompactSource, channelIndex * compactLength, compactLength);
             }
+
             m_NormalizedChannels = new bool[m_ChannelLayout.Channels.Length];
         }
 
@@ -334,22 +301,10 @@ namespace HBP.Core.Data
                 throw new CannotEpochAllTrialsException(source.Length - 1, range.StartIndex, range.EndIndex);
         }
 
-        private static Dictionary<Event, EventInformation> FindEvents(
-            EventOccurence mainEventOccurence,
-            SubBloc subBloc,
-            Dictionary<Event, BlocData.EventOccurences> occurencesByEvent,
-            Tools.Frequency frequency,
-            EpochRange window)
+        private static Dictionary<Event, EventInformation> FindEvents(EventOccurence mainEventOccurence, SubBloc subBloc, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Tools.Frequency frequency, EpochRange window)
         {
             Dictionary<Event, EventInformation> result = new(subBloc.Events.Count);
-            EventInformation.EventOccurence mainOccurence = new(
-                mainEventOccurence.Code,
-                mainEventOccurence.Index,
-                mainEventOccurence.Index - window.StartIndex,
-                0,
-                mainEventOccurence.Time,
-                -subBloc.Window.Start,
-                0f);
+            EventInformation.EventOccurence mainOccurence = new(mainEventOccurence.Code, mainEventOccurence.Index, mainEventOccurence.Index - window.StartIndex, 0, mainEventOccurence.Time, -subBloc.Window.Start, 0f);
             result.Add(subBloc.MainEvent, new EventInformation(new[] { mainOccurence }));
 
             foreach (Event secondaryEvent in subBloc.SecondaryEvents)
@@ -358,19 +313,15 @@ namespace HBP.Core.Data
                 List<EventInformation.EventOccurence> eventOccurences = new(occurences.Length);
                 foreach (EventOccurence occurence in occurences)
                 {
-                    eventOccurences.Add(new EventInformation.EventOccurence(
-                        occurence.Code,
-                        occurence.Index,
-                        occurence.Index - window.StartIndex,
-                        occurence.Index - mainOccurence.Index,
-                        occurence.Time,
-                        occurence.Time - mainOccurence.Time + mainOccurence.TimeFromStart,
-                        occurence.Time - mainOccurence.Time));
+                    eventOccurences.Add(new EventInformation.EventOccurence(occurence.Code, occurence.Index, occurence.Index - window.StartIndex, occurence.Index - mainOccurence.Index, occurence.Time, occurence.Time - mainOccurence.Time + mainOccurence.TimeFromStart, occurence.Time - mainOccurence.Time));
                 }
+
                 result.Add(secondaryEvent, new EventInformation(eventOccurences.ToArray()));
             }
+
             return result;
         }
+
         #endregion
     }
 }

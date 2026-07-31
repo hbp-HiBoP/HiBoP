@@ -85,15 +85,7 @@ namespace HBP.Tests.Serialization
 
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
             Patient patient = new("data-loading-cache-invalid-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-invalid-patient-001");
-            StaticDataInfo invalidDataInfo = new(
-                "data-loading-cache-invalid-static",
-                protocol,
-                new CSV("", Array.Empty<Error>(), Array.Empty<Warning>()),
-                new Error[] { new RequiredFieldEmptyError("data-loading-cache invalid data") },
-                Array.Empty<Warning>(),
-                patient,
-                "data-loading-cache-db",
-                "data-loading-cache-invalid-data-001");
+            StaticDataInfo invalidDataInfo = new("data-loading-cache-invalid-static", protocol, new CSV("", Array.Empty<Error>(), Array.Empty<Warning>()), new Error[] { new RequiredFieldEmptyError("data-loading-cache invalid data") }, Array.Empty<Warning>(), patient, "data-loading-cache-db", "data-loading-cache-invalid-data-001");
 
             Assert.That(DataManager.GetData(invalidDataInfo), Is.Null);
             Assert.That(DataManager.GetData(invalidDataInfo, protocol.Blocs[0], "A1"), Is.Null);
@@ -222,9 +214,7 @@ namespace HBP.Tests.Serialization
         {
             EpochCacheFixture fixture = CreateInjectedEpochCache(NormalizationType.None);
             fixture.FirstSubTrial.ValuesByChannel[fixture.Channel] = new float[400000];
-            typeof(SubTrial)
-                .GetField("m_ManagedBytes", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(fixture.FirstSubTrial, 400000L * sizeof(float));
+            typeof(SubTrial).GetField("m_ManagedBytes", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fixture.FirstSubTrial, 400000L * sizeof(float));
             DataManager.ConfigureMemoryBudget(1, 0);
 
             DataManager.RefreshDerivedMemoryUsage(fixture.DataInfo);
@@ -291,10 +281,7 @@ namespace HBP.Tests.Serialization
             Bloc bloc = fixture.Blocs[0];
             ConcurrentBag<BlocChannelData> results = new();
 
-            Parallel.For(0, 32, _ =>
-            {
-                results.Add(DataManager.GetData(fixture.DataInfo, bloc, fixture.Channel));
-            });
+            Parallel.For(0, 32, _ => { results.Add(DataManager.GetData(fixture.DataInfo, bloc, fixture.Channel)); });
 
             Assert.That(results, Has.Count.EqualTo(32));
             Assert.That(results.Distinct().Count(), Is.EqualTo(1));
@@ -337,31 +324,14 @@ namespace HBP.Tests.Serialization
 
             Protocol protocol = SyntheticProjectFactory.CreateProtocol();
             Patient patient = new("data-loading-cache-static-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-static-patient-001");
-            return new StaticDataInfo(
-                "data-loading-cache-static",
-                protocol,
-                new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), "data-loading-cache-static-container-001"),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                "data-loading-cache-db",
-                "data-loading-cache-static-data-001");
+            return new StaticDataInfo("data-loading-cache-static", protocol, new CSV(csvPath, Array.Empty<Error>(), Array.Empty<Warning>(), "data-loading-cache-static-container-001"), Array.Empty<Error>(), Array.Empty<Warning>(), patient, "data-loading-cache-db", "data-loading-cache-static-data-001");
         }
 
         private static EpochCacheFixture CreateInjectedEpochCache(NormalizationType normalization, int blocCount = 1, string idSuffix = "")
         {
             Protocol protocol = CreateProtocol(blocCount);
             Patient patient = new("data-loading-cache-ieeg-patient" + idSuffix, Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", "data-loading-cache-ieeg-patient-001" + idSuffix);
-            IEEGDataInfo dataInfo = new(
-                "data-loading-cache-ieeg" + idSuffix,
-                protocol,
-                new Elan(),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                normalization,
-                "data-loading-cache-db",
-                "data-loading-cache-ieeg-data-001" + idSuffix);
+            IEEGDataInfo dataInfo = new("data-loading-cache-ieeg" + idSuffix, protocol, new Elan(), Array.Empty<Error>(), Array.Empty<Warning>(), patient, normalization, "data-loading-cache-db", "data-loading-cache-ieeg-data-001" + idSuffix);
             Dictionary<Bloc, BlocData> blocDataByBloc = protocol.Blocs.ToDictionary(bloc => bloc, CreateBlocData);
 
             IEEGData data = (IEEGData)FormatterServices.GetUninitializedObject(typeof(IEEGData));
@@ -392,16 +362,7 @@ namespace HBP.Tests.Serialization
             Bloc[] blocs = Enumerable.Range(0, blocCount).Select(index =>
             {
                 Event mainEvent = new($"event-{index}", new[] { 10 + index }, MainSecondaryEnum.Main, $"data-loading-cache-event-{index:000}");
-                SubBloc subBloc = new(
-                    $"subbloc-{index}",
-                    0,
-                    MainSecondaryEnum.Main,
-                    new TimeWindow(0, 1),
-                    new TimeWindow(0, 1),
-                    new[] { mainEvent },
-                    Array.Empty<Icon>(),
-                    Array.Empty<Treatment>(),
-                    $"data-loading-cache-subbloc-{index:000}");
+                SubBloc subBloc = new($"subbloc-{index}", 0, MainSecondaryEnum.Main, new TimeWindow(0, 1), new TimeWindow(0, 1), new[] { mainEvent }, Array.Empty<Icon>(), Array.Empty<Treatment>(), $"data-loading-cache-subbloc-{index:000}");
                 Bloc bloc = (Bloc)FormatterServices.GetUninitializedObject(typeof(Bloc));
                 bloc.ID = $"data-loading-cache-bloc-{index:000}";
                 bloc.Name = $"bloc-{index}";
@@ -440,19 +401,8 @@ namespace HBP.Tests.Serialization
                     })
                 }
             };
-            EpochDescriptor descriptor = new(
-                new EpochRange(0, rawValues.Length - 1),
-                new EpochRange(rawValues.Length, rawValues.Length + baselineValues.Length - 1),
-                0,
-                0,
-                0,
-                informationsByEvent);
-            return new SubTrial(
-                new Dictionary<string, float[]> { { "A1", rawValues.Concat(baselineValues).ToArray() } },
-                new Dictionary<string, string> { { "A1", "uV" } },
-                descriptor,
-                subBloc,
-                new Frequency(1000));
+            EpochDescriptor descriptor = new(new EpochRange(0, rawValues.Length - 1), new EpochRange(rawValues.Length, rawValues.Length + baselineValues.Length - 1), 0, 0, 0, informationsByEvent);
+            return new SubTrial(new Dictionary<string, float[]> { { "A1", rawValues.Concat(baselineValues).ToArray() } }, new Dictionary<string, string> { { "A1", "uV" } }, descriptor, subBloc, new Frequency(1000));
         }
 
         private static void TryNormalizeOrIgnore(bool useParallelProcessing = false)

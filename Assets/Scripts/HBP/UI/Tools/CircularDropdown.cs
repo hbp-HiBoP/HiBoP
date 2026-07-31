@@ -8,6 +8,7 @@ namespace HBP.UI.Tools
     public class CircularDropdown : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private Button m_LeftButton;
         [SerializeField] private Button m_RightButton;
         [SerializeField] private Dropdown m_Dropdown;
@@ -35,35 +36,44 @@ namespace HBP.UI.Tools
                     Interactable = false;
             }
         }
+
         #endregion
 
         #region Events
+
         public Dropdown.DropdownEvent OnValueChanged => m_Dropdown.onValueChanged;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_LeftButton.onClick.AddListener(SelectPrevious);
             m_RightButton.onClick.AddListener(SelectNext);
         }
+
         #endregion
 
         #region Public Methods
+
         public void SelectNext()
         {
             int newValue = (m_Dropdown.value + 1) % m_Dropdown.options.Count;
             m_Dropdown.SetValue(newValue);
         }
+
         public void SelectPrevious()
         {
             int newValue = (m_Dropdown.value - 1 + m_Dropdown.options.Count) % m_Dropdown.options.Count;
             m_Dropdown.SetValue(newValue);
         }
+
         public void SetValue(int value)
         {
             m_Dropdown.SetValue(value);
         }
+
         #endregion
     }
 }

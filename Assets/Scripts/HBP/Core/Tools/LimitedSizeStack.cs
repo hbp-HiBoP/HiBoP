@@ -5,6 +5,7 @@ namespace HBP.Core.Tools
     public class LimitedSizeStack<T> : LinkedList<T>
     {
         private readonly int _maxSize;
+
         public LimitedSizeStack(int maxSize)
         {
             _maxSize = maxSize;

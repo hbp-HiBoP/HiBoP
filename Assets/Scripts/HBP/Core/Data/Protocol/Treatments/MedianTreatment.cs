@@ -42,22 +42,24 @@ namespace HBP.Core.Data
     public class MedianTreatment : Treatment
     {
         public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Buffer;
+
         #region Constructors
+
         /// <summary>
         /// Create a new MedianTreatment instance with default values.
         /// </summary>
         public MedianTreatment() : base()
         {
-
         }
+
         /// <summary>
         /// Create a new MedianTreatment instance with default values and a specified unique identifier.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
         public MedianTreatment(string ID) : base(ID)
         {
-
         }
+
         /// <summary>
         /// Create a new MedianTreatment instance.
         /// </summary>
@@ -70,9 +72,11 @@ namespace HBP.Core.Data
         public MedianTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             float[] workspace = new float[values.Length + baseline.Length];
@@ -91,28 +95,34 @@ namespace HBP.Core.Data
                 for (int i = startWindow; i <= endWindow; ++i)
                     workspace[count++] = values[i];
             }
+
             if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; ++i)
                     workspace[count++] = baseline[i];
             }
+
             float median = StreamingStatistics.Median(workspace, count);
             if (UseOnWindow)
             {
                 for (int i = startWindow; i <= endWindow; i++) values[i] = median;
             }
+
             if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; i++) baseline[i] = median;
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new MedianTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
+
         #endregion
     }
 }

@@ -26,60 +26,52 @@ namespace HBP.Core.Data
     public class BaseTagValue : BaseData
     {
         #region Properties
+
         [JsonProperty("Tag")] protected string m_TagID;
+
         /// <summary>
         /// Tag associated with the value.
         /// </summary>
-        public BaseTag Tag
-        {
-            get;
-            set;
-        }
+        public BaseTag Tag { get; set; }
 
         [JsonProperty("Value")] protected object m_Value;
+
         /// <summary>
         /// Value associated with the tag.
         /// </summary>
         public object Value
         {
-            get
-            {
-                return m_Value;
-            }
-            protected set
-            {
-                m_Value = value;
-            }
+            get { return m_Value; }
+            protected set { m_Value = value; }
         }
-        
+
         /// <summary>
         /// Value in its displayable form.
         /// </summary>
         public virtual string DisplayableValue
         {
-            get
-            {
-                return m_Value.ToString();
-            }
+            get { return m_Value.ToString(); }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new instance of BaseTagValue.
         /// </summary>
         public BaseTagValue() : this(null, null)
         {
-
         }
+
         /// <summary>
         /// Create a new instance of BaseTagValue.
         /// </summary>
         /// <param name="tag">Tag associated with the value</param>
         public BaseTagValue(BaseTag tag) : this(tag, null)
         {
-
         }
+
         /// <summary>
         /// Create a new instance of BaseTagValue.
         /// </summary>
@@ -90,6 +82,7 @@ namespace HBP.Core.Data
             Tag = tag;
             Value = value;
         }
+
         /// <summary>
         /// Create a new instance of BaseTagValue.
         /// </summary>
@@ -101,9 +94,11 @@ namespace HBP.Core.Data
             Tag = tag;
             Value = value;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Update the value - ensures the value is properly set when Tag changes.
         /// </summary>
@@ -113,11 +108,13 @@ namespace HBP.Core.Data
             m_Value = null;
             Value = currentValue;
         }
+
         internal void ResolveReferences(LoadingContext context)
         {
             string tagID = m_TagID ?? Tag?.ID;
             Tag = context.ResolveOptional(context.TagById, tagID);
         }
+
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -126,18 +123,22 @@ namespace HBP.Core.Data
         {
             return new BaseTagValue(Tag, Value, ID);
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
         }
+
         protected override void OnSerializing()
         {
             base.OnSerializing();
             m_TagID = Tag?.ID;
         }
+
         #endregion
     }
 }

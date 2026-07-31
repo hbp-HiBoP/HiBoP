@@ -64,6 +64,7 @@ namespace HBP.Core.DLL
                 ThrowIfFailed(hbp_raw_site_list_is_site_on_plane(_handle.Handle, site.Information.Index, plane.getHandle().Handle, precision, out int onPlane));
                 result |= onPlane == 1;
             }
+
             return result;
         }
 
@@ -101,22 +102,31 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_create(out IntPtr list);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_destroy(IntPtr list);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_clone", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_clone(IntPtr list, out IntPtr clone);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_set_patients", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_set_patients(IntPtr list, [MarshalAs(UnmanagedType.LPUTF8Str)] string patients);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_add_site", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_add_site(IntPtr list, [MarshalAs(UnmanagedType.LPUTF8Str)] string name, ref Vec3 position, int patientIndex, int index);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_update_mask", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_update_mask(IntPtr list, int siteId, int mask);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_get_count", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_get_count(IntPtr list, out int count);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_copy_sites_on_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_copy_sites_on_plane(IntPtr list, IntPtr plane, float precision, [Out] int[] result, int resultCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_is_site_on_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_is_site_on_plane(IntPtr list, int siteId, IntPtr plane, float precision, out int result);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_get_mars_atlas_label", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_get_mars_atlas_label(IntPtr list, int siteId, out int label);
     }

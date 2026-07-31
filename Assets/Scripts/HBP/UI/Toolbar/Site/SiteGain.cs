@@ -6,13 +6,16 @@ namespace HBP.UI.Toolbar
     public class SiteGain : Tool
     {
         #region Properties
+
         /// <summary>
         /// Slider to control the gain of the sites
         /// </summary>
         [SerializeField] private Slider m_Slider;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -25,6 +28,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.SiteGain = value;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -33,6 +37,7 @@ namespace HBP.UI.Toolbar
             m_Slider.value = 1.0f;
             m_Slider.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -40,6 +45,7 @@ namespace HBP.UI.Toolbar
         {
             m_Slider.interactable = true;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -47,6 +53,7 @@ namespace HBP.UI.Toolbar
         {
             m_Slider.value = SelectedScene.SiteGain;
         }
+
         #endregion
     }
 }

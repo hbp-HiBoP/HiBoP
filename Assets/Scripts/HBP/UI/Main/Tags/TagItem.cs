@@ -11,15 +11,13 @@ namespace HBP.UI.Main
     public class TagItem : ActionnableItem<Core.Data.BaseTag>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_TypeText;
 
         public override Core.Data.BaseTag Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -31,6 +29,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

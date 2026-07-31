@@ -11,12 +11,15 @@ namespace HBP.UI.Informations
     public class TrialMatrixZone : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] TrialMatrix.TrialMatrixGrid m_TrialMatrixGrid;
         data.TrialMatrixGrid m_TrialMatrixGridData;
         Dictionary<data.TrialMatrixGrid.TrialMatrixData, Settings> m_SettingsByData;
+
         #endregion
 
         #region Public Methods
+
         public void Display(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
         {
             List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new();
@@ -46,8 +49,8 @@ namespace HBP.UI.Informations
                 {
                     if (data is IEEGData)
                     {
-                        data.TrialMatrixGrid.IEEGTrialMatrixData trialMatrixData = dataToDisplay.OfType<data.TrialMatrixGrid.IEEGTrialMatrixData>().FirstOrDefault(d => d.Name == data.Name && d.Dataset == data.Dataset); 
-                        if(trialMatrixData == null)
+                        data.TrialMatrixGrid.IEEGTrialMatrixData trialMatrixData = dataToDisplay.OfType<data.TrialMatrixGrid.IEEGTrialMatrixData>().FirstOrDefault(d => d.Name == data.Name && d.Dataset == data.Dataset);
+                        if (trialMatrixData == null)
                         {
                             dataToDisplay.Add(new data.TrialMatrixGrid.IEEGTrialMatrixData(data.Dataset, data.Name, new List<Core.Data.Bloc>() { data.Bloc }));
                         }
@@ -61,7 +64,7 @@ namespace HBP.UI.Informations
                         data.TrialMatrixGrid.CCEPTrialMatrixData trialMatrixData = dataToDisplay.OfType<data.TrialMatrixGrid.CCEPTrialMatrixData>().FirstOrDefault(d => d.Name == data.Name && d.Dataset == data.Dataset && d.Source == ccepData.Source);
                         if (trialMatrixData == null)
                         {
-                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name,  new List<Core.Data.Bloc>() { data.Bloc }, ccepData.Source));
+                            dataToDisplay.Add(new data.TrialMatrixGrid.CCEPTrialMatrixData(data.Dataset, data.Name, new List<Core.Data.Bloc>() { data.Bloc }, ccepData.Source));
                         }
                         else
                         {
@@ -70,24 +73,29 @@ namespace HBP.UI.Informations
                     }
                 }
             }
+
             SaveSettings();
             foreach (var data in dataToDisplay)
             {
                 m_SettingsByData.AddIfAbsent(data, new Settings());
             }
+
             m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataToDisplay.ToArray());
             m_TrialMatrixGrid.gameObject.SetActive(true);
             m_TrialMatrixGrid.Display(m_TrialMatrixGridData);
             ApplySettings();
         }
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_SettingsByData = new Dictionary<data.TrialMatrixGrid.TrialMatrixData, Settings>();
             m_TrialMatrixGrid.gameObject.SetActive(false);
         }
+
         void SaveSettings()
         {
             foreach (var data in m_TrialMatrixGrid.Data)
@@ -98,9 +106,11 @@ namespace HBP.UI.Informations
                 {
                     settings.Limits = data.Limits;
                 }
+
                 m_SettingsByData[data.GridData.DataStruct] = settings;
             }
         }
+
         void ApplySettings()
         {
             foreach (var data in m_TrialMatrixGrid.Data)
@@ -112,28 +122,35 @@ namespace HBP.UI.Informations
                 }
             }
         }
+
         #endregion
 
         #region Structs
+
         class Settings
         {
             #region Properties
+
             public Vector2 Limits { get; set; }
             public bool UseDefaultLimit { get; set; }
+
             #endregion
 
             #region Constructors
+
             public Settings() : this(Vector2.zero, true)
             {
-
             }
+
             public Settings(Vector2 limits, bool useDefaultLimits)
             {
                 Limits = limits;
                 UseDefaultLimit = useDefaultLimits;
             }
+
             #endregion
         }
+
         #endregion
     }
 }

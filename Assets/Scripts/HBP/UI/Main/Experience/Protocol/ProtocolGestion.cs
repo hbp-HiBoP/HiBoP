@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class ProtocolGestion : GestionWindow<Protocol>
     {
         #region Properties
+
         [SerializeField] ProtocolListGestion m_ListGestion;
         public override ListGestion<Protocol> ListGestion => m_ListGestion;
 
@@ -26,26 +27,23 @@ namespace HBP.UI.Main
                 m_ListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override async void OK()
         {
             bool requiresReload = DataManager.HasData;
-            ValidationRequest validationRequest =
-                ValidationImpactAnalyzer.ForProtocols(
-                    m_OldValues,
-                    m_ListGestion.List.Objects);
+            ValidationRequest validationRequest = ValidationImpactAnalyzer.ForProtocols(m_OldValues, m_ListGestion.List.Objects);
 
             base.OK();
-            DatabaseManager.Database.SetProtocols(
-                m_ListGestion.List.Objects,
-                validationRequest);
+            DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects, validationRequest);
             if (validationRequest.Aspects != ValidationAspect.None)
             {
-                ApplicationState.LoadedProject?.InvalidateValidation(
-                    validationRequest);
+                ApplicationState.LoadedProject?.InvalidateValidation(validationRequest);
             }
+
             await DatabaseWorkflow.SaveProtocolsAsync();
             InteractableStateManager.SetInteractables();
             await UniTask.SwitchToMainThread();
@@ -53,6 +51,7 @@ namespace HBP.UI.Main
             {
                 DataManager.ClearDerivedData();
             }
+
             if (ApplicationState.LoadedProject != null)
             {
                 var visualizations = Module3DMain.PrepareReloadScenes();
@@ -60,20 +59,24 @@ namespace HBP.UI.Main
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
         }
+
         public override void Close()
         {
             if (m_ListGestion.HasBeenModified)
                 LoadingManager.Load(update => RestoreOldValuesAsync(DatabaseManager.Database.Protocols, update), false);
             base.Close();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields()
         {
             base.SetFields();
             SetList(DatabaseManager.Database.Protocols);
         }
+
         #endregion
     }
 }

@@ -11,6 +11,7 @@ namespace HBP.UI.Informations
     public class ChannelStructsGroupModifier : ObjectModifier<ChannelStructsGroup>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] ChannelStructList m_ChannelStructsList;
         [SerializeField] ChannelStructList m_SelectedChannelStructsList;
@@ -31,9 +32,11 @@ namespace HBP.UI.Informations
                 m_SelectedChannelStructsList.Interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -51,6 +54,7 @@ namespace HBP.UI.Informations
             m_AddChannelButton.onClick.AddListener(OnAddChannels);
             m_RemoveChannelButton.onClick.AddListener(OnRemoveChannels);
         }
+
         protected override void SetFields()
         {
             base.SetFields();
@@ -58,6 +62,7 @@ namespace HBP.UI.Informations
             m_ChannelStructs = Module3DMain.SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).Select(s => new ChannelStruct(s)).GroupBy(c => (c.Channel, c.Patient)).Select(g => g.First()).ToList();
             m_ChannelStructsList.Set(m_ChannelStructs);
         }
+
         protected override void SetFields(ChannelStructsGroup group)
         {
             m_NameInputField.text = group.Name;
@@ -70,11 +75,13 @@ namespace HBP.UI.Informations
             m_SelectedChannelStructsList.Add(m_ChannelStructsList.ObjectsSelected);
             UpdateList();
         }
+
         private void OnRemoveChannels()
         {
             m_SelectedChannelStructsList.Remove(m_SelectedChannelStructsList.ObjectsSelected);
             UpdateList();
         }
+
         private void UpdateList()
         {
             var selectedSet = new HashSet<ChannelStruct>(ObjectTemp.Channels);
@@ -82,6 +89,7 @@ namespace HBP.UI.Informations
             m_ChannelStructsList.MaskList(mask, false);
             UpdateButtonsState();
         }
+
         private void UpdateButtonsState()
         {
             m_AddChannelButton.interactable = m_ChannelStructsList.ObjectsSelected.Length > 0;
@@ -95,6 +103,7 @@ namespace HBP.UI.Informations
                 ObjectTemp.Channels.Add(channelStruct);
             }
         }
+
         private void RemoveChannel(ChannelStruct channelStruct)
         {
             if (ObjectTemp.Channels.Contains(channelStruct))
@@ -102,6 +111,7 @@ namespace HBP.UI.Informations
                 ObjectTemp.Channels.Remove(channelStruct);
             }
         }
+
         #endregion
     }
 }

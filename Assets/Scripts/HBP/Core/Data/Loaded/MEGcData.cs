@@ -9,21 +9,26 @@ namespace HBP.Core.Data
     public class MEGcData : Data
     {
         #region Properties
+
         public virtual Dictionary<string, float[]> ValuesByChannel { get; set; }
         public virtual Dictionary<string, string> UnitByChannel { get; set; }
         public virtual Tools.Frequency Frequency { get; set; }
+
         #endregion
 
         #region Constructors
+
         public MEGcData() : this(new Dictionary<string, float[]>(), new Dictionary<string, string>(), new Tools.Frequency())
         {
         }
+
         public MEGcData(Dictionary<string, float[]> valuesBySite, Dictionary<string, string> unitBySite, Tools.Frequency frequency)
         {
             ValuesByChannel = valuesBySite;
             UnitByChannel = unitBySite;
             Frequency = frequency;
         }
+
         public MEGcData(MEGcDataInfo dataInfo) : this()
         {
             // Read Data.
@@ -48,36 +53,44 @@ namespace HBP.Core.Data
             {
                 throw new Exception("Invalid data container type");
             }
+
             string[] missingFiles = files.Where(filePath => !string.IsNullOrWhiteSpace(filePath) && !File.Exists(filePath)).ToArray();
             if (missingFiles.Length > 0)
             {
                 throw new DataFileNotFoundException(missingFiles);
             }
+
             using DLL.EEG.File file = new(type, true, files);
             if (file.getHandle().Handle == IntPtr.Zero)
             {
                 throw new Exception("Data file could not be loaded");
             }
+
             List<DLL.EEG.Electrode> channels = file.Electrodes;
             foreach (var channel in channels)
             {
                 ValuesByChannel.Add(channel.Label, channel.Data);
                 UnitByChannel.Add(channel.Label, channel.Unit);
             }
+
             Frequency = file.SamplingFrequency;
         }
+
         internal MEGcData(DynamicData rawData) : this(rawData.ValuesByChannel, new Dictionary<string, string>(rawData.UnitByChannel), rawData.Frequency)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Clear()
         {
             ValuesByChannel = new Dictionary<string, float[]>();
             UnitByChannel = new Dictionary<string, string>();
             Frequency = new Tools.Frequency(0);
         }
+
         #endregion
     }
 }

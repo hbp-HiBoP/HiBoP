@@ -7,13 +7,16 @@ namespace HBP.UI.Toolbar
     public class DefaultView : Tool
     {
         #region Properties
+
         /// <summary>
         /// Button to trigger the default views (camera orientation and distance)
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -36,6 +39,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -43,6 +47,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -50,6 +55,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = true;
         }
+
         #endregion
     }
 }

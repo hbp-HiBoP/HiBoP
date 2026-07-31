@@ -4,11 +4,21 @@ using System.IO;
 
 namespace HBP.Data.Tools
 {
-    public enum TokenType { OpenParenthesis, CloseParenthesis, UnaryOperator, BinaryOperator, Value, EndOfExpression, Space }
+    public enum TokenType
+    {
+        OpenParenthesis,
+        CloseParenthesis,
+        UnaryOperator,
+        BinaryOperator,
+        Value,
+        EndOfExpression,
+        Space
+    }
 
     public class Token
     {
         #region Properties
+
         public const char OPEN_PARENTHESIS_CHAR = '(';
         public const char CLOSE_PARENTHESIS_CHAR = ')';
         public const char NOT_CHAR = '!';
@@ -19,6 +29,7 @@ namespace HBP.Data.Tools
         public const string NOT_STRING = "NOT";
         public const string AND_STRING = "AND";
         public const string OR_STRING = "OR";
+
         private static Dictionary<char, Tuple<TokenType, string>> m_SymbolToOperator = new()
         {
             { OPEN_PARENTHESIS_CHAR, new Tuple<TokenType, string>(TokenType.OpenParenthesis, OPEN_PARENTHESIS_STRING) },
@@ -27,24 +38,49 @@ namespace HBP.Data.Tools
             { AND_CHAR, new Tuple<TokenType, string>(TokenType.BinaryOperator, AND_STRING) },
             { OR_CHAR, new Tuple<TokenType, string>(TokenType.BinaryOperator, OR_STRING) }
         };
+
         public TokenType Type { get; private set; }
         public string Value { get; private set; }
+
         #endregion
 
         #region Default Values
-        public static Token Not { get { return new Token(TokenType.UnaryOperator, NOT_STRING); } }
-        public static Token And { get { return new Token(TokenType.BinaryOperator, AND_STRING); } }
-        public static Token Or { get { return new Token(TokenType.BinaryOperator, OR_STRING); } } 
-        public static Token OpenParenthesis { get { return new Token(TokenType.OpenParenthesis, OPEN_PARENTHESIS_STRING); } }
-        public static Token CloseParenthesis { get { return new Token(TokenType.CloseParenthesis, CLOSE_PARENTHESIS_STRING); } }
+
+        public static Token Not
+        {
+            get { return new Token(TokenType.UnaryOperator, NOT_STRING); }
+        }
+
+        public static Token And
+        {
+            get { return new Token(TokenType.BinaryOperator, AND_STRING); }
+        }
+
+        public static Token Or
+        {
+            get { return new Token(TokenType.BinaryOperator, OR_STRING); }
+        }
+
+        public static Token OpenParenthesis
+        {
+            get { return new Token(TokenType.OpenParenthesis, OPEN_PARENTHESIS_STRING); }
+        }
+
+        public static Token CloseParenthesis
+        {
+            get { return new Token(TokenType.CloseParenthesis, CLOSE_PARENTHESIS_STRING); }
+        }
+
         #endregion
 
         #region Constructors
+
         public Token(TokenType type, string value = "")
         {
             Type = type;
             Value = value;
         }
+
         public Token(StringReader stringReader)
         {
             int c = stringReader.Read();
@@ -76,11 +112,13 @@ namespace HBP.Data.Tools
                     {
                         stringValue += (char)stringReader.Read();
                     }
+
                     Type = TokenType.Value;
                     Value = stringValue;
                 }
             }
         }
+
         #endregion
     }
 }

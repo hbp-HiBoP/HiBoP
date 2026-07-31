@@ -71,10 +71,7 @@ namespace HBP.Tests.Serialization
                 {
                     int index = y * result.Width + x;
                     bool markerPixel = (x - centerX) * (x - centerX) + (y - centerY) * (y - centerY) <= 1;
-                    Assert.That(
-                        composed[index],
-                        Is.EqualTo(markerPixel ? new Color32(255, 0, 0, 255) : result.Overlay[index]),
-                        $"pixel ({x},{y})");
+                    Assert.That(composed[index], Is.EqualTo(markerPixel ? new Color32(255, 0, 0, 255) : result.Overlay[index]), $"pixel ({x},{y})");
                 }
             }
         }
@@ -143,6 +140,7 @@ namespace HBP.Tests.Serialization
             {
                 index = index < 0 ? -index : 2 * length - index - 2;
             }
+
             return index;
         }
 

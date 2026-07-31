@@ -24,11 +24,7 @@ namespace HBP.Tests.Serialization
             string brodmannPath = Path.Combine(atlasDirectory, "brodmann_areas.txt");
             string niftiPath = Path.Combine(atlasDirectory, "colin27_MNI_MarsAtlas.nii");
             string[] brodmannNames = File.ReadAllLines(brodmannPath);
-            MarsRecord[] records = File.ReadAllLines(indexPath)
-                .Skip(1)
-                .Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(ParseMarsRecord)
-                .ToArray();
+            MarsRecord[] records = File.ReadAllLines(indexPath).Skip(1).Where(line => !string.IsNullOrWhiteSpace(line)).Select(ParseMarsRecord).ToArray();
 
             using MarsAtlas atlas = new();
             Assert.That(atlas.Load(indexPath, brodmannPath, niftiPath), Is.True);
@@ -37,9 +33,7 @@ namespace HBP.Tests.Serialization
             Assert.That(atlas.AreaNames, Is.EquivalentTo(records.Where(record => record.Label != 0).Select(record => record.FullName.Trim()).Distinct()));
             foreach (MarsRecord record in records)
             {
-                string expectedBrodmann = string.Join(
-                    "/",
-                    record.BrodmannIds.Select(id => id >= 0 && id < brodmannNames.Length ? brodmannNames[id] : id.ToString(CultureInfo.InvariantCulture)));
+                string expectedBrodmann = string.Join("/", record.BrodmannIds.Select(id => id >= 0 && id < brodmannNames.Length ? brodmannNames[id] : id.ToString(CultureInfo.InvariantCulture)));
                 Assert.That(atlas.Label($"{record.Hemisphere}_{record.Name}"), Is.EqualTo(record.Label), record.Name);
                 Assert.That(atlas.Hemisphere(record.Label), Is.EqualTo(record.Hemisphere), record.Label.ToString());
                 Assert.That(atlas.Lobe(record.Label), Is.EqualTo(record.Lobe), record.Label.ToString());
@@ -48,10 +42,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(atlas.FullName(record.Label), Is.EqualTo($"{record.Hemisphere} {record.FullName}"), record.Label.ToString());
                 Assert.That(atlas.GetAreaName(record.Label), Is.EqualTo($"{record.Hemisphere} {record.FullName}"), record.Label.ToString());
                 Assert.That(atlas.BrodmannArea(record.Label), Is.EqualTo(expectedBrodmann), record.Label.ToString());
-                Assert.That(
-                    atlas.GetInformation(record.Label),
-                    Is.EqualTo(new[] { $"{record.Hemisphere}_{record.Name}", record.Hemisphere, record.Lobe, record.NameFS, $"{record.Hemisphere} {record.FullName}" }),
-                    record.Label.ToString());
+                Assert.That(atlas.GetInformation(record.Label), Is.EqualTo(new[] { $"{record.Hemisphere}_{record.Name}", record.Hemisphere, record.Lobe, record.NameFS, $"{record.Hemisphere} {record.FullName}" }), record.Label.ToString());
 
                 Color actualColor = atlas.ConvertIndicesToColors(new[] { record.Label }, selectedArea: -1)[0];
                 AssertColor(actualColor, record.Color, $"Mars label {record.Label}");
@@ -91,11 +82,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(atlas.GetAreaName(record.Label), Is.EqualTo(record.Name), record.Label.ToString());
                 Assert.That(atlas.GetInformation(record.Label), Is.EqualTo(new[] { record.Name }), record.Label.ToString());
                 AssertColor(atlas.ConvertIndicesToColors(new[] { record.Label }, selectedArea: -1)[0], record.Color, $"JuBrain label {record.Label}");
-                Color expectedHighlighted = new(
-                    Mathf.Min(1, record.Color.r + 30.0f / 255.0f),
-                    Mathf.Min(1, record.Color.g + 30.0f / 255.0f),
-                    Mathf.Min(1, record.Color.b + 30.0f / 255.0f),
-                    1);
+                Color expectedHighlighted = new(Mathf.Min(1, record.Color.r + 30.0f / 255.0f), Mathf.Min(1, record.Color.g + 30.0f / 255.0f), Mathf.Min(1, record.Color.b + 30.0f / 255.0f), 1);
                 AssertColor(atlas.ConvertIndicesToColors(new[] { record.Label }, record.Label)[0], expectedHighlighted, $"highlighted JuBrain label {record.Label}");
             }
 
@@ -129,15 +116,9 @@ namespace HBP.Tests.Serialization
                 {
                     simplifiedMesh.RecalculateNormals();
                 }
-                Color[] colors = simplifiedMesh.colors.Length == simplifiedMesh.vertexCount
-                    ? simplifiedMesh.colors
-                    : Enumerable.Repeat(Color.white, simplifiedMesh.vertexCount).ToArray();
-                simplified.SetBuffers(
-                    simplifiedMesh.vertices,
-                    simplifiedMesh.triangles,
-                    simplifiedMesh.normals,
-                    simplifiedMesh.uv.Length == simplifiedMesh.vertexCount ? simplifiedMesh.uv : null,
-                    colors);
+
+                Color[] colors = simplifiedMesh.colors.Length == simplifiedMesh.vertexCount ? simplifiedMesh.colors : Enumerable.Repeat(Color.white, simplifiedMesh.vertexCount).ToArray();
+                simplified.SetBuffers(simplifiedMesh.vertices, simplifiedMesh.triangles, simplifiedMesh.normals, simplifiedMesh.uv.Length == simplifiedMesh.vertexCount ? simplifiedMesh.uv : null, colors);
             }
             finally
             {
@@ -190,29 +171,25 @@ namespace HBP.Tests.Serialization
             using BBox surfaceBounds = left.BoundingBox;
             using BBox mergedBounds = BBox.Merge(volumeBounds, surfaceBounds);
             foreach (HBP.Core.Enums.CutOrientation orientation in new[]
-            {
-                HBP.Core.Enums.CutOrientation.Axial,
-                HBP.Core.Enums.CutOrientation.Coronal,
-                HBP.Core.Enums.CutOrientation.Sagittal
-            })
+                     {
+                         HBP.Core.Enums.CutOrientation.Axial,
+                         HBP.Core.Enums.CutOrientation.Coronal,
+                         HBP.Core.Enums.CutOrientation.Sagittal
+                     })
             {
                 using HBP.Core.DLL.Plane orientationPlane = new(Vector3.zero, Vector3.right);
                 volume.SetPlaneWithOrientation(orientationPlane, orientation, false);
                 float offset = mergedBounds.SizeOffsetCutPlane(orientationPlane, 500);
                 foreach (float position in new[] { 0.0f, 1.0f })
                 {
-                    using HBP.Core.Object3D.Cut cut = new(
-                        mergedBounds.Center + orientationPlane.Normal.normalized * (position - 0.5f) * offset * 500,
-                        orientationPlane.Normal)
+                    using HBP.Core.Object3D.Cut cut = new(mergedBounds.Center + orientationPlane.Normal.normalized * (position - 0.5f) * offset * 500, orientationPlane.Normal)
                     {
                         Orientation = orientation,
                         Position = position,
                         NumberOfCuts = 500
                     };
                     using CutGeometryGenerator geometry = new();
-                    Assert.DoesNotThrow(
-                        () => geometry.Initialize(volume, cut, -1),
-                        $"{orientation} endpoint {position}");
+                    Assert.DoesNotThrow(() => geometry.Initialize(volume, cut, -1), $"{orientation} endpoint {position}");
                     Assert.That(geometry.TextureSize.x, Is.GreaterThan(0), $"{orientation} endpoint {position} width");
                     Assert.That(geometry.TextureSize.y, Is.GreaterThan(0), $"{orientation} endpoint {position} height");
                 }
@@ -249,12 +226,14 @@ namespace HBP.Tests.Serialization
                         firstInvalidTriangle = i / 3;
                         break;
                     }
+
                     if (Vector3.Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]).sqrMagnitude <= 1e-12f)
                     {
                         firstDegenerateTriangle = i / 3;
                         break;
                     }
                 }
+
                 Assert.That(firstInvalidTriangle, Is.EqualTo(-1), $"{context}: invalid indices at triangle {firstInvalidTriangle}");
                 Assert.That(firstDegenerateTriangle, Is.EqualTo(-1), $"{context}: degenerate triangle {firstDegenerateTriangle}");
             }
@@ -284,19 +263,13 @@ namespace HBP.Tests.Serialization
 
         private static JuBrainRecord[] ParseJuBrainRecords(string json)
         {
-            MatchCollection matches = Regex.Matches(
-                json,
-                "\\\"grayvalue\\\"\\s*:\\s*\\\"(?<label>\\d+)\\\"[\\s\\S]*?\\\"color\\\"\\s*:\\s*\\\"rgb\\((?<r>\\d+),(?<g>\\d+),(?<b>\\d+)\\)\\\"[\\s\\S]*?\\\"name\\\"\\s*:\\s*\\\"(?<name>[^\\\"]*)\\\"");
+            MatchCollection matches = Regex.Matches(json, "\\\"grayvalue\\\"\\s*:\\s*\\\"(?<label>\\d+)\\\"[\\s\\S]*?\\\"color\\\"\\s*:\\s*\\\"rgb\\((?<r>\\d+),(?<g>\\d+),(?<b>\\d+)\\)\\\"[\\s\\S]*?\\\"name\\\"\\s*:\\s*\\\"(?<name>[^\\\"]*)\\\"");
             Assert.That(matches.Count, Is.GreaterThan(0), "JuBrain JSON structures");
             return matches.Cast<Match>().Select(match => new JuBrainRecord
             {
                 Label = int.Parse(match.Groups["label"].Value, CultureInfo.InvariantCulture),
                 Name = Regex.Unescape(match.Groups["name"].Value),
-                Color = new Color(
-                    int.Parse(match.Groups["r"].Value, CultureInfo.InvariantCulture) / 255.0f,
-                    int.Parse(match.Groups["g"].Value, CultureInfo.InvariantCulture) / 255.0f,
-                    int.Parse(match.Groups["b"].Value, CultureInfo.InvariantCulture) / 255.0f,
-                    1)
+                Color = new Color(int.Parse(match.Groups["r"].Value, CultureInfo.InvariantCulture) / 255.0f, int.Parse(match.Groups["g"].Value, CultureInfo.InvariantCulture) / 255.0f, int.Parse(match.Groups["b"].Value, CultureInfo.InvariantCulture) / 255.0f, 1)
             }).ToArray();
         }
 

@@ -15,15 +15,18 @@ namespace HBP.UI.Main
     public class BugReporterWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] InputField m_EmailInputField;
         [SerializeField] InputField m_DescriptionInputField;
 
         private const string DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1445005361508647075/DwuGjWbEQPHAAqTOWEx_tist_ZcntvmLLdJSUPTnz8wJQpehSI2-naappwKV-IUlwbnG";
         private const int MAX_PASTE_SIZE = 400000; // 400 KB limit
+
         #endregion
 
         #region Public Methods
+
         public override async void OK()
         {
             try
@@ -50,14 +53,17 @@ namespace HBP.UI.Main
                 base.OK();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void Start()
         {
             transform.SetParent(transform.parent.parent, false);
             transform.SetAsLastSibling();
         }
+
         private async UniTask SendBugReportToDiscord(Action<float, float, LoadingText> updateProgress)
         {
             await UniTask.SwitchToMainThread();
@@ -69,7 +75,8 @@ namespace HBP.UI.Main
             {
                 embeds = new DiscordEmbed[]
                 {
-                    new() {
+                    new()
+                    {
                         title = $"[Bug Report] {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
                         color = 15158332, // Red color
                         timestamp = DateTime.UtcNow.ToString("o"),
@@ -100,6 +107,7 @@ namespace HBP.UI.Main
                 throw new Exception($"Discord webhook error: {request.responseCode} - {request.downloadHandler.text}");
             }
         }
+
         private DiscordField[] BuildDiscordFields(string logUrl)
         {
             var fields = new System.Collections.Generic.List<DiscordField>();
@@ -139,7 +147,7 @@ namespace HBP.UI.Main
             sysInfo.AppendLine($"**Unity:** {Application.unityVersion}");
             sysInfo.AppendLine($"**Platform:** {Application.platform}");
             sysInfo.AppendLine($"**OS:** {SystemInfo.operatingSystem}");
-            
+
             fields.Add(new DiscordField
             {
                 name = "🖥️ System",
@@ -154,7 +162,7 @@ namespace HBP.UI.Main
             hwInfo.AppendLine($"**RAM:** {SystemInfo.systemMemorySize} MB");
             hwInfo.AppendLine($"**GPU:** {SystemInfo.graphicsDeviceName}");
             hwInfo.AppendLine($"**VRAM:** {SystemInfo.graphicsMemorySize} MB");
-            
+
             fields.Add(new DiscordField
             {
                 name = "⚙️ Hardware",
@@ -167,7 +175,7 @@ namespace HBP.UI.Main
             displayInfo.AppendLine($"**Resolution:** {Screen.currentResolution.width}x{Screen.currentResolution.height}");
             displayInfo.AppendLine($"**DPI:** {Screen.dpi}");
             displayInfo.AppendLine($"**Fullscreen:** {(Screen.fullScreen ? "Yes" : "No")}");
-            
+
             fields.Add(new DiscordField
             {
                 name = "🖼️ Display",
@@ -202,6 +210,7 @@ namespace HBP.UI.Main
 
             return fields.ToArray();
         }
+
         private string TruncateForDiscord(string text, int maxLength)
         {
             if (string.IsNullOrEmpty(text) || text.Length <= maxLength)
@@ -209,12 +218,13 @@ namespace HBP.UI.Main
 
             return text[..(maxLength - 3)] + "...";
         }
+
         private async UniTask<string> UploadLogToPasteService()
         {
             try
             {
                 string logFile = GetLogFilePath();
-                
+
                 if (!File.Exists(logFile))
                     return null;
 
@@ -223,9 +233,15 @@ namespace HBP.UI.Main
                 File.Copy(logFile, copiedLogFile, true);
 
                 string logContent = File.ReadAllText(copiedLogFile);
-                
+
                 // Clean up temp file
-                try { File.Delete(copiedLogFile); } catch { }
+                try
+                {
+                    File.Delete(copiedLogFile);
+                }
+                catch
+                {
+                }
 
                 // Check size and truncate if necessary
                 bool wasTruncated = false;
@@ -259,6 +275,7 @@ namespace HBP.UI.Main
                     fullLog.AppendLine("⚠️  WARNING: Log file was too large. Showing last 2000 lines only.");
                     fullLog.AppendLine();
                 }
+
                 fullLog.AppendLine("=" + new string('=', 78));
                 fullLog.AppendLine("  LOG CONTENT");
                 fullLog.AppendLine("=" + new string('=', 78));
@@ -286,6 +303,7 @@ namespace HBP.UI.Main
                 return null;
             }
         }
+
         private async UniTask<string> TryUploadToPasteEe(string content)
         {
             try
@@ -299,7 +317,7 @@ namespace HBP.UI.Main
                 formData.AddField("encrypted", "0");
 
                 using UnityWebRequest request = UnityWebRequest.Post("https://api.paste.ee/v1/pastes", formData);
-                
+
                 var operation = request.SendWebRequest();
 
                 while (!operation.isDone)
@@ -326,6 +344,7 @@ namespace HBP.UI.Main
                 return null;
             }
         }
+
         private async UniTask<string> TryUploadToDpaste(string content)
         {
             try
@@ -338,7 +357,7 @@ namespace HBP.UI.Main
 
                 using UnityWebRequest request = UnityWebRequest.Post("https://dpaste.com/api/", formData);
                 request.SetRequestHeader("Accept", "application/json");
-                
+
                 var operation = request.SendWebRequest();
 
                 while (!operation.isDone)
@@ -366,6 +385,7 @@ namespace HBP.UI.Main
                 return null;
             }
         }
+
         private async UniTask<string> TryUploadToRentry(string content)
         {
             try
@@ -374,7 +394,7 @@ namespace HBP.UI.Main
                 formData.AddField("text", content);
 
                 using UnityWebRequest request = UnityWebRequest.Post("https://rentry.co/api/new", formData);
-                
+
                 var operation = request.SendWebRequest();
 
                 while (!operation.isDone)
@@ -401,10 +421,11 @@ namespace HBP.UI.Main
                 return null;
             }
         }
+
         private string GetRecentLogContent(int lineCount = 50)
         {
             string logFile = GetLogFilePath();
-            
+
             if (!File.Exists(logFile))
                 return null;
 
@@ -415,18 +436,24 @@ namespace HBP.UI.Main
                 File.Copy(logFile, copiedLogFile, true);
 
                 string[] lines = File.ReadAllLines(copiedLogFile);
-                
+
                 // Get last N lines
                 int startIndex = Math.Max(0, lines.Length - lineCount);
                 StringBuilder logBuilder = new();
-                
+
                 for (int i = startIndex; i < lines.Length; i++)
                 {
                     logBuilder.AppendLine(lines[i]);
                 }
 
                 // Clean up temp file
-                try { File.Delete(copiedLogFile); } catch { }
+                try
+                {
+                    File.Delete(copiedLogFile);
+                }
+                catch
+                {
+                }
 
                 return logBuilder.ToString();
             }
@@ -436,6 +463,7 @@ namespace HBP.UI.Main
                 return null;
             }
         }
+
         private string GetLogFilePath()
         {
             return Application.platform switch
@@ -446,9 +474,11 @@ namespace HBP.UI.Main
                 _ => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "..", "LocalLow", Application.companyName, Application.productName, "Player.log"),
             };
         }
+
         #endregion
 
         #region Helper Classes
+
         [JsonObject(MemberSerialization.Fields), Preserve]
         private class DiscordWebhookPayload
         {
@@ -487,6 +517,7 @@ namespace HBP.UI.Main
             public string url;
             public string edit_code;
         }
+
         #endregion
     }
 }

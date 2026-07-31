@@ -9,6 +9,7 @@ namespace HBP.UI.Main
     public class AdvancedProtocolSubModifier : SubModifier<Protocol>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] BlocListGestion m_BlocListGestion;
 
@@ -24,9 +25,11 @@ namespace HBP.UI.Main
                 m_BlocListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -35,15 +38,18 @@ namespace HBP.UI.Main
             m_BlocListGestion.List.OnAddObject.AddListener(AddBloc);
             m_BlocListGestion.List.OnRemoveObject.AddListener(RemoveBloc);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(Protocol objectToDisplay)
         {
             base.SetFields(objectToDisplay);
             m_NameInputField.text = objectToDisplay.Name;
             m_BlocListGestion.List.Set(objectToDisplay.Blocs);
         }
+
         protected void ChangeName(string value)
         {
             if (value != "")
@@ -55,14 +61,17 @@ namespace HBP.UI.Main
                 m_NameInputField.text = Object.Name;
             }
         }
+
         protected void AddBloc(Bloc bloc)
         {
             Object.Blocs.AddIfAbsent(bloc);
         }
+
         protected void RemoveBloc(Bloc bloc)
         {
             Object.Blocs.Remove(bloc);
         }
+
         #endregion
     }
 }

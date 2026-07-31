@@ -35,14 +35,17 @@ namespace HBP.Core.Data
     public class BaseMesh : BaseData, INameable
     {
         #region Properties
+
         /// <summary>
         /// Extension of mesh files.
         /// </summary>
         public const string MESH_EXTENSION = ".gii";
+
         /// <summary>
         /// Extension of transformation files.
         /// </summary>
         public const string TRANSFORMATION_EXTENSION = ".trm";
+
         /// <summary>
         /// Name of the mesh.
         /// </summary>
@@ -52,6 +55,7 @@ namespace HBP.Core.Data
         /// Specifies if a mesh was usable at the last verification. Don't perform the verification.
         /// </summary>
         public bool WasUsable { get; protected set; }
+
         /// <summary>
         /// Specifies if a mesh is usable.
         /// </summary>
@@ -64,53 +68,58 @@ namespace HBP.Core.Data
                 return usable;
             }
         }
+
         /// <summary>
         /// The mesh object has a mesh file.
         /// </summary>
-        public virtual bool HasMesh { get { return false; } }
+        public virtual bool HasMesh
+        {
+            get { return false; }
+        }
+
         /// <summary>
         /// The mesh object has a marsAtlas file.
         /// </summary>
-        public virtual bool HasMarsAtlas { get { return false; } }
+        public virtual bool HasMarsAtlas
+        {
+            get { return false; }
+        }
+
         /// <summary>
         /// The mesh object has a transformation file.
         /// </summary>
         public virtual bool HasTransformation
         {
-            get
-            {
-                return !string.IsNullOrEmpty(Transformation) && LoadingDiagnostics.FileExists(Transformation) && (new FileInfo(Transformation).Extension == TRANSFORMATION_EXTENSION || new FileInfo(Transformation).Extension == ".txt");
-            }
+            get { return !string.IsNullOrEmpty(Transformation) && File.Exists(Transformation) && (new FileInfo(Transformation).Extension == TRANSFORMATION_EXTENSION || new FileInfo(Transformation).Extension == ".txt"); }
         }
+
         [JsonProperty("Transformation", Order = 5)] public string SavedTransformation { get; protected set; }
+
         /// <summary>
         /// Transformation file of the mesh.
         /// </summary>
         public string Transformation
         {
-            get
-            {
-                return SavedTransformation.ConvertToFullPath();
-            }
-            set
-            {
-            SavedTransformation = value.ConvertToShortPath();
-            }
+            get { return SavedTransformation.ConvertToFullPath(); }
+            set { SavedTransformation = value.ConvertToShortPath(); }
         }
+
         #endregion
 
-        #region Constructors 
+        #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the Mesh class.
         /// </summary>
         /// <param name="name">Name of the mesh.</param>
         /// <param name="transformation">Transformation file of the mesh.</param>
         /// <param name="ID">Unique identifier to identify the mesh.</param>
-        public BaseMesh(string name, string transformation, string ID): base(ID)
+        public BaseMesh(string name, string transformation, string ID) : base(ID)
         {
             Name = name;
             Transformation = transformation;
         }
+
         /// <summary>
         /// Initializes a new instance of the Mesh class.
         /// </summary>
@@ -122,15 +131,18 @@ namespace HBP.Core.Data
             Name = name;
             Transformation = transformation;
         }
+
         /// <summary>
         /// Initializes a new instance of the Mesh class.
         /// </summary>
         public BaseMesh() : this("New mesh", string.Empty)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Recalculates if the mesh is usable.
         /// </summary>
@@ -139,10 +151,12 @@ namespace HBP.Core.Data
         {
             return IsUsable;
         }
+
         internal void ApplyUsabilityValidation(bool usable)
         {
             WasUsable = usable;
         }
+
         /// <summary>
         /// Loads meshes from a directory.
         /// </summary>
@@ -166,6 +180,7 @@ namespace HBP.Core.Data
                     preTransformation = preTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }
             }
+
             string preTransformationPath = string.Empty;
             if (preTransformation != null && preTransformation.Exists) preTransformationPath = preTransformation.FullName;
             // Post
@@ -180,6 +195,7 @@ namespace HBP.Core.Data
                     postTransformation = postTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + postimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }
             }
+
             string postTransformationPath = string.Empty;
             if (postTransformation != null && postTransformation.Exists) postTransformationPath = postTransformation.FullName;
             // CT
@@ -194,6 +210,7 @@ namespace HBP.Core.Data
                     ctTransformation = ctTransformationsDirectory.GetFiles("CT-" + parent.Name + "_" + ctDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }
             }
+
             string ctTransformationPath = string.Empty;
             if (ctTransformation != null && ctTransformation.Exists) ctTransformationPath = ctTransformation.FullName;
             // Mesh
@@ -211,6 +228,7 @@ namespace HBP.Core.Data
                         {
                             meshes.Add(new LeftRightMesh("Grey matter post", postTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
                         }
+
                         if (!string.IsNullOrEmpty(ctTransformationPath))
                         {
                             meshes.Add(new LeftRightMesh("Grey matter CT", ctTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
@@ -231,6 +249,7 @@ namespace HBP.Core.Data
                         {
                             meshes.Add(new LeftRightMesh("White matter post", postTransformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
                         }
+
                         if (!string.IsNullOrEmpty(ctTransformationPath))
                         {
                             meshes.Add(new LeftRightMesh("White matter CT", ctTransformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
@@ -238,32 +257,39 @@ namespace HBP.Core.Data
                     }
                 }
             }
+
             return meshes.ToArray();
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new BaseMesh(Name, Transformation, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is BaseMesh mesh)
+            if (copy is BaseMesh mesh)
             {
                 Name = mesh.Name;
                 Transformation = mesh.Transformation;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             SavedTransformation = SavedTransformation.StandardizeToEnvironement();
             base.OnDeserialized();
         }
+
         #endregion
     }
 }

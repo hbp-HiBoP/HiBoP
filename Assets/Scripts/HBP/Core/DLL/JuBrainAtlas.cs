@@ -33,16 +33,23 @@ namespace HBP.Core.DLL
         }
 
         #region Properties
+
         private static string LeftNIIPath => Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz");
         private static string RightNIIPath => Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz");
         private static string JsonPath => Path.Combine(ApplicationState.DataPath, "Atlases", "JuBrain", "jubrain_labels_3.1.json");
+
         #endregion
 
         #region Constructors
-        public JuBrainAtlas() : base() { }
+
+        public JuBrainAtlas() : base()
+        {
+        }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Load the JuBrain atlas DLL object
         /// </summary>
@@ -60,8 +67,10 @@ namespace HBP.Core.DLL
             {
                 BuildMetadataCache();
             }
+
             Loading = false;
         }
+
         public override string GetAreaName(int index)
         {
             if (TryGetMetadata(index, out JuBrainAtlasMetadata metadata))
@@ -74,19 +83,16 @@ namespace HBP.Core.DLL
                 return areaInformation[0];
             return string.Empty;
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void GetAreaNames()
         {
             if (m_MetadataByLabel.Count > 0)
             {
-                m_AreaNames = m_MetadataByLabel.Values
-                    .Select(metadata => metadata.Name)
-                    .Where(name => !string.IsNullOrEmpty(name))
-                    .OrderBy(name => name)
-                    .Distinct()
-                    .ToList();
+                m_AreaNames = m_MetadataByLabel.Values.Select(metadata => metadata.Name).Where(name => !string.IsNullOrEmpty(name)).OrderBy(name => name).Distinct().ToList();
                 return;
             }
 
@@ -113,9 +119,11 @@ namespace HBP.Core.DLL
 
             m_AreaNames.AddRange(names.OrderBy(n => n).Distinct());
         }
+
         #endregion
 
         #region Memory Management
+
         /// <summary>
         /// Allocate DLL memory
         /// </summary>
@@ -125,6 +133,7 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_jubrain_atlas_create(out IntPtr atlas));
             _handle = new HandleRef(this, atlas);
         }
+
         /// <summary>
         /// Clean DLL memory
         /// </summary>
@@ -133,6 +142,7 @@ namespace HBP.Core.DLL
             m_MetadataByLabel.Clear();
             ThrowIfFailed(hbp_jubrain_atlas_destroy(_handle.Handle));
         }
+
         #endregion
 
         private delegate HbpCoreStatus CopyJuBrainAtlasText(IntPtr atlas, int label, StringBuilder text, int textCapacity);
@@ -189,10 +199,7 @@ namespace HBP.Core.DLL
 
             foreach (int label in labels)
             {
-                m_MetadataByLabel[label] = new JuBrainAtlasMetadata(
-                    CopyHbpCoreText(label, hbp_jubrain_atlas_copy_name),
-                    CopyHbpCoreColor(label, highlighted: false),
-                    CopyHbpCoreColor(label, highlighted: true));
+                m_MetadataByLabel[label] = new JuBrainAtlasMetadata(CopyHbpCoreText(label, hbp_jubrain_atlas_copy_name), CopyHbpCoreColor(label, highlighted: false), CopyHbpCoreColor(label, highlighted: true));
             }
 
             GetAreaNames();
@@ -209,10 +216,12 @@ namespace HBP.Core.DLL
                 {
                     return builder.ToString();
                 }
+
                 if (status != HbpCoreStatus.BufferTooSmall)
                 {
                     ThrowIfFailed(status);
                 }
+
                 capacity *= 2;
             }
 
@@ -226,24 +235,28 @@ namespace HBP.Core.DLL
         }
 
         #region DLLImport
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_jubrain_atlas_create", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_jubrain_atlas_create(out IntPtr atlas);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_jubrain_atlas_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_jubrain_atlas_destroy(IntPtr atlas);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_jubrain_atlas_load", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_jubrain_atlas_load(
-            IntPtr atlas,
-            [MarshalAs(UnmanagedType.LPUTF8Str)] string leftNIIPath,
-            [MarshalAs(UnmanagedType.LPUTF8Str)] string rightNIIPath,
-            [MarshalAs(UnmanagedType.LPUTF8Str)] string jsonPath);
+        static private extern HbpCoreStatus hbp_jubrain_atlas_load(IntPtr atlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string leftNIIPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string rightNIIPath, [MarshalAs(UnmanagedType.LPUTF8Str)] string jsonPath);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_jubrain_atlas_get_label_count", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_jubrain_atlas_get_label_count(IntPtr atlas, out int count);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_jubrain_atlas_copy_labels", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_jubrain_atlas_copy_labels(IntPtr atlas, [Out] int[] labels, int labelCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_jubrain_atlas_copy_name", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_jubrain_atlas_copy_name(IntPtr atlas, int label, StringBuilder text, int textCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_jubrain_atlas_get_color", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_jubrain_atlas_get_color(IntPtr atlas, int label, int highlighted, out Color4 color);
+
         #endregion
     }
 }

@@ -9,6 +9,7 @@ namespace HBP.UI.Main
     public class ClampTreatmentSubModifier : SubModifier<Core.Data.ClampTreatment>
     {
         #region Properties
+
         [SerializeField] Toggle m_UseMinClampToggle;
         [SerializeField] Toggle m_UseMaxClampToggle;
         [SerializeField] InputField m_MinValueInputField;
@@ -16,10 +17,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -29,9 +27,11 @@ namespace HBP.UI.Main
                 m_MaxValueInputField.interactable = value && m_UseMaxClampToggle.isOn;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -44,16 +44,19 @@ namespace HBP.UI.Main
         #endregion
 
         #region Private Methods
+
         void OnChangeUseMinValue(bool value)
         {
             Object.UseMinClamp = value;
             m_MinValueInputField.interactable = Interactable && value;
         }
+
         void OnChangeUseMaxValue(bool value)
         {
             Object.UseMaxClamp = value;
             m_MaxValueInputField.interactable = Interactable && value;
         }
+
         void OnChangeMinValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float floatResult))
@@ -61,6 +64,7 @@ namespace HBP.UI.Main
                 Object.Min = floatResult;
             }
         }
+
         void OnChangeMaxValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float floatResult))
@@ -68,9 +72,11 @@ namespace HBP.UI.Main
                 Object.Max = floatResult;
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(Core.Data.ClampTreatment objectToDisplay)
         {
             m_UseMinClampToggle.isOn = objectToDisplay.UseMinClamp;
@@ -79,6 +85,7 @@ namespace HBP.UI.Main
             m_MinValueInputField.text = objectToDisplay.Min.ToString("0.##", CultureInfo.InvariantCulture);
             m_MaxValueInputField.text = objectToDisplay.Max.ToString("0.##", CultureInfo.InvariantCulture);
         }
+
         #endregion
     }
 }

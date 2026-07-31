@@ -55,8 +55,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             Assert.That(harness.Scene.AutomaticRotationSpeed, Is.EqualTo(52.0f));
 
             Dropdown cameraDropdown = CreateDropdown("Camera Type", "Trackball", "Orbital");
-            CameraTypes cameraTypes = CreateTool<CameraTypes>("Camera Types", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", cameraDropdown));
+            CameraTypes cameraTypes = CreateTool<CameraTypes>("Camera Types", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", cameraDropdown));
             cameraTypes.Initialize();
 
             cameraDropdown.SetValueWithoutNotify((int)CameraControl.Orbital);
@@ -67,8 +66,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             int resetEvents = 0;
             harness.Scene.OnResetViewPositions.AddListener(() => resetEvents++);
             Button resetButton = CreateButton("Reset Views");
-            ResetViews resetViews = CreateTool<ResetViews>("Reset Views", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Button", resetButton));
+            ResetViews resetViews = CreateTool<ResetViews>("Reset Views", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Button", resetButton));
             resetViews.Initialize();
 
             resetButton.onClick.Invoke();
@@ -86,38 +84,33 @@ namespace HBP.Tests.PlayMode.Toolbar
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
 
             Dropdown brainColorDropdown = CreateDropdown("Brain Color", "Brain", "Default", "White", "Gray", "SoftGray");
-            BrainColor brainColor = CreateTool<BrainColor>("Brain Color", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", brainColorDropdown));
+            BrainColor brainColor = CreateTool<BrainColor>("Brain Color", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", brainColorDropdown));
             brainColor.Initialize();
             brainColorDropdown.SetValueWithoutNotify(2);
             brainColorDropdown.onValueChanged.Invoke(2);
 
             Dropdown colormapDropdown = CreateDropdown("Colormap", "Gray", "Hot", "Winter", "Warm", "Surface", "Cool", "RedYellow", "BlueGreen", "ACTC", "Bone", "GE", "Gold", "XRain", "MatLab");
-            Colormap colormap = CreateTool<Colormap>("Colormap", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", colormapDropdown));
+            Colormap colormap = CreateTool<Colormap>("Colormap", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", colormapDropdown));
             colormap.Initialize();
             colormapDropdown.SetValueWithoutNotify(1);
             colormapDropdown.onValueChanged.Invoke(1);
 
             Toggle cutModeToggle = CreateToggle("Cut Mode");
-            CutMode cutMode = CreateTool<CutMode>("Cut Mode", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", cutModeToggle));
+            CutMode cutMode = CreateTool<CutMode>("Cut Mode", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", cutModeToggle));
             cutMode.Initialize();
             harness.Scene.SceneInformation.CutsNeedUpdate = false;
             cutModeToggle.SetIsOnWithoutNotify(true);
             cutModeToggle.onValueChanged.Invoke(true);
 
             Dropdown cutColorDropdown = CreateDropdown("Cut Color", "Default", "Grayscale");
-            CutColor cutColor = CreateTool<CutColor>("Cut Color", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", cutColorDropdown));
+            CutColor cutColor = CreateTool<CutColor>("Cut Color", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", cutColorDropdown));
             cutColor.Initialize();
             harness.Scene.SceneInformation.CutsNeedUpdate = false;
             cutColorDropdown.SetValueWithoutNotify(1);
             cutColorDropdown.onValueChanged.Invoke(1);
 
             Toggle edgeToggle = CreateToggle("Edge Mode");
-            EdgeMode edgeMode = CreateTool<EdgeMode>("Edge Mode", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", edgeToggle));
+            EdgeMode edgeMode = CreateTool<EdgeMode>("Edge Mode", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", edgeToggle));
             edgeMode.Initialize();
             edgeToggle.SetIsOnWithoutNotify(true);
             edgeToggle.onValueChanged.Invoke(true);
@@ -158,36 +151,31 @@ namespace HBP.Tests.PlayMode.Toolbar
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
 
             Toggle showAllToggle = CreateToggle("Show All Sites");
-            ShowAllSites showAllSites = CreateTool<ShowAllSites>("Show All Sites", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", showAllToggle));
+            ShowAllSites showAllSites = CreateTool<ShowAllSites>("Show All Sites", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", showAllToggle));
             showAllSites.Initialize();
             showAllToggle.SetIsOnWithoutNotify(true);
             showAllToggle.onValueChanged.Invoke(true);
 
             Toggle blacklistedToggle = CreateToggle("Blacklisted Sites");
-            BlacklistedSitesDisplay blacklistedSitesDisplay = CreateTool<BlacklistedSitesDisplay>("Blacklisted Sites", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", blacklistedToggle));
+            BlacklistedSitesDisplay blacklistedSitesDisplay = CreateTool<BlacklistedSitesDisplay>("Blacklisted Sites", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", blacklistedToggle));
             blacklistedSitesDisplay.Initialize();
             blacklistedToggle.SetIsOnWithoutNotify(true);
             blacklistedToggle.onValueChanged.Invoke(true);
 
             Slider gainSlider = CreateSlider("Site Gain");
-            SiteGain siteGain = CreateTool<SiteGain>("Site Gain", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Slider", gainSlider));
+            SiteGain siteGain = CreateTool<SiteGain>("Site Gain", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Slider", gainSlider));
             siteGain.Initialize();
             gainSlider.SetValueWithoutNotify(1.7f);
             gainSlider.onValueChanged.Invoke(1.7f);
 
             Toggle cutAroundToggle = CreateToggle("Cut Around Site");
-            CutAroundSite cutAroundSite = CreateTool<CutAroundSite>("Cut Around Site", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", cutAroundToggle));
+            CutAroundSite cutAroundSite = CreateTool<CutAroundSite>("Cut Around Site", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", cutAroundToggle));
             cutAroundSite.Initialize();
             cutAroundToggle.SetIsOnWithoutNotify(true);
             cutAroundToggle.onValueChanged.Invoke(true);
 
             Text selectedSiteText = CreateText("Selected Site Text");
-            SelectedSite selectedSiteTool = CreateTool<SelectedSite>("Selected Site", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Text", selectedSiteText));
+            SelectedSite selectedSiteTool = CreateTool<SelectedSite>("Selected Site", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Text", selectedSiteText));
             selectedSiteTool.UpdateStatus();
 
             Assert.That(harness.Scene.ShowAllSites, Is.True);
@@ -213,8 +201,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             otherColumn.ActivityAlpha = 0.8f;
 
             Slider alphaSlider = CreateSlider("Activity Alpha");
-            ActivityTransparency transparency = CreateTool<ActivityTransparency>("Activity Transparency", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Slider", alphaSlider));
+            ActivityTransparency transparency = CreateTool<ActivityTransparency>("Activity Transparency", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Slider", alphaSlider));
             transparency.Initialize();
             alphaSlider.SetValueWithoutNotify(0.33f);
             alphaSlider.onValueChanged.Invoke(0.33f);
@@ -239,8 +226,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             int globalEvents = 0;
             bool globalValue = false;
             Toggle globalToggle = CreateToggle("Activity Global");
-            ActivityGlobal activityGlobal = CreateTool<ActivityGlobal>("Activity Global", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", globalToggle));
+            ActivityGlobal activityGlobal = CreateTool<ActivityGlobal>("Activity Global", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", globalToggle));
             activityGlobal.OnChangeValue.AddListener(value =>
             {
                 globalEvents++;
@@ -314,15 +300,13 @@ namespace HBP.Tests.PlayMode.Toolbar
             harness.Scene.IsGeneratorUpToDate = true;
 
             Toggle playToggle = CreateToggle("Timeline Play");
-            TimelinePlay timelinePlay = CreateTool<TimelinePlay>("Timeline Play", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", playToggle));
+            TimelinePlay timelinePlay = CreateTool<TimelinePlay>("Timeline Play", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", playToggle));
             timelinePlay.Initialize();
             playToggle.SetIsOnWithoutNotify(true);
             playToggle.onValueChanged.Invoke(true);
 
             Toggle loopToggle = CreateToggle("Timeline Loop");
-            TimelineLoop timelineLoop = CreateTool<TimelineLoop>("Timeline Loop", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", loopToggle));
+            TimelineLoop timelineLoop = CreateTool<TimelineLoop>("Timeline Loop", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", loopToggle));
             timelineLoop.Initialize();
             timelineLoop.IsGlobal = true;
             loopToggle.SetIsOnWithoutNotify(true);
@@ -354,8 +338,7 @@ namespace HBP.Tests.PlayMode.Toolbar
 
             int globalEvents = 0;
             Toggle globalToggle = CreateToggle("Timeline Global");
-            TimelineGlobal timelineGlobal = CreateTool<TimelineGlobal>("Timeline Global", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Toggle", globalToggle));
+            TimelineGlobal timelineGlobal = CreateTool<TimelineGlobal>("Timeline Global", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Toggle", globalToggle));
             timelineGlobal.OnChangeValue.AddListener(_ => globalEvents++);
             timelineGlobal.Initialize();
             globalToggle.SetIsOnWithoutNotify(true);
@@ -433,8 +416,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
 
             Dropdown brainSelectorDropdown = CreateDropdown("Brain Selector");
-            BrainSelector brainSelector = CreateTool<BrainSelector>("Brain Selector", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", brainSelectorDropdown));
+            BrainSelector brainSelector = CreateTool<BrainSelector>("Brain Selector", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", brainSelectorDropdown));
             brainSelector.UpdateStatus();
 
             Toggle leftBrain = CreateToggle("Left Brain");
@@ -451,8 +433,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             leftBrain.onValueChanged.Invoke(false);
 
             Button exportActivityButton = CreateButton("Export Activity");
-            ExportActivityToNifti exportActivity = CreateTool<ExportActivityToNifti>("Export Activity", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_OpenWindowButton", exportActivityButton));
+            ExportActivityToNifti exportActivity = CreateTool<ExportActivityToNifti>("Export Activity", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_OpenWindowButton", exportActivityButton));
             harness.Scene.IsGeneratorUpToDate = false;
             exportActivity.UpdateInteractable();
             bool exportDisabledWhenGeneratorStale = exportActivityButton.interactable;
@@ -471,8 +452,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             configuration.UpdateTool();
 
             Button copyVisualizationButton = CreateButton("Copy Visualization");
-            CopyVisualization copyVisualization = CreateTool<CopyVisualization>("Copy Visualization", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Copy", copyVisualizationButton));
+            CopyVisualization copyVisualization = CreateTool<CopyVisualization>("Copy Visualization", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Copy", copyVisualizationButton));
             copyVisualization.UpdateTool();
 
             Toggle ibc = CreateToggle("IBC Atlas");
@@ -491,13 +471,11 @@ namespace HBP.Tests.PlayMode.Toolbar
             atlasState.UpdateInteractable();
 
             Button loadPatient = CreateButton("Load Patient");
-            LoadPatient loadPatientTool = CreateTool<LoadPatient>("Load Patient", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Button", loadPatient));
+            LoadPatient loadPatientTool = CreateTool<LoadPatient>("Load Patient", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Button", loadPatient));
             loadPatientTool.UpdateInteractable();
 
             Button openInteractiveViewer = CreateButton("Open Interactive Viewer");
-            OpenInteractiveViewer interactiveViewer = CreateTool<OpenInteractiveViewer>("Open Interactive Viewer", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Button", openInteractiveViewer));
+            OpenInteractiveViewer interactiveViewer = CreateTool<OpenInteractiveViewer>("Open Interactive Viewer", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Button", openInteractiveViewer));
             interactiveViewer.UpdateInteractable();
 
             Button siteStateImport = CreateButton("Import Site State");
@@ -542,8 +520,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             harness.Scene.IsGeneratorUpToDate = true;
 
             Dropdown labelDropdown = CreateDropdown("Static Label Selector");
-            StaticLabelSelector selector = CreateTool<StaticLabelSelector>("Static Label Selector", harness.Scene, staticColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", labelDropdown));
+            StaticLabelSelector selector = CreateTool<StaticLabelSelector>("Static Label Selector", harness.Scene, staticColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", labelDropdown));
             selector.Initialize();
             selector.UpdateInteractable();
             selector.UpdateStatus();
@@ -604,8 +581,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             Assert.That(otherColumn.Timeline.CurrentIndex, Is.EqualTo(6));
 
             Button recordVideo = CreateButton("Record Timeline Video");
-            TimelineRecord timelineRecord = CreateTool<TimelineRecord>("Timeline Record", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_RecordVideo", recordVideo));
+            TimelineRecord timelineRecord = CreateTool<TimelineRecord>("Timeline Record", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_RecordVideo", recordVideo));
             timelineRecord.UpdateInteractable();
 
             Button singleScreenshot = CreateButton("Single Screenshot");
@@ -688,8 +664,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             siteFilters.UpdateInteractable();
 
             Button openTools = CreateButton("Open Site Tools");
-            OpenSiteTools openSiteTools = CreateTool<OpenSiteTools>("Open Site Tools", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_OpenToolsButton", openTools));
+            OpenSiteTools openSiteTools = CreateTool<OpenSiteTools>("Open Site Tools", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_OpenToolsButton", openTools));
             openSiteTools.UpdateInteractable();
 
             Assert.That(movePanel.interactable, Is.True);
@@ -718,25 +693,21 @@ namespace HBP.Tests.PlayMode.Toolbar
             views.UpdateInteractable();
 
             Button standardView = CreateButton("Standard Views");
-            StandardViews standardViews = CreateTool<StandardViews>("Standard Views", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Button", standardView));
+            StandardViews standardViews = CreateTool<StandardViews>("Standard Views", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Button", standardView));
             standardViews.UpdateInteractable();
 
             Dropdown mriDropdown = CreateDropdown("MRI Selector");
-            MRISelector mriSelector = CreateTool<MRISelector>("MRI Selector", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", mriDropdown));
+            MRISelector mriSelector = CreateTool<MRISelector>("MRI Selector", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", mriDropdown));
             mriSelector.UpdateInteractable();
             mriSelector.UpdateStatus();
 
             Dropdown implantationDropdown = CreateDropdown("Implantation Selector");
-            ImplantationSelector implantationSelector = CreateTool<ImplantationSelector>("Implantation Selector", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", implantationDropdown));
+            ImplantationSelector implantationSelector = CreateTool<ImplantationSelector>("Implantation Selector", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", implantationDropdown));
             implantationSelector.UpdateInteractable();
             implantationSelector.UpdateStatus();
 
             Dropdown ibcDropdown = CreateDropdown("IBC Selector");
-            IBCSelector ibcSelector = CreateTool<IBCSelector>("IBC Selector", harness.Scene, selectedColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", ibcDropdown));
+            IBCSelector ibcSelector = CreateTool<IBCSelector>("IBC Selector", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", ibcDropdown));
             ibcSelector.UpdateInteractable();
 
             Dropdown difumoAtlas = CreateDropdown("DiFuMo Atlas");
@@ -805,19 +776,16 @@ namespace HBP.Tests.PlayMode.Toolbar
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
 
             Button defaultViewButton = CreateButton("Default View");
-            DefaultView defaultView = CreateTool<DefaultView>("Default View", harness.Scene, ieegColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Button", defaultViewButton));
+            DefaultView defaultView = CreateTool<DefaultView>("Default View", harness.Scene, ieegColumn, selectedView, tool => SetPrivateField(tool, "m_Button", defaultViewButton));
             defaultView.UpdateInteractable();
 
             Dropdown fmriDropdown = CreateDropdown("FMRI Selector");
-            FMRISelector fmriSelector = CreateTool<FMRISelector>("FMRI Selector", harness.Scene, ieegColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", fmriDropdown));
+            FMRISelector fmriSelector = CreateTool<FMRISelector>("FMRI Selector", harness.Scene, ieegColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", fmriDropdown));
             harness.Scene.IsGeneratorUpToDate = true;
             fmriSelector.UpdateInteractable();
 
             Dropdown megDropdown = CreateDropdown("MEG Selector");
-            MEGSelector megSelector = CreateTool<MEGSelector>("MEG Selector", harness.Scene, ieegColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Dropdown", megDropdown));
+            MEGSelector megSelector = CreateTool<MEGSelector>("MEG Selector", harness.Scene, ieegColumn, selectedView, tool => SetPrivateField(tool, "m_Dropdown", megDropdown));
             megSelector.UpdateInteractable();
 
             InputField dynamicInfluence = CreateInputField("Dynamic Influence", "");
@@ -856,25 +824,21 @@ namespace HBP.Tests.PlayMode.Toolbar
             fmriParameters.UpdateInteractable();
 
             Button mriContrastButton = CreateButton("MRI Contrast");
-            MRIContrast mriContrast = CreateTool<MRIContrast>("MRI Contrast", harness.Scene, ieegColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Button", mriContrastButton));
+            MRIContrast mriContrast = CreateTool<MRIContrast>("MRI Contrast", harness.Scene, ieegColumn, selectedView, tool => SetPrivateField(tool, "m_Button", mriContrastButton));
             mriContrast.UpdateInteractable();
 
             Dropdown ccepAreaDropdown = CreateDropdown("CCEP Area Source");
-            CCEPAreaSourceSelector ccepAreaSelector = CreateTool<CCEPAreaSourceSelector>("CCEP Area Source", harness.Scene, ccepColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_MarsAtlasDropdown", ccepAreaDropdown));
+            CCEPAreaSourceSelector ccepAreaSelector = CreateTool<CCEPAreaSourceSelector>("CCEP Area Source", harness.Scene, ccepColumn, selectedView, tool => SetPrivateField(tool, "m_MarsAtlasDropdown", ccepAreaDropdown));
             ccepAreaSelector.UpdateInteractable();
             ccepColumn.Mode = Column3DCCEP.CCEPMode.MarsAtlas;
             ccepAreaSelector.UpdateInteractable();
 
             Slider atlasAlpha = CreateSlider("Atlas Alpha");
-            FMRIAtlasParameters fmriAtlasParameters = CreateTool<FMRIAtlasParameters>("FMRI Atlas Parameters", harness.Scene, ieegColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_AlphaSlider", atlasAlpha));
+            FMRIAtlasParameters fmriAtlasParameters = CreateTool<FMRIAtlasParameters>("FMRI Atlas Parameters", harness.Scene, ieegColumn, selectedView, tool => SetPrivateField(tool, "m_AlphaSlider", atlasAlpha));
             fmriAtlasParameters.UpdateInteractable();
 
             Button localizerAuto = CreateButton("Localizer Auto");
-            LocalizersParameters localizersParameters = CreateTool<LocalizersParameters>("Localizer Parameters", harness.Scene, ieegColumn, selectedView, tool =>
-                SetPrivateField(tool, "m_Auto", localizerAuto));
+            LocalizersParameters localizersParameters = CreateTool<LocalizersParameters>("Localizer Parameters", harness.Scene, ieegColumn, selectedView, tool => SetPrivateField(tool, "m_Auto", localizerAuto));
             localizersParameters.UpdateInteractable();
 
             Slider localizersSlider = CreateSlider("Localizers Timeline Slider");
@@ -1026,14 +990,12 @@ namespace HBP.Tests.PlayMode.Toolbar
                 AssertNoException("Screenshot multi external click", screenshotMulti.onClick.Invoke);
 
                 Button recordVideo = CreateButton("Record External");
-                TimelineRecord timelineRecord = CreateTool<TimelineRecord>("Timeline Record External", harness.Scene, selectedColumn, selectedView, tool =>
-                    SetPrivateField(tool, "m_RecordVideo", recordVideo));
+                TimelineRecord timelineRecord = CreateTool<TimelineRecord>("Timeline Record External", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_RecordVideo", recordVideo));
                 timelineRecord.Initialize();
                 AssertNoException("Timeline record external click", recordVideo.onClick.Invoke);
 
                 Button exportActivity = CreateButton("Export Activity External");
-                ExportActivityToNifti exportActivityToNifti = CreateTool<ExportActivityToNifti>("Export Activity External", harness.Scene, selectedColumn, selectedView, tool =>
-                    SetPrivateField(tool, "m_OpenWindowButton", exportActivity));
+                ExportActivityToNifti exportActivityToNifti = CreateTool<ExportActivityToNifti>("Export Activity External", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_OpenWindowButton", exportActivity));
                 exportActivityToNifti.Initialize();
                 AssertNoException("Export activity window external click", exportActivity.onClick.Invoke);
 
@@ -1067,14 +1029,12 @@ namespace HBP.Tests.PlayMode.Toolbar
                 AssertNoException("Site correlations load external click", loadCorrelations.onClick.Invoke);
 
                 Button loadPatient = CreateButton("Load Patient External");
-                LoadPatient loadPatientTool = CreateTool<LoadPatient>("Load Patient External", harness.Scene, selectedColumn, selectedView, tool =>
-                    SetPrivateField(tool, "m_Button", loadPatient));
+                LoadPatient loadPatientTool = CreateTool<LoadPatient>("Load Patient External", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_Button", loadPatient));
                 loadPatientTool.Initialize();
                 AssertNoException("Load patient external click", loadPatient.onClick.Invoke);
 
                 Button openViewer = CreateButton("Open Viewer External");
-                OpenInteractiveViewer openInteractiveViewer = CreateTool<OpenInteractiveViewer>("Open Viewer External", harness.Scene, selectedColumn, null, tool =>
-                    SetPrivateField(tool, "m_Button", openViewer));
+                OpenInteractiveViewer openInteractiveViewer = CreateTool<OpenInteractiveViewer>("Open Viewer External", harness.Scene, selectedColumn, null, tool => SetPrivateField(tool, "m_Button", openViewer));
                 openInteractiveViewer.Initialize();
                 AssertNoException("Open interactive viewer external click", openViewer.onClick.Invoke);
 
@@ -1089,8 +1049,7 @@ namespace HBP.Tests.PlayMode.Toolbar
                 AssertNoException("Open site filters external click", openFilters.onClick.Invoke);
 
                 Button openTools = CreateButton("Open Tools External");
-                OpenSiteTools openSiteTools = CreateTool<OpenSiteTools>("Open Site Tools External", harness.Scene, selectedColumn, selectedView, tool =>
-                    SetPrivateField(tool, "m_OpenToolsButton", openTools));
+                OpenSiteTools openSiteTools = CreateTool<OpenSiteTools>("Open Site Tools External", harness.Scene, selectedColumn, selectedView, tool => SetPrivateField(tool, "m_OpenToolsButton", openTools));
                 openSiteTools.Initialize();
                 AssertNoException("Open site tools external click", openTools.onClick.Invoke);
             }
@@ -1161,6 +1120,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             {
                 dropdown.options.Add(new Dropdown.OptionData(option));
             }
+
             return dropdown;
         }
 
@@ -1223,6 +1183,7 @@ namespace HBP.Tests.PlayMode.Toolbar
                 if (field != null) return field;
                 type = type.BaseType;
             }
+
             Assert.Fail($"Missing field {fieldName}");
             return null;
         }

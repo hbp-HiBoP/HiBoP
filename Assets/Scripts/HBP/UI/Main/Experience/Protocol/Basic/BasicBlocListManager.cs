@@ -14,6 +14,7 @@ namespace HBP.UI.Main
     public class BasicBlocListManager : SubModifier<Protocol>, ISelectionCountable
     {
         #region Properties
+
         [SerializeField] private Transform m_BlocsContainer;
         [SerializeField] private GameObject m_BlocItemPrefab;
         [SerializeField] private GameObject m_DropIndicatorPrefab;
@@ -25,26 +26,35 @@ namespace HBP.UI.Main
 
         private float m_ItemHeight = 32;
 
-        public override bool Interactable { get => base.Interactable; set => base.Interactable = value; }
+        public override bool Interactable
+        {
+            get => base.Interactable;
+            set => base.Interactable = value;
+        }
 
         public int NumberOfSelectedObjects => m_BlocItems.Count(b => b.Selected);
         public int NumberOfObjects => m_BlocItems.Count;
         public int NumberOfFilteredObjects => m_BlocItems.Count;
         public bool CanSelectMultipleObjects => true;
+
         #endregion
 
         #region Events
+
         public GenericEvent<Bloc> OnAddBloc = new();
         UnityEvent ISelectionCountable.OnSelectionChanged { get; } = new UnityEvent();
+
         #endregion
 
         #region Private Methods
+
         public override void Initialize()
         {
             base.Initialize();
 
             m_ItemHeight = m_BlocItemPrefab.GetComponent<LayoutElement>().preferredHeight;
         }
+
         protected override void SetFields(Protocol objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -53,15 +63,16 @@ namespace HBP.UI.Main
             {
                 Destroy(blocItem.gameObject);
             }
+
             m_BlocItems.Clear();
-            
+
             foreach (var bloc in objectToDisplay.OrderedBlocs)
             {
                 GameObject newBlocItemObject = Instantiate(m_BlocItemPrefab, m_BlocsContainer);
                 BasicBlocItem newBlocItem = newBlocItemObject.GetComponent<BasicBlocItem>();
                 newBlocItem.Bloc = bloc;
                 newBlocItem.OnValueChanged.AddListener(value => OnSelectionUpdate());
-                
+
                 DraggableItem draggableItem = newBlocItem.GetComponent<DraggableItem>();
                 if (draggableItem != null)
                 {
@@ -69,12 +80,14 @@ namespace HBP.UI.Main
                     draggableItem.OnDragMove.AddListener(OnItemDragMove);
                     draggableItem.OnDragEnd.AddListener(OnItemDragEnd);
                 }
-                
+
                 m_BlocItems.Add(newBlocItem);
             }
+
             UpdateBlocOrders();
             OnSelectionUpdate();
         }
+
         private void AddBloc(Bloc bloc)
         {
             GameObject newBlocItemObject = Instantiate(m_BlocItemPrefab, m_BlocsContainer);
@@ -95,6 +108,7 @@ namespace HBP.UI.Main
             OnAddBloc.Invoke(newBlocItem.Bloc);
             OnSelectionUpdate();
         }
+
         private void AddBlocsFromExampleFile(IEnumerable<Bloc> blocs)
         {
             foreach (var bloc in blocs)
@@ -102,6 +116,7 @@ namespace HBP.UI.Main
                 AddBloc(bloc);
             }
         }
+
         private void UpdateBlocOrders()
         {
             for (int i = 0; i < m_BlocItems.Count; i++)
@@ -110,33 +125,35 @@ namespace HBP.UI.Main
                 m_BlocItems[i].Refresh();
             }
         }
+
         private void OnSelectionUpdate()
         {
             (this as ISelectionCountable).OnSelectionChanged.Invoke();
         }
+
         private int GetDropIndexFromPosition(Vector2 screenPosition)
         {
             RectTransform containerRect = m_BlocsContainer as RectTransform;
             if (containerRect == null) return -1;
 
             Vector2 localPosition;
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                containerRect, screenPosition, null, out localPosition))
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(containerRect, screenPosition, null, out localPosition))
                 return -1;
-            
+
             float distanceFromTop = -localPosition.y;
-            
+
             if (distanceFromTop < 0)
                 return 0;
-            
+
             int index = Mathf.FloorToInt(distanceFromTop / m_ItemHeight);
-            
+
             float remainder = distanceFromTop % m_ItemHeight;
             if (remainder > m_ItemHeight / 2)
                 index++;
-            
+
             return Mathf.Clamp(index, 0, m_BlocItems.Count);
         }
+
         private void ShowDropIndicator(int index)
         {
             if (m_DropIndicatorPrefab == null) return;
@@ -148,6 +165,7 @@ namespace HBP.UI.Main
 
             m_CurrentDropIndicator.transform.SetSiblingIndex(index);
         }
+
         private void HideDropIndicator()
         {
             if (m_CurrentDropIndicator != null)
@@ -157,27 +175,30 @@ namespace HBP.UI.Main
                 m_CurrentDropIndex = -1;
             }
         }
+
         private void OnItemDragStart(DraggableItem item)
         {
             m_CurrentDraggedItem = item;
         }
+
         private void OnItemDragMove(DraggableItem item, Vector2 screenPosition)
         {
             if (item != m_CurrentDraggedItem) return;
-            
+
             int dropIndex = GetDropIndexFromPosition(screenPosition);
-            
+
             if (dropIndex != m_CurrentDropIndex)
             {
                 ShowDropIndicator(dropIndex);
             }
         }
+
         private void OnItemDragEnd(DraggableItem draggedItem, Vector2 screenPosition)
         {
             if (draggedItem != m_CurrentDraggedItem) return;
-            
+
             int dropIndex = GetDropIndexFromPosition(screenPosition);
-            
+
             HideDropIndicator();
             m_CurrentDraggedItem = null;
 
@@ -202,9 +223,11 @@ namespace HBP.UI.Main
 
             UpdateBlocOrders();
         }
+
         #endregion
 
         #region Public Methods
+
         public void AddNewBloc()
         {
             AddBloc(new Bloc()
@@ -230,6 +253,7 @@ namespace HBP.UI.Main
                 }
             });
         }
+
         public void RemoveSelectedBlocs()
         {
             for (int i = m_BlocItems.Count - 1; i >= 0; i--)
@@ -241,9 +265,11 @@ namespace HBP.UI.Main
                     m_BlocItems.RemoveAt(i);
                 }
             }
+
             UpdateBlocOrders();
             OnSelectionUpdate();
         }
+
         public async void OpenBlocsImporterWindow()
         {
             var filePath = await FileBrowser.GetExistingFileNameAsync(new string[] { Elan.POS_EXTENSION[1..], Micromed.MICROMED_EXTENSION[1..], BrainVision.HEADER_EXTENSION[1..], FIF.FIF_EXTENSION[1..], EDF.EDF_EXTENSION[1..] }, "Select a data file containing events");
@@ -254,6 +280,7 @@ namespace HBP.UI.Main
             window.OnBlocsImported.AddListener(AddBlocsFromExampleFile);
             WindowsReferencer.Add(window);
         }
+
         #endregion
     }
 }

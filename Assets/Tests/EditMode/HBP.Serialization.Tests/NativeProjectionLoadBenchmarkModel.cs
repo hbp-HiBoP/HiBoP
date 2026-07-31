@@ -170,18 +170,7 @@ namespace HBP.Tests.Serialization
 
     internal sealed class NativeProjectionLoadScenarioDefinition
     {
-        public NativeProjectionLoadScenarioDefinition(
-            string name,
-            int dimension,
-            int siteCount,
-            int timelineLength,
-            float influenceDistance,
-            int columnCount,
-            bool measureExport,
-            HBP.Core.Enums.VolumeInterpolation volumeInterpolation,
-            float[] influenceDistances = null,
-            int samplingFrequencyHz = 0,
-            SyntheticTimeSeriesDefinition syntheticTimeSeries = null)
+        public NativeProjectionLoadScenarioDefinition(string name, int dimension, int siteCount, int timelineLength, float influenceDistance, int columnCount, bool measureExport, HBP.Core.Enums.VolumeInterpolation volumeInterpolation, float[] influenceDistances = null, int samplingFrequencyHz = 0, SyntheticTimeSeriesDefinition syntheticTimeSeries = null)
         {
             Name = name;
             Dimension = dimension;
@@ -212,11 +201,7 @@ namespace HBP.Tests.Serialization
         public HBP.Core.Enums.VolumeInterpolation VolumeInterpolation { get; }
         public SyntheticTimeSeriesDefinition SyntheticTimeSeries { get; }
 
-        public string Workload =>
-            $"MNI; dimension {Dimension}; {SiteCount:N0} sites; {TimelineLength} instants; " +
-            $"linear radius/radii {string.Join(",", InfluenceDistances.Select(value => value.ToString("R")))}; " +
-            (SamplingFrequencyHz > 0 ? $"{SamplingFrequencyHz} Hz; " : string.Empty) +
-            $"{ColumnCount} sequential column(s); {VolumeInterpolation}";
+        public string Workload => $"MNI; dimension {Dimension}; {SiteCount:N0} sites; {TimelineLength} instants; " + $"linear radius/radii {string.Join(",", InfluenceDistances.Select(value => value.ToString("R")))}; " + (SamplingFrequencyHz > 0 ? $"{SamplingFrequencyHz} Hz; " : string.Empty) + $"{ColumnCount} sequential column(s); {VolumeInterpolation}";
     }
 
     internal sealed class NativeProjectionProcessMemorySampler : IDisposable
@@ -325,10 +310,7 @@ namespace HBP.Tests.Serialization
 
         [DllImport("psapi.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetProcessMemoryInfo(
-            IntPtr process,
-            ref ProcessMemoryCountersEx counters,
-            uint size);
+        private static extern bool GetProcessMemoryInfo(IntPtr process, ref ProcessMemoryCountersEx counters, uint size);
 
         public static NativeProjectionProcessMemorySnapshot Read(Process process)
         {
@@ -336,12 +318,10 @@ namespace HBP.Tests.Serialization
             counters.cb = checked((uint)Marshal.SizeOf<ProcessMemoryCountersEx>());
             if (!GetProcessMemoryInfo(process.Handle, ref counters, counters.cb))
             {
-                throw new InvalidOperationException(
-                    $"GetProcessMemoryInfo failed with Windows error {Marshal.GetLastWin32Error()}.");
+                throw new InvalidOperationException($"GetProcessMemoryInfo failed with Windows error {Marshal.GetLastWin32Error()}.");
             }
-            return new NativeProjectionProcessMemorySnapshot(
-                checked((long)counters.privateUsage.ToUInt64()),
-                checked((long)counters.workingSetSize.ToUInt64()));
+
+            return new NativeProjectionProcessMemorySnapshot(checked((long)counters.privateUsage.ToUInt64()), checked((long)counters.workingSetSize.ToUInt64()));
         }
     }
 }

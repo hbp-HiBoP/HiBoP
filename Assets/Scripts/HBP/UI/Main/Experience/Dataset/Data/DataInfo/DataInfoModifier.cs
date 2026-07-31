@@ -14,12 +14,13 @@ namespace HBP.UI.Main
     public class DataInfoModifier : ObjectModifier<DataInfo>
     {
         #region Properties
+
         public new DataInfo ObjectTemp => m_ObjectTemp;
 
         List<DataInfo> m_DataInfoTemp;
         List<BaseSubModifier> m_SubModifiers;
 
-        Type[] m_Types; 
+        Type[] m_Types;
 
         [SerializeField] InputField m_NameInputField;
         [SerializeField] PatientDataInfoSubModifier m_PatientDataInfoSubModifier;
@@ -40,10 +41,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -56,23 +54,23 @@ namespace HBP.UI.Main
                 m_DataContainerModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
         public override void OK()
         {
-            ValidationRequest request =
-                ValidationImpactAnalyzer.ForDataInfo(
-                    m_Object,
-                    ObjectTemp);
+            ValidationRequest request = ValidationImpactAnalyzer.ForDataInfo(m_Object, ObjectTemp);
             m_Object = ObjectTemp;
             m_Object.PendingValidationRequest = request;
             m_Object.MarkValidationStale(request.Aspects);
             base.OK();
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -82,6 +80,7 @@ namespace HBP.UI.Main
             m_NameInputField.text = objectToDisplay.Name;
             m_TypeDropdown.SetValue(Array.IndexOf(m_Types, objectToDisplay.GetType()));
         }
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -123,8 +122,9 @@ namespace HBP.UI.Main
 
             m_TypeDropdown.onValueChanged.AddListener(ChangeDataInfoType);
             m_DataContainerModifier.OnChangeDataType.AddListener(ChangeDataContainerType);
-            m_Types = m_TypeDropdown.Set(typeof(DataInfo)); 
+            m_Types = m_TypeDropdown.Set(typeof(DataInfo));
         }
+
         /// <summary>
         /// Change the type of the dataInfo.
         /// </summary>
@@ -159,6 +159,7 @@ namespace HBP.UI.Main
                 m_PatientDataInfoSubModifier.Object = patientDataInfo;
             }
         }
+
         /// <summary>
         /// Change the datacontainer type.
         /// </summary>
@@ -166,6 +167,7 @@ namespace HBP.UI.Main
         {
             m_ObjectTemp.DataContainer = m_DataContainerModifier.Object;
         }
+
         /// <summary>
         /// Change the name of the dataInfo.
         /// </summary>
@@ -181,6 +183,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         #endregion
     }
 }

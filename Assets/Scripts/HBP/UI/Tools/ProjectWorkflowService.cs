@@ -86,11 +86,7 @@ namespace HBP.UI.Tools
 
         public bool HasOpenedScenesForLoadedProject
         {
-            get
-            {
-                return ApplicationState.LoadedProject != null
-                    && ApplicationState.LoadedProject.Visualizations.Any(visualization => Module3DMain.Visualizations.Contains(visualization));
-            }
+            get { return ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Visualizations.Any(visualization => Module3DMain.Visualizations.Contains(visualization)); }
         }
 
         public void ClearData()
@@ -234,6 +230,7 @@ namespace HBP.UI.Tools
             {
                 m_Runtime.SetInteractables();
             }
+
             return result;
         }
 
@@ -261,6 +258,7 @@ namespace HBP.UI.Tools
             {
                 Restore(previousProject, previousLocation);
             }
+
             return result;
         }
 
@@ -290,6 +288,7 @@ namespace HBP.UI.Tools
                 project.Preferences = previousPreferences;
                 m_Runtime.LoadedProjectLocation = previousLocation;
             }
+
             return result;
         }
 
@@ -304,6 +303,7 @@ namespace HBP.UI.Tools
             {
                 m_Runtime.RemoveAllScenes();
             }
+
             m_Runtime.CloseAllWindows();
             return await LoadProjectAsync(info);
         }

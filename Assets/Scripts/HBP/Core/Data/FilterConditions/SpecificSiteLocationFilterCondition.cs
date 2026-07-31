@@ -14,11 +14,25 @@ namespace HBP.Core.Data
         public static Func<SpecificSiteLocationFilterCondition, Object3D.Site, bool?> SceneLocationEvaluator { get; set; }
 
         #region Enums
-        public enum SpecificLocationType { BrainMesh, Atlas, RegionOfInterest, CutPlane  }
-        public enum Atlas { MarsAtlas, Jubrain }
+
+        public enum SpecificLocationType
+        {
+            BrainMesh,
+            Atlas,
+            RegionOfInterest,
+            CutPlane
+        }
+
+        public enum Atlas
+        {
+            MarsAtlas,
+            Jubrain
+        }
+
         #endregion
 
         #region Properties
+
         [JsonProperty("LocationType")] public SpecificLocationType LocationType { get; set; }
         [JsonProperty("MeshPart")] public MeshPart MeshPart { get; set; } = MeshPart.Both;
         [JsonProperty("AtlasType")] public Atlas AtlasType { get; set; }
@@ -50,10 +64,15 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Constructors
-        public SpecificSiteLocationFilterCondition() : this(SpecificLocationType.BrainMesh, MeshPart.Both, Atlas.MarsAtlas, "", false) { }
+
+        public SpecificSiteLocationFilterCondition() : this(SpecificLocationType.BrainMesh, MeshPart.Both, Atlas.MarsAtlas, "", false)
+        {
+        }
+
         public SpecificSiteLocationFilterCondition(SpecificLocationType locationType, MeshPart meshPart, Atlas atlasType, string atlasArea, bool isNot) : base(isNot)
         {
             LocationType = locationType;
@@ -61,6 +80,7 @@ namespace HBP.Core.Data
             AtlasType = atlasType;
             AtlasArea = atlasArea;
         }
+
         public SpecificSiteLocationFilterCondition(SpecificLocationType locationType, MeshPart meshPart, Atlas atlasType, string atlasArea, bool isNot, string ID) : base(isNot, ID)
         {
             LocationType = locationType;
@@ -68,13 +88,16 @@ namespace HBP.Core.Data
             AtlasType = atlasType;
             AtlasArea = atlasArea;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new SpecificSiteLocationFilterCondition(LocationType, MeshPart, AtlasType, AtlasArea, IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -86,9 +109,11 @@ namespace HBP.Core.Data
                 AtlasArea = other.AtlasArea;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is Object3D.Site site)
@@ -127,10 +152,13 @@ namespace HBP.Core.Data
                         result = SceneLocationEvaluator?.Invoke(this, site) ?? false;
                         break;
                 }
+
                 return result != IsNot;
             }
+
             return false;
         }
+
         #endregion
     }
 }

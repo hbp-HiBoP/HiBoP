@@ -15,6 +15,7 @@ namespace HBP.UI.Module3D
     public class ChangeSitesAttributesSection : SiteToolSection
     {
         #region Properties
+
         [SerializeField] private Toggle m_HighlightToggle;
         [SerializeField] private Toggle m_UnhighlightToggle;
         [SerializeField] private Toggle m_BlacklistToggle;
@@ -55,19 +56,23 @@ namespace HBP.UI.Module3D
         static string m_AddLabelInputFieldValue;
         static string m_RemoveLabelInputFieldValue;
         static int m_ScopeDropdownValue;
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
 
             m_ColorPickerButton.onClick.AddListener(async () => m_ColorPickedImage.color = await ColorPickerManager.OpenColorPickerAsync(m_ColorPickedImage.color));
         }
+
         public override async UniTask ApplyAsync()
         {
             await LoadingManager.LoadAsync(ApplyAsync);
         }
+
         public override void StoreSettings()
         {
             m_HighlightToggleValue = m_HighlightToggle.isOn;
@@ -83,6 +88,7 @@ namespace HBP.UI.Module3D
             m_RemoveLabelInputFieldValue = m_RemoveLabelInputField.text;
             m_ScopeDropdownValue = m_ScopeDropdown.value;
         }
+
         public override void LoadSettings()
         {
             m_HighlightToggle.isOn = m_HighlightToggleValue;
@@ -98,9 +104,11 @@ namespace HBP.UI.Module3D
             m_RemoveLabelInputField.text = m_RemoveLabelInputFieldValue;
             m_ScopeDropdown.value = m_ScopeDropdownValue;
         }
+
         #endregion
 
         #region Private Methods
+
         private async UniTask ApplyAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToMainThread();
@@ -128,6 +136,7 @@ namespace HBP.UI.Module3D
                         site.State.AddLabel(m_AddLabelInputField.text);
                     }
                 }
+
                 if (m_RemoveLabelToggle.isOn)
                 {
                     string text = m_RemoveLabelInputField.text;
@@ -144,9 +153,11 @@ namespace HBP.UI.Module3D
                         site.State.RemoveLabel(m_RemoveLabelInputField.text);
                     }
                 }
+
                 if (m_RemoveAllLabelsToggle.isOn) site.State.RemoveAllLabels();
             }
         }
+
         #endregion
     }
 }

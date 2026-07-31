@@ -34,6 +34,7 @@ namespace HBP.Core.Data.Container
     public class EDF : DataContainer
     {
         #region Properties
+
         /// <summary>
         /// EDF files extension.
         /// </summary>
@@ -43,6 +44,7 @@ namespace HBP.Core.Data.Container
         /// Path to the EDF file with Alias.
         /// </summary>
         [JsonProperty("EDF")] public string SavedFile { get; protected set; } = "";
+
         /// <summary>
         /// Path to the EDF file without Alias.
         /// </summary>
@@ -51,9 +53,11 @@ namespace HBP.Core.Data.Container
             get { return SavedFile?.ConvertToFullPath(); }
             set { SavedFile = value?.ConvertToShortPath(); }
         }
+
         #endregion
 
         #region Public Methods
+
         public override Error[] GetErrors()
         {
             List<Error> errors = new();
@@ -76,26 +80,32 @@ namespace HBP.Core.Data.Container
                     }
                 }
             }
+
             m_Errors = errors.ToArray();
             return m_Errors;
         }
+
         public override Warning[] GetWarnings()
         {
             List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }
+
         public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
             SavedFile = File.CopyToDirectory(destinationDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
+
         public override void ConvertAllPathsToFullPaths()
         {
             SavedFile = SavedFile.ConvertToFullPath();
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new EDF data container.
         /// </summary>
@@ -105,6 +115,7 @@ namespace HBP.Core.Data.Container
         {
             File = file;
         }
+
         /// <summary>
         /// Create a new EDF data container.
         /// </summary>
@@ -113,16 +124,18 @@ namespace HBP.Core.Data.Container
         {
             File = file;
         }
+
         /// <summary>
         /// Create a new EDF data container.
         /// </summary>
         public EDF() : base()
         {
-
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -131,6 +144,7 @@ namespace HBP.Core.Data.Container
         {
             return new EDF(File, Errors, Warnings, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -139,14 +153,17 @@ namespace HBP.Core.Data.Container
                 File = edf.File;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             SavedFile = SavedFile.StandardizeToEnvironement();
             base.OnDeserialized();
         }
+
         #endregion
     }
 }

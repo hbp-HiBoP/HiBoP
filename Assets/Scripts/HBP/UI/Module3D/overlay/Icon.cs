@@ -12,10 +12,12 @@ namespace HBP.UI.Module3D
     public class Icon : ColumnOverlayElement
     {
         #region Properties
+
         /// <summary>
         /// Displays the image of the current icon
         /// </summary>
         [SerializeField] private Image m_Image;
+
         /// <summary>
         /// Displays the title of the current icon
         /// </summary>
@@ -25,21 +27,29 @@ namespace HBP.UI.Module3D
         /// Default sprite for the icon (used when no icon matches the current point in the timeline)
         /// </summary>
         private Sprite m_DefaultSprite;
+
         /// <summary>
         /// Currently displayed icon
         /// </summary>
         private Core.Data.Processed.Icon m_CurrentIcon;
+
         /// <summary>
         /// Sprite of the current icon
         /// </summary>
-        public Sprite Sprite { get { return m_CurrentIcon != null ? m_CurrentIcon.Illustration : null; } }
+        public Sprite Sprite
+        {
+            get { return m_CurrentIcon != null ? m_CurrentIcon.Illustration : null; }
+        }
+
         /// <summary>
         /// List of all icons used for this column
         /// </summary>
         private List<Core.Data.Processed.Icon> m_Icons;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Setup the overlay element
         /// </summary>
@@ -58,6 +68,7 @@ namespace HBP.UI.Module3D
                 {
                     IsActive = value;
                 }
+
                 m_CurrentIcon = null;
             });
 
@@ -71,6 +82,7 @@ namespace HBP.UI.Module3D
                 {
                     m_Icons = ccepColumn.ColumnCCEPData.Data.IconicScenario.Icons.OrderByDescending((i) => i.StartPosition).ToList();
                 }
+
                 dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
                     if (!scene.IsGeneratorUpToDate) return;
@@ -81,6 +93,7 @@ namespace HBP.UI.Module3D
                         IsActive = false;
                         m_CurrentIcon = null;
                     }
+
                     if (icon != m_CurrentIcon)
                     {
                         if (!icon.Usable)
@@ -94,6 +107,7 @@ namespace HBP.UI.Module3D
                             m_Image.sprite = icon.Illustration;
                             m_Text.text = icon.Label;
                         }
+
                         m_CurrentIcon = icon;
                     }
                 });
@@ -103,6 +117,7 @@ namespace HBP.UI.Module3D
                 IsActive = false;
             }
         }
+
         #endregion
     }
 }

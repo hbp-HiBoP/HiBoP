@@ -26,6 +26,7 @@ namespace HBP.Core.DLL
             {
                 (result[i + 1], result[i + 2]) = (result[i + 2], result[i + 1]);
             }
+
             return result;
         }
     }

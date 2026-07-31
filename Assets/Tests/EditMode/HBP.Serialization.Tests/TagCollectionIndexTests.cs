@@ -20,11 +20,7 @@ namespace HBP.Tests.Serialization
             StringTag general = new("general", "tag-index-general");
             BoolTag patient = new("patient", "tag-index-patient");
             IntTag site = new("site", "tag-index-site");
-            TagCollection collection = new(
-                new BaseTag[] { general },
-                new BaseTag[] { patient },
-                new BaseTag[] { site },
-                "tag-index-collection");
+            TagCollection collection = new(new BaseTag[] { general }, new BaseTag[] { patient }, new BaseTag[] { site }, "tag-index-collection");
 
             Assert.That(collection.AllTags, Is.SameAs(collection.AllTags));
             Assert.That(collection.GeneralTags, Is.SameAs(collection.GeneralTags));
@@ -67,33 +63,23 @@ namespace HBP.Tests.Serialization
             AssertIndexed(collection, replacementGeneral);
             AssertIndexed(collection, replacementPatient);
             AssertIndexed(collection, replacementSite);
-            Assert.That(
-                collection.AllTags.Select(tag => tag.ID),
-                Is.EqualTo(new[] { replacementPatient.ID, replacementSite.ID, replacementGeneral.ID }));
+            Assert.That(collection.AllTags.Select(tag => tag.ID), Is.EqualTo(new[] { replacementPatient.ID, replacementSite.ID, replacementGeneral.ID }));
         }
 
         [Test]
         public void DuplicateIds_AreRejectedWithoutCorruptingTheExistingIndex()
         {
             StringTag original = new("original", "tag-index-duplicate");
-            TagCollection collection = new(
-                new BaseTag[] { original },
-                Array.Empty<BaseTag>(),
-                Array.Empty<BaseTag>(),
-                "tag-index-duplicates");
+            TagCollection collection = new(new BaseTag[] { original }, Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), "tag-index-duplicates");
             var originalView = collection.AllTags;
 
-            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
-                () => collection.AddSiteTag(new BoolTag("conflict", original.ID), false));
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => collection.AddSiteTag(new BoolTag("conflict", original.ID), false));
 
             Assert.That(exception.Message, Does.Contain(original.ID));
             Assert.That(collection.AllTags, Is.SameAs(originalView));
             AssertIndexed(collection, original);
 
-            Assert.Throws<InvalidOperationException>(() => new TagCollection(
-                new BaseTag[] { new StringTag("first", "tag-index-constructor-duplicate") },
-                new BaseTag[] { new BoolTag("second", "tag-index-constructor-duplicate") },
-                Array.Empty<BaseTag>()));
+            Assert.Throws<InvalidOperationException>(() => new TagCollection(new BaseTag[] { new StringTag("first", "tag-index-constructor-duplicate") }, new BaseTag[] { new BoolTag("second", "tag-index-constructor-duplicate") }, Array.Empty<BaseTag>()));
         }
 
         [Test]
@@ -101,11 +87,7 @@ namespace HBP.Tests.Serialization
         {
             StringTag shared = new("shared", "tag-index-shared");
 
-            TagCollection collection = new(
-                new BaseTag[] { shared },
-                Array.Empty<BaseTag>(),
-                new BaseTag[] { shared },
-                "tag-index-shared-collection");
+            TagCollection collection = new(new BaseTag[] { shared }, Array.Empty<BaseTag>(), new BaseTag[] { shared }, "tag-index-shared-collection");
 
             Assert.That(collection.AllTags.Count(tag => ReferenceEquals(tag, shared)), Is.EqualTo(2));
             AssertIndexed(collection, shared);
@@ -114,16 +96,8 @@ namespace HBP.Tests.Serialization
         [Test]
         public void CopyAndGenerateId_RebuildTheIndex()
         {
-            TagCollection source = new(
-                new BaseTag[] { new StringTag("general", "tag-index-copy-general") },
-                new BaseTag[] { new BoolTag("patient", "tag-index-copy-patient") },
-                new BaseTag[] { new FloatTag("site", "tag-index-copy-site") },
-                "tag-index-copy-source");
-            TagCollection target = new(
-                Array.Empty<BaseTag>(),
-                Array.Empty<BaseTag>(),
-                Array.Empty<BaseTag>(),
-                "tag-index-copy-target");
+            TagCollection source = new(new BaseTag[] { new StringTag("general", "tag-index-copy-general") }, new BaseTag[] { new BoolTag("patient", "tag-index-copy-patient") }, new BaseTag[] { new FloatTag("site", "tag-index-copy-site") }, "tag-index-copy-source");
+            TagCollection target = new(Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), "tag-index-copy-target");
 
             target.Copy(source);
             foreach (BaseTag tag in target.AllTags)
@@ -145,11 +119,7 @@ namespace HBP.Tests.Serialization
         public void JsonRoundTrip_RebuildsTheIndexWithoutChangingTheFormat()
         {
             using TempDirectoryScope temp = new();
-            TagCollection source = new(
-                new BaseTag[] { new StringTag("general", "tag-index-json-general") },
-                new BaseTag[] { new BoolTag("patient", "tag-index-json-patient") },
-                new BaseTag[] { new EnumTag("site", new[] { "one", "two" }, "tag-index-json-site") },
-                "tag-index-json-collection");
+            TagCollection source = new(new BaseTag[] { new StringTag("general", "tag-index-json-general") }, new BaseTag[] { new BoolTag("patient", "tag-index-json-patient") }, new BaseTag[] { new EnumTag("site", new[] { "one", "two" }, "tag-index-json-site") }, "tag-index-json-collection");
             string path = temp.GetPath("tag-index.json");
 
             Assert.That(ClassLoaderSaver.SaveToJSon(source, path, true), Is.True);
@@ -168,20 +138,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void LegacyAssemblyCSharpTypes_RebuildTheIndexAfterDeserialization()
         {
-            const string json =
-                "{"
-                + "\"$type\":\"HBP.Core.Data.TagCollection, Assembly-CSharp\","
-                + "\"ID\":\"tag-index-legacy-collection\","
-                + "\"m_GeneralTags\":["
-                + "{"
-                + "\"$type\":\"HBP.Core.Data.BoolTag, Assembly-CSharp\","
-                + "\"ID\":\"tag-index-legacy-bool\","
-                + "\"Name\":\"legacy-bool\""
-                + "}"
-                + "],"
-                + "\"m_PatientsTags\":[],"
-                + "\"m_SitesTags\":[]"
-                + "}";
+            const string json = "{" + "\"$type\":\"HBP.Core.Data.TagCollection, Assembly-CSharp\"," + "\"ID\":\"tag-index-legacy-collection\"," + "\"m_GeneralTags\":[" + "{" + "\"$type\":\"HBP.Core.Data.BoolTag, Assembly-CSharp\"," + "\"ID\":\"tag-index-legacy-bool\"," + "\"Name\":\"legacy-bool\"" + "}" + "]," + "\"m_PatientsTags\":[]," + "\"m_SitesTags\":[]" + "}";
 
             TagCollection loaded = ClassLoaderSaver.LoadFromJsonString<TagCollection>(json);
 
@@ -199,18 +156,11 @@ namespace HBP.Tests.Serialization
             StringTag unknownTag = new("unknown", "tag-index-check-unknown");
             PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { canonicalTag }, false);
 
-            Patient patient = new(
-                "tag-index-patient",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                Array.Empty<Site>(),
-                new BaseTagValue[]
-                {
-                    new BaseTagValue(canonicalTag, 42, "tag-index-legacy-value"),
-                    new StringTagValue(unknownTag, "remove", "tag-index-unknown-value")
-                },
-                "",
-                "tag-index-patient-id");
+            Patient patient = new("tag-index-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), new BaseTagValue[]
+            {
+                new BaseTagValue(canonicalTag, 42, "tag-index-legacy-value"),
+                new StringTagValue(unknownTag, "remove", "tag-index-unknown-value")
+            }, "", "tag-index-patient-id");
 
             try
             {
@@ -242,14 +192,7 @@ namespace HBP.Tests.Serialization
                 values.Add(new StringTagValue(tag, "value", $"tag-index-load-value-{index}"));
             }
 
-            Patient patient = new(
-                "tag-index-load-patient",
-                Array.Empty<BaseMesh>(),
-                Array.Empty<MRI>(),
-                Array.Empty<Site>(),
-                values,
-                "",
-                "tag-index-load-patient-id");
+            Patient patient = new("tag-index-load-patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), values, "", "tag-index-load-patient-id");
             ISet<string> tagIds = new HashSet<string>(StringComparer.Ordinal) { tag.ID };
 
             try

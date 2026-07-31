@@ -10,17 +10,21 @@ namespace HBP.UI.Toolbar
     public class CCEPModeSelector : Tool
     {
         #region Properties
+
         /// <summary>
         /// Set the source mode to "Site source"
         /// </summary>
         [SerializeField] private Toggle m_Site;
+
         /// <summary>
         /// Set the source mode to "MarsAtlas area source"
         /// </summary>
         [SerializeField] private Toggle m_MarsAtlas;
+
         #endregion
-        
+
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -41,6 +45,7 @@ namespace HBP.UI.Toolbar
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -51,6 +56,7 @@ namespace HBP.UI.Toolbar
             m_Site.interactable = false;
             m_MarsAtlas.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -65,6 +71,7 @@ namespace HBP.UI.Toolbar
             m_Site.interactable = isColumnCCEP;
             m_MarsAtlas.interactable = isColumnCCEP && isMarsAtlasAvailable;
         }
+
         #endregion
     }
 }

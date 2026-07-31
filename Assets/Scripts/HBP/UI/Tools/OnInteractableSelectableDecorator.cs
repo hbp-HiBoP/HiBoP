@@ -22,12 +22,11 @@ namespace HBP.UI.Tools
 
         private void Update()
         {
-            if(m_Interactable != m_Selectable.interactable)
+            if (m_Interactable != m_Selectable.interactable)
             {
                 m_Interactable = m_Selectable.interactable;
                 m_OnChangeValue.Invoke(m_Interactable);
             }
         }
-
     }
 }

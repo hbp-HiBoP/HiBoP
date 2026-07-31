@@ -23,11 +23,7 @@ namespace HBP.Tests.Serialization
         {
             string[] current = DiscoverSerializedMembers().ToArray();
 
-            AssertApprovedManifest(
-                "serialized members",
-                current,
-                ExpectedSerializedMembersCount,
-                ExpectedSerializedMembersSha256);
+            AssertApprovedManifest("serialized members", current, ExpectedSerializedMembersCount, ExpectedSerializedMembersSha256);
         }
 
         [Test]
@@ -35,30 +31,15 @@ namespace HBP.Tests.Serialization
         {
             string[] current = DiscoverLifecycleContracts().ToArray();
 
-            AssertApprovedManifest(
-                "serialization lifecycle contracts",
-                current,
-                ExpectedLifecycleContractsCount,
-                ExpectedLifecycleContractsSha256);
+            AssertApprovedManifest("serialization lifecycle contracts", current, ExpectedLifecycleContractsCount, ExpectedLifecycleContractsSha256);
         }
 
         [Test]
         public void OptInJsonTypes_HaveDefaultConstructionPath()
         {
-            string[] violations = DiscoverJsonTypes()
-                .Where(type => GetJsonObjectMemberSerialization(type) == "OptIn")
-                .Where(type => !type.IsAbstract && !type.IsInterface && !type.IsEnum)
-                .Where(type => !type.IsValueType)
-                .Where(type => type.GetConstructor(Type.EmptyTypes) == null)
-                .Where(type => !type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Any(constructor => HasAttribute(constructor, "Newtonsoft.Json.JsonConstructorAttribute")))
-                .Select(FormatType)
-                .OrderBy(value => value)
-                .ToArray();
+            string[] violations = DiscoverJsonTypes().Where(type => GetJsonObjectMemberSerialization(type) == "OptIn").Where(type => !type.IsAbstract && !type.IsInterface && !type.IsEnum).Where(type => !type.IsValueType).Where(type => type.GetConstructor(Type.EmptyTypes) == null).Where(type => !type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Any(constructor => HasAttribute(constructor, "Newtonsoft.Json.JsonConstructorAttribute"))).Select(FormatType).OrderBy(value => value).ToArray();
 
-            Assert.That(violations, Is.Empty,
-                "Every OptIn JSON reference type must be constructible by Json.NET. " +
-                "Add a default constructor, a [JsonConstructor], or document an explicit exception.");
+            Assert.That(violations, Is.Empty, "Every OptIn JSON reference type must be constructible by Json.NET. " + "Add a default constructor, a [JsonConstructor], or document an explicit exception.");
         }
 
         private static IEnumerable<string> DiscoverSerializedMembers()
@@ -88,14 +69,13 @@ namespace HBP.Tests.Serialization
             {
                 foreach (MethodInfo method in GetLifecycleMethods(type))
                 {
-                    string callbacks = string.Join(",",
-                        new[]
-                        {
-                            method.GetCustomAttribute<OnSerializingAttribute>() != null ? nameof(OnSerializingAttribute) : null,
-                            method.GetCustomAttribute<OnSerializedAttribute>() != null ? nameof(OnSerializedAttribute) : null,
-                            method.GetCustomAttribute<OnDeserializingAttribute>() != null ? nameof(OnDeserializingAttribute) : null,
-                            method.GetCustomAttribute<OnDeserializedAttribute>() != null ? nameof(OnDeserializedAttribute) : null
-                        }.Where(value => value != null));
+                    string callbacks = string.Join(",", new[]
+                    {
+                        method.GetCustomAttribute<OnSerializingAttribute>() != null ? nameof(OnSerializingAttribute) : null,
+                        method.GetCustomAttribute<OnSerializedAttribute>() != null ? nameof(OnSerializedAttribute) : null,
+                        method.GetCustomAttribute<OnDeserializingAttribute>() != null ? nameof(OnDeserializingAttribute) : null,
+                        method.GetCustomAttribute<OnDeserializedAttribute>() != null ? nameof(OnDeserializedAttribute) : null
+                    }.Where(value => value != null));
 
                     yield return $"CALLBACK|{FormatType(type)}|{method.Name}|{callbacks}";
                 }
@@ -116,36 +96,24 @@ namespace HBP.Tests.Serialization
 
         private static IEnumerable<Type> DiscoverJsonTypes()
         {
-            return GetProjectAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => HasAttribute(type, "Newtonsoft.Json.JsonObjectAttribute"))
-                .OrderBy(FormatType);
+            return GetProjectAssemblies().SelectMany(assembly => assembly.GetTypes()).Where(type => HasAttribute(type, "Newtonsoft.Json.JsonObjectAttribute")).OrderBy(FormatType);
         }
 
         private static IEnumerable<MemberInfo> GetSerializableMembers(Type type)
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
-            return type.GetMembers(flags)
-                .Where(member => HasAttribute(member, "Newtonsoft.Json.JsonPropertyAttribute"))
-                .OrderBy(member => member.MetadataToken);
+            return type.GetMembers(flags).Where(member => HasAttribute(member, "Newtonsoft.Json.JsonPropertyAttribute")).OrderBy(member => member.MetadataToken);
         }
 
         private static IEnumerable<MethodInfo> GetLifecycleMethods(Type type)
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly;
-            return type.GetMethods(flags)
-                .Where(method =>
-                    method.GetCustomAttribute<OnSerializingAttribute>() != null ||
-                    method.GetCustomAttribute<OnSerializedAttribute>() != null ||
-                    method.GetCustomAttribute<OnDeserializingAttribute>() != null ||
-                    method.GetCustomAttribute<OnDeserializedAttribute>() != null)
-                .OrderBy(method => method.MetadataToken);
+            return type.GetMethods(flags).Where(method => method.GetCustomAttribute<OnSerializingAttribute>() != null || method.GetCustomAttribute<OnSerializedAttribute>() != null || method.GetCustomAttribute<OnDeserializingAttribute>() != null || method.GetCustomAttribute<OnDeserializedAttribute>() != null).OrderBy(method => method.MetadataToken);
         }
 
         private static MethodInfo FindInstanceMethod(Type type, string name)
         {
-            return type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .FirstOrDefault(method => method.Name == name && method.GetParameters().Length == ExpectedParameterCount(name));
+            return type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault(method => method.Name == name && method.GetParameters().Length == ExpectedParameterCount(name));
         }
 
         private static int ExpectedParameterCount(string methodName)
@@ -172,8 +140,7 @@ namespace HBP.Tests.Serialization
                 return attribute.ConstructorArguments[0].Value?.ToString() ?? "<null>";
             }
 
-            CustomAttributeNamedArgument namedArgument = attribute.NamedArguments
-                .FirstOrDefault(argument => argument.MemberName == "MemberSerialization");
+            CustomAttributeNamedArgument namedArgument = attribute.NamedArguments.FirstOrDefault(argument => argument.MemberName == "MemberSerialization");
             return namedArgument.TypedValue.Value?.ToString() ?? "OptOut";
         }
 
@@ -187,8 +154,7 @@ namespace HBP.Tests.Serialization
                 return attribute.ConstructorArguments[0].Value as string;
             }
 
-            CustomAttributeNamedArgument namedArgument = attribute.NamedArguments
-                .FirstOrDefault(argument => argument.MemberName == "PropertyName");
+            CustomAttributeNamedArgument namedArgument = attribute.NamedArguments.FirstOrDefault(argument => argument.MemberName == "PropertyName");
             return namedArgument.TypedValue.Value as string;
         }
 
@@ -207,12 +173,8 @@ namespace HBP.Tests.Serialization
             string actualSha256 = Sha256(current);
             string currentManifest = string.Join("\n", current);
 
-            Assert.That(current.Count, Is.EqualTo(expectedCount),
-                $"{label} count changed. Current count: {current.Count}. Current SHA256: {actualSha256}.\n" +
-                currentManifest);
-            Assert.That(actualSha256, Is.EqualTo(expectedSha256),
-                $"{label} manifest changed. Current count: {current.Count}. Current SHA256: {actualSha256}.\n" +
-                currentManifest);
+            Assert.That(current.Count, Is.EqualTo(expectedCount), $"{label} count changed. Current count: {current.Count}. Current SHA256: {actualSha256}.\n" + currentManifest);
+            Assert.That(actualSha256, Is.EqualTo(expectedSha256), $"{label} manifest changed. Current count: {current.Count}. Current SHA256: {actualSha256}.\n" + currentManifest);
         }
 
         private static string Sha256(IEnumerable<string> values)

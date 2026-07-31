@@ -58,78 +58,55 @@ namespace HBP.Tests.Serialization
 
         private static WorkflowArtifact CaptureWorkflowArtifact(BenchmarkBackend backend)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                using Volume activityVolume = LoadVolume("fmri_3d.nii");
+                using Volume maskVolume = LoadVolume("mask_binary.nii");
+                using Surface surface = LoadSurface();
+                using MarsAtlas marsAtlas = LoadMarsAtlas();
+
+                Mesh mesh = new();
+                Mesh uvMesh = new();
+                try
                 {
-                    using Volume volume = LoadVolume("fmri_3d.nii");
-                    using Volume activityVolume = LoadVolume("fmri_3d.nii");
-                    using Volume maskVolume = LoadVolume("mask_binary.nii");
-                    using Surface surface = LoadSurface();
-                    using MarsAtlas marsAtlas = LoadMarsAtlas();
+                    mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                    uvMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                    surface.UpdateMeshFromDLL(mesh);
 
-                    Mesh mesh = new();
-                    Mesh uvMesh = new();
-                    try
+                    Vector3 rawVolumeCenter = volume.Center;
+                    Vector3 unityVolumeCenter = backend == BenchmarkBackend.HbpCore ? rawVolumeCenter : NativeParityAssert.NativeToUnity(rawVolumeCenter);
+                    Vector3 rawOrientation = volume.GetOrientationVector(CutOrientation.Axial, flip: false);
+                    Vector3 unityOrientation = backend == BenchmarkBackend.HbpCore ? rawOrientation : NativeParityAssert.NativeToUnity(rawOrientation);
+                    TestContext.Progress.WriteLine($"workflow {backend}: raw center={rawVolumeCenter}; normalized Unity center={unityVolumeCenter}; conversion=R=diag({(ReferenceSystemConversion.InvertX ? "-1" : "1")},1,1)");
+                    if (backend == BenchmarkBackend.HbpExport)
                     {
-                        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-                        uvMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-                        surface.UpdateMeshFromDLL(mesh);
-
-                        Vector3 rawVolumeCenter = volume.Center;
-                        Vector3 unityVolumeCenter = backend == BenchmarkBackend.HbpCore
-                            ? rawVolumeCenter
-                            : NativeParityAssert.NativeToUnity(rawVolumeCenter);
-                        Vector3 rawOrientation = volume.GetOrientationVector(CutOrientation.Axial, flip: false);
-                        Vector3 unityOrientation = backend == BenchmarkBackend.HbpCore
-                            ? rawOrientation
-                            : NativeParityAssert.NativeToUnity(rawOrientation);
-                        TestContext.Progress.WriteLine(
-                            $"workflow {backend}: raw center={rawVolumeCenter}; normalized Unity center={unityVolumeCenter}; conversion=R=diag({(ReferenceSystemConversion.InvertX ? "-1" : "1")},1,1)");
-                        if (backend == BenchmarkBackend.HbpExport)
-                        {
-                            NativeParityAssert.NormalizeLegacyMeshToUnity(mesh);
-                        }
-
-                        using HBP.Core.Object3D.Cut cut = new(unityVolumeCenter, unityOrientation)
-                        {
-                            Orientation = CutOrientation.Axial,
-                            Flip = false,
-                            Position = 0.5f,
-                            NumberOfCuts = 8
-                        };
-                        using CutGeometryGenerator cutGeometry = new();
-                        cutGeometry.Initialize(volume, cut, maxTextureSize: 8);
-                        cutGeometry.UpdateSurfaceUV(surface);
-                        surface.UpdateMeshFromDLL(uvMesh, all: false, uv: true);
-
-                        CutPixels cutPixels = RenderVolumeCut(backend, volume, surface, cutGeometry);
-                        ActivityUvs fmriUvs = ComputeFmriUvs(surface, volume, activityVolume, maskVolume);
-
-                        return new WorkflowArtifact(
-                            unityVolumeCenter,
-                            volume.Spacing,
-                            volume.ExtremeValues,
-                            mesh.vertexCount,
-                            mesh.triangles.Length / 3,
-                            HashVector3(mesh.vertices),
-                            HashInts(mesh.triangles),
-                            cutPixels.Width,
-                            cutPixels.Height,
-                            HashColor32(cutPixels.Pixels),
-                            HashVector2(uvMesh.uv),
-                            HashVector2(fmriUvs.ActivityUV),
-                            HashVector2(fmriUvs.AlphaUV),
-                            HashInts(marsAtlas.Labels()),
-                            HashStrings(marsAtlas.AreaNames),
-                            marsAtlas.GetAreaName(1));
+                        NativeParityAssert.NormalizeLegacyMeshToUnity(mesh);
                     }
-                    finally
+
+                    using HBP.Core.Object3D.Cut cut = new(unityVolumeCenter, unityOrientation)
                     {
-                        UnityEngine.Object.DestroyImmediate(mesh);
-                        UnityEngine.Object.DestroyImmediate(uvMesh);
-                    }
-                });
+                        Orientation = CutOrientation.Axial,
+                        Flip = false,
+                        Position = 0.5f,
+                        NumberOfCuts = 8
+                    };
+                    using CutGeometryGenerator cutGeometry = new();
+                    cutGeometry.Initialize(volume, cut, maxTextureSize: 8);
+                    cutGeometry.UpdateSurfaceUV(surface);
+                    surface.UpdateMeshFromDLL(uvMesh, all: false, uv: true);
+
+                    CutPixels cutPixels = RenderVolumeCut(backend, volume, surface, cutGeometry);
+                    ActivityUvs fmriUvs = ComputeFmriUvs(surface, volume, activityVolume, maskVolume);
+
+                    return new WorkflowArtifact(unityVolumeCenter, volume.Spacing, volume.ExtremeValues, mesh.vertexCount, mesh.triangles.Length / 3, HashVector3(mesh.vertices), HashInts(mesh.triangles), cutPixels.Width, cutPixels.Height, HashColor32(cutPixels.Pixels), HashVector2(uvMesh.uv), HashVector2(fmriUvs.ActivityUV), HashVector2(fmriUvs.AlphaUV), HashInts(marsAtlas.Labels()), HashStrings(marsAtlas.AreaNames), marsAtlas.GetAreaName(1));
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(mesh);
+                    UnityEngine.Object.DestroyImmediate(uvMesh);
+                }
+            });
         }
 
         private static CutPixels RenderVolumeCut(BenchmarkBackend backend, Volume volume, Surface surface, CutGeometryGenerator cutGeometry)
@@ -231,6 +208,7 @@ namespace HBP.Tests.Serialization
                 hash.Add(Mathf.RoundToInt(value.y * 10000.0f));
                 hash.Add(Mathf.RoundToInt(value.z * 10000.0f));
             }
+
             return hash.ToHashCode();
         }
 
@@ -242,6 +220,7 @@ namespace HBP.Tests.Serialization
                 hash.Add(Mathf.RoundToInt(value.x * 10000.0f));
                 hash.Add(Mathf.RoundToInt(value.y * 10000.0f));
             }
+
             return hash.ToHashCode();
         }
 
@@ -255,6 +234,7 @@ namespace HBP.Tests.Serialization
                 hash.Add(value.b);
                 hash.Add(value.a);
             }
+
             return hash.ToHashCode();
         }
 
@@ -265,6 +245,7 @@ namespace HBP.Tests.Serialization
             {
                 hash.Add(value);
             }
+
             return hash.ToHashCode();
         }
 
@@ -275,6 +256,7 @@ namespace HBP.Tests.Serialization
             {
                 hash.Add(value);
             }
+
             return hash.ToHashCode();
         }
 
@@ -306,23 +288,7 @@ namespace HBP.Tests.Serialization
 
         private readonly struct WorkflowArtifact
         {
-            public WorkflowArtifact(
-                Vector3 volumeCenter,
-                Vector3 volumeSpacing,
-                MRICalValues volumeExtrema,
-                int surfaceVertexCount,
-                int surfaceTriangleCount,
-                int surfaceVertexHash,
-                int surfaceTriangleHash,
-                int cutTextureWidth,
-                int cutTextureHeight,
-                int cutBasePixelHash,
-                int cutSurfaceUvHash,
-                int fmriActivityUvHash,
-                int fmriAlphaUvHash,
-                int marsLabelsHash,
-                int marsAreaNamesHash,
-                string marsLabelOneName)
+            public WorkflowArtifact(Vector3 volumeCenter, Vector3 volumeSpacing, MRICalValues volumeExtrema, int surfaceVertexCount, int surfaceTriangleCount, int surfaceVertexHash, int surfaceTriangleHash, int cutTextureWidth, int cutTextureHeight, int cutBasePixelHash, int cutSurfaceUvHash, int fmriActivityUvHash, int fmriAlphaUvHash, int marsLabelsHash, int marsAreaNamesHash, string marsLabelOneName)
             {
                 VolumeCenter = volumeCenter;
                 VolumeSpacing = volumeSpacing;

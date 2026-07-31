@@ -8,20 +8,25 @@ namespace HBP.UI.Toolbar
     public class MRISelector : Tool
     {
         #region Properties
+
         /// <summary>
         /// Dropdown to select the MRI to be selected
         /// </summary>
         [SerializeField] private Dropdown m_Dropdown;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when changing the MRI
         /// </summary>
         public GenericEvent<int> OnChangeValue = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -35,6 +40,7 @@ namespace HBP.UI.Toolbar
                 OnChangeValue.Invoke(value);
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -43,6 +49,7 @@ namespace HBP.UI.Toolbar
             m_Dropdown.value = 0;
             m_Dropdown.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -50,6 +57,7 @@ namespace HBP.UI.Toolbar
         {
             m_Dropdown.interactable = true;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -60,9 +68,11 @@ namespace HBP.UI.Toolbar
             {
                 m_Dropdown.options.Add(new Dropdown.OptionData(mri.Name));
             }
+
             m_Dropdown.value = SelectedScene.MRIManager.SelectedMRIID;
             m_Dropdown.RefreshShownValue();
         }
+
         #endregion
     }
 }

@@ -301,12 +301,7 @@ namespace HBP.Tests.Serialization
             DatabaseManager.Database.SetProtocols(new[] { SyntheticProjectFactory.CreateProtocol() });
             bool initialLoaderSawValidation = false;
 
-            await loaded.LoadAsync(
-                info,
-                (progress, duration, text) =>
-                    initialLoaderSawValidation |=
-                        text.ToString().StartsWith("Validating"),
-                CancellationToken.None);
+            await loaded.LoadAsync(info, (progress, duration, text) => initialLoaderSawValidation |= text.ToString().StartsWith("Validating"), CancellationToken.None);
 
             Assert.That(initialLoaderSawValidation, Is.False);
             Assert.That(loaded.CurrentLoadingOperation.Ready.IsCompleted, Is.True);
@@ -449,33 +444,25 @@ namespace HBP.Tests.Serialization
         [Test, Timeout(5000)]
         public async Task LoadAsync_CorruptedPatientJson_ThrowsControlledException()
         {
-            await AssertCorruptedProjectEntryThrows(
-                $"Patients/{SyntheticProjectFactory.PatientId}{Patient.EXTENSION}",
-                typeof(CanNotReadPatientFileException));
+            await AssertCorruptedProjectEntryThrows($"Patients/{SyntheticProjectFactory.PatientId}{Patient.EXTENSION}", typeof(CanNotReadPatientFileException));
         }
 
         [Test, Timeout(5000)]
         public async Task LoadAsync_CorruptedGroupJson_ThrowsControlledException()
         {
-            await AssertCorruptedProjectEntryThrows(
-                "Groups/synthetic-group-alpha" + Core.Data.Group.EXTENSION,
-                typeof(CanNotReadGroupFileException));
+            await AssertCorruptedProjectEntryThrows("Groups/synthetic-group-alpha" + Core.Data.Group.EXTENSION, typeof(CanNotReadGroupFileException));
         }
 
         [Test, Timeout(5000)]
         public async Task LoadAsync_CorruptedDatasetJson_ThrowsControlledException()
         {
-            await AssertCorruptedProjectEntryThrows(
-                "Datasets/dataset-alpha" + Dataset.EXTENSION,
-                typeof(CanNotReadDatasetFileException));
+            await AssertCorruptedProjectEntryThrows("Datasets/dataset-alpha" + Dataset.EXTENSION, typeof(CanNotReadDatasetFileException));
         }
 
         [Test, Timeout(5000)]
         public async Task LoadAsync_CorruptedVisualizationJson_ThrowsControlledException()
         {
-            await AssertCorruptedProjectEntryThrows(
-                "Visualizations/visualization-alpha" + Visualization.EXTENSION,
-                typeof(CanNotReadVisualizationFileException));
+            await AssertCorruptedProjectEntryThrows("Visualizations/visualization-alpha" + Visualization.EXTENSION, typeof(CanNotReadVisualizationFileException));
         }
 
         [Test]
@@ -601,8 +588,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(progress, Is.GreaterThanOrEqualTo(previousProgress));
                 previousProgress = progress;
                 lastText = text;
-                validationProgressReported |=
-                    text.ToString().StartsWith("Validating patient file references");
+                validationProgressReported |= text.ToString().StartsWith("Validating patient file references");
             }
 
             await loaded.LoadAsync(info, TrackProgress, CancellationToken.None);
@@ -610,6 +596,7 @@ namespace HBP.Tests.Serialization
             Assert.That(previousProgress, Is.EqualTo(1.0f));
             Assert.That(lastText.ToString(), Is.EqualTo("Project loaded successfully"));
             Assert.That(validationProgressReported, Is.False);
+            await loaded.CurrentLoadingOperation.Validated;
         }
 
         [Test]
@@ -1071,6 +1058,7 @@ namespace HBP.Tests.Serialization
 
             DatabaseManager.Database.SetProtocols(databaseProtocols.Length > 0 ? databaseProtocols : new[] { SyntheticProjectFactory.CreateProtocol() });
             await loaded.LoadAsync(info, NoProgress, CancellationToken.None);
+            await loaded.CurrentLoadingOperation.Validated;
             AssertArchiveIsUnlocked(archivePath);
             return loaded;
         }

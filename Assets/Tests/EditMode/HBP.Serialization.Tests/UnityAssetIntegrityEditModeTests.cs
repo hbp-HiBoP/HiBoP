@@ -17,10 +17,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void ProjectPrefabs_DoNotContainMissingScripts()
         {
-            string[] prefabPaths = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs", "Assets/Resources/Prefabs" })
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Distinct()
-                .ToArray();
+            string[] prefabPaths = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs", "Assets/Resources/Prefabs" }).Select(AssetDatabase.GUIDToAssetPath).Distinct().ToArray();
 
             List<string> failures = new();
             foreach (string path in prefabPaths)
@@ -53,6 +50,7 @@ namespace HBP.Tests.Serialization
                         failures.Add($"{root.name}: {missing} missing script(s)");
                     }
                 }
+
                 Assert.That(failures, Is.Empty, string.Join("\n", failures));
             }
             finally
@@ -65,10 +63,7 @@ namespace HBP.Tests.Serialization
         public void MainScene_IsListedInBuildSettingsAndWiresBootstrapComponents()
         {
             Assert.That(AssetDatabase.LoadAssetAtPath<SceneAsset>(MainScenePath), Is.Not.Null, MainScenePath);
-            Assert.That(
-                EditorBuildSettings.scenes.Any(scene => scene.enabled && scene.path == MainScenePath),
-                Is.True,
-                $"{MainScenePath} must be enabled in EditorBuildSettings");
+            Assert.That(EditorBuildSettings.scenes.Any(scene => scene.enabled && scene.path == MainScenePath), Is.True, $"{MainScenePath} must be enabled in EditorBuildSettings");
 
             Scene scene = EditorSceneManager.OpenScene(MainScenePath, OpenSceneMode.Additive);
             try
@@ -89,113 +84,37 @@ namespace HBP.Tests.Serialization
         [Test]
         public void CriticalPrefabs_LoadAndExposeExpectedComponents()
         {
-            AssertPrefabHasComponents(
-                "Assets/Prefabs/3D/3D.prefab",
-                "HBP.Data.Module3D.Module3DMain");
-            AssertPrefabHasComponents(
-                "Assets/Prefabs/3D/Scenes/Scene 3D.prefab",
-                "HBP.Data.Module3D.Base3DScene");
-            AssertPrefabHasComponents(
-                "Assets/Prefabs/3D/UI/3D Menu.prefab",
-                "HBP.UI.Toolbar.ToolbarMenu",
-                "HBP.UI.Toolbar.ToolbarSelector");
-            AssertPrefabHasComponents(
-                "Assets/Prefabs/Informations/Informations.prefab",
-                "HBP.UI.Informations.GraphZone",
-                "HBP.UI.Informations.Graphs.GraphsGrid",
-                "HBP.UI.Informations.TrialMatrixZone",
-                "HBP.UI.Informations.TrialMatrix.TrialMatrixGrid");
-            AssertPrefabHasComponents(
-                "Assets/Prefabs/Informations/TrialMatrix/Grid/pref_TrialMatrixGrid.prefab",
-                "HBP.UI.Informations.TrialMatrix.TrialMatrixGrid");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/New project window.prefab",
-                "HBP.UI.Main.NewProject");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Open project window.prefab",
-                "HBP.UI.Main.OpenProject");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Save project as window.prefab",
-                "HBP.UI.Main.SaveProjectAs");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Patient gestion window.prefab",
-                "HBP.UI.Main.PatientGestion");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Protocol gestion window.prefab",
-                "HBP.UI.Main.ProtocolGestion");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Dataset gestion window.prefab",
-                "HBP.UI.Main.DatasetGestion");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Visualization gestion window.prefab",
-                "HBP.UI.Main.VisualizationGestion");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Database browser window.prefab",
-                "HBP.UI.Database.DatabaseBrowserWindow");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Graph settings window.prefab",
-                "HBP.UI.Informations.GraphSettingsWindow");
-            AssertPrefabHasComponents(
-                "Assets/Resources/Prefabs/UI/Windows/Trial matrix explorer window.prefab",
-                "HBP.UI.Database.TrialMatrixExplorerWindow");
+            AssertPrefabHasComponents("Assets/Prefabs/3D/3D.prefab", "HBP.Data.Module3D.Module3DMain");
+            AssertPrefabHasComponents("Assets/Prefabs/3D/Scenes/Scene 3D.prefab", "HBP.Data.Module3D.Base3DScene");
+            AssertPrefabHasComponents("Assets/Prefabs/3D/UI/3D Menu.prefab", "HBP.UI.Toolbar.ToolbarMenu", "HBP.UI.Toolbar.ToolbarSelector");
+            AssertPrefabHasComponents("Assets/Prefabs/Informations/Informations.prefab", "HBP.UI.Informations.GraphZone", "HBP.UI.Informations.Graphs.GraphsGrid", "HBP.UI.Informations.TrialMatrixZone", "HBP.UI.Informations.TrialMatrix.TrialMatrixGrid");
+            AssertPrefabHasComponents("Assets/Prefabs/Informations/TrialMatrix/Grid/pref_TrialMatrixGrid.prefab", "HBP.UI.Informations.TrialMatrix.TrialMatrixGrid");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/New project window.prefab", "HBP.UI.Main.NewProject");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Open project window.prefab", "HBP.UI.Main.OpenProject");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Save project as window.prefab", "HBP.UI.Main.SaveProjectAs");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Patient gestion window.prefab", "HBP.UI.Main.PatientGestion");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Protocol gestion window.prefab", "HBP.UI.Main.ProtocolGestion");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Dataset gestion window.prefab", "HBP.UI.Main.DatasetGestion");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Visualization gestion window.prefab", "HBP.UI.Main.VisualizationGestion");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Database browser window.prefab", "HBP.UI.Database.DatabaseBrowserWindow");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Graph settings window.prefab", "HBP.UI.Informations.GraphSettingsWindow");
+            AssertPrefabHasComponents("Assets/Resources/Prefabs/UI/Windows/Trial matrix explorer window.prefab", "HBP.UI.Database.TrialMatrixExplorerWindow");
         }
 
         [Test]
         public void CriticalPrefabs_WireBootstrapSerializedReferences()
         {
             GameObject module3D = LoadPrefab("Assets/Prefabs/3D/3D.prefab");
-            AssertSerializedReferences(
-                FindComponent(module3D, "HBP.Data.Module3D.Module3DMain"),
-                "m_SharedMaterials",
-                "m_SharedDirectionalLight",
-                "m_SharedSpotlight",
-                "m_ScenesParent",
-                "m_ScenePrefab");
+            AssertSerializedReferences(FindComponent(module3D, "HBP.Data.Module3D.Module3DMain"), "m_SharedMaterials", "m_SharedDirectionalLight", "m_SharedSpotlight", "m_ScenesParent", "m_ScenePrefab");
 
             GameObject toolbar = LoadPrefab("Assets/Prefabs/3D/UI/3D Menu.prefab");
-            AssertSerializedReferences(
-                FindComponent(toolbar, "HBP.UI.Toolbar.ToolbarMenu"),
-                "m_ConfigurationToolbar",
-                "m_SceneSettingsToolbar",
-                "m_DisplaySettingsToolbar",
-                "m_ActivitySettingsToolbar",
-                "m_TimelineToolbar",
-                "m_SiteToolbar",
-                "m_AtlasToolbar",
-                "m_ROIToolbar",
-                "m_TriangleToolbar");
-            AssertSerializedReferences(
-                FindComponent(toolbar, "HBP.UI.Toolbar.ToolbarSelector"),
-                "m_ToolbarMenu",
-                "m_ConfigurationToggle",
-                "m_SceneToggle",
-                "m_DisplayToggle",
-                "m_IEEGToggle",
-                "m_TimelineToggle",
-                "m_SiteToggle",
-                "m_IBCToggle",
-                "m_ROIToggle",
-                "m_TriangleToggle");
+            AssertSerializedReferences(FindComponent(toolbar, "HBP.UI.Toolbar.ToolbarMenu"), "m_ConfigurationToolbar", "m_SceneSettingsToolbar", "m_DisplaySettingsToolbar", "m_ActivitySettingsToolbar", "m_TimelineToolbar", "m_SiteToolbar", "m_AtlasToolbar", "m_ROIToolbar", "m_TriangleToolbar");
+            AssertSerializedReferences(FindComponent(toolbar, "HBP.UI.Toolbar.ToolbarSelector"), "m_ToolbarMenu", "m_ConfigurationToggle", "m_SceneToggle", "m_DisplayToggle", "m_IEEGToggle", "m_TimelineToggle", "m_SiteToggle", "m_IBCToggle", "m_ROIToggle", "m_TriangleToggle");
 
-            AssertSerializedReferences(
-                FindComponent(LoadPrefab("Assets/Prefabs/Managers/Windows Manager.prefab"), "HBP.UI.Tools.WindowsManager"),
-                "m_ParentContainer",
-                "m_ContainerPrefab");
-            AssertSerializedReferences(
-                FindComponent(LoadPrefab("Assets/Prefabs/Managers/Dialog Box Manager.prefab"), "HBP.UI.Tools.DialogBoxManager"),
-                "m_DialogBoxPrefab",
-                "m_ScrollableDialogBoxPrefab",
-                "m_Canvas");
-            AssertSerializedReferences(
-                FindComponent(LoadPrefab("Assets/Prefabs/LoadingCircle/Loading Manager.prefab"), "HBP.UI.Tools.LoadingManager"),
-                "m_LoadingCircle");
-            AssertSerializedReferences(
-                FindComponent(LoadPrefab("Assets/Prefabs/General/Main menu.prefab"), "HBP.UI.Main.MainMenu"),
-                "m_FileMenu",
-                "m_EditMenu",
-                "m_ProjectMenu",
-                "m_DatabaseMenu",
-                "m_HelpMenu");
+            AssertSerializedReferences(FindComponent(LoadPrefab("Assets/Prefabs/Managers/Windows Manager.prefab"), "HBP.UI.Tools.WindowsManager"), "m_ParentContainer", "m_ContainerPrefab");
+            AssertSerializedReferences(FindComponent(LoadPrefab("Assets/Prefabs/Managers/Dialog Box Manager.prefab"), "HBP.UI.Tools.DialogBoxManager"), "m_DialogBoxPrefab", "m_ScrollableDialogBoxPrefab", "m_Canvas");
+            AssertSerializedReferences(FindComponent(LoadPrefab("Assets/Prefabs/LoadingCircle/Loading Manager.prefab"), "HBP.UI.Tools.LoadingManager"), "m_LoadingCircle");
+            AssertSerializedReferences(FindComponent(LoadPrefab("Assets/Prefabs/General/Main menu.prefab"), "HBP.UI.Main.MainMenu"), "m_FileMenu", "m_EditMenu", "m_ProjectMenu", "m_DatabaseMenu", "m_HelpMenu");
         }
 
         [Test]
@@ -328,9 +247,7 @@ namespace HBP.Tests.Serialization
 
         private static Component FindComponent(GameObject root, string componentTypeName)
         {
-            return root.GetComponentsInChildren<Component>(true)
-                .Where(component => component != null)
-                .FirstOrDefault(component => component.GetType().FullName == componentTypeName);
+            return root.GetComponentsInChildren<Component>(true).Where(component => component != null).FirstOrDefault(component => component.GetType().FullName == componentTypeName);
         }
 
         private static bool HasComponent(GameObject root, string componentTypeName)
@@ -365,6 +282,7 @@ namespace HBP.Tests.Serialization
             {
                 count += CountMissingScripts(child.gameObject);
             }
+
             return count;
         }
 

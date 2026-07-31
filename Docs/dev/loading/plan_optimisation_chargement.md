@@ -23,9 +23,8 @@ Ce plan vise des gains progressifs sans abandonner :
 ## Étape 0 — Verrouiller la baseline
 
 Statut : implémentée et première capture analysée le 23 juillet 2026. Voir
-[`instrumentation_et_benchmark_etape_0.md`](instrumentation_et_benchmark_etape_0.md)
-et
 [`baseline_runtime_editor_mono_2026-07-23.md`](baseline_runtime_editor_mono_2026-07-23.md).
+L'instrumentation temporaire a été retirée à la fin de l'étape 8.6.
 
 La capture confirme l'étape 1 comme prochaine priorité : 1 112 754 recherches
 de tags ont été observées sur 370 918 valeurs, avec 156,6 s de

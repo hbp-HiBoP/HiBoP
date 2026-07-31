@@ -9,15 +9,13 @@ namespace HBP.UI.Module3D
     public class SiteList : List<Core.Object3D.Site>
     {
         #region Properties
+
         /// <summary>
         /// List of module3D sites.
         /// </summary>
         public System.Collections.Generic.List<Core.Object3D.Site> ObjectsList
         {
-            get
-            {
-                return m_Objects;
-            }
+            get { return m_Objects; }
             set
             {
                 m_Objects = value;
@@ -25,6 +23,7 @@ namespace HBP.UI.Module3D
                 ScrollRect.content.hasChanged = true;
             }
         }
+
         #endregion
     }
 }

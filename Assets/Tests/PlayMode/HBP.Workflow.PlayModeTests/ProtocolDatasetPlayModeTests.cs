@@ -41,19 +41,17 @@ namespace HBP.Tests.PlayMode.Workflow
             Assert.That(dataset.GetFMRIDataInfos(), Has.Length.EqualTo(1));
             Assert.That(dataset.GetSharedFMRIDataInfos(), Has.Length.EqualTo(1));
             Assert.That(dataset.GetMEGDataInfos(), Has.Length.EqualTo(2));
-            Assert.That(
-                dataset.Data.Select(dataInfo => dataInfo.DataContainer.GetType()),
-                Is.EquivalentTo(new[]
-                {
-                    typeof(Elan),
-                    typeof(Micromed),
-                    typeof(EDF),
-                    typeof(Nifti),
-                    typeof(BrainVision),
-                    typeof(FIF),
-                    typeof(Nifti),
-                    typeof(CSV)
-                }));
+            Assert.That(dataset.Data.Select(dataInfo => dataInfo.DataContainer.GetType()), Is.EquivalentTo(new[]
+            {
+                typeof(Elan),
+                typeof(Micromed),
+                typeof(EDF),
+                typeof(Nifti),
+                typeof(BrainVision),
+                typeof(FIF),
+                typeof(Nifti),
+                typeof(CSV)
+            }));
             Assert.That(scene.Scene.isLoaded, Is.True);
         }
 

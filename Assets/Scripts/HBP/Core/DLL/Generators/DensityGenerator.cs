@@ -19,11 +19,7 @@ namespace HBP.Core.DLL
         public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, SiteInfluenceByDistanceType influenceByDistance)
         {
             if (rawElectrodes == null) throw new ArgumentNullException(nameof(rawElectrodes));
-            ThrowIfFailed(hbp_density_generator_compute_activity_from_sites(
-                _handle.Handle,
-                rawElectrodes.getHandle().Handle,
-                influenceDistance,
-                (int)influenceByDistance));
+            ThrowIfFailed(hbp_density_generator_compute_activity_from_sites(_handle.Handle, rawElectrodes.getHandle().Handle, influenceDistance, (int)influenceByDistance));
         }
 
         protected override void create_DLL_class()
@@ -39,10 +35,13 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_density_generator_create(out IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_density_generator_destroy(IntPtr generator);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_compute_activity_from_sites", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_density_generator_compute_activity_from_sites(IntPtr generator, IntPtr sites, float maxDistance, int ratioDistance);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_get_max_density", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_density_generator_get_max_density(IntPtr generator, out float maxDensity);
     }

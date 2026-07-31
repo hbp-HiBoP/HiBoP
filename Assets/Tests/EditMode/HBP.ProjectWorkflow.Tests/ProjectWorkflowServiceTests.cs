@@ -367,6 +367,7 @@ namespace HBP.Tests.ProjectWorkflow
                 {
                     throw LoadProjectException;
                 }
+
                 await UniTask.CompletedTask;
             }
 
@@ -379,6 +380,7 @@ namespace HBP.Tests.ProjectWorkflow
                 {
                     throw SaveProjectException;
                 }
+
                 await UniTask.CompletedTask;
             }
 

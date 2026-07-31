@@ -44,25 +44,31 @@ namespace HBP.Core.Data
     public class Site : BaseData, INameable, ILoadable<Site>
     {
         #region Properties
+
         /// <summary>
         /// Name of the site.
         /// </summary>
         [JsonProperty] public string Name { get; set; }
+
         /// <summary>
         /// Coordinates of the site in specific reference systems.
         /// </summary>
         [JsonProperty] public List<Coordinate> Coordinates { get; set; }
+
         /// <summary>
         /// Tags of the site.
         /// </summary>
         [JsonProperty] public List<BaseTagValue> Tags { get; set; }
+
         /// <summary>
         /// Do we need to fix site names ?
         /// </summary>
         [JsonIgnore] public static bool SiteNameCorrection = true;
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the site class.
         /// </summary>
@@ -75,6 +81,7 @@ namespace HBP.Core.Data
             Coordinates = coordinates.ToList();
             Tags = tags.ToList();
         }
+
         /// <summary>
         /// Initializes a new instance of the site class.
         /// </summary>
@@ -86,15 +93,18 @@ namespace HBP.Core.Data
             Coordinates = coordinates.ToList();
             Tags = tags.ToList();
         }
+
         /// <summary>
         /// Initializes a new instance of the site class.
         /// </summary>
         public Site() : this("Unknown", new Coordinate[0], new BaseTagValue[0])
         {
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Get all the possible extensions for site files.
         /// </summary>
@@ -103,6 +113,7 @@ namespace HBP.Core.Data
         {
             return new string[] { "pts", "tsv", "csv" };
         }
+
         /// <summary>
         /// Load all sites from a intranat directory.
         /// </summary>
@@ -132,6 +143,7 @@ namespace HBP.Core.Data
                     {
                         referenceSystem = "CT";
                     }
+
                     var ptsSites = LoadSitesFromPTSFile(referenceSystem, file.FullName);
                     foreach (var site in ptsSites)
                     {
@@ -140,6 +152,7 @@ namespace HBP.Core.Data
                         else existingSite.Coordinates.AddRange(site.Coordinates);
                     }
                 }
+
                 foreach (var file in csvFiles)
                 {
                     var csvSites = LoadSitesFromCSVFile(file.FullName);
@@ -150,8 +163,10 @@ namespace HBP.Core.Data
                     }
                 }
             }
+
             return sites;
         }
+
         /// <summary>
         /// Load all sites from a BIDS directory.
         /// </summary>
@@ -179,6 +194,7 @@ namespace HBP.Core.Data
                             splittedLines.Add(splittedLine);
                         }
                     }
+
                     // Look for Mars Atlas specific case and add more information
                     if (Object3DManager.MarsAtlas.Loaded)
                     {
@@ -243,13 +259,15 @@ namespace HBP.Core.Data
                                 }
                             }
                         }
+
                         sites.Add(site);
                     }
                 }
             }
+
             return sites;
         }
-        
+
         /// <summary>
         /// Checks if a tag value is invalid (n/a, nan, empty, etc.)
         /// This method provides consistent handling between Intranat and BIDS databases.
@@ -262,14 +280,9 @@ namespace HBP.Core.Data
                 return true;
 
             string lowerValue = value.Trim().ToLower();
-            return lowerValue == "n/a" || 
-                   lowerValue == "na" || 
-                   lowerValue == "nan" || 
-                   lowerValue == "null" || 
-                   lowerValue == "none" || 
-                   lowerValue == "" || 
-                   lowerValue == "-";
+            return lowerValue == "n/a" || lowerValue == "na" || lowerValue == "nan" || lowerValue == "null" || lowerValue == "none" || lowerValue == "" || lowerValue == "-";
         }
+
         /// <summary>
         /// Load all sites from PTS file.
         /// </summary>
@@ -299,6 +312,7 @@ namespace HBP.Core.Data
                     }
                 }
             }
+
             return sites;
         }
 
@@ -314,18 +328,17 @@ namespace HBP.Core.Data
             if (string.IsNullOrWhiteSpace(referenceSystem)) throw new ArgumentException("The reference system is empty.", nameof(referenceSystem));
             if (string.IsNullOrWhiteSpace(ptsFile)) throw new ArgumentException("The PTS file path is empty.", nameof(ptsFile));
 
-            List<(Site Site, Coordinate Coordinate)> entries = sites
-                .Select(site =>
+            List<(Site Site, Coordinate Coordinate)> entries = sites.Select(site =>
+            {
+                if (site == null) throw new ArgumentException("The site collection contains a null entry.", nameof(sites));
+                Coordinate coordinate = site.Coordinates.FirstOrDefault(value => value.ReferenceSystem == referenceSystem);
+                if (coordinate == null)
                 {
-                    if (site == null) throw new ArgumentException("The site collection contains a null entry.", nameof(sites));
-                    Coordinate coordinate = site.Coordinates.FirstOrDefault(value => value.ReferenceSystem == referenceSystem);
-                    if (coordinate == null)
-                    {
-                        throw new InvalidDataException($"Site '{site.Name}' has no coordinate in reference system '{referenceSystem}'.");
-                    }
-                    return (site, coordinate);
-                })
-                .ToList();
+                    throw new InvalidDataException($"Site '{site.Name}' has no coordinate in reference system '{referenceSystem}'.");
+                }
+
+                return (site, coordinate);
+            }).ToList();
 
             string directory = Path.GetDirectoryName(ptsFile);
             if (!string.IsNullOrEmpty(directory))
@@ -349,6 +362,7 @@ namespace HBP.Core.Data
                 writer.WriteLine(position.z.ToString("F6", CultureInfo.InvariantCulture));
             }
         }
+
         /// <summary>
         /// Load all sites from csv file.
         /// </summary>
@@ -378,6 +392,7 @@ namespace HBP.Core.Data
                             splittedLines.Add(splittedLine);
                         }
                     }
+
                     // Look for Mars Atlas specific case and add more information
                     if (Object3DManager.MarsAtlas.Loaded)
                     {
@@ -431,6 +446,7 @@ namespace HBP.Core.Data
                             }
                         }
                     }
+
                     // Create tags and tagValues
                     List<string> tagNames = splittedLines[0];
                     BaseTag[] tags = new BaseTag[tagNames.Count];
@@ -447,8 +463,10 @@ namespace HBP.Core.Data
                                 PersistentDataManager.Tags.AddSiteTag(tag);
                             }
                         }
+
                         tags[i] = tag;
                     }
+
                     for (int l = 1; l < splittedLines.Count; l++)
                     {
                         List<string> values = splittedLines[l];
@@ -467,10 +485,12 @@ namespace HBP.Core.Data
                                 }
                             }
                         }
+
                         sites.Add(new Site(name, new Coordinate[0], tagValues));
                     }
                 }
             }
+
             return sites;
         }
 
@@ -483,6 +503,7 @@ namespace HBP.Core.Data
             foreach (var tag in Tags) tag.GenerateID();
             foreach (var coordinate in Coordinates) coordinate.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
@@ -490,9 +511,11 @@ namespace HBP.Core.Data
             foreach (var coordinate in Coordinates) IDs.AddRange(coordinate.GetAllIdentifiable());
             return IDs;
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -501,6 +524,7 @@ namespace HBP.Core.Data
         {
             return new Site(Name, Coordinates.DeepClone(), Tags.DeepClone(), ID);
         }
+
         /// <summary>
         /// Copy the instance.
         /// </summary>
@@ -515,9 +539,11 @@ namespace HBP.Core.Data
                 Tags = site.Tags;
             }
         }
+
         #endregion
 
         #region Interfaces
+
         /// <summary>
         /// Get all the possible extensions for site files.
         /// </summary>
@@ -526,6 +552,7 @@ namespace HBP.Core.Data
         {
             return GetExtensions();
         }
+
         /// <summary>
         /// Load all sites from file.
         /// </summary>
@@ -548,6 +575,7 @@ namespace HBP.Core.Data
                 {
                     referenceSystem = splits[3].Replace(fileInfo.Extension, "");
                 }
+
                 result = LoadSitesFromPTSFile(referenceSystem, path).ToArray();
                 return true;
             }
@@ -558,6 +586,7 @@ namespace HBP.Core.Data
                 {
                     name = "scanner";
                 }
+
                 result = LoadImplantationFromBIDSFile(name, path).ToArray();
                 return true;
             }
@@ -566,8 +595,10 @@ namespace HBP.Core.Data
                 result = LoadSitesFromCSVFile(path).ToArray();
                 return true;
             }
+
             return false;
         }
+
         #endregion
     }
 }

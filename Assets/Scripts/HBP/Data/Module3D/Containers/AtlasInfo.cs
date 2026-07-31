@@ -11,39 +11,54 @@ namespace HBP.Data.Module3D
     public class AtlasInfo
     {
         #region Properties
-        public enum AtlasType { MarsAtlas, JuBrainAtlas }
+
+        public enum AtlasType
+        {
+            MarsAtlas,
+            JuBrainAtlas
+        }
+
         public AtlasType Type;
+
         /// <summary>
         /// Do we display information about this area ?
         /// </summary>
         public bool Enabled { get; set; }
+
         /// <summary>
         /// Position where to display information
         /// </summary>
         public Vector3 Position { get; set; }
+
         /// <summary>
         /// Name of the area
         /// </summary>
         public string Information1 { get; set; }
+
         /// <summary>
         /// Precise location of the area within the brain
         /// </summary>
         public string Information2 { get; set; }
+
         /// <summary>
         /// Label of the area (as described in the json file)
         /// </summary>
         public string Information3 { get; set; }
+
         /// <summary>
         /// Status of this area
         /// </summary>
         public string Information4 { get; set; }
+
         /// <summary>
         /// DOI of the area
         /// </summary>
         public string Information5 { get; set; }
+
         #endregion
 
         #region Constructor
+
         public AtlasInfo(bool enabled, Vector3 position, AtlasType type = AtlasType.MarsAtlas, string name = "", string location = "", string areaLabel = "", string status = "", string doi = "")
         {
             Enabled = enabled;
@@ -55,6 +70,7 @@ namespace HBP.Data.Module3D
             Information4 = status;
             Information5 = doi;
         }
+
         #endregion
     }
 }

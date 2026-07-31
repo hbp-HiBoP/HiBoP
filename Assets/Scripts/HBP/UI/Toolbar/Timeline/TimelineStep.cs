@@ -7,29 +7,30 @@ namespace HBP.UI.Toolbar
     public class TimelineStep : Tool
     {
         #region Properties
+
         /// <summary>
         /// Decrease the current sample
         /// </summary>
         [SerializeField] private Button m_Minus;
+
         /// <summary>
         /// Increase the current sample
         /// </summary>
         [SerializeField] private Button m_Plus;
+
         /// <summary>
         /// Change the step of increase/decrease
         /// </summary>
         [SerializeField] private InputField m_InputField;
 
         private bool m_IsGlobal = false;
+
         /// <summary>
         /// Do we need to perform the actions on all columns ?
         /// </summary>
         public bool IsGlobal
         {
-            get
-            {
-                return m_IsGlobal;
-            }
+            get { return m_IsGlobal; }
             set
             {
                 m_IsGlobal = value;
@@ -39,9 +40,11 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -100,6 +103,7 @@ namespace HBP.UI.Toolbar
                         step = 1;
                         val = 1;
                     }
+
                     m_InputField.text = val.ToString();
                 }
                 else
@@ -125,6 +129,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -135,6 +140,7 @@ namespace HBP.UI.Toolbar
             m_InputField.text = "1";
             m_InputField.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -147,6 +153,7 @@ namespace HBP.UI.Toolbar
             m_InputField.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
             m_Plus.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -165,6 +172,7 @@ namespace HBP.UI.Toolbar
                 m_InputField.text = "1";
             }
         }
+
         #endregion
     }
 }

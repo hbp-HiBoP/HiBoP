@@ -52,13 +52,11 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                 V = v / 255
             };
             return hsvColor;
-
         }
 
         // Converts an HSV color to an RGB color.
         public static Color ConvertHsvToRgb(double h, double s, double v, float alpha)
         {
-
             double r = 0, g = 0, b = 0;
 
             if (s == 0)
@@ -125,11 +123,9 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                         b = q;
                         break;
                 }
-
             }
 
             return new Color((float)r, (float)g, (float)b, alpha);
-
         }
     }
 
@@ -137,7 +133,9 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
     // Describes a color in terms of
     // Hue, Saturation, and Value (brightness)
+
     #region HsvColor
+
     public struct HsvColor
     {
         /// <summary>
@@ -155,39 +153,21 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
         public float NormalizedH
         {
-            get
-            {
-                return (float)H / 360f;
-            }
+            get { return (float)H / 360f; }
 
-            set
-            {
-                H = (double)value * 360;
-            }
+            set { H = (double)value * 360; }
         }
 
         public float NormalizedS
         {
-            get
-            {
-                return (float)S;
-            }
-            set
-            {
-                S = value;
-            }
+            get { return (float)S; }
+            set { S = value; }
         }
 
         public float NormalizedV
         {
-            get
-            {
-                return (float)V;
-            }
-            set
-            {
-                V = (double)value;
-            }
+            get { return (float)V; }
+            set { V = (double)value; }
         }
 
         public HsvColor(double h, double s, double v)
@@ -202,5 +182,6 @@ namespace UnityEngine.UI.Extensions.ColorPicker
             return "{" + H.ToString("f2") + "," + S.ToString("f2") + "," + V.ToString("f2") + "}";
         }
     }
+
     #endregion HsvColor
 }

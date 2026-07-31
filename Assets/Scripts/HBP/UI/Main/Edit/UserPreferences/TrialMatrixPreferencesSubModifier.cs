@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class TrialMatrixPreferencesSubModifier : SubModifier<TrialMatrixPreferences>
     {
         #region Properties
+
         [SerializeField] Toggle m_ShowWholeProtocolToggle;
         [SerializeField] Toggle m_TrialSynchronizationToggle;
         [SerializeField] Toggle m_SmoothTrialToggle;
@@ -27,10 +28,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -47,9 +45,11 @@ namespace HBP.UI.Main
                 m_ProtocolRatioSlider.interactable = value;
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(TrialMatrixPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -108,12 +108,14 @@ namespace HBP.UI.Main
             m_ProtocolRatioSlider.value = objectToDisplay.ProtocolRatio;
             m_ProtocolRatioSlider.onValueChanged.AddListener(value => Object.ProtocolRatio = value);
         }
+
         protected void OnChangeTrialSmoothing(bool value)
         {
             Object.TrialSmoothing = value;
             m_NumberOfIntermediateValuesSlider.interactable = value;
             m_Smooth2DToggle.interactable = value;
         }
+
         protected void OnChangeBlocFormat(int value)
         {
             Object.SubBlocFormat = (BlocFormatType)m_BlocFormatDropdown.value;
@@ -145,6 +147,7 @@ namespace HBP.UI.Main
                     break;
             }
         }
+
         #endregion
     }
 }

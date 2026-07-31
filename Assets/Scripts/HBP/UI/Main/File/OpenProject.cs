@@ -10,18 +10,16 @@ using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Main
 {
-    public class OpenProject : DialogWindow 
-	{
-		#region Properties
-		[SerializeField] FolderSelector m_LocationFolderSelector;
-		[SerializeField] ProjectList m_ProjectList;
+    public class OpenProject : DialogWindow
+    {
+        #region Properties
+
+        [SerializeField] FolderSelector m_LocationFolderSelector;
+        [SerializeField] ProjectList m_ProjectList;
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -32,9 +30,11 @@ namespace HBP.UI.Main
                 SetLoadButton();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public async UniTaskVoid Load(ProjectInfo info)
         {
             bool openedScenesConfirmed = true;
@@ -49,13 +49,16 @@ namespace HBP.UI.Main
 
             await ProjectWorkflowService.Default.OpenProjectAsync(info, openedScenesConfirmed);
         }
+
         public override void OK()
-		{
+        {
             Load(m_ProjectList.ObjectsSelected[0]).Forget();
-		}
+        }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             // Initialize project list.
@@ -69,6 +72,7 @@ namespace HBP.UI.Main
             // Base method.
             base.Initialize();
         }
+
         protected override void SetFields()
         {
             // Base method.
@@ -77,9 +81,11 @@ namespace HBP.UI.Main
             // Set location folder selector.
             m_LocationFolderSelector.Folder = PersistentDataManager.UserPreferences.General.Project.DefaultLocation;
         }
+
         #endregion
 
         #region Coroutines
+
         private async UniTaskVoid DisplayProjects(string path)
         {
             try
@@ -95,19 +101,23 @@ namespace HBP.UI.Main
                     {
                         Debug.LogException(project.SettingsLoadException);
                     }
+
                     m_ProjectList.Add(project);
                 }
+
                 m_ProjectList.SortByName(BaseList.Sorting.Descending);
             }
-            catch(System.Exception e)
+            catch (System.Exception e)
             {
                 Debug.LogException(e);
             }
         }
+
         void SetLoadButton()
         {
             m_OKButton.interactable = m_ProjectList.ObjectsSelected.Length == 1 && m_Interactable;
         }
+
         #endregion
     }
 }

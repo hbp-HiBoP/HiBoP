@@ -8,27 +8,34 @@ namespace HBP.Core.Data
     public class BaseTag : BaseData, INameable
     {
         #region Properties
+
         /// <summary>
         /// BaseTag Name.
         /// </summary>
         [JsonProperty(Order = 0)] public string Name { get; set; }
+
         #endregion
 
         #region Constructors
+
         public BaseTag() : this("New BaseTag")
         {
         }
+
         public BaseTag(string name) : base()
         {
             Name = name;
         }
+
         public BaseTag(string name, string ID) : base(ID)
         {
             Name = name;
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -37,6 +44,7 @@ namespace HBP.Core.Data
         {
             return new BaseTag(Name, ID);
         }
+
         /// <summary>
         /// Copy the instance.
         /// </summary>
@@ -49,13 +57,16 @@ namespace HBP.Core.Data
                 Name = tag.Name;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public virtual BaseTagValue CreateValue(string value)
         {
             return new BaseTagValue();
         }
+
         #endregion
     }
 }

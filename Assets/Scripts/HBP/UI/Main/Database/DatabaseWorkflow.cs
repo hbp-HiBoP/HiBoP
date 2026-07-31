@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Database;
 using HBP.UI.Tools;
+using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,25 +26,44 @@ namespace HBP.UI.Database
 
             await database.LoadProtocolsAsync();
             await UniTask.SwitchToMainThread();
-            await database.StartLoadingSilentlyAsync();
+            if (LoadingConcurrencyPolicy.BackgroundValidationEnabled)
+            {
+                await database.StartLoadingSilentlyAsync();
+            }
+            else
+            {
+                await LoadingManager.LoadAsync(update => database.LoadDatabaseAsync(update));
+            }
         }
+
         public static async UniTask LoadDatabaseAsync()
         {
-            await DatabaseManager.Database.ReloadSelectedWorkspaceSilentlyAsync();
+            if (LoadingConcurrencyPolicy.BackgroundValidationEnabled)
+            {
+                await DatabaseManager.Database.ReloadSelectedWorkspaceSilentlyAsync();
+            }
+            else
+            {
+                await LoadingManager.LoadAsync((update, token) => DatabaseManager.Database.ReloadSelectedWorkspaceAsync(update, token));
+            }
         }
+
         public static async UniTask SaveDatabaseAsync()
         {
             await LoadingManager.LoadAsync(update => DatabaseManager.Database.SaveDatabaseAsync(update));
         }
+
         public static async UniTask SaveDatabaseReferencesAsync()
         {
             await DatabaseManager.Database.SaveDatabaseReferencesAsync();
             await SaveDatabaseAsync();
         }
+
         public static async UniTask SaveProtocolsAsync()
         {
             await DatabaseManager.Database.SaveProtocolsAsync();
         }
+
         public static async UniTask UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences)
         {
             var database = DatabaseManager.Database;
@@ -67,14 +87,17 @@ namespace HBP.UI.Database
             {
                 database.Settings.IsFirstUse = false;
             }
+
             database.SaveSettings();
         }
+
         private static async UniTask ShowUpdateReportAsync(DatabaseUpdateReport report)
         {
             if (!report.HasChanges) return;
 
             await DialogBoxManager.OpenScrollableAsync(Core.Enums.DialogBoxType.Informational, "Databases updated", BuildUpdateReport(report), "OK");
         }
+
         private static string BuildUpdateReport(DatabaseUpdateReport report)
         {
             StringBuilder stringBuilder = new();
@@ -83,6 +106,7 @@ namespace HBP.UI.Database
             AppendPatients(stringBuilder, "Updated patients", report.UpdatedPatients);
             return stringBuilder.ToString();
         }
+
         private static void AppendPatients(StringBuilder stringBuilder, string title, IEnumerable<Patient> patients)
         {
             Patient[] orderedPatients = patients.OrderBy(p => p.Name).ToArray();
@@ -93,6 +117,7 @@ namespace HBP.UI.Database
             {
                 stringBuilder.AppendLine(patient.ID);
             }
+
             stringBuilder.AppendLine();
         }
     }

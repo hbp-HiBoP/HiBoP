@@ -41,65 +41,55 @@ namespace HBP.Core.Data
     public class SingleMesh : BaseMesh
     {
         #region Properties
+
         /// <summary>
         /// Mesh file path with Alias.
         /// </summary>
         [JsonProperty("Path", Order = 1)] public string SavedPath { get; protected set; }
+
         /// <summary>
         /// Mesh file path without Alias.
         /// </summary>
         public string Path
         {
-            get
-            {
-                return SavedPath.ConvertToFullPath();
-            }
-            set
-            {
-                SavedPath = value.ConvertToShortPath();
-            }
+            get { return SavedPath.ConvertToFullPath(); }
+            set { SavedPath = value.ConvertToShortPath(); }
         }
+
         /// <summary>
         /// MarsAtlas file path with Alias.
         /// </summary>
         [JsonProperty("MarsAtlasPath", Order = 2)] public string SavedMarsAtlasPath { get; protected set; }
+
         /// <summary>
         /// MarsAtlas file path without Alias.
         /// </summary>
         public string MarsAtlasPath
         {
-            get
-            {
-                return SavedMarsAtlasPath.ConvertToFullPath();
-            }
-            set
-            {
-                SavedMarsAtlasPath = value.ConvertToShortPath();
-            }
+            get { return SavedMarsAtlasPath.ConvertToFullPath(); }
+            set { SavedMarsAtlasPath = value.ConvertToShortPath(); }
         }
+
         /// <summary>
         /// True if the mesh has mesh files, False otherwise.
         /// </summary>
         public override bool HasMesh
         {
-            get
-            {
-                return !string.IsNullOrEmpty(Path) && LoadingDiagnostics.FileExists(Path) && new FileInfo(Path).Extension == MESH_EXTENSION;
-            }
+            get { return !string.IsNullOrEmpty(Path) && File.Exists(Path) && new FileInfo(Path).Extension == MESH_EXTENSION; }
         }
+
         /// <summary>
         /// True if the mesh has MarsAtlas files, False otherwise.
         /// </summary>
         public override bool HasMarsAtlas
         {
-            get
-            {
-                return !string.IsNullOrEmpty(MarsAtlasPath) && LoadingDiagnostics.FileExists(MarsAtlasPath) && new FileInfo(MarsAtlasPath).Extension == MESH_EXTENSION;
-            }
+            get { return !string.IsNullOrEmpty(MarsAtlasPath) && File.Exists(MarsAtlasPath) && new FileInfo(MarsAtlasPath).Extension == MESH_EXTENSION; }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new SingleMesh instance.
         /// </summary>
@@ -114,6 +104,7 @@ namespace HBP.Core.Data
             MarsAtlasPath = marsAtlasPath;
             RecalculateUsable();
         }
+
         /// <summary>
         /// Create a new SingleMesh instance.
         /// </summary>
@@ -127,17 +118,23 @@ namespace HBP.Core.Data
             MarsAtlasPath = marsAtlasPath;
             RecalculateUsable();
         }
+
         /// <summary>
         /// Create a new SingleMesh instance.
         /// </summary>
-        public SingleMesh() : this("New mesh", string.Empty, string.Empty, string.Empty) { }
+        public SingleMesh() : this("New mesh", string.Empty, string.Empty, string.Empty)
+        {
+        }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new SingleMesh(Name, Transformation, Path, MarsAtlasPath, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
@@ -146,21 +143,25 @@ namespace HBP.Core.Data
                 Path = singleMesh.Path;
                 MarsAtlasPath = singleMesh.MarsAtlasPath;
             }
+
             if (obj is LeftRightMesh leftRightMesh)
             {
                 Path = leftRightMesh.LeftHemisphere;
                 MarsAtlasPath = leftRightMesh.LeftMarsAtlasHemisphere;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             SavedPath = SavedPath.StandardizeToEnvironement();
             SavedMarsAtlasPath = SavedMarsAtlasPath.StandardizeToEnvironement();
             base.OnDeserialized();
         }
+
         #endregion
     }
 }

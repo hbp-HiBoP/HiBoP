@@ -11,6 +11,7 @@ namespace HBP.UI.Main
     public class IconItem : ActionnableItem<Core.Data.Icon>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
 
         [SerializeField] Text m_StartText;
@@ -24,10 +25,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Icon Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
 
             set
             {
@@ -46,6 +44,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

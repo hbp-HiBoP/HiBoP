@@ -6,15 +6,18 @@ namespace HBP.UI.Toolbar
     public class LocalizersParameters : Tool
     {
         #region Properties
+
         /// <summary>
         /// Module to handle the threshold IEEG for Localizers
         /// </summary>
         [SerializeField] private ThresholdIEEG m_ThresholdIEEG;
 
         [SerializeField] private Button m_Auto;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -37,6 +40,7 @@ namespace HBP.UI.Toolbar
                 m_ThresholdIEEG.UpdateIEEGValues(SelectedScene.FMRIManager);
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -44,6 +48,7 @@ namespace HBP.UI.Toolbar
         {
             gameObject.SetActive(false);
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -52,6 +57,7 @@ namespace HBP.UI.Toolbar
             bool isLocalizers = SelectedScene.FMRIManager.DisplayLocalizers;
             gameObject.SetActive(isLocalizers);
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -63,6 +69,7 @@ namespace HBP.UI.Toolbar
                 m_ThresholdIEEG.UpdateIEEGValues(SelectedScene.FMRIManager);
             }
         }
+
         #endregion
     }
 }

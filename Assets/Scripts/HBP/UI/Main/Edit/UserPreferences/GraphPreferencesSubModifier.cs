@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class GraphPreferencesSubModifier : SubModifier<GraphPreferences>
     {
         #region Properties
+
         [SerializeField] Toggle m_ShowCurvesOfMinimizedColumns;
         [SerializeField] Toggle m_ShowSEM;
         [SerializeField] Button m_Default;
@@ -24,10 +25,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -41,9 +39,11 @@ namespace HBP.UI.Main
                 m_RegenerateGridButton.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -62,9 +62,11 @@ namespace HBP.UI.Main
             m_RegenerateGridButton.onClick.AddListener(RegenerateGrid);
             m_ColorGridSettingsMenu.SetActive(false);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(GraphPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -89,6 +91,7 @@ namespace HBP.UI.Main
 
             GenerateGrid();
         }
+
         protected async void RegenerateGrid()
         {
             m_ColorGridSettingsMenu.SetActive(false);
@@ -101,12 +104,14 @@ namespace HBP.UI.Main
                 GenerateGrid();
             }
         }
+
         protected void GenerateGrid()
         {
             foreach (Transform child in m_ColorsContainer)
             {
                 Destroy(child.gameObject);
             }
+
             // Header
             var header = Instantiate(m_RowPrefab, m_ColorsContainer);
             header.GetComponentInChildren<Text>().text = "Column n°";
@@ -115,6 +120,7 @@ namespace HBP.UI.Main
                 var columnTitle = Instantiate(m_ColumnTitlePrefab, header.transform);
                 columnTitle.GetComponentInChildren<Text>().text = (i + 1).ToString();
             }
+
             // Channels
             for (int i = 0; i < Object.MaxSites; i++)
             {
@@ -129,6 +135,7 @@ namespace HBP.UI.Main
                     colorButton.OnColorPicked.AddListener(color => Object.SiteColors.SetColor(currentI, currentJ, color));
                 }
             }
+
             // Groups
             for (int i = 0; i < Object.MaxGroups; i++)
             {
@@ -143,6 +150,7 @@ namespace HBP.UI.Main
                     colorButton.OnColorPicked.AddListener(color => Object.GroupColors.SetColor(currentI, currentJ, color));
                 }
             }
+
             // ROI
             var roiRow = Instantiate(m_RowPrefab, m_ColorsContainer);
             roiRow.GetComponentInChildren<Text>().text = "ROI";
@@ -153,6 +161,7 @@ namespace HBP.UI.Main
                 int currentJ = j;
                 colorButton.OnColorPicked.AddListener(color => Object.ROIColors.SetColor(0, currentJ, color));
             }
+
             // Localizers
             var localizersRow = Instantiate(m_RowPrefab, m_ColorsContainer);
             localizersRow.GetComponentInChildren<Text>().text = "Localizers";
@@ -164,6 +173,7 @@ namespace HBP.UI.Main
                 colorButton.OnColorPicked.AddListener(color => Object.LocalizersColors.SetColor(0, currentJ, color));
             }
         }
+
         #endregion
     }
 }

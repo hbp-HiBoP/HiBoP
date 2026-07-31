@@ -11,6 +11,7 @@ namespace HBP.UI.Module3D
     public class SiteItem : Item<Core.Object3D.Site>
     {
         #region Properties
+
         [SerializeField] private Button m_Site;
         [SerializeField] private SiteItemInfoDisplayer m_SiteItemInfoDisplayer;
         [SerializeField] private Image m_SelectedImage;
@@ -27,10 +28,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public override Core.Object3D.Site Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -42,13 +40,16 @@ namespace HBP.UI.Module3D
                 SetNotInteractable();
             }
         }
+
         /// <summary>
         /// True if a update if required, False otherwise.
         /// </summary>
         private bool m_UpdateRequired;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_Site.onClick.AddListener(() => Object.IsSelected = true);
@@ -56,6 +57,7 @@ namespace HBP.UI.Module3D
             m_Highlighted.onValueChanged.AddListener((isOn) => Object.State.IsHighlighted = isOn);
             m_Color.onClick.AddListener(async () => Object.State.Color = await ColorPickerManager.OpenColorPickerAsync(Object.State.Color));
         }
+
         private void Update()
         {
             if (m_UpdateRequired)
@@ -63,6 +65,7 @@ namespace HBP.UI.Module3D
                 UpdateFields();
             }
         }
+
         /// <summary>
         /// Update all fields.
         /// </summary>
@@ -78,6 +81,7 @@ namespace HBP.UI.Module3D
             m_Labels.Initialize(Object);
             m_UpdateRequired = false;
         }
+
         #endregion
     }
 }

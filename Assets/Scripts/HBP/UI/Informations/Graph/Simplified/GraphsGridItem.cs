@@ -7,13 +7,16 @@ namespace HBP.UI.Informations.Graphs
     public class GraphsGridItem : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         #region Properties
+
         [SerializeField] private RectTransform m_RectTransform;
         [SerializeField] private Selectable[] m_Selectables;
 
         private GraphsGridContainer m_LastContainer;
+
         #endregion
 
         #region Public Methods
+
         public void OnBeginDrag(PointerEventData eventData)
         {
             m_LastContainer = GetComponentInParent<GraphsGridContainer>();
@@ -24,10 +27,12 @@ namespace HBP.UI.Informations.Graphs
                 selectable.interactable = false;
             }
         }
+
         public void OnDrag(PointerEventData eventData)
         {
             m_RectTransform.position = Input.mousePosition;
         }
+
         public void OnEndDrag(PointerEventData eventData)
         {
             System.Collections.Generic.List<RaycastResult> results = new();
@@ -45,16 +50,18 @@ namespace HBP.UI.Informations.Graphs
                     break;
                 }
             }
+
             if (!foundContainer)
             {
                 m_LastContainer.Content = gameObject;
             }
+
             foreach (var selectable in m_Selectables)
             {
                 selectable.interactable = true;
             }
         }
+
         #endregion
     }
 }
-

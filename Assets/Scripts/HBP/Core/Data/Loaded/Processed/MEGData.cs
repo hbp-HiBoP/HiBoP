@@ -7,12 +7,14 @@ namespace HBP.Core.Data.Processed
     public class MEGItem
     {
         #region Properties
+
         public string Label { get; set; }
         public Patient Patient { get; set; }
         public Object3D.FMRI FMRI { get; set; } = new Object3D.FMRI();
         public Dictionary<string, float[]> ValuesByChannel { get; set; } = new Dictionary<string, float[]>();
         public Dictionary<string, string> UnitByChannel { get; set; } = new Dictionary<string, string>();
         public Tools.Frequency Frequency { get; set; } = new Tools.Frequency(0);
+
         public Tools.TimeWindow Window
         {
             get
@@ -21,29 +23,38 @@ namespace HBP.Core.Data.Processed
                 {
                     return new Tools.TimeWindow(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(ValuesByChannel.Values.Select(v => v.Length).Max()));
                 }
+
                 return new Tools.TimeWindow(0, 1);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public Tools.TimeWindow GetChannelWindow(string channel)
         {
             if (ValuesByChannel.TryGetValue(channel, out float[] values))
             {
                 return new Tools.TimeWindow(0, Frequency.ConvertNumberOfSamplesToRoundedMilliseconds(values.Length));
             }
+
             return new Tools.TimeWindow(0, 0);
         }
+
         #endregion
     }
+
     public class MEGData
     {
         #region Properties
+
         public List<MEGItem> MEGItems { get; set; } = new List<MEGItem>();
+
         #endregion
 
         #region Public Methods
+
         public async UniTask LoadAsync(IEnumerable<PatientDataInfo> columnData)
         {
             foreach (PatientDataInfo dataInfo in columnData)
@@ -96,15 +107,17 @@ namespace HBP.Core.Data.Processed
                 }
             }
         }
+
         public void Unload()
         {
             foreach (var fmri in MEGItems)
             {
                 fmri.FMRI.Clean();
             }
+
             MEGItems.Clear();
         }
+
         #endregion
     }
 }
-

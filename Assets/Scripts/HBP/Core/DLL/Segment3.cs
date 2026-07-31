@@ -14,6 +14,7 @@ namespace HBP.Core.DLL
         private Vector3 m_End2;
 
         #region Properties
+
         /// <summary>
         /// First end of the segment.
         /// </summary>
@@ -26,6 +27,7 @@ namespace HBP.Core.DLL
                 UpdateNativeSegment();
             }
         }
+
         /// <summary>
         /// Second end of the segment.
         /// </summary>
@@ -38,6 +40,7 @@ namespace HBP.Core.DLL
                 UpdateNativeSegment();
             }
         }
+
         /// <summary>
         /// Length of the segment.
         /// </summary>
@@ -49,17 +52,21 @@ namespace HBP.Core.DLL
                 return length;
             }
         }
+
         #endregion
 
         #region Constructors
+
         public Segment3(Vector3 end1, Vector3 end2) : base(CreateSegment(end1, end2))
         {
             m_End1 = end1;
             m_End2 = end2;
         }
+
         #endregion
 
         #region Memory Management
+
         protected override void create_DLL_class()
         {
             _handle = new HandleRef(this, CreateSegment(Vector3.zero, Vector3.zero));
@@ -69,6 +76,7 @@ namespace HBP.Core.DLL
         {
             ThrowIfFailed(hbp_segment_destroy(_handle.Handle));
         }
+
         #endregion
 
         private void UpdateNativeSegment()

@@ -19,13 +19,7 @@ namespace HBP.UI.Tools
                 return false;
 
             const double bytesPerMiB = 1024d * 1024d;
-            DialogBoxManager.Open(
-                Core.Enums.DialogBoxType.Warning,
-                "Memory cache limit exceeded",
-                $"The active visualization uses {snapshot.UsedBytes / bytesPerMiB:N1} MiB of HiBoP-managed memory, "
-                + $"which exceeds the configured limit of {snapshot.LimitBytes / bytesPerMiB:N1} MiB.\n\n"
-                + "Active data remain exact and are not downsampled. Inactive cached data have been evicted where possible.")
-                .Forget();
+            DialogBoxManager.Open(Core.Enums.DialogBoxType.Warning, "Memory cache limit exceeded", $"The active visualization uses {snapshot.UsedBytes / bytesPerMiB:N1} MiB of HiBoP-managed memory, " + $"which exceeds the configured limit of {snapshot.LimitBytes / bytesPerMiB:N1} MiB.\n\n" + "Active data remain exact and are not downsampled. Inactive cached data have been evicted where possible.").Forget();
             return true;
         }
 
@@ -40,10 +34,12 @@ namespace HBP.UI.Tools
                 if (values.Count() == 0) themeElement.Set(emptyState);
                 else themeElement.Set();
             }
+
             var tooltip = text.GetComponent<Tooltip>();
             if (tooltip) tooltip.Text = stringBuilder.ToString();
             text.text = values.Count().ToString();
         }
+
         public static void SetIEnumerableFieldInItem(this UnityEngine.UI.Text text, int size, State emptyState)
         {
             var themeElement = text.GetComponent<ThemeElement>();
@@ -52,8 +48,10 @@ namespace HBP.UI.Tools
                 if (size == 0) themeElement.Set(emptyState);
                 else themeElement.Set();
             }
+
             text.text = size.ToString();
         }
+
         public static async UniTaskVoid CheckProjectIDAndAskForRegeneration()
         {
             Dictionary<string, List<Tuple<BaseData, string>>> problematicData = await ApplicationState.LoadedProject.CheckProjectIDsAsync();
@@ -64,6 +62,7 @@ namespace HBP.UI.Tools
                 {
                     displayedString += string.Format("<b>{0}</b>\n{1}\n\n", kv.Key, string.Join("\n", kv.Value.Select(t => string.Format(" - {0}", t.Item2))));
                 }
+
                 string[] lines = displayedString.Split("\n");
                 if (lines.Length > 20)
                 {
@@ -74,6 +73,7 @@ namespace HBP.UI.Tools
                         displayedString += lines[i];
                         displayedString += "\n";
                     }
+
                     displayedString += "[...]\n";
                     using (StreamWriter sw = new(duplicateFilePath))
                     {
@@ -82,8 +82,10 @@ namespace HBP.UI.Tools
                             sw.WriteLine(lines[i]);
                         }
                     }
+
                     displayedString += string.Format("\n<i>Full report has been saved at {0}</i>\n\n", duplicateFilePath);
                 }
+
                 int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "ID issue", string.Format("Some IDs of this project are used by multiple different objects:\n\n{0}You have two options: you can regenerate the IDs of problematic objects automatically, but this can unlink some of your objects (for example, some datasets may not be linked to the right protocol), or you can leave them as is but you may encounter issues and will need to fix the IDs manually later. If you did not unzip the project and modify files using a text editor, please send a bug report.\nWhat do you want to do?", displayedString), "Regenerate IDs", "Leave IDs as is");
                 if (result == 0)
                 {
@@ -94,6 +96,7 @@ namespace HBP.UI.Tools
                             kv.Value[i].Item1.GenerateID();
                         }
                     }
+
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "New IDs generated", "New IDs have been generated for duplicates. Do not forget to save the project to keep the new IDs.").Forget();
                 }
             }

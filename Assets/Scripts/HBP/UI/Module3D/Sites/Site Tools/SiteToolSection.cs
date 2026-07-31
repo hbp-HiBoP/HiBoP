@@ -10,7 +10,9 @@ namespace HBP.UI.Module3D
     public abstract class SiteToolSection : MonoBehaviour
     {
         #region Properties
+
         protected Base3DScene m_Scene;
+
         public virtual Base3DScene Scene
         {
             get => m_Scene;
@@ -31,16 +33,20 @@ namespace HBP.UI.Module3D
                 };
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public virtual void Initialize()
         {
             LoadSettings();
         }
+
         public abstract UniTask ApplyAsync();
         public abstract void StoreSettings();
         public abstract void LoadSettings();
+
         #endregion
     }
 }

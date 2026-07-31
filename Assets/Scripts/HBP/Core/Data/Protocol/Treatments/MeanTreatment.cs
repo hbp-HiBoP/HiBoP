@@ -42,21 +42,23 @@ namespace HBP.Core.Data
     public class MeanTreatment : Treatment
     {
         public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Scalar;
+
         #region Constructors
+
         /// <summary>
         /// Create a new MeanTreatment instance with default values.
         /// </summary>
         public MeanTreatment() : base()
         {
-
         }
+
         /// <summary>
         /// Create a new MeanTreatment instance with default values with a specified unique identifier.
         /// </summary>
         public MeanTreatment(string ID) : base(ID)
         {
-
         }
+
         /// <summary>
         /// Create a new MeanTreatment instance.
         /// </summary>
@@ -69,9 +71,11 @@ namespace HBP.Core.Data
         public MeanTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             int startWindow = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -88,6 +92,7 @@ namespace HBP.Core.Data
                     count++;
                 }
             }
+
             if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; ++i)
@@ -96,26 +101,31 @@ namespace HBP.Core.Data
                     count++;
                 }
             }
+
             if (count == 0)
                 throw new System.Exception("Array is empty");
 
             float mean = (float)(sum / count);
-            if(UseOnWindow)
+            if (UseOnWindow)
             {
                 for (int i = startWindow; i <= endWindow; i++) values[i] = mean;
             }
-            if(UseOnBaseline)
+
+            if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; i++) baseline[i] = mean;
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new MeanTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
+
         #endregion
     }
 }

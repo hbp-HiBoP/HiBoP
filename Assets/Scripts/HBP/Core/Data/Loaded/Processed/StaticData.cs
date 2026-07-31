@@ -5,10 +5,13 @@ namespace HBP.Core.Data.Processed
     public class StaticData
     {
         #region Properties
+
         public Dictionary<string, Dictionary<string, float>> ValueByChannelIDByLabel { get; set; } = new Dictionary<string, Dictionary<string, float>>();
+
         #endregion
 
         #region Public Methods
+
         public void Load(IEnumerable<StaticDataInfo> columnData)
         {
             foreach (StaticDataInfo dataInfo in columnData)
@@ -26,11 +29,12 @@ namespace HBP.Core.Data.Processed
                 }
             }
         }
+
         public void Unload()
         {
             ValueByChannelIDByLabel.Clear();
         }
+
         #endregion
     }
 }
-

@@ -6,6 +6,7 @@ namespace HBP.UI.Tools
     public class RectTransformWrapper : MonoBehaviour
     {
         #region Public Methods
+
         public void SetXPosition(float x)
         {
             RectTransform rectTransform = transform as RectTransform;
@@ -14,6 +15,7 @@ namespace HBP.UI.Tools
             rectTransform.anchorMax = new Vector2(x, rectTransform.anchorMax.y);
             rectTransform.anchoredPosition = Vector2.zero;
         }
+
         public void SetYPosition(float y)
         {
             RectTransform rectTransform = transform as RectTransform;
@@ -22,6 +24,7 @@ namespace HBP.UI.Tools
             rectTransform.anchorMax = new Vector2(rectTransform.anchorMax.x, y);
             rectTransform.anchoredPosition = Vector2.zero;
         }
+
         #endregion
     }
 }

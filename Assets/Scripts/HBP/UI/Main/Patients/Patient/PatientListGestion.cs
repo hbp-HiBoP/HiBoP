@@ -9,14 +9,17 @@ namespace HBP.UI.Main
     public class PatientListGestion : ListGestion<Patient>
     {
         #region Properties
+
         [SerializeField] PatientList m_List;
         public override ActionableList<Patient> List => m_List;
 
         [SerializeField] PatientCreator m_ObjectCreator;
         public override ObjectCreator<Patient> ObjectCreator => m_ObjectCreator;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Callback executed when a ObjectModifier is modified.
         /// </summary>
@@ -32,8 +35,10 @@ namespace HBP.UI.Main
                     count++;
                     name = string.Format("{0}({1})", obj.Name, count);
                 }
+
                 obj.Name = name;
             }
+
             if (!List.Objects.Contains(obj))
             {
                 List.Add(obj);
@@ -43,6 +48,7 @@ namespace HBP.UI.Main
                 List.UpdateObject(obj);
             }
         }
+
         /// <summary>
         /// Callback executed when a object is created.
         /// </summary>
@@ -64,12 +70,16 @@ namespace HBP.UI.Main
                         count++;
                         name = string.Format("{0}({1})", obj.Name, count);
                     }
+
                     obj.Name = name;
                 }
+
                 List.Add(obj);
             }
+
             HasBeenModified = true;
         }
+
         #endregion
     }
 }

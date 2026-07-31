@@ -49,18 +49,15 @@ namespace HBP.Tests.Serialization
             }
 
             foreach ((Vector3 normal, string name) in new[]
-            {
-                (Vector3.right, "sagittal"),
-                (Vector3.up, "coronal"),
-                (Vector3.forward, "axial"),
-                (new Vector3(1.0f, 1.0f, 1.0f).normalized, "diagonal")
-            })
+                     {
+                         (Vector3.right, "sagittal"),
+                         (Vector3.up, "coronal"),
+                         (Vector3.forward, "axial"),
+                         (new Vector3(1.0f, 1.0f, 1.0f).normalized, "diagonal")
+                     })
             {
                 using HbpPlane plane = new(hbpCoreBBox.Center, normal);
-                NativeParityAssert.AssertUnityVectorSetMatchesLegacyNative(
-                    hbpCoreBBox.IntersectionPointsWithPlane(plane),
-                    hbpExportBBox.IntersectionPointsWithPlane(plane),
-                    0.0002f);
+                NativeParityAssert.AssertUnityVectorSetMatchesLegacyNative(hbpCoreBBox.IntersectionPointsWithPlane(plane), hbpExportBBox.IntersectionPointsWithPlane(plane), 0.0002f);
 
                 List<HbpSegment3> coreIntersectionSegments = hbpCoreBBox.IntersectionLinesWithPlane(plane);
                 List<HbpSegment3> exportIntersectionSegments = hbpExportBBox.IntersectionLinesWithPlane(plane);
@@ -70,8 +67,7 @@ namespace HBP.Tests.Serialization
                     // hbp_export and hbp_core decompose the polygon into segments differently.
                     // Segment count is the parity contract; legacy endpoints remain diagnostic.
                     Assert.That(coreIntersectionSegments, Has.Count.EqualTo(exportIntersectionSegments.Count), name);
-                    TestContext.Progress.WriteLine(
-                        $"{name} plane segments: hbp_core Unity count={coreIntersectionSegments.Count}; hbp_export native count={exportIntersectionSegments.Count}");
+                    TestContext.Progress.WriteLine($"{name} plane segments: hbp_core Unity count={coreIntersectionSegments.Count}; hbp_export native count={exportIntersectionSegments.Count}");
                 }
                 finally
                 {
@@ -79,14 +75,7 @@ namespace HBP.Tests.Serialization
                     NativeParityAssert.DisposeSegments(exportIntersectionSegments);
                 }
 
-                AssertCorrectedCutOffset(
-                    hbpCoreBBox.SizeOffsetCutPlane(plane, 4),
-                    hbpExportBBox.SizeOffsetCutPlane(plane, 4),
-                    hbpCoreBBox.Min,
-                    hbpCoreBBox.Max,
-                    normal,
-                    4,
-                    name);
+                AssertCorrectedCutOffset(hbpCoreBBox.SizeOffsetCutPlane(plane, 4), hbpExportBBox.SizeOffsetCutPlane(plane, 4), hbpCoreBBox.Min, hbpCoreBBox.Max, normal, 4, name);
             }
 
             using HbpPlane planeA = new(hbpCoreBBox.Center, Vector3.right);
@@ -125,22 +114,17 @@ namespace HBP.Tests.Serialization
 
             using BBox hbpExportBBox = hbpExportVolume.BoundingBox;
             using BBox hbpCoreBBox = hbpCoreVolume.BoundingBox;
-            NativeParityAssert.AssertUnityBoundsMatchLegacyNative(
-                hbpCoreBBox.Min,
-                hbpCoreBBox.Max,
-                hbpExportBBox.Min,
-                hbpExportBBox.Max,
-                context: "fmri_3d bbox");
+            NativeParityAssert.AssertUnityBoundsMatchLegacyNative(hbpCoreBBox.Min, hbpCoreBBox.Max, hbpExportBBox.Min, hbpExportBBox.Max, context: "fmri_3d bbox");
             NativeParityAssert.AssertVector(hbpCoreBBox.Min, new Vector3(-4.0f, 0.0f, 0.0f), context: "fmri_3d fixture bbox min in Unity");
             NativeParityAssert.AssertVector(hbpCoreBBox.Max, new Vector3(0.0f, 4.0f, 4.0f), context: "fmri_3d fixture bbox max in Unity");
 
             foreach (Vector3 position in new[]
-            {
-                Vector3.zero,
-                new Vector3(-1.0f, 1.0f, 1.0f),
-                new Vector3(-2.0f, 3.0f, 4.0f),
-                new Vector3(-4.0f, 4.0f, 4.0f)
-            })
+                     {
+                         Vector3.zero,
+                         new Vector3(-1.0f, 1.0f, 1.0f),
+                         new Vector3(-2.0f, 3.0f, 4.0f),
+                         new Vector3(-4.0f, 4.0f, 4.0f)
+                     })
             {
                 float hbpCoreValue = hbpCoreVolume.GetValueFromPosition(position);
                 float hbpExportValue = hbpExportVolume.GetValueFromPosition(position);
@@ -157,18 +141,8 @@ namespace HBP.Tests.Serialization
             float[] hbpCoreRawValues = new float[27];
             int hbpExportActualLength = 0;
             int hbpCoreActualLength = 0;
-            float hbpExportAverage = hbpExportVolume.GetAverageValueAroundPositionWithMask(
-                new Vector3(-2.0f, 3.0f, 4.0f),
-                1,
-                hbpExportMaskVolume,
-                ref hbpExportRawValues,
-                ref hbpExportActualLength);
-            float hbpCoreAverage = hbpCoreVolume.GetAverageValueAroundPositionWithMask(
-                new Vector3(-2.0f, 3.0f, 4.0f),
-                1,
-                hbpCoreMaskVolume,
-                ref hbpCoreRawValues,
-                ref hbpCoreActualLength);
+            float hbpExportAverage = hbpExportVolume.GetAverageValueAroundPositionWithMask(new Vector3(-2.0f, 3.0f, 4.0f), 1, hbpExportMaskVolume, ref hbpExportRawValues, ref hbpExportActualLength);
+            float hbpCoreAverage = hbpCoreVolume.GetAverageValueAroundPositionWithMask(new Vector3(-2.0f, 3.0f, 4.0f), 1, hbpCoreMaskVolume, ref hbpCoreRawValues, ref hbpCoreActualLength);
 
             float[] expectedFixtureValues =
             {
@@ -179,42 +153,24 @@ namespace HBP.Tests.Serialization
             Assert.That(hbpCoreRawValues.Take(hbpCoreActualLength), Is.EqualTo(expectedFixtureValues).Within(0.0001f), "fmri_3d fixture raw neighborhood values");
             Assert.That(hbpCoreAverage, Is.EqualTo(68.5f).Within(0.0001f), "arithmetic mean of the fixture neighborhood");
             Assert.That(hbpCoreAverage, Is.EqualTo(hbpCoreRawValues.Take(hbpCoreActualLength).Average()).Within(0.0001f));
-            TestContext.Progress.WriteLine(
-                $"masked average: hbp_core={hbpCoreAverage} ({hbpCoreActualLength} values, independent fixture oracle=68.5); hbp_export={hbpExportAverage} ({hbpExportActualLength} values, retained diagnostic only)");
+            TestContext.Progress.WriteLine($"masked average: hbp_core={hbpCoreAverage} ({hbpCoreActualLength} values, independent fixture oracle=68.5); hbp_export={hbpExportAverage} ({hbpExportActualLength} values, retained diagnostic only)");
 
             foreach (CutOrientation orientation in new[] { CutOrientation.Axial, CutOrientation.Coronal, CutOrientation.Sagittal })
             {
                 foreach (bool flip in new[] { false, true })
                 {
-                    NativeParityAssert.AssertUnityVectorMatchesLegacyNative(
-                        hbpCoreVolume.GetOrientationVector(orientation, flip),
-                        hbpExportVolume.GetOrientationVector(orientation, flip),
-                        context: $"{orientation} flip={flip} normal");
+                    NativeParityAssert.AssertUnityVectorMatchesLegacyNative(hbpCoreVolume.GetOrientationVector(orientation, flip), hbpExportVolume.GetOrientationVector(orientation, flip), context: $"{orientation} flip={flip} normal");
                 }
             }
 
             foreach (Vector3 normal in new[] { Vector3.right, Vector3.up, Vector3.forward, new Vector3(1.0f, 1.0f, 1.0f).normalized })
             {
                 using HbpPlane plane = new(hbpExportVolume.Center, normal);
-                AssertCorrectedCutOffset(
-                    hbpCoreVolume.SizeOffsetCutPlane(plane, 8),
-                    hbpExportVolume.SizeOffsetCutPlane(plane, 8),
-                    hbpCoreBBox.Min,
-                    hbpCoreBBox.Max,
-                    normal,
-                    8,
-                    normal.ToString());
+                AssertCorrectedCutOffset(hbpCoreVolume.SizeOffsetCutPlane(plane, 8), hbpExportVolume.SizeOffsetCutPlane(plane, 8), hbpCoreBBox.Min, hbpCoreBBox.Max, normal, 8, normal.ToString());
             }
         }
 
-        private static void AssertCorrectedCutOffset(
-            float hbpCoreOffset,
-            float hbpExportOffset,
-            Vector3 min,
-            Vector3 max,
-            Vector3 normal,
-            int cutCount,
-            string context)
+        private static void AssertCorrectedCutOffset(float hbpCoreOffset, float hbpExportOffset, Vector3 min, Vector3 max, Vector3 normal, int cutCount, string context)
         {
             Vector3 direction = normal.normalized;
             Vector3 center = (min + max) * 0.5f;
@@ -239,8 +195,7 @@ namespace HBP.Tests.Serialization
             // error. Retain that stepped result as a bounded diagnostic, not as the oracle.
             float legacyStepBound = 2.0f * (max - min).magnitude / (5000.0f * cutCount) + 1e-5f;
             Assert.That(hbpExportOffset, Is.EqualTo(expected).Within(legacyStepBound), $"{context}: bounded legacy stepping error");
-            TestContext.Progress.WriteLine(
-                $"{context} cut offset: exact hbp_core={hbpCoreOffset}; stepped hbp_export={hbpExportOffset}; oracle={expected}");
+            TestContext.Progress.WriteLine($"{context} cut offset: exact hbp_core={hbpCoreOffset}; stepped hbp_export={hbpExportOffset}; oracle={expected}");
         }
 
         [Test]
@@ -267,9 +222,7 @@ namespace HBP.Tests.Serialization
             NativeParityAssert.AssertVector(hbpCoreFirstVolume.Center, new Vector3(-2.0f, 2.0f, 2.0f), context: "fmri_4d fixture center in Unity");
             NativeParityAssert.AssertVector(hbpCoreFirstVolume.Spacing, hbpExportFirstVolume.Spacing, context: "fmri_4d spacing (unsigned magnitude)");
             NativeParityAssert.AssertMriCalValues(hbpCoreFirstVolume.ExtremeValues, hbpExportFirstVolume.ExtremeValues);
-            Assert.That(
-                hbpCoreFirstVolume.GetValueFromPosition(new Vector3(-2.0f, 3.0f, 4.0f)),
-                Is.EqualTo(hbpExportFirstVolume.GetValueFromPosition(new Vector3(-2.0f, 3.0f, 4.0f))).Within(0.0001f));
+            Assert.That(hbpCoreFirstVolume.GetValueFromPosition(new Vector3(-2.0f, 3.0f, 4.0f)), Is.EqualTo(hbpExportFirstVolume.GetValueFromPosition(new Vector3(-2.0f, 3.0f, 4.0f))).Within(0.0001f));
 
             using Volume hbpCoreSecondVolume = hbpCoreNifti.ExtractVolume(Math.Min(1, hbpCoreNifti.NumberOfVolumes - 1));
             Assert.That(hbpCoreSecondVolume.IsLoaded, Is.True);
@@ -277,42 +230,38 @@ namespace HBP.Tests.Serialization
 
         private static Volume LoadVolume(BenchmarkBackend backend, string fixtureName)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                Volume volume = new();
+                try
                 {
-                    Volume volume = new();
-                    try
-                    {
-                        Assert.That(volume.LoadNIFTIFile(NativeParityAssert.NativePath("Nifti", fixtureName)), Is.True);
-                        return volume;
-                    }
-                    catch
-                    {
-                        volume.Dispose();
-                        throw;
-                    }
-                });
+                    Assert.That(volume.LoadNIFTIFile(NativeParityAssert.NativePath("Nifti", fixtureName)), Is.True);
+                    return volume;
+                }
+                catch
+                {
+                    volume.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static NIFTI LoadNifti(BenchmarkBackend backend, string fixtureName)
         {
-            return NativeParityAssert.WithBackend(
-                backend,
-                () =>
+            return NativeParityAssert.WithBackend(backend, () =>
+            {
+                NIFTI nifti = new();
+                try
                 {
-                    NIFTI nifti = new();
-                    try
-                    {
-                        Assert.That(nifti.Load(NativeParityAssert.NativePath("Nifti", fixtureName)), Is.True);
-                        return nifti;
-                    }
-                    catch
-                    {
-                        nifti.Dispose();
-                        throw;
-                    }
-                });
+                    Assert.That(nifti.Load(NativeParityAssert.NativePath("Nifti", fixtureName)), Is.True);
+                    return nifti;
+                }
+                catch
+                {
+                    nifti.Dispose();
+                    throw;
+                }
+            });
         }
 
         private static void AssertBBoxEdgesUseDistinctBufferPairs(IReadOnlyList<Vector3> corners, IReadOnlyList<HbpSegment3> segments)
@@ -327,9 +276,7 @@ namespace HBP.Tests.Serialization
                 Assert.That(first, Is.Not.EqualTo(second), "Legacy bbox segment must not be degenerate");
 
                 Vector3 delta = segment.End2 - segment.End1;
-                int differingAxes = (Mathf.Abs(delta.x) > 0.0001f ? 1 : 0)
-                    + (Mathf.Abs(delta.y) > 0.0001f ? 1 : 0)
-                    + (Mathf.Abs(delta.z) > 0.0001f ? 1 : 0);
+                int differingAxes = (Mathf.Abs(delta.x) > 0.0001f ? 1 : 0) + (Mathf.Abs(delta.y) > 0.0001f ? 1 : 0) + (Mathf.Abs(delta.z) > 0.0001f ? 1 : 0);
                 Assert.That(differingAxes, Is.EqualTo(1), "Every bbox edge must be axis aligned");
 
                 uniqueEdges.Add(first < second ? $"{first}:{second}" : $"{second}:{first}");
@@ -347,6 +294,7 @@ namespace HBP.Tests.Serialization
                     return i;
                 }
             }
+
             return -1;
         }
     }

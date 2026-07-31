@@ -7,11 +7,14 @@ namespace HBP.Data.Tools
     public class PerformanceManager : Manager<PerformanceManager>
     {
         #region Properties
+
         [SerializeField] private GameObject m_DarkImage;
         private float m_TimeSinceLastAction = 0;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             m_TimeSinceLastAction += Time.deltaTime;
@@ -19,6 +22,7 @@ namespace HBP.Data.Tools
             {
                 m_TimeSinceLastAction = 0;
             }
+
             if (m_TimeSinceLastAction > PersistentDataManager.UserPreferences.General.System.SleepModeAfter * 60)
             {
                 Application.targetFrameRate = 1;
@@ -30,6 +34,7 @@ namespace HBP.Data.Tools
                 m_DarkImage.SetActive(false);
             }
         }
+
         #endregion
     }
 }

@@ -42,22 +42,24 @@ namespace HBP.Core.Data
     public class MaxTreatment : Treatment
     {
         public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Scalar;
+
         #region Constructors
+
         /// <summary>
         /// Create a new MaxTreatment instance with default values.
         /// </summary>
         public MaxTreatment() : base()
         {
-
         }
+
         /// <summary>
         /// Create a new MaxTreatment instance with default values and a specified unique identifier.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
         public MaxTreatment(string ID) : base(ID)
         {
-
         }
+
         /// <summary>
         /// Create a new MaxTreatment instance.
         /// </summary>
@@ -70,9 +72,11 @@ namespace HBP.Core.Data
         public MaxTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             int startWindow = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -80,13 +84,14 @@ namespace HBP.Core.Data
             int startBaseline = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
             int endBaseline = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
             float max = float.MinValue;
-            if(UseOnWindow)
+            if (UseOnWindow)
             {
                 for (int i = startWindow; i <= endWindow; i++)
                 {
                     if (max < values[i]) max = values[i];
                 }
             }
+
             if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; i++)
@@ -95,14 +100,15 @@ namespace HBP.Core.Data
                 }
             }
 
-            if(UseOnWindow)
+            if (UseOnWindow)
             {
                 for (int i = startWindow; i <= endWindow; i++)
                 {
                     values[i] = max;
                 }
             }
-            if(UseOnBaseline)
+
+            if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; i++)
                 {
@@ -110,13 +116,16 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new MaxTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
+
         #endregion
     }
 }

@@ -15,29 +15,78 @@ namespace UnityEngine.UI.Extensions
         static protected Material s_ETC1DefaultUI = null;
 
         [SerializeField] private Sprite m_Sprite;
-        public Sprite sprite { get { return m_Sprite; } set { if (SetPropertyUtility.SetClass(ref m_Sprite, value)) GeneratedUVs(); SetAllDirty(); } }
 
-        [NonSerialized]
-        private Sprite m_OverrideSprite;
-        public Sprite overrideSprite { get { return activeSprite; } set { if (SetPropertyUtility.SetClass(ref m_OverrideSprite, value)) GeneratedUVs(); SetAllDirty(); } }
+        public Sprite sprite
+        {
+            get { return m_Sprite; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_Sprite, value)) GeneratedUVs();
+                SetAllDirty();
+            }
+        }
 
-        protected Sprite activeSprite { get { return m_OverrideSprite != null ? m_OverrideSprite : sprite; } }
+        [NonSerialized] private Sprite m_OverrideSprite;
+
+        public Sprite overrideSprite
+        {
+            get { return activeSprite; }
+            set
+            {
+                if (SetPropertyUtility.SetClass(ref m_OverrideSprite, value)) GeneratedUVs();
+                SetAllDirty();
+            }
+        }
+
+        protected Sprite activeSprite
+        {
+            get { return m_OverrideSprite != null ? m_OverrideSprite : sprite; }
+        }
 
         // Not serialized until we support read-enabled sprites better.
         internal float m_EventAlphaThreshold = 1;
-        public float eventAlphaThreshold { get { return m_EventAlphaThreshold; } set { m_EventAlphaThreshold = value; } }
 
-        [SerializeField]
-        private ResolutionMode m_improveResolution;
-        public ResolutionMode ImproveResolution { get { return m_improveResolution; } set { m_improveResolution = value; SetAllDirty(); } }
+        public float eventAlphaThreshold
+        {
+            get { return m_EventAlphaThreshold; }
+            set { m_EventAlphaThreshold = value; }
+        }
 
-        [SerializeField]
-        protected float m_Resolution;
-        public float Resoloution { get { return m_Resolution; } set { m_Resolution = value; SetAllDirty(); } }
+        [SerializeField] private ResolutionMode m_improveResolution;
 
-        [SerializeField]
-        private bool m_useNativeSize;
-        public bool UseNativeSize { get { return m_useNativeSize; } set { m_useNativeSize = value; SetAllDirty(); } }
+        public ResolutionMode ImproveResolution
+        {
+            get { return m_improveResolution; }
+            set
+            {
+                m_improveResolution = value;
+                SetAllDirty();
+            }
+        }
+
+        [SerializeField] protected float m_Resolution;
+
+        public float Resoloution
+        {
+            get { return m_Resolution; }
+            set
+            {
+                m_Resolution = value;
+                SetAllDirty();
+            }
+        }
+
+        [SerializeField] private bool m_useNativeSize;
+
+        public bool UseNativeSize
+        {
+            get { return m_useNativeSize; }
+            set
+            {
+                m_useNativeSize = value;
+                SetAllDirty();
+            }
+        }
 
         protected UIPrimitiveBase()
         {
@@ -71,6 +120,7 @@ namespace UnityEngine.UI.Extensions
                     {
                         return material.mainTexture;
                     }
+
                     return s_WhiteTexture;
                 }
 
@@ -91,6 +141,7 @@ namespace UnityEngine.UI.Extensions
                     Vector4 v = activeSprite.border;
                     return v.sqrMagnitude > 0f;
                 }
+
                 return false;
             }
         }
@@ -124,10 +175,7 @@ namespace UnityEngine.UI.Extensions
                 return defaultMaterial;
             }
 
-            set
-            {
-                base.material = value;
-            }
+            set { base.material = value; }
         }
 
 
@@ -142,6 +190,7 @@ namespace UnityEngine.UI.Extensions
                 vert.uv0 = uvs[i];
                 vbo[i] = vert;
             }
+
             return vbo;
         }
 
@@ -157,6 +206,7 @@ namespace UnityEngine.UI.Extensions
                     {
                         totalDistance += Vector2.Distance(input[i], input[i + 1]);
                     }
+
                     ResolutionToNativeSize(totalDistance);
                     increments = totalDistance / m_Resolution;
                     var incrementCount = 0;
@@ -167,13 +217,15 @@ namespace UnityEngine.UI.Extensions
                         var p2 = input[i + 1];
                         var segmentDistance = Vector2.Distance(p1, p2) / increments;
                         var incrementTime = 1f / segmentDistance;
-                        for (int j=0; j < segmentDistance; j++)
+                        for (int j = 0; j < segmentDistance; j++)
                         {
                             outputList.Add(Vector2.Lerp(p1, (Vector2)p2, j * incrementTime));
                             incrementCount++;
                         }
+
                         outputList.Add(p2);
                     }
+
                     break;
                 case ResolutionMode.PerSegment:
                     for (int i = 0; i < input.Length - 1; i++)
@@ -187,24 +239,39 @@ namespace UnityEngine.UI.Extensions
                         {
                             outputList.Add(Vector2.Lerp(p1, (Vector2)p2, increments * j));
                         }
+
                         outputList.Add(p2);
                     }
+
                     break;
             }
+
             return outputList.ToArray();
         }
 
-        protected virtual void GeneratedUVs() { }
+        protected virtual void GeneratedUVs()
+        {
+        }
 
-        protected virtual void ResolutionToNativeSize(float distance) { }
+        protected virtual void ResolutionToNativeSize(float distance)
+        {
+        }
 
 
         #region ILayoutElement Interface
 
-        public virtual void CalculateLayoutInputHorizontal() { }
-        public virtual void CalculateLayoutInputVertical() { }
+        public virtual void CalculateLayoutInputHorizontal()
+        {
+        }
 
-        public virtual float minWidth { get { return 0; } }
+        public virtual void CalculateLayoutInputVertical()
+        {
+        }
+
+        public virtual float minWidth
+        {
+            get { return 0; }
+        }
 
         public virtual float preferredWidth
         {
@@ -216,9 +283,15 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        public virtual float flexibleWidth { get { return -1; } }
+        public virtual float flexibleWidth
+        {
+            get { return -1; }
+        }
 
-        public virtual float minHeight { get { return 0; } }
+        public virtual float minHeight
+        {
+            get { return 0; }
+        }
 
         public virtual float preferredHeight
         {
@@ -230,13 +303,20 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        public virtual float flexibleHeight { get { return -1; } }
+        public virtual float flexibleHeight
+        {
+            get { return -1; }
+        }
 
-        public virtual int layoutPriority { get { return 0; } }
+        public virtual int layoutPriority
+        {
+            get { return 0; }
+        }
 
         #endregion
 
         #region ICanvasRaycastFilter Interface
+
         public virtual bool IsRaycastLocationValid(Vector2 screenPoint, Camera eventCamera)
         {
             // add test for line check
@@ -290,7 +370,7 @@ namespace UnityEngine.UI.Extensions
         {
             Rect spriteRect = sprite.rect;
             //if (type == Type.Simple || type == Type.Filled)
-                return new Vector2(local.x * rect.width, local.y * rect.height);
+            return new Vector2(local.x * rect.width, local.y * rect.height);
 
             //Vector4 border = sprite.border;
             //Vector4 adjustedBorder = GetAdjustedBorders(border / pixelsPerUnit, rect);
@@ -338,18 +418,20 @@ namespace UnityEngine.UI.Extensions
                     border[axis + 2] *= borderScaleRatio;
                 }
             }
+
             return border;
         }
 
         #endregion
 
         #region onEnable
+
         protected override void OnEnable()
         {
             base.OnEnable();
             SetAllDirty();
         }
-        #endregion
 
+        #endregion
     }
 }

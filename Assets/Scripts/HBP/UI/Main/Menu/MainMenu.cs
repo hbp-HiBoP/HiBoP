@@ -7,31 +7,51 @@ namespace HBP.UI.Main
     public class MainMenu : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] FileMenu m_FileMenu;
-        public FileMenu FileMenu { get { return m_FileMenu; } }
+
+        public FileMenu FileMenu
+        {
+            get { return m_FileMenu; }
+        }
 
         [SerializeField] EditMenu m_EditMenu;
-        public EditMenu EditMenu { get { return m_EditMenu; } }
+
+        public EditMenu EditMenu
+        {
+            get { return m_EditMenu; }
+        }
 
         [SerializeField] ProjectMenu m_ProjectMenu;
-        public ProjectMenu ProjectMenu { get { return m_ProjectMenu; } }
+
+        public ProjectMenu ProjectMenu
+        {
+            get { return m_ProjectMenu; }
+        }
 
         [SerializeField] DatabaseMenu m_DatabaseMenu;
-        public DatabaseMenu DatabaseMenu { get { return m_DatabaseMenu; } }
+
+        public DatabaseMenu DatabaseMenu
+        {
+            get { return m_DatabaseMenu; }
+        }
 
         [SerializeField] HelpMenu m_HelpMenu;
-        public HelpMenu HelpMenu { get { return m_HelpMenu; } }
+
+        public HelpMenu HelpMenu
+        {
+            get { return m_HelpMenu; }
+        }
 
         bool IsOneMenuOpen
         {
-            get
-            {
-                return m_FileMenu.IsOpen || m_EditMenu.IsOpen || m_ProjectMenu.IsOpen || m_DatabaseMenu.IsOpen || m_HelpMenu.IsOpen;
-            }
+            get { return m_FileMenu.IsOpen || m_EditMenu.IsOpen || m_ProjectMenu.IsOpen || m_DatabaseMenu.IsOpen || m_HelpMenu.IsOpen; }
         }
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             SetupMenu(m_FileMenu);
@@ -40,6 +60,7 @@ namespace HBP.UI.Main
             SetupMenu(m_DatabaseMenu);
             SetupMenu(m_HelpMenu);
         }
+
         void Update()
         {
             if (Input.GetMouseButtonUp(0))
@@ -59,6 +80,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         private void SetupMenu(Menu menu)
         {
             menu.OnChangeOpenState.AddListener((isOpen) =>
@@ -72,6 +94,7 @@ namespace HBP.UI.Main
                     menu.Open();
             });
         }
+
         private void CloseAllBut(Menu menu)
         {
             if (menu != m_FileMenu) m_FileMenu.Close();
@@ -80,6 +103,7 @@ namespace HBP.UI.Main
             if (menu != m_DatabaseMenu) m_DatabaseMenu.Close();
             if (menu != m_HelpMenu) m_HelpMenu.Close();
         }
+
         private void CloseAll()
         {
             m_FileMenu.Close();
@@ -88,6 +112,7 @@ namespace HBP.UI.Main
             m_DatabaseMenu.Close();
             m_HelpMenu.Close();
         }
+
         #endregion
     }
 }

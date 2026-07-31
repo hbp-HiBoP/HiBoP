@@ -8,6 +8,7 @@ namespace HBP.UI.Main.QuickStart
     public class FunctionalDataItem : Item<FunctionalData>
     {
         #region Properties
+
         [SerializeField] private UnityEngine.UI.Text m_PatientName;
 
         [SerializeField] private RectTransform m_BrainVisionRectTransform;
@@ -33,10 +34,7 @@ namespace HBP.UI.Main.QuickStart
 
         public override FunctionalData Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -92,6 +90,7 @@ namespace HBP.UI.Main.QuickStart
                     m_EDFRectTransform.gameObject.SetActive(false);
                     m_FIFRectTransform.gameObject.SetActive(false);
                 }
+
                 m_BrainVisionHeader.File = value.BrainVisionDataContainer.Header;
                 m_MicromedFile.File = value.MicromedDataContainer.Path;
                 m_ELANEEGFile.File = value.ElanDataContainer.EEG;
@@ -142,6 +141,7 @@ namespace HBP.UI.Main.QuickStart
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

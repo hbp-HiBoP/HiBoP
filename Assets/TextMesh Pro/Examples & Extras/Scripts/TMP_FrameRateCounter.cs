@@ -3,14 +3,19 @@
 
 namespace TMPro.Examples
 {
-
     public class TMP_FrameRateCounter : MonoBehaviour
     {
         public float UpdateInterval = 5.0f;
         private float m_LastInterval = 0;
         private int m_Frames = 0;
 
-        public enum FpsCounterAnchorPositions { TopLeft, BottomLeft, TopRight, BottomRight };
+        public enum FpsCounterAnchorPositions
+        {
+            TopLeft,
+            BottomLeft,
+            TopRight,
+            BottomRight
+        };
 
         public FpsCounterAnchorPositions AnchorPosition = FpsCounterAnchorPositions.TopRight;
 
@@ -56,8 +61,6 @@ namespace TMPro.Examples
 
             Set_FrameCounter_Position(AnchorPosition);
             last_AnchorPosition = AnchorPosition;
-
-
         }
 
         void Start()

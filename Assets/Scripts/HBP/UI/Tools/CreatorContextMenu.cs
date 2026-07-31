@@ -9,13 +9,12 @@ namespace HBP.UI.Tools
     public class CreatorContextMenu : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] bool m_IsLoadableFromFile = false;
+
         public bool IsCreatableFromFile
         {
-            get
-            {
-                return m_IsLoadableFromFile;
-            }
+            get { return m_IsLoadableFromFile; }
             set
             {
                 m_IsLoadableFromFile = value;
@@ -24,12 +23,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] bool m_IsLoadableFromDatabase = false;
+
         public bool IsCreatableFromDatabase
         {
-            get
-            {
-                return m_IsLoadableFromDatabase;
-            }
+            get { return m_IsLoadableFromDatabase; }
             set
             {
                 m_IsLoadableFromDatabase = value;
@@ -38,12 +35,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] bool m_IsLoadableFromDirectory = false;
+
         public bool IsCreatableFromDirectory
         {
-            get
-            {
-                return m_IsLoadableFromDirectory;
-            }
+            get { return m_IsLoadableFromDirectory; }
             set
             {
                 m_IsLoadableFromDirectory = value;
@@ -52,12 +47,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] bool m_IsCreatableFromScratch = false;
+
         public bool IsCreatableFromScratch
         {
-            get
-            {
-                return m_IsCreatableFromScratch;
-            }
+            get { return m_IsCreatableFromScratch; }
             set
             {
                 m_IsCreatableFromScratch = value;
@@ -66,32 +59,34 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] bool m_IsCreatableFromExistingObjects = false;
+
         public bool IsCreatableFromExistingObjects
         {
-            get
-            {
-                return m_IsCreatableFromExistingObjects;
-            }
+            get { return m_IsCreatableFromExistingObjects; }
             set
             {
                 m_IsCreatableFromExistingObjects = value;
                 Set();
             }
         }
-        
+
         [SerializeField] Button m_FromScratchButton;
         [SerializeField] Button m_FromExistingObjectButton;
         [SerializeField] Button m_FromFileButton;
         [SerializeField] Button m_FromDatabaseButton;
         [SerializeField] Button m_FromDirectoryButton;
         [SerializeField] Button m_Blocker;
+
         #endregion
 
         #region Events
+
         public GenericEvent<CreationType> OnSelectType = new();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_FromScratchButton.onClick.AddListener(() => OnSelectType.Invoke(CreationType.FromScratch));
@@ -100,6 +95,7 @@ namespace HBP.UI.Tools
             m_FromDatabaseButton.onClick.AddListener(() => OnSelectType.Invoke(CreationType.FromDatabase));
             m_FromDirectoryButton.onClick.AddListener(() => OnSelectType.Invoke(CreationType.FromDirectory));
         }
+
         private void Set()
         {
             m_FromScratchButton.gameObject.SetActive(IsCreatableFromScratch);
@@ -108,18 +104,22 @@ namespace HBP.UI.Tools
             m_FromDatabaseButton.gameObject.SetActive(IsCreatableFromDatabase);
             m_FromDirectoryButton.gameObject.SetActive(IsCreatableFromDirectory);
         }
+
         #endregion
 
         #region Public Methods
+
         public void Open()
         {
             Set();
             gameObject.SetActive(true);
         }
+
         public void Close()
         {
             gameObject.SetActive(false);
         }
+
         #endregion
     }
 }

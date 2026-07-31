@@ -1,5 +1,4 @@
 #if UNITY_STANDALONE_OSX && !UNITY_EDITOR
-
 using System;
 using System.Runtime.InteropServices;
 

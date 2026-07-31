@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class ColumnModifier : SubModifier<Core.Data.Column>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_TypeDropdown;
         [SerializeField] IEEGColumnModifier m_IEEGColumnModifier;
@@ -23,15 +24,12 @@ namespace HBP.UI.Main
 
         public override Core.Data.Column Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 if (!Initialized) Initialize();
                 base.Object = value;
-                if(base.Object != null)
+                if (base.Object != null)
                 {
                     m_NameInputField.interactable = m_Interactable;
                     m_NameInputField.text = value.Name;
@@ -45,17 +43,16 @@ namespace HBP.UI.Main
                     m_TypeDropdown.interactable = false;
                     m_TypeDropdown.SetValue(Array.IndexOf(m_Types, typeof(Core.Data.AnatomicColumn)));
                 }
+
                 OnChangeColumn.Invoke(value);
             }
         }
 
         Core.Data.Patient[] m_Patients;
+
         public Core.Data.Patient[] Patients
         {
-            get
-            {
-                return m_Patients;
-            }
+            get { return m_Patients; }
             set
             {
                 if (!Initialized) Initialize();
@@ -71,10 +68,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return m_Interactable;
-            }
+            get { return m_Interactable; }
             set
             {
                 base.Interactable = value;
@@ -92,9 +86,11 @@ namespace HBP.UI.Main
 
         public GenericEvent<string> OnChangeName { get; } = new GenericEvent<string>();
         public GenericEvent<Core.Data.Column> OnChangeColumn { get; } = new GenericEvent<Core.Data.Column>();
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -103,9 +99,11 @@ namespace HBP.UI.Main
             m_TypeDropdown.onValueChanged.AddListener(OnChangeTypeHandler);
             m_Types = m_TypeDropdown.Set(typeof(Core.Data.Column));
         }
+
         #endregion
 
         #region Private Methods
+
         void OnChangeTypeHandler(int value)
         {
             Type type = m_Types[value];
@@ -185,14 +183,17 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         void OnChangeNameHanlder(string value)
         {
             if (m_Object != null)
             {
                 Object.Name = value;
             }
+
             OnChangeName.Invoke(value);
         }
+
         #endregion
     }
 }

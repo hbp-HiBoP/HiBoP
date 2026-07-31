@@ -97,8 +97,7 @@ namespace HBP.Tests.Serialization
             IEEGDataInfo dataInfo = CreateDataInfo("recording.edf", CreateProtocol("protocol"), "data");
 
             IEEGData data = (IEEGData)DataManager.GetData(dataInfo);
-            SubTrial subTrial = data.DataByBloc[dataInfo.Protocol.Blocs[0]].Trials[0]
-                .SubTrialBySubBloc[dataInfo.Protocol.Blocs[0].MainSubBloc];
+            SubTrial subTrial = data.DataByBloc[dataInfo.Protocol.Blocs[0]].Trials[0].SubTrialBySubBloc[dataInfo.Protocol.Blocs[0].MainSubBloc];
             raw.ValuesByChannel["A1"][2] = 999f;
             raw.ValuesByChannel["A1"][3] = 1000f;
 
@@ -128,9 +127,7 @@ namespace HBP.Tests.Serialization
             IEEGData rebuilt = (IEEGData)DataManager.GetData(first);
 
             Assert.That(loadCount, Is.EqualTo(3));
-            Assert.That(rebuilt.DataByBloc[first.Protocol.Blocs[0]].Trials[0]
-                .SubTrialBySubBloc[first.Protocol.Blocs[0].MainSubBloc]
-                .GetWindow("A1").ToArray(), Is.EqualTo(new[] { 12f, 13f }));
+            Assert.That(rebuilt.DataByBloc[first.Protocol.Blocs[0]].Trials[0].SubTrialBySubBloc[first.Protocol.Blocs[0].MainSubBloc].GetWindow("A1").ToArray(), Is.EqualTo(new[] { 12f, 13f }));
         }
 
         [Test]
@@ -229,41 +226,20 @@ namespace HBP.Tests.Serialization
         private static IEEGDataInfo CreateDataInfo(string path, Protocol protocol, string id)
         {
             Patient patient = new($"patient-{id}", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), "", $"patient-{id}");
-            return new IEEGDataInfo(
-                id,
-                protocol,
-                new EDF(path, Array.Empty<Error>(), Array.Empty<Warning>()),
-                Array.Empty<Error>(),
-                Array.Empty<Warning>(),
-                patient,
-                NormalizationType.None,
-                "database",
-                id);
+            return new IEEGDataInfo(id, protocol, new EDF(path, Array.Empty<Error>(), Array.Empty<Warning>()), Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.None, "database", id);
         }
 
         private static Protocol CreateProtocol(string id)
         {
             Event mainEvent = new("main", new[] { 1 }, MainSecondaryEnum.Main, $"event-{id}");
-            SubBloc subBloc = new(
-                "main",
-                0,
-                MainSecondaryEnum.Main,
-                new TimeWindow(0, 1),
-                new TimeWindow(0, 0),
-                new[] { mainEvent },
-                Array.Empty<Icon>(),
-                Array.Empty<Treatment>(),
-                $"subbloc-{id}");
+            SubBloc subBloc = new("main", 0, MainSecondaryEnum.Main, new TimeWindow(0, 1), new TimeWindow(0, 0), new[] { mainEvent }, Array.Empty<Icon>(), Array.Empty<Treatment>(), $"subbloc-{id}");
             Bloc bloc = new("bloc", 0, "", "", new[] { subBloc }, $"bloc-{id}");
             return new Protocol(id, new[] { bloc }, id);
         }
 
         private sealed class StubDynamicData : DynamicData
         {
-            public StubDynamicData() : base(
-                new Dictionary<string, float[]> { { "A1", new[] { 10f, 11f, 12f, 13f, 14f } } },
-                new Dictionary<string, string> { { "A1", "uV" } },
-                new Frequency(1000))
+            public StubDynamicData() : base(new Dictionary<string, float[]> { { "A1", new[] { 10f, 11f, 12f, 13f, 14f } } }, new Dictionary<string, string> { { "A1", "uV" } }, new Frequency(1000))
             {
                 m_OccurencesByCode = new Dictionary<int, List<EventOccurence>>
                 {
@@ -274,10 +250,7 @@ namespace HBP.Tests.Serialization
 
         private sealed class LargeStubDynamicData : DynamicData
         {
-            public LargeStubDynamicData() : base(
-                new Dictionary<string, float[]> { { "A1", new float[400000] } },
-                new Dictionary<string, string> { { "A1", "uV" } },
-                new Frequency(1000))
+            public LargeStubDynamicData() : base(new Dictionary<string, float[]> { { "A1", new float[400000] } }, new Dictionary<string, string> { { "A1", "uV" } }, new Frequency(1000))
             {
                 m_OccurencesByCode = new Dictionary<int, List<EventOccurence>>
                 {

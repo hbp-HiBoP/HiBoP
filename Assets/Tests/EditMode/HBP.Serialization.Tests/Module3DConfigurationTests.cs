@@ -20,29 +20,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void VisualizationConfiguration_CloneAndCopy_PreserveSceneViewCameraAndColumnState()
         {
-            VisualizationConfiguration source = new(
-                ColorType.Surface,
-                ColorType.Default,
-                ColorType.MatLab,
-                MeshPart.Left,
-                "mesh-alpha",
-                "mri-alpha",
-                "implantation-alpha",
-                true,
-                true,
-                0.35f,
-                true,
-                true,
-                true,
-                true,
-                2.25f,
-                0.15f,
-                0.85f,
-                CameraControl.Orbital,
-                new[] { new Cut(Vector3.right, CutOrientation.Sagittal, true, 12.5f) },
-                new[] { new View(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30), new Vector3(4, 5, 6)) },
-                new[] { new RegionOfInterest("roi-alpha", new List<DataSphere> { new(new Vector3(7, 8, 9), 3.5f) }) },
-                "module3d-configuration-visualization-config-001");
+            VisualizationConfiguration source = new(ColorType.Surface, ColorType.Default, ColorType.MatLab, MeshPart.Left, "mesh-alpha", "mri-alpha", "implantation-alpha", true, true, 0.35f, true, true, true, true, 2.25f, 0.15f, 0.85f, CameraControl.Orbital, new[] { new Cut(Vector3.right, CutOrientation.Sagittal, true, 12.5f) }, new[] { new View(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30), new Vector3(4, 5, 6)) }, new[] { new RegionOfInterest("roi-alpha", new List<DataSphere> { new(new Vector3(7, 8, 9), 3.5f) }) }, "module3d-configuration-visualization-config-001");
 
             VisualizationConfiguration clone = (VisualizationConfiguration)source.Clone();
             VisualizationConfiguration copy = new();
@@ -61,14 +39,11 @@ namespace HBP.Tests.Serialization
         {
             using TempDirectoryScope temp = new();
             VisualizationConfiguration source = new();
-            source.RegionsOfInterest.Add(
-                new RegionOfInterest(
-                    "roi-round-trip",
-                    new List<DataSphere>
-                    {
-                        new(new Vector3(-7.5f, 2.25f, 0.125f), 3.5f),
-                        new(new Vector3(11, -13, 17), 0.25f)
-                    }));
+            source.RegionsOfInterest.Add(new RegionOfInterest("roi-round-trip", new List<DataSphere>
+            {
+                new(new Vector3(-7.5f, 2.25f, 0.125f), 3.5f),
+                new(new Vector3(11, -13, 17), 0.25f)
+            }));
 
             VisualizationConfiguration loaded = RoundTrip(temp, source, "module3d-roi-round-trip.json");
 
@@ -91,17 +66,15 @@ namespace HBP.Tests.Serialization
             Project sourceProject = SyntheticProjectFactory.CreateCompleteProject();
             Visualization source = sourceProject.Visualizations.Single();
 
-            Assert.That(
-                source.Columns.Select(column => column.GetType()),
-                Is.EquivalentTo(new[]
-                {
-                    typeof(AnatomicColumn),
-                    typeof(IEEGColumn),
-                    typeof(CCEPColumn),
-                    typeof(FMRIColumn),
-                    typeof(MEGColumn),
-                    typeof(StaticColumn)
-                }));
+            Assert.That(source.Columns.Select(column => column.GetType()), Is.EquivalentTo(new[]
+            {
+                typeof(AnatomicColumn),
+                typeof(IEEGColumn),
+                typeof(CCEPColumn),
+                typeof(FMRIColumn),
+                typeof(MEGColumn),
+                typeof(StaticColumn)
+            }));
             Assert.That(source.Columns.Select(column => column.IsCompatible(source.Patients)), Is.All.True);
 
             Column[] clones = source.Columns.Select(column => (Column)column.Clone()).ToArray();
@@ -112,16 +85,8 @@ namespace HBP.Tests.Serialization
             Assert.That(clones.Zip(source.Columns, (clone, original) => ReferenceEquals(clone.BaseConfiguration, original.BaseConfiguration)), Is.All.False);
 
             Visualization loaded = RoundTrip(temp, source, "module3d-configuration-visualization.json");
-            LoadingContext context = new(
-                PersistentDataManager.Tags.AllTags,
-                new[] { sourceProject.Datasets[0].Protocol },
-                sourceProject.Patients,
-                sourceProject.Datasets);
-            context.ResolveProject(
-                sourceProject.Patients,
-                Array.Empty<Group>(),
-                sourceProject.Datasets,
-                new[] { loaded });
+            LoadingContext context = new(PersistentDataManager.Tags.AllTags, new[] { sourceProject.Datasets[0].Protocol }, sourceProject.Patients, sourceProject.Datasets);
+            context.ResolveProject(sourceProject.Patients, Array.Empty<Group>(), sourceProject.Datasets, new[] { loaded });
 
             Assert.That(loaded.Columns.Select(column => column.GetType()), Is.EquivalentTo(source.Columns.Select(column => column.GetType())));
             Assert.That(loaded.Columns.Select(column => column.ID), Is.EquivalentTo(source.Columns.Select(column => column.ID)));
@@ -213,15 +178,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void AtlasInfo_StoresHoverMetadataWithoutSceneDependencies()
         {
-            AtlasInfo info = new(
-                true,
-                new Vector3(1, 2, 3),
-                AtlasInfo.AtlasType.JuBrainAtlas,
-                "area-alpha",
-                "location-alpha",
-                "label-alpha",
-                "status-alpha",
-                "doi-alpha");
+            AtlasInfo info = new(true, new Vector3(1, 2, 3), AtlasInfo.AtlasType.JuBrainAtlas, "area-alpha", "location-alpha", "label-alpha", "status-alpha", "doi-alpha");
 
             Assert.That(info.Enabled, Is.True);
             Assert.That(info.Position, Is.EqualTo(new Vector3(1, 2, 3)));

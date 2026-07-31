@@ -11,30 +11,28 @@ namespace HBP.Data.Module3D
     public class Column3DMEG : Column3D
     {
         #region Properties
+
         /// <summary>
         /// FMRI data of this column (contains information about what to display)
         /// </summary>
         public MEGColumn ColumnMEGData
         {
-            get
-            {
-                return ColumnData as MEGColumn;
-            }
+            get { return ColumnData as MEGColumn; }
         }
+
         /// <summary>
         /// Parameters on how to display the activity on the column
         /// </summary>
         public MEGDataParameters MEGParameters { get; } = new MEGDataParameters();
+
         private int m_SelectedMEGIndex = 0;
+
         /// <summary>
         /// Currently selected FMRI
         /// </summary>
         public int SelectedMEGIndex
         {
-            get
-            {
-                return m_SelectedMEGIndex;
-            }
+            get { return m_SelectedMEGIndex; }
             set
             {
                 m_SelectedMEGIndex = value % ColumnMEGData.Data.MEGItems.Count;
@@ -42,8 +40,17 @@ namespace HBP.Data.Module3D
                 OnChangeSelectedMEG.Invoke();
             }
         }
-        public Core.Data.Processed.MEGItem SelectedMEGItem { get { return ColumnMEGData.Data.MEGItems[SelectedMEGIndex]; } }
-        public Core.Object3D.FMRI SelectedFMRI { get { return SelectedMEGItem.FMRI; } }
+
+        public Core.Data.Processed.MEGItem SelectedMEGItem
+        {
+            get { return ColumnMEGData.Data.MEGItems[SelectedMEGIndex]; }
+        }
+
+        public Core.Object3D.FMRI SelectedFMRI
+        {
+            get { return SelectedMEGItem.FMRI; }
+        }
+
         public int SelectedVolumeIndex
         {
             get
@@ -53,22 +60,28 @@ namespace HBP.Data.Module3D
                 {
                     index += ColumnMEGData.Data.MEGItems[i].FMRI.Volumes.Count;
                 }
+
                 return index + Timeline.CurrentIndex;
             }
         }
 
         public FMRITimeline Timeline { get; private set; } = new FMRITimeline();
+
         #endregion
 
         #region Events
+
         [HideInInspector] public UnityEvent OnChangeSelectedMEG = new();
+
         /// <summary>
         /// Event called when updating the current timeline ID
         /// </summary>
         [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new();
+
         #endregion
 
         #region Private Methods
+
         protected virtual void Update()
         {
             if (Timeline != null)
@@ -76,9 +89,11 @@ namespace HBP.Data.Module3D
                 Timeline.Play();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
@@ -86,6 +101,7 @@ namespace HBP.Data.Module3D
             ActivityGenerator = new Core.DLL.MEGGenerator();
             SelectedMEGIndex = 0;
         }
+
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
@@ -94,6 +110,7 @@ namespace HBP.Data.Module3D
         {
             SurfaceGenerator.ComputeActivityUV(SelectedVolumeIndex, ActivityAlpha);
         }
+
         /// <summary>
         /// Method called when initializing the activity on the column
         /// </summary>
@@ -107,11 +124,9 @@ namespace HBP.Data.Module3D
                     Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
                 }
             });
-            Timeline.OnStopTimelinePlay.AddListener(() =>
-            {
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
+            Timeline.OnStopTimelinePlay.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
         }
+
         /// <summary>
         /// Load the column configuration from the column data
         /// </summary>
@@ -123,6 +138,7 @@ namespace HBP.Data.Module3D
             MEGParameters.SetHideValues(ColumnMEGData.MEGConfiguration.HideLowerValues, ColumnMEGData.MEGConfiguration.HideMiddleValues, ColumnMEGData.MEGConfiguration.HideHigherValues);
             base.LoadConfiguration(false);
         }
+
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
@@ -137,6 +153,7 @@ namespace HBP.Data.Module3D
             ColumnMEGData.MEGConfiguration.HideHigherValues = MEGParameters.HideHigherValues;
             base.SaveConfiguration();
         }
+
         /// <summary>
         /// Reset the configuration of this column
         /// </summary>
@@ -146,6 +163,7 @@ namespace HBP.Data.Module3D
             MEGParameters.ResetHideValues();
             base.ResetConfiguration();
         }
+
         #endregion
     }
 }

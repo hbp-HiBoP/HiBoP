@@ -25,17 +25,16 @@ namespace HBP.Core.Data
     public class EnumTagValue : TagValue<EnumTag, int>
     {
         #region Properties
+
         public override int Value
         {
-            get
-            {
-                return base.Value;
-            }
+            get { return base.Value; }
             set
             {
                 if (Tag != null) base.Value = Tag.Clamp(value);
             }
         }
+
         /// <summary>
         /// String value associated with the tag.
         /// </summary>
@@ -46,6 +45,7 @@ namespace HBP.Core.Data
                 if (Tag != null) Value = Array.IndexOf(Tag.Values, value);
             }
         }
+
         public override string DisplayableValue
         {
             get
@@ -60,15 +60,18 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new instance of EnumTagValue.
         /// </summary>
         public EnumTagValue() : this(null, default(int))
         {
         }
+
         /// <summary>
         /// Create a new instance of EnumTagValue.
         /// </summary>
@@ -77,6 +80,7 @@ namespace HBP.Core.Data
         public EnumTagValue(EnumTag tag, int value) : base(tag, value)
         {
         }
+
         /// <summary>
         /// Create a new instance of EnumTagValue.
         /// </summary>
@@ -86,6 +90,7 @@ namespace HBP.Core.Data
         {
             StringValue = value;
         }
+
         /// <summary>
         /// Create a new instance of EnumTagValue.
         /// </summary>
@@ -95,13 +100,16 @@ namespace HBP.Core.Data
         public EnumTagValue(EnumTag tag, int value, string ID) : base(tag, value, ID)
         {
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new EnumTagValue(Tag, Value, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -109,11 +117,13 @@ namespace HBP.Core.Data
             {
                 Value = Mathf.RoundToInt(floatTagValue.Value);
             }
+
             if (copy is StringTagValue stringTagValue)
             {
                 Value = Array.FindIndex(Tag.Values, t => t == stringTagValue.Value);
             }
         }
+
         #endregion
     }
 }

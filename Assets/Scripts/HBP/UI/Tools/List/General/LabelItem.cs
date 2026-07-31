@@ -8,19 +8,18 @@ namespace HBP.UI.Tools.Lists
     public class LabelItem : Item<string>
     {
         #region Properties
+
         /// <summary>
         /// UI Text to display the string.
         /// </summary>
         public Text Text;
+
         /// <summary>
         /// String to display.
         /// </summary>
         public override string Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -31,6 +30,7 @@ namespace HBP.UI.Tools.Lists
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

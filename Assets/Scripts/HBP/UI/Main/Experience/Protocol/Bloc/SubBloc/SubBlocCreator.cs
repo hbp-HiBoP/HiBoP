@@ -10,24 +10,22 @@ namespace HBP.UI.Main
     public class SubBlocCreator : ObjectCreator<Core.Data.SubBloc>
     {
         #region Properties
+
         [SerializeField] MainSecondaryEnum m_Type;
+
         /// <summary>
         /// Default subBloc type created.
         /// </summary>
         public MainSecondaryEnum Type
         {
-            get
-            {
-                return m_Type;
-            }
-            set
-            {
-                m_Type = value;
-            }
+            get { return m_Type; }
+            set { m_Type = value; }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Create subBlocs from scratch.
         /// </summary>
@@ -35,6 +33,7 @@ namespace HBP.UI.Main
         {
             OpenModifier(new Core.Data.SubBloc(m_Type));
         }
+
         #endregion
     }
 }

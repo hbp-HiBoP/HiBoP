@@ -27,6 +27,7 @@ namespace HBP.Core.Data
 
         public int Offset { get; }
         public int Count { get; }
+
         public float this[int index]
         {
             get
@@ -84,13 +85,7 @@ namespace HBP.Core.Data
         public int SubTrialIndex { get; }
         public Dictionary<Event, EventInformation> InformationsByEvent { get; }
 
-        public EpochDescriptor(
-            EpochRange window,
-            EpochRange baseline,
-            int mainEventIndex,
-            int trialIndex,
-            int subTrialIndex,
-            Dictionary<Event, EventInformation> informationsByEvent)
+        public EpochDescriptor(EpochRange window, EpochRange baseline, int mainEventIndex, int trialIndex, int subTrialIndex, Dictionary<Event, EventInformation> informationsByEvent)
         {
             Window = window;
             Baseline = baseline;
@@ -117,6 +112,7 @@ namespace HBP.Core.Data
                 m_ChannelLayoutSource = sourceByChannel;
                 m_ChannelLayout = new EpochChannelLayout(sourceByChannel.Keys);
             }
+
             return m_ChannelLayout;
         }
 
@@ -129,6 +125,7 @@ namespace HBP.Core.Data
                 treatments = subBloc.Treatments.OrderBy(treatment => treatment.Order).ToArray();
                 m_TreatmentsBySubBloc.Add(subBloc, treatments);
             }
+
             return treatments;
         }
 

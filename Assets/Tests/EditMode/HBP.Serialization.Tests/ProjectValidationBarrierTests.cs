@@ -22,17 +22,13 @@ namespace HBP.Tests.Serialization
             Project project = SyntheticProjectFactory.CreateMinimalProject();
 
             await project.EnsureProjectValidatedAsync(NoProgress);
-            SharedLoadingOperation<Project> firstOperation =
-                project.CurrentLoadingOperation;
+            SharedLoadingOperation<Project> firstOperation = project.CurrentLoadingOperation;
 
             Assert.That(project.NeedsValidationWait, Is.False);
             project.SetDatasets(Array.Empty<Dataset>());
-            SharedLoadingOperation<Project> secondOperation =
-                project.CurrentLoadingOperation;
+            SharedLoadingOperation<Project> secondOperation = project.CurrentLoadingOperation;
             Assert.That(secondOperation, Is.Not.Null);
-            Assert.That(
-                secondOperation.Generation,
-                Is.GreaterThan(firstOperation.Generation));
+            Assert.That(secondOperation.Generation, Is.GreaterThan(firstOperation.Generation));
 
             await secondOperation.Validated;
             Assert.That(project.NeedsValidationWait, Is.False);
@@ -50,27 +46,20 @@ namespace HBP.Tests.Serialization
             ApplicationState.LoadedProject = project;
             ApplicationState.LoadedProjectLocation = saveDirectory;
 
-            Task save = project.SaveAsync(
-                saveDirectory,
-                NoProgress,
-                CancellationToken.None).AsTask();
+            Task save = project.SaveAsync(saveDirectory, NoProgress, CancellationToken.None).AsTask();
             await project.ValidationStarted.Task;
 
-            Assert.That(
-                File.Exists(Path.Combine(saveDirectory, project.FileName)),
-                Is.False);
+            Assert.That(File.Exists(Path.Combine(saveDirectory, project.FileName)), Is.False);
 
             project.ReleaseValidation.SetResult(true);
             await save;
 
             Assert.That(project.ValidationCalls, Is.EqualTo(1));
-            Assert.That(
-                File.Exists(Path.Combine(saveDirectory, project.FileName)),
-                Is.True);
+            Assert.That(File.Exists(Path.Combine(saveDirectory, project.FileName)), Is.True);
         }
 
         [Test]
-        public async Task Module3DLoadAsync_UsesTheCentralProjectBarrier()
+        public async Task Module3DLoadAsync_WithNoVisualizations_DoesNotValidateProject()
         {
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope applicationState = new(temp.Path);
@@ -78,43 +67,36 @@ namespace HBP.Tests.Serialization
             ValidationGateProject project = new();
             ApplicationState.LoadedProject = project;
 
-            Task load = Module3DMain.LoadAsync(
-                Array.Empty<Visualization>(),
-                NoProgress,
-                CancellationToken.None).AsTask();
-            await project.ValidationStarted.Task;
-
-            Assert.That(load.IsCompleted, Is.False);
-            project.ReleaseValidation.SetResult(true);
+            Task load = Module3DMain.LoadAsync(Array.Empty<Visualization>(), NoProgress, CancellationToken.None).AsTask();
             await load;
 
-            Assert.That(project.ValidationCalls, Is.EqualTo(1));
+            Assert.That(project.ValidationCalls, Is.Zero);
         }
 
-        private static readonly Action<float, float, LoadingText> NoProgress =
-            (_, _, _) => { };
+        private static readonly Action<float, float, LoadingText> NoProgress = (_, _, _) => { };
 
         private sealed class ValidationGateProject : Project
         {
-            public TaskCompletionSource<bool> ValidationStarted { get; } =
-                new(TaskCreationOptions.RunContinuationsAsynchronously);
-            public TaskCompletionSource<bool> ReleaseValidation { get; } =
-                new(TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource<bool> ValidationStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource<bool> ReleaseValidation { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
             public int ValidationCalls { get; private set; }
 
-            public ValidationGateProject()
-                : base("validation-gate", new ProjectPreferences("test-version"))
+            public ValidationGateProject() : base("validation-gate", new ProjectPreferences("test-version"))
             {
             }
 
-            public override async UniTask EnsureProjectValidatedAsync(
-                Action<float, float, LoadingText> updateProgress,
-                CancellationToken token = default)
+            public override async UniTask EnsureProjectValidatedAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
             {
                 ValidationCalls++;
                 ValidationStarted.TrySetResult(true);
                 await ReleaseValidation.Task;
                 token.ThrowIfCancellationRequested();
+            }
+
+            public override UniTask EnsureProjectValidatedForImmediateLoadAsync(ValidationRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
+            {
+                ValidationCalls++;
+                return UniTask.CompletedTask;
             }
         }
     }

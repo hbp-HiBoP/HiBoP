@@ -9,13 +9,28 @@ using UnityEngine.UI;
 
 namespace HBP.UI.Main
 {
-	/// <summary>
-	/// List to display patients.
-	/// </summary>
-	public class PatientList : ActionableList<Patient>
-	{
+    /// <summary>
+    /// List to display patients.
+    /// </summary>
+    public class PatientList : ActionableList<Patient>
+    {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Mesh, DescendingMesh, MRI, DescendingMRI, Site, DescendingSite, Tag, DescendingTag }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Mesh,
+            DescendingMesh,
+            MRI,
+            DescendingMRI,
+            Site,
+            DescendingSite,
+            Tag,
+            DescendingTag
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] Button m_ResetFiltersButton;
@@ -26,9 +41,11 @@ namespace HBP.UI.Main
         [SerializeField] SortingDisplayer m_MRISortingDisplayer;
         [SerializeField] SortingDisplayer m_SiteSortingDisplayer;
         [SerializeField] SortingDisplayer m_TagSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add patient to the list.
         /// </summary>
@@ -63,20 +80,23 @@ namespace HBP.UI.Main
             if (parentWindow)
                 parentWindow.WindowsReferencer.Add(filterWindow);
         }
+
         public void ResetFilters()
         {
             MaskList(Enumerable.Repeat(true, m_Objects.Count).ToArray(), !m_ShowFilteredObjectsToggle.isOn);
             SortByNone();
         }
+
         public override bool MaskList(bool[] mask, bool hide = true)
         {
             bool hasFilteredObjects = mask.Any(m => !m);
             m_ResetFiltersButton.interactable = hasFilteredObjects;
             m_ShowFilteredObjectsToggle.interactable = hasFilteredObjects;
             if (hasFilteredObjects) m_ShowFilteredObjectsToggle.isOn = !hide;
-            
+
             return base.MaskList(mask, hide);
         }
+
         public void OnShowFilteredObjectsToggleChanged(bool showFiltered)
         {
             HideMaskedObjects = !showFiltered;
@@ -101,12 +121,14 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -138,12 +160,14 @@ namespace HBP.UI.Main
                     m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by mesh.
         /// </summary>
@@ -177,12 +201,14 @@ namespace HBP.UI.Main
                 default:
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by MRI.
         /// </summary>
@@ -214,12 +240,14 @@ namespace HBP.UI.Main
                     m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by site.
         /// </summary>
@@ -251,12 +279,14 @@ namespace HBP.UI.Main
                     m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MeshSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_MRISortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SiteSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by tag.
         /// </summary>
@@ -281,13 +311,16 @@ namespace HBP.UI.Main
             m_TagSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override IEnumerable<Patient> DefaultSorting(IEnumerable<Patient> objects)
         {
             return objects.OrderBy(p => p.Name);
         }
+
         #endregion
     }
 }

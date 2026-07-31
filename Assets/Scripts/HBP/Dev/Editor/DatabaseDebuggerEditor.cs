@@ -56,6 +56,7 @@ namespace HBP.Dev
                     DrawFoldoutRecursive(data.ID, foldoutID + data.ID, data);
                 }
             }
+
             EditorGUI.indentLevel--;
         }
 
@@ -89,6 +90,7 @@ namespace HBP.Dev
                     EditorGUILayout.LabelField(property.Name, fieldValue?.ToString() ?? "null");
                 }
             }
+
             EditorGUI.indentLevel--;
         }
     }

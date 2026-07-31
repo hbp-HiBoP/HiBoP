@@ -39,15 +39,12 @@ namespace HBP.Tests.Serialization
                     {
                         float[] position = new float[3];
                         site_pos_PatientElectrodesList(list, 0, electrodeIndex, siteIndex, position);
-                        sites.Add(new LegacySite(
-                            Marshal.PtrToStringAnsi(site_name_PatientElectrodesList(list, 0, electrodeIndex, siteIndex)) ?? string.Empty,
-                            new Vector3(position[0], position[1], position[2])));
+                        sites.Add(new LegacySite(Marshal.PtrToStringAnsi(site_name_PatientElectrodesList(list, 0, electrodeIndex, siteIndex)) ?? string.Empty, new Vector3(position[0], position[1], position[2])));
                     }
 
-                    electrodes.Add(new LegacyElectrode(
-                        Marshal.PtrToStringAnsi(electrode_name_PatientElectrodesList(list, 0, electrodeIndex)) ?? string.Empty,
-                        sites));
+                    electrodes.Add(new LegacyElectrode(Marshal.PtrToStringAnsi(electrode_name_PatientElectrodesList(list, 0, electrodeIndex)) ?? string.Empty, sites));
                 }
+
                 return electrodes;
             }
             finally

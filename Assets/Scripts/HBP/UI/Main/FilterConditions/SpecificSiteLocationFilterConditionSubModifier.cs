@@ -13,6 +13,7 @@ namespace HBP.UI.Main
     public class SpecificSiteLocationFilterConditionSubModifier : SubModifier<SpecificSiteLocationFilterCondition>
     {
         #region Properties
+
         [SerializeField] Dropdown m_LocationTypeDropdown;
         [SerializeField] GameObject m_MeshPart;
         [SerializeField] Dropdown m_MeshPartDropdown;
@@ -25,17 +26,17 @@ namespace HBP.UI.Main
         private bool m_UpdatingAtlasAreaDropdown = false;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
-            set
-            {
-                m_FilteringObjects = value;
-            }
+            set { m_FilteringObjects = value; }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -45,9 +46,11 @@ namespace HBP.UI.Main
             m_AtlasTypeDropdown.onValueChanged.AddListener(OnChangeAtlasType);
             m_AtlasAreaDropdown.onValueChanged.AddListener(OnChangeAtlasArea);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(SpecificSiteLocationFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -59,20 +62,24 @@ namespace HBP.UI.Main
             UpdateAtlasAreaDropdown(objectToDisplay.AtlasType, objectToDisplay.AtlasArea);
             UpdateFieldVisibility(objectToDisplay.LocationType);
         }
+
         private void OnChangeLocationType(int value)
         {
             Object.LocationType = (SpecificSiteLocationFilterCondition.SpecificLocationType)value;
             UpdateFieldVisibility(Object.LocationType);
         }
+
         private void OnChangeMeshPart(int value)
         {
             Object.MeshPart = (MeshPart)value;
         }
+
         private void OnChangeAtlasType(int value)
         {
             Object.AtlasType = (SpecificSiteLocationFilterCondition.Atlas)value;
             UpdateAtlasAreaDropdown(Object.AtlasType, Object.AtlasArea);
         }
+
         private void OnChangeAtlasArea(int value)
         {
             if (value >= 0 && value < m_CurrentAtlasAreas.Count && !m_UpdatingAtlasAreaDropdown)
@@ -80,6 +87,7 @@ namespace HBP.UI.Main
                 Object.AtlasArea = m_CurrentAtlasAreas[value];
             }
         }
+
         private void UpdateFieldVisibility(SpecificSiteLocationFilterCondition.SpecificLocationType type)
         {
             m_MeshPart.SetActive(type == SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh);
@@ -87,6 +95,7 @@ namespace HBP.UI.Main
             m_AtlasType.SetActive(isAtlas);
             m_AtlasArea.SetActive(isAtlas);
         }
+
         private void UpdateAtlasAreaDropdown(SpecificSiteLocationFilterCondition.Atlas atlasType, string selectedArea)
         {
             BrainAtlas atlas = null;
@@ -125,6 +134,7 @@ namespace HBP.UI.Main
 
             m_UpdatingAtlasAreaDropdown = false;
         }
+
         #endregion
     }
 }

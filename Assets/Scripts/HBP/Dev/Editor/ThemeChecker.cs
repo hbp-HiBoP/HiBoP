@@ -14,11 +14,13 @@ namespace HBP.Dev
         {
             CheckTheme(GetAllGraphicsAndSelectables());
         }
+
         [MenuItem("Tools/Check Theme/Scene")]
         public static void CheckThemeScene()
         {
             CheckTheme(GetSceneGraphicsAndSelectables());
         }
+
         public static List<MonoBehaviour> GetAllGraphicsAndSelectables()
         {
             List<MonoBehaviour> elements = new();
@@ -26,6 +28,7 @@ namespace HBP.Dev
             elements.AddRange(Resources.FindObjectsOfTypeAll<UnityEngine.UI.Selectable>());
             return elements;
         }
+
         public static List<MonoBehaviour> GetSceneGraphicsAndSelectables()
         {
             List<MonoBehaviour> elements = new();
@@ -43,6 +46,7 @@ namespace HBP.Dev
 
                 elements.Add(graphic);
             }
+
             foreach (UnityEngine.UI.Selectable selectable in Resources.FindObjectsOfTypeAll(typeof(UnityEngine.UI.Selectable)) as UnityEngine.UI.Selectable[])
             {
                 if (PrefabUtility.IsPartOfPrefabAsset(selectable.gameObject))
@@ -64,6 +68,7 @@ namespace HBP.Dev
                     fullNames.Add(element.transform.GetFullName());
                 }
             }
+
             fullNames.Sort();
             foreach (var name in fullNames)
             {

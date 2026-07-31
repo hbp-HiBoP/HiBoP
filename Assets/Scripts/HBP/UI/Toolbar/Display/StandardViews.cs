@@ -8,20 +8,25 @@ namespace HBP.UI.Toolbar
     public class StandardViews : Tool
     {
         #region Properties
+
         /// <summary>
         /// Button to set up the standard views
         /// </summary>
         [SerializeField] private Button m_Button;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when the button has been clicked
         /// </summary>
         public UnityEvent OnClick = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -30,15 +35,17 @@ namespace HBP.UI.Toolbar
             m_Button.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-                
+
                 while (SelectedScene.ViewLineNumber > 3)
                 {
                     SelectedScene.RemoveViewLine();
                 }
+
                 while (SelectedScene.ViewLineNumber < 3)
                 {
                     SelectedScene.AddViewLine();
                 }
+
                 foreach (Column3D column in SelectedScene.Columns)
                 {
                     foreach (View3D view in column.Views)
@@ -46,9 +53,11 @@ namespace HBP.UI.Toolbar
                         view.Default();
                     }
                 }
+
                 OnClick.Invoke();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -56,6 +65,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -63,6 +73,7 @@ namespace HBP.UI.Toolbar
         {
             m_Button.interactable = true;
         }
+
         #endregion
     }
 }

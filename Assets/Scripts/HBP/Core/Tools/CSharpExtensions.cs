@@ -21,10 +21,12 @@ namespace HBP.Core.Tools
             {
                 stringBuilder.Append(item.ToString() + ",");
             }
+
             stringBuilder.Remove(stringBuilder.Length - 1, 1);
             stringBuilder.Append(")");
             return stringBuilder.ToString();
         }
+
         public static IEnumerable<T> DeepClone<T>(this IEnumerable<T> IEnumerable, bool forceEnumeration = false) where T : ICloneable
         {
             if (forceEnumeration)
@@ -47,6 +49,7 @@ namespace HBP.Core.Tools
                 list.Add(item);
                 return true;
             }
+
             return false;
         }
     }
@@ -60,6 +63,7 @@ namespace HBP.Core.Tools
                 dictionary.Add(key, value);
                 return true;
             }
+
             return false;
         }
     }
@@ -76,6 +80,7 @@ namespace HBP.Core.Tools
             for (var i = 0; i < s.Length; i += partLength)
                 yield return s.Substring(i, Math.Min(partLength, s.Length - i));
         }
+
         public static string StandardizeToPath(this string path)
         {
             path = new Regex("/+").Replace(path, "/");
@@ -85,6 +90,7 @@ namespace HBP.Core.Tools
             if (path.StartsWith("\\")) path = "\\" + path;
             return path;
         }
+
         public static string SplitPascalCase(this string pascalCase)
         {
             Regex r = new("([A-Z]+[a-z]+)");
@@ -92,15 +98,17 @@ namespace HBP.Core.Tools
             result = char.ToUpper(result[0]) + result.Substring(1);
             return result;
         }
+
         public static string CamelCaseToWords(this string camelCase)
         {
             return Regex.Replace(camelCase, @"\B[A-Z][a-z]", m => " " + m.ToString().ToLower());
         }
+
         public static string ToTooltip(this IEnumerable<string> values, int max)
         {
             string[] array = values.ToArray();
             StringBuilder stringBuilder = new();
-            if(array.Length > 0)
+            if (array.Length > 0)
             {
                 if (array.Length > max)
                 {
@@ -108,6 +116,7 @@ namespace HBP.Core.Tools
                     {
                         stringBuilder.AppendLine(string.Format("  • {0}", array[i]));
                     }
+
                     stringBuilder.AppendLine("  • [...]");
                     stringBuilder.Append(string.Format("  • {0}", array.Last()));
                 }
@@ -117,6 +126,7 @@ namespace HBP.Core.Tools
                     {
                         stringBuilder.AppendLine(string.Format("  • {0}", array[i]));
                     }
+
                     stringBuilder.Append(string.Format("  • {0}", array[array.Length - 1]));
                 }
             }
@@ -124,8 +134,10 @@ namespace HBP.Core.Tools
             {
                 stringBuilder.Append("  • None");
             }
+
             return stringBuilder.ToString();
         }
+
         public static string GenerateUniqueFilePath(this string path)
         {
             string result = path;
@@ -137,8 +149,10 @@ namespace HBP.Core.Tools
                 string temp = string.Format("{0}({1})", pathWithoutExtension, ++count);
                 result = temp + extension;
             }
+
             return result;
         }
+
         public static string GenerateUniqueDirectoryPath(this string path)
         {
             string result = path;
@@ -148,19 +162,23 @@ namespace HBP.Core.Tools
             {
                 result = string.Format("{0}({1})", fullPath, ++count);
             }
+
             return result;
         }
+
         public static bool IsBIDS(this string path)
         {
             FileInfo participantsFileInfo = new(Path.Combine(path, "participants.tsv"));
             return participantsFileInfo.Exists;
         }
+
         public static string DeblankCompletely(this string value)
         {
             string deblanked = value.Replace('\t', ' ').Replace('\n', ' ').Replace('\r', ' ');
             deblanked = Regex.Replace(deblanked, @"\s+", " ").Trim();
             return deblanked;
         }
+
         public static string ToSnakeCase(this string input)
         {
             if (string.IsNullOrEmpty(input))
@@ -251,18 +269,22 @@ namespace HBP.Core.Tools
         {
             return (x != 0) && ((x & (x - 1)) == 0);
         }
+
         public static bool AreMultiples(this List<int> numbers)
         {
             return numbers.Contains(numbers.GCD());
         }
+
         public static int GCD(this List<int> numbers)
         {
             return numbers.Aggregate(GCD);
         }
+
         public static int GCD(int a, int b)
         {
             return b == 0 ? a : GCD(b, a % b);
         }
+
         public static bool TryParseFloat(string text, out float result)
         {
             System.Globalization.CultureInfo[] cultures = new System.Globalization.CultureInfo[]
@@ -286,9 +308,11 @@ namespace HBP.Core.Tools
                     continue;
                 }
             }
+
             result = 0;
             return false;
         }
+
         public static float ParseFloat(string text)
         {
             if (TryParseFloat(text, out float result))
@@ -310,6 +334,7 @@ namespace HBP.Core.Tools
             foreach (FileInfo file in source.GetFiles())
                 file.CopyTo(Path.Combine(target.FullName, file.Name), true);
         }
+
         public static string CopyToDirectory(this string path, DirectoryInfo targetDirectory, bool overwrite = false)
         {
             if (string.IsNullOrEmpty(path)) return "";
@@ -334,6 +359,7 @@ namespace HBP.Core.Tools
             foreach (var task in tasks)
                 await task;
         }
+
         public static async UniTask<IEnumerable<T>> WhenAllSequenced<T>(IEnumerable<UniTask<T>> tasks)
         {
             T[] results = new T[tasks.Count()];
@@ -342,6 +368,7 @@ namespace HBP.Core.Tools
                 results[i++] = await task;
             return results;
         }
+
         public static async UniTask PerformMultipleTasksAsync(IEnumerable<Func<UniTask>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel, CancellationToken token = default)
         {
             var taskList = tasks.ToList();
@@ -354,6 +381,7 @@ namespace HBP.Core.Tools
                 {
                     var tasksToExecute = taskList.Select(async task =>
                     {
+                        token.ThrowIfCancellationRequested();
                         await task();
                         lock (updateProgress)
                         {
@@ -368,10 +396,10 @@ namespace HBP.Core.Tools
                     using var semaphore = new SemaphoreSlim(maxConcurrency);
                     var tasksToExecute = taskList.Select(async task =>
                     {
-                        await semaphore.WaitAsync();
+                        await semaphore.WaitAsync(token);
                         try
                         {
-                            if (token.IsCancellationRequested) return;
+                            token.ThrowIfCancellationRequested();
                             await task();
                             lock (updateProgress)
                             {
@@ -392,13 +420,14 @@ namespace HBP.Core.Tools
             {
                 foreach (var task in taskList)
                 {
-                    if (token.IsCancellationRequested) break;
+                    token.ThrowIfCancellationRequested();
                     await task();
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                 }
             }
         }
+
         public static async UniTask<IEnumerable<T>> PerformMultipleTasksAsync<T>(IEnumerable<Func<UniTask<T>>> tasks, float startProgress, float endProgress, string loadingText, Action<float, float, LoadingText> updateProgress, int maxConcurrency, bool parallel, CancellationToken token = default)
         {
             var taskList = tasks.ToList();
@@ -411,12 +440,14 @@ namespace HBP.Core.Tools
                 {
                     var tasksToExecute = taskList.Select(async task =>
                     {
+                        token.ThrowIfCancellationRequested();
                         T data = await task();
                         lock (updateProgress)
                         {
                             count++;
                             updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                         }
+
                         return data;
                     });
                     var result = await UniTask.WhenAll(tasksToExecute);
@@ -425,22 +456,18 @@ namespace HBP.Core.Tools
                 else
                 {
                     using var semaphore = new SemaphoreSlim(maxConcurrency);
-                    var results = new List<T>();
-                    var tasksToExecute = taskList.Select(async task =>
+                    T[] results = new T[taskList.Count];
+                    var tasksToExecute = taskList.Select(async (task, index) =>
                     {
-                        await semaphore.WaitAsync();
+                        await semaphore.WaitAsync(token);
                         try
                         {
-                            if (token.IsCancellationRequested) return;
-                            T data = await task();
+                            token.ThrowIfCancellationRequested();
+                            results[index] = await task();
                             lock (updateProgress)
                             {
                                 count++;
                                 updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
-                            }
-                            lock (results)
-                            {
-                                results.Add(data);
                             }
                         }
                         finally
@@ -458,11 +485,12 @@ namespace HBP.Core.Tools
                 List<T> result = new();
                 foreach (var task in taskList)
                 {
-                    if (token.IsCancellationRequested) break;
+                    token.ThrowIfCancellationRequested();
                     result.Add(await task());
                     count++;
                     updateProgress.Invoke(startProgress + (float)count / length * (endProgress - startProgress), 0.2f, new LoadingText(loadingText, " ", count + "/" + length));
                 }
+
                 return result;
             }
         }

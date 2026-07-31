@@ -15,8 +15,7 @@ namespace HBP.Core.Data
         public Rect UvRect { get; }
         public Color32[] Pixels { get; }
 
-        internal TrialMatrixTile(int coreX, int coreY, int coreWidth, int coreHeight,
-            int textureWidth, int textureHeight, Rect uvRect, Color32[] pixels)
+        internal TrialMatrixTile(int coreX, int coreY, int coreWidth, int coreHeight, int textureWidth, int textureHeight, Rect uvRect, Color32[] pixels)
         {
             CoreX = coreX;
             CoreY = coreY;
@@ -45,8 +44,7 @@ namespace HBP.Core.Data
 
     public static class TrialMatrixTileBuilder
     {
-        public static TrialMatrixTiles Build(float[][] trials, Vector2 limits, Color32[] colors,
-            bool smooth, int smoothingFactor, bool smooth2D, int maxTextureSize)
+        public static TrialMatrixTiles Build(float[][] trials, Vector2 limits, Color32[] colors, bool smooth, int smoothingFactor, bool smooth2D, int maxTextureSize)
         {
             Validate(trials, colors, maxTextureSize);
             if (trials.Length == 0)
@@ -82,24 +80,17 @@ namespace HBP.Core.Data
 
                     int textureStartX = coreX - leftHalo;
                     int textureStartY = coreY - bottomHalo;
-                    FillPixels(trials, limits, colors, factor, smooth && smooth2D,
-                        outputHeight, textureStartX, textureStartY, textureWidth, textureHeight, pixels);
+                    FillPixels(trials, limits, colors, factor, smooth && smooth2D, outputHeight, textureStartX, textureStartY, textureWidth, textureHeight, pixels);
 
-                    Rect uvRect = new(
-                        (float)leftHalo / textureWidth,
-                        (float)bottomHalo / textureHeight,
-                        (float)coreWidth / textureWidth,
-                        (float)coreHeight / textureHeight);
-                    tiles.Add(new TrialMatrixTile(coreX, coreY, coreWidth, coreHeight,
-                        textureWidth, textureHeight, uvRect, pixels));
+                    Rect uvRect = new((float)leftHalo / textureWidth, (float)bottomHalo / textureHeight, (float)coreWidth / textureWidth, (float)coreHeight / textureHeight);
+                    tiles.Add(new TrialMatrixTile(coreX, coreY, coreWidth, coreHeight, textureWidth, textureHeight, uvRect, pixels));
                 }
             }
+
             return new TrialMatrixTiles(outputWidth, outputHeight, tiles);
         }
 
-        private static void FillPixels(float[][] trials, Vector2 limits, Color32[] colors,
-            int factor, bool smoothTrials, int outputHeight, int startX, int startY,
-            int width, int height, Color32[] pixels)
+        private static void FillPixels(float[][] trials, Vector2 limits, Color32[] colors, int factor, bool smoothTrials, int outputHeight, int startX, int startY, int width, int height, Color32[] pixels)
         {
             for (int y = 0; y < height; y++)
             {

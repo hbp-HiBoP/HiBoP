@@ -13,16 +13,31 @@ namespace HBP.UI.Main
     public class BlocList : ActionableList<Core.Data.Bloc>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Order, DescendingOrder , SubBlocs, DescendingSubBlocs, Image, DescendingImage }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Order,
+            DescendingOrder,
+            SubBlocs,
+            DescendingSubBlocs,
+            Image,
+            DescendingImage
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_OrderSortingDisplayer;
         [SerializeField] SortingDisplayer m_SubBlocsSortingDisplayer;
         [SerializeField] SortingDisplayer m_ImageSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -42,11 +57,13 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -78,11 +95,13 @@ namespace HBP.UI.Main
                     m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by position.
         /// </summary>
@@ -114,11 +133,13 @@ namespace HBP.UI.Main
                     m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by sub-blocs.
         /// </summary>
@@ -150,11 +171,13 @@ namespace HBP.UI.Main
                     m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by image.
         /// </summary>
@@ -179,13 +202,16 @@ namespace HBP.UI.Main
             m_SubBlocsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ImageSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override IEnumerable<Bloc> DefaultSorting(IEnumerable<Bloc> objects)
         {
             return objects.OrderBy(b => b.Order);
         }
+
         #endregion
     }
 }

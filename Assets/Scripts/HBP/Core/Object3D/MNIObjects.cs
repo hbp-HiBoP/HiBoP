@@ -11,18 +11,22 @@ namespace HBP.Core.Object3D
     public class MNIObjects
     {
         #region Properties
+
         /// <summary>
         /// Mesh of the Grey Matter
         /// </summary>
         public LeftRightMesh3D GreyMatter { get; private set; }
+
         /// <summary>
         /// Mesh of the White Matter
         /// </summary>
         public LeftRightMesh3D WhiteMatter { get; private set; }
+
         /// <summary>
         /// Mesh of the Inflated White Matter
         /// </summary>
         public LeftRightMesh3D InflatedWhiteMatter { get; private set; }
+
         /// <summary>
         /// MRI of the MNI
         /// </summary>
@@ -32,9 +36,11 @@ namespace HBP.Core.Object3D
         /// Are the MNI objects completely loaded ?
         /// </summary>
         public bool IsLoaded { get; private set; }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Load the MNI objects
         /// </summary>
@@ -50,8 +56,10 @@ namespace HBP.Core.Object3D
             DLL.Surface leftHemi = new();
             DLL.Surface rightHemi = new();
             DLL.Surface bothHemi;
-            leftHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm")); leftHemi.FlipTriangles();
-            rightHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm")); rightHemi.FlipTriangles();
+            leftHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
+            leftHemi.FlipTriangles();
+            rightHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
+            rightHemi.FlipTriangles();
             bothHemi = (DLL.Surface)leftHemi.Clone();
             bothHemi.Append(rightHemi);
             leftHemi.ComputeNormals();
@@ -62,8 +70,10 @@ namespace HBP.Core.Object3D
             DLL.Surface leftWhite = new();
             DLL.Surface rightWhite = new();
             DLL.Surface bothWhite;
-            leftWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm")); leftWhite.FlipTriangles();
-            rightWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm")); rightWhite.FlipTriangles();
+            leftWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
+            leftWhite.FlipTriangles();
+            rightWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
+            rightWhite.FlipTriangles();
             bothWhite = (DLL.Surface)leftWhite.Clone();
             bothWhite.Append(rightWhite);
             leftWhite.ComputeNormals();
@@ -74,8 +84,10 @@ namespace HBP.Core.Object3D
             DLL.Surface leftWhiteInflated = new();
             DLL.Surface rightWhiteInflated = new();
             DLL.Surface bothWhiteInflated;
-            leftWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm")); leftWhiteInflated.FlipTriangles();
-            rightWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm")); rightWhiteInflated.FlipTriangles();
+            leftWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
+            leftWhiteInflated.FlipTriangles();
+            rightWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
+            rightWhiteInflated.FlipTriangles();
             bothWhiteInflated = (DLL.Surface)leftWhiteInflated.Clone();
             bothWhiteInflated.Append(rightWhiteInflated);
             leftWhiteInflated.ComputeNormals();
@@ -83,15 +95,18 @@ namespace HBP.Core.Object3D
             bothWhiteInflated.ComputeNormals();
             InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", leftWhiteInflated, rightWhiteInflated, bothWhiteInflated, MeshType.MNI);
         }
+
         #endregion
 
         #region Public Methods
+
         public async UniTaskVoid Load()
         {
             string baseIRMDir = Path.Combine(ApplicationState.DataPath, "IRM"), baseMeshDir = Path.Combine(ApplicationState.DataPath, "Meshes");
             await LoadDataAsync(baseIRMDir, baseMeshDir);
             IsLoaded = true;
         }
+
         public void Clean()
         {
             GreyMatter?.Clean();
@@ -99,6 +114,7 @@ namespace HBP.Core.Object3D
             InflatedWhiteMatter?.Clean();
             MRI?.Clean();
         }
+
         #endregion
     }
 }

@@ -18,12 +18,14 @@ namespace HBP.UI.Tools
             m_ItemsList.Clear();
             return list;
         }
+
         protected override DropdownItem CreateItem(DropdownItem itemTemplate)
         {
             DropdownItem item = base.CreateItem(itemTemplate);
             m_ItemsList.Add(item);
             return item;
         }
+
         private void Update()
         {
             if (m_ListRectTransform)
@@ -32,6 +34,7 @@ namespace HBP.UI.Tools
                 {
                     m_Width = Mathf.Max(item.text.preferredWidth, m_Width);
                 }
+
                 m_ListRectTransform.sizeDelta = new Vector2(m_Width, m_ListRectTransform.sizeDelta.y);
                 m_ListRectTransform = null;
             }

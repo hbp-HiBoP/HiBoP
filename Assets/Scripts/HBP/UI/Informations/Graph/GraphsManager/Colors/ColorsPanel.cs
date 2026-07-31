@@ -8,6 +8,7 @@ namespace HBP.UI.Informations
     public class ColorsPanel : MonoBehaviour
     {
         #region Properties
+
         public async void OpenUserPreferences()
         {
             var window = WindowsManager.OpenModifier(PersistentDataManager.UserPreferences, null);
@@ -16,6 +17,7 @@ namespace HBP.UI.Informations
             await UniTask.WaitForEndOfFrame();
             navigator.Navigate("Visualization_Graph");
         }
+
         #endregion
     }
 }

@@ -11,16 +11,28 @@ namespace HBP.UI.Main
     public class SubBlocList : ActionableList<Core.Data.SubBloc>
     {
         #region Properties
-        enum OrderBy { None,
-            Name, DescendingName,
-            Order, DescendingOrder,
-            Events, DescendingEvents,
-            Icons, DescendingIcons,
-            Treatments, DescendingTreatments,
-            StartWindow, DescendingStartWindow,
-            EndWindow, DescendingEndWindow,
-            Type, DescendingType
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Order,
+            DescendingOrder,
+            Events,
+            DescendingEvents,
+            Icons,
+            DescendingIcons,
+            Treatments,
+            DescendingTreatments,
+            StartWindow,
+            DescendingStartWindow,
+            EndWindow,
+            DescendingEndWindow,
+            Type,
+            DescendingType
         }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
@@ -33,9 +45,11 @@ namespace HBP.UI.Main
         [SerializeField] SortingDisplayer m_IconsSortingDisplayer;
         [SerializeField] SortingDisplayer m_TreatmentsSortingDisplayer;
         [SerializeField] SortingDisplayer m_TypeSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -55,6 +69,7 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -64,6 +79,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -95,6 +111,7 @@ namespace HBP.UI.Main
                     m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -104,6 +121,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by position.
         /// </summary>
@@ -135,6 +153,7 @@ namespace HBP.UI.Main
                     m_StartWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -144,6 +163,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by image.
         /// </summary>
@@ -175,6 +195,7 @@ namespace HBP.UI.Main
                     m_EndWindowSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -184,6 +205,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by end window.
         /// </summary>
@@ -215,6 +237,7 @@ namespace HBP.UI.Main
                     m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -224,6 +247,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by events.
         /// </summary>
@@ -255,6 +279,7 @@ namespace HBP.UI.Main
                     m_IconsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -264,6 +289,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by icons.
         /// </summary>
@@ -295,6 +321,7 @@ namespace HBP.UI.Main
                     m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -304,6 +331,7 @@ namespace HBP.UI.Main
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by treatments.
         /// </summary>
@@ -335,6 +363,7 @@ namespace HBP.UI.Main
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
@@ -344,6 +373,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_EventsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by type.
         /// </summary>
@@ -372,6 +402,7 @@ namespace HBP.UI.Main
             m_TreatmentsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

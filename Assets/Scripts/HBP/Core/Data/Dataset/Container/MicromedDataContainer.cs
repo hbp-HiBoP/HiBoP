@@ -35,12 +35,14 @@ namespace HBP.Core.Data.Container
     public class Micromed : DataContainer
     {
         #region Properties
+
         public const string MICROMED_EXTENSION = ".trc";
 
         /// <summary>
         /// Path to the EEG file with Alias.
         /// </summary>
         [JsonProperty("TRC")] public string SavedPath { get; protected set; } = "";
+
         /// <summary>
         /// Path of the EEG file without Alias.
         /// </summary>
@@ -49,9 +51,11 @@ namespace HBP.Core.Data.Container
             get { return SavedPath?.ConvertToFullPath(); }
             set { SavedPath = value?.ConvertToShortPath(); }
         }
+
         #endregion
 
         #region Public Methods
+
         public override Error[] GetErrors()
         {
             List<Error> errors = new();
@@ -74,26 +78,32 @@ namespace HBP.Core.Data.Container
                     }
                 }
             }
+
             m_Errors = errors.ToArray();
             return m_Errors;
         }
+
         public override Warning[] GetWarnings()
         {
             List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }
+
         public override void CopyDataToDirectory(DirectoryInfo dataInfoDirectory, string projectDirectory, string oldProjectDirectory)
         {
             SavedPath = Path.CopyToDirectory(dataInfoDirectory).Replace(projectDirectory, oldProjectDirectory);
         }
+
         public override void ConvertAllPathsToFullPaths()
         {
             SavedPath = SavedPath.ConvertToFullPath();
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// 
         /// </summary>
@@ -103,6 +113,7 @@ namespace HBP.Core.Data.Container
         {
             Path = trc;
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -111,15 +122,18 @@ namespace HBP.Core.Data.Container
         {
             Path = trc;
         }
+
         /// <summary>
         /// 
         /// </summary>
         public Micromed() : base()
         {
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -128,6 +142,7 @@ namespace HBP.Core.Data.Container
         {
             return new Micromed(Path, Errors, Warnings, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -136,14 +151,17 @@ namespace HBP.Core.Data.Container
                 Path = micromed.Path;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
             SavedPath = SavedPath.StandardizeToEnvironement();
         }
+
         #endregion
     }
 }

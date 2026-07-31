@@ -127,6 +127,7 @@ namespace HBP.Core.DLL
                 using Transformation3 transform = Transformation3.FromFile(transformation);
                 ThrowIfFailed(hbp_surface_transform(_handle.Handle, transform.getHandle().Handle));
             }
+
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + gii + " " + transformation);
             return IsLoaded;
         }
@@ -139,6 +140,7 @@ namespace HBP.Core.DLL
                 using Transformation3 transform = Transformation3.FromFile(transformation);
                 ThrowIfFailed(hbp_surface_transform(_handle.Handle, transform.getHandle().Handle));
             }
+
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + tri + " " + transformation);
             return IsLoaded;
         }
@@ -174,6 +176,7 @@ namespace HBP.Core.DLL
             {
                 throw new ArgumentException($"Visibility mask length must match the surface triangle count ({triangleCount}).", nameof(visibilityMask));
             }
+
             ThrowIfFailed(hbp_surface_update_visibility_mask(_handle.Handle, visibilityMask, visibilityMask.Length, out IntPtr invisibleSurface));
             return new Surface(invisibleSurface);
         }
@@ -194,6 +197,7 @@ namespace HBP.Core.DLL
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0.");
                 return new Surface[1];
             }
+
             IntPtr[] planes = ToPlaneHandles(cutPlanes);
             ThrowIfFailed(hbp_surface_cut(_handle.Handle, planes, planes.Length, noHoles ? 1 : 0, strongCuts ? 1 : 0, out IntPtr surfaces));
             using SurfaceList result = new(surfaces);
@@ -208,6 +212,7 @@ namespace HBP.Core.DLL
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0.");
                 return new List<Surface>();
             }
+
             IntPtr[] planes = ToPlaneHandles(cutPlanes);
             ThrowIfFailed(hbp_surface_generate_cuts(_handle.Handle, planes, planes.Length, noHoles ? 1 : 0, strongCuts ? 1 : 0, out IntPtr surfaces));
             using SurfaceList result = new(surfaces);
@@ -222,6 +227,7 @@ namespace HBP.Core.DLL
                 Debug.LogError("-ERROR : Surface::cutSurface -> nb of planes <= 0.");
                 return new List<Surface>();
             }
+
             IntPtr[] planes = ToPlaneHandles(cutPlanes);
             ThrowIfFailed(hbp_surface_generate_raw_cuts(_handle.Handle, planes, planes.Length, out IntPtr surfaces));
             using SurfaceList result = new(surfaces);
@@ -283,11 +289,13 @@ namespace HBP.Core.DLL
                 Vec3[] nativeNormals = normals.Select(normal => Vec3.FromVector3(normal)).ToArray();
                 ThrowIfFailed(hbp_surface_set_normals(_handle.Handle, nativeNormals, nativeNormals.Length));
             }
+
             if (uv != null)
             {
                 Vec2[] nativeUv = uv.Select(Vec2.FromVector2).ToArray();
                 ThrowIfFailed(hbp_surface_set_uvs(_handle.Handle, nativeUv, nativeUv.Length));
             }
+
             if (colors != null)
             {
                 Color4[] nativeColors = colors.Select(Color4.FromColor).ToArray();
@@ -344,13 +352,7 @@ namespace HBP.Core.DLL
             EnsurePinnedArray(ref m_Colors, ref m_ColorsHandle, sizes.colorCount);
             EnsurePinnedArray(ref m_TriangleIndices, ref m_TriangleIndicesHandle, NumberOfVisibleTriangles * 3);
 
-            ThrowIfFailed(hbp_surface_copy_unity_mesh(
-                _handle.Handle,
-                Pointer(m_VerticesHandle), m_Vertices.Length,
-                Pointer(m_NormalsHandle), m_Normals.Length,
-                Pointer(m_UvHandle), m_UV.Length,
-                Pointer(m_ColorsHandle), m_Colors.Length,
-                Pointer(m_TriangleIndicesHandle), m_TriangleIndices.Length));
+            ThrowIfFailed(hbp_surface_copy_unity_mesh(_handle.Handle, Pointer(m_VerticesHandle), m_Vertices.Length, Pointer(m_NormalsHandle), m_Normals.Length, Pointer(m_UvHandle), m_UV.Length, Pointer(m_ColorsHandle), m_Colors.Length, Pointer(m_TriangleIndicesHandle), m_TriangleIndices.Length));
 
             if (mesh.vertexCount != m_Vertices.Length) mesh.Clear();
             if (all || vertices) mesh.vertices = m_Vertices;
@@ -391,35 +393,94 @@ namespace HBP.Core.DLL
             }
         }
 
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_create", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_create(out IntPtr surface);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_destroy", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_destroy(IntPtr surface);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_clone", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_clone(IntPtr surface, out IntPtr clone);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_load_obj", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_load_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_load_tri", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_load_tri(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_load_gifti", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_load_gifti(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_save_obj", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_save_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, [MarshalAs(UnmanagedType.LPUTF8Str)] string textureName);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_vertices", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_set_vertices(IntPtr surface, [In] Vec3[] vertices, int vertexCount);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_normals", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_set_normals(IntPtr surface, [In] Vec3[] normals, int normalCount);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_uvs", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_set_uvs(IntPtr surface, [In] Vec2[] uvs, int uvCount);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_colors", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_set_colors(IntPtr surface, [In] Color4[] colors, int colorCount);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_triangles", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_set_triangles(IntPtr surface, [In] int[] triangles, int triangleIndexCount);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_merge", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_merge(IntPtr target, IntPtr source);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_sizes", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_get_sizes(IntPtr surface, out SurfaceSizes sizes);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_triangle_count", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_get_triangle_count(IntPtr surface, out int count);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_visible_triangle_count", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_get_visible_triangle_count(IntPtr surface, out int count);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_copy_unity_mesh", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_copy_unity_mesh(IntPtr surface, IntPtr vertices, int vertexCapacity, IntPtr normals, int normalCapacity, IntPtr uvs, int uvCapacity, IntPtr colors, int colorCapacity, IntPtr triangles, int triangleIndexCapacity);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_copy_visibility_mask", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_copy_visibility_mask(IntPtr surface, [Out] int[] mask, int maskCapacity);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_bounding_box", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_get_bounding_box(IntPtr surface, out IntPtr bbox);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_compute_normals", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_compute_normals(IntPtr surface);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_flip", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_flip(IntPtr surface);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_transform", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_transform(IntPtr surface, IntPtr transform);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_update_visibility_mask", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_update_visibility_mask(IntPtr surface, [In] int[] mask, int maskCount, out IntPtr invisibleSurface);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_update_visibility_mask_with_ray", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_update_visibility_mask_with_ray(IntPtr surface, ref Vec3 rayDirection, ref Vec3 hitPoint, int mode, float degrees, out IntPtr invisibleSurface);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_simplify", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_simplify(IntPtr surface, int targetTriangleCount, int aggressiveness, out IntPtr simplifiedSurface);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_is_point_inside", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_is_point_inside(IntPtr surface, ref Vec3 point, out int inside);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_apply_mars_atlas_parcels", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_apply_mars_atlas_parcels(IntPtr surface, IntPtr atlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_cut", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_cut(IntPtr surface, [In] IntPtr[] planes, int planeCount, int noHoles, int strongCuts, out IntPtr surfaces);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generate_cuts", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_generate_cuts(IntPtr surface, [In] IntPtr[] planes, int planeCount, int noHoles, int strongCuts, out IntPtr surfaces);
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generate_raw_cuts", CallingConvention = CallingConvention.Cdecl)] private static extern HbpCoreStatus hbp_surface_generate_raw_cuts(IntPtr surface, [In] IntPtr[] planes, int planeCount, out IntPtr surfaces);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_create", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_create(out IntPtr surface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_destroy", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_destroy(IntPtr surface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_clone", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_clone(IntPtr surface, out IntPtr clone);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_load_obj", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_load_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_load_tri", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_load_tri(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_load_gifti", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_load_gifti(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_save_obj", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_save_obj(IntPtr surface, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, [MarshalAs(UnmanagedType.LPUTF8Str)] string textureName);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_vertices", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_set_vertices(IntPtr surface, [In] Vec3[] vertices, int vertexCount);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_normals", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_set_normals(IntPtr surface, [In] Vec3[] normals, int normalCount);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_uvs", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_set_uvs(IntPtr surface, [In] Vec2[] uvs, int uvCount);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_colors", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_set_colors(IntPtr surface, [In] Color4[] colors, int colorCount);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_triangles", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_set_triangles(IntPtr surface, [In] int[] triangles, int triangleIndexCount);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_merge", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_merge(IntPtr target, IntPtr source);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_sizes", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_get_sizes(IntPtr surface, out SurfaceSizes sizes);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_triangle_count", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_get_triangle_count(IntPtr surface, out int count);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_visible_triangle_count", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_get_visible_triangle_count(IntPtr surface, out int count);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_copy_unity_mesh", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_copy_unity_mesh(IntPtr surface, IntPtr vertices, int vertexCapacity, IntPtr normals, int normalCapacity, IntPtr uvs, int uvCapacity, IntPtr colors, int colorCapacity, IntPtr triangles, int triangleIndexCapacity);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_copy_visibility_mask", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_copy_visibility_mask(IntPtr surface, [Out] int[] mask, int maskCapacity);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_get_bounding_box(IntPtr surface, out IntPtr bbox);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_compute_normals", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_compute_normals(IntPtr surface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_flip", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_flip(IntPtr surface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_transform", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_transform(IntPtr surface, IntPtr transform);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_update_visibility_mask", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_update_visibility_mask(IntPtr surface, [In] int[] mask, int maskCount, out IntPtr invisibleSurface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_update_visibility_mask_with_ray", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_update_visibility_mask_with_ray(IntPtr surface, ref Vec3 rayDirection, ref Vec3 hitPoint, int mode, float degrees, out IntPtr invisibleSurface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_simplify", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_simplify(IntPtr surface, int targetTriangleCount, int aggressiveness, out IntPtr simplifiedSurface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_is_point_inside", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_is_point_inside(IntPtr surface, ref Vec3 point, out int inside);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_apply_mars_atlas_parcels", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_apply_mars_atlas_parcels(IntPtr surface, IntPtr atlas, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_cut", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_cut(IntPtr surface, [In] IntPtr[] planes, int planeCount, int noHoles, int strongCuts, out IntPtr surfaces);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generate_cuts", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_generate_cuts(IntPtr surface, [In] IntPtr[] planes, int planeCount, int noHoles, int strongCuts, out IntPtr surfaces);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generate_raw_cuts", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_generate_raw_cuts(IntPtr surface, [In] IntPtr[] planes, int planeCount, out IntPtr surfaces);
     }
 }

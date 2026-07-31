@@ -15,6 +15,7 @@ namespace HBP.UI.Main
     public class VisualizationModifier : ObjectModifier<Visualization>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
 
         [SerializeField] PatientListGestion m_PatientListGestion;
@@ -24,15 +25,13 @@ namespace HBP.UI.Main
         [SerializeField] ColumnModifier m_ColumnModifier;
 
         bool m_NeedToUpdate = false;
+
         /// <summary>
         /// True if interactable, False otherwise.
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -52,9 +51,11 @@ namespace HBP.UI.Main
                 m_ColumnModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
@@ -74,6 +75,7 @@ namespace HBP.UI.Main
                 base.OK();
             }
         }
+
         /// <summary>
         /// Add patients to the visualization.
         /// </summary>
@@ -83,6 +85,7 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         /// <summary>
         /// Add groups to the visualization.
         /// </summary>
@@ -92,6 +95,7 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => AddGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         /// <summary>
         /// Remove groups to the visualization.
         /// </summary>
@@ -101,6 +105,7 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => RemoveGroups(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         /// <summary>
         /// Add column to the visualization.
         /// </summary>
@@ -111,6 +116,7 @@ namespace HBP.UI.Main
             m_TabGestion.AddTab(column.Name, -1, true);
             m_ColumnModifier.Object = column;
         }
+
         /// <summary>
         /// Remove column to the visualization.
         /// </summary>
@@ -122,9 +128,11 @@ namespace HBP.UI.Main
             if (ObjectTemp.Columns.Count == 0)
                 m_ColumnModifier.Object = null;
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -148,6 +156,7 @@ namespace HBP.UI.Main
             m_ColumnModifier.OnChangeName.AddListener(m_TabGestion.ChangeTabTitle);
             m_ColumnModifier.OnChangeColumn.AddListener(SelectColumn);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -165,9 +174,11 @@ namespace HBP.UI.Main
                 {
                     m_TabGestion.AddTab(objectToDisplay.Columns[i].Name);
                 }
+
                 m_TabGestion.ActiveTabIndex = 0;
             }
         }
+
         /// <summary>
         /// Add groups to the visualization.
         /// </summary>
@@ -176,6 +187,7 @@ namespace HBP.UI.Main
         {
             m_PatientListGestion.List.Add(groups.SelectMany(g => g.Patients).Distinct().Where(p => !m_PatientListGestion.List.Objects.Contains(p)));
         }
+
         /// <summary>
         /// Remove groups to the visualization.
         /// </summary>
@@ -184,6 +196,7 @@ namespace HBP.UI.Main
         {
             m_PatientListGestion.List.Remove(groups.SelectMany(g => g.Patients).Distinct().Where(p => m_PatientListGestion.List.Objects.Contains(p)));
         }
+
         /// <summary>
         /// Select column.
         /// </summary>
@@ -196,6 +209,7 @@ namespace HBP.UI.Main
                 {
                     m_ColumnModifier.gameObject.SetActive(true);
                 }
+
                 m_ColumnModifier.Patients = ObjectTemp.Patients.ToArray();
                 m_ColumnModifier.Object = ObjectTemp.Columns[index];
             }
@@ -207,6 +221,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         /// <summary>
         /// Select the specified column.
         /// </summary>
@@ -218,6 +233,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Columns[m_TabGestion.ActiveTabIndex] = column;
             }
         }
+
         /// <summary>
         /// Remove patient from the visualization.
         /// </summary>
@@ -227,6 +243,7 @@ namespace HBP.UI.Main
             m_ObjectTemp.Patients.Remove(patient);
             m_NeedToUpdate = true;
         }
+
         /// <summary>
         /// Add patient from the visualization.
         /// </summary>
@@ -236,6 +253,7 @@ namespace HBP.UI.Main
             m_ObjectTemp.Patients.AddIfAbsent(patient);
             m_NeedToUpdate = true;
         }
+
         private Column GenerateNewColumn()
         {
             string columnName = "Column n°" + (ObjectTemp.Columns.Count + 1);
@@ -275,14 +293,16 @@ namespace HBP.UI.Main
                 return column;
             }
         }
+
         private void Update()
         {
-            if(m_NeedToUpdate)
+            if (m_NeedToUpdate)
             {
                 SelectColumn();
                 m_NeedToUpdate = false;
             }
         }
+
         #endregion
     }
 }

@@ -14,6 +14,7 @@ namespace HBP.UI.Main
     public class ProjectPreferencesModifier : ObjectModifier<ProjectPreferences>
     {
         #region Properties
+
         [SerializeField] GeneralSubModifer m_GeneralSubModifier;
 
         /// <summary>
@@ -28,9 +29,11 @@ namespace HBP.UI.Main
                 m_GeneralSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
@@ -39,9 +42,11 @@ namespace HBP.UI.Main
             m_GeneralSubModifier.Save();
             base.OK();
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -50,6 +55,7 @@ namespace HBP.UI.Main
             base.Initialize();
             m_GeneralSubModifier.Initialize();
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -58,6 +64,7 @@ namespace HBP.UI.Main
         {
             m_GeneralSubModifier.Object = objectToDisplay;
         }
+
         #endregion
     }
 }

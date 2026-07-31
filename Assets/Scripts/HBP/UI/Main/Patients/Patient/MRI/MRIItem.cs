@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class MRIItem : ActionnableItem<Core.Data.MRI>
     {
         #region Properties
+
         [SerializeField] UnityEngine.UI.Text m_NameText;
         [SerializeField] ThemeElement m_MRI;
 
@@ -20,10 +21,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.MRI Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -36,6 +34,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

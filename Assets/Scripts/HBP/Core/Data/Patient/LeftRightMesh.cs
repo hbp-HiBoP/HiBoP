@@ -49,98 +49,80 @@ namespace HBP.Core.Data
     public class LeftRightMesh : BaseMesh
     {
         #region Properties
+
         /// <summary>
         /// Left hemisphere mesh file path with Alias.
         /// </summary>
         [JsonProperty("LeftHemisphere", Order = 1)] public string SavedLeftHemisphere { get; protected set; }
+
         /// <summary>
         /// Left hemisphere mesh file path without Alias.
         /// </summary>
         public string LeftHemisphere
         {
-            get
-            {
-                return SavedLeftHemisphere.ConvertToFullPath();
-            }
-            set
-            {
-                SavedLeftHemisphere = value.ConvertToShortPath();
-            }
+            get { return SavedLeftHemisphere.ConvertToFullPath(); }
+            set { SavedLeftHemisphere = value.ConvertToShortPath(); }
         }
+
         /// <summary>
         /// Right hemisphere mesh file path with Alias.
         /// </summary>
         [JsonProperty("RightHemisphere", Order = 2)] public string SavedRightHemisphere { get; protected set; }
+
         /// <summary>
         /// Right hemisphere mesh file path without Alias.
         /// </summary>
         public string RightHemisphere
         {
-            get
-            {
-                return SavedRightHemisphere.ConvertToFullPath();
-            }
-            set
-            {
-                SavedRightHemisphere = value.ConvertToShortPath();
-            }
+            get { return SavedRightHemisphere.ConvertToFullPath(); }
+            set { SavedRightHemisphere = value.ConvertToShortPath(); }
         }
+
         /// <summary>
         /// Left hemisphere MarsAtlas file path with Alias.
         /// </summary>
         [JsonProperty("LeftMarsAtlasHemisphere", Order = 3)] public string SavedLeftMarsAtlasHemisphere { get; protected set; }
+
         /// <summary>
         /// Left hemisphere MarsAtlas file path without Alias.
         /// </summary>
         public string LeftMarsAtlasHemisphere
         {
-            get
-            {
-                return SavedLeftMarsAtlasHemisphere.ConvertToFullPath();
-            }
-            set
-            {
-                SavedLeftMarsAtlasHemisphere = value.ConvertToShortPath();
-            }
+            get { return SavedLeftMarsAtlasHemisphere.ConvertToFullPath(); }
+            set { SavedLeftMarsAtlasHemisphere = value.ConvertToShortPath(); }
         }
+
         [JsonProperty("RightMarsAtlasHemisphere", Order = 4)] public string SavedRightMarsAtlasHemisphere { get; protected set; }
+
         /// <summary>
         /// Right hemisphere MarsAtlas file.
         /// </summary>
         public string RightMarsAtlasHemisphere
         {
-            get
-            {
-                return SavedRightMarsAtlasHemisphere.ConvertToFullPath();
-            }
-            set
-            {
-                SavedRightMarsAtlasHemisphere = value.ConvertToShortPath();
-            }
+            get { return SavedRightMarsAtlasHemisphere.ConvertToFullPath(); }
+            set { SavedRightMarsAtlasHemisphere = value.ConvertToShortPath(); }
         }
+
         /// <summary>
         /// True if the mesh has mesh files, False otherwise.
         /// </summary>
         public override bool HasMesh
         {
-            get
-            {
-                return !string.IsNullOrEmpty(LeftHemisphere) && !string.IsNullOrEmpty(RightHemisphere) && LoadingDiagnostics.FileExists(LeftHemisphere) && LoadingDiagnostics.FileExists(RightHemisphere) && new FileInfo(LeftHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightHemisphere).Extension == MESH_EXTENSION;
-            }
+            get { return !string.IsNullOrEmpty(LeftHemisphere) && !string.IsNullOrEmpty(RightHemisphere) && File.Exists(LeftHemisphere) && File.Exists(RightHemisphere) && new FileInfo(LeftHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightHemisphere).Extension == MESH_EXTENSION; }
         }
+
         /// <summary>
         /// True if the mesh has MarsAtlas files, False otherwise.
         /// </summary>
         public override bool HasMarsAtlas
         {
-            get
-            {
-                return !string.IsNullOrEmpty(LeftMarsAtlasHemisphere) && !string.IsNullOrEmpty(RightMarsAtlasHemisphere) && LoadingDiagnostics.FileExists(LeftMarsAtlasHemisphere) && LoadingDiagnostics.FileExists(RightMarsAtlasHemisphere) && new FileInfo(LeftMarsAtlasHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightMarsAtlasHemisphere).Extension == MESH_EXTENSION;
-            }
+            get { return !string.IsNullOrEmpty(LeftMarsAtlasHemisphere) && !string.IsNullOrEmpty(RightMarsAtlasHemisphere) && File.Exists(LeftMarsAtlasHemisphere) && File.Exists(RightMarsAtlasHemisphere) && new FileInfo(LeftMarsAtlasHemisphere).Extension == MESH_EXTENSION && new FileInfo(RightMarsAtlasHemisphere).Extension == MESH_EXTENSION; }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new LeftRightMesh instance.
         /// </summary>
@@ -159,6 +141,7 @@ namespace HBP.Core.Data
             RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
             RecalculateUsable();
         }
+
         /// <summary>
         /// Create a new LeftRightMesh instance.
         /// </summary>
@@ -176,17 +159,23 @@ namespace HBP.Core.Data
             RightMarsAtlasHemisphere = rightMarsAtlasHemisphere;
             RecalculateUsable();
         }
+
         /// <summary>
         /// Create a new LeftRightMesh instance.
         /// </summary>
-        public LeftRightMesh() : this("New mesh", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty) { }
+        public LeftRightMesh() : this("New mesh", string.Empty, string.Empty, string.Empty, string.Empty, string.Empty)
+        {
+        }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new LeftRightMesh(Name, Transformation, LeftHemisphere, RightHemisphere, LeftMarsAtlasHemisphere, RightMarsAtlasHemisphere, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
@@ -197,15 +186,18 @@ namespace HBP.Core.Data
                 LeftMarsAtlasHemisphere = leftRightMesh.LeftMarsAtlasHemisphere;
                 RightMarsAtlasHemisphere = leftRightMesh.RightMarsAtlasHemisphere;
             }
+
             if (obj is SingleMesh singleMesh)
             {
                 LeftHemisphere = singleMesh.Path;
                 LeftMarsAtlasHemisphere = singleMesh.MarsAtlasPath;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             SavedLeftHemisphere = SavedLeftHemisphere.StandardizeToEnvironement();
@@ -214,6 +206,7 @@ namespace HBP.Core.Data
             SavedRightMarsAtlasHemisphere = SavedRightMarsAtlasHemisphere.StandardizeToEnvironement();
             base.OnDeserialized();
         }
+
         #endregion
     }
 }

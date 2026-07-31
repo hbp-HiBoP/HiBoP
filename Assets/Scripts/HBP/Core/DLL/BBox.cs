@@ -184,30 +184,43 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_create(out IntPtr bbox);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_create_from_min_max", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_create_from_min_max(ref Vec3 min, ref Vec3 max, out IntPtr bbox);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_destroy(IntPtr bbox);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_update", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_update(IntPtr target, IntPtr source);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_transform", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_transform(IntPtr bbox, IntPtr transform);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_get_min", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_get_min(IntPtr bbox, out Vec3 min);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_get_max", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_get_max(IntPtr bbox, out Vec3 max);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_get_center", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_get_center(IntPtr bbox, out Vec3 center);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_get_points", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_get_points(IntPtr bbox, [Out] Vec3[] points, int pointCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_get_segments", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_get_segments(IntPtr bbox, [Out] Vec3[] segmentPoints, int pointCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_intersections_with_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_intersections_with_plane(IntPtr bbox, IntPtr plane, [Out] Vec3[] points, int pointCapacity, out int count);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_intersection_segments_with_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_intersection_segments_with_plane(IntPtr bbox, IntPtr plane, [Out] Vec3[] segmentPoints, int pointCapacity, out int segmentCount);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_intersection_segment_between_planes", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_intersection_segment_between_planes(IntPtr bbox, IntPtr planeA, IntPtr planeB, out Vec3 start, out Vec3 end, out int intersects);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_bbox_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_bbox_size_offset_cut_plane(IntPtr bbox, IntPtr plane, int cutCount, out float offset);
     }

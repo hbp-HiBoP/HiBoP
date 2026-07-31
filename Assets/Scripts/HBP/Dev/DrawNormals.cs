@@ -8,25 +8,25 @@ namespace HBP.Dev
     public class DrawNormals : MonoBehaviour
     {
 #if UNITY_EDITOR
-        [SerializeField]
-        private MeshFilter _meshFilter = null;
-        [SerializeField]
-        private bool _displayWireframe = false;
-        [SerializeField]
-        private NormalsDrawData _faceNormals = new(new Color32(34, 221, 221, 155), true);
-        [SerializeField]
-        private NormalsDrawData _vertexNormals = new(new Color32(200, 255, 195, 127), false);
+        [SerializeField] private MeshFilter _meshFilter = null;
+        [SerializeField] private bool _displayWireframe = false;
+        [SerializeField] private NormalsDrawData _faceNormals = new(new Color32(34, 221, 221, 155), true);
+        [SerializeField] private NormalsDrawData _vertexNormals = new(new Color32(200, 255, 195, 127), false);
 
         [System.Serializable]
         private class NormalsDrawData
         {
-            [SerializeField]
-            protected DrawType _draw = DrawType.Selected;
-            protected enum DrawType { Never, Selected, Always }
-            [SerializeField]
-            protected float _length = 0.3f;
-            [SerializeField]
-            protected Color _normalColor;
+            [SerializeField] protected DrawType _draw = DrawType.Selected;
+
+            protected enum DrawType
+            {
+                Never,
+                Selected,
+                Always
+            }
+
+            [SerializeField] protected float _length = 0.3f;
+            [SerializeField] protected Color _normalColor;
             private Color _baseColor = new Color32(255, 133, 0, 255);
             private const float _baseSize = 0.0125f;
 

@@ -15,6 +15,7 @@ namespace HBP.UI.Main
     public class UserPreferencesModifier : ObjectModifier<UserPreferences>
     {
         #region Properties
+
         [SerializeField] ProjectPreferencesSubModifier m_ProjectPreferencesSubModifier;
         [SerializeField] ThemePreferencesSubModifier m_ThemePreferencesSubModifier;
         [SerializeField] LocationPreferencesSubModifier m_LocationPreferencesSubModifier;
@@ -47,10 +48,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -70,9 +68,11 @@ namespace HBP.UI.Main
                 m_CutPreferencesSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Save the modifications.
         /// </summary>
@@ -84,13 +84,7 @@ namespace HBP.UI.Main
 
             if (normalizationChanged && Module3DMain.Scenes.Count > 0)
             {
-                int result = await DialogBoxManager.OpenAsync(
-                    DialogBoxType.Warning,
-                    "Reload required",
-                    "The default EEG normalization has changed. Open visualizations must be reloaded to apply it.\n\n"
-                    + "The cached raw recordings will be kept when possible. Would you like to save and reload now?",
-                    "Save & Reload",
-                    "Cancel");
+                int result = await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Reload required", "The default EEG normalization has changed. Open visualizations must be reloaded to apply it.\n\n" + "The cached raw recordings will be kept when possible. Would you like to save and reload now?", "Save & Reload", "Cancel");
                 if (result != 0)
                 {
                     DataManager.DefaultNormalization = m_InitialNormalization;
@@ -104,9 +98,7 @@ namespace HBP.UI.Main
 
             if (memoryLimitChanged)
             {
-                DataManager.ConfigureMemoryBudget(
-                    PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit,
-                    SystemInfo.systemMemorySize);
+                DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, SystemInfo.systemMemorySize);
             }
 
             if (normalizationChanged)
@@ -136,9 +128,11 @@ namespace HBP.UI.Main
             DataManager.DefaultNormalization = m_InitialNormalization;
             base.Close();
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -164,6 +158,7 @@ namespace HBP.UI.Main
             m_GraphPreferencesSubModifier.Object = objectToDisplay.Visualization.Graph;
             m_CutPreferencesSubModifier.Object = objectToDisplay.Visualization.Cut;
         }
+
         #endregion
     }
 }

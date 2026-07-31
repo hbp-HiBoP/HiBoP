@@ -5,13 +5,12 @@ namespace HBP.UI.Informations.Graphs
     public class GraphsGridContainer : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private GameObject m_Content;
+
         public GameObject Content
         {
-            get
-            {
-                return m_Content;
-            }
+            get { return m_Content; }
             set
             {
                 m_Content = value;
@@ -23,6 +22,7 @@ namespace HBP.UI.Informations.Graphs
                 rectTransform.sizeDelta = Vector2.zero;
             }
         }
+
         #endregion
     }
 }

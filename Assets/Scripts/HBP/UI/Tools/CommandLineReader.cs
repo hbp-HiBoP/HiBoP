@@ -14,14 +14,17 @@ namespace HBP.UI.Tools
     public class CommandLineReader : MonoBehaviour
     {
         #region Properties
+
 #if UNITY_EDITOR
         [SerializeField] private bool m_AutoLoad = false;
         [SerializeField] private string m_ProjectName;
         [SerializeField] private string m_VisualizationName;
 #endif
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             string[] args = System.Environment.GetCommandLineArgs();
@@ -33,9 +36,11 @@ namespace HBP.UI.Tools
 #endif
             InterpreteCommandLineArguments(args).Forget();
         }
+
         #endregion
 
         #region Coroutines
+
         private async UniTaskVoid InterpreteCommandLineArguments(string[] args)
         {
             if (args.Length != 0)
@@ -63,14 +68,17 @@ namespace HBP.UI.Tools
                         }
                     }
                 }
+
                 for (int i = 0; i < actions.Count; ++i)
                 {
                     await ApplyActionAsync(actions[i], arguments[i]);
                     await UniTask.WaitForEndOfFrame();
                 }
             }
+
             Destroy(gameObject);
         }
+
         private async UniTask ApplyActionAsync(string action, List<string> arguments)
         {
             if (action == "-p") // Project
@@ -125,9 +133,11 @@ namespace HBP.UI.Tools
                 {
                     visualizations = ApplicationState.LoadedProject.Visualizations;
                 }
+
                 LoadingManager.Load((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
             }
         }
+
         #endregion
     }
 }

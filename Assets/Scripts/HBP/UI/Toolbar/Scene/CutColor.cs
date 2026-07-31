@@ -8,17 +8,21 @@ namespace HBP.UI.Toolbar
     public class CutColor : Tool
     {
         #region Properties
+
         /// <summary>
         /// Dropdown to select the colormap used for the cuts
         /// </summary>
         [SerializeField] private Dropdown m_Dropdown;
+
         /// <summary>
         /// Correspondance between cut color dropdown options indices and color type
         /// </summary>
         private List<ColorType> m_CutColorIndices = new() { ColorType.Default, ColorType.Grayscale };
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -31,6 +35,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.CutColor = m_CutColorIndices[value];
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -39,6 +44,7 @@ namespace HBP.UI.Toolbar
             m_Dropdown.value = 0;
             m_Dropdown.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -46,6 +52,7 @@ namespace HBP.UI.Toolbar
         {
             m_Dropdown.interactable = true;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -53,6 +60,7 @@ namespace HBP.UI.Toolbar
         {
             m_Dropdown.value = m_CutColorIndices.FindIndex((c) => c == SelectedScene.CutColor);
         }
+
         #endregion
     }
 }
