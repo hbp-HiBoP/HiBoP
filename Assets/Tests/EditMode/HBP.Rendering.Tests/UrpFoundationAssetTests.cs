@@ -67,22 +67,40 @@ namespace HBP.Tests.Rendering
         }
 
         [Test]
-        public void GlobalPipelineSwitch_RemainsDeferredUntilPhaseTwo()
+        public void GlobalPipelineSwitch_UsesUrpAtEveryQualityLevel()
         {
-            Assert.That(GraphicsSettings.defaultRenderPipeline, Is.Null);
+            UniversalRenderPipelineAsset expected = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
+
+            Assert.That(GraphicsSettings.defaultRenderPipeline, Is.SameAs(expected));
             for (int index = 0; index < QualitySettings.count; ++index)
-                Assert.That(QualitySettings.GetRenderPipelineAssetAt(index), Is.Null);
+                Assert.That(QualitySettings.GetRenderPipelineAssetAt(index), Is.SameAs(expected), $"Quality level {index}");
         }
 
+        [TestCase("HBP/Brain")]
+        [TestCase("HBP/Brain/Transparent")]
         [TestCase("HBP/Cut")]
+        [TestCase("HBP/Cut/Transparent")]
+        [TestCase("HBP/Utility/UnlitColor")]
         [TestCase("HBP/Site")]
+        [TestCase("HBP/Site/Selection")]
         [TestCase("HBP/ROI/Wireframe")]
+        [TestCase("HBP/UI/Texture")]
+        [TestCase("HBP/UI/Mask")]
         public void FoundationShader_ImportsWithoutCompilerErrors(string shaderName)
         {
             Shader shader = Shader.Find(shaderName);
 
             Assert.That(shader, Is.Not.Null, shaderName);
             Assert.That(ShaderUtil.ShaderHasError(shader), Is.False, shaderName);
+        }
+
+        [Test]
+        public void ScientificAlphaTexture_IsImportedAsLinearData()
+        {
+            TextureImporter importer = AssetImporter.GetAtPath("Assets/Resources/Textures/alpha.png") as TextureImporter;
+
+            Assert.That(importer, Is.Not.Null);
+            Assert.That(importer.sRGBTexture, Is.False);
         }
 
         private static object FindManagedSetting(RenderPipelineGlobalSettings globalSettings, string typeName)

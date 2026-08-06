@@ -47,7 +47,13 @@ namespace HBP.Rendering
         public static Color ComposeScientificColor(Color anatomyLinear, Color scientificSrgb, float alpha)
         {
             Color scientificLinear = SrgbToLinear(scientificSrgb);
-            return Color.Lerp(anatomyLinear, scientificLinear, Mathf.Clamp01(alpha));
+            return Color.Lerp(anatomyLinear, scientificLinear, RemapScientificAlpha(alpha));
+        }
+
+        public static float RemapScientificAlpha(float alpha)
+        {
+            float transparency = 1.0f - Mathf.Clamp01(alpha);
+            return 1.0f - transparency * transparency;
         }
 
         public static float ComposeAlpha(float normalizedSourceAlpha, float userAlpha)

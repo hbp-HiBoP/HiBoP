@@ -27,6 +27,11 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_activity_generator_initialize(_handle.Handle, generatorSurface.getHandle().Handle));
         }
 
+        public void SetSmoothActivityBoundaries(bool enabled)
+        {
+            ThrowIfFailed(hbp_activity_generator_set_smooth_activity_boundaries(_handle.Handle, enabled ? 1 : 0));
+        }
+
         public bool SaveActivityAsNifti(string path, SubTimeline timeline, string description)
         {
             if (timeline == null) throw new ArgumentNullException(nameof(timeline));
@@ -76,6 +81,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_activity_generator_initialize(IntPtr generator, IntPtr generatorSurface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_set_smooth_activity_boundaries", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_activity_generator_set_smooth_activity_boundaries(IntPtr generator, int enabled);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_get_progress", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_activity_generator_get_progress(IntPtr generator, out float progress);

@@ -2,7 +2,7 @@ Shader "HBP/Site"
 {
     Properties
     {
-        [MainColor] _BaseColor("Color", Color) = (1, 1, 1, 1)
+        [MainColor] _Color("Color", Color) = (1, 1, 1, 1)
     }
 
     SubShader
@@ -45,7 +45,7 @@ Shader "HBP/Site"
             };
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _BaseColor;
+                float4 _Color;
             CBUFFER_END
 
             Varyings Vert(Attributes input)
@@ -62,7 +62,7 @@ Shader "HBP/Site"
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                return _BaseColor;
+                return _Color;
             }
             ENDHLSL
         }

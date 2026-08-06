@@ -49,13 +49,17 @@ précisé lors du prototype par des tests de patchs connus.
 
 ### Règle principale
 
-À valeur scientifique et alpha identiques, la couleur produite **DOIT** rester
-constante :
+À valeur scientifique et alpha identiques, la teinte et la chroma issues de la
+palette **DOIVENT** rester stables. La surface du mesh **PEUT** moduler leur
+luminance de façon contrôlée pour rendre le relief 3D perceptible ; la coupe
+et la légende restent les références non éclairées. Cette règle vaut :
 
-- quelle que soit la normale de la surface ;
-- quelle que soit l'orientation de la caméra ;
-- quelle que soit la direction ou l'intensité de la lumière ;
-- sur la surface du mesh et sur une coupe ;
+- quelle que soit la normale de la surface ou l'orientation de la caméra, hors
+  modulation contrôlée de luminance ;
+- quelle que soit la direction ou l'intensité des lumières de scène, qui ne
+  pilotent pas les données scientifiques ;
+- sur la surface du mesh, une coupe et la légende, avec le même mapping de
+  palette et la même composition d'alpha ;
 - dans une vue à l'écran et dans son export PNG ;
 - entre colonnes affichant le même état ;
 - entre plateformes, dans la limite des tolérances définies plus bas.
@@ -65,17 +69,26 @@ constante :
 Le modèle cible est :
 
 ```text
-anatomie = éclairage(anatomie_de_base)
-résultat = lerp(anatomie, couleur_scientifique_linear, alpha_scientifique)
+alpha_palette = 1 - (1 - alpha_scientifique)²
+anatomie_mesh = éclairage_anatomique(anatomie_de_base)
+science_mesh = couleur_scientifique_linear × relief_luminance_contrôlé
+mesh = lerp(anatomie_mesh, science_mesh, alpha_palette)
+coupe = lerp(anatomie_coupe, couleur_scientifique_linear, alpha_palette)
 ```
 
-L'overlay est donc composité après l'éclairage de l'anatomie. Sa teinte ne
-reçoit ni Lambert, ni spéculaire, ni ambient occlusion issue du matériau.
+L'anatomie et la donnée scientifique sont éclairées séparément avant leur
+composition. L'overlay ne reçoit aucun spéculaire blanc additif : son relief
+est une modulation multiplicative de sa propre couleur et indépendante des
+lumières de scène. Les ombres suivent librement l'ambient du matériau afin de
+conserver la profondeur ; les hautes lumières diffuses restent bornées et ne
+doivent pas écrêter un canal. Un reflet neutre très localisé peut légèrement
+désaturer son sommet afin de donner à l'activité la même nature de surface que
+l'anatomie, sans modifier la couleur diffuse scientifique.
 
-L'alpha peut laisser voir le relief anatomique par transparence, mais ne doit
-pas moduler différemment la teinte selon la lumière. Toute option future de
-modulation du relief devra être explicitement distincte, désactivée par défaut
-et interdite pour les modes exigeant une couleur strictement constante.
+La courbe d'alpha conserve exactement les extrémités 0 et 1, mais rapproche les
+zones actives de la palette : l'alpha usuel `0,8` devient un poids perceptuel
+`0,96`. Le relief modifie la luminance, jamais le mapping valeur -> palette ni
+la teinte par mélange avec un reflet neutre.
 
 ### Atlas
 
@@ -90,12 +103,57 @@ et interdite pour les modes exigeant une couleur strictement constante.
 
 - La normalisation valeur -> position dans la colormap doit être partagée ou
   couverte par les mêmes tests pour mesh, coupe et légende.
+- Le lissage spatial éventuel **DOIT** s'appliquer aux valeurs scientifiques et
+  à leurs poids avant la LUT, dans un champ volumique commun au mesh et aux
+  coupes. Flouter séparément leurs images RGB après composition est interdit.
+- Le mode continu de référence utilise deux passes d'un noyau binomial
+  séparable à cinq échantillons par axe, puis une interpolation trilinéaire
+  pondérée. Le résultat est mis en cache par instant afin que chaque coupe
+  réutilise le calcul du mesh. Le mode nearest reste disponible comme référence
+  discrète non lissée.
+- Le plancher d'opacité ne doit pas transformer toute valeur non nulle en bord
+  opaque. Un champ de support lissé séparément module ce plancher à la frontière
+  de l'activité, avec exactement le même échantillonnage sur le mesh et les
+  coupes. Une seule passe de rayon deux crée une bande compacte autour de la
+  frontière : les deux couches intérieures sont progressivement atténuées et le
+  halo peut s'étendre sur au plus deux cellules extérieures. L'intérieur plus
+  profond reste pleinement opaque et le support retombe à zéro au-delà de cette
+  bande. Ce lissage ne modifie pas la position dans la colormap.
+- Sur le mesh cérébral, l'éligibilité d'un sommet à l'activité dépend du champ
+  d'activité, pas de la valeur du voxel MRI le plus proche. Le mesh définit déjà
+  le domaine anatomique ; utiliser l'intensité MRI comme second masque crée des
+  trous triangulaires artificiels.
+- Sur une coupe, les faibles intensités jusqu'au plus strict du seuil
+  utilisateur et du minimum tissulaire robuste définissent des candidats de
+  fond. Lorsque ce minimum se confond avec le minimum brut, le seuil candidat
+  retombe à `5 %` de la plage jusqu'au maximum robuste recalculé. Seuls les
+  candidats reliés aux bords de la coupe par une connexité à huit voisins sont
+  considérés comme extérieurs ; une faible intensité enfermée dans l'anatomie
+  reste donc coloriable. Les valeurs non finies restent toujours exclues.
+  Le masque intérieur binaire est flouté séparément du RGB, puis multiplié par
+  sa version brute après projection afin d'adoucir la frontière sans recréer de
+  halo dans l'extérieur.
 - Les seuils positifs/négatifs et valeurs hors intervalle doivent avoir un
   comportement déterministe.
 - L'interpolation temporelle ne doit pas introduire de conversion
   colorimétrique supplémentaire.
 - La légende doit représenter le même mapping que le shader, pas une
   approximation indépendante.
+
+### Préférences de projection de l'activité
+
+- `Mask activity on MRI background`, activé par défaut, limite l'activité des
+  coupes au support anatomique calculé depuis l'IRM. Cette option ne concerne
+  pas le mesh, dont la géométrie définit déjà le domaine anatomique.
+- `Smooth activity boundaries`, activé par défaut, adoucit le support alpha à
+  la frontière du volume d'activité sur le mesh et les coupes afin de masquer
+  la structure des voxels. Son action est limitée à une bande de deux cellules
+  de part et d'autre de la frontière, ce qui autorise un halo extérieur compact
+  sans atténuer tout le volume. Désactivé, le support est binaire (« voxel
+  exact »), sans changer les valeurs scientifiques, la colormap ou leur
+  interpolation.
+- Les deux préférences sont indépendantes. Leur désactivation ne modifie pas
+  le mapping valeur -> palette.
 
 ## 5. Anatomie
 

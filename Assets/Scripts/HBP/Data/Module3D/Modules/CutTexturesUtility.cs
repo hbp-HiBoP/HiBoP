@@ -57,6 +57,9 @@ namespace HBP.Data.Module3D
         /// <param name="size">New size for the lists</param>
         public void Resize(int size, List<Core.DLL.CutGeometryGenerator> cutGeometryGenerators, Core.DLL.ActivityGenerator activityGenerator)
         {
+            _3DPreferences preferences = PersistentDataManager.UserPreferences.Visualization._3D;
+            activityGenerator?.SetSmoothActivityBoundaries(preferences.SmoothActivityBoundaries);
+
             while (Size < size)
             {
                 BaseBrainCutTextures.Add(Texture2DExtension.Generate());
@@ -81,7 +84,8 @@ namespace HBP.Data.Module3D
 
             for (int i = 0; i < size; i++)
             {
-                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], PersistentDataManager.UserPreferences.Visualization._3D.RawCuts ? 0 : 4);
+                CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], preferences.RawCuts ? 0 : 4);
+                CutGenerators[i].SetMaskActivityOnMRIBackground(preferences.MaskActivityOnMRIBackground);
             }
         }
 

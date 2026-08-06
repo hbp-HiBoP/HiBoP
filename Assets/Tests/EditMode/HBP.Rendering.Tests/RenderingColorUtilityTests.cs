@@ -84,6 +84,30 @@ namespace HBP.Tests.Rendering
             Assert.That(result.b, Is.EqualTo(scientificLinear.b).Within(Tolerance));
         }
 
+        [TestCase(-1.0f, 0.0f)]
+        [TestCase(0.0f, 0.0f)]
+        [TestCase(0.25f, 0.4375f)]
+        [TestCase(0.5f, 0.75f)]
+        [TestCase(0.8f, 0.96f)]
+        [TestCase(1.0f, 1.0f)]
+        [TestCase(2.0f, 1.0f)]
+        public void ScientificAlpha_SquaresTransparencyToFavorThePalette(float alpha, float expected)
+        {
+            Assert.That(RenderingColorUtility.RemapScientificAlpha(alpha), Is.EqualTo(expected).Within(Tolerance));
+        }
+
+        [Test]
+        public void ScientificColor_DefaultAlphaStaysCloseToThePalette()
+        {
+            Color anatomyLinear = RenderingColorUtility.SrgbToLinear(new Color(235.0f / 255.0f, 181.0f / 255.0f, 120.0f / 255.0f));
+            Color scientificSrgb = new Color(0.0f, 127.0f / 255.0f, 1.0f);
+            Color scientificLinear = RenderingColorUtility.SrgbToLinear(scientificSrgb);
+
+            Color result = RenderingColorUtility.ComposeScientificColor(anatomyLinear, scientificSrgb, 0.8f);
+
+            Assert.That(Vector3.Distance(new Vector3(result.r, result.g, result.b), new Vector3(scientificLinear.r, scientificLinear.g, scientificLinear.b)), Is.LessThan(0.05f));
+        }
+
         [TestCase(0.4f, 0.5f, 0.2f)]
         [TestCase(2.0f, 1.0f, 1.0f)]
         [TestCase(-1.0f, 0.5f, 0.0f)]

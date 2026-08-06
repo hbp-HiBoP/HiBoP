@@ -2,10 +2,10 @@
 
 ## Statut et portée
 
-**Statut :** phases 0 et 1 validées, phase 2 prête à démarrer  
+**Statut :** phases 0 et 1 validées, phase 2 implémentée et en attente de validation visuelle  
 **Projet audité :** HiBoP sous Unity `6000.5.2f1`  
 **Date de l'audit initial :** 2026-07-23  
-**Pipeline actuel :** Built-in Render Pipeline  
+**Pipeline actuel :** Universal Render Pipeline, `HBP-Desktop-URP`  
 **Pipeline cible recommandé :** Universal Render Pipeline (URP), Universal Renderer, chemin Forward
 
 Ce dossier constitue la référence de conception de la migration du rendu de
@@ -78,6 +78,8 @@ pas explicitement amendées dans ce dossier :
     protocole reproductible de comparaison.
 12. [12-phase-1-foundation.md](12-phase-1-foundation.md) : assets URP, contrats
     partagés et inventaire de migration des matériaux actifs.
+13. [13-phase-2-core-urp.md](13-phase-2-core-urp.md) : shaders cerveau/coupes,
+    bascule globale, matériaux migrés et validation Gate 2.
 
 ## Hiérarchie des exigences
 

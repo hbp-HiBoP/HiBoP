@@ -123,7 +123,7 @@ namespace HBP.Tests.Serialization
             try
             {
                 DataProjectPreferences projectPreferences = new("format-alpha", "project-preferences-alpha");
-                UserPreferences userPreferences = new(new GeneralPreferences(new UserProjectPreferences("default-project-alpha", temp.GetPath("projects"), temp.GetPath("exports")), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(false, 512, 7, 24), new MiscPreferences(true)), new DataPreferences(new EEGPreferences(AveragingType.Mean, NormalizationType.Protocol, 0.01f, false, TemporalSamplingPolicy.Round), new ProtocolPreferences(AveragingType.Mean, -42, 43, 17), new AnatomicPreferences(false, true, true, false, true), new AtlasesPreferences(false, true, false, true, false, true, false, true, true, false, true, false, true, false, true, false)), new VisualizationPreferences(new _3DPreferences(false, true, LayoutDirection.Horizontal, SiteInfluenceByDistanceType.Linear, "MRI-alpha", "Mesh-alpha", "Implantation-alpha", "MNI-alpha", "MNI-mesh-alpha", "MNI-implantation-alpha"), new TrialMatrixPreferences(false, false, false, 5, false, BlocFormatType.TrialHeight, 12, 0.01f, 0.2f, 1.1f), new GraphPreferences(false, false, 3, 9, 2), new CutPreferences(false)), "user-preferences-alpha");
+                UserPreferences userPreferences = new(new GeneralPreferences(new UserProjectPreferences("default-project-alpha", temp.GetPath("projects"), temp.GetPath("exports")), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(false, 512, 7, 24), new MiscPreferences(true)), new DataPreferences(new EEGPreferences(AveragingType.Mean, NormalizationType.Protocol, 0.01f, false, TemporalSamplingPolicy.Round), new ProtocolPreferences(AveragingType.Mean, -42, 43, 17), new AnatomicPreferences(false, true, true, false, true), new AtlasesPreferences(false, true, false, true, false, true, false, true, true, false, true, false, true, false, true, false)), new VisualizationPreferences(new _3DPreferences(false, true, LayoutDirection.Horizontal, SiteInfluenceByDistanceType.Linear, "MRI-alpha", "Mesh-alpha", "Implantation-alpha", "MNI-alpha", "MNI-mesh-alpha", "MNI-implantation-alpha", false, false), new TrialMatrixPreferences(false, false, false, 5, false, BlocFormatType.TrialHeight, 12, 0.01f, 0.2f, 1.1f), new GraphPreferences(false, false, 3, 9, 2), new CutPreferences(false)), "user-preferences-alpha");
 
                 DataProjectPreferences loadedProjectPreferences = RoundTrip(temp, projectPreferences, "project-preferences.json");
                 UserPreferences loadedUserPreferences = RoundTrip(temp, userPreferences, "user-preferences.json");
@@ -143,6 +143,8 @@ namespace HBP.Tests.Serialization
                 Assert.That(loadedUserPreferences.Data.Atlases.PreloadDiFuMo64, Is.True);
                 Assert.That(loadedUserPreferences.Visualization._3D.VisualizationsLayoutDirection, Is.EqualTo(LayoutDirection.Horizontal));
                 Assert.That(loadedUserPreferences.Visualization._3D.SiteInfluenceByDistance, Is.EqualTo(SiteInfluenceByDistanceType.Linear));
+                Assert.That(loadedUserPreferences.Visualization._3D.MaskActivityOnMRIBackground, Is.False);
+                Assert.That(loadedUserPreferences.Visualization._3D.SmoothActivityBoundaries, Is.False);
                 Assert.That(loadedUserPreferences.Visualization.TrialMatrix.SubBlocFormat, Is.EqualTo(BlocFormatType.TrialHeight));
                 Assert.That(loadedUserPreferences.Visualization.Graph.ShowSEM, Is.False);
                 Assert.That(loadedUserPreferences.Visualization.Graph.MaxSites, Is.EqualTo(3));
@@ -184,6 +186,8 @@ namespace HBP.Tests.Serialization
             Assert.That(userPreferences.General.Project, Is.Not.Null);
             Assert.That(userPreferences.Data, Is.Not.Null);
             Assert.That(userPreferences.Visualization, Is.Not.Null);
+            Assert.That(userPreferences.Visualization._3D.MaskActivityOnMRIBackground, Is.True);
+            Assert.That(userPreferences.Visualization._3D.SmoothActivityBoundaries, Is.True);
             Assert.That(userPreferences.Visualization.Graph.SiteColors, Is.Not.Null);
         }
 

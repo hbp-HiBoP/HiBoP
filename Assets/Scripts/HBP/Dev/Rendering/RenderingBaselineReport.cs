@@ -204,12 +204,18 @@ namespace HBP.Dev.Rendering
         public Vector3 LocalPosition;
         public float DistanceToCut;
         public Vector2 CutUv;
+        public Vector2 CutTextureUv;
+        public Vector2 SurfaceAnatomyUv;
         public Vector2 SurfaceAlphaUv;
         public Vector2 SurfaceColorUv;
+        public Color SurfaceAnatomySample;
         public Color SurfaceAlphaSample;
         public float SurfaceBoostedAlpha;
+        public float SurfaceEffectiveAlpha;
         public Color SurfaceColormapSample;
+        public Color SurfaceComposedSample;
         public Color CutSample;
+        public float ColormapRgbDistance;
         public float RgbDistance;
         public float AlphaDistance;
     }

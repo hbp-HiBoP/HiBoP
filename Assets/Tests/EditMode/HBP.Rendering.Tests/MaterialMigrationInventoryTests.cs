@@ -29,6 +29,9 @@ namespace HBP.Tests.Rendering
                 Assert.That(material, Is.Not.Null, materialPath);
                 Assert.That(material.shader, Is.Not.Null, materialPath);
                 Assert.That(entry.currentShader, Is.EqualTo(material.shader.name), materialPath);
+                Assert.That(entry.targetShader, Is.EqualTo(material.shader.name), materialPath);
+                Assert.That(material.shader.isSupported, Is.True, materialPath);
+                Assert.That(ShaderUtil.ShaderHasError(material.shader), Is.False, materialPath);
                 Assert.That(entry.targetShader, Is.Not.Null.And.Not.Empty, materialPath);
                 Assert.That(entry.phase, Is.InRange(2, 3), materialPath);
             }

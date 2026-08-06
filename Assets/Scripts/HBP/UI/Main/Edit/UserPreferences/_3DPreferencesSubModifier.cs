@@ -13,6 +13,8 @@ namespace HBP.UI.Main
 
         [SerializeField] Toggle m_AutomaticEEGUpdateToggle;
         [SerializeField] Toggle m_RawCutsToggle;
+        [SerializeField] Toggle m_MaskActivityOnMRIBackgroundToggle;
+        [SerializeField] Toggle m_SmoothActivityBoundariesToggle;
         [SerializeField] Dropdown m_VisualizationsLayoutDirectionDropdown;
         [SerializeField] Dropdown m_SiteInfluenceDropdown;
 
@@ -34,6 +36,8 @@ namespace HBP.UI.Main
 
                 m_AutomaticEEGUpdateToggle.interactable = value;
                 m_RawCutsToggle.interactable = value;
+                m_MaskActivityOnMRIBackgroundToggle.interactable = value;
+                m_SmoothActivityBoundariesToggle.interactable = value;
                 m_VisualizationsLayoutDirectionDropdown.interactable = value;
                 m_SiteInfluenceDropdown.interactable = value;
                 m_DefaultSelectedMRIInSinglePatientInputField.interactable = value;
@@ -55,6 +59,8 @@ namespace HBP.UI.Main
 
             m_AutomaticEEGUpdateToggle.onValueChanged.AddListener((value) => Object.AutomaticEEGUpdate = value);
             m_RawCutsToggle.onValueChanged.AddListener((value) => Object.RawCuts = value);
+            m_MaskActivityOnMRIBackgroundToggle.onValueChanged.AddListener((value) => Object.MaskActivityOnMRIBackground = value);
+            m_SmoothActivityBoundariesToggle.onValueChanged.AddListener((value) => Object.SmoothActivityBoundaries = value);
             m_VisualizationsLayoutDirectionDropdown.onValueChanged.AddListener((value) => Object.VisualizationsLayoutDirection = (LayoutDirection)value);
             m_SiteInfluenceDropdown.onValueChanged.AddListener((value) => Object.SiteInfluenceByDistance = (SiteInfluenceByDistanceType)value);
 
@@ -77,6 +83,8 @@ namespace HBP.UI.Main
 
             m_AutomaticEEGUpdateToggle.isOn = objectToDisplay.AutomaticEEGUpdate;
             m_RawCutsToggle.isOn = objectToDisplay.RawCuts;
+            m_MaskActivityOnMRIBackgroundToggle.isOn = objectToDisplay.MaskActivityOnMRIBackground;
+            m_SmoothActivityBoundariesToggle.isOn = objectToDisplay.SmoothActivityBoundaries;
             m_VisualizationsLayoutDirectionDropdown.Set(typeof(LayoutDirection), (int)objectToDisplay.VisualizationsLayoutDirection);
             m_SiteInfluenceDropdown.Set(typeof(SiteInfluenceByDistanceType), (int)objectToDisplay.SiteInfluenceByDistance);
 

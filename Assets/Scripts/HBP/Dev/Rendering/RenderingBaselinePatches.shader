@@ -9,7 +9,12 @@ Shader "Hidden/HBP/Dev/RenderingBaselinePatches"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry" "RenderType" = "Opaque" }
+        Tags
+        {
+            "RenderPipeline" = "UniversalPipeline"
+            "Queue" = "Geometry"
+            "RenderType" = "Opaque"
+        }
 
         Pass
         {
@@ -19,16 +24,20 @@ Shader "Hidden/HBP/Dev/RenderingBaselinePatches"
             ZTest Always
             Blend One Zero
 
-            CGPROGRAM
-            #pragma target 3.0
+            HLSLPROGRAM
+            #pragma target 3.5
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #include "UnityCG.cginc"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            sampler2D _SrgbTexture;
-            sampler2D _LinearTexture;
-            float4 _UniformColor;
+            TEXTURE2D(_SrgbTexture);
+            SAMPLER(sampler_SrgbTexture);
+            TEXTURE2D(_LinearTexture);
+            SAMPLER(sampler_LinearTexture);
+            CBUFFER_START(UnityPerMaterial)
+                float4 _UniformColor;
+            CBUFFER_END
 
             struct Attributes
             {
@@ -47,7 +56,7 @@ Shader "Hidden/HBP/Dev/RenderingBaselinePatches"
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.position = UnityObjectToClipPos(input.position);
+                output.position = TransformObjectToHClip(input.position.xyz);
                 output.uv = input.uv;
                 output.color = input.color;
                 return output;
@@ -63,11 +72,11 @@ Shader "Hidden/HBP/Dev/RenderingBaselinePatches"
                 }
                 else if (column == 1)
                 {
-                    color = tex2D(_SrgbTexture, float2(0.5, 0.5));
+                    color = SAMPLE_TEXTURE2D(_SrgbTexture, sampler_SrgbTexture, float2(0.5, 0.5));
                 }
                 else if (column == 2)
                 {
-                    color = tex2D(_LinearTexture, float2(0.5, 0.5));
+                    color = SAMPLE_TEXTURE2D(_LinearTexture, sampler_LinearTexture, float2(0.5, 0.5));
                 }
                 else
                 {
@@ -77,7 +86,7 @@ Shader "Hidden/HBP/Dev/RenderingBaselinePatches"
                 color.a = input.uv.y < 0.5 ? 0.5 : 1.0;
                 return color;
             }
-            ENDCG
+            ENDHLSL
         }
     }
 

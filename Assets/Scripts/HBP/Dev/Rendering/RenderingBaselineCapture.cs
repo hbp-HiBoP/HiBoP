@@ -18,9 +18,8 @@ using UnityEngine.Rendering;
 namespace HBP.Dev.Rendering
 {
     /// <summary>
-    /// Reproducible Built-in rendering baseline used by the URP migration.
-    /// This tool is intentionally isolated in the development assembly and never
-    /// modifies project assets or production rendering settings.
+    /// Reproducible rendering capture used to compare the Built-in baseline with
+    /// the current pipeline. Artifacts are isolated by pipeline.
     /// </summary>
     public static class RenderingBaselineCapture
     {
@@ -94,7 +93,7 @@ namespace HBP.Dev.Rendering
                 }
 
                 File.WriteAllText(Path.Combine(GetOutputRoot(), "latest-run.txt"), report.OutputDirectory);
-                Debug.Log($"Rendering baseline completed: {report.OutputDirectory}");
+                Debug.Log($"Rendering validation completed: {report.OutputDirectory}");
                 return report.OutputDirectory;
             }
             catch (Exception exception)
@@ -191,7 +190,8 @@ namespace HBP.Dev.Rendering
         private static string GetOutputRoot()
         {
             string projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
-            string outputRoot = Path.Combine(projectRoot, ".test-results", "rendering", "baseline-birp");
+            string pipelineDirectory = GraphicsSettings.currentRenderPipeline == null ? "baseline-birp" : "urp-phase2";
+            string outputRoot = Path.Combine(projectRoot, ".test-results", "rendering", pipelineDirectory);
             Directory.CreateDirectory(outputRoot);
             return outputRoot;
         }
@@ -336,12 +336,20 @@ namespace HBP.Dev.Rendering
                 float roiRadius = GetReferenceRadius(scene);
                 temporaryRoi = scene.ROIManager.AddROI("URP migration baseline");
                 temporaryRoi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Baseline sphere", roiPosition, roiRadius);
-                scene.ROIManager.ROICreationMode = false;
+                temporaryRoi.SelectedSphere.SetInfluenceRadius(roiRadius);
+                scene.ROIManager.ROICreationMode = true;
+                temporaryRoi.SelectSphere(-1);
                 await WaitForUpdatesAsync(scene);
                 await CaptureScenarioAsync(scene, report, "roi", "roi_wireframe", true);
-                scene.ROIManager.ROICreationMode = true;
+                temporaryRoi.SelectSphere(0);
                 await UniTask.NextFrame();
                 await CaptureScenarioAsync(scene, report, "roi_selection", "roi_selected", true);
+
+                temporaryRoi.SelectSphere(-1);
+                scene.IsBrainTransparent = true;
+                await WaitForUpdatesAsync(scene);
+                await CaptureScenarioAsync(scene, report, "roi_transparency", "roi_through_transparent_brain", true);
+                scene.IsBrainTransparent = false;
 
                 await CaptureCompositeAndVideoAsync(scene, report);
             }
@@ -494,19 +502,23 @@ namespace HBP.Dev.Rendering
 
             Mesh mesh = column.BrainMesh.GetComponent<MeshFilter>()?.sharedMesh;
             Material material = scene.BrainMaterials.BrainMaterial;
+            Texture anatomySource = material.GetTexture("_MainTex");
             Texture alphaSource = material.GetTexture("_AoTex");
             Texture colorSource = material.GetTexture("_ColorTex");
-            if (mesh == null || alphaSource == null || colorSource == null)
+            if (mesh == null || anatomySource == null || alphaSource == null || colorSource == null)
             {
                 report.Warnings.Add("Surface/cut samples unavailable: required surface textures are missing.");
                 return result;
             }
 
+            Texture2D anatomyTexture = CopyTextureToLinearReadable(anatomySource);
             Texture2D alphaTexture = CopyTextureToLinearReadable(alphaSource);
             Texture2D colorTexture = CopyTextureToLinearReadable(colorSource);
             Vector3[] vertices = mesh.vertices;
+            Vector2[] anatomyUvs = mesh.uv;
             Vector2[] alphaUvs = column.SurfaceGenerator.AlphaUV;
             Vector2[] colorUvs = column.SurfaceGenerator.ActivityUV;
+            Color materialTint = material.GetColor("_Color");
             try
             {
                 int cutCount = Math.Min(scene.Cuts.Count, column.CutTextures.BrainCutTextures.Count);
@@ -522,7 +534,7 @@ namespace HBP.Dev.Rendering
                     }
 
                     List<(int Index, float Distance, Vector2 CutUv)> candidates = new();
-                    int vertexCount = Math.Min(vertices.Length, Math.Min(alphaUvs.Length, colorUvs.Length));
+                    int vertexCount = Math.Min(vertices.Length, Math.Min(anatomyUvs.Length, Math.Min(alphaUvs.Length, colorUvs.Length)));
                     for (int vertexIndex = 0; vertexIndex < vertexCount; vertexIndex++)
                     {
                         Vector3 localPosition = vertices[vertexIndex];
@@ -536,39 +548,66 @@ namespace HBP.Dev.Rendering
 
                     candidates.Sort((left, right) => left.Distance.CompareTo(right.Distance));
                     int samples = Math.Min(5, candidates.Count);
-                    for (int sampleIndex = 0; sampleIndex < samples; sampleIndex++)
+                    Texture2D readableCutTexture = CopyTextureToLinearReadable(cutTexture);
+                    try
                     {
-                        (int vertexIndex, float distance, Vector2 cutUv) = candidates[sampleIndex];
-                        Color surfaceAlpha = alphaTexture.GetPixelBilinear(alphaUvs[vertexIndex].x, alphaUvs[vertexIndex].y);
-                        Color surfaceColor = colorTexture.GetPixelBilinear(colorUvs[vertexIndex].x, colorUvs[vertexIndex].y);
-                        Color cutColor = cutTexture.GetPixelBilinear(cutUv.x, cutUv.y);
-                        result.Add(new SeamSample
+                        for (int sampleIndex = 0; sampleIndex < samples; sampleIndex++)
                         {
-                            CutIndex = cutIndex,
-                            CutOrientation = cut.Orientation.ToString(),
-                            VertexIndex = vertexIndex,
-                            LocalPosition = vertices[vertexIndex],
-                            DistanceToCut = distance,
-                            CutUv = cutUv,
-                            SurfaceAlphaUv = alphaUvs[vertexIndex],
-                            SurfaceColorUv = colorUvs[vertexIndex],
-                            SurfaceAlphaSample = surfaceAlpha,
-                            SurfaceBoostedAlpha = Mathf.Clamp01(surfaceAlpha.r * 2.5f),
-                            SurfaceColormapSample = surfaceColor,
-                            CutSample = cutColor,
-                            RgbDistance = Mathf.Sqrt(Mathf.Pow(surfaceColor.r - cutColor.r, 2) + Mathf.Pow(surfaceColor.g - cutColor.g, 2) + Mathf.Pow(surfaceColor.b - cutColor.b, 2)),
-                            AlphaDistance = Mathf.Abs(Mathf.Clamp01(surfaceAlpha.r * 2.5f) - cutColor.a)
-                        });
+                            (int vertexIndex, float distance, Vector2 cutUv) = candidates[sampleIndex];
+                            Vector2 cutTextureUv = new(cutUv.y, 1.0f - cutUv.x - 0.005f);
+                            Color surfaceAnatomy = anatomyTexture.GetPixelBilinear(anatomyUvs[vertexIndex].x, anatomyUvs[vertexIndex].y) * materialTint;
+                            Color surfaceAlpha = alphaTexture.GetPixelBilinear(alphaUvs[vertexIndex].x, alphaUvs[vertexIndex].y);
+                            Color surfaceColor = colorTexture.GetPixelBilinear(colorUvs[vertexIndex].x, colorUvs[vertexIndex].y);
+                            Color cutColor = readableCutTexture.GetPixelBilinear(cutTextureUv.x, cutTextureUv.y);
+                            float legacyBoostedAlpha = Mathf.Clamp01(surfaceAlpha.r * 2.5f);
+                            float effectiveSurfaceAlpha = GraphicsSettings.currentRenderPipeline == null ? legacyBoostedAlpha : Mathf.Clamp01(surfaceAlpha.r);
+                            float surfaceTransparency = 1.0f - effectiveSurfaceAlpha;
+                            float paletteWeightedAlpha = 1.0f - surfaceTransparency * surfaceTransparency;
+                            Color surfaceComposed = Color.Lerp(surfaceAnatomy, surfaceColor, paletteWeightedAlpha);
+                            result.Add(new SeamSample
+                            {
+                                CutIndex = cutIndex,
+                                CutOrientation = cut.Orientation.ToString(),
+                                VertexIndex = vertexIndex,
+                                LocalPosition = vertices[vertexIndex],
+                                DistanceToCut = distance,
+                                CutUv = cutUv,
+                                CutTextureUv = cutTextureUv,
+                                SurfaceAnatomyUv = anatomyUvs[vertexIndex],
+                                SurfaceAlphaUv = alphaUvs[vertexIndex],
+                                SurfaceColorUv = colorUvs[vertexIndex],
+                                SurfaceAnatomySample = surfaceAnatomy,
+                                SurfaceAlphaSample = surfaceAlpha,
+                                SurfaceBoostedAlpha = legacyBoostedAlpha,
+                                SurfaceEffectiveAlpha = effectiveSurfaceAlpha,
+                                SurfaceColormapSample = surfaceColor,
+                                SurfaceComposedSample = surfaceComposed,
+                                CutSample = cutColor,
+                                ColormapRgbDistance = RgbDistance(surfaceColor, cutColor),
+                                RgbDistance = RgbDistance(surfaceComposed, cutColor),
+                                AlphaDistance = Mathf.Abs(effectiveSurfaceAlpha - cutColor.a)
+                            });
+                        }
+                    }
+                    finally
+                    {
+                        UnityEngine.Object.Destroy(readableCutTexture);
                     }
                 }
             }
             finally
             {
+                UnityEngine.Object.Destroy(anatomyTexture);
                 UnityEngine.Object.Destroy(alphaTexture);
                 UnityEngine.Object.Destroy(colorTexture);
             }
 
             return result;
+        }
+
+        private static float RgbDistance(Color left, Color right)
+        {
+            return Mathf.Sqrt(Mathf.Pow(left.r - right.r, 2) + Mathf.Pow(left.g - right.g, 2) + Mathf.Pow(left.b - right.b, 2));
         }
 
         private static Texture2D CopyTextureToLinearReadable(Texture source)
@@ -938,7 +977,7 @@ namespace HBP.Dev.Rendering
                 material.SetTexture("_LinearTexture", linearTexture);
                 renderer.sharedMaterial = material;
 
-                renderTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
+                renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)
                 {
                     antiAliasing = 1,
                     filterMode = FilterMode.Point

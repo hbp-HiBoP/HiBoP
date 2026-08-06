@@ -69,13 +69,13 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(246));
+            Assert.That(imports, Has.Count.EqualTo(248));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_export"), Is.Zero);
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports.Where(imported => imported.Dll == "hbp_core").Select(imported => imported.RelativeFile).Distinct().ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(192));
+            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(194));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
             Assert.That(imports.Any(imported => imported.Entry.Contains("PatientElectrodesList")), Is.False);
             Assert.That(imports.Any(imported => imported.RelativeFile == "ROI.cs"), Is.False);
@@ -1059,10 +1059,10 @@ namespace HBP.Tests.Serialization
                 Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
 
                 using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
-                surface.SetBuffers(new[] { new Vector3(1, 1, 2), new Vector3(3, 1, 2), new Vector3(1, 3, 2) }, new[] { 0, 1, 2 });
+                Assert.That(surface.LoadGIIFile(NativePath("Meshes", "single_surface.gii")), Is.True);
 
                 using GeneratorSurface generatorSurface = ExecuteNativeOrIgnore(() => new GeneratorSurface(), "hbp_core GeneratorSurface wrapper");
-                generatorSurface.Initialize(surface, volume, 8);
+                generatorSurface.Initialize(surface, volume, 80, VolumeInterpolation.Trilinear);
 
                 using RawSiteList rawSites = new();
                 rawSites.AddSite("S1", new Vector3(1, 1, 2), 0, 0);
@@ -1070,7 +1070,7 @@ namespace HBP.Tests.Serialization
 
                 using IEEGGenerator ieegGenerator = ExecuteNativeOrIgnore(() => new IEEGGenerator(), "hbp_core IEEGGenerator wrapper");
                 ieegGenerator.Initialize(generatorSurface);
-                ieegGenerator.ComputeActivity(rawSites, 10.0f, new[] { 1.0f, -0.5f }, 2, rawSites.NumberOfSites, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
+                ieegGenerator.ComputeActivity(rawSites, 1000.0f, new[] { 1.0f, -0.5f }, 2, rawSites.NumberOfSites, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
                 ieegGenerator.AdjustValues(0.0f, -1.0f, 1.0f);
                 AssertActivityUVs(surface, ieegGenerator);
 

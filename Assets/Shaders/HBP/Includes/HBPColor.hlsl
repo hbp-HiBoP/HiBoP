@@ -28,9 +28,16 @@ float HBP_NormalizeDiverging(float value, float minimum, float middle, float max
     return maximum == middle ? 0.5 : 0.5 + 0.5 * saturate((value - middle) / (maximum - middle));
 }
 
+float HBP_RemapScientificAlpha(float alpha)
+{
+    float clampedAlpha = saturate(alpha);
+    float transparency = 1.0 - clampedAlpha;
+    return 1.0 - transparency * transparency;
+}
+
 float3 HBP_ComposeScientificColor(float3 anatomyLinear, float3 scientificLinear, float alpha)
 {
-    return lerp(anatomyLinear, scientificLinear, saturate(alpha));
+    return lerp(anatomyLinear, scientificLinear, HBP_RemapScientificAlpha(alpha));
 }
 
 float HBP_ComposeAlpha(float normalizedSourceAlpha, float userAlpha)

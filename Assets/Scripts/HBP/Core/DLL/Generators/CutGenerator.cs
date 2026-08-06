@@ -48,6 +48,11 @@ namespace HBP.Core.DLL
             }
         }
 
+        public void SetMaskActivityOnMRIBackground(bool enabled)
+        {
+            ThrowIfFailed(hbp_cut_generator_set_mask_activity_on_mri_background(_handle.Handle, enabled ? 1 : 0));
+        }
+
         public void FillTextureWithAtlas(BrainAtlas atlas, float alpha, int selectedArea)
         {
             if (atlas == null) throw new ArgumentNullException(nameof(atlas));
@@ -155,6 +160,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_initialize(IntPtr generator, IntPtr activityGenerator, IntPtr geometryGenerator, int blurFactor);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_generator_set_mask_activity_on_mri_background", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_cut_generator_set_mask_activity_on_mri_background(IntPtr generator, int enabled);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_generator_fill_volume_rgba", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_cut_generator_fill_volume_rgba(IntPtr generator, [In] Color4[] colorScheme, int colorCount, float calMin, float calMax);

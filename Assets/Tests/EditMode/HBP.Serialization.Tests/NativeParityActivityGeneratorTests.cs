@@ -29,8 +29,8 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
-        [Category(NativeParityAssert.StrictParity)]
-        public void DensityActivitySurfaceUvs_MatchAcrossBackends()
+        [Category(NativeParityAssert.IntentionalCorrection)]
+        public void DensityActivitySurfaceUvs_UseIntentionalVolumeProjectionCorrection()
         {
             NativeParityAssert.RequireHbpCore();
 
@@ -38,15 +38,14 @@ namespace HBP.Tests.Serialization
             ActivityUvs hbpCoreUvs = ComputeDensityUvs(BenchmarkBackend.HbpCore);
 
             Assert.That(hbpCoreUvs.MaxDensity, Is.EqualTo(hbpExportUvs.MaxDensity).Within(0.0005f));
-            NativeParityAssert.AssertSameVectorArray(hbpCoreUvs.ActivityUV, hbpExportUvs.ActivityUV, 0.0005f);
-            NativeParityAssert.AssertSameVectorArray(hbpCoreUvs.AlphaUV, hbpExportUvs.AlphaUV, 0.0005f);
+            AssertIntentionalVolumeProjectionDifference(hbpCoreUvs, hbpExportUvs, "density");
         }
 
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
-        [Category(NativeParityAssert.StrictParity)]
-        public void IEEGActivitySurfaceUvs_MatchAcrossBackends()
+        [Category(NativeParityAssert.IntentionalCorrection)]
+        public void IEEGActivitySurfaceUvs_UseIntentionalVolumeProjectionCorrection()
         {
             NativeParityAssert.RequireHbpCore();
 
@@ -55,10 +54,8 @@ namespace HBP.Tests.Serialization
             ActivityUvs hbpExportTimeline1 = ComputeIeegUvs(BenchmarkBackend.HbpExport, timelineIndex: 1);
             ActivityUvs hbpCoreTimeline1 = ComputeIeegUvs(BenchmarkBackend.HbpCore, timelineIndex: 1);
 
-            NativeParityAssert.AssertSameVectorArray(hbpCoreTimeline0.ActivityUV, hbpExportTimeline0.ActivityUV, 0.0005f);
-            NativeParityAssert.AssertSameVectorArray(hbpCoreTimeline0.AlphaUV, hbpExportTimeline0.AlphaUV, 0.0005f);
-            NativeParityAssert.AssertSameVectorArray(hbpCoreTimeline1.ActivityUV, hbpExportTimeline1.ActivityUV, 0.0005f);
-            NativeParityAssert.AssertSameVectorArray(hbpCoreTimeline1.AlphaUV, hbpExportTimeline1.AlphaUV, 0.0005f);
+            AssertIntentionalVolumeProjectionDifference(hbpCoreTimeline0, hbpExportTimeline0, "iEEG timeline 0");
+            AssertIntentionalVolumeProjectionDifference(hbpCoreTimeline1, hbpExportTimeline1, "iEEG timeline 1");
         }
 
         [Test]
@@ -123,8 +120,8 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeParity")]
-        [Category(NativeParityAssert.StrictParity)]
-        public void DensityAndIeegEveryDistanceMode_MatchAcrossBackends()
+        [Category(NativeParityAssert.IntentionalCorrection)]
+        public void DensityAndIeegEveryDistanceMode_UseIntentionalVolumeProjectionCorrection()
         {
             NativeParityAssert.RequireHbpCore();
 
@@ -133,13 +130,21 @@ namespace HBP.Tests.Serialization
                 ActivityUvs exportDensity = ComputeDensityUvs(BenchmarkBackend.HbpExport, mode);
                 ActivityUvs coreDensity = ComputeDensityUvs(BenchmarkBackend.HbpCore, mode);
                 Assert.That(coreDensity.MaxDensity, Is.EqualTo(exportDensity.MaxDensity).Within(0.0005f), $"density max, {mode}");
-                NativeParityAssert.AssertSameVectorArray(coreDensity.ActivityUV, exportDensity.ActivityUV, 0.0005f);
-                NativeParityAssert.AssertSameVectorArray(coreDensity.AlphaUV, exportDensity.AlphaUV, 0.0005f);
 
                 ActivityUvs exportIeeg = ComputeIeegUvs(BenchmarkBackend.HbpExport, timelineIndex: 0, mode: mode);
                 ActivityUvs coreIeeg = ComputeIeegUvs(BenchmarkBackend.HbpCore, timelineIndex: 0, mode: mode);
-                NativeParityAssert.AssertSameVectorArray(coreIeeg.ActivityUV, exportIeeg.ActivityUV, 0.0005f);
-                NativeParityAssert.AssertSameVectorArray(coreIeeg.AlphaUV, exportIeeg.AlphaUV, 0.0005f);
+                if (mode == SiteInfluenceByDistanceType.Constant)
+                {
+                    NativeParityAssert.AssertSameVectorArray(coreDensity.ActivityUV, exportDensity.ActivityUV, 0.0005f);
+                    NativeParityAssert.AssertSameVectorArray(coreDensity.AlphaUV, exportDensity.AlphaUV, 0.0005f);
+                    NativeParityAssert.AssertSameVectorArray(coreIeeg.ActivityUV, exportIeeg.ActivityUV, 0.0005f);
+                    NativeParityAssert.AssertSameVectorArray(coreIeeg.AlphaUV, exportIeeg.AlphaUV, 0.0005f);
+                }
+                else
+                {
+                    AssertIntentionalVolumeProjectionDifference(coreDensity, exportDensity, $"density {mode}");
+                    AssertIntentionalVolumeProjectionDifference(coreIeeg, exportIeeg, $"iEEG {mode}");
+                }
             }
         }
 
@@ -447,6 +452,27 @@ namespace HBP.Tests.Serialization
         private static Vector3 ToNativePosition(Surface surface, Vector3 position)
         {
             return surface.Backend == BenchmarkBackend.HbpCore ? new Vector3(ReferenceSystemConversion.ConvertX(position.x), position.y, position.z) : position;
+        }
+
+        private static void AssertIntentionalVolumeProjectionDifference(ActivityUvs hbpCore, ActivityUvs legacy, string context)
+        {
+            Assert.That(hbpCore.ActivityUV, Has.Length.EqualTo(legacy.ActivityUV.Length), context);
+            Assert.That(hbpCore.AlphaUV, Has.Length.EqualTo(legacy.AlphaUV.Length), context);
+            bool differs = false;
+            for (int i = 0; i < hbpCore.ActivityUV.Length; ++i)
+            {
+                Vector2 activity = hbpCore.ActivityUV[i];
+                Vector2 alpha = hbpCore.AlphaUV[i];
+                Assert.That(float.IsFinite(activity.x) && float.IsFinite(activity.y), Is.True, $"{context} activity[{i}]");
+                Assert.That(float.IsFinite(alpha.x) && float.IsFinite(alpha.y), Is.True, $"{context} alpha[{i}]");
+                Assert.That(activity.x, Is.InRange(0.0f, 1.0f), $"{context} activity[{i}].x");
+                Assert.That(activity.y, Is.InRange(0.0f, 1.0f), $"{context} activity[{i}].y");
+                Assert.That(alpha.x, Is.InRange(0.0f, 1.0f), $"{context} alpha[{i}].x");
+                Assert.That(alpha.y, Is.InRange(0.0f, 1.0f), $"{context} alpha[{i}].y");
+                differs |= Vector2.Distance(activity, legacy.ActivityUV[i]) > 0.0005f || Vector2.Distance(alpha, legacy.AlphaUV[i]) > 0.0005f;
+            }
+
+            Assert.That(differs, Is.True, $"{context} should differ from the legacy surface-vertex projection.");
         }
 
         private enum GeneratorKind

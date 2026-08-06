@@ -3,10 +3,12 @@
 
 #define HBP_MAX_CLIP_PLANES 20
 
-int _StrongCuts;
-int _CutCount;
-float4 _CutPoints[HBP_MAX_CLIP_PLANES];
-float4 _CutNormals[HBP_MAX_CLIP_PLANES];
+#if !defined(HBP_CLIPPING_PROPERTIES_DECLARED)
+    int _StrongCuts;
+    int _CutCount;
+    float4 _CutPoints[HBP_MAX_CLIP_PLANES];
+    float4 _CutNormals[HBP_MAX_CLIP_PLANES];
+#endif
 
 float HBP_ClippingValue(float3 localPosition)
 {

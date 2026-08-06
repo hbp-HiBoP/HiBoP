@@ -54,6 +54,8 @@ namespace HBP.Core.Preferences
 
         [JsonProperty] public bool AutomaticEEGUpdate { get; set; }
         [JsonProperty] public bool RawCuts { get; set; }
+        [JsonProperty] public bool MaskActivityOnMRIBackground { get; set; }
+        [JsonProperty] public bool SmoothActivityBoundaries { get; set; }
         [JsonProperty] public LayoutDirection VisualizationsLayoutDirection { get; set; }
         [JsonProperty] public SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
         [JsonProperty] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
@@ -67,10 +69,12 @@ namespace HBP.Core.Preferences
 
         #region Constructors
 
-        public _3DPreferences(bool automaticEEGUpdate = true, bool rawCuts = false, LayoutDirection visualizationsLayoutDirection = LayoutDirection.Vertical, SiteInfluenceByDistanceType siteInfluenceByDistance = SiteInfluenceByDistanceType.Quadratic, string defaultSelectedMRIInSinglePatientVisualization = "Preimplantation", string defaultSelectedMeshInSinglePatientVisualization = "Grey matter", string defaultSelectedImplantationInSinglePatientVisualization = "Patient", string defaultSelectedMRIInMultiPatientsVisualization = "MNI", string defaultSelectedMeshInMultiPatientsVisualization = "MNI Grey matter", string defaultSelectedImplantationInMultiPatientsVisualization = "MNI")
+        public _3DPreferences(bool automaticEEGUpdate = true, bool rawCuts = false, LayoutDirection visualizationsLayoutDirection = LayoutDirection.Vertical, SiteInfluenceByDistanceType siteInfluenceByDistance = SiteInfluenceByDistanceType.Quadratic, string defaultSelectedMRIInSinglePatientVisualization = "Preimplantation", string defaultSelectedMeshInSinglePatientVisualization = "Grey matter", string defaultSelectedImplantationInSinglePatientVisualization = "Patient", string defaultSelectedMRIInMultiPatientsVisualization = "MNI", string defaultSelectedMeshInMultiPatientsVisualization = "MNI Grey matter", string defaultSelectedImplantationInMultiPatientsVisualization = "MNI", bool maskActivityOnMRIBackground = true, bool smoothActivityBoundaries = true)
         {
             AutomaticEEGUpdate = automaticEEGUpdate;
             RawCuts = rawCuts;
+            MaskActivityOnMRIBackground = maskActivityOnMRIBackground;
+            SmoothActivityBoundaries = smoothActivityBoundaries;
             VisualizationsLayoutDirection = visualizationsLayoutDirection;
             SiteInfluenceByDistance = siteInfluenceByDistance;
             DefaultSelectedMRIInSinglePatientVisualization = defaultSelectedMRIInSinglePatientVisualization;
@@ -87,7 +91,7 @@ namespace HBP.Core.Preferences
 
         public object Clone()
         {
-            return new _3DPreferences(AutomaticEEGUpdate, RawCuts, VisualizationsLayoutDirection, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization);
+            return new _3DPreferences(AutomaticEEGUpdate, RawCuts, VisualizationsLayoutDirection, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization, MaskActivityOnMRIBackground, SmoothActivityBoundaries);
         }
 
         #endregion

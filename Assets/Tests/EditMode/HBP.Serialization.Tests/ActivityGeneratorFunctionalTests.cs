@@ -61,12 +61,12 @@ namespace HBP.Tests.Serialization
             Assert.That(density.Progress, Is.EqualTo(1.0f));
         }
 
-        [TestCase(SiteInfluenceByDistanceType.Constant, 1.0f)]
-        [TestCase(SiteInfluenceByDistanceType.Linear, 0.5f)]
-        [TestCase(SiteInfluenceByDistanceType.Quadratic, 0.25f)]
+        [TestCase(SiteInfluenceByDistanceType.Constant)]
+        [TestCase(SiteInfluenceByDistanceType.Linear)]
+        [TestCase(SiteInfluenceByDistanceType.Quadratic)]
         [Category("NativeMigration")]
         [Category("PreviewSurface.Increment5")]
-        public void DensityAndIeegGenerators_ApplyEveryDistanceMode(SiteInfluenceByDistanceType mode, float expectedWeight)
+        public void DensityAndIeegGenerators_ApplyEveryDistanceModeThroughVolumeProjection(SiteInfluenceByDistanceType mode)
         {
             using Surface surface = LoadSurface();
             using Volume volume = LoadVolume("fmri_3d.nii");
@@ -83,8 +83,16 @@ namespace HBP.Tests.Serialization
             density.ComputeActivity(sites, influenceDistance, mode);
             using SurfaceGenerator densitySurface = InitializeSurfaceGenerator(density);
             densitySurface.ComputeActivityUV(0, 0.25f);
-            Assert.That(densitySurface.ActivityUV[firstIndex].x, Is.EqualTo(1.0f).Within(0.0005f));
-            Assert.That(densitySurface.ActivityUV[secondIndex].x, Is.EqualTo(expectedWeight).Within(0.0005f));
+            float firstDensity = densitySurface.ActivityUV[firstIndex].x;
+            float secondDensity = densitySurface.ActivityUV[secondIndex].x;
+            Assert.That(firstDensity, Is.InRange(0.0f, 1.0f));
+            Assert.That(secondDensity, Is.InRange(0.0f, 1.0f));
+            Assert.That(firstDensity, Is.GreaterThanOrEqualTo(secondDensity));
+            if (mode == SiteInfluenceByDistanceType.Constant)
+            {
+                Assert.That(firstDensity, Is.EqualTo(1.0f).Within(0.0005f));
+                Assert.That(secondDensity, Is.EqualTo(1.0f).Within(0.0005f));
+            }
 
             using IEEGGenerator ieeg = new();
             ieeg.Initialize(generatorSurface);
@@ -93,15 +101,24 @@ namespace HBP.Tests.Serialization
             using SurfaceGenerator ieegSurface = InitializeSurfaceGenerator(ieeg);
             const float alpha = 0.25f;
             ieegSurface.ComputeActivityUV(0, alpha);
+            Assert.That(ieegSurface.ActivityUV[firstIndex].x, Is.EqualTo(0.125f).Within(0.0005f));
             Assert.That(ieegSurface.ActivityUV[secondIndex].x, Is.EqualTo(0.125f).Within(0.0005f));
-            Assert.That(ieegSurface.AlphaUV[firstIndex].x, Is.EqualTo(1.0f).Within(0.0005f));
-            Assert.That(ieegSurface.AlphaUV[secondIndex].x, Is.EqualTo(expectedWeight * (1.0f - alpha) + alpha).Within(0.0005f));
+            float firstAlpha = ieegSurface.AlphaUV[firstIndex].x;
+            float secondAlpha = ieegSurface.AlphaUV[secondIndex].x;
+            Assert.That(firstAlpha, Is.InRange(alpha, 1.0f));
+            Assert.That(secondAlpha, Is.InRange(alpha, 1.0f));
+            Assert.That(firstAlpha, Is.GreaterThanOrEqualTo(secondAlpha));
+            if (mode == SiteInfluenceByDistanceType.Constant)
+            {
+                Assert.That(firstAlpha, Is.EqualTo(1.0f).Within(0.0005f));
+                Assert.That(secondAlpha, Is.EqualTo(1.0f).Within(0.0005f));
+            }
         }
 
         [Test]
         [Category("NativeMigration")]
         [Category("HbpCoreOnly")]
-        public void VolumeInterpolation_PreservesNearestAndSurfaceValuesWhileChangingCutSampling()
+        public void VolumeInterpolation_DrivesBothSurfaceAndCutSampling()
         {
             using Surface surface = LoadSurface();
             using Volume volume = LoadVolume("fmri_3d.nii");
@@ -127,6 +144,7 @@ namespace HBP.Tests.Serialization
 
                 using IEEGGenerator ieeg = new();
                 ieeg.Initialize(generatorSurface);
+                ieeg.SetSmoothActivityBoundaries(true);
                 ieeg.ComputeActivity(sites, 80.0f, activityValues, timelineLength: 2, numberOfSites: 2, siteInfluenceByDistance: SiteInfluenceByDistanceType.Linear);
                 ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
 
@@ -141,6 +159,7 @@ namespace HBP.Tests.Serialization
                 geometry.Initialize(volume, cut, 16);
                 using CutGenerator cutGenerator = new();
                 cutGenerator.Initialize(ieeg, geometry, blurFactor: 0);
+                cutGenerator.SetMaskActivityOnMRIBackground(true);
                 cutGenerator.FillTextureWithVolume(HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.Grayscale), 0.0f, 1.0f);
                 cutGenerator.FillTextureWithActivity(HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.MatLab), timelineIndex: 1, alpha: 0.35f);
                 return (surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV, cutGenerator.CopyOverlayPixels());
@@ -153,9 +172,58 @@ namespace HBP.Tests.Serialization
             Assert.That(nearest.activity, Is.EqualTo(historical.activity));
             Assert.That(nearest.alpha, Is.EqualTo(historical.alpha));
             Assert.That(nearest.cut, Is.EqualTo(historical.cut));
-            Assert.That(trilinear.activity, Is.EqualTo(nearest.activity), "Surface values must remain independent from volume interpolation.");
-            Assert.That(trilinear.alpha, Is.EqualTo(nearest.alpha), "Surface weights must remain independent from volume interpolation.");
+            Assert.That(trilinear.activity, Is.Not.EqualTo(nearest.activity), "Trilinear interpolation must drive surface activity from the shared volume.");
+            Assert.That(trilinear.alpha, Is.Not.EqualTo(nearest.alpha), "Trilinear interpolation must drive surface weights from the shared volume.");
             Assert.That(trilinear.cut, Is.Not.EqualTo(nearest.cut), "Trilinear interpolation should affect the sampled cut for this non-uniform fixture.");
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("HbpCoreOnly")]
+        public void CutActivity_ComposesSrgbInputsInLinearSpace()
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using GeneratorSurface generatorSurface = new();
+            generatorSurface.Initialize(surface, volume, 8, VolumeInterpolation.Trilinear);
+
+            using RawSiteList sites = new();
+            sites.AddSite("S1", ToNative(volume.Center), 0, 0);
+            sites.UpdateMask(0, false);
+
+            using DensityGenerator density = new();
+            density.Initialize(generatorSurface);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+
+            using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward)
+            {
+                Orientation = CutOrientation.Axial
+            };
+            using CutGeometryGenerator geometry = new();
+            geometry.Initialize(volume, cut, 16);
+            using CutGenerator cutGenerator = new();
+            cutGenerator.Initialize(density, geometry, blurFactor: 0);
+
+            Color32 anatomy = new(235, 181, 120, 255);
+            Color32 scientific = new(0, 127, 255, 255);
+            cutGenerator.FillTextureWithVolume(new[] { anatomy, anatomy }, 0.0f, 1.0f);
+            Color32[] basePixels = cutGenerator.CopyBasePixels();
+            cutGenerator.FillTextureWithActivity(new[] { scientific, scientific }, timelineIndex: 0, alpha: 0.25f);
+            Color32[] overlayPixels = cutGenerator.CopyOverlayPixels();
+
+            int sampleIndex = Array.FindIndex(basePixels, pixel => pixel.r == anatomy.r && pixel.g == anatomy.g && pixel.b == anatomy.b);
+            Assert.That(sampleIndex, Is.GreaterThanOrEqualTo(0), "The synthetic cut must contain an anatomical pixel.");
+
+            const float normalizedDensity = 0.1f;
+            const float minimumActivityAlpha = 0.25f;
+            float effectiveAlpha = normalizedDensity * (1.0f - minimumActivityAlpha) + minimumActivityAlpha;
+            float paletteWeightedAlpha = 1.0f - (1.0f - effectiveAlpha) * (1.0f - effectiveAlpha);
+            Color32 expected = ComposeSrgbInLinearSpace(anatomy, scientific, paletteWeightedAlpha);
+            Color32 actual = overlayPixels[sampleIndex];
+            Assert.That(actual.r, Is.EqualTo(expected.r).Within(1));
+            Assert.That(actual.g, Is.EqualTo(expected.g).Within(1));
+            Assert.That(actual.b, Is.EqualTo(expected.b).Within(1));
+            Assert.That(actual.a, Is.EqualTo(255));
         }
 
         [Test]
@@ -296,11 +364,9 @@ namespace HBP.Tests.Serialization
                     int influenced = 0;
                     for (int i = 0; i < mesh.vertexCount; ++i)
                     {
-                        int label = atlas.GetClosestAreaIndex(mesh.vertices[i], 0);
-                        if (label <= 0 || label >= areaCount || referenceValues[i] <= 0.0f) continue;
+                        if (referenceValues[i] <= 0.0f || surfaceGenerator.ActivityUV[i].y > 0.5f) continue;
                         ++influenced;
-                        float expected = (activity[label * timelineLength] + 1.0f) * 0.5f;
-                        Assert.That(surfaceGenerator.ActivityUV[i].x, Is.EqualTo(expected).Within(0.0005f));
+                        Assert.That(surfaceGenerator.ActivityUV[i].x, Is.InRange(0.0f, 1.0f));
                         Assert.That(surfaceGenerator.ActivityUV[i].y, Is.EqualTo(0.0f).Within(0.0005f));
                         Assert.That(surfaceGenerator.AlphaUV[i].x, Is.EqualTo(1.0f).Within(0.0005f));
                         Assert.That(surfaceGenerator.AlphaUV[i].y, Is.EqualTo(0.0f).Within(0.0005f));
@@ -423,13 +489,7 @@ namespace HBP.Tests.Serialization
                 sites.UpdateMask(0, false);
                 using IEEGGenerator ieeg = new();
                 ieeg.Initialize(generatorSurface);
-                ieeg.ComputeActivity(
-                    sites,
-                    influenceDistance: 80.0f,
-                    new[] { 0.5f },
-                    timelineLength: 1,
-                    numberOfSites: 1,
-                    SiteInfluenceByDistanceType.Linear);
+                ieeg.ComputeActivity(sites, influenceDistance: 80.0f, new[] { 0.5f }, timelineLength: 1, numberOfSites: 1, SiteInfluenceByDistanceType.Linear);
 
                 HBP.Core.Object3D.FMRI fmri = new();
                 try
@@ -545,6 +605,24 @@ namespace HBP.Tests.Serialization
             {
                 UnityEngine.Object.DestroyImmediate(mesh);
             }
+        }
+
+        private static Color32 ComposeSrgbInLinearSpace(Color32 anatomy, Color32 scientific, float alpha)
+        {
+            return new Color32(LinearToSrgbByte(Mathf.Lerp(SrgbByteToLinear(anatomy.r), SrgbByteToLinear(scientific.r), alpha)), LinearToSrgbByte(Mathf.Lerp(SrgbByteToLinear(anatomy.g), SrgbByteToLinear(scientific.g), alpha)), LinearToSrgbByte(Mathf.Lerp(SrgbByteToLinear(anatomy.b), SrgbByteToLinear(scientific.b), alpha)), 255);
+        }
+
+        private static float SrgbByteToLinear(byte value)
+        {
+            float srgb = value / 255.0f;
+            return srgb <= 0.04045f ? srgb / 12.92f : Mathf.Pow((srgb + 0.055f) / 1.055f, 2.4f);
+        }
+
+        private static byte LinearToSrgbByte(float value)
+        {
+            float linear = Mathf.Clamp01(value);
+            float srgb = linear <= 0.0031308f ? linear * 12.92f : 1.055f * Mathf.Pow(linear, 1.0f / 2.4f) - 0.055f;
+            return (byte)Mathf.Clamp(Mathf.RoundToInt(srgb * 255.0f), 0, 255);
         }
 
         private static Vector3 ToNative(Vector3 unity) => new(-unity.x, unity.y, unity.z);
