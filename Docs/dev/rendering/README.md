@@ -2,7 +2,7 @@
 
 ## Statut et portée
 
-**Statut :** décisions closes, prêt pour implémentation  
+**Statut :** phases 0 et 1 validées, phase 2 prête à démarrer  
 **Projet audité :** HiBoP sous Unity `6000.5.2f1`  
 **Date de l'audit initial :** 2026-07-23  
 **Pipeline actuel :** Built-in Render Pipeline  
@@ -74,6 +74,10 @@ pas explicitement amendées dans ce dossier :
    décision pour les mesures de plateforme.
 10. [10-implementation-plan.md](10-implementation-plan.md) : spécification
     canonique, phases, architecture, gates et définition de fini.
+11. [11-phase-0-baseline.md](11-phase-0-baseline.md) : baseline Built-in et
+    protocole reproductible de comparaison.
+12. [12-phase-1-foundation.md](12-phase-1-foundation.md) : assets URP, contrats
+    partagés et inventaire de migration des matériaux actifs.
 
 ## Hiérarchie des exigences
 
