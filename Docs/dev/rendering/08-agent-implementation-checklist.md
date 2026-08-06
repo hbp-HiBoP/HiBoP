@@ -3,7 +3,8 @@
 ## 1. Avant chaque lot
 
 - [ ] Lire `AGENTS.md` et tous les documents de ce dossier.
-- [ ] Vérifier le statut Git et ne pas écraser les changements utilisateur.
+- [ ] Ne faire aucune opération Git ; préserver les changements utilisateur et
+      laisser au responsable la gestion du HEAD et des comparaisons.
 - [ ] Identifier le jalon et la gate visés.
 - [ ] Définir un résultat observable et un test de régression.
 - [ ] Limiter le lot à pipeline, correction scientifique ou optimisation — pas
@@ -21,17 +22,18 @@
       prefab absente.
 - [ ] Vérifier les `.meta` et GUID.
 - [ ] Inspecter le diff YAML pour références perdues.
-- [ ] Si le converter URP est utilisé, commit préalable et scope limité.
+- [ ] Si le converter URP est utilisé, scope limité et revue de chaque asset.
 - [ ] Vérifier tous les niveaux de qualité, pas seulement le niveau actif.
 
 ## 3. Pipeline URP
 
-- [ ] Package compatible avec Unity 6000.5.2f1.
+- [ ] URP 17.5.0 avec Unity 6000.5.2f1.
 - [ ] URP Asset et Renderer Data explicites.
 - [ ] Universal Renderer en Forward.
+- [ ] Render Graph activé ; aucune dépendance au Compatibility Mode.
 - [ ] Linear conservé.
 - [ ] HDR/tone mapping/color grading désactivés au jalon initial.
-- [ ] Main light et ombres documentées.
+- [ ] Éclairage caméra-relatif documenté et shadow maps désactivées.
 - [ ] Additional lights désactivées si inutiles.
 - [ ] Opaque texture désactivée si inutilisée.
 - [ ] Depth/depth normals activées uniquement pour les consommateurs réels.
@@ -46,7 +48,8 @@
 - [ ] Atlas vérifié.
 - [ ] iEEG/fMRI/MEG vérifiés.
 - [ ] 0, 1 et 20 plans de coupe vérifiés.
-- [ ] Même clipping dans Forward, DepthOnly, DepthNormals et ShadowCaster.
+- [ ] Même clipping dans Forward, DepthOnly, DepthNormals et masque Edges ; pas
+      de ShadowCaster dans la cible initiale.
 - [ ] Variante opaque.
 - [ ] Variante transparente et ordre de rendu.
 - [ ] `UnityPerMaterial` CBUFFER.
@@ -90,7 +93,7 @@
 - [ ] Vue minimisée/invisible testée.
 - [ ] 100 redimensionnements sans croissance persistante.
 - [ ] 24 vues testées.
-- [ ] 60 vues testées ou limitation documentée.
+- [ ] 27 vues testées ; les cas au-delà sont de la robustesse optionnelle.
 - [ ] Culling masks et layers inchangés.
 
 ## 8. Contours
@@ -101,7 +104,7 @@
 - [ ] Opaque, transparent et clipping testés.
 - [ ] Activation/désactivation testée.
 - [ ] Épaisseur à plusieurs résolutions.
-- [ ] Coût 1, 24 et 60 vues.
+- [ ] Coût 1, 24 et 27 vues.
 - [ ] Export conforme.
 
 ## 9. Sites
@@ -112,18 +115,19 @@
 - [ ] Nombre de matériaux dynamiques mesuré.
 - [ ] 30 000 sites testés.
 - [ ] Sélection, survol, filtre, activité et blacklist testés.
-- [ ] 8×3 testé avec sites.
+- [ ] 8×3 et 9×3 testés avec sites ; l'extrême n'a pas de budget FPS.
 - [ ] Picking préservé si instancing.
-- [ ] Fallback plateforme défini si indirect draw/buffers avancés.
-- [ ] Avant/après sur Intel iGPU.
+- [ ] Un cercle coloré est accepté si une représentation moins coûteuse est
+      nécessaire.
+- [ ] Fallback simple défini si indirect draw/buffers avancés sont introduits.
+- [ ] Avant/après sur la même machine et le même cas réel.
 
 ## 10. ROI et transparence
 
 - [ ] Wireframe normal/sélectionné.
-- [ ] Geometry shader non supposé portable.
-- [ ] Fallback défini si WebGL confirmé.
+- [ ] Wireframe barycentrique sans geometry shader.
+- [ ] Compilation et rendu vérifiés sous Metal/Apple Silicon.
 - [ ] Tri cerveau/coupes/sites/ROI testé sous plusieurs angles.
-- [ ] VR testée avant validation finale de la technique transparente.
 
 ## 11. Export
 
@@ -131,6 +135,8 @@
 - [ ] Export individuel 2048×2048 ou résolution demandée.
 - [ ] Fond `(0,0,0,0)`.
 - [ ] Alpha de fond nul.
+- [ ] PNG encodé en straight alpha.
+- [ ] Recomposition sur fond blanc et `#282828` sans halo noir.
 - [ ] RGB comparable à la vue équivalente.
 - [ ] Export composite sur `#282828`.
 - [ ] État caméra restauré via chemin sûr.
@@ -163,6 +169,7 @@
       fausse.
 - [ ] Ne pas lancer Unity CLI dans la sandbox.
 - [ ] Ne jamais bloquer le main thread dans les tests async Unity.
+- [ ] Ne pas effectuer de checkout, branche, stage, commit, reset ou push.
 
 ## 14. Rapport de fin de lot
 
@@ -182,4 +189,3 @@ Risques ouverts :
 Validation humaine requise :
 Prochaine gate :
 ```
-

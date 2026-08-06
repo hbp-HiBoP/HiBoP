@@ -48,7 +48,9 @@ Chaque série possède un fichier JSON ou Markdown compagnon indiquant :
 
 ## 3. Protocole de capture
 
-1. Utiliser un dataset/version figé et identifiable.
+1. Utiliser un dataset/version figé et identifiable. La référence réelle
+   privilégiée est `visu_full_test` / visualisation `Small` lorsqu'elle est
+   disponible sur la machine.
 2. Charger une configuration enregistrée, pas une manipulation approximative.
 3. Attendre la fin des chargements, calculs et animations.
 4. Fixer timeline, caméra, taille de vue et thème.
@@ -76,7 +78,7 @@ Chaque série possède un fichier JSON ou Markdown compagnon indiquant :
 | EDGE-01 | contours | off/on, opaque/transparent |
 | EXP-01 | export individuel | fond alpha 0 |
 | EXP-02 | export composite | fond #282828 |
-| GRID-01 | grille | 1×1, 8×3, 12×5 si possible |
+| GRID-01 | grille | 1×1, 8×3, 9×3 ; extrême comme robustesse |
 
 ## 5. Tests colorimétriques déterministes
 
@@ -154,6 +156,7 @@ sur le fond masquer une erreur importante sur une petite région scientifique.
 - changement opaque/transparent ;
 - redimensionnement répété ;
 - export PNG et lecture de l'alpha ;
+- recomposition d'un PNG straight alpha sur fond blanc et `#282828` ;
 - création/suppression de colonnes et vues ;
 - contours on/off ;
 - sélection d'un site.
@@ -207,6 +210,10 @@ Validateur et date :
 Un refus doit être associé à une capture et à une description observable, pas
 seulement « différent ».
 
+La validation Built-in/URP du cerveau est perceptuelle. Une comparaison pixel
+par pixel globale n'est jamais une gate. Les comparaisons strictes sont
+réservées aux patchs scientifiques, aux mappings et aux invariants d'export.
+
 ## 11. Unity MCP pendant l'implémentation
 
 Lorsque l'éditeur est ouvert :
@@ -221,4 +228,3 @@ Lorsque l'éditeur est ouvert :
 Quand l'éditeur est fermé, utiliser le CLI officiel de la version indiquée par
 `ProjectSettings/ProjectVersion.txt`. Toute commande lançant `Unity.exe` doit
 être exécutée hors sandbox conformément à `AGENTS.md`.
-

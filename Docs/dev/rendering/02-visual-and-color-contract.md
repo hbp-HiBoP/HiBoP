@@ -134,14 +134,16 @@ La transparence peut être modernisée, sous réserve de préserver :
 - le clipping ;
 - l'export.
 
-La phase de parité doit caractériser le tri actuel. Une solution de type
-transparent classique est acceptable au premier jalon. Une amélioration
-ultérieure peut employer depth prepass, dither ou une autre technique, mais elle
-doit être évaluée sur la lisibilité scientifique et sur la VR.
+La cible utilise un transparent classique avec `ZWrite Off` et `Cull Back`.
+Sites, coupes et ROI doivent rester lisibles à travers le cerveau. L'ordre exact
+et les artefacts de superposition du Built-in ne sont pas normatifs.
 
 ## 8. Contours, sélection et ROI
 
 - Les contours sont une aide visuelle et peuvent être modernisés.
+- Ils concernent uniquement le cerveau et les coupes.
+- Ils utilisent profondeur/normales sur les objets opaques et uniquement la
+  silhouette extérieure sur les objets transparents.
 - Ils ne doivent pas modifier les pixels internes d'une zone scientifique.
 - Leur épaisseur doit rester visuellement stable entre les résolutions usuelles.
 - Ils doivent pouvoir être désactivés.
@@ -165,6 +167,10 @@ appliqué.
 - L'alpha du fond **DOIT** être zéro.
 - Les objets transparents doivent produire un alpha cohérent et ne pas être
   prémultipliés deux fois.
+- Le PNG final **DOIT** être en straight alpha, sans halo sombre lorsqu'il est
+  recomposé sur un fond clair ou foncé.
+- Les Edges **DOIVENT** suivre l'état de la vue et ne jamais rendre le fond
+  transparent noir ou opaque.
 - Aucun tone mapping ou color grading spécifique à l'export n'est autorisé.
 
 ### Export composite
@@ -204,7 +210,8 @@ Le corpus doit contenir au moins :
 9. ROI normal et sélectionné ;
 10. contours actifs/inactifs ;
 11. export transparent individuel et export composite ;
-12. 1×1 vue, 8×3 vues et scénario de stress 12×5.
+12. 1×1 vue, 8×3 vues et 9×3 vues ; le cas combiné extrême est un test de
+    robustesse sans objectif de fluidité.
 
 ## 12. Validation humaine obligatoire
 
@@ -219,4 +226,3 @@ valider :
 
 Chaque validation humaine doit consigner scène, configuration, capture, verdict
 et commentaire, même lorsque le verdict est « accepté sans réserve ».
-

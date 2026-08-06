@@ -1,158 +1,139 @@
-# Questions et arbitrages ouverts
+# Décisions closes et règles de mesure
 
-## Usage
+## Statut
 
-Ce document distingue les questions qui peuvent attendre de celles qui bloquent
-un jalon. Tant qu'une réponse n'est pas obtenue, la valeur temporaire indiquée
-doit être utilisée et marquée comme hypothèse dans l'implémentation.
+Toutes les questions qui bloquaient le démarrage de la migration sont closes.
+Ce fichier conserve les réponses afin d'éviter qu'elles soient rouvertes sans
+nouvelle décision produit. Les détails opérationnels se trouvent dans
+`10-implementation-plan.md`.
 
-## Q1 — Espace source des palettes
+## D1 — Espace source des palettes
 
-**Question :** les couleurs d'atlas, fMRI, iEEG et préférences sont-elles
-historiquement définies comme valeurs sRGB destinées à un écran ?
+**Décision :** les couleurs d'atlas, fMRI, iEEG, MEG, préférences et autres
+palettes destinées à l'affichage sont sRGB. Le projet reste Linear et effectue
+une unique conversion sRGB vers Linear avant composition.
 
-**Valeur temporaire recommandée :** oui, sRGB.
+**Preuve à produire :** fixture de patchs texture/vertex/coupe/légende et
+tolérance d'une unité 8 bits par canal dans un même environnement.
 
-**Pourquoi :** les couleurs éditées ou publiées sous forme de triplets RGB sont
-généralement des couleurs d'affichage. Le projet Linear doit les convertir une
-fois avant composition.
+## D2 — Performance de référence
 
-**Bloque :** Gate 4, contrat scientifique.  
-**Preuve attendue :** patchs connus et validation d'une palette de référence.
+**Décision :** aucune cible « Intel intégré » n'est imposée. La baseline est la
+performance Built-in du même cas réel, sur la même machine et à la même
+résolution.
 
-## Q2 — GPU Intel minimal concret
+**Verdict :** objectif égal ou meilleur ; investigation au-delà de 5 % ; gate
+refusée au-delà de 10 % de régression soutenue, sauf acceptation explicite.
 
-**Question :** quelle génération de chipset Intel intégré, quelle RAM, quelle
-résolution et quel OS représentent le minimum supporté ?
+## D3 — Définition des 30 000 sites
 
-**Valeur temporaire :** machine Intel intégrée la plus faible disponible dans
-le parc de test, précisément documentée.
+**Décision :** il s'agit de 30 000 sites source, donc potentiellement 30 000 par
+colonne. Neuf colonnes et trois vues sont possibles, soit jusqu'à 270 000
+instances réparties sur 27 vues.
 
-**Bloque :** validation finale de performance, pas le prototype.
+Ce cas extrême doit être fonctionnel, stable et sans fuite, mais il est normal
+qu'il soit lent. La gate performance utilise l'usage réel et un cas isolé de
+30 000 sites × 1 vue. Pour les sites, la performance prime largement sur la
+qualité : un simple cercle coloré est acceptable.
 
-## Q3 — Définition des 30 000 sites
+## D4 — VR
 
-**Question :** s'agit-il de 30 000 sites source avant clonage par colonne, de
-30 000 instances visibles totales, ou les deux selon le projet ?
+**Décision :** la certification VR est reportée dans un chantier séparé. Aucun
+casque, runtime ou budget XR ne bloque cette migration desktop.
 
-**Valeur temporaire :** tester 30 000 sites source et rapporter le nombre réel
-d'instances après colonnes.
+Les choix URP ne doivent pas rendre un portage futur artificiellement difficile,
+mais aucun fallback ou profil VR n'est implémenté sans besoin défini.
 
-**Bloque :** choix d'une refonte structurelle du renderer de sites.
+## D5 — WebGL
 
-## Q4 — VR
+**Décision :** WebGL est hors périmètre. Il ne doit imposer aucun compromis aux
+shaders, au renderer de sites, aux Edges ou aux ROI de cette migration.
 
-**Questions :**
+## D6 — macOS et Linux
 
-- quels casques ?
-- OpenXR ou autre runtime ?
-- fréquence cible ?
-- Windows uniquement ou casque autonome ?
-- mode single-pass instanced requis ?
-- contrôleurs et picking 3D concernés par cette migration ?
+**Décision macOS :** Apple Silicon uniquement, Metal, macOS 12.0 minimum selon
+les Player Settings actuels. Le geometry shader ROI est remplacé par un
+wireframe barycentrique.
 
-**Valeur temporaire :** garder l'architecture compatible OpenXR et éviter les
-techniques connues comme hostiles au stéréo ; ne pas certifier la VR.
+**Décision Linux :** Vulkan est essayé et supporté en premier. Si une machine
+Linux réellement ciblée échoue pour une raison de driver/backend, OpenGL Core
+est testé comme fallback. Il n'est conservé que s'il passe toute la matrice.
 
-**Bloque :** Gate plateforme VR et choix final de transparence/contours.
+Cette règle de décision remplace la nécessité de connaître à l'avance l'API
+historique exacte.
 
-## Q5 — WebGL
+## D7 — Budget de fluidité
 
-**Question :** WebGL est-il une cible de release supportée, un prototype ou une
-piste sans engagement ?
+**Décision :** pas de FPS absolu universel. Le cas réel
+`visu_full_test` / `Small` porte la comparaison relative Built-in/URP. Le cas
+combiné extrême est un test de robustesse, pas de fluidité.
 
-**Valeur temporaire :** piste exploratoire. Documenter les incompatibilités,
-mais ne pas dégrader le desktop/VR pour elle.
+## D8 — Transparence
 
-**Bloque :** choix définitif du renderer de sites et du wireframe ROI si WebGL
-devient requis.
+**Décision :** ne pas reproduire les artefacts de tri. Conserver le contrôle
+d'alpha, le clipping, l'export et la visibilité des sites, coupes et ROI à
+travers le cerveau. Utiliser un tri transparent classique, `ZWrite Off` et
+`Cull Back` au premier portage.
 
-## Q6 — macOS et Linux de référence
+L'export PNG individuel doit fournir un fond alpha zéro et un straight alpha
+correct, sans halo noir lorsqu'il est recomposé sur un autre fond.
 
-**Questions :**
+## D9 — Edges
 
-- macOS Intel, Apple Silicon ou les deux ?
-- version macOS minimale ?
-- distribution Linux, serveur d'affichage et API graphique ?
-- GPUs réellement présents chez les utilisateurs ?
+**Décision :** les Edges affectent uniquement le cerveau et les coupes. Les
+objets opaques ont des contours profondeur/normales ; les transparents ont leur
+silhouette extérieure seulement. Sites et ROI sont exclus.
 
-**Valeur temporaire :** Metal sur Apple Silicon pour le prototype macOS et API
-actuelle du projet pour Linux, sans certification.
+L'état on/off est reproduit dans PNG, composite et vidéo. Sur fond transparent,
+la feature ne doit pas noircir les pixels de fond.
 
-**Bloque :** Gate plateforme desktop.
+## D10 — Cas scientifiques de référence
 
-## Q7 — Budget de fluidité
+**Décision :** utiliser le projet `visu_full_test` et la visualisation `Small`
+sur la machine où ils sont disponibles. Compléter par des fixtures synthétiques
+pour les patchs colorimétriques, l'alpha, le clipping et les cas impossibles à
+figer dans un projet réel.
 
-**Question :** quel niveau est exigé pour chaque scénario : 30, 60, 72/90 FPS
-VR, ou seulement interaction sans blocage ?
+La plupart des verdicts anatomiques et visuels sont donnés à l'œil par le
+responsable du projet.
 
-**Valeur temporaire :** ne pas régresser de plus de 10 % sur l'usage courant et
-calibrer ensuite un budget absolu.
+## D11 — Gestion de couleur des captures
 
-**Bloque :** acceptation finale des performances.
+**Décision :** mesures sur PNG sRGB brut, SDR, sans HDR système ni traitement
+externe. La comparaison pixel par pixel globale du cerveau n'est pas une gate.
+Elle est réservée aux patchs scientifiques déterministes et aux invariants
+d'alpha/export.
 
-## Q8 — Transparence cible
+## D12 — Ombres et éclairage
 
-**Question :** faut-il reproduire exactement les artefacts de tri actuels au
-premier jalon, ou peut-on adopter directement une solution plus stable si les
-informations visibles restent identiques ?
+**Décision :** aucune shadow map dans le premier portage. L'anatomie utilise un
+éclairage caméra-relatif léger, avec AO et éventuellement un spéculaire discret.
+La gate est la lisibilité des sillons sans régression de performance.
 
-**Valeur temporaire :** parité du comportement, puis modernisation séparée.
+## D13 — Projection d'activité
 
-**Bloque :** uniquement si le port transparent classique produit une
-régression fonctionnelle.
+**Décision :** conserver pendant la migration les UV/valeurs par sommet de
+`SurfaceGenerator` et les pixels RGBA de `CutGenerator`. Harmoniser palette,
+seuils, interpolation, gamma et alpha.
 
-## Q9 — Contours
+La migration garantit que la discontinuité surface/voxel n'est pas aggravée.
+Un échantillonnage direct du volume 3D est reporté et n'est pas obligatoire.
 
-**Questions :**
+## D14 — Sélection des sites
 
-- quelle épaisseur/couleur est considérée comme référence ?
-- doivent-ils affecter les transparents, les coupes, les sites et les ROI ?
-- doivent-ils apparaître dans tous les exports ?
+**Décision :** préserver l'état de sélection, le picking et le retour UI
+existant. L'indication active auditée est le texte de toolbar
+`SelectedSite.cs`. Les assets `Select ring.prefab` et
+`SiteSelectionShader.shader` paraissent legacy et ne justifient pas la création
+d'un nouvel indicateur 3D ; ils seront vérifiés dans `Small` avant le nettoyage.
 
-**Valeur temporaire :** reproduire le scope AGM actuel, puis proposer une
-modernisation A/B.
+## Condition de réouverture
 
-**Bloque :** Gate 3.
+Une décision ci-dessus ne peut être rouverte que par :
 
-## Q10 — Cas scientifiques de référence
+- un besoin produit nouveau ;
+- une impossibilité technique prouvée sur une plateforme requise ;
+- une mesure reproductible montrant que la décision empêche de passer une gate.
 
-**Question :** quels projets/datasets peuvent être figés et partagés localement
-pour atlas, fMRI, iEEG, coupes et gros volume de sites ?
-
-**Valeur temporaire :** construire des fixtures synthétiques pour les tests
-automatiques et utiliser les projets réels au cas par cas pour la validation
-humaine.
-
-**Bloque :** Gate 0 pour au moins un cas de chaque famille ; extension du corpus
-possible pendant le portage.
-
-## Q11 — Gestion de couleur des captures
-
-**Question :** les moniteurs ou workflows de publication emploient-ils des
-profils ICC particuliers, du HDR système ou des écrans wide gamut ?
-
-**Valeur temporaire :** mesures sur PNG sRGB brut, écran SDR, HDR système
-désactivé. La validation humaine peut utiliser les écrans habituels mais doit
-indiquer leur contexte.
-
-**Bloque :** seulement si les écarts sont visibles entre postes malgré des PNG
-identiques.
-
-## Q12 — Ombres
-
-**Question :** les ombres du cerveau ont-elles une valeur fonctionnelle ou
-seulement esthétique ?
-
-**Valeur temporaire :** les conserver pour la parité anatomique, mais les
-interdire sur les overlays scientifiques et mesurer leur coût multi-vues.
-
-**Bloque :** choix du profil low-end, pas le prototype.
-
-## Ordre recommandé des réponses
-
-Pour démarrer la baseline : Q1, Q3 et Q10.  
-Avant de choisir les optimisations : Q2 et Q7.  
-Avant la validation multi-plateforme : Q4, Q5 et Q6.  
-Avant de figer le rendu modernisé : Q8, Q9 et Q12.
-
+Dans ce cas, mettre à jour simultanément ce fichier et
+`10-implementation-plan.md` avant de changer l'architecture.

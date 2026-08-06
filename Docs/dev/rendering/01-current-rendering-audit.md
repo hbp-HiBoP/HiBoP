@@ -76,8 +76,8 @@ fournit textures, drapeaux, alpha et tableaux de plans de coupe.
 - URP ne supporte pas les Surface Shaders Built-in.
 - Le shader doit être réécrit avec des passes URP explicites.
 - Le clipping doit être identique dans les passes Forward, DepthOnly,
-  DepthNormals et ShadowCaster pour éviter contours, profondeur ou ombres
-  incohérents.
+  DepthNormals et masque Edges. Une future passe ShadowCaster devrait réutiliser
+  le même code, mais les ombres sont hors de la cible initiale.
 - Le comportement transparent doit être caractérisé avant réécriture :
   profondeur, ordre, faces, clipping, contours et export.
 
@@ -129,8 +129,8 @@ de région et palette GPU si le gain est confirmé.
 - l'orientation de la lumière globale d'après la caméra.
 
 Ce dernier point produit un éclairage de type « headlight » relativement stable
-pour l'anatomie. Il doit être reproduit pendant la phase de parité, même si une
-autre direction artistique est envisagée ensuite.
+pour l'anatomie. Sa fonction doit être reproduite par le modèle léger
+caméra-relatif de la migration.
 
 Le prefab `Assets/Prefabs/3D/Scenes/View 3D.prefab` utilise :
 
@@ -157,10 +157,11 @@ d'un changement de taille avec :
 ne détruit pas explicitement son objet. Cette gestion doit être profilée pour
 détecter allocations et pression mémoire lors des redimensionnements.
 
-Dimensionnement fonctionnel fourni :
+Dimensionnement fonctionnel confirmé :
 
 - charge réaliste haute : 8 colonnes × 3 vues = 24 caméras/vues ;
-- limite théorique : 12 colonnes × 5 vues = 60 caméras/vues.
+- le protocole VISU peut atteindre 9 colonnes × 3 vues = 27 caméras/vues ;
+- les cas plus grands sont des tests de robustesse, pas des objectifs de FPS.
 
 Le coût par caméra est donc un multiplicateur majeur, même si le GPU n'a pas
 historiquement été le goulot d'étranglement.
@@ -180,15 +181,17 @@ modernisation de son apparence, mais les fonctions suivantes doivent être
 conservées :
 
 - activation/désactivation ;
-- contours lisibles sur cerveau opaque et transparent selon le comportement
-  validé ;
+- contours complets sur cerveau/coupes opaques et silhouette extérieure sur
+  cerveau/coupes transparents ;
 - cohérence avec les plans de coupe ;
 - coût compatible avec le nombre maximal de vues.
 
 ## 8. Sites
 
 Le shader `Assets/Resources/Shaders/SiteShader.shader` est un vertex/fragment
-unlit minimal : couleur uniforme, blending alpha et `ZWrite Off`.
+unlit minimal : couleur uniforme, blending alpha et `ZWrite Off`. Cette
+simplicité est une exigence cible : un cercle coloré suffit, la performance
+prime largement sur la qualité géométrique.
 
 L'architecture actuelle comporte :
 
@@ -208,11 +211,9 @@ mesurer chaque composante.
 
 ## 9. ROI et wireframe
 
-Le wireframe ROI tiers utilise un geometry shader. Cette solution peut être
-acceptable sur les desktops ciblés, mais elle constitue un risque pour WebGL,
-certaines APIs graphiques et la VR. Une variante à coordonnées barycentriques,
-un mesh d'arêtes ou un rendu alternatif doit être prévu avant de promettre la
-compatibilité WebGL.
+Le wireframe ROI tiers utilise un geometry shader, indisponible sous Metal. La
+cible macOS étant Apple Silicon/Metal, ce chemin doit être remplacé pendant la
+migration par un wireframe barycentrique URP sans geometry stage.
 
 ## 10. Export
 
@@ -230,15 +231,18 @@ appelle `Camera.Render`, effectue un `ReadPixels`, puis libère la texture. Le
 nouveau chemin doit définir explicitement le format colorimétrique, l'alpha,
 l'anti-aliasing et la destruction des ressources temporaires.
 
-## 11. Hypothèses à confirmer avant la première bascule
+## 11. Décisions prises après l'audit
 
-- Les palettes sources sont-elles définies conceptuellement en sRGB ? C'est
-  l'hypothèse recommandée pour les valeurs éditées comme couleurs UI.
-- Quelles variantes de casques et APIs XR doivent être prises en charge ?
-- Le rendu transparent actuel dépend-il d'un ordre précis entre cerveau, sites,
-  coupes et ROI ?
-- Quels modes de contours sont réellement utilisés en production ?
-- Le nombre de 30 000 sites désigne-t-il les sites source, les instances
-  visibles toutes colonnes confondues, ou les deux selon les projets ?
-- WebGL est-il une cible de livraison ou seulement une piste exploratoire ?
+- Les palettes sources sont sRGB et le projet reste Linear.
+- VR et WebGL sont hors périmètre de cette migration.
+- Le rendu transparent doit conserver la visibilité des sites, coupes et ROI,
+  sans reproduire les artefacts exacts de tri.
+- Les Edges concernent seulement cerveau/coupes : complets en opaque,
+  silhouette extérieure en transparent, y compris dans les exports.
+- Il existe 30 000 sites source, donc potentiellement 30 000 par colonne.
+- macOS cible Apple Silicon/Metal ; Linux cible d'abord Vulkan.
+- Les ombres temps réel sont supprimées du chemin initial au profit d'un
+  éclairage anatomique caméra-relatif léger.
 
+Les réponses complètes et le plan de réalisation sont dans
+`09-open-questions.md` et `10-implementation-plan.md`.

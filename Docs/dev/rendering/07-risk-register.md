@@ -60,14 +60,15 @@ culling multipliés par les vues ; shader URP générique plus complexe.
 - prototype instancing/picking séparé ;
 - fallback plateforme.
 
-**Preuve :** scénario stress sur Intel iGPU, fonctions de sélection incluses.
+**Preuve :** cas courant + scénario isolé 30 000 sites, fonctions de sélection
+incluses. Le cas multi-colonnes extrême est une preuve de robustesse, pas de FPS.
 
-## R4 — Coût multiplié par 24 à 60 caméras
+## R4 — Coût multiplié par 24 à 27 caméras
 
 **Probabilité :** élevée  
 **Impact :** élevé
 
-**Cause :** depth, normals, contours, ombres et culling exécutés par vue.
+**Cause :** depth, normals, contours et culling exécutés par vue.
 
 **Mitigation :**
 
@@ -75,9 +76,9 @@ culling multipliés par les vues ; shader URP générique plus complexe.
 - désactiver vues invisibles ;
 - réduire les passes optionnelles ;
 - RenderTextures réutilisées ;
-- rendu à la demande après parité.
+- rendu à la demande après le port fonctionnel.
 
-**Preuve :** profils 1×1, 8×3 et 12×5 sans fuite.
+**Preuve :** profils 1×1, 8×3 et 9×3 sans fuite.
 
 ## R5 — Fuite ou churn de RenderTextures
 
@@ -109,7 +110,7 @@ ressources temporaires d'export.
 - Renderer Feature URP dédiée ;
 - qualité/résolution configurables ;
 - depth/normals seulement si requis ;
-- benchmark 24/60 vues ;
+- benchmark 24/27 vues ;
 - modernisation validée humainement.
 
 **Preuve :** contours fonctionnels et dans le budget.
@@ -127,8 +128,7 @@ différents.
 - caractériser l'ordre Built-in ;
 - fixtures superposées ;
 - séparer par queues/passes ;
-- évaluer depth prepass ou dither seulement après parité ;
-- tester en VR.
+- évaluer depth prepass ou dither seulement après le port transparent classique.
 
 **Preuve :** cas transparents validés sous plusieurs angles.
 
@@ -145,32 +145,35 @@ différent.
 - même renderer/shaders ;
 - état d'export minimal ;
 - tests RGB/alpha ;
+- composition interne correcte et conversion unique vers PNG straight alpha ;
+- test de recomposition sur fond blanc et `#282828` sans halo ;
 - restauration `try/finally` ;
 - aucun color grading spécifique.
 
 **Preuve :** comparaisons automatisées et alpha de fond nul.
 
-## R9 — Geometry shader ROI non portable
+## R9 — Geometry shader ROI incompatible Metal
 
-**Probabilité :** élevée si WebGL, moyenne sinon  
-**Impact :** moyen
+**Probabilité :** certaine avec le chemin historique  
+**Impact :** élevé sur macOS
 
-**Cause :** geometry shader non disponible ou peu souhaitable selon API/VR.
+**Cause :** Metal ne prend pas en charge le geometry stage utilisé par le
+shader historique.
 
 **Mitigation :**
 
-- barycentriques ou mesh d'arêtes ;
-- matrice de capacités ;
-- fallback explicite.
+- barycentriques dans le mesh partagé ;
+- shader fragment URP ;
+- aucun geometry shader dans le chemin livré.
 
-**Preuve :** ROI sur chaque backend livré.
+**Preuve :** ROI normal/sélectionné sous Windows, Metal et Linux.
 
 ## R10 — Explosion de variantes shader
 
 **Probabilité :** moyenne  
 **Impact :** moyen à élevé
 
-**Cause :** combinaisons atlas, activité, clipping, transparence, ombres et
+**Cause :** combinaisons atlas, activité, clipping, transparence et
 contours.
 
 **Mitigation :**
@@ -208,8 +211,6 @@ custom.
 
 **Mitigation :**
 
-- branche dédiée ;
-- commit avant converter ;
 - conversion par scope ;
 - revue du diff ;
 - jamais considérer « sans erreur » comme « visuellement correct ».
@@ -234,37 +235,18 @@ les textures de base.
 **Preuve :** temps de hover indépendant du nombre de vertices, ou gain mesuré
 accepté.
 
-## R14 — VR insuffisamment spécifiée
+## R14 — VR reportée
 
-**Probabilité :** élevée  
-**Impact :** élevé
+**Statut :** fermé pour cette migration.
 
-**Cause :** casque, runtime, API, fréquence et mode stéréo non encore fixés.
+La certification XR est un chantier séparé. Elle ne constitue ni une gate ni
+une contrainte non spécifiée du port desktop.
 
-**Mitigation :**
+## R15 — WebGL hors périmètre
 
-- décision produit avant gate plateforme ;
-- prototype early XR ;
-- tests transparence/contours ;
-- budgets adaptés à la fréquence.
+**Statut :** fermé pour cette migration.
 
-**Preuve :** matrice XR remplie et test matériel.
-
-## R15 — WebGL influence prématurément l'architecture
-
-**Probabilité :** moyenne  
-**Impact :** moyen
-
-**Cause :** cible non décidée imposant des fallbacks complexes.
-
-**Mitigation :**
-
-- statut provisoire ;
-- interfaces/fallback documentés ;
-- pas de compromis de production sans décision ;
-- spike séparé.
-
-**Preuve :** décision go/no-go et liste de capacités.
+WebGL ne doit imposer aucun fallback ou compromis au renderer livré.
 
 ## R16 — Modernisation esthétique non maîtrisée
 
@@ -283,4 +265,3 @@ anti-aliasing.
 - nouvelles baselines versionnées.
 
 **Preuve :** chaque différence volontaire est identifiée et approuvée.
-

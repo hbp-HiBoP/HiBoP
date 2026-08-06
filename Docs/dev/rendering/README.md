@@ -2,7 +2,7 @@
 
 ## Statut et portée
 
-**Statut :** base de travail validable avant implémentation  
+**Statut :** décisions closes, prêt pour implémentation  
 **Projet audité :** HiBoP sous Unity `6000.5.2f1`  
 **Date de l'audit initial :** 2026-07-23  
 **Pipeline actuel :** Built-in Render Pipeline  
@@ -35,18 +35,23 @@ pas explicitement amendées dans ce dossier :
    composités après le calcul de cet éclairage.
 6. L'export d'une vue doit correspondre à l'affichage, à l'exception explicite
    du fond 3D qui doit être transparent dans l'export PNG individuel.
-7. La livraison se fait en deux temps :
-   - migration technique et parité fonctionnelle ;
-   - application du contrat scientifique, modernisation visuelle et
-     optimisations mesurées.
+7. Le port cerveau/coupes applique directement le contrat scientifique. Il ne
+   reproduit pas d'abord les erreurs colorimétriques historiques pour les
+   corriger dans un second temps.
 8. Le chemin de rendu des sites est un chantier dédié. Il peut y avoir jusqu'à
    30 000 sites et il est interdit de remplacer son shader par un shader URP
    générique sans profilage comparatif.
-9. Le dimensionnement doit couvrir 8 colonnes × 3 vues en usage réaliste et
-   12 colonnes × 5 vues en limite théorique.
-10. Les plateformes visées sont Windows, macOS, Linux et la VR. WebGL reste
-    provisoire et ne doit pas imposer des compromis tant que son statut n'est
-    pas décidé, mais les alternatives nécessaires doivent être documentées.
+9. Le dimensionnement réel couvre 8 à 9 colonnes × 3 vues. Trente mille sites
+   source peuvent exister par colonne ; le cas combiné extrême doit être stable,
+   sans objectif de fluidité.
+10. Les plateformes de cette migration sont Windows, macOS Apple Silicon/Metal
+    et Linux/Vulkan. La VR et WebGL sont explicitement reportés.
+11. L'anatomie utilise un éclairage caméra-relatif léger sans shadow maps. Les
+    sillons doivent rester lisibles.
+12. Les Edges concernent uniquement le cerveau et les coupes : contours
+    profondeur/normales en opaque, silhouette extérieure en transparent.
+13. Le wireframe ROI est réimplémenté sans geometry shader afin de fonctionner
+    sous Metal.
 
 ## Ordre de lecture
 
@@ -65,8 +70,10 @@ pas explicitement amendées dans ce dossier :
 7. [07-risk-register.md](07-risk-register.md) : risques, signaux et mitigations.
 8. [08-agent-implementation-checklist.md](08-agent-implementation-checklist.md) :
    checklist opérationnelle destinée à l'agent d'implémentation.
-9. [09-open-questions.md](09-open-questions.md) : décisions encore ouvertes,
-   valeur par défaut temporaire et jalon où elles deviennent bloquantes.
+9. [09-open-questions.md](09-open-questions.md) : décisions closes et règles de
+   décision pour les mesures de plateforme.
+10. [10-implementation-plan.md](10-implementation-plan.md) : spécification
+    canonique, phases, architecture, gates et définition de fini.
 
 ## Hiérarchie des exigences
 
@@ -75,8 +82,8 @@ En cas de conflit, appliquer cet ordre :
 1. exactitude scientifique des données et des couleurs ;
 2. absence de régression fonctionnelle ;
 3. correspondance entre affichage et export ;
-4. compatibilité Windows, macOS, Linux et VR ;
-5. performances sur le GPU minimal ;
+4. compatibilité Windows, macOS Apple Silicon et Linux ;
+5. performances dans les usages réels ;
 6. proximité avec le rendu Built-in historique ;
 7. modernisation esthétique.
 
@@ -89,7 +96,9 @@ Elle doit toutefois être documentée et validée visuellement.
 
 - Toute décision qui modifie le contrat visuel, les plateformes ou les budgets
   doit mettre à jour ce dossier dans le même changement de code.
-- Toute hypothèse non encore vérifiée doit rester marquée **À confirmer**.
+- Une découverte d'implémentation doit suivre la règle de décision du plan ; si
+  elle remet réellement en cause l'architecture, elle doit être documentée
+  explicitement avant modification du contrat.
 - Un résultat de profilage doit préciser machine, GPU, résolution, nombre de
   colonnes, nombre de vues, nombre de sites et scène utilisée.
 - Une capture de référence doit suivre le protocole de

@@ -2,25 +2,20 @@
 
 ## 1. Objectif
 
-La migration doit au minimum ne pas dégrader l'usage courant et doit préserver
-un fonctionnement acceptable sur un chipset Intel intégré. L'absence historique
-de problème GPU ne prouve pas que le GPU est le seul budget disponible : avec
-30 000 sites et jusqu'à 60 vues, le main thread, le render thread, le culling,
-la mémoire et les allocations peuvent dominer.
+La migration doit au minimum ne pas dégrader l'usage courant. Avec 30 000 sites
+source par colonne et jusqu'à 27 vues dans les configurations réelles hautes, le
+main thread, le render thread, le culling, la mémoire et les allocations peuvent
+dominer. Le cas combiné extrême est légal mais n'a pas d'objectif de fluidité.
 
 ## 2. Machines de référence
 
 Définir au minimum :
 
-- **Low desktop** : chipset Intel intégré représentatif, mémoire et CPU
-  documentés ;
-- **Typical desktop** : machine courante de développement/utilisateur ;
-- **macOS** : Intel ou Apple Silicon selon parc réel ;
-- **Linux** : machine/API réelle ;
-- **VR** : machine + casque + runtime.
-
-Ne pas choisir le low-end à partir du seul nom « Intel intégré ». La génération,
-le driver et la résolution changent fortement les performances.
+- **Référence Built-in/URP** : même machine courante de
+  développement/utilisateur, même résolution et même état ;
+- **macOS** : Apple Silicon/Metal ;
+- **Linux** : machine réelle sous Vulkan, puis OpenGL Core seulement si la
+  règle de fallback l'exige.
 
 ## 3. Scénarios
 
@@ -28,9 +23,13 @@ le driver et la résolution changent fortement les performances.
 | --- | ---: | ---: | --- |
 | Minimal | 1 × 1 | petit jeu | diagnostic |
 | Courant | configuration réelle médiane | réel | régression utilisateur |
-| Réaliste haut | 8 × 3 | élevé | cible principale |
-| Sites stress | 1 × 1 puis 8 × 3 | 30 000 | isolation + système |
-| Théorique | 12 × 5 | élevé | robustesse, pas nécessairement 60 FPS |
+| Réaliste haut | 8 × 3 ou 9 × 3 | élevé | montée en charge réelle |
+| Sites isolé | 1 × 1 | 30 000 | coût du renderer de sites |
+| Extrême légal | 9 × 3 | jusqu'à 30 000 par colonne | robustesse, sans budget FPS |
+
+Le scénario courant est en priorité le projet `visu_full_test` et la
+visualisation `Small`, avec ses paramètres sauvegardés et son état précisément
+consigné.
 
 Chaque scénario doit être testé :
 
@@ -66,9 +65,9 @@ Les FPS seuls sont insuffisants, en particulier si VSync masque les marges.
 Les budgets finaux doivent être calibrés sur la baseline Built-in. Avant cette
 mesure, utiliser des objectifs relatifs :
 
-- scénario courant : URP P95 <= Built-in P95 × 1.10 ;
-- scénario réaliste haut : aucune interaction > Built-in × 1.20 sans
-  justification ;
+- scénario courant : objectif URP P95 <= Built-in P95 ;
+- régression soutenue >5 % : investigation obligatoire ;
+- régression soutenue >10 % : gate refusée sauf acceptation explicite ;
 - frame statique : zéro allocation GC récurrente due au rendu ;
 - redimensionnement : allocations autorisées seulement lorsque le descripteur
   change, puis stabilisation ;
@@ -76,8 +75,8 @@ mesure, utiliser des objectifs relatifs :
 - couleur/atlas hover : ne doit pas provoquer une reconstruction globale si un
   changement uniforme suffit.
 
-Pour la VR, le budget sera déterminé par la fréquence du casque ; aucune
-reprojection permanente ne doit être considérée comme une réussite.
+Le scénario combiné extrême n'a pas de budget de frame time ; il doit rester
+fonctionnel, stable et sans fuite.
 
 ## 6. Priorité 1 — Multi-caméras
 
@@ -87,7 +86,7 @@ Mesurer et expérimenter :
 
 1. coût marginal d'une vue supplémentaire ;
 2. coût des depth/depth-normals ;
-3. coût des ombres par caméra ;
+3. vérifier que les ombres restent désactivées ;
 4. coût du full-screen contour par pixel et par caméra ;
 5. gain en désactivant une vue minimisée/masquée ;
 6. rendu à la demande quand caméra et données sont stables ;
@@ -115,6 +114,10 @@ Mesurer séparément :
 
 ### Prototypes possibles
 
+La qualité géométrique n'est pas une contrainte forte : si une refonte est
+nécessaire, un cercle ou quad caméra-relatif coloré est préférable à une sphère
+plus coûteuse.
+
 #### A. Optimisation conservatrice
 
 - conserver GameObjects et colliders ;
@@ -132,8 +135,8 @@ Faible risque, gain potentiellement limité par le nombre de renderers.
 - structure CPU spatiale ou picking GPU ;
 - GameObject uniquement pour le site sélectionné si nécessaire.
 
-Gain potentiel élevé ; complexité élevée pour filtres, transparence, colonnes,
-VR et WebGL.
+Gain potentiel élevé ; complexité élevée pour filtres, transparence, colonnes
+et picking.
 
 #### C. BatchRendererGroup / solution data-oriented
 
@@ -189,8 +192,8 @@ Optimisations possibles :
 - composition GPU ;
 - suppression de `GetPixels32` suivi de `SetPixels32`.
 
-Ne pas déplacer un calcul sur GPU sans vérifier disponibilité VR/WebGL et coût
-de maintenance.
+Ne pas déplacer un calcul sur GPU sans vérifier les trois plateformes desktop
+et le coût de maintenance.
 
 ## 10. Shader et variantes
 
@@ -200,7 +203,7 @@ de maintenance.
 - utiliser des précisions `half` uniquement après validation colorimétrique ;
 - garder `float` pour conversions ou valeurs scientifiques lorsque l'erreur
   `half` n'est pas acceptable ;
-- tester le clipping de 20 plans sur Intel iGPU ;
+- tester le clipping de 20 plans sur la machine de référence ;
 - comparer branche uniforme et variante pour les modes atlas/activité.
 
 ## 11. Ordre d'optimisation recommandé
@@ -231,4 +234,3 @@ Mémoire et GC :
 Résultat visuel :
 Conclusion : garder / rejeter / approfondir
 ```
-
