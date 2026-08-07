@@ -2,7 +2,8 @@
 
 ## Statut et portée
 
-**Statut :** phases 0 à 4 implémentées ; Gate 4 validée sous Windows
+**Statut :** phases 0 à 5 implémentées ; Gate 5 validée sous Windows
+
 **Projet audité :** HiBoP sous Unity `6000.5.2f1`  
 **Date de l'audit initial :** 2026-07-23  
 **Pipeline actuel :** Universal Render Pipeline, `HBP-Desktop-URP`  
@@ -85,6 +86,8 @@ pas explicitement amendées dans ce dossier :
 15. [15-phase-4-multiview-edges-exports.md](15-phase-4-multiview-edges-exports.md) :
     cycle de vie multi-vues, Edges Render Graph, exports straight alpha et
     validation Gate 4.
+16. [16-phase-5-scientific-performance.md](16-phase-5-scientific-performance.md) :
+    validation scientifique, comparaison Built-in/URP et décision Gate 5.
 
 ## Hiérarchie des exigences
 

@@ -38,6 +38,7 @@ namespace HBP.Dev.Rendering
         private const int HighViewSampleFrames = 900;
         private const int HighViewLineCount = 3;
         private static readonly Vector2Int BuiltInReferenceViewSize = new(348, 516);
+        private static readonly Vector2Int HighViewReferenceViewSize = new(112, 200);
         private static readonly Color CompositeBackground = new(40f / 255f, 40f / 255f, 40f / 255f, 1f);
 
         public static bool IsRunning { get; private set; }
@@ -966,6 +967,7 @@ namespace HBP.Dev.Rendering
                 return;
             }
 
+            Vector2Int? oldRenderTextureSizeOverride = View3DUI.RenderTextureSizeOverride;
             try
             {
                 Base3DScene highViewScene = await LoadReferenceSceneAsync(highViewProjectPath, highViewVisualizationName, true);
@@ -983,6 +985,8 @@ namespace HBP.Dev.Rendering
 
                 highViewScene.IsBrainTransparent = false;
                 highViewScene.EdgeMode = false;
+                View3DUI.RenderTextureSizeOverride = HighViewReferenceViewSize;
+                await RefreshViewRenderTexturesAsync();
                 await WaitForSceneReadyAsync(highViewScene);
                 await WaitForUpdatesAsync(highViewScene);
                 report.Memory.Add(CaptureMemorySnapshot("multi_view_9x3_ready", highViewScene, highViewProjectPath));
@@ -1009,6 +1013,8 @@ namespace HBP.Dev.Rendering
             }
             finally
             {
+                View3DUI.RenderTextureSizeOverride = oldRenderTextureSizeOverride;
+                await RefreshViewRenderTexturesAsync();
                 Base3DScene restoredScene = await LoadReferenceSceneAsync(referenceProjectPath, referenceVisualizationName, true);
                 for (int frame = 0; frame < 10; frame++)
                 {

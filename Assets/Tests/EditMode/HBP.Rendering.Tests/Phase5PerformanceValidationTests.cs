@@ -53,6 +53,7 @@ namespace HBP.Tests.Rendering
             StringAssert.Contains("private const int RealSampleFrames = 900", capture);
             StringAssert.Contains("private const int SiteStressSampleFrames = 900", capture);
             StringAssert.Contains("private const int HighViewSampleFrames = 900", capture);
+            StringAssert.Contains("HighViewReferenceViewSize = new(112, 200)", capture);
             StringAssert.Contains("urp-phase5", capture);
             StringAssert.Contains("public const int CurrentSchemaVersion = 3", report);
             StringAssert.Contains("GcAllocatedBytesPerFrame", report);

@@ -2,23 +2,36 @@
 
 ## Statut
 
-**État :** campagne URP opérationnelle ; Gate 5 en attente d'un nouveau passage
-Built-in avec le même collecteur.
+**État : Gate 5 validée sous Windows.**
 
-Ce document ne valide pas encore la Gate 5. Le baseline de phase 0 reste utile,
-mais il a été produit avec une autre disposition de l'éditeur et une version
-moins complète du collecteur. Une conclusion sur le seuil P95 de 10 % exige un
-dernier passage Built-in strictement symétrique.
+La comparaison Built-in/URP a été réalisée avec le même collecteur, sur la
+même machine, avec la même visualisation, les mêmes charges, les mêmes tailles
+de RenderTexture et 900 frames mesurées après 120 frames de chauffe. La
+validation visuelle finale de la DLL optimisée a été réalisée par le
+responsable du rendu.
 
-## Collecteur de phase 5
+La validation macOS Apple Silicon/Metal et Linux/Vulkan relève de la phase 6.
 
-`RenderingBaselineCapture` recharge désormais la visualisation depuis le
-projet avant chaque campagne. Il ne réutilise plus une scène éventuellement
-redimensionnée ou modifiée à la main.
+## Protocole définitif
 
-La campagne enregistre :
+Machine : Windows 11, NVIDIA GeForce RTX 2070 SUPER, Direct3D 11, Unity
+`6000.5.2f1`, qualité `Fantastic`, espace Linear.
 
-- opaque, transparent, Edges actif et inactif ;
+Campagnes normatives :
+
+- Built-in :
+  `.test-results/rendering/baseline-birp-phase5/20260807-191903/manifest.json` ;
+- URP :
+  `.test-results/rendering/urp-phase5/20260807-211822/manifest.json`.
+
+Tous les scénarios ont été enregistrés avec l'application focalisée au début
+et à la fin, sans mode idle, sans avertissement du collecteur et avec
+`Normative = true`.
+
+`RenderingBaselineCapture` recharge la visualisation `Small` depuis
+`visu_full_test` avant chaque campagne. Il mesure :
+
+- opaque et transparent, Edges actif et inactif ;
 - rotation continue de la caméra ;
 - mise à jour temporelle de l'activité ;
 - survol d'atlas ;
@@ -28,142 +41,133 @@ La campagne enregistre :
 - allocations GC par frame ;
 - mémoire Unity, mémoire réservée, mémoire graphique et RenderTextures vivantes.
 
-Chaque scénario de performance utilise 120 images de chauffe puis 900 images
-mesurées. Les instantanés mémoire distinguent les RenderTextures globales de
-Unity, les cibles réellement attachées aux caméras de la scène et les textures
-nommées et possédées par les vues HiBoP.
+Les tailles sont forcées uniquement pendant les mesures afin de comparer un
+nombre de pixels strictement identique :
 
-Le cas 9×3 est produit à partir des trois vraies colonnes de `Small`, dupliquées
-dans un projet de mesure conservé avec les artefacts. Il rend donc les vrais
-meshes, textures, sites, shaders et caméras du produit. La duplication évite de
-dépendre du projet historique `Mini / VISU`, dont certains chemins EEG ne sont
-plus présents sur cette machine.
+- `Small` : 3 × `348×516` = `538 704` pixels ;
+- 30 000 sites : 1 × `348×516` = `179 568` pixels ;
+- 9×3 : 27 × `112×200` = `604 800` pixels.
 
-Pour la comparaison avec le baseline de phase 0, les trois RenderTextures de
-`Small` sont forcées à `348×516`, soit exactement `538 704` pixels comme le
-passage Built-in. Cet override n'est actif que pendant la mesure. Hors campagne,
-la taille reste strictement celle du rectangle physique affiché à l'écran.
+Hors campagne, chaque vue reprend exactement la taille physique de son
+rectangle à l'écran, sans supersampling ni déformation de l'aspect.
 
-## Résultats URP provisoires
+## Comparaison Built-in / URP
 
-Machine : Windows 11, NVIDIA GeForce RTX 2070 SUPER, Direct3D 11, Unity
-`6000.5.2f1`, qualité `Fantastic`, espace Linear.
+Les valeurs ci-dessous proviennent des deux campagnes définitives. Les écarts
+sont calculés sur le temps de frame ; une valeur négative signifie que l'URP
+est plus rapide.
 
-Campagne URP de référence (schéma 3) :
-`.test-results/rendering/urp-phase5/20260807-175312/manifest.json`.
+| Scénario | Frame médiane BIRP / URP | Écart | Frame P95 BIRP / URP | Écart P95 | CPU main médian BIRP / URP | GPU médian BIRP / URP |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Témoin, caméras 3D coupées | 3,249 / 2,850 ms | −12,3 % | 25,757 / 3,455 ms | −86,6 % | 1,881 / 1,946 ms | 0,233 / 0,516 ms |
+| Opaque, Edges off | 4,546 / 3,872 ms | −14,8 % | 60,256 / 4,577 ms | −92,4 % | 2,476 / 2,905 ms | 0,694 / 0,625 ms |
+| Opaque, Edges on | 4,493 / 4,040 ms | −10,1 % | 15,704 / 4,910 ms | −68,7 % | 2,870 / 3,064 ms | 0,732 / 0,915 ms |
+| Transparent, Edges off | 3,975 / 3,859 ms | −2,9 % | 16,806 / 4,472 ms | −73,4 % | 2,462 / 2,888 ms | 0,399 / 0,627 ms |
+| Transparent, Edges on | 4,473 / 4,104 ms | −8,2 % | 16,635 / 4,958 ms | −70,2 % | 2,874 / 3,122 ms | 0,658 / 0,922 ms |
+| Rotation continue | 4,521 / 4,223 ms | −6,6 % | 17,374 / 5,183 ms | −70,2 % | 2,622 / 3,147 ms | 0,809 / 0,612 ms |
+| Activité temporelle | 16,581 / 19,512 ms | +17,7 % | 20,053 / 20,785 ms | +3,7 % | 15,070 / 18,418 ms | 0,902 / 0,801 ms |
+| Survol atlas | 4,717 / 4,605 ms | −2,4 % | 28,125 / 5,630 ms | −80,0 % | 6,499 / 6,556 ms | 0,860 / 0,849 ms |
+| Déplacement de coupe | 13,308 / 14,355 ms | +7,9 % | 16,260 / 16,584 ms | +2,0 % | 12,294 / 13,521 ms | 6,503 / 1,926 ms |
+| 30 000 sites, 1 vue | 38,075 / 17,573 ms | −53,8 % | 58,872 / 19,501 ms | −66,9 % | 26,876 / 16,346 ms | 25,359 / 11,268 ms |
+| 9×3, 604 800 pixels | 10,129 / 10,011 ms | −1,2 % | 23,104 / 11,068 ms | −52,1 % | 5,091 / 8,893 ms | 1,283 / 4,548 ms |
 
-| Scénario | Vues | Pixels rendus | Sites | Frame médiane | Frame P95 | CPU main médiane | CPU main P95 | GPU médiane |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Small opaque, Edges off | 3 | 538 704 | 1 299 | 4,759 ms | 11,184 ms | 3,275 ms | 4,035 ms | 0,334 ms |
-| Small opaque, Edges on | 3 | 538 704 | 1 299 | 5,009 ms | 16,285 ms | 3,472 ms | 4,264 ms | 0,430 ms |
-| Small transparent, Edges off | 3 | 538 704 | 1 299 | 9,646 ms | 22,935 ms | 3,242 ms | 4,034 ms | 0,298 ms |
-| Small transparent, Edges on | 3 | 538 704 | 1 299 | 5,111 ms | 11,382 ms | 3,526 ms | 4,254 ms | 0,387 ms |
-| 30 000 sites, 1 vue | 1 | 179 568 | 30 000 | 19,770 ms | 32,781 ms | 18,296 ms | 20,027 ms | 13,390 ms |
-| 9×3 | 27 | 603 216 | 3 897 | 11,835 ms | 29,728 ms | 10,216 ms | 11,607 ms | 3,790 ms |
+Le cas courant statique est égal ou meilleur en temps de frame. Les sites,
+priorité de performance de la migration, sont nettement plus rapides. Le cas
+9×3 conserve une médiane équivalente et un P95 meilleur, malgré une charge CPU
+et GPU supérieure due aux 27 caméras URP.
 
-Le temps mural entre deux images reste sensible à la planification de l'éditeur :
-le témoin avec toutes les caméras 3D désactivées mesure lui-même `13,241 ms` au
-P95, alors que son CPU main P95 n'est que de `2,924 ms`. La comparaison finale
-ne devra donc pas attribuer au pipeline les pauses également présentes dans ce
-témoin. Les valeurs CPU main, le différentiel par rapport au témoin et la
-campagne Built-in symétrique seront examinés ensemble.
+Deux charges dynamiques ont une médiane plus élevée : activité `+17,7 %` et
+coupe `+7,9 %`. Elles ne constituent pas une régression P95 soutenue supérieure
+à 10 % : leurs P95 respectifs sont `+3,7 %` et `+2,0 %`. Le rendu de l'activité
+est principalement limité par le calcul CPU natif du volume, pas par le GPU
+URP ; son GPU médian est même légèrement meilleur.
 
-Le CPU main du cas 9×3 reste sous 12 ms au P95 sur cette machine. Le cas extrême
-9×3 × 30 000 sites par colonne demeure un test de robustesse sans budget FPS et
-n'est pas synthétisé par cette campagne : le cas 30 000 mesure isolément le
-renderer de sites, et le 9×3 mesure isolément la multiplication des vues.
+## Optimisation native de l'activité
+
+Le lissage scientifiquement validé opère sur une grille volumique `80³`. Une
+première DLL fonctionnelle effectuait les passes activité, poids et support
+séparément, avec des allocations temporaires répétées. Sur la campagne
+`20260807-201832`, le scénario activité atteignait `38,816 ms` au P95.
+
+L'implémentation finale de `hbp_core` :
+
+- réutilise trois buffers temporaires persistants ;
+- traite activité, poids et support dans les mêmes parcours ;
+- parcourt chaque axe selon un ordre mémoire contigu ;
+- conserve les noyaux, le nombre de passes, l'ordre des opérations flottantes
+  et le résultat visuel.
+
+Le P95 activité tombe ainsi de `38,816 ms` à `20,785 ms`, soit une réduction de
+46,5 %, et revient à `+3,7 %` du Built-in.
+
+Le support ne peut pas être mis en cache globalement : pour l'activité
+volumique, sa présence dépend de la timeline et des seuils masqués. Une
+spécialisation propre à l'iEEG ajouterait de la complexité sans gain démontré ;
+elle est donc volontairement écartée de cette migration.
 
 ## Allocations et mémoire
 
-Le témoin `small_static_3d_cameras_disabled_control` mesure `10 513` octets de
-GC par frame. Le cas opaque avec les trois caméras mesure exactement la même
-médiane. Le rendu 3D statique n'ajoute donc aucune allocation récurrente ; les
-allocations observées viennent de la boucle application/éditeur et du
-collecteur, pas des caméras URP.
+Le témoin URP mesure `10 513` octets de GC par frame. Les vues statiques opaque
+et transparentes mesurent exactement la même médiane : le rendu 3D statique
+n'ajoute donc aucune allocation récurrente. Les allocations communes viennent
+de la boucle application/éditeur et du collecteur.
 
 Après fermeture du fixture 9×3 et rechargement de `Small` :
 
-- les RenderTextures globales créées reviennent de 51 à 21 ;
-- les RenderTextures possédées par les vues HiBoP reviennent exactement de 27
-  à 3, comme avant l'ouverture du fixture ;
-- les trois caméras de `Small` ont chacune une unique cible ;
+- les RenderTextures globales reviennent de 51 à 21 ;
+- les RenderTextures possédées par les vues HiBoP reviennent de 27 à 3 ;
+- les trois caméras de `Small` possèdent chacune une unique cible ;
 - la mémoire graphique revient de 354,6 Mo à 318,7 Mo, sous les 322,3 Mo
-  observés sur `Small` avant le cas haut.
+  observés avant le cas haut.
 
-Le total de pixels des trois cibles restaurées vaut `603 216` au lieu des
-`538 704` pixels de mesure : l'override de benchmark a alors été retiré et les
-vues sont revenues à leur taille physique courante (`354×568` chacune). Cette
-différence de dimensions n'est pas une ressource résiduelle.
+La mémoire réservée Unity est un high-water mark et n'est pas censée revenir
+immédiatement à sa valeur initiale. Les ressources graphiques possédées par
+HiBoP, elles, sont bien libérées.
 
-La mémoire réservée Unity reste un high-water mark et n'est pas censée revenir
-immédiatement à sa valeur initiale. Les ressources graphiques propriétaires,
-elles, sont bien libérées.
-
-## Contrôles visuels et fonctionnels
+## Contrôles scientifiques et fonctionnels
 
 La campagne produit 47 captures couvrant cerveau, activité, sites, atlas,
 coupes, transparence, Edges, ROI, export individuel, export composite, export
 vidéo et interface complète. Les exports PNG individuels conservent un fond
 alpha nul.
 
-Les validations humaines réalisées pendant les phases 2 à 4 couvrent déjà :
+La validation humaine couvre :
 
 - lecture du volume, des sillons et des couleurs scientifiques ;
 - continuité activité mesh/coupes ;
-- masque IRM et lissage de bord ;
+- masque IRM et lissage limité aux bords de l'activité ;
 - silhouette transparente ;
 - Edges limités au cerveau et aux coupes ;
 - cage analytique des ROI et états de sélection ;
-- exports PNG et vidéo.
+- exports PNG et vidéo ;
+- rendu final avec la DLL native optimisée.
 
-Le collecteur retire maintenant les coupes temporaires avant les captures ROI
-et attend l'extinction des gizmos de coupe afin que chaque famille de captures
-reste indépendante.
-
-Validation automatique courante :
+Validation automatique finale :
 
 - `HBP.Rendering.Tests` : 79/79 ;
 - `HBP.Module3D.PlayModeTests` : 43/43 ;
-- aucune erreur de compilation ou d'exécution pendant la campagne complète.
+- tests natifs `hbp_core` : 13/13 ;
+- contrat ABI Windows : 212 symboles ;
+- dépendances natives inspectées avec succès ;
+- zéro avertissement dans les deux manifestes normatifs.
 
-## Optimisations évaluées et rejetées
+Une `MissingReferenceException` isolée a été observée après l'arrêt manuel du
+Play Mode : une mise à jour asynchrone de collider a repris pendant la
+destruction de la scène. Elle n'est pas apparue pendant la campagne, ne se
+répète pas une fois l'éditeur revenu au repos et n'affecte ni les résultats ni
+le produit exécuté. Elle relève du cycle de vie général de `Base3DScene`, pas du
+pipeline de rendu.
 
-Deux changements ont été essayés avec le même collecteur puis annulés :
+## Décision Gate 5
 
-1. passer le mode de texture intermédiaire URP de `Always` à `Auto` ;
-2. désactiver l'occlusion culling des caméras 3D.
+La Gate 5 est validée sous Windows :
 
-Aucun des deux ne produit un gain net et répétable sur `Small`. Ils dégradent
-même plusieurs médianes CPU. Ils ne font donc pas partie de la migration.
+- aucun défaut scientifique ou fonctionnel de rendu n'est ouvert ;
+- la validation humaine finale est acquise ;
+- le cas courant est égal ou meilleur en temps de frame ;
+- aucune régression P95 soutenue ne dépasse 10 % ;
+- les écarts dynamiques sont mesurés, expliqués et acceptés ;
+- le rendu statique n'ajoute pas d'allocation GC récurrente ;
+- la mémoire des vues revient à son plateau après le cas 9×3.
 
-## Condition restante pour la Gate 5
-
-Le baseline historique indique `2,857 ms` au P95 sur `Small`, mais il ne contient
-ni témoin sans caméras ni métriques GC, et sa session d'éditeur n'est pas la
-même. Le passage URP montre par ailleurs que ses pointes P95 existent aussi dans
-le témoin sans caméras 3D. Une comparaison brute de ces deux fichiers
-attribuerait donc à tort tout le bruit de l'éditeur au pipeline.
-
-La Gate 5 sera close après :
-
-1. un passage Built-in au commit de phase 0 avec le collecteur de schéma 3 ;
-2. comparaison des scénarios à `348×516` par vue ;
-3. validation humaine des captures finales `Small` ;
-4. consignation de la décision P95, puis mise à jour du statut dans le README.
-
-Le port temporaire vers le commit Built-in doit rester volontairement minimal :
-
-- reprendre `RenderingBaselineCapture` et `RenderingBaselineReport` du commit de
-  phase 5 ;
-- ajouter à l'ancien `View3DUI` uniquement l'override statique de taille et le
-  calcul d'aspect associé ;
-- ne reprendre ni le propriétaire de RenderTexture URP, ni les shaders, ni les
-  matériaux ou assets de pipeline de la migration ;
-- conserver le projet, la visualisation, la taille `348×516`, les 120 images de
-  chauffe et les 900 images mesurées strictement identiques.
-
-La compatibilité statique avec l'API de `25ebdc125` a été vérifiée. Les API de
-scène, coupes, atlas, caméra, vues, sites et suspension du mode idle requises par
-le collecteur existent déjà dans ce commit. La seule adaptation attendue est
-donc bien l'override de taille dans l'ancien chemin d'allocation de
-`View3DUI`.
+Les phases 6 et 7 restent reportées conformément à la décision de projet.
