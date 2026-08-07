@@ -100,6 +100,12 @@ namespace HBP.UI.Module3D
         private readonly HBPRenderTextureOwner m_RenderTextureOwner = new();
 
         /// <summary>
+        /// Optional deterministic size used by rendering performance captures.
+        /// Normal application rendering keeps this value null and follows the physical screen rectangle.
+        /// </summary>
+        public static Vector2Int? RenderTextureSizeOverride { get; set; }
+
+        /// <summary>
         /// True if we are using render textures for the cameras (instead of changing the viewport)
         /// </summary>
         public bool UsingRenderTexture
@@ -236,6 +242,11 @@ namespace HBP.UI.Module3D
 
         private static Vector2Int GetRenderTextureSize(RectTransform rectTransform)
         {
+            if (RenderTextureSizeOverride is Vector2Int overrideSize)
+            {
+                return new Vector2Int(Mathf.Max(1, overrideSize.x), Mathf.Max(1, overrideSize.y));
+            }
+
             Rect screenRect = rectTransform.ToScreenSpace();
             return new Vector2Int(Mathf.Max(1, Mathf.RoundToInt(screenRect.width)), Mathf.Max(1, Mathf.RoundToInt(screenRect.height)));
         }

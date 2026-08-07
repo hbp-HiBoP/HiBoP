@@ -7,7 +7,7 @@ namespace HBP.Dev.Rendering
     [Serializable]
     public sealed class RenderingBaselineReport
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 3;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public string RunId;
@@ -19,6 +19,7 @@ namespace HBP.Dev.Rendering
         public SceneConfiguration Scene = new();
         public List<CaptureRecord> Captures = new();
         public List<PerformanceRecord> Performance = new();
+        public List<MemorySnapshot> Memory = new();
         public List<SeamSample> SurfaceCutSamples = new();
         public PatchFixtureRecord PatchFixture = new();
         public List<string> Warnings = new();
@@ -124,6 +125,9 @@ namespace HBP.Dev.Rendering
     public sealed class PerformanceRecord
     {
         public string Scenario;
+        public string Workload;
+        public string ProjectPath;
+        public string Visualization;
         public bool ApplicationFocusedAtStart;
         public bool ApplicationFocusedAtEnd;
         public bool IdleThrottled;
@@ -133,6 +137,7 @@ namespace HBP.Dev.Rendering
         public int SampleFrames;
         public int ColumnCount;
         public int EnabledViewCount;
+        public long EnabledViewPixelCount;
         public int RenderedSiteCount;
         public int SiteGameObjectCount;
         public int SiteRendererCount;
@@ -146,6 +151,28 @@ namespace HBP.Dev.Rendering
         public MetricStatistics SetPassCalls;
         public MetricStatistics Triangles;
         public MetricStatistics Vertices;
+        public MetricStatistics GcAllocatedBytesPerFrame;
+    }
+
+    [Serializable]
+    public sealed class MemorySnapshot
+    {
+        public string Scenario;
+        public string ProjectPath;
+        public string Visualization;
+        public int ColumnCount;
+        public int ViewCount;
+        public int EnabledViewCount;
+        public int LiveRenderTextureCount;
+        public int CreatedRenderTextureCount;
+        public long CreatedRenderTexturePixelCount;
+        public int SceneTargetRenderTextureCount;
+        public long SceneTargetRenderTexturePixelCount;
+        public int HbpViewRenderTextureCount;
+        public long HbpViewRenderTexturePixelCount;
+        public long TotalAllocatedMemoryBytes;
+        public long TotalReservedMemoryBytes;
+        public long GraphicsDriverAllocatedMemoryBytes;
     }
 
     [Serializable]

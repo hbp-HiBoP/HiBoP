@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -11,6 +12,7 @@ using HBP.Data.Module3D;
 using HBP.Data.Tools;
 using HBP.UI.Module3D;
 using HBP.UI.Tools;
+using Newtonsoft.Json.Linq;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -25,12 +27,17 @@ namespace HBP.Dev.Rendering
     {
         private const string DefaultProjectName = "visu_full_test.hibop";
         private const string DefaultVisualizationName = "Small";
+        private const string DefaultHighViewVisualizationName = "Phase5 9x3";
         private const int ExportSize = 2048;
         private const int RealWarmupFrames = 120;
-        private const int RealSampleFrames = 300;
+        private const int RealSampleFrames = 900;
         private const int SiteStressTarget = 30000;
         private const int SiteStressWarmupFrames = 120;
-        private const int SiteStressSampleFrames = 300;
+        private const int SiteStressSampleFrames = 900;
+        private const int HighViewWarmupFrames = 120;
+        private const int HighViewSampleFrames = 900;
+        private const int HighViewLineCount = 3;
+        private static readonly Vector2Int BuiltInReferenceViewSize = new(348, 516);
         private static readonly Color CompositeBackground = new(40f / 255f, 40f / 255f, 40f / 255f, 1f);
 
         public static bool IsRunning { get; private set; }
@@ -46,6 +53,17 @@ namespace HBP.Dev.Rendering
             }
 
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", DefaultProjectName);
+        }
+
+        public static string ResolveHighViewProjectPath()
+        {
+            string fromEnvironment = Environment.GetEnvironmentVariable("HIBOP_RENDERING_HIGH_VIEW_PROJECT");
+            if (!string.IsNullOrWhiteSpace(fromEnvironment))
+            {
+                return Path.GetFullPath(fromEnvironment);
+            }
+
+            return null;
         }
 
         public static async UniTask<string> RunAsync(string projectPath = null, string visualizationName = DefaultVisualizationName, bool includeSiteStress = true)
@@ -73,25 +91,43 @@ namespace HBP.Dev.Rendering
             try
             {
                 projectPath ??= ResolveDefaultProjectPath();
-                Base3DScene scene = await LoadReferenceSceneAsync(projectPath, visualizationName);
+                Base3DScene scene = await LoadReferenceSceneAsync(projectPath, visualizationName, true);
                 report = CreateReport(scene, projectPath);
                 LastRunDirectory = report.OutputDirectory;
                 Directory.CreateDirectory(report.OutputDirectory);
+                report.Memory.Add(CaptureMemorySnapshot("small_ready", scene, projectPath));
                 WriteReport(report);
 
                 await CaptureReferenceCasesAsync(scene, report);
                 SiteInventory realSiteInventory = CaptureSiteInventory(scene.Columns.SelectMany(column => column.Sites).Select(site => site.gameObject));
-                report.Performance.Add(await SamplePerformanceAsync("visu_full_test_Small", scene, RealWarmupFrames, RealSampleFrames, scene.Columns.Sum(column => column.Sites.Count), realSiteInventory));
-                WriteReport(report);
+                Vector2Int? oldRenderTextureSizeOverride = View3DUI.RenderTextureSizeOverride;
+                try
+                {
+                    View3DUI.RenderTextureSizeOverride = BuiltInReferenceViewSize;
+                    await RefreshViewRenderTexturesAsync();
+                    await SampleReferencePerformanceMatrixAsync(scene, report, projectPath, realSiteInventory);
+                    report.Memory.Add(CaptureMemorySnapshot("small_after_reference_matrix", scene, projectPath));
+                    WriteReport(report);
+
+                    if (includeSiteStress)
+                    {
+                        report.Performance.Add(await SampleSiteStressAsync(scene, report, projectPath));
+                        await UniTask.NextFrame();
+                        report.Memory.Add(CaptureMemorySnapshot("small_after_30000_site_cleanup", scene, projectPath));
+                        WriteReport(report);
+                    }
+                }
+                finally
+                {
+                    View3DUI.RenderTextureSizeOverride = oldRenderTextureSizeOverride;
+                    await RefreshViewRenderTexturesAsync();
+                }
 
                 report.PatchFixture = CapturePatchFixture(report.OutputDirectory);
                 WriteReport(report);
 
-                if (includeSiteStress)
-                {
-                    report.Performance.Add(await SampleSiteStressAsync(scene, report));
-                    WriteReport(report);
-                }
+                await SampleHighViewScenarioAsync(report, projectPath, visualizationName);
+                WriteReport(report);
 
                 File.WriteAllText(Path.Combine(GetOutputRoot(), "latest-run.txt"), report.OutputDirectory);
                 Debug.Log($"Rendering validation completed: {report.OutputDirectory}");
@@ -121,10 +157,10 @@ namespace HBP.Dev.Rendering
             }
         }
 
-        private static async UniTask<Base3DScene> LoadReferenceSceneAsync(string projectPath, string visualizationName)
+        private static async UniTask<Base3DScene> LoadReferenceSceneAsync(string projectPath, string visualizationName, bool forceReload = false)
         {
             Base3DScene loadedScene = Module3DMain.Scenes.FirstOrDefault(scene => scene.Name == visualizationName);
-            if (loadedScene != null)
+            if (!forceReload && loadedScene != null)
             {
                 await WaitForSceneReadyAsync(loadedScene);
                 return loadedScene;
@@ -172,6 +208,25 @@ namespace HBP.Dev.Rendering
             throw new TimeoutException($"Scene '{scene.Name}' did not become render-ready after {maximumFrames} frames.");
         }
 
+        private static async UniTask RefreshViewRenderTexturesAsync()
+        {
+            View3DUI[] viewUis = UnityEngine.Object.FindObjectsByType<View3DUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            foreach (View3DUI viewUi in viewUis)
+            {
+                if (!viewUi.isActiveAndEnabled)
+                {
+                    continue;
+                }
+
+                bool wasUsingRenderTexture = viewUi.UsingRenderTexture;
+                viewUi.UsingRenderTexture = false;
+                viewUi.UsingRenderTexture = wasUsingRenderTexture;
+            }
+
+            await UniTask.NextFrame();
+            await UniTask.NextFrame();
+        }
+
         private static RenderingBaselineReport CreateReport(Base3DScene scene, string projectPath)
         {
             string runId = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
@@ -191,7 +246,7 @@ namespace HBP.Dev.Rendering
         private static string GetOutputRoot()
         {
             string projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
-            string pipelineDirectory = GraphicsSettings.currentRenderPipeline == null ? "baseline-birp" : "urp-phase4";
+            string pipelineDirectory = GraphicsSettings.currentRenderPipeline == null ? "baseline-birp-phase5" : "urp-phase5";
             string outputRoot = Path.Combine(projectRoot, ".test-results", "rendering", pipelineDirectory);
             Directory.CreateDirectory(outputRoot);
             return outputRoot;
@@ -325,6 +380,7 @@ namespace HBP.Dev.Rendering
                 }
 
                 await WaitForUpdatesAsync(scene);
+                await UniTask.Delay(1100, ignoreTimeScale: true);
                 await CaptureScenarioAsync(scene, report, "cuts", "cuts_opaque", true);
                 CaptureCutTextureExports(scene, report);
                 scene.IsBrainTransparent = true;
@@ -332,6 +388,17 @@ namespace HBP.Dev.Rendering
                 await CaptureScenarioAsync(scene, report, "cuts_transparent", "cuts_transparent", true);
                 scene.IsBrainTransparent = false;
                 report.SurfaceCutSamples.AddRange(CaptureSurfaceCutSamples(scene, report));
+
+                foreach (HBP.Core.Object3D.Cut cut in addedCuts.AsEnumerable().Reverse())
+                {
+                    if (scene.Cuts.Contains(cut))
+                    {
+                        scene.RemoveCutPlane(cut);
+                    }
+                }
+
+                addedCuts.Clear();
+                await WaitForUpdatesAsync(scene);
 
                 Vector3 roiPosition = GetReferencePosition(scene);
                 float roiRadius = GetReferenceRadius(scene);
@@ -740,7 +807,323 @@ namespace HBP.Dev.Rendering
             return composite;
         }
 
-        private static async UniTask<PerformanceRecord> SamplePerformanceAsync(string scenario, Base3DScene scene, int warmupFrames, int sampleFrames, int renderedSiteCount, SiteInventory siteInventory, string note = null)
+        private static async UniTask SampleReferencePerformanceMatrixAsync(Base3DScene scene, RenderingBaselineReport report, string projectPath, SiteInventory siteInventory)
+        {
+            bool oldTransparent = scene.IsBrainTransparent;
+            bool oldEdges = scene.EdgeMode;
+            float oldAlpha = scene.BrainMaterials.Alpha;
+            bool oldMarsAtlas = scene.AtlasManager.DisplayMarsAtlas;
+            bool oldJuBrainAtlas = scene.AtlasManager.DisplayJuBrainAtlas;
+            int oldHoveredArea = scene.AtlasManager.HoveredArea;
+            int renderedSiteCount = scene.Columns.Sum(column => column.Sites.Count);
+
+            try
+            {
+                scene.BrainMaterials.SetAlpha(0.2f);
+
+                Dictionary<Camera, bool> cameraStates = scene.Columns.SelectMany(column => column.Views).Select(view => view.Camera).Distinct().ToDictionary(camera => camera, camera => camera.enabled);
+                try
+                {
+                    foreach (Camera camera in cameraStates.Keys)
+                    {
+                        camera.enabled = false;
+                    }
+
+                    PerformanceRecord control = await SamplePerformanceAsync("small_static_3d_cameras_disabled_control", scene, projectPath, RealWarmupFrames, RealSampleFrames, renderedSiteCount, siteInventory, note: "Control sample used to distinguish allocations from the application/editor loop from allocations caused by the 3D view cameras.");
+                    control.Normative = control.GcAllocatedBytesPerFrame.Available;
+                    report.Performance.Add(control);
+                }
+                finally
+                {
+                    foreach ((Camera camera, bool enabled) in cameraStates)
+                    {
+                        if (camera != null)
+                        {
+                            camera.enabled = enabled;
+                        }
+                    }
+                }
+
+                await ConfigureAndSampleStaticAsync("small_static_opaque_edges_off", false, false);
+                await ConfigureAndSampleStaticAsync("small_static_opaque_edges_on", false, true);
+                await ConfigureAndSampleStaticAsync("small_static_transparent_edges_off", true, false);
+                await ConfigureAndSampleStaticAsync("small_static_transparent_edges_on", true, true);
+
+                scene.IsBrainTransparent = false;
+                scene.EdgeMode = false;
+                await WaitForUpdatesAsync(scene);
+                View3D primaryView = scene.Columns[0].Views[0];
+                Vector3 oldCameraPosition = primaryView.LocalCameraPosition;
+                Quaternion oldCameraRotation = primaryView.LocalCameraRotation;
+                Vector3 oldCameraTarget = primaryView.LocalCameraTarget;
+                try
+                {
+                    report.Performance.Add(await SamplePerformanceAsync("small_camera_rotation", scene, projectPath, RealWarmupFrames, RealSampleFrames, renderedSiteCount, siteInventory, "camera_rotation", _ => primaryView.RotateCamera(new Vector2(0.2f, 0.1f))));
+                }
+                finally
+                {
+                    primaryView.SetCamera(oldCameraPosition, oldCameraRotation, oldCameraTarget);
+                }
+
+                Column3DDynamic[] dynamicColumns = scene.ColumnsDynamic.ToArray();
+                if (dynamicColumns.Length > 0 && dynamicColumns.All(column => column.Timeline != null && column.Timeline.Length > 0))
+                {
+                    int[] oldIndices = dynamicColumns.Select(column => column.Timeline.CurrentIndex).ToArray();
+                    try
+                    {
+                        report.Performance.Add(await SamplePerformanceAsync("small_activity_time_update", scene, projectPath, RealWarmupFrames, RealSampleFrames, renderedSiteCount, siteInventory, "activity_time_update", frame =>
+                        {
+                            for (int index = 0; index < dynamicColumns.Length; index++)
+                            {
+                                dynamicColumns[index].Timeline.CurrentIndex = (oldIndices[index] + frame + RealWarmupFrames) % dynamicColumns[index].Timeline.Length;
+                            }
+                        }));
+                    }
+                    finally
+                    {
+                        for (int index = 0; index < dynamicColumns.Length; index++)
+                        {
+                            dynamicColumns[index].Timeline.CurrentIndex = oldIndices[index];
+                        }
+                    }
+                }
+                else
+                {
+                    report.Warnings.Add("Activity-time performance scenario skipped: the reference scene has no valid dynamic timeline.");
+                }
+
+                scene.AtlasManager.DisplayJuBrainAtlas = false;
+                scene.AtlasManager.DisplayMarsAtlas = true;
+                await WaitForUpdatesAsync(scene);
+                if (scene.AtlasManager.DisplayAtlas)
+                {
+                    report.Performance.Add(await SamplePerformanceAsync("small_atlas_hover", scene, projectPath, RealWarmupFrames, RealSampleFrames, renderedSiteCount, siteInventory, "atlas_hover", frame => scene.AtlasManager.HoveredArea = (frame & 1) == 0 ? -1 : 1));
+                }
+                else
+                {
+                    report.Warnings.Add("Atlas-hover performance scenario skipped: the reference mesh does not expose the Mars atlas.");
+                }
+
+                scene.AtlasManager.DisplayMarsAtlas = false;
+                HBP.Core.Object3D.Cut movingCut = scene.AddCutPlane();
+                await WaitForUpdatesAsync(scene);
+                try
+                {
+                    report.Performance.Add(await SamplePerformanceAsync("small_cut_move", scene, projectPath, RealWarmupFrames, RealSampleFrames, renderedSiteCount, siteInventory, "cut_move", frame =>
+                    {
+                        movingCut.Position = 0.2f + 0.6f * Mathf.PingPong((frame + RealWarmupFrames) / 120f, 1f);
+                        scene.UpdateCutPlane(movingCut, true);
+                    }));
+                }
+                finally
+                {
+                    if (scene.Cuts.Contains(movingCut))
+                    {
+                        scene.RemoveCutPlane(movingCut);
+                    }
+
+                    await WaitForUpdatesAsync(scene);
+                }
+            }
+            finally
+            {
+                scene.AtlasManager.HoveredArea = oldHoveredArea;
+                scene.AtlasManager.DisplayMarsAtlas = oldMarsAtlas;
+                scene.AtlasManager.DisplayJuBrainAtlas = oldJuBrainAtlas;
+                scene.BrainMaterials.SetAlpha(oldAlpha);
+                scene.IsBrainTransparent = oldTransparent;
+                scene.EdgeMode = oldEdges;
+                await WaitForUpdatesAsync(scene);
+            }
+
+            async UniTask ConfigureAndSampleStaticAsync(string scenario, bool transparent, bool edges)
+            {
+                scene.IsBrainTransparent = transparent;
+                scene.EdgeMode = edges;
+                await WaitForUpdatesAsync(scene);
+                report.Performance.Add(await SamplePerformanceAsync(scenario, scene, projectPath, RealWarmupFrames, RealSampleFrames, renderedSiteCount, siteInventory));
+            }
+        }
+
+        private static async UniTask SampleHighViewScenarioAsync(RenderingBaselineReport report, string referenceProjectPath, string referenceVisualizationName)
+        {
+            string highViewProjectPath = ResolveHighViewProjectPath();
+            string highViewVisualizationName = Environment.GetEnvironmentVariable("HIBOP_RENDERING_HIGH_VIEW_VISUALIZATION");
+            if (string.IsNullOrWhiteSpace(highViewProjectPath))
+            {
+                highViewProjectPath = CreateHighViewFixture(referenceProjectPath, report.OutputDirectory);
+                highViewVisualizationName = DefaultHighViewVisualizationName;
+            }
+            else if (string.IsNullOrWhiteSpace(highViewVisualizationName))
+            {
+                report.Warnings.Add("9x3 performance scenario skipped: HIBOP_RENDERING_HIGH_VIEW_VISUALIZATION must be set when HIBOP_RENDERING_HIGH_VIEW_PROJECT is overridden.");
+                return;
+            }
+
+            if (!File.Exists(highViewProjectPath))
+            {
+                report.Warnings.Add($"9x3 performance scenario skipped: project not found at '{highViewProjectPath}'. Set HIBOP_RENDERING_HIGH_VIEW_PROJECT to override it.");
+                return;
+            }
+
+            try
+            {
+                Base3DScene highViewScene = await LoadReferenceSceneAsync(highViewProjectPath, highViewVisualizationName, true);
+                while (highViewScene.ViewLineNumber < HighViewLineCount)
+                {
+                    highViewScene.AddViewLine();
+                    await UniTask.NextFrame();
+                }
+
+                while (highViewScene.ViewLineNumber > HighViewLineCount)
+                {
+                    highViewScene.RemoveViewLine();
+                    await UniTask.NextFrame();
+                }
+
+                highViewScene.IsBrainTransparent = false;
+                highViewScene.EdgeMode = false;
+                await WaitForSceneReadyAsync(highViewScene);
+                await WaitForUpdatesAsync(highViewScene);
+                report.Memory.Add(CaptureMemorySnapshot("multi_view_9x3_ready", highViewScene, highViewProjectPath));
+
+                SiteInventory inventory = CaptureSiteInventory(highViewScene.Columns.SelectMany(column => column.Sites).Select(site => site.gameObject));
+                PerformanceRecord performance = await SamplePerformanceAsync("multi_view_9x3_static", highViewScene, highViewProjectPath, HighViewWarmupFrames, HighViewSampleFrames, highViewScene.Columns.Sum(column => column.Sites.Count), inventory);
+                int expectedViewCount = highViewScene.Columns.Count * HighViewLineCount;
+                if (highViewScene.Columns.Count != 9 || performance.EnabledViewCount != expectedViewCount)
+                {
+                    performance.Normative = false;
+                    performance.Note += $" Non-normative 9x3 fixture: expected 9 columns and {expectedViewCount} enabled views, measured {highViewScene.Columns.Count} columns and {performance.EnabledViewCount} enabled views.";
+                }
+
+                report.Performance.Add(performance);
+                Texture2D capture = CreateComposite(highViewScene, ExportSize, ExportSize);
+                string capturePath = Path.Combine(report.OutputDirectory, "captures", "multi-view-9x3.png");
+                SaveTexture(capture, capturePath);
+                report.Captures.Add(CreateCaptureRecord("multi_view", "multi_view_9x3", capturePath, report.OutputDirectory, capture, false));
+                UnityEngine.Object.Destroy(capture);
+            }
+            catch (Exception exception)
+            {
+                report.Warnings.Add($"9x3 performance scenario failed: {exception}");
+            }
+            finally
+            {
+                Base3DScene restoredScene = await LoadReferenceSceneAsync(referenceProjectPath, referenceVisualizationName, true);
+                for (int frame = 0; frame < 10; frame++)
+                {
+                    await UniTask.NextFrame();
+                }
+
+                report.Memory.Add(CaptureMemorySnapshot("small_restored_after_9x3_close", restoredScene, referenceProjectPath));
+            }
+        }
+
+        private static string CreateHighViewFixture(string sourceProjectPath, string outputDirectory)
+        {
+            string fixtureDirectory = Path.Combine(outputDirectory, "fixtures");
+            Directory.CreateDirectory(fixtureDirectory);
+            string fixturePath = Path.Combine(fixtureDirectory, "visu_full_test-phase5-9x3.hibop");
+            File.Copy(sourceProjectPath, fixturePath, true);
+
+            using ZipArchive archive = ZipFile.Open(fixturePath, ZipArchiveMode.Update);
+            ZipArchiveEntry sourceEntry = archive.GetEntry("Visualizations/Small.visualization") ?? throw new InvalidDataException("The reference project does not contain Visualizations/Small.visualization.");
+            string sourceJson;
+            using (StreamReader reader = new(sourceEntry.Open()))
+            {
+                sourceJson = reader.ReadToEnd();
+            }
+
+            JObject visualization = JObject.Parse(sourceJson);
+            JArray sourceColumns = visualization["Columns"] as JArray;
+            if (sourceColumns == null || sourceColumns.Count == 0)
+            {
+                throw new InvalidDataException("The Small visualization does not contain columns for the 9x3 fixture.");
+            }
+
+            JArray expandedColumns = new();
+            for (int index = 0; index < 9; index++)
+            {
+                JObject column = (JObject)sourceColumns[index % sourceColumns.Count].DeepClone();
+                ReplaceObjectIds(column);
+                column["Name"] = $"Phase 5 column n°{index + 1}";
+                expandedColumns.Add(column);
+            }
+
+            visualization["ID"] = Guid.NewGuid().ToString();
+            visualization["Name"] = DefaultHighViewVisualizationName;
+            visualization["Columns"] = expandedColumns;
+            if (visualization["Configuration"] is JObject configuration)
+            {
+                ReplaceObjectIds(configuration);
+                configuration["Views"] = new JArray();
+                configuration["Cuts"] = new JArray();
+                configuration["RegionsOfInterest"] = new JArray();
+            }
+
+            sourceEntry.Delete();
+            ZipArchiveEntry fixtureEntry = archive.CreateEntry("Visualizations/Small.visualization", System.IO.Compression.CompressionLevel.Optimal);
+            using (StreamWriter writer = new(fixtureEntry.Open()))
+            {
+                writer.Write(visualization.ToString());
+            }
+
+            return fixturePath;
+        }
+
+        private static void ReplaceObjectIds(JToken token)
+        {
+            if (token is JObject objectToken)
+            {
+                foreach (JProperty property in objectToken.Properties().ToArray())
+                {
+                    if (property.Name == "ID" && property.Value.Type == JTokenType.String)
+                    {
+                        property.Value = Guid.NewGuid().ToString();
+                    }
+                    else
+                    {
+                        ReplaceObjectIds(property.Value);
+                    }
+                }
+            }
+            else if (token is JArray arrayToken)
+            {
+                foreach (JToken child in arrayToken)
+                {
+                    ReplaceObjectIds(child);
+                }
+            }
+        }
+
+        private static MemorySnapshot CaptureMemorySnapshot(string scenario, Base3DScene scene, string projectPath)
+        {
+            RenderTexture[] renderTextures = Resources.FindObjectsOfTypeAll<RenderTexture>();
+            RenderTexture[] createdRenderTextures = renderTextures.Where(texture => texture != null && texture.IsCreated()).ToArray();
+            RenderTexture[] sceneTargets = scene == null ? Array.Empty<RenderTexture>() : scene.Columns.SelectMany(column => column.Views).Select(view => view.Camera.targetTexture).Where(texture => texture != null).Distinct().ToArray();
+            RenderTexture[] hbpViewTextures = createdRenderTextures.Where(texture => texture.name.StartsWith("HBP View ", StringComparison.Ordinal)).ToArray();
+            return new MemorySnapshot
+            {
+                Scenario = scenario,
+                ProjectPath = Path.GetFullPath(projectPath),
+                Visualization = scene != null ? scene.Name : null,
+                ColumnCount = scene != null ? scene.Columns.Count : 0,
+                ViewCount = scene != null ? scene.Columns.Sum(column => column.Views.Count) : 0,
+                EnabledViewCount = scene != null ? scene.Columns.Sum(column => column.Views.Count(view => view.Camera.enabled)) : 0,
+                LiveRenderTextureCount = renderTextures.Length,
+                CreatedRenderTextureCount = createdRenderTextures.Length,
+                CreatedRenderTexturePixelCount = createdRenderTextures.Sum(texture => (long)texture.width * texture.height),
+                SceneTargetRenderTextureCount = sceneTargets.Length,
+                SceneTargetRenderTexturePixelCount = sceneTargets.Sum(texture => (long)texture.width * texture.height),
+                HbpViewRenderTextureCount = hbpViewTextures.Length,
+                HbpViewRenderTexturePixelCount = hbpViewTextures.Sum(texture => (long)texture.width * texture.height),
+                TotalAllocatedMemoryBytes = UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong(),
+                TotalReservedMemoryBytes = UnityEngine.Profiling.Profiler.GetTotalReservedMemoryLong(),
+                GraphicsDriverAllocatedMemoryBytes = UnityEngine.Profiling.Profiler.GetAllocatedMemoryForGraphicsDriver()
+            };
+        }
+
+        private static async UniTask<PerformanceRecord> SamplePerformanceAsync(string scenario, Base3DScene scene, string projectPath, int warmupFrames, int sampleFrames, int renderedSiteCount, SiteInventory siteInventory, string workload = "static", Action<int> updateWorkload = null, string note = null)
         {
             bool focusedAtStart = Application.isFocused;
             int oldVSyncCount = QualitySettings.vSyncCount;
@@ -757,6 +1140,7 @@ namespace HBP.Dev.Rendering
             ProfilerRecorder setPass = StartRecorder("SetPass Calls Count", ProfilerCategory.Render);
             ProfilerRecorder triangles = StartRecorder("Triangles Count", ProfilerCategory.Render);
             ProfilerRecorder vertices = StartRecorder("Vertices Count", ProfilerCategory.Render);
+            ProfilerRecorder gcAllocated = StartRecorder("GC Allocated In Frame", ProfilerCategory.Memory);
 
             List<double> frameIntervals = new(sampleFrames);
             List<double> cpuMainValues = new(sampleFrames);
@@ -766,16 +1150,19 @@ namespace HBP.Dev.Rendering
             List<double> setPassValues = new(sampleFrames);
             List<double> triangleValues = new(sampleFrames);
             List<double> vertexValues = new(sampleFrames);
+            List<double> gcAllocatedValues = new(sampleFrames);
 
             try
             {
                 for (int frame = 0; frame < warmupFrames; frame++)
                 {
+                    updateWorkload?.Invoke(frame - warmupFrames);
                     await UniTask.NextFrame();
                 }
 
                 for (int frame = 0; frame < sampleFrames; frame++)
                 {
+                    updateWorkload?.Invoke(frame);
                     double start = Time.realtimeSinceStartupAsDouble;
                     await UniTask.NextFrame();
                     frameIntervals.Add((Time.realtimeSinceStartupAsDouble - start) * 1000.0);
@@ -786,6 +1173,7 @@ namespace HBP.Dev.Rendering
                     AddRecorderValue(setPass, setPassValues, 1.0);
                     AddRecorderValue(triangles, triangleValues, 1.0);
                     AddRecorderValue(vertices, vertexValues, 1.0);
+                    AddRecorderValue(gcAllocated, gcAllocatedValues, 1.0, true);
                 }
             }
             finally
@@ -797,6 +1185,7 @@ namespace HBP.Dev.Rendering
                 setPass.Dispose();
                 triangles.Dispose();
                 vertices.Dispose();
+                gcAllocated.Dispose();
                 QualitySettings.vSyncCount = oldVSyncCount;
                 Application.targetFrameRate = oldTargetFrameRate;
                 Application.runInBackground = oldRunInBackground;
@@ -811,6 +1200,9 @@ namespace HBP.Dev.Rendering
             return new PerformanceRecord
             {
                 Scenario = scenario,
+                Workload = workload,
+                ProjectPath = Path.GetFullPath(projectPath),
+                Visualization = scene.Name,
                 ApplicationFocusedAtStart = focusedAtStart,
                 ApplicationFocusedAtEnd = focusedAtEnd,
                 IdleThrottled = idleThrottled,
@@ -820,6 +1212,7 @@ namespace HBP.Dev.Rendering
                 SampleFrames = sampleFrames,
                 ColumnCount = scene.Columns.Count,
                 EnabledViewCount = scene.Columns.Sum(column => column.Views.Count(view => view.Camera.enabled)),
+                EnabledViewPixelCount = scene.Columns.SelectMany(column => column.Views).Where(view => view.Camera.enabled && view.Camera.targetTexture != null).Sum(view => (long)view.Camera.targetTexture.width * view.Camera.targetTexture.height),
                 RenderedSiteCount = renderedSiteCount,
                 SiteGameObjectCount = siteInventory.GameObjectCount,
                 SiteRendererCount = siteInventory.RendererCount,
@@ -832,7 +1225,8 @@ namespace HBP.Dev.Rendering
                 DrawCalls = MetricStatistics.From(drawCallValues, "count"),
                 SetPassCalls = MetricStatistics.From(setPassValues, "count"),
                 Triangles = MetricStatistics.From(triangleValues, "count"),
-                Vertices = MetricStatistics.From(vertexValues, "count")
+                Vertices = MetricStatistics.From(vertexValues, "count"),
+                GcAllocatedBytesPerFrame = MetricStatistics.From(gcAllocatedValues, "bytes")
             };
         }
 
@@ -861,15 +1255,15 @@ namespace HBP.Dev.Rendering
             return default;
         }
 
-        private static void AddRecorderValue(ProfilerRecorder recorder, List<double> values, double scale)
+        private static void AddRecorderValue(ProfilerRecorder recorder, List<double> values, double scale, bool includeZero = false)
         {
-            if (recorder.Valid && recorder.LastValue > 0)
+            if (recorder.Valid && (includeZero || recorder.LastValue > 0))
             {
                 values.Add(recorder.LastValue * scale);
             }
         }
 
-        private static async UniTask<PerformanceRecord> SampleSiteStressAsync(Base3DScene scene, RenderingBaselineReport report)
+        private static async UniTask<PerformanceRecord> SampleSiteStressAsync(Base3DScene scene, RenderingBaselineReport report, string projectPath)
         {
             Column3D column = scene.Columns[0];
             View3D primaryView = column.Views[0];
@@ -930,7 +1324,7 @@ namespace HBP.Dev.Rendering
                 await UniTask.NextFrame();
                 IEnumerable<GameObject> stressSites = column.Sites.Select(site => site.gameObject).Concat(root.GetComponentsInChildren<MeshRenderer>(true).Select(renderer => renderer.gameObject));
                 SiteInventory stressInventory = CaptureSiteInventory(stressSites);
-                PerformanceRecord performance = await SamplePerformanceAsync("sites_30000_1x1", scene, SiteStressWarmupFrames, SiteStressSampleFrames, SiteStressTarget, stressInventory, "The 30,000-site fixture intentionally excludes colliders from temporary sites to isolate rendering cost.");
+                PerformanceRecord performance = await SamplePerformanceAsync("sites_30000_1x1", scene, projectPath, SiteStressWarmupFrames, SiteStressSampleFrames, SiteStressTarget, stressInventory, note: "The 30,000-site fixture intentionally excludes colliders from temporary sites to isolate rendering cost.");
 
                 Texture2D capture = primaryView.GetTexture(ExportSize, ExportSize, Color.clear);
                 string path = Path.Combine(report.OutputDirectory, "captures", "sites-30000-1x1.png");
