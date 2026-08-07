@@ -2,6 +2,7 @@
     "name": "HBP.Rendering.Tests",
     "rootNamespace": "HBP.Tests.Rendering",
     "references": [
+        "HBP.Core.Runtime",
         "HBP.Rendering.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.RenderPipelines.Universal.Runtime"

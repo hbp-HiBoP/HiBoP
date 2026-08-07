@@ -2,7 +2,7 @@
 
 ## Statut et portée
 
-**Statut :** phases 0 et 1 validées, phase 2 implémentée et en attente de validation visuelle  
+**Statut :** phases 0 à 3 implémentées ; Gate 3 validée sous Windows
 **Projet audité :** HiBoP sous Unity `6000.5.2f1`  
 **Date de l'audit initial :** 2026-07-23  
 **Pipeline actuel :** Universal Render Pipeline, `HBP-Desktop-URP`  
@@ -50,7 +50,7 @@ pas explicitement amendées dans ce dossier :
     sillons doivent rester lisibles.
 12. Les Edges concernent uniquement le cerveau et les coupes : contours
     profondeur/normales en opaque, silhouette extérieure en transparent.
-13. Le wireframe ROI est réimplémenté sans geometry shader afin de fonctionner
+13. La cage analytique des ROI est implémentée sans geometry shader afin de fonctionner
     sous Metal.
 
 ## Ordre de lecture
@@ -80,6 +80,8 @@ pas explicitement amendées dans ce dossier :
     partagés et inventaire de migration des matériaux actifs.
 13. [13-phase-2-core-urp.md](13-phase-2-core-urp.md) : shaders cerveau/coupes,
     bascule globale, matériaux migrés et validation Gate 2.
+14. [14-phase-3-roi-sites.md](14-phase-3-roi-sites.md) : cage analytique des
+    ROI, rendu minimal des sites et validation Gate 3.
 
 ## Hiérarchie des exigences
 

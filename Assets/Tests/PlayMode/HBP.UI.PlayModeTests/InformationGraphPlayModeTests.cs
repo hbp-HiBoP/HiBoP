@@ -466,6 +466,44 @@ namespace HBP.Tests.PlayMode.UI
 
         [Test]
         [Category("PlayMode.InformationGraph")]
+        public void GraphZone_SingleChannelROIGroupUsesGroupColorWhenChannelIsNotDisplayedIndividually()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("InformationGraphSingleChannelROI");
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            Texture2D colormap = CreateColormap();
+
+            try
+            {
+                PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing = false;
+                PersistentDataManager.UserPreferences.Visualization.Graph.ROIColors.SetColor(0, 0, Color.magenta);
+                UITrialMatrixGrid trialMatrixGrid = CreateTrialMatrixGridHarness(scene);
+                ChannelStruct channel = new(fixture.Channel, fixture.Patient);
+                HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData dataStruct = new(fixture.Dataset, fixture.DataInfo.Name, fixture.Protocol.OrderedBlocs.ToList());
+                trialMatrixGrid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(new[] { channel }, new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { dataStruct }), colormap);
+
+                GraphZone graphZone = CreateGraphZoneHarness(scene, trialMatrixGrid);
+                graphZone.CreateGraphPool(1);
+                ChannelStructsGroup group = new("Single-channel ROI", new[] { channel }, ChannelStructsGroup.GroupType.ROI);
+                HBP.Data.Informations.Column column = new("Column A", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), new[] { group });
+
+                Assert.DoesNotThrow(() => graphZone.Display(Array.Empty<ChannelStruct>(), new[] { column }));
+
+                List<Graph> graphs = GetPrivateField<List<Graph>>(graphZone, "m_Graphs");
+                Graph.Curve groupCurve = FlattenCurves(graphs[0].Curves).Single(curve => curve.Name == group.Name);
+                Assert.That(groupCurve.Data, Is.Not.Null);
+                Assert.That(groupCurve.Data.Color, Is.EqualTo(Color.magenta));
+            }
+            finally
+            {
+                Object.Destroy(colormap);
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
         public void TrialMatrixZone_DisplayVisibleColumnsBuildsGridAndPreservesCustomLimits()
         {
             using PlayModeTempDirectoryScope temp = new();

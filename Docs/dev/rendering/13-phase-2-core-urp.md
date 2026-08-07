@@ -156,7 +156,7 @@ bascule globale :
 - `HBP/Utility/UnlitColor` ;
 - `HBP/UI/Texture` et `HBP/UI/Mask` ;
 - `HBP/Site` et `HBP/Site/Selection` ;
-- `HBP/ROI/Wireframe`.
+- `HBP/ROI/AnalyticCage`.
 
 La Phase 3 branchera les coordonnées barycentriques du wireframe ROI. En
 attendant, les anciens meshes ROI sans barycentriques utilisent un remplissage

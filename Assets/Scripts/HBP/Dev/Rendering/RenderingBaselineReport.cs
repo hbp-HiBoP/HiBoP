@@ -134,10 +134,15 @@ namespace HBP.Dev.Rendering
         public int ColumnCount;
         public int EnabledViewCount;
         public int RenderedSiteCount;
+        public int SiteGameObjectCount;
+        public int SiteRendererCount;
+        public int SiteColliderCount;
+        public int UniqueSiteMaterialCount;
         public MetricStatistics FrameIntervalMs;
         public MetricStatistics CpuMainThreadMs;
         public MetricStatistics CpuRenderThreadMs;
         public MetricStatistics GpuFrameMs;
+        public MetricStatistics DrawCalls;
         public MetricStatistics SetPassCalls;
         public MetricStatistics Triangles;
         public MetricStatistics Vertices;

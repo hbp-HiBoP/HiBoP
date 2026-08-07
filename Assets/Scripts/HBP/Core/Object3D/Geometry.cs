@@ -93,8 +93,7 @@ namespace HBP.Core.Object3D
 
             #region Triangles
 
-            int nbFaces = vertices.Length;
-            int nbTriangles = nbFaces * 2;
+            int nbTriangles = nbLong * nbLat * 2;
             int nbIndexes = nbTriangles * 3;
             int[] triangles = new int[nbIndexes];
 
@@ -141,7 +140,6 @@ namespace HBP.Core.Object3D
             mesh.triangles = triangles;
 
             mesh.RecalculateBounds();
-            ;
 
             return mesh;
         }

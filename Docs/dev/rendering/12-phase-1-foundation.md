@@ -41,7 +41,7 @@ périmètre de cette phase.
 - `HBP/Cut` : unlit, RGBA explicite, états opaque/transparent pilotables par le
   matériau ;
 - `HBP/Site` : couleur et alpha uniquement, compatible instancing ;
-- `HBP/ROI/Wireframe` : wireframe barycentrique sans geometry shader.
+- `HBP/ROI/AnalyticCage` : cage analytique sans geometry shader.
 
 Ils sont compilés dès cette phase mais ne remplacent pas encore les matériaux
 actifs. Le maillage barycentrique ROI sera produit et branché en phase 3.
@@ -65,7 +65,7 @@ Les familles et stratégies sont :
 | Coupes | 2 | `HBP/Cut` | 2 |
 | Matériaux déjà URP/Lit | 2 | conserver et vérifier les états | 2 |
 | Aides GL unlit | 4 | `HBP/Utility/UnlitColor` | 2 |
-| ROI | 2 | `HBP/ROI/Wireframe` | 3 |
+| ROI | 2 | `HBP/ROI/AnalyticCage` | 3 |
 | Sites | 13 | `HBP/Site` | 3 |
 | Anneau de sélection | 1 | `HBP/Site/Selection` | 3 |
 | UI custom | 3 | `HBP/UI/Texture` ou `HBP/UI/Mask` | 2 |

@@ -415,14 +415,9 @@ namespace HBP.UI.Informations
                     allValidTrialsSelected[i] = true;
                 }
 
-                // Use existing GetCurveData method
-                curveData = GetCurveData(column, subBloc, channel, allValidTrialsSelected);
-
-                // Update color to match group color instead of site color
-                if (curveData != null)
-                {
-                    curveData.Color = color;
-                }
+                // A group channel is not necessarily displayed as an individual channel.
+                // Use the group color directly instead of indexing the site color grid.
+                curveData = GetCurveData(column, subBloc, channel, allValidTrialsSelected, color);
 
                 Graph.Curve result = new(column.ChannelGroups[index].Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
                 return result;
@@ -528,7 +523,7 @@ namespace HBP.UI.Informations
             return result;
         }
 
-        CurveData GetCurveData(Column column, Core.Data.SubBloc subBloc, ChannelStruct channel, bool[] selected)
+        CurveData GetCurveData(Column column, Core.Data.SubBloc subBloc, ChannelStruct channel, bool[] selected, Color? colorOverride = null)
         {
             CurveData result = null;
             Core.Data.PatientDataInfo dataInfo = null;
@@ -543,7 +538,7 @@ namespace HBP.UI.Informations
 
             Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
-            Color color = PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
+            Color color = colorOverride ?? PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (blocChannelData == null)
                 return null;
 

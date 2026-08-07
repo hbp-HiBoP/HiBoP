@@ -1,12 +1,11 @@
-Shader "HBP/ROI/Wireframe"
+Shader "HBP/ROI/AnalyticCage"
 {
     Properties
     {
-        [MainColor] _BaseColor("Fill Color", Color) = (1, 1, 1, 0)
-        _WireColor("Wire Color", Color) = (1, 1, 1, 1)
-        _WireThickness("Wire Thickness", Range(0, 800)) = 50
-        _WireSmoothness("Wire Smoothness", Range(0, 20)) = 3
-        _MaxTriSize("Maximum Triangle Size", Float) = 25
+        [MainColor] _WireColor("Cage Color", Color) = (1, 1, 1, 1)
+        _ContrastColor("Cage Contrast Color", Color) = (0.04, 0.04, 0.04, 1)
+        _WireThickness("Cage Thickness", Range(0, 800)) = 50
+        _WireSmoothness("Cage Smoothness", Range(0, 20)) = 3
     }
 
     SubShader
@@ -37,50 +36,91 @@ Shader "HBP/ROI/Wireframe"
             struct Attributes
             {
                 float4 positionOS : POSITION;
-                float3 barycentric : TEXCOORD3;
+                float3 normalOS : NORMAL;
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                noperspective float3 barycentric : TEXCOORD0;
+                float3 positionOS : TEXCOORD0;
+                float3 normalWS : TEXCOORD1;
+                float3 viewDirectionWS : TEXCOORD2;
             };
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _BaseColor;
                 float4 _WireColor;
+                float4 _ContrastColor;
                 float _WireThickness;
                 float _WireSmoothness;
-                float _MaxTriSize;
             CBUFFER_END
 
             Varyings Vert(Attributes input)
             {
                 Varyings output;
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.barycentric = input.barycentric;
+                VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
+                output.positionCS = positionInputs.positionCS;
+                output.positionOS = input.positionOS.xyz;
+                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                output.viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionInputs.positionWS);
                 return output;
             }
 
             half4 Frag(Varyings input) : SV_Target
             {
-                // Meshes created before the URP migration do not yet carry
-                // barycentric coordinates. Keep their translucent fill visible;
-                // Phase 3 will wire barycentrics for the actual wireframe.
-                float barycentricSum = input.barycentric.x
-                    + input.barycentric.y
-                    + input.barycentric.z;
-                if (barycentricSum < 0.5)
-                    return _BaseColor;
+                float3 sphereDirection = normalize(input.positionOS);
+                const float inverseSquareRootTwo = 0.70710678;
+                float primaryCircleDistance = min(
+                    abs(sphereDirection.y),
+                    min(abs(sphereDirection.x), abs(sphereDirection.z)));
+                float diagonalMeridianDistance = min(
+                    abs(sphereDirection.x + sphereDirection.z),
+                    abs(sphereDirection.x - sphereDirection.z)) * inverseSquareRootTwo;
+                float latitudeDistance = abs(abs(sphereDirection.y) - inverseSquareRootTwo);
+                float intermediateCircleDistance = min(diagonalMeridianDistance, latitudeDistance);
+                float silhouetteDistance = abs(dot(normalize(input.normalWS), normalize(input.viewDirectionWS)));
 
-                float wireWidth = max(_WireThickness / 50.0, 0.25);
-                float smoothing = max(_WireSmoothness / 3.0, 0.25);
-                float3 edgeDistance = smoothstep(
-                    fwidth(input.barycentric) * wireWidth,
-                    fwidth(input.barycentric) * (wireWidth + smoothing),
-                    input.barycentric);
-                float wire = 1.0 - min(edgeDistance.x, min(edgeDistance.y, edgeDistance.z));
-                return lerp(_BaseColor, _WireColor, wire);
+                float coreWidth = max(_WireThickness / 50.0, 0.1);
+                float contrastWidth = coreWidth * 2.25;
+                float intermediateCoreWidth = coreWidth * 0.72;
+                float intermediateContrastWidth = intermediateCoreWidth * 2.25;
+                float smoothing = max(_WireSmoothness / 3.0, 0.5);
+                float primaryCircleDerivative = max(fwidth(primaryCircleDistance), 0.00001);
+                float intermediateCircleDerivative = max(fwidth(intermediateCircleDistance), 0.00001);
+                float silhouetteDerivative = max(fwidth(silhouetteDistance), 0.00001);
+
+                float corePrimaryCircles = 1.0 - smoothstep(
+                    primaryCircleDerivative * coreWidth,
+                    primaryCircleDerivative * (coreWidth + smoothing),
+                    primaryCircleDistance);
+                float contrastPrimaryCircles = 1.0 - smoothstep(
+                    primaryCircleDerivative * contrastWidth,
+                    primaryCircleDerivative * (contrastWidth + smoothing),
+                    primaryCircleDistance);
+                float coreIntermediateCircles = 1.0 - smoothstep(
+                    intermediateCircleDerivative * intermediateCoreWidth,
+                    intermediateCircleDerivative * (intermediateCoreWidth + smoothing),
+                    intermediateCircleDistance);
+                float contrastIntermediateCircles = 1.0 - smoothstep(
+                    intermediateCircleDerivative * intermediateContrastWidth,
+                    intermediateCircleDerivative * (intermediateContrastWidth + smoothing),
+                    intermediateCircleDistance);
+                float coreSilhouette = 1.0 - smoothstep(
+                    silhouetteDerivative * coreWidth,
+                    silhouetteDerivative * (coreWidth + smoothing),
+                    silhouetteDistance);
+                float contrastSilhouette = 1.0 - smoothstep(
+                    silhouetteDerivative * contrastWidth,
+                    silhouetteDerivative * (contrastWidth + smoothing),
+                    silhouetteDistance);
+
+                float coreCircles = max(corePrimaryCircles, coreIntermediateCircles);
+                float contrastCircles = max(contrastPrimaryCircles, contrastIntermediateCircles);
+                float core = max(coreCircles, coreSilhouette);
+                float contrast = max(contrastCircles, contrastSilhouette);
+                float wireColorWeight = saturate(core * 2.0);
+                float3 color = lerp(_ContrastColor.rgb, _WireColor.rgb, wireColorWeight);
+                float alpha = max(_ContrastColor.a * contrast, _WireColor.a * core);
+                return half4(color, alpha);
             }
             ENDHLSL
         }

@@ -80,7 +80,8 @@ namespace HBP.Dev.Rendering
                 WriteReport(report);
 
                 await CaptureReferenceCasesAsync(scene, report);
-                report.Performance.Add(await SamplePerformanceAsync("visu_full_test_Small", scene, RealWarmupFrames, RealSampleFrames, scene.Columns.Sum(column => column.Sites.Count)));
+                SiteInventory realSiteInventory = CaptureSiteInventory(scene.Columns.SelectMany(column => column.Sites).Select(site => site.gameObject));
+                report.Performance.Add(await SamplePerformanceAsync("visu_full_test_Small", scene, RealWarmupFrames, RealSampleFrames, scene.Columns.Sum(column => column.Sites.Count), realSiteInventory));
                 WriteReport(report);
 
                 report.PatchFixture = CapturePatchFixture(report.OutputDirectory);
@@ -190,7 +191,7 @@ namespace HBP.Dev.Rendering
         private static string GetOutputRoot()
         {
             string projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
-            string pipelineDirectory = GraphicsSettings.currentRenderPipeline == null ? "baseline-birp" : "urp-phase2";
+            string pipelineDirectory = GraphicsSettings.currentRenderPipeline == null ? "baseline-birp" : "urp-phase3";
             string outputRoot = Path.Combine(projectRoot, ".test-results", "rendering", pipelineDirectory);
             Directory.CreateDirectory(outputRoot);
             return outputRoot;
@@ -739,7 +740,7 @@ namespace HBP.Dev.Rendering
             return composite;
         }
 
-        private static async UniTask<PerformanceRecord> SamplePerformanceAsync(string scenario, Base3DScene scene, int warmupFrames, int sampleFrames, int renderedSiteCount)
+        private static async UniTask<PerformanceRecord> SamplePerformanceAsync(string scenario, Base3DScene scene, int warmupFrames, int sampleFrames, int renderedSiteCount, SiteInventory siteInventory, string note = null)
         {
             bool focusedAtStart = Application.isFocused;
             int oldVSyncCount = QualitySettings.vSyncCount;
@@ -752,6 +753,7 @@ namespace HBP.Dev.Rendering
             ProfilerRecorder cpuMain = StartRecorder("CPU Main Thread Frame Time", ProfilerCategory.Internal, ProfilerCategory.Render);
             ProfilerRecorder cpuRender = StartRecorder("CPU Render Thread Frame Time", ProfilerCategory.Render, ProfilerCategory.Internal);
             ProfilerRecorder gpu = StartRecorder("GPU Frame Time", ProfilerCategory.Render, ProfilerCategory.Internal);
+            ProfilerRecorder drawCalls = StartRecorder("Draw Calls Count", ProfilerCategory.Render);
             ProfilerRecorder setPass = StartRecorder("SetPass Calls Count", ProfilerCategory.Render);
             ProfilerRecorder triangles = StartRecorder("Triangles Count", ProfilerCategory.Render);
             ProfilerRecorder vertices = StartRecorder("Vertices Count", ProfilerCategory.Render);
@@ -760,6 +762,7 @@ namespace HBP.Dev.Rendering
             List<double> cpuMainValues = new(sampleFrames);
             List<double> cpuRenderValues = new(sampleFrames);
             List<double> gpuValues = new(sampleFrames);
+            List<double> drawCallValues = new(sampleFrames);
             List<double> setPassValues = new(sampleFrames);
             List<double> triangleValues = new(sampleFrames);
             List<double> vertexValues = new(sampleFrames);
@@ -779,6 +782,7 @@ namespace HBP.Dev.Rendering
                     AddRecorderValue(cpuMain, cpuMainValues, 1e-6);
                     AddRecorderValue(cpuRender, cpuRenderValues, 1e-6);
                     AddRecorderValue(gpu, gpuValues, 1e-6);
+                    AddRecorderValue(drawCalls, drawCallValues, 1.0);
                     AddRecorderValue(setPass, setPassValues, 1.0);
                     AddRecorderValue(triangles, triangleValues, 1.0);
                     AddRecorderValue(vertices, vertexValues, 1.0);
@@ -789,6 +793,7 @@ namespace HBP.Dev.Rendering
                 cpuMain.Dispose();
                 cpuRender.Dispose();
                 gpu.Dispose();
+                drawCalls.Dispose();
                 setPass.Dispose();
                 triangles.Dispose();
                 vertices.Dispose();
@@ -810,20 +815,34 @@ namespace HBP.Dev.Rendering
                 ApplicationFocusedAtEnd = focusedAtEnd,
                 IdleThrottled = idleThrottled,
                 Normative = !idleThrottled && cpuMainStatistics.Available && gpuStatistics.Available,
-                Note = idleThrottled ? "Non-normative: Unity Editor idle throttling detected from a median frame interval >= 250 ms." : "Normative profiler sample after warm-up.",
+                Note = (idleThrottled ? "Non-normative: Unity Editor idle throttling detected from a median frame interval >= 250 ms." : "Normative profiler sample after warm-up.") + (string.IsNullOrWhiteSpace(note) ? string.Empty : " " + note),
                 WarmupFrames = warmupFrames,
                 SampleFrames = sampleFrames,
                 ColumnCount = scene.Columns.Count,
                 EnabledViewCount = scene.Columns.Sum(column => column.Views.Count(view => view.Camera.enabled)),
                 RenderedSiteCount = renderedSiteCount,
+                SiteGameObjectCount = siteInventory.GameObjectCount,
+                SiteRendererCount = siteInventory.RendererCount,
+                SiteColliderCount = siteInventory.ColliderCount,
+                UniqueSiteMaterialCount = siteInventory.UniqueMaterialCount,
                 FrameIntervalMs = frameIntervalStatistics,
                 CpuMainThreadMs = cpuMainStatistics,
                 CpuRenderThreadMs = cpuRenderStatistics,
                 GpuFrameMs = gpuStatistics,
+                DrawCalls = MetricStatistics.From(drawCallValues, "count"),
                 SetPassCalls = MetricStatistics.From(setPassValues, "count"),
                 Triangles = MetricStatistics.From(triangleValues, "count"),
                 Vertices = MetricStatistics.From(vertexValues, "count")
             };
+        }
+
+        private static SiteInventory CaptureSiteInventory(IEnumerable<GameObject> siteObjects)
+        {
+            GameObject[] objects = siteObjects.Where(site => site != null).Distinct().ToArray();
+            MeshRenderer[] renderers = objects.Select(site => site.GetComponent<MeshRenderer>()).Where(renderer => renderer != null).ToArray();
+            int colliderCount = objects.Count(site => site.GetComponent<Collider>() != null);
+            int uniqueMaterialCount = renderers.SelectMany(renderer => renderer.sharedMaterials).Where(material => material != null).Distinct().Count();
+            return new SiteInventory(objects.Length, renderers.Length, colliderCount, uniqueMaterialCount);
         }
 
         private static ProfilerRecorder StartRecorder(string name, params ProfilerCategory[] categories)
@@ -909,7 +928,9 @@ namespace HBP.Dev.Rendering
 
                 root.SetActive(true);
                 await UniTask.NextFrame();
-                PerformanceRecord performance = await SamplePerformanceAsync("sites_30000_1x1", scene, SiteStressWarmupFrames, SiteStressSampleFrames, SiteStressTarget);
+                IEnumerable<GameObject> stressSites = column.Sites.Select(site => site.gameObject).Concat(root.GetComponentsInChildren<MeshRenderer>(true).Select(renderer => renderer.gameObject));
+                SiteInventory stressInventory = CaptureSiteInventory(stressSites);
+                PerformanceRecord performance = await SamplePerformanceAsync("sites_30000_1x1", scene, SiteStressWarmupFrames, SiteStressSampleFrames, SiteStressTarget, stressInventory, "The 30,000-site fixture intentionally excludes colliders from temporary sites to isolate rendering cost.");
 
                 Texture2D capture = primaryView.GetTexture(ExportSize, ExportSize, Color.clear);
                 string path = Path.Combine(report.OutputDirectory, "captures", "sites-30000-1x1.png");
@@ -1089,6 +1110,22 @@ namespace HBP.Dev.Rendering
         private static string AppendDirectorySeparator(string path)
         {
             return path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal) ? path : path + Path.DirectorySeparatorChar;
+        }
+
+        private sealed class SiteInventory
+        {
+            public SiteInventory(int gameObjectCount, int rendererCount, int colliderCount, int uniqueMaterialCount)
+            {
+                GameObjectCount = gameObjectCount;
+                RendererCount = rendererCount;
+                ColliderCount = colliderCount;
+                UniqueMaterialCount = uniqueMaterialCount;
+            }
+
+            public int GameObjectCount { get; }
+            public int RendererCount { get; }
+            public int ColliderCount { get; }
+            public int UniqueMaterialCount { get; }
         }
     }
 }
