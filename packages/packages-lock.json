@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "com.agm.edge-detection": {
-      "version": "https://github.com/AGM-GR/EdgeDetection.git#1.1.0",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "abd70c13b607079f2a1d48334a6989101405d7c7"
-    },
     "com.coplaydev.unity-mcp": {
       "version": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
       "depth": 0,
@@ -115,16 +108,6 @@
       "depth": 0,
       "source": "registry",
       "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.postprocessing": {
-      "version": "3.5.4",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.modules.imgui": "1.0.0",
-        "com.unity.modules.physics": "1.0.0"
-      },
       "url": "https://packages.unity.com"
     },
     "com.unity.render-pipelines.core": {

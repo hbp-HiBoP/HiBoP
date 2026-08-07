@@ -43,7 +43,7 @@ TagManager:
   - View2
   - View3
   - View4
-  - PostProcessing
+  -
   m_SortingLayers:
   - name: Default
     uniqueID: 0

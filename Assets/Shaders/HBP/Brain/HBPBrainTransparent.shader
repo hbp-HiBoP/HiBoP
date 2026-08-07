@@ -47,5 +47,33 @@ Shader "HBP/Brain/Transparent"
             #include "Includes/HBPBrainCommon.hlsl"
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "HBPEdgeMask"
+            Tags { "LightMode" = "HBPEdgeMask" }
+
+            Cull Back
+            ZTest Always
+            ZWrite Off
+            ColorMask R
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex HBP_BrainDepthVertex
+            #pragma fragment HBP_TransparentEdgeMaskFragment
+            #pragma multi_compile_instancing
+
+            #include "Includes/HBPBrainDepth.hlsl"
+
+            half HBP_TransparentEdgeMaskFragment(HBPBrainDepthVaryings input) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                clip(HBP_ClippingValue(input.positionOS));
+                return 1.0;
+            }
+            ENDHLSL
+        }
     }
 }

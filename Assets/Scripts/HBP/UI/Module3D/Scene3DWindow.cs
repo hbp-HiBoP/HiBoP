@@ -219,7 +219,15 @@ namespace HBP.UI.Module3D
                             if (!view.IsMinimized)
                             {
                                 string viewFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_Brain.png", openedProjectName, m_Scene.Name, column.Name)).GenerateUniqueFilePath();
-                                view.GetTexture(2048, 2048, new Color(0.0f, 0.0f, 0.0f, 0.0f)).SaveToPNG(viewFilePath);
+                                Texture2D viewTexture = view.GetTexture(2048, 2048, Color.clear);
+                                try
+                                {
+                                    viewTexture.SaveToPNG(viewFilePath);
+                                }
+                                finally
+                                {
+                                    DestroyGeneratedTexture(viewTexture);
+                                }
                             }
                         }
                     }
@@ -248,7 +256,15 @@ namespace HBP.UI.Module3D
                             Texture2D graphTexture = Texture2DExtension.ScreenRectToTexture(graph.GetComponent<RectTransform>().ToScreenSpace());
                             var curvesName = graph.GetEnabledCurvesName();
                             string graphFilePathPNG = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.png", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
-                            graphTexture.SaveToPNG(graphFilePathPNG);
+                            try
+                            {
+                                graphTexture.SaveToPNG(graphFilePathPNG);
+                            }
+                            finally
+                            {
+                                DestroyGeneratedTexture(graphTexture);
+                            }
+
                             string graphFilePathSVG = Path.Combine(path, string.Format("{0}_{1}_{2}_Graph.svg", openedProjectName, m_Scene.Name, string.Join("-", curvesName))).GenerateUniqueFilePath();
                             using (StreamWriter sw = new(graphFilePathSVG))
                             {
@@ -269,51 +285,68 @@ namespace HBP.UI.Module3D
                             ScrollRect trialMatrixScrollRect = channelInformations.GetComponentInChildren<TrialMatrixGrid>().GetComponent<ScrollRect>();
                             Sprite mask = trialMatrixScrollRect.viewport.GetComponent<Image>().sprite;
                             trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = null;
-                            Texture2D trialMatrixTexture;
-                            if (trialMatrixScrollRect.content.rect.height > trialMatrixScrollRect.viewport.rect.height)
+                            float originalScrollPosition = trialMatrixScrollRect.verticalNormalizedPosition;
+                            Texture2D trialMatrixTexture = null;
+                            try
                             {
-                                CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
-                                float scale = canvasScalerHandler.Scale;
-                                trialMatrixTexture = new Texture2D((int)(trialMatrixScrollRect.content.rect.width / scale), (int)(trialMatrixScrollRect.content.rect.height / scale));
-                                float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
-                                float position = 0.0f;
-                                bool isFinished = false;
-                                while (!isFinished)
+                                if (trialMatrixScrollRect.content.rect.height > trialMatrixScrollRect.viewport.rect.height)
                                 {
-                                    if (position > 1.0f)
+                                    CanvasScalerHandler canvasScalerHandler = GetComponentInParent<CanvasScalerHandler>();
+                                    float scale = canvasScalerHandler.Scale;
+                                    trialMatrixTexture = new Texture2D((int)(trialMatrixScrollRect.content.rect.width / scale), (int)(trialMatrixScrollRect.content.rect.height / scale), TextureFormat.RGBA32, false, false);
+                                    float step = trialMatrixScrollRect.viewport.rect.height / trialMatrixScrollRect.content.rect.height;
+                                    float position = 0.0f;
+                                    bool isFinished = false;
+                                    while (!isFinished)
                                     {
-                                        position = 1.0f;
-                                        isFinished = true;
+                                        if (position > 1.0f)
+                                        {
+                                            position = 1.0f;
+                                            isFinished = true;
+                                        }
+
+                                        trialMatrixScrollRect.verticalNormalizedPosition = position;
+                                        await UniTask.WaitForEndOfFrame();
+                                        Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
+                                        try
+                                        {
+                                            trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
+                                        }
+                                        finally
+                                        {
+                                            DestroyGeneratedTexture(trialMatrixTextureFragment);
+                                        }
+
+                                        position += step;
+                                    }
+                                }
+                                else
+                                {
+                                    trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
+                                }
+
+                                List<string> names = new();
+                                Patient currentPatient = null;
+                                foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
+                                {
+                                    if (currentPatient != channelStruct.Patient)
+                                    {
+                                        currentPatient = channelStruct.Patient;
+                                        names.Add(currentPatient.Name);
                                     }
 
-                                    trialMatrixScrollRect.verticalNormalizedPosition = position;
-                                    await UniTask.WaitForEndOfFrame();
-                                    Texture2D trialMatrixTextureFragment = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.viewport.ToScreenSpace());
-                                    trialMatrixTexture.SetPixels(0, (int)(position * trialMatrixTexture.height - position * trialMatrixTextureFragment.height), trialMatrixTextureFragment.width, trialMatrixTextureFragment.height, trialMatrixTextureFragment.GetPixels());
-                                    position += step;
-                                }
-                            }
-                            else
-                            {
-                                trialMatrixTexture = Texture2DExtension.ScreenRectToTexture(trialMatrixScrollRect.content.ToScreenSpace());
-                            }
-
-                            List<string> names = new();
-                            Patient currentPatient = null;
-                            foreach (var channelStruct in informations.ChannelStructs.OrderBy(cs => cs.Patient.Name))
-                            {
-                                if (currentPatient != channelStruct.Patient)
-                                {
-                                    currentPatient = channelStruct.Patient;
-                                    names.Add(currentPatient.Name);
+                                    names.Add(channelStruct.Channel);
                                 }
 
-                                names.Add(channelStruct.Channel);
+                                string trialMatrixFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names))).GenerateUniqueFilePath();
+                                trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
                             }
-
-                            string trialMatrixFilePath = Path.Combine(path, string.Format("{0}_{1}_{2}_TrialMatrix.png", openedProjectName, m_Scene.Name, string.Join("-", names))).GenerateUniqueFilePath();
-                            trialMatrixTexture.SaveToPNG(trialMatrixFilePath);
-                            trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
+                            finally
+                            {
+                                trialMatrixScrollRect.verticalNormalizedPosition = originalScrollPosition;
+                                trialMatrixScrollRect.viewport.GetComponent<Image>().sprite = mask;
+                                DestroyGeneratedTexture(trialMatrixTexture);
+                            }
                         }
                     }
                     else if (gridInformations != null && gridInformations.isActiveAndEnabled)
@@ -335,7 +368,15 @@ namespace HBP.UI.Module3D
                 Rect sceneRect = GetComponent<RectTransform>().ToScreenSpace();
                 Texture2D sceneTexture = Texture2DExtension.ScreenRectToTexture(sceneRect);
                 string screenshotPath = Path.Combine(path, string.Format("{0}_{1}_fullscene.png", openedProjectName, m_Scene.Name)).GenerateUniqueFilePath();
-                sceneTexture.SaveToPNG(screenshotPath);
+                try
+                {
+                    sceneTexture.SaveToPNG(screenshotPath);
+                }
+                finally
+                {
+                    DestroyGeneratedTexture(sceneTexture);
+                }
+
                 DialogBoxManager.Open(DialogBoxType.Informational, "Screenshot saved", "A screenshot of the scene has been saved at " + screenshotPath).Forget();
             }
         }
@@ -363,10 +404,9 @@ namespace HBP.UI.Module3D
 
             string videoPath = path + string.Format("{0}_{1}.avi", ApplicationState.LoadedProject.Name, m_Scene.Name).GenerateUniqueFilePath();
 
-            Core.DLL.VideoStream videoStream = new();
-            videoStream.Open(videoPath, totalWidth, totalHeight, fps);
-
-            Texture2D texture2D = new(totalWidth, totalHeight);
+            using Core.DLL.VideoStream videoStream = new();
+            Texture2D texture2D = null;
+            int[] originalTimelineIndices = m_Scene.ColumnsDynamic.Select(column => column.Timeline.CurrentIndex).ToArray();
 
             Color[] timelineColors = Enumerable.Repeat(new Color((float)220 / 255, (float)220 / 255, (float)220 / 255, 1.0f), timelineSize * totalWidth).ToArray();
             Color[] mainEventColors = Enumerable.Repeat(new Color(1, 0, 0, 1.0f), timelineSize * timelineSize).ToArray();
@@ -374,74 +414,103 @@ namespace HBP.UI.Module3D
             Color[] verticalSeparatorColors = Enumerable.Repeat(Color.black, totalHeight * separatorSize).ToArray();
             Color[] horizontalSeparatorColors = Enumerable.Repeat(Color.black, totalWidth * separatorSize).ToArray();
 
-            for (int i = 0; i < timelineLength; i++)
+            try
             {
-                updateProgress.Invoke((float)i / (timelineLength - 1), 0, new LoadingText("Taking video of the timeline"));
+                videoStream.Open(videoPath, totalWidth, totalHeight, fps);
+                texture2D = new Texture2D(totalWidth, totalHeight, TextureFormat.RGB24, false, false);
 
-                foreach (var column in m_Scene.ColumnsDynamic)
-                    column.Timeline.CurrentIndex = i;
-
-                await UniTask.WaitForEndOfFrame();
-
-                int width = totalWidth / numberOfColumns;
-                int height = totalHeight / numberOfViewLines;
-
-                for (int j = 0; j < numberOfColumns; ++j)
+                for (int i = 0; i < timelineLength; i++)
                 {
-                    int horizontalOffset = j * width;
-                    // 3D
-                    for (int k = 0; k < numberOfViewLines; ++k)
+                    updateProgress.Invoke((float)i / (timelineLength - 1), 0, new LoadingText("Taking video of the timeline"));
+
+                    foreach (var column in m_Scene.ColumnsDynamic)
+                        column.Timeline.CurrentIndex = i;
+
+                    await UniTask.WaitForEndOfFrame();
+
+                    int width = totalWidth / numberOfColumns;
+                    int height = totalHeight / numberOfViewLines;
+
+                    for (int j = 0; j < numberOfColumns; ++j)
                     {
-                        int verticalOffset = (numberOfViewLines - 1 - k) * height;
-                        Texture2D subTexture = m_Scene.Columns[j].Views[k].GetTexture(width, height, new Color((float)40 / 255, (float)40 / 255, (float)40 / 255, 1.0f));
-                        texture2D.SetPixels(horizontalOffset, verticalOffset, width, height, subTexture.GetPixels());
+                        int horizontalOffset = j * width;
+                        // 3D
+                        for (int k = 0; k < numberOfViewLines; ++k)
+                        {
+                            int verticalOffset = (numberOfViewLines - 1 - k) * height;
+                            Texture2D subTexture = m_Scene.Columns[j].Views[k].GetTexture(width, height, new Color((float)40 / 255, (float)40 / 255, (float)40 / 255, 1.0f));
+                            try
+                            {
+                                texture2D.SetPixels(horizontalOffset, verticalOffset, width, height, subTexture.GetPixels());
+                            }
+                            finally
+                            {
+                                DestroyGeneratedTexture(subTexture);
+                            }
+                        }
+                        // Overlay - Not very good: needs a way to be drawn on its own
+                        //Colormap colormap = Scene3DUI.Columns[j].Colormap;
+                        //Texture2D colormapTexture = Texture2DExtension.ScreenRectToTexture(colormap.GetComponent<RectTransform>().ToScreenSpace());
+                        //texture2D.SetPixels(horizontalOffset + 5, totalHeight - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
+                        //Icon icon = HBP3DModuleUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
+                        //Texture2D iconTexture = icon.IsActive ? icon.Sprite.texture : null;
+                        //if (iconTexture)
+                        //{
+                        //    Texture2D newIconTexture = new Texture2D(iconTexture.width, iconTexture.height);
+                        //    newIconTexture.SetPixels(iconTexture.GetPixels());
+                        //    float resizeFactor = 1f / (Mathf.Max(newIconTexture.width, newIconTexture.height) / 200);
+                        //    newIconTexture.Resize((int)(resizeFactor * newIconTexture.width), (int)(resizeFactor * newIconTexture.height)); // does not work
+                        //    texture2D.SetPixels(horizontalOffset + width - 5 - newIconTexture.width, 1080 - 5 - newIconTexture.height, newIconTexture.width, newIconTexture.height, newIconTexture.GetPixels());
+                        //}
                     }
-                    // Overlay - Not very good: needs a way to be drawn on its own
-                    //Colormap colormap = Scene3DUI.Columns[j].Colormap;
-                    //Texture2D colormapTexture = Texture2DExtension.ScreenRectToTexture(colormap.GetComponent<RectTransform>().ToScreenSpace());
-                    //texture2D.SetPixels(horizontalOffset + 5, totalHeight - 5 - colormapTexture.height, colormapTexture.width, colormapTexture.height, colormapTexture.GetPixels());
-                    //Icon icon = HBP3DModuleUI.Scenes[scene].Scene3DUI.Columns[j].Icon;
-                    //Texture2D iconTexture = icon.IsActive ? icon.Sprite.texture : null;
-                    //if (iconTexture)
-                    //{
-                    //    Texture2D newIconTexture = new Texture2D(iconTexture.width, iconTexture.height);
-                    //    newIconTexture.SetPixels(iconTexture.GetPixels());
-                    //    float resizeFactor = 1f / (Mathf.Max(newIconTexture.width, newIconTexture.height) / 200);
-                    //    newIconTexture.Resize((int)(resizeFactor * newIconTexture.width), (int)(resizeFactor * newIconTexture.height)); // does not work
-                    //    texture2D.SetPixels(horizontalOffset + width - 5 - newIconTexture.width, 1080 - 5 - newIconTexture.height, newIconTexture.width, newIconTexture.height, newIconTexture.GetPixels());
-                    //}
+
+                    for (int j = 1; j < numberOfColumns; ++j)
+                        texture2D.SetPixels(j * width - (separatorSize / 2), 0, separatorSize, totalHeight, verticalSeparatorColors);
+
+                    for (int j = 1; j < numberOfViewLines; ++j)
+                        texture2D.SetPixels(0, j * height - (separatorSize / 2), totalWidth, separatorSize, horizontalSeparatorColors);
+
+                    texture2D.SetPixels(0, 0, totalWidth, timelineSize, timelineColors);
+                    foreach (var subTimeline in timeline.SubTimelinesBySubBloc.Values)
+                    {
+                        int mainEventIndex = subTimeline.GlobalMinIndex + subTimeline.Frequency.ConvertToFlooredNumberOfSamples(subTimeline.StatisticsByEvent.FirstOrDefault(e => e.Key.Type == MainSecondaryEnum.Main).Value.RoundedTimeFromStart);
+                        int mainEventPosition = mainEventIndex * ((totalWidth - timelineSize) / (timelineLength - 1));
+                        texture2D.SetPixels(mainEventPosition, 0, timelineSize, timelineSize, mainEventColors);
+                    }
+
+                    int cursorPosition = i * ((totalWidth - timelineSize) / (timelineLength - 1));
+                    texture2D.SetPixels(cursorPosition, 0, timelineSize, timelineSize, timelineCursorColors);
+
+                    Color32[] framePixels = texture2D.GetPixels32();
+                    for (int j = 0; j < numberOfColumns; j++)
+                        UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, m_Scene.Columns[j].Name, j * width + (width / 2), 20);
+
+                    UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, string.Format(CultureInfo.InvariantCulture, "{0:F2}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex)), totalWidth / 2, totalHeight - 20);
+                    texture2D.SetPixels32(framePixels);
+
+                    videoStream.WriteFrame(texture2D);
                 }
-
-                for (int j = 1; j < numberOfColumns; ++j)
-                    texture2D.SetPixels(j * width - (separatorSize / 2), 0, separatorSize, totalHeight, verticalSeparatorColors);
-
-                for (int j = 1; j < numberOfViewLines; ++j)
-                    texture2D.SetPixels(0, j * height - (separatorSize / 2), totalWidth, separatorSize, horizontalSeparatorColors);
-
-                texture2D.SetPixels(0, 0, totalWidth, timelineSize, timelineColors);
-                foreach (var subTimeline in timeline.SubTimelinesBySubBloc.Values)
-                {
-                    int mainEventIndex = subTimeline.GlobalMinIndex + subTimeline.Frequency.ConvertToFlooredNumberOfSamples(subTimeline.StatisticsByEvent.FirstOrDefault(e => e.Key.Type == MainSecondaryEnum.Main).Value.RoundedTimeFromStart);
-                    int mainEventPosition = mainEventIndex * ((totalWidth - timelineSize) / (timelineLength - 1));
-                    texture2D.SetPixels(mainEventPosition, 0, timelineSize, timelineSize, mainEventColors);
-                }
-
-                int cursorPosition = i * ((totalWidth - timelineSize) / (timelineLength - 1));
-                texture2D.SetPixels(cursorPosition, 0, timelineSize, timelineSize, timelineCursorColors);
-
-                Color32[] framePixels = texture2D.GetPixels32();
-                for (int j = 0; j < numberOfColumns; j++)
-                    UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, m_Scene.Columns[j].Name, j * width + (width / 2), 20);
-
-                UnityTextureFactory.DrawCenteredText(framePixels, totalWidth, totalHeight, string.Format(CultureInfo.InvariantCulture, "{0:F2}ms", timeline.CurrentSubtimeline.GetLocalTime(timeline.CurrentIndex)), totalWidth / 2, totalHeight - 20);
-                texture2D.SetPixels32(framePixels);
-
-                videoStream.WriteFrame(texture2D);
+            }
+            finally
+            {
+                for (int i = 0; i < m_Scene.ColumnsDynamic.Count && i < originalTimelineIndices.Length; i++)
+                    m_Scene.ColumnsDynamic[i].Timeline.CurrentIndex = originalTimelineIndices[i];
+                DestroyGeneratedTexture(texture2D);
             }
 
-            videoStream.Dispose();
             updateProgress.Invoke(1, 0, new LoadingText("Finished"));
             DialogBoxManager.Open(DialogBoxType.Informational, "Video saved", "A video of the scene has been saved at " + videoPath).Forget();
+        }
+
+        private static void DestroyGeneratedTexture(Texture2D texture)
+        {
+            if (texture == null)
+                return;
+
+            if (Application.isPlaying)
+                Destroy(texture);
+            else
+                DestroyImmediate(texture);
         }
 
         #endregion

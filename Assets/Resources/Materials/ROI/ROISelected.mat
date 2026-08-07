@@ -83,7 +83,7 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 0.9117647, g: 0.03352074, b: 0.03352074, a: 0.269}
-    - _ContrastColor: {r: 0.04, g: 0.04, b: 0.04, a: 1}
+    - _ContrastColor: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _WireColor: {r: 1, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

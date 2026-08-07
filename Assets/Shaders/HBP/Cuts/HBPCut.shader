@@ -135,5 +135,39 @@ Shader "HBP/Cut"
             }
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "HBPEdgeData"
+            Tags { "LightMode" = "HBPEdgeData" }
+            Cull Back
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex EdgeDataVert
+            #pragma fragment EdgeDataFrag
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            struct EdgeDataAttributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; };
+            struct EdgeDataVaryings { float4 positionCS : SV_POSITION; half3 normalWS : TEXCOORD0; float viewDepth : TEXCOORD1; };
+
+            EdgeDataVaryings EdgeDataVert(EdgeDataAttributes input)
+            {
+                EdgeDataVaryings output;
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                output.positionCS = TransformWorldToHClip(positionWS);
+                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+                output.viewDepth = -TransformWorldToView(positionWS).z;
+                return output;
+            }
+
+            float4 EdgeDataFrag(EdgeDataVaryings input) : SV_Target
+            {
+                float3 normalWS = NormalizeNormalPerPixel(input.normalWS);
+                return float4(normalWS * 0.5 + 0.5, input.viewDepth);
+            }
+            ENDHLSL
+        }
     }
 }

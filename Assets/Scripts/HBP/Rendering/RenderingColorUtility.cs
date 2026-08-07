@@ -61,6 +61,46 @@ namespace HBP.Rendering
             return Mathf.Clamp01(normalizedSourceAlpha * userAlpha);
         }
 
+        public static void ConvertPremultipliedToStraightAlpha(Texture2D texture)
+        {
+            if (texture == null)
+                throw new ArgumentNullException(nameof(texture));
+
+            Color32[] pixels = texture.GetPixels32();
+            ConvertPremultipliedToStraightAlpha(pixels);
+            texture.SetPixels32(pixels);
+            texture.Apply(false, false);
+        }
+
+        public static void ConvertPremultipliedToStraightAlpha(Color32[] pixels)
+        {
+            if (pixels == null)
+                throw new ArgumentNullException(nameof(pixels));
+
+            for (int index = 0; index < pixels.Length; ++index)
+            {
+                Color32 pixel = pixels[index];
+                if (pixel.a == 0)
+                {
+                    pixels[index] = new Color32(0, 0, 0, 0);
+                    continue;
+                }
+
+                if (pixel.a == byte.MaxValue)
+                    continue;
+
+                pixels[index] = new Color32(UnpremultiplySrgb(pixel.r, pixel.a), UnpremultiplySrgb(pixel.g, pixel.a), UnpremultiplySrgb(pixel.b, pixel.a), pixel.a);
+            }
+        }
+
+        private static byte UnpremultiplySrgb(byte channel, byte alpha)
+        {
+            float encodedPremultiplied = channel / (float)byte.MaxValue;
+            float linearStraight = SrgbToLinear(encodedPremultiplied) / (alpha / (float)byte.MaxValue);
+            float encodedStraight = LinearToSrgb(Mathf.Clamp01(linearStraight));
+            return (byte)Mathf.RoundToInt(encodedStraight * byte.MaxValue);
+        }
+
         private static float SrgbToLinear(float channel)
         {
             return channel <= 0.04045f ? channel / 12.92f : Mathf.Pow((channel + 0.055f) / 1.055f, 2.4f);

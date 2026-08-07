@@ -332,19 +332,19 @@ namespace HBP.Core.Tools
     {
         public static Texture2D ToTexture2D(this RenderTexture renderTexture)
         {
-            // Remember currently active render texture
             RenderTexture currentActiveRenderTexture = RenderTexture.active;
-
-            // Set the supplied RenderTexture as the active one
-            RenderTexture.active = renderTexture;
-
-            // Create a new Texture2D and read the RenderTexture image into it
-            Texture2D texture = new(renderTexture.width, renderTexture.height);
-            texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
-
-            // Restores previously active render texture
-            RenderTexture.active = currentActiveRenderTexture;
-            return texture;
+            try
+            {
+                RenderTexture.active = renderTexture;
+                Texture2D texture = new(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false, false);
+                texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+                texture.Apply(false, false);
+                return texture;
+            }
+            finally
+            {
+                RenderTexture.active = currentActiveRenderTexture;
+            }
         }
     }
 

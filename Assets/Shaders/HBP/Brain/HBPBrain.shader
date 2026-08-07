@@ -84,5 +84,23 @@ Shader "HBP/Brain"
             #include "Includes/HBPBrainDepth.hlsl"
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "HBPEdgeData"
+            Tags { "LightMode" = "HBPEdgeData" }
+
+            Cull Back
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex HBP_BrainDepthVertex
+            #pragma fragment HBP_BrainEdgeDataFragment
+            #pragma multi_compile_instancing
+
+            #include "Includes/HBPBrainDepth.hlsl"
+            ENDHLSL
+        }
     }
 }

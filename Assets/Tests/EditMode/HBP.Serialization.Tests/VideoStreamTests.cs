@@ -73,6 +73,33 @@ namespace HBP.Tests.Serialization
             }
         }
 
+        [Test]
+        [Category("NativeMigration")]
+        public void VideoStream_ReusesItsBufferWhenEncodedFramesShrink()
+        {
+            string path = Path.Combine(Path.GetTempPath(), $"hibop_video_variable_frames_{Guid.NewGuid():N}.avi");
+            Texture2D detailedFrame = CreateDetailedFrame(128, 128);
+            Texture2D solidFrame = CreateSolidFrame(128, 128, Color.black);
+            try
+            {
+                using (VideoStream stream = new())
+                {
+                    stream.Open(path, detailedFrame.width, detailedFrame.height, 25.0f);
+                    stream.WriteFrame(detailedFrame);
+                    stream.WriteFrame(solidFrame);
+                    Assert.That(stream.FrameCount, Is.EqualTo(2));
+                }
+
+                AssertSeekableIndex(File.ReadAllBytes(path), expectedFrameCount: 2);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(detailedFrame);
+                UnityEngine.Object.DestroyImmediate(solidFrame);
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
+
         [TestCase(23.976f)]
         [TestCase(25.0f)]
         [TestCase(29.97f)]
@@ -198,6 +225,22 @@ namespace HBP.Tests.Serialization
             }
 
             texture.SetPixels(pixels);
+            texture.Apply(updateMipmaps: false);
+            return texture;
+        }
+
+        private static Texture2D CreateDetailedFrame(int width, int height)
+        {
+            Texture2D texture = new(width, height, TextureFormat.RGBA32, mipChain: false);
+            Color32[] pixels = new Color32[width * height];
+            for (int index = 0; index < pixels.Length; ++index)
+            {
+                int x = index % width;
+                int y = index / width;
+                pixels[index] = new Color32((byte)(x * 73 + y * 17), (byte)(x * 29 + y * 101), (byte)(x * 47 + y * 61), 255);
+            }
+
+            texture.SetPixels32(pixels);
             texture.Apply(updateMipmaps: false);
             return texture;
         }

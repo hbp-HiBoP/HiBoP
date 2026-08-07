@@ -122,6 +122,7 @@ namespace HBP.Tests.Rendering
                 Assert.That(material.FindPass("UniversalForward"), Is.GreaterThanOrEqualTo(0));
                 Assert.That(material.FindPass("DepthOnly"), Is.GreaterThanOrEqualTo(0));
                 Assert.That(material.FindPass("DepthNormals"), Is.GreaterThanOrEqualTo(0));
+                Assert.That(material.FindPass("HBPEdgeData"), Is.GreaterThanOrEqualTo(0));
             }
             finally
             {
@@ -134,7 +135,7 @@ namespace HBP.Tests.Rendering
             StringAssert.Contains("HBP_ExtrudeBrainVertex(positionOS, normalOS);", common);
             StringAssert.Contains("clip(HBP_ClippingValue(input.positionOS));", common);
             StringAssert.Contains("#include \"HBPBrainCommon.hlsl\"", depth);
-            Assert.That(CountOccurrences(depth, "clip(HBP_ClippingValue(input.positionOS));"), Is.EqualTo(2));
+            Assert.That(CountOccurrences(depth, "clip(HBP_ClippingValue(input.positionOS));"), Is.EqualTo(3));
         }
 
         private static Material CreateBrainMaterial(Texture scientific, Texture alpha, Texture anatomy)

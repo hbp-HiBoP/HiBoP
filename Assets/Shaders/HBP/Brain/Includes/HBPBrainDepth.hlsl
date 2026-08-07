@@ -8,6 +8,7 @@ struct HBPBrainDepthVaryings
     float4 positionCS : SV_POSITION;
     float3 positionOS : TEXCOORD0;
     half3 normalWS : TEXCOORD1;
+    float viewDepth : TEXCOORD2;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -25,7 +26,18 @@ HBPBrainDepthVaryings HBP_BrainDepthVertex(HBPBrainAttributes input)
     output.positionOS = positionOS;
     output.positionCS = TransformObjectToHClip(positionOS);
     output.normalWS = TransformObjectToWorldNormal(normalOS);
+    output.viewDepth = -TransformWorldToView(TransformObjectToWorld(positionOS)).z;
     return output;
+}
+
+float4 HBP_BrainEdgeDataFragment(HBPBrainDepthVaryings input) : SV_Target
+{
+    UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+    clip(HBP_ClippingValue(input.positionOS));
+
+    float3 normalWS = NormalizeNormalPerPixel(input.normalWS);
+    return float4(normalWS * 0.5 + 0.5, input.viewDepth);
 }
 
 half HBP_BrainDepthFragment(HBPBrainDepthVaryings input) : SV_Target

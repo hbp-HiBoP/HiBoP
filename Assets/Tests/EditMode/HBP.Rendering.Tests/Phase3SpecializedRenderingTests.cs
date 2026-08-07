@@ -41,6 +41,24 @@ namespace HBP.Tests.Rendering
         }
 
         [Test]
+        public void SharedMeshes_RecreatesMeshesDestroyedByUnity()
+        {
+            Mesh roiSphere = SharedMeshes.ROISphere;
+            Mesh site = SharedMeshes.Site;
+
+            Object.DestroyImmediate(roiSphere);
+            Object.DestroyImmediate(site);
+
+            Mesh rebuiltROISphere = SharedMeshes.ROISphere;
+            Mesh rebuiltSite = SharedMeshes.Site;
+
+            Assert.That(rebuiltROISphere, Is.Not.Null);
+            Assert.That(rebuiltSite, Is.Not.Null);
+            Assert.That(rebuiltROISphere, Is.Not.SameAs(roiSphere));
+            Assert.That(rebuiltSite, Is.Not.SameAs(site));
+        }
+
+        [Test]
         public void ROIAnalyticCageShader_UsesSparseAnalyticLinesAndSupportsMetal()
         {
             string source = File.ReadAllText(ROIShaderPath);

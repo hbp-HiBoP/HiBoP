@@ -191,7 +191,7 @@ namespace HBP.Dev.Rendering
         private static string GetOutputRoot()
         {
             string projectRoot = Directory.GetParent(Application.dataPath)?.FullName ?? Application.dataPath;
-            string pipelineDirectory = GraphicsSettings.currentRenderPipeline == null ? "baseline-birp" : "urp-phase3";
+            string pipelineDirectory = GraphicsSettings.currentRenderPipeline == null ? "baseline-birp" : "urp-phase4";
             string outputRoot = Path.Combine(projectRoot, ".test-results", "rendering", pipelineDirectory);
             Directory.CreateDirectory(outputRoot);
             return outputRoot;

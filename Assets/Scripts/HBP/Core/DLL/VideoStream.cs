@@ -115,7 +115,7 @@ namespace HBP.Core.DLL
                 m_FrameBuffer = new byte[frameByteCount];
             }
 
-            encodedFrame.CopyTo(m_FrameBuffer);
+            NativeArray<byte>.Copy(encodedFrame, 0, m_FrameBuffer, 0, frameByteCount);
             m_MaxFrameByteSize = Math.Max(m_MaxFrameByteSize, frameByteCount);
 
             long chunkStartPosition = m_Stream.Position;

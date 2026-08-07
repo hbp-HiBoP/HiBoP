@@ -2,7 +2,7 @@
 
 ## Statut et portée
 
-**Statut :** phases 0 à 3 implémentées ; Gate 3 validée sous Windows
+**Statut :** phases 0 à 4 implémentées ; Gate 4 validée sous Windows
 **Projet audité :** HiBoP sous Unity `6000.5.2f1`  
 **Date de l'audit initial :** 2026-07-23  
 **Pipeline actuel :** Universal Render Pipeline, `HBP-Desktop-URP`  
@@ -82,6 +82,9 @@ pas explicitement amendées dans ce dossier :
     bascule globale, matériaux migrés et validation Gate 2.
 14. [14-phase-3-roi-sites.md](14-phase-3-roi-sites.md) : cage analytique des
     ROI, rendu minimal des sites et validation Gate 3.
+15. [15-phase-4-multiview-edges-exports.md](15-phase-4-multiview-edges-exports.md) :
+    cycle de vie multi-vues, Edges Render Graph, exports straight alpha et
+    validation Gate 4.
 
 ## Hiérarchie des exigences
 

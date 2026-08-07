@@ -13,6 +13,7 @@ using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
+using HBP.Rendering;
 using HBP.Tests.PlayMode.Utilities;
 using HBP.UI.Module3D;
 using HBP.UI.Toolbar;
@@ -725,14 +726,11 @@ namespace HBP.Tests.PlayMode.Module3D
             cameraObject.transform.SetParent(viewObject.transform, false);
             Camera3D camera3D = cameraObject.AddComponent<Camera3D>();
             Camera camera = cameraObject.AddComponent<Camera>();
-            Type postProcessLayerType = FindLoadedType("UnityEngine.Rendering.PostProcessing.PostProcessLayer");
-            if (postProcessLayerType != null)
-            {
-                cameraObject.AddComponent(postProcessLayerType);
-            }
+            HBPEdgeCameraSettings edgeSettings = cameraObject.AddComponent<HBPEdgeCameraSettings>();
 
             SetPrivateField(view, "m_Camera3D", camera3D);
             SetPrivateField(camera3D, "m_Camera", camera);
+            SetPrivateField(camera3D, "m_EdgeSettings", edgeSettings);
             SetPrivateField(camera3D, "m_CircleX", CreateLineRendererObject("Circle X", cameraObject));
             SetPrivateField(camera3D, "m_CircleY", CreateLineRendererObject("Circle Y", cameraObject));
             SetPrivateField(camera3D, "m_CircleZ", CreateLineRendererObject("Circle Z", cameraObject));
@@ -1026,11 +1024,6 @@ namespace HBP.Tests.PlayMode.Module3D
 
             Assert.Fail($"Missing field {fieldName}");
             return null;
-        }
-
-        private static Type FindLoadedType(string typeName)
-        {
-            return AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType(typeName)).FirstOrDefault(type => type != null);
         }
 
         private static void NoProgress(float progress, float duration, LoadingText text)

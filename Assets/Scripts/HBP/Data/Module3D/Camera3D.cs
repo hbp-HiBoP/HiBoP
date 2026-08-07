@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using HBP.Core.Enums;
+using HBP.Rendering;
 using System.Linq;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace HBP.Data.Module3D
 {
@@ -37,6 +37,13 @@ namespace HBP.Data.Module3D
         public Camera Camera
         {
             get { return m_Camera; }
+        }
+
+        [SerializeField] private HBPEdgeCameraSettings m_EdgeSettings;
+
+        public HBPEdgeCameraSettings EdgeSettings
+        {
+            get { return m_EdgeSettings; }
         }
 
         /// <summary>
@@ -269,7 +276,7 @@ namespace HBP.Data.Module3D
             m_OriginalTarget = LocalTarget;
             transform.position = Target - transform.forward * m_StartDistance;
 
-            GetComponent<PostProcessLayer>().enabled = m_AssociatedScene.EdgeMode;
+            m_EdgeSettings.EdgesEnabled = m_AssociatedScene.EdgeMode;
             AutomaticRotation = m_AssociatedScene.AutomaticRotation;
             AutomaticRotationSpeed = m_AssociatedScene.AutomaticRotationSpeed;
 

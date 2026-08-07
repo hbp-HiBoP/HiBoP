@@ -1,8 +1,8 @@
 ﻿using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.Rendering;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace HBP.Data.Module3D
 {
@@ -111,8 +111,8 @@ namespace HBP.Data.Module3D
         /// </summary>
         public bool ShowEdges
         {
-            get { return m_Camera3D.GetComponent<PostProcessLayer>().enabled; }
-            set { m_Camera3D.GetComponent<PostProcessLayer>().enabled = value; }
+            get { return m_Camera3D.EdgeSettings.EdgesEnabled; }
+            set { m_Camera3D.EdgeSettings.EdgesEnabled = value; }
         }
 
         /// <summary>
@@ -133,12 +133,8 @@ namespace HBP.Data.Module3D
             get { return m_Camera3D.Camera.targetTexture; }
             set
             {
-                if (value.width == 0 || value.height == 0 || float.IsNaN(value.height) || float.IsNaN(value.width)) return;
-
-                if (m_Camera3D.Camera.targetTexture)
-                {
-                    m_Camera3D.Camera.targetTexture.Release();
-                }
+                if (value != null && (value.width <= 0 || value.height <= 0))
+                    return;
 
                 m_Camera3D.Camera.targetTexture = value;
             }
@@ -331,24 +327,38 @@ namespace HBP.Data.Module3D
         /// <returns>Texture</returns>
         public Texture2D GetTexture(int width, int height, Color background)
         {
-            // Save old parameters
             RenderTexture currentRenderTexture = m_Camera3D.Camera.targetTexture;
             float currentAspect = m_Camera3D.Camera.aspect;
             Color currentBackground = m_Camera3D.Camera.backgroundColor;
-            // Get texture
-            RenderTexture screenshotRenderTexture = new(width, height, 24);
-            screenshotRenderTexture.antiAliasing = 1;
-            m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
-            m_Camera3D.Camera.aspect = (float)width / height;
-            m_Camera3D.Camera.backgroundColor = background;
-            m_Camera3D.Camera.Render();
-            Texture2D texture = m_Camera3D.Camera.targetTexture.ToTexture2D();
-            // Restore old parameters
-            m_Camera3D.Camera.targetTexture = currentRenderTexture;
-            m_Camera3D.Camera.aspect = currentAspect;
-            m_Camera3D.Camera.backgroundColor = currentBackground;
-            screenshotRenderTexture.Release();
-            return texture;
+            RenderTexture screenshotRenderTexture = new(HBPRenderTextureDescriptorFactory.CreateViewDescriptor(width, height))
+            {
+                name = $"HBP Export {width}x{height}",
+                hideFlags = HideFlags.DontSave
+            };
+
+            try
+            {
+                screenshotRenderTexture.Create();
+                m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
+                m_Camera3D.Camera.aspect = (float)width / height;
+                m_Camera3D.Camera.backgroundColor = background;
+                m_Camera3D.Camera.Render();
+                Texture2D texture = screenshotRenderTexture.ToTexture2D();
+                if (Mathf.Approximately(background.a, 0.0f))
+                    RenderingColorUtility.ConvertPremultipliedToStraightAlpha(texture);
+                return texture;
+            }
+            finally
+            {
+                m_Camera3D.Camera.targetTexture = currentRenderTexture;
+                m_Camera3D.Camera.aspect = currentAspect;
+                m_Camera3D.Camera.backgroundColor = currentBackground;
+                screenshotRenderTexture.Release();
+                if (Application.isPlaying)
+                    Destroy(screenshotRenderTexture);
+                else
+                    DestroyImmediate(screenshotRenderTexture);
+            }
         }
 
         #endregion
