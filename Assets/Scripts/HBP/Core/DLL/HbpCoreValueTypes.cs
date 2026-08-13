@@ -122,6 +122,14 @@ namespace HBP.Core.DLL
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    internal struct ActivityProjectionGridDimensions
+    {
+        public int x;
+        public int y;
+        public int z;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     internal struct VolumeExtrema
     {
         public float min;

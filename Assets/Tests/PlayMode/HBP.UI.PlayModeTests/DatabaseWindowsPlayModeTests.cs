@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Database;
+using HBP.Core.DLL;
 using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Tests.PlayMode.Utilities;
@@ -108,6 +109,7 @@ namespace HBP.Tests.PlayMode.UI
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSelectionManagerScope selectionManager = new();
+            using ActivityProjectionSettingsScope projectionSettings = new(96);
             using PlayModeSceneScope scene = new("DatabaseWindowsExportLocalizerAtlasWindow");
             PlayModeWindowHarness window = new(scene.Scene, "DatabaseWindows Export Localizer Harness");
             Project project = SeedDatabase(temp);
@@ -115,6 +117,8 @@ namespace HBP.Tests.PlayMode.UI
             ExportLocalizerAtlasWindow exportWindow = InstantiateWindow<ExportLocalizerAtlasWindow>(ExportLocalizerAtlasResource, window.Root.transform);
             FolderSelector exportFolder = GetPrivateField<FolderSelector>(exportWindow, "m_ExportFolderSelector");
             Text patientsSelectedText = GetPrivateField<Text>(exportWindow, "m_PatientsSelectedText");
+            InputField maximumGridDimension = GetPrivateField<InputField>(exportWindow, "m_MaximumGridDimensionInputField");
+            Text exportGridPreview = GetPrivateField<Text>(exportWindow, "m_ExportGridPreviewText");
             Button okButton = GetPrivateField<Button>(exportWindow, "m_OKButton", typeof(DialogWindow));
             List<ExportProtocolItem> protocolItems = GetPrivateField<List<ExportProtocolItem>>(exportWindow, "m_ProtocolItems");
             List<ExportDataNameItem> dataNameItems = GetPrivateField<List<ExportDataNameItem>>(exportWindow, "m_DataNameItems");
@@ -127,6 +131,8 @@ namespace HBP.Tests.PlayMode.UI
             Assert.That(protocolItem.GetComponentsInChildren<ExportBlocItem>(true).Select(item => item.Name), Does.Contain("playmode-bloc-alpha"));
             Assert.That(dataNameItems.Select(item => item.DataName), Does.Contain("playmode-signal-alpha"));
             Assert.That(patientsSelectedText.text, Is.EqualTo("No patients selected"));
+            Assert.That(maximumGridDimension.text, Is.EqualTo("80"));
+            Assert.That(exportGridPreview.text, Is.Not.Empty);
             Assert.That(okButton.interactable, Is.False);
 
             InvokePrivate(exportWindow, "OnPatientsSelected", new object[] { project.Patients.ToArray() });
@@ -135,6 +141,17 @@ namespace HBP.Tests.PlayMode.UI
             await UniTask.Yield();
 
             Assert.That(patientsSelectedText.text, Is.EqualTo("1 patient selected"));
+            Assert.That(okButton.interactable, Is.True);
+
+            maximumGridDimension.text = "1";
+            await UniTask.Yield();
+
+            Assert.That(exportGridPreview.text, Does.Contain("between 2 and 512"));
+            Assert.That(okButton.interactable, Is.False);
+
+            maximumGridDimension.text = "96";
+            await UniTask.Yield();
+
             Assert.That(okButton.interactable, Is.True);
 
             Object.Destroy(exportWindow.gameObject);
@@ -228,6 +245,23 @@ namespace HBP.Tests.PlayMode.UI
             {
                 FieldInfo field = typeof(Singleton<SelectionManager>).GetField("m_Instance", BindingFlags.NonPublic | BindingFlags.Static);
                 field.SetValue(null, null);
+            }
+        }
+
+        private sealed class ActivityProjectionSettingsScope : IDisposable
+        {
+            private readonly int m_MaximumDimension = ActivityProjectionSettings.VolumeGridDimension;
+            private readonly HBP.Core.Enums.VolumeInterpolation m_Interpolation = ActivityProjectionSettings.VolumeInterpolation;
+
+            public ActivityProjectionSettingsScope(int maximumDimension)
+            {
+                ActivityProjectionSettings.VolumeGridDimension = maximumDimension;
+            }
+
+            public void Dispose()
+            {
+                ActivityProjectionSettings.VolumeGridDimension = m_MaximumDimension;
+                ActivityProjectionSettings.VolumeInterpolation = m_Interpolation;
             }
         }
     }

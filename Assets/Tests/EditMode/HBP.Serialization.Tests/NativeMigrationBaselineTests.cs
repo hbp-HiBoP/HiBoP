@@ -69,13 +69,13 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(248));
+            Assert.That(imports, Has.Count.EqualTo(253));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_export"), Is.Zero);
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports.Where(imported => imported.Dll == "hbp_core").Select(imported => imported.RelativeFile).Distinct().ToArray();
-            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/GeneratorSurface.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(194));
+            Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/ActivityProjectionGrid.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
+            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(199));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
             Assert.That(imports.Any(imported => imported.Entry.Contains("PatientElectrodesList")), Is.False);
             Assert.That(imports.Any(imported => imported.RelativeFile == "ROI.cs"), Is.False);
@@ -803,17 +803,17 @@ namespace HBP.Tests.Serialization
                 cutSurface.UpdateMeshFromDLL(cutMesh);
                 Assert.That(cutMesh.uv, Has.Length.EqualTo(3));
 
-                using GeneratorSurface generatorSurface = ExecuteNativeOrIgnore(() => new GeneratorSurface(), "hbp_core GeneratorSurface wrapper");
-                generatorSurface.Initialize(cutSurface, volume, 8);
+                using ActivityProjectionGrid projectionGrid = ExecuteNativeOrIgnore(() => new ActivityProjectionGrid(), "hbp_core ActivityProjectionGrid wrapper");
+                projectionGrid.Initialize(volume, 8);
                 using DensityGenerator densityGenerator = ExecuteNativeOrIgnore(() => new DensityGenerator(), "hbp_core DensityGenerator wrapper");
-                densityGenerator.Initialize(generatorSurface);
+                densityGenerator.Initialize(projectionGrid);
                 using RawSiteList rawSites = new();
                 rawSites.AddSite("S1", new Vector3(-1, 1, 2), 0, 0);
                 rawSites.UpdateMask(0, false);
                 densityGenerator.ComputeActivity(rawSites, 10.0f, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
 
                 using SurfaceGenerator surfaceGenerator = ExecuteNativeOrIgnore(() => new SurfaceGenerator(), "hbp_core SurfaceGenerator wrapper");
-                surfaceGenerator.Initialize(densityGenerator);
+                surfaceGenerator.Initialize(densityGenerator, cutSurface);
                 surfaceGenerator.ComputeActivityUV(0, 0.4f);
                 Assert.That(surfaceGenerator.ActivityUV, Has.Length.EqualTo(cutSurface.NumberOfVertices));
                 Assert.That(surfaceGenerator.AlphaUV, Has.Length.EqualTo(cutSurface.NumberOfVertices));
@@ -1061,28 +1061,28 @@ namespace HBP.Tests.Serialization
                 using Surface surface = ExecuteNativeOrIgnore(() => new Surface(), "hbp_core Surface wrapper");
                 Assert.That(surface.LoadGIIFile(NativePath("Meshes", "single_surface.gii")), Is.True);
 
-                using GeneratorSurface generatorSurface = ExecuteNativeOrIgnore(() => new GeneratorSurface(), "hbp_core GeneratorSurface wrapper");
-                generatorSurface.Initialize(surface, volume, 80, VolumeInterpolation.Trilinear);
+                using ActivityProjectionGrid projectionGrid = ExecuteNativeOrIgnore(() => new ActivityProjectionGrid(), "hbp_core ActivityProjectionGrid wrapper");
+                projectionGrid.Initialize(volume, 80, VolumeInterpolation.Trilinear);
 
                 using RawSiteList rawSites = new();
                 rawSites.AddSite("S1", new Vector3(1, 1, 2), 0, 0);
                 rawSites.UpdateMask(0, false);
 
                 using IEEGGenerator ieegGenerator = ExecuteNativeOrIgnore(() => new IEEGGenerator(), "hbp_core IEEGGenerator wrapper");
-                ieegGenerator.Initialize(generatorSurface);
+                ieegGenerator.Initialize(projectionGrid);
                 ieegGenerator.ComputeActivity(rawSites, 1000.0f, new[] { 1.0f, -0.5f }, 2, rawSites.NumberOfSites, HBP.Core.Enums.SiteInfluenceByDistanceType.Constant);
                 ieegGenerator.AdjustValues(0.0f, -1.0f, 1.0f);
                 AssertActivityUVs(surface, ieegGenerator);
 
                 using FMRIGenerator fmriGenerator = ExecuteNativeOrIgnore(() => new FMRIGenerator(), "hbp_core FMRIGenerator wrapper");
-                fmriGenerator.Initialize(generatorSurface);
+                fmriGenerator.Initialize(projectionGrid);
                 fmriGenerator.ComputeActivity(new[] { (volume, (Volume)null) });
                 fmriGenerator.AdjustValues(0.25f, 1.0f, 0.25f, 1.0f);
                 fmriGenerator.HideExtremeValues(false, false, false);
                 AssertActivityUVs(surface, fmriGenerator);
 
                 using MEGGenerator megGenerator = ExecuteNativeOrIgnore(() => new MEGGenerator(), "hbp_core MEGGenerator wrapper");
-                megGenerator.Initialize(generatorSurface);
+                megGenerator.Initialize(projectionGrid);
                 megGenerator.ComputeActivity(new[] { (volume, (Volume)null) });
                 megGenerator.AdjustValues(0.25f, 1.0f, 0.25f, 1.0f);
                 megGenerator.HideExtremeValues(false, false, false);
@@ -1430,7 +1430,7 @@ namespace HBP.Tests.Serialization
         private static void AssertActivityUVs(Surface surface, ActivityGenerator activityGenerator)
         {
             using SurfaceGenerator surfaceGenerator = ExecuteNativeOrIgnore(() => new SurfaceGenerator(), "hbp_core SurfaceGenerator wrapper");
-            surfaceGenerator.Initialize(activityGenerator);
+            surfaceGenerator.Initialize(activityGenerator, surface);
             surfaceGenerator.ComputeActivityUV(0, 0.4f);
             Assert.That(surfaceGenerator.ActivityUV, Has.Length.EqualTo(surface.NumberOfVertices));
             Assert.That(surfaceGenerator.AlphaUV, Has.Length.EqualTo(surface.NumberOfVertices));

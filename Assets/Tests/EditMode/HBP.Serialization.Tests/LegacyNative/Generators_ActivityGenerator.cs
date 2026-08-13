@@ -48,7 +48,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                     throw new InvalidOperationException($"ActivityGenerator.Initialize cannot use a {generatorSurface.Backend} generator surface with hbp_core.");
                 }
 
-                ThrowIfFailed(hbp_activity_generator_initialize(_handle.Handle, generatorSurface.getHandle().Handle));
+                ThrowIfFailed(hbp_activity_generator_initialize_projection_grid(_handle.Handle, generatorSurface.getHandle().Handle));
                 return;
             }
 
@@ -143,8 +143,8 @@ namespace HBP.Tests.Serialization.LegacyNative
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "save_mask_as_nifti_ActivityGenerator", CallingConvention = CallingConvention.Cdecl)]
         static public extern bool save_mask_as_nifti(HandleRef generator, string path, string description);
 
-        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_activity_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_activity_generator_initialize(IntPtr generator, IntPtr generatorSurface);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_activity_generator_initialize_projection_grid", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_activity_generator_initialize_projection_grid(IntPtr generator, IntPtr projectionGrid);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_activity_generator_get_progress", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_activity_generator_get_progress(IntPtr generator, out float progress);

@@ -22,13 +22,52 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        public void ActivityProjectionGrid_ProjectsAComputedFieldOntoAnExplicitSurface()
+        {
+            using Surface surface = LoadSurface();
+            using Surface reboundSurface = (Surface)surface.Clone();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid grid = new();
+            grid.Initialize(volume, 8, VolumeInterpolation.Trilinear);
+
+            Vector3Int dimensions = grid.Dimensions;
+            Assert.That(grid.PointCount, Is.EqualTo(dimensions.x * dimensions.y * dimensions.z));
+            Assert.That(grid.Points, Has.Length.EqualTo(grid.PointCount));
+
+            using RawSiteList sites = new();
+            (Vector3 first, _, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+            sites.AddSite("S1", ToNative(first), 0, 0);
+            sites.UpdateMask(0, false);
+
+            using DensityGenerator density = new();
+            density.Initialize(grid);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+            float maxDensity = density.MaxDensity;
+
+            using SurfaceGenerator surfaceGenerator = new();
+            surfaceGenerator.Initialize(density, surface);
+            surfaceGenerator.ComputeMainUV(0.0f, 1.0f);
+            surfaceGenerator.ComputeActivityUV(0, 0.25f);
+            Vector2[] firstProjection = surfaceGenerator.ActivityUV.ToArray();
+
+            surfaceGenerator.Initialize(density, reboundSurface);
+            surfaceGenerator.ComputeActivityUV(0, 0.25f);
+
+            Assert.That(density.ProjectionGrid, Is.SameAs(grid));
+            Assert.That(density.MaxDensity, Is.EqualTo(maxDensity));
+            Assert.That(surfaceGenerator.ActivityUV, Is.EqualTo(firstProjection));
+            Assert.That(surfaceGenerator.AlphaUV, Has.Length.EqualTo(reboundSurface.NumberOfVertices));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         public void DensityGenerator_CoversNoSitesSingleSiteAllMaskedAndRepeatedCalls()
         {
             using Surface surface = LoadSurface();
             using Volume volume = LoadVolume("fmri_3d.nii");
-            using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
             using DensityGenerator density = new();
-            density.Initialize(generatorSurface);
+            density.Initialize(projectionGrid);
 
             using RawSiteList sites = new();
             Assert.That(density.Progress, Is.EqualTo(0.0f));
@@ -70,7 +109,7 @@ namespace HBP.Tests.Serialization
         {
             using Surface surface = LoadSurface();
             using Volume volume = LoadVolume("fmri_3d.nii");
-            using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
             (Vector3 first, Vector3 second, int firstIndex, int secondIndex) = FindTwoPositiveSurfaceVertices(surface, volume);
             float influenceDistance = Vector3.Distance(first, second) * 2.0f;
 
@@ -79,9 +118,9 @@ namespace HBP.Tests.Serialization
             sites.UpdateMask(0, false);
 
             using DensityGenerator density = new();
-            density.Initialize(generatorSurface);
+            density.Initialize(projectionGrid);
             density.ComputeActivity(sites, influenceDistance, mode);
-            using SurfaceGenerator densitySurface = InitializeSurfaceGenerator(density);
+            using SurfaceGenerator densitySurface = InitializeSurfaceGenerator(density, surface);
             densitySurface.ComputeActivityUV(0, 0.25f);
             float firstDensity = densitySurface.ActivityUV[firstIndex].x;
             float secondDensity = densitySurface.ActivityUV[secondIndex].x;
@@ -95,10 +134,10 @@ namespace HBP.Tests.Serialization
             }
 
             using IEEGGenerator ieeg = new();
-            ieeg.Initialize(generatorSurface);
+            ieeg.Initialize(projectionGrid);
             ieeg.ComputeActivity(sites, influenceDistance, new[] { -0.75f }, 1, 1, mode);
             ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
-            using SurfaceGenerator ieegSurface = InitializeSurfaceGenerator(ieeg);
+            using SurfaceGenerator ieegSurface = InitializeSurfaceGenerator(ieeg, surface);
             const float alpha = 0.25f;
             ieegSurface.ComputeActivityUV(0, alpha);
             Assert.That(ieegSurface.ActivityUV[firstIndex].x, Is.EqualTo(0.125f).Within(0.0005f));
@@ -130,25 +169,18 @@ namespace HBP.Tests.Serialization
             sites.UpdateMask(1, false);
             float[] activityValues = { -1.0f, 0.5f, 0.75f, -0.25f };
 
-            (Vector2[] activity, Vector2[] alpha, Color32[] cut) Render(VolumeInterpolation interpolation, bool historicalOverload)
+            (Vector2[] activity, Vector2[] alpha, Color32[] cut) Render(VolumeInterpolation interpolation)
             {
-                using GeneratorSurface generatorSurface = new();
-                if (historicalOverload)
-                {
-                    generatorSurface.Initialize(surface, volume, 8);
-                }
-                else
-                {
-                    generatorSurface.Initialize(surface, volume, 8, interpolation);
-                }
+                using ActivityProjectionGrid projectionGrid = new();
+                projectionGrid.Initialize(volume, 8, interpolation);
 
                 using IEEGGenerator ieeg = new();
-                ieeg.Initialize(generatorSurface);
+                ieeg.Initialize(projectionGrid);
                 ieeg.SetSmoothActivityBoundaries(true);
                 ieeg.ComputeActivity(sites, 80.0f, activityValues, timelineLength: 2, numberOfSites: 2, siteInfluenceByDistance: SiteInfluenceByDistanceType.Linear);
                 ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
 
-                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg, surface);
                 surfaceGenerator.ComputeActivityUV(timelineIndex: 1, alpha: 0.35f);
 
                 using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward)
@@ -165,13 +197,8 @@ namespace HBP.Tests.Serialization
                 return (surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV, cutGenerator.CopyOverlayPixels());
             }
 
-            var historical = Render(VolumeInterpolation.Nearest, historicalOverload: true);
-            var nearest = Render(VolumeInterpolation.Nearest, historicalOverload: false);
-            var trilinear = Render(VolumeInterpolation.Trilinear, historicalOverload: false);
-
-            Assert.That(nearest.activity, Is.EqualTo(historical.activity));
-            Assert.That(nearest.alpha, Is.EqualTo(historical.alpha));
-            Assert.That(nearest.cut, Is.EqualTo(historical.cut));
+            var nearest = Render(VolumeInterpolation.Nearest);
+            var trilinear = Render(VolumeInterpolation.Trilinear);
             Assert.That(trilinear.activity, Is.Not.EqualTo(nearest.activity), "Trilinear interpolation must drive surface activity from the shared volume.");
             Assert.That(trilinear.alpha, Is.Not.EqualTo(nearest.alpha), "Trilinear interpolation must drive surface weights from the shared volume.");
             Assert.That(trilinear.cut, Is.Not.EqualTo(nearest.cut), "Trilinear interpolation should affect the sampled cut for this non-uniform fixture.");
@@ -184,15 +211,15 @@ namespace HBP.Tests.Serialization
         {
             using Surface surface = LoadSurface();
             using Volume volume = LoadVolume("fmri_3d.nii");
-            using GeneratorSurface generatorSurface = new();
-            generatorSurface.Initialize(surface, volume, 8, VolumeInterpolation.Trilinear);
+            using ActivityProjectionGrid projectionGrid = new();
+            projectionGrid.Initialize(volume, 8, VolumeInterpolation.Trilinear);
 
             using RawSiteList sites = new();
             sites.AddSite("S1", ToNative(volume.Center), 0, 0);
             sites.UpdateMask(0, false);
 
             using DensityGenerator density = new();
-            density.Initialize(generatorSurface);
+            density.Initialize(projectionGrid);
             density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
 
             using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward)
@@ -232,14 +259,14 @@ namespace HBP.Tests.Serialization
         {
             using Surface surface = LoadSurface();
             using Volume volume = LoadVolume("fmri_3d.nii");
-            using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
             (Vector3 first, _, int firstIndex, _) = FindTwoPositiveSurfaceVertices(surface, volume);
 
             using IEEGGenerator ieeg = new();
-            ieeg.Initialize(generatorSurface);
+            ieeg.Initialize(projectionGrid);
             using RawSiteList noSites = new();
             ieeg.ComputeActivity(noSites, 10.0f, Array.Empty<float>(), 1, 0, SiteInfluenceByDistanceType.Constant);
-            using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
+            using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg, surface);
             surfaceGenerator.ComputeActivityUV();
             object nativeActivityBuffer = typeof(SurfaceGenerator).GetField("m_NativeActivityUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator);
             object nativeAlphaBuffer = typeof(SurfaceGenerator).GetField("m_NativeAlphaUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator);
@@ -275,10 +302,10 @@ namespace HBP.Tests.Serialization
         {
             using Surface surface = LoadSurface();
             using Volume volume = LoadVolume("fmri_3d.nii");
-            using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
             using DensityGenerator density = new();
-            density.Initialize(generatorSurface);
-            using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density);
+            density.Initialize(projectionGrid);
+            using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density, surface);
 
             const float calMin = 0.25f;
             const float calMax = 0.75f;
@@ -312,12 +339,9 @@ namespace HBP.Tests.Serialization
             }
 
             Assert.Throws<InvalidOperationException>(() => surfaceGenerator.ComputeMainUV(float.NaN, 1.0f));
-            using Surface emptySurface = new();
-            using GeneratorSurface emptySurfaceGenerator = new();
-            Assert.Throws<InvalidOperationException>(() => emptySurfaceGenerator.Initialize(emptySurface, volume, 8));
             using Volume emptyVolume = new();
-            using GeneratorSurface emptyVolumeGenerator = new();
-            Assert.Throws<InvalidOperationException>(() => emptyVolumeGenerator.Initialize(surface, emptyVolume, 8));
+            using ActivityProjectionGrid emptyVolumeGrid = new();
+            Assert.Throws<InvalidOperationException>(() => emptyVolumeGrid.Initialize(emptyVolume, 8));
         }
 
         [Test]
@@ -336,10 +360,10 @@ namespace HBP.Tests.Serialization
 
                 using Surface surface = LoadSurface();
                 using Volume volume = LoadVolume("fmri_3d.nii");
-                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
                 using IEEGGenerator ieeg = new();
-                ieeg.Initialize(generatorSurface);
-                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg);
+                ieeg.Initialize(projectionGrid);
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg, surface);
 
                 int areaCount = atlas.Labels().Max() + 1;
                 const int timelineLength = 2;
@@ -415,12 +439,12 @@ namespace HBP.Tests.Serialization
                 using Volume nonFinite = LoadVolumePath(nonFinitePath);
                 using Volume emptyMaskA = new();
                 using Volume emptyMaskB = new();
-                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, reference);
+                using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(reference);
                 using ActivityGenerator generator = CreateVolumeGenerator(kind);
-                generator.Initialize(generatorSurface);
+                generator.Initialize(projectionGrid);
                 ComputeVolumeActivity(generator, new[] { (first, emptyMaskA), (second, emptyMaskB) });
                 AdjustVolumeValues(generator, 0.25f, 0.75f, 0.25f, 0.75f);
-                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(generator);
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(generator, surface);
 
                 float[] referenceValues = reference.GetVerticesValues(surface);
                 float[] rawValues = first.GetVerticesValues(surface);
@@ -482,13 +506,17 @@ namespace HBP.Tests.Serialization
                 string maskPath = Path.Combine(tempDirectory, "ieeg-mask.nii.gz");
                 using Surface surface = LoadSurface();
                 using Volume volume = LoadVolume("fmri_3d.nii");
-                using GeneratorSurface generatorSurface = InitializeGeneratorSurface(surface, volume);
+                LocalizerExportGridSettings exportSettings = new(8);
+                using ActivityProjectionGrid projectionGrid = new();
+                projectionGrid.Initialize(volume, exportSettings.MaximumDimension, exportSettings.Interpolation);
+                Vector3Int announcedDimensions = exportSettings.CalculateDimensions(volume.Dimensions);
+                Assert.That(projectionGrid.Dimensions, Is.EqualTo(announcedDimensions));
                 (Vector3 first, _, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
                 using RawSiteList sites = new();
                 sites.AddSite("S1", ToNative(first), 0, 0);
                 sites.UpdateMask(0, false);
                 using IEEGGenerator ieeg = new();
-                ieeg.Initialize(generatorSurface);
+                ieeg.Initialize(projectionGrid);
                 ieeg.ComputeActivity(sites, influenceDistance: 80.0f, new[] { 0.5f }, timelineLength: 1, numberOfSites: 1, SiteInfluenceByDistanceType.Linear);
 
                 HBP.Core.Object3D.FMRI fmri = new();
@@ -510,6 +538,10 @@ namespace HBP.Tests.Serialization
                 Assert.That(mask.Load(maskPath), Is.True);
                 Assert.That(activity.NumberOfVolumes, Is.GreaterThanOrEqualTo(1));
                 Assert.That(mask.NumberOfVolumes, Is.EqualTo(1));
+                using Volume exportedActivity = activity.ExtractVolume(0);
+                using Volume exportedMask = mask.ExtractVolume(0);
+                Assert.That(exportedActivity.Dimensions, Is.EqualTo(announcedDimensions));
+                Assert.That(exportedMask.Dimensions, Is.EqualTo(announcedDimensions));
             }
             finally
             {
@@ -549,27 +581,27 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static GeneratorSurface InitializeGeneratorSurface(Surface surface, Volume volume)
+        private static ActivityProjectionGrid InitializeProjectionGrid(Volume volume)
         {
-            GeneratorSurface generator = new();
+            ActivityProjectionGrid grid = new();
             try
             {
-                generator.Initialize(surface, volume, 8);
-                return generator;
+                grid.Initialize(volume, 8);
+                return grid;
             }
             catch
             {
-                generator.Dispose();
+                grid.Dispose();
                 throw;
             }
         }
 
-        private static SurfaceGenerator InitializeSurfaceGenerator(ActivityGenerator activity)
+        private static SurfaceGenerator InitializeSurfaceGenerator(ActivityGenerator activity, Surface surface)
         {
             SurfaceGenerator generator = new();
             try
             {
-                generator.Initialize(activity);
+                generator.Initialize(activity, surface);
                 return generator;
             }
             catch

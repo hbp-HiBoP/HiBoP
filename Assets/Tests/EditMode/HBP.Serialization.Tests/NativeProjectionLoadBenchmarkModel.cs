@@ -106,8 +106,8 @@ namespace HBP.Tests.Serialization
         public int repetition;
         public double totalWallMilliseconds;
         public double totalCpuMilliseconds;
-        public double generatorSurfaceWallMilliseconds;
-        public double generatorSurfaceCpuMilliseconds;
+        public double projectionGridWallMilliseconds;
+        public double projectionGridCpuMilliseconds;
         public double computeWallMilliseconds;
         public double computeCpuMilliseconds;
         public double displayUpdateWallMilliseconds;

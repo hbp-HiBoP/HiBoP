@@ -262,11 +262,17 @@ namespace HBP.Tests.PlayMode.Module3D
             int[] firstSimplifiedMask = CreateMask(firstScene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles, 0);
             int[] secondBrainBefore = secondScene.MeshManager.BrainSurface.VisibilityMask.ToArray();
             int[] secondSimplifiedBefore = secondScene.MeshManager.SimplifiedMeshToUse.VisibilityMask.ToArray();
+            firstScene.SceneInformation.GeneratorNeedsUpdate = false;
+            firstScene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            firstScene.SceneInformation.FunctionalSurfaceNeedsUpdate = false;
 
             AssertNoException("Apply first scene triangle masks", () => { firstScene.TriangleEraser.CurrentMasks = new List<int[]> { firstBrainMask, firstSimplifiedMask }; });
 
             Assert.That(firstScene.TriangleEraser.MeshHasInvisibleTriangles, Is.True);
             Assert.That(firstScene.TriangleEraser.CanCancelLastAction, Is.False);
+            Assert.That(firstScene.SceneInformation.GeneratorNeedsUpdate, Is.False);
+            Assert.That(firstScene.SceneInformation.SurfaceProjectionNeedsUpdate, Is.False);
+            Assert.That(firstScene.SceneInformation.FunctionalSurfaceNeedsUpdate, Is.True);
             Assert.That(secondScene.MeshManager.BrainSurface.VisibilityMask, Is.EqualTo(secondBrainBefore));
             Assert.That(secondScene.MeshManager.SimplifiedMeshToUse.VisibilityMask, Is.EqualTo(secondSimplifiedBefore));
 
@@ -277,12 +283,14 @@ namespace HBP.Tests.PlayMode.Module3D
 
             Assert.That(firstScene.TriangleEraser.CurrentMasks[0], Is.EqualTo(savedMasks[0]));
             Assert.That(firstScene.TriangleEraser.CurrentMasks[1], Is.EqualTo(savedMasks[1]));
+            Assert.That(firstScene.SceneInformation.GeneratorNeedsUpdate, Is.False);
             Assert.That(secondScene.MeshManager.BrainSurface.VisibilityMask, Is.EqualTo(secondBrainBefore));
 
             AssertNoException("Reset first scene triangle eraser", firstScene.TriangleEraser.ResetEraser);
 
             Assert.That(firstScene.TriangleEraser.MeshHasInvisibleTriangles, Is.False);
             Assert.That(firstScene.TriangleEraser.CanCancelLastAction, Is.False);
+            Assert.That(firstScene.SceneInformation.GeneratorNeedsUpdate, Is.False);
             Assert.That(firstScene.TriangleEraser.CurrentMasks.SelectMany(mask => mask), Is.All.EqualTo(1));
 
             AssertNoException("Reload first scene triangle masks", () => { firstScene.TriangleEraser.CurrentMasks = savedMasks.Select(mask => mask.ToArray()).ToList(); });

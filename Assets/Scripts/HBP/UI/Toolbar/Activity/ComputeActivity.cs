@@ -30,7 +30,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ResetGenerators();
+                SelectedScene.InvalidateActivityField();
                 SelectedScene.SceneInformation.GeneratorUpdateRequested = true;
                 UpdateInteractable();
             });
@@ -38,7 +38,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                SelectedScene.ResetGenerators();
+                SelectedScene.InvalidateActivityField();
                 UpdateInteractable();
             });
         }

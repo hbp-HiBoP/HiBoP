@@ -45,9 +45,8 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Anatomical MRIs belonging to the patient, excluding the shared MNI volume.
         /// </summary>
-        public List<Core.Object3D.MRI3D> PatientMRIs => MRIs
-            .Where(mri => mri != null && !mri.HasBeenLoadedOutside)
-            .ToList();
+        public List<Core.Object3D.MRI3D> PatientMRIs => MRIs.Where(mri => mri != null && !mri.HasBeenLoadedOutside).ToList();
+
         /// <summary>
         /// Selected MRI3D ID
         /// </summary>
@@ -154,7 +153,7 @@ namespace HBP.Data.Module3D
             SelectedMRIID = mriID;
             VolumeCenter = SelectedMRI.Volume.Center;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
-            m_Scene.ResetGenerators();
+            m_Scene.InvalidateProjectionGrid();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 

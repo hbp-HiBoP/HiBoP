@@ -43,8 +43,8 @@ namespace HBP.Tests.Serialization.LegacyNative
                     throw new InvalidOperationException($"GeneratorSurface.Initialize cannot mix {surface.Backend} surface and {volume.Backend} volume with hbp_core.");
                 }
 
-                ThrowIfFailed(hbp_generator_surface_initialize(_handle.Handle, surface.getHandle().Handle, volume.getHandle().Handle, dimension));
-                ThrowIfFailed(hbp_generator_surface_set_volume_interpolation(_handle.Handle, interpolation));
+                ThrowIfFailed(hbp_activity_projection_grid_initialize(_handle.Handle, volume.getHandle().Handle, dimension));
+                ThrowIfFailed(hbp_activity_projection_grid_set_volume_interpolation(_handle.Handle, interpolation));
                 return;
             }
 
@@ -64,8 +64,8 @@ namespace HBP.Tests.Serialization.LegacyNative
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
             {
-                ThrowIfFailed(hbp_generator_surface_create(out IntPtr generatorSurface));
-                _handle = new HandleRef(this, generatorSurface);
+                ThrowIfFailed(hbp_activity_projection_grid_create(out IntPtr projectionGrid));
+                _handle = new HandleRef(this, projectionGrid);
                 return;
             }
 
@@ -76,7 +76,7 @@ namespace HBP.Tests.Serialization.LegacyNative
         {
             if (m_Backend == BenchmarkBackend.HbpCore)
             {
-                ThrowIfFailed(hbp_generator_surface_destroy(_handle.Handle));
+                ThrowIfFailed(hbp_activity_projection_grid_destroy(_handle.Handle));
                 return;
             }
 
@@ -89,7 +89,7 @@ namespace HBP.Tests.Serialization.LegacyNative
         {
             if (status != HbpCoreStatus.Ok)
             {
-                throw new InvalidOperationException($"hbp_core GeneratorSurface call failed with status {status}: {HbpCoreRuntime.LastError}");
+                throw new InvalidOperationException($"hbp_core ActivityProjectionGrid call failed with status {status}: {HbpCoreRuntime.LastError}");
             }
         }
 
@@ -104,17 +104,17 @@ namespace HBP.Tests.Serialization.LegacyNative
         [DllImport(LegacyNativeLibrary.HbpExport, EntryPoint = "initialize_GeneratorSurface", CallingConvention = CallingConvention.Cdecl)]
         static private extern void initialize_GeneratorSurface(HandleRef generatorSurface, HandleRef surface, HandleRef volume, int dimension);
 
-        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_generator_surface_create", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_generator_surface_create(out IntPtr generatorSurface);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_activity_projection_grid_create", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_activity_projection_grid_create(out IntPtr projectionGrid);
 
-        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_generator_surface_destroy", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_generator_surface_destroy(IntPtr generatorSurface);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_activity_projection_grid_destroy", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_activity_projection_grid_destroy(IntPtr projectionGrid);
 
-        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_generator_surface_initialize", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_generator_surface_initialize(IntPtr generatorSurface, IntPtr surface, IntPtr volume, int dimension);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_activity_projection_grid_initialize", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_activity_projection_grid_initialize(IntPtr projectionGrid, IntPtr volume, int dimension);
 
-        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_generator_surface_set_volume_interpolation", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_generator_surface_set_volume_interpolation(IntPtr generatorSurface, VolumeInterpolation interpolation);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_activity_projection_grid_set_volume_interpolation", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_activity_projection_grid_set_volume_interpolation(IntPtr projectionGrid, VolumeInterpolation interpolation);
 
         #endregion
     }

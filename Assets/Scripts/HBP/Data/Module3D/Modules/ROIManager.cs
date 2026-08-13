@@ -202,7 +202,7 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            m_Scene.ResetGenerators(false);
+            m_Scene.InvalidateActivityField(false);
             m_Scene.OnUpdateROI.Invoke();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }

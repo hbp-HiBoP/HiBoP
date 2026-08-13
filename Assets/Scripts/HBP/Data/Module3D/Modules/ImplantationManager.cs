@@ -123,7 +123,7 @@ namespace HBP.Data.Module3D
                 m_Scene.Columns[ii].UnselectSite();
             }
 
-            m_Scene.ResetGenerators();
+            m_Scene.InvalidateActivityField();
         }
 
         /// <summary>

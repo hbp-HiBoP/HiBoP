@@ -247,7 +247,16 @@ namespace HBP.Data.Module3D
             }
         }
 
-        private Core.DLL.GeneratorSurface m_GeneratorSurface;
+        private Core.DLL.ActivityProjectionGrid m_ActivityProjectionGrid;
+
+        public Core.DLL.ActivityProjectionGrid ActivityProjectionGrid => m_ActivityProjectionGrid;
+
+        public int ProjectionGridVersion { get; private set; }
+        public int ActivityFieldVersion { get; private set; }
+        public int SurfaceProjectionVersion { get; private set; }
+
+        private int m_LastProjectionDiagnosticGridVersion = -1;
+        private int m_LastProjectionDiagnosticSurfaceVersion = -1;
 
         /// <summary>
         /// Geometry generator for cuts
@@ -794,9 +803,27 @@ namespace HBP.Data.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnUpdatingGenerators = new();
 
+        /// <summary>
+        /// Event raised when a requested surface projection has significant coverage problems.
+        /// </summary>
+        [HideInInspector] public GenericEvent<DialogBoxType, string, string> OnSurfaceProjectionDiagnostic = new();
+
         #endregion
 
         #region Private Methods
+
+        private void OnEnable()
+        {
+            if (Visualization != null)
+            {
+                Core.DLL.ActivityProjectionSettings.OnChanged += InvalidateProjectionGrid;
+            }
+        }
+
+        private void OnDisable()
+        {
+            Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
+        }
 
         private void Update()
         {
@@ -825,6 +852,7 @@ namespace HBP.Data.Module3D
 
             if (m_UpdatingGenerators) return;
             if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
+            else if (SceneInformation.ProjectionGridNeedsUpdate || SceneInformation.SurfaceProjectionNeedsUpdate) UpdateProjectionResources();
             if (SceneInformation.CutsNeedUpdate) UpdateCuts();
             if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
             if (SceneInformation.FunctionalCutTexturesNeedUpdate) ComputeFunctionalCutTextures();
@@ -836,7 +864,9 @@ namespace HBP.Data.Module3D
 
         private void OnDestroy()
         {
+            Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
             foreach (var dllMRIGeometryCutGenerator in CutGeometryGenerators) dllMRIGeometryCutGenerator.Dispose();
+            m_ActivityProjectionGrid?.Dispose();
         }
 
         /// <summary>
@@ -903,6 +933,7 @@ namespace HBP.Data.Module3D
                 foreach (Column3D col in Columns)
                 {
                     col.ComputeSurfaceBrainUVWithActivity();
+                    ReportSurfaceProjectionCoverage(col.SurfaceGenerator.ProjectionCoverage);
                 }
             }
 
@@ -929,6 +960,36 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
+        private void ReportSurfaceProjectionCoverage(Core.DLL.SurfaceProjectionCoverage coverage)
+        {
+            if (!coverage.RequiresUserMessage) return;
+            if (m_LastProjectionDiagnosticGridVersion == ProjectionGridVersion && m_LastProjectionDiagnosticSurfaceVersion == SurfaceProjectionVersion)
+                return;
+
+            m_LastProjectionDiagnosticGridVersion = ProjectionGridVersion;
+            m_LastProjectionDiagnosticSurfaceVersion = SurfaceProjectionVersion;
+
+            string surfaceName = m_MeshManager.SelectedMesh.Name;
+            string volumeName = m_MRIManager.SelectedMRI.Name;
+            DialogBoxType type;
+            string title;
+            string message;
+            if (coverage.classification == Core.DLL.SurfaceProjectionClassification.None)
+            {
+                type = DialogBoxType.Error;
+                title = "Activity projection unavailable";
+                message = $"Activity cannot be projected onto surface '{surfaceName}' because none of its {coverage.totalVertexCount:N0} vertices overlap reference volume '{volumeName}'. Verify their coordinate systems and registration. Cuts and NIfTI export remain available.";
+            }
+            else
+            {
+                type = DialogBoxType.Warning;
+                title = "Partial activity projection";
+                message = $"Only {coverage.validRatio * 100.0f:0.0}% of surface '{surfaceName}' overlaps reference volume '{volumeName}' ({coverage.validVertexCount:N0}/{coverage.totalVertexCount:N0} vertices). Vertices outside the volume remain uncolored. Verify their coordinate systems and registration.";
+            }
+
+            OnSurfaceProjectionDiagnostic.Invoke(type, title, message);
+        }
+
         /// <summary>
         /// Finalize Generators Computing (method called at the end of the computing of the activity)
         /// </summary>
@@ -936,6 +997,7 @@ namespace HBP.Data.Module3D
         {
             // generators are now up to date
             IsGeneratorUpToDate = true;
+            ++ActivityFieldVersion;
 
             // send inf values to overlays
             for (int ii = 0; ii < ColumnsDynamic.Count; ++ii)
@@ -1035,7 +1097,8 @@ namespace HBP.Data.Module3D
         private void UpdateGeometry()
         {
             m_MeshManager.UpdateMeshesInformation();
-            UpdateGeneratorsAndUnityMeshes();
+            UpdateProjectionResources();
+            m_MeshManager.UpdateMeshesFromDLL();
             m_TriangleEraser.ResetEraser();
             m_AtlasManager.UpdateAtlasIndices();
             m_FMRIManager.UpdateSurfaceFMRIValues();
@@ -1058,22 +1121,40 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
-        /// Update the generators for activity and the UV of the meshes
+        /// Update the persistent projection grid and surface bindings that are invalid.
         /// </summary>
-        private void UpdateGeneratorsAndUnityMeshes()
+        private void UpdateProjectionResources()
         {
-            m_GeneratorSurface?.Dispose();
-            m_GeneratorSurface = new Core.DLL.GeneratorSurface();
-            m_GeneratorSurface.Initialize(m_MeshManager.BrainSurface, m_MRIManager.SelectedMRI.Volume, Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Core.DLL.ActivityProjectionSettings.VolumeInterpolation);
-            foreach (Column3D column in Columns)
+            if (SceneInformation.ProjectionGridNeedsUpdate)
             {
-                column.ActivityGenerator.Initialize(m_GeneratorSurface);
-                column.SurfaceGenerator.Initialize(column.ActivityGenerator);
-                column.SurfaceGenerator.ComputeMainUV(m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
-                column.SurfaceGenerator.ComputeNullUV();
+                Core.DLL.ActivityProjectionGrid previousGrid = m_ActivityProjectionGrid;
+                Core.DLL.ActivityProjectionGrid projectionGrid = new();
+                projectionGrid.Initialize(m_MRIManager.SelectedMRI.Volume, Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Core.DLL.ActivityProjectionSettings.VolumeInterpolation);
+                m_ActivityProjectionGrid = projectionGrid;
+                foreach (Column3D column in Columns)
+                {
+                    column.ActivityGenerator.Initialize(m_ActivityProjectionGrid);
+                }
+
+                previousGrid?.Dispose();
+                SceneInformation.ProjectionGridNeedsUpdate = false;
+                SceneInformation.SurfaceProjectionNeedsUpdate = true;
+                ++ProjectionGridVersion;
             }
 
-            m_MeshManager.UpdateMeshesFromDLL();
+            if (!SceneInformation.SurfaceProjectionNeedsUpdate) return;
+
+            foreach (Column3D column in Columns)
+            {
+                column.SurfaceGenerator.Initialize(column.ActivityGenerator, m_MeshManager.BrainSurface);
+                column.SurfaceGenerator.ComputeMainUV(m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
+                column.SurfaceGenerator.ComputeNullUV();
+                column.SurfaceNeedsUpdate = true;
+            }
+
+            SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+            ++SurfaceProjectionVersion;
         }
 
         /// <summary>
@@ -1199,7 +1280,7 @@ namespace HBP.Data.Module3D
                 if (m_AutomaticCutAroundSelectedSite) SceneInformation.CutsNeedUpdate = true;
                 OnSelectSite.Invoke(site);
             });
-            column.OnChangeSiteState.AddListener((site) => { ResetGenerators(false); });
+            column.OnChangeSiteState.AddListener((site) => { InvalidateActivityField(false); });
             column.OnUpdateActivityAlpha.AddListener(() =>
             {
                 SceneInformation.FunctionalCutTexturesNeedUpdate = true;
@@ -1208,7 +1289,7 @@ namespace HBP.Data.Module3D
             });
             if (column is Column3DAnatomy anatomyColumn)
             {
-                anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(() => { ResetGenerators(false); });
+                anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(() => { InvalidateActivityField(false); });
             }
             else if (column is Column3DDynamic dynamicColumn)
             {
@@ -1220,7 +1301,7 @@ namespace HBP.Data.Module3D
                     dynamicColumn.SurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
                 });
-                dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() => { ResetGenerators(false); });
+                dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance.AddListener(() => { InvalidateActivityField(false); });
                 dynamicColumn.OnUpdateCurrentTimelineID.AddListener(() =>
                 {
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
@@ -1232,7 +1313,7 @@ namespace HBP.Data.Module3D
                 {
                     column3DCCEP.OnSelectSource.AddListener(() =>
                     {
-                        ResetGenerators();
+                        InvalidateActivityField();
                         OnSelectCCEPSource.Invoke();
                         Module3DMain.OnRequestUpdateInToolbar.Invoke();
                     });
@@ -1314,7 +1395,7 @@ namespace HBP.Data.Module3D
                     staticColumn.SurfaceNeedsUpdate = true;
                     SceneInformation.SitesNeedUpdate = true;
                 });
-                staticColumn.StaticParameters.OnUpdateInfluenceDistance.AddListener(() => { ResetGenerators(false); });
+                staticColumn.StaticParameters.OnUpdateInfluenceDistance.AddListener(() => { InvalidateActivityField(false); });
                 staticColumn.OnUpdateSelectedLabel.AddListener(() =>
                 {
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
@@ -1618,6 +1699,8 @@ namespace HBP.Data.Module3D
             gameObject.name = Visualization.Name;
 
             BrainMaterials = new BrainMaterials();
+            Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
+            Core.DLL.ActivityProjectionSettings.OnChanged += InvalidateProjectionGrid;
 
             transform.position = new Vector3(Module3DMain.SPACE_BETWEEN_SCENES_GAME_OBJECTS * Module3DMain.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
         }
@@ -1925,15 +2008,40 @@ namespace HBP.Data.Module3D
         /// <param name="hardReset">Do we need to hard reset (delete the activity on the brain) ?</param>
         public void ResetGenerators(bool hardReset = true)
         {
+            InvalidateActivityField(hardReset);
+        }
+
+        public void InvalidateActivityField(bool clearRenderedActivity = true)
+        {
             SceneInformation.GeneratorNeedsUpdate = true;
             SceneInformation.SitesNeedUpdate = true;
-            if (hardReset)
+            if (clearRenderedActivity)
             {
                 IsGeneratorUpToDate = false;
                 SceneInformation.BaseCutTexturesNeedUpdate = true;
             }
 
             OnIEEGOutdated.Invoke(true);
+        }
+
+        public void InvalidateProjectionGrid()
+        {
+            SceneInformation.ProjectionGridNeedsUpdate = true;
+            InvalidateActivityField();
+        }
+
+        public void InvalidateSurfaceProjection()
+        {
+            SceneInformation.SurfaceProjectionNeedsUpdate = true;
+        }
+
+        public void InvalidateSurfaceMesh()
+        {
+            SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+            foreach (Column3D column in Columns)
+            {
+                column.SurfaceNeedsUpdate = true;
+            }
         }
 
         /// <summary>
@@ -2707,6 +2815,20 @@ namespace HBP.Data.Module3D
             get { return m_GeneratorNeedsUpdate; }
             set { m_GeneratorNeedsUpdate = value; }
         }
+
+        private bool m_ProjectionGridNeedsUpdate = true;
+
+        public bool ProjectionGridNeedsUpdate
+        {
+            get { return m_ProjectionGridNeedsUpdate; }
+            set
+            {
+                m_ProjectionGridNeedsUpdate = value;
+                if (value) SurfaceProjectionNeedsUpdate = true;
+            }
+        }
+
+        public bool SurfaceProjectionNeedsUpdate { get; set; } = true;
 
         private bool m_GeneratorUpdateRequested;
 

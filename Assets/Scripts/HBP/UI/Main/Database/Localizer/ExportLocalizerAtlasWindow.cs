@@ -35,11 +35,14 @@ namespace HBP.UI.Main
         [SerializeField] private GameObject m_DataNameItemPrefab;
 
         [SerializeField] private FolderSelector m_ExportFolderSelector;
+        [SerializeField] private InputField m_MaximumGridDimensionInputField;
+        [SerializeField] private Text m_ExportGridPreviewText;
 
         private List<Patient> m_AvailablePatients = new();
         private List<Patient> m_SelectedPatients = new();
         private List<ExportProtocolItem> m_ProtocolItems = new();
         private List<ExportDataNameItem> m_DataNameItems = new();
+        private LocalizerExportGridSettings m_ExportGridSettings;
 
         #endregion
 
@@ -72,6 +75,25 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Invalid output folder", "The specified output folder does not exist.").Forget();
                 return;
             }
+
+            if (!TryGetExportGridSettings(out LocalizerExportGridSettings exportGridSettings, out string gridSettingsError))
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Invalid export resolution", gridSettingsError).Forget();
+                return;
+            }
+
+            Vector3Int referenceDimensions = Object3DManager.MNI.MRI.Volume.Dimensions;
+            if (exportGridSettings.RequiresLargeExportConfirmation(referenceDimensions))
+            {
+                Vector3Int exportDimensions = exportGridSettings.CalculateDimensions(referenceDimensions);
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Large Localizer export", $"The selected grid will contain {FormatVoxelCount(exportGridSettings.CalculateVoxelCount(referenceDimensions))} voxels ({FormatDimensions(exportDimensions)}). Memory usage and export time can be high and grow with the number of time points.\n\nWould you like to continue?", "Continue", "Cancel");
+                if (result != 0)
+                {
+                    return;
+                }
+            }
+
+            m_ExportGridSettings = exportGridSettings;
 
             if (ApplicationState.LoadedProject != null)
             {
@@ -112,6 +134,7 @@ namespace HBP.UI.Main
             base.Initialize();
 
             m_SelectPatientsButton.onClick.AddListener(OpenPatientSelector);
+            m_MaximumGridDimensionInputField.onValueChanged.AddListener(_ => UpdateUI());
         }
 
         protected override void SetFields()
@@ -119,6 +142,7 @@ namespace HBP.UI.Main
             base.SetFields();
 
             m_ExportFolderSelector.Folder = PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
+            m_MaximumGridDimensionInputField.SetTextWithoutNotify(LocalizerExportGridSettings.DefaultMaximumDimension.ToString());
             SetAvailablePatients();
             SetupProtocols();
             SetupDataNames();
@@ -216,9 +240,70 @@ namespace HBP.UI.Main
             }
 
             // Enable/disable export button
-            bool canExport = m_SelectedPatients.Count > 0 && m_ProtocolItems.Any(p => p.IsSelected) && m_DataNameItems.Any(d => d.IsSelected) && !string.IsNullOrEmpty(m_ExportFolderSelector.Folder);
+            bool hasValidGridSettings = TryGetExportGridSettings(out LocalizerExportGridSettings exportGridSettings, out string gridSettingsError);
+            UpdateExportGridPreview(exportGridSettings, gridSettingsError);
+
+            bool canExport = m_SelectedPatients.Count > 0 && m_ProtocolItems.Any(p => p.IsSelected) && m_DataNameItems.Any(d => d.IsSelected) && !string.IsNullOrEmpty(m_ExportFolderSelector.Folder) && hasValidGridSettings;
 
             m_OKButton.interactable = canExport;
+        }
+
+        private bool TryGetExportGridSettings(out LocalizerExportGridSettings settings, out string error)
+        {
+            settings = null;
+            if (!int.TryParse(m_MaximumGridDimensionInputField.text, out int maximumDimension))
+            {
+                error = "Maximum grid dimension must be a whole number.";
+                return false;
+            }
+
+            if (maximumDimension < LocalizerExportGridSettings.MinimumMaximumDimension || maximumDimension > LocalizerExportGridSettings.MaximumAllowedDimension)
+            {
+                error = $"Maximum grid dimension must be between {LocalizerExportGridSettings.MinimumMaximumDimension} and {LocalizerExportGridSettings.MaximumAllowedDimension}.";
+                return false;
+            }
+
+            settings = new LocalizerExportGridSettings(maximumDimension);
+            error = string.Empty;
+            return true;
+        }
+
+        private void UpdateExportGridPreview(LocalizerExportGridSettings settings, string error)
+        {
+            if (settings == null)
+            {
+                m_ExportGridPreviewText.text = error;
+                return;
+            }
+
+            Volume referenceVolume = Object3DManager.MNI?.MRI?.Volume;
+            if (referenceVolume == null || !referenceVolume.IsLoaded)
+            {
+                m_ExportGridPreviewText.text = "Grid preview unavailable until the MNI volume is loaded.";
+                return;
+            }
+
+            Vector3Int dimensions = settings.CalculateDimensions(referenceVolume.Dimensions);
+            long voxelCount = settings.CalculateVoxelCount(referenceVolume.Dimensions);
+            long activityBytesPerTimePoint = checked(voxelCount * sizeof(float));
+            string largeExportSuffix = settings.RequiresLargeExportConfirmation(referenceVolume.Dimensions) ? " Confirmation will be requested before export." : string.Empty;
+            m_ExportGridPreviewText.text = $"Grid: {FormatDimensions(dimensions)} ({FormatVoxelCount(voxelCount)} voxels). Uncompressed data: {FormatBytes(activityBytesPerTimePoint)} per time point + {FormatBytes(voxelCount)} mask.{largeExportSuffix}";
+        }
+
+        private static string FormatDimensions(Vector3Int dimensions)
+        {
+            return $"{dimensions.x} × {dimensions.y} × {dimensions.z}";
+        }
+
+        private static string FormatVoxelCount(long voxelCount)
+        {
+            return voxelCount.ToString("N0");
+        }
+
+        private static string FormatBytes(long byteCount)
+        {
+            const double bytesPerMebibyte = 1024.0 * 1024.0;
+            return $"{byteCount / bytesPerMebibyte:0.##} MiB";
         }
 
         private async UniTask ExportAtlasAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -228,10 +313,10 @@ namespace HBP.UI.Main
             var failedDataInfos = new List<(IEEGDataInfo dataInfo, string patientName, string error)>();
 
             // Initialize generator
-            GeneratorSurface generatorSurface = new();
-            generatorSurface.Initialize(Object3DManager.MNI.GreyMatter.Both, Object3DManager.MNI.MRI.Volume, Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Core.DLL.ActivityProjectionSettings.VolumeInterpolation);
-            IEEGGenerator generator = new();
-            generator.Initialize(generatorSurface);
+            using ActivityProjectionGrid projectionGrid = new();
+            projectionGrid.Initialize(Object3DManager.MNI.MRI.Volume, m_ExportGridSettings.MaximumDimension, m_ExportGridSettings.Interpolation);
+            using IEEGGenerator generator = new();
+            generator.Initialize(projectionGrid);
 
             var selectedDataNames = m_DataNameItems.Where(d => d.IsSelected).Select(d => d.DataName).ToList();
             var selectedProtocols = m_ProtocolItems.Where(p => p.IsSelected).ToList();

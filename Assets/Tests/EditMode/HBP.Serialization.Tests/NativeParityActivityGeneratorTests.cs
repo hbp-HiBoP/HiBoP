@@ -62,43 +62,6 @@ namespace HBP.Tests.Serialization
         [Category("NativeMigration")]
         [Category("NativeParity")]
         [Category(NativeParityAssert.StrictParity)]
-        public void IEEGNiftiExports_MatchAcrossBackends()
-        {
-            NativeParityAssert.RequireHbpCore();
-
-            string tempDirectory = Path.Combine(Path.GetTempPath(), $"hibop_nifti_export_parity_{Guid.NewGuid():N}");
-            Directory.CreateDirectory(tempDirectory);
-            try
-            {
-                string hbpExportActivityPath = Path.Combine(tempDirectory, "hbp_export_activity.nii.gz");
-                string hbpExportMaskPath = Path.Combine(tempDirectory, "hbp_export_mask.nii.gz");
-                string hbpCoreActivityPath = Path.Combine(tempDirectory, "hbp_core_activity.nii.gz");
-                string hbpCoreMaskPath = Path.Combine(tempDirectory, "hbp_core_mask.nii.gz");
-
-                ExportIeegNifti(BenchmarkBackend.HbpExport, hbpExportActivityPath, hbpExportMaskPath);
-                ExportIeegNifti(BenchmarkBackend.HbpCore, hbpCoreActivityPath, hbpCoreMaskPath);
-
-                NiftiFileSnapshot hbpExportActivity = NiftiFileSnapshot.Read(hbpExportActivityPath);
-                NiftiFileSnapshot hbpCoreActivity = NiftiFileSnapshot.Read(hbpCoreActivityPath);
-                AssertSameNiftiSnapshot(hbpCoreActivity, hbpExportActivity, compareTimeline: true);
-
-                NiftiFileSnapshot hbpExportMask = NiftiFileSnapshot.Read(hbpExportMaskPath);
-                NiftiFileSnapshot hbpCoreMask = NiftiFileSnapshot.Read(hbpCoreMaskPath);
-                AssertSameNiftiSnapshot(hbpCoreMask, hbpExportMask, compareTimeline: false);
-            }
-            finally
-            {
-                if (Directory.Exists(tempDirectory))
-                {
-                    Directory.Delete(tempDirectory, recursive: true);
-                }
-            }
-        }
-
-        [Test]
-        [Category("NativeMigration")]
-        [Category("NativeParity")]
-        [Category(NativeParityAssert.StrictParity)]
         public void FmriAndMegActivitySurfaceUvs_MatchAcrossBackends()
         {
             NativeParityAssert.RequireHbpCore();

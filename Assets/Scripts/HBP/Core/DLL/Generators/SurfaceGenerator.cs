@@ -9,17 +9,31 @@ namespace HBP.Core.DLL
     public class SurfaceGenerator : CppDLLImportBase
     {
         public ActivityGenerator ActivityGenerator { get; private set; }
+        public Surface Surface { get; private set; }
         public Vector2[] ActivityUV { get; private set; } = Array.Empty<Vector2>();
         public Vector2[] AlphaUV { get; private set; } = Array.Empty<Vector2>();
         public Vector2[] NullUV { get; private set; } = Array.Empty<Vector2>();
+
+        public SurfaceProjectionCoverage ProjectionCoverage
+        {
+            get
+            {
+                ThrowIfFailed(hbp_surface_generator_get_projection_coverage(_handle.Handle, out SurfaceProjectionCoverage coverage));
+                return coverage;
+            }
+        }
+
         private Vec2[] m_NativeActivityUV = Array.Empty<Vec2>();
         private Vec2[] m_NativeAlphaUV = Array.Empty<Vec2>();
 
-        public void Initialize(ActivityGenerator activityGenerator)
+        public void Initialize(ActivityGenerator activityGenerator, Surface surface)
         {
             if (activityGenerator == null) throw new ArgumentNullException(nameof(activityGenerator));
+            if (surface == null) throw new ArgumentNullException(nameof(surface));
+            if (activityGenerator.ProjectionGrid == null) throw new InvalidOperationException("The activity generator is not initialized with an ActivityProjectionGrid.");
             ActivityGenerator = activityGenerator;
-            ThrowIfFailed(hbp_surface_generator_initialize(_handle.Handle, activityGenerator.getHandle().Handle));
+            Surface = surface;
+            ThrowIfFailed(hbp_surface_generator_initialize_projection_grid(_handle.Handle, activityGenerator.getHandle().Handle, surface.getHandle().Handle));
         }
 
         public void ComputeMainUV(float calMin, float calMax)
@@ -29,7 +43,7 @@ namespace HBP.Core.DLL
 
         public void ComputeActivityUV(int timelineIndex = 0, float alpha = 0)
         {
-            int nbVertices = ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices;
+            int nbVertices = Surface.NumberOfVertices;
             EnsureUvArrays(nbVertices);
             ThrowIfFailed(hbp_surface_generator_compute_activity_uv(_handle.Handle, timelineIndex, alpha));
             ThrowIfFailed(hbp_surface_generator_copy_activity_uvs(_handle.Handle, m_NativeActivityUV, m_NativeActivityUV.Length));
@@ -43,7 +57,7 @@ namespace HBP.Core.DLL
 
         public void ComputeNullUV()
         {
-            int vertexCount = ActivityGenerator.GeneratorSurface.Surface.NumberOfVertices;
+            int vertexCount = Surface.NumberOfVertices;
             if (NullUV.Length != vertexCount)
                 NullUV = new Vector2[vertexCount];
             NullUV.Fill(new Vector2(0.01f, 1f));
@@ -82,14 +96,17 @@ namespace HBP.Core.DLL
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_destroy(IntPtr generator);
 
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
-        private static extern HbpCoreStatus hbp_surface_generator_initialize(IntPtr generator, IntPtr activityGenerator);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_initialize_projection_grid", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_generator_initialize_projection_grid(IntPtr generator, IntPtr activityGenerator, IntPtr surface);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_compute_main_uv", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_compute_main_uv(IntPtr generator, float calMin, float calMax);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_compute_activity_uv", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_compute_activity_uv(IntPtr generator, int timelineIndex, float alpha);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_get_projection_coverage", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_generator_get_projection_coverage(IntPtr generator, out SurfaceProjectionCoverage coverage);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_copy_activity_uvs", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_copy_activity_uvs(IntPtr generator, [Out] Vec2[] uvs, int uvCapacity);

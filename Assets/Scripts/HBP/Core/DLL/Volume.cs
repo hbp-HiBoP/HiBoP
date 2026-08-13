@@ -88,6 +88,15 @@ namespace HBP.Core.DLL
             }
         }
 
+        public Vector3Int Dimensions
+        {
+            get
+            {
+                ThrowIfFailed(hbp_volume_get_dimensions(_handle.Handle, out VolumeDimensions dimensions));
+                return new Vector3Int(dimensions.x, dimensions.y, dimensions.z);
+            }
+        }
+
         public MRICalValues ExtremeValues
         {
             get
@@ -145,11 +154,7 @@ namespace HBP.Core.DLL
                 StructSize = (uint)Marshal.SizeOf<PreviewSurfaceReport>()
             };
 
-            HbpCoreStatus status = hbp_volume_extract_preview_surface(
-                _handle.Handle,
-                ref options,
-                out IntPtr surfaceHandle,
-                ref report);
+            HbpCoreStatus status = hbp_volume_extract_preview_surface(_handle.Handle, ref options, out IntPtr surfaceHandle, ref report);
             if (status != HbpCoreStatus.Ok)
             {
                 string nativeError = HbpCoreRuntime.LastError;
@@ -157,8 +162,10 @@ namespace HBP.Core.DLL
                 {
                     Surface.DestroyOwnedHandle(surfaceHandle);
                 }
+
                 throw new InvalidOperationException($"hbp_core preview surface extraction failed with status {status}: {nativeError}");
             }
+
             if (surfaceHandle == IntPtr.Zero)
             {
                 throw new InvalidOperationException("hbp_core preview surface extraction succeeded without returning a surface handle.");
@@ -199,6 +206,7 @@ namespace HBP.Core.DLL
             {
                 resultHandle.Free();
             }
+
             return result;
         }
 
@@ -237,15 +245,7 @@ namespace HBP.Core.DLL
             Vec3 nativePosition = Vec3.FromVector3(position);
             IntPtr maskHandle = maskVolume == null ? IntPtr.Zero : maskVolume.getHandle().Handle;
             float[] targetRawValues = rawValues ?? Array.Empty<float>();
-            ThrowIfFailed(hbp_volume_get_average_value_around_position_with_mask(
-                _handle.Handle,
-                ref nativePosition,
-                precision,
-                maskHandle,
-                out float average,
-                targetRawValues,
-                targetRawValues.Length,
-                out actualLength));
+            ThrowIfFailed(hbp_volume_get_average_value_around_position_with_mask(_handle.Handle, ref nativePosition, precision, maskHandle, out float average, targetRawValues, targetRawValues.Length, out actualLength));
             return average;
         }
 
@@ -283,34 +283,52 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_create(out IntPtr volume);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_destroy(IntPtr volume);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_load_nifti", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_load_nifti(IntPtr volume, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_center", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_get_center(IntPtr volume, out Vec3 center);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_spacing", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_get_spacing(IntPtr volume, out Vec3 spacing);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_dimensions", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_dimensions(IntPtr volume, out VolumeDimensions dimensions);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_extrema", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_get_extrema(IntPtr volume, out VolumeExtrema extrema);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_get_bounding_box(IntPtr volume, out IntPtr bbox);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_orientation_vector", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_get_orientation_vector(IntPtr volume, int cutOrientation, int flip, out Vec3 normal);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_sample_value", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_sample_value(IntPtr volume, ref Vec3 position, out float value);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_average_value_around_position_with_mask", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_get_average_value_around_position_with_mask(IntPtr volume, ref Vec3 position, int precision, IntPtr mask, out float average, [Out] float[] rawValues, int rawValueCapacity, out int actualCount);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_size_offset_cut_plane(IntPtr volume, IntPtr plane, int cutCount, out float offset);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_extract_preview_surface", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_extract_preview_surface(IntPtr volume, ref PreviewSurfaceOptions options, out IntPtr surface, ref PreviewSurfaceReport report);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_surface_values_ptr(IntPtr volume, IntPtr surface, IntPtr values, int valueCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_fmri_colors_from_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_fmri_colors_from_values(IntPtr volume, [In] float[] values, int valueCount, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, [Out] Color4[] colors, int colorCapacity);
+
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_localizer_colors_from_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_localizer_colors_from_values(IntPtr volume, [In] float[] values, [In] int[] mask, int valueCount, float minValue, float middleValue, float maxValue, [In] Color4[] colorScheme, int colorCount, [Out] Color4[] colors, int colorCapacity);
     }

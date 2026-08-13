@@ -186,7 +186,7 @@ namespace HBP.Tests.Serialization
             long totalStart = Stopwatch.GetTimestamp();
             long totalEnd = totalStart;
             TimeSpan cpuEnd = cpuStart;
-            GeneratorSurface generatorSurface = null;
+            ActivityProjectionGrid projectionGrid = null;
             HBP.Core.Object3D.Cut cut = null;
             CutGeometryGenerator cutGeometry = null;
             List<IEEGGenerator> generators = new();
@@ -195,8 +195,8 @@ namespace HBP.Tests.Serialization
             long exportFileBytes = 0;
             string exportPath = null;
 
-            double generatorSurfaceWall = 0.0;
-            double generatorSurfaceCpu = 0.0;
+            double projectionGridWall = 0.0;
+            double projectionGridCpu = 0.0;
             double computeWall = 0.0;
             double computeCpu = 0.0;
             double displayWall = 0.0;
@@ -248,8 +248,8 @@ namespace HBP.Tests.Serialization
                 sampler.Start();
                 try
                 {
-                    generatorSurface = new GeneratorSurface();
-                    Measure(process, () => generatorSurface.Initialize(surface, volume, definition.Dimension, definition.VolumeInterpolation), out generatorSurfaceWall, out generatorSurfaceCpu);
+                    projectionGrid = new ActivityProjectionGrid();
+                    Measure(process, () => projectionGrid.Initialize(volume, definition.Dimension, definition.VolumeInterpolation), out projectionGridWall, out projectionGridCpu);
 
                     cut = new HBP.Core.Object3D.Cut(volume.Center, Vector3.forward)
                     {
@@ -267,7 +267,7 @@ namespace HBP.Tests.Serialization
                     {
                         IEEGGenerator generator = new();
                         generators.Add(generator);
-                        generator.Initialize(generatorSurface);
+                        generator.Initialize(projectionGrid);
                         generator.SetParallelOptions(workerCount, neighborBatchSize);
                         generator.EnablePerformanceMetrics(true);
 
@@ -314,7 +314,7 @@ namespace HBP.Tests.Serialization
 
                         SurfaceGenerator output = new();
                         outputs.Add(output);
-                        output.Initialize(generator);
+                        output.Initialize(generator, surface);
                         Measure(process, () => output.ComputeActivityUV(definition.TimelineLength / 2, 0.25f), out double columnDisplayWall, out double columnDisplayCpu);
                         displayWall += columnDisplayWall;
                         displayCpu += columnDisplayCpu;
@@ -384,11 +384,11 @@ namespace HBP.Tests.Serialization
                     for (int i = generators.Count - 1; i >= 0; --i) generators[i].Dispose();
                     cutGeometry?.Dispose();
                     cut?.Dispose();
-                    generatorSurface?.Dispose();
+                    projectionGrid?.Dispose();
                     cutOutputs.Clear();
                     outputs.Clear();
                     generators.Clear();
-                    generatorSurface = null;
+                    projectionGrid = null;
                     cutGeometry = null;
                     cut = null;
                 }
@@ -412,8 +412,8 @@ namespace HBP.Tests.Serialization
                 repetition = repetition,
                 totalWallMilliseconds = ElapsedMilliseconds(totalStart, totalEnd),
                 totalCpuMilliseconds = Math.Max(0.0, (cpuEnd - cpuStart).TotalMilliseconds),
-                generatorSurfaceWallMilliseconds = generatorSurfaceWall,
-                generatorSurfaceCpuMilliseconds = generatorSurfaceCpu,
+                projectionGridWallMilliseconds = projectionGridWall,
+                projectionGridCpuMilliseconds = projectionGridCpu,
                 computeWallMilliseconds = computeWall,
                 computeCpuMilliseconds = computeCpu,
                 displayUpdateWallMilliseconds = displayWall,

@@ -18,13 +18,13 @@ namespace HBP.Core.DLL
             }
         }
 
-        public GeneratorSurface GeneratorSurface { get; private set; }
+        public ActivityProjectionGrid ProjectionGrid { get; private set; }
 
-        public void Initialize(GeneratorSurface generatorSurface)
+        public void Initialize(ActivityProjectionGrid projectionGrid)
         {
-            if (generatorSurface == null) throw new ArgumentNullException(nameof(generatorSurface));
-            GeneratorSurface = generatorSurface;
-            ThrowIfFailed(hbp_activity_generator_initialize(_handle.Handle, generatorSurface.getHandle().Handle));
+            if (projectionGrid == null) throw new ArgumentNullException(nameof(projectionGrid));
+            ProjectionGrid = projectionGrid;
+            ThrowIfFailed(hbp_activity_generator_initialize_projection_grid(_handle.Handle, projectionGrid.getHandle().Handle));
         }
 
         public void SetSmoothActivityBoundaries(bool enabled)
@@ -79,8 +79,8 @@ namespace HBP.Core.DLL
             }
         }
 
-        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
-        private static extern HbpCoreStatus hbp_activity_generator_initialize(IntPtr generator, IntPtr generatorSurface);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_initialize_projection_grid", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_activity_generator_initialize_projection_grid(IntPtr generator, IntPtr projectionGrid);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_activity_generator_set_smooth_activity_boundaries", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_activity_generator_set_smooth_activity_boundaries(IntPtr generator, int enabled);

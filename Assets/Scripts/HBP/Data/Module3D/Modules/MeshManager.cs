@@ -20,10 +20,12 @@ namespace HBP.Data.Module3D
     public class MeshManager : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene of the manager
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+
         /// <summary>
         /// Component containing references to GameObjects of the 3D scene
         /// </summary>
@@ -33,34 +35,38 @@ namespace HBP.Data.Module3D
         /// List of all the meshes of the scene
         /// </summary>
         public List<Core.Object3D.Mesh3D> Meshes { get; set; } = new List<Core.Object3D.Mesh3D>();
+
         /// <summary>
         /// List of all the loaded meshes
         /// </summary>
-        public List<Core.Object3D.Mesh3D> LoadedMeshes { get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); } }
+        public List<Core.Object3D.Mesh3D> LoadedMeshes
+        {
+            get { return (from mesh in Meshes where mesh.IsLoaded select mesh).ToList(); }
+        }
+
         /// <summary>
         /// Whether this scene contains a patient mesh backed by persistent patient data.
         /// </summary>
-        public bool HasPersistentPatientMesh => Meshes.Any(mesh =>
-            mesh.Type == MeshType.Patient && mesh is not Core.Object3D.RuntimeSingleMesh3D);
+        public bool HasPersistentPatientMesh => Meshes.Any(mesh => mesh.Type == MeshType.Patient && mesh is not Core.Object3D.RuntimeSingleMesh3D);
+
         /// <summary>
         /// Transient MRI previews owned by this scene, one for each successfully processed patient MRI.
         /// </summary>
-        public List<Core.Object3D.RuntimeSingleMesh3D> RuntimePreviewMeshes =>
-            Meshes.OfType<Core.Object3D.RuntimeSingleMesh3D>().ToList();
+        public List<Core.Object3D.RuntimeSingleMesh3D> RuntimePreviewMeshes => Meshes.OfType<Core.Object3D.RuntimeSingleMesh3D>().ToList();
+
         /// <summary>
         /// Selected Mesh3D ID
         /// </summary>
         public int SelectedMeshID { get; private set; }
+
         /// <summary>
         /// Selected Mesh3D
         /// </summary>
         public Core.Object3D.Mesh3D SelectedMesh
         {
-            get
-            {
-                return Meshes[SelectedMeshID];
-            }
+            get { return Meshes[SelectedMeshID]; }
         }
+
         /// <summary>
         /// List of all the preloaded meshes of the scene
         /// </summary>
@@ -70,21 +76,26 @@ namespace HBP.Data.Module3D
         /// Mesh part to be displayed in the scene
         /// </summary>
         public MeshPart MeshPartToDisplay { get; private set; } = MeshPart.Both;
+
         /// <summary>
         /// Mesh being displayed in the scene
         /// </summary>
         public Core.DLL.Surface BrainSurface { get; private set; }
+
         /// <summary>
         /// Simplified mesh to be used in the scene
         /// </summary>
         public Core.DLL.Surface SimplifiedMeshToUse { get; private set; }
+
         /// <summary>
         /// Center of the loaded mesh
         /// </summary>
         public Vector3 MeshCenter { get; private set; }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a mesh to the mesh manager
         /// </summary>
@@ -143,6 +154,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Adds a loaded, scene-owned MRI preview without mutating persistent patient data or preload caches.
         /// </summary>
@@ -158,6 +170,7 @@ namespace HBP.Data.Module3D
             Meshes.Add(mesh);
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Add a mesh to the mesh manager preloaded meshes
         /// </summary>
@@ -173,6 +186,7 @@ namespace HBP.Data.Module3D
                     PreloadedMeshes[patient].Add(new Core.Object3D.SingleMesh3D((SingleMesh)mesh, MeshType.Patient, true));
             }
         }
+
         /// <summary>
         /// Set the mesh type to be displayed in the scene
         /// </summary>
@@ -184,6 +198,7 @@ namespace HBP.Data.Module3D
 
             SelectAtIndex(meshID);
         }
+
         /// <summary>
         /// Applies the initial single-patient selection policy without ever treating a transient
         /// preview name as persistent configuration.
@@ -195,17 +210,17 @@ namespace HBP.Data.Module3D
             {
                 meshID = FindLoadedPersistentPatientMesh(preferredMeshName);
             }
+
             if (meshID == -1 && !HasPersistentPatientMesh)
             {
-                Core.Object3D.RuntimeSingleMesh3D preview = RuntimePreviewMeshes.FirstOrDefault(mesh =>
-                    string.Equals(mesh.SourceMRIName, sourceMRIName, StringComparison.OrdinalIgnoreCase))
-                    ?? RuntimePreviewMeshes.FirstOrDefault();
+                Core.Object3D.RuntimeSingleMesh3D preview = RuntimePreviewMeshes.FirstOrDefault(mesh => string.Equals(mesh.SourceMRIName, sourceMRIName, StringComparison.OrdinalIgnoreCase)) ?? RuntimePreviewMeshes.FirstOrDefault();
                 if (preview != null)
                 {
                     meshID = Meshes.IndexOf(preview);
                     MeshPartToDisplay = MeshPart.Both;
                 }
             }
+
             if (meshID == -1) meshID = 0;
 
             SelectAtIndex(meshID);
@@ -214,20 +229,13 @@ namespace HBP.Data.Module3D
         private int FindLoadedPersistentMesh(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return -1;
-            return Meshes.FindIndex(mesh =>
-                mesh is not Core.Object3D.RuntimeSingleMesh3D
-                && mesh.IsLoaded
-                && string.Equals(mesh.Name, name, StringComparison.OrdinalIgnoreCase));
+            return Meshes.FindIndex(mesh => mesh is not Core.Object3D.RuntimeSingleMesh3D && mesh.IsLoaded && string.Equals(mesh.Name, name, StringComparison.OrdinalIgnoreCase));
         }
 
         private int FindLoadedPersistentPatientMesh(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return -1;
-            return Meshes.FindIndex(mesh =>
-                mesh.Type == MeshType.Patient
-                && mesh is not Core.Object3D.RuntimeSingleMesh3D
-                && mesh.IsLoaded
-                && string.Equals(mesh.Name, name, StringComparison.OrdinalIgnoreCase));
+            return Meshes.FindIndex(mesh => mesh.Type == MeshType.Patient && mesh is not Core.Object3D.RuntimeSingleMesh3D && mesh.IsLoaded && string.Equals(mesh.Name, name, StringComparison.OrdinalIgnoreCase));
         }
 
         private void SelectAtIndex(int meshID)
@@ -238,7 +246,7 @@ namespace HBP.Data.Module3D
             SelectedMeshID = meshID;
             ApplySelectedMeshCapabilities();
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
-            m_Scene.ResetGenerators();
+            m_Scene.InvalidateSurfaceProjection();
 
             m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -250,26 +258,32 @@ namespace HBP.Data.Module3D
             {
                 MeshPartToDisplay = MeshPart.Both;
             }
+
             if (m_Scene.AtlasManager.DisplayMarsAtlas && !SelectedMesh.SupportsMarsAtlas)
             {
                 m_Scene.AtlasManager.DisplayMarsAtlas = false;
             }
+
             if (m_Scene.AtlasManager.DisplayJuBrainAtlas && !SelectedMesh.SupportsMNIResources)
             {
                 m_Scene.AtlasManager.DisplayJuBrainAtlas = false;
             }
+
             if (m_Scene.FMRIManager.DisplayIBCContrasts && !SelectedMesh.SupportsMNIResources)
             {
                 m_Scene.FMRIManager.DisplayIBCContrasts = false;
             }
+
             if (m_Scene.FMRIManager.DisplayDiFuMo && !SelectedMesh.SupportsMNIResources)
             {
                 m_Scene.FMRIManager.DisplayDiFuMo = false;
             }
+
             if (m_Scene.FMRIManager.DisplayLocalizers && !SelectedMesh.SupportsMNIResources)
             {
                 m_Scene.FMRIManager.DisplayLocalizers = false;
             }
+
             if (!SelectedMesh.SupportsMarsAtlas)
             {
                 foreach (Column3DCCEP column in m_Scene.ColumnsCCEP.Where(column => column.Mode == Column3DCCEP.CCEPMode.MarsAtlas))
@@ -278,6 +292,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Set the mesh part to be displayed in the scene
         /// </summary>
@@ -286,8 +301,9 @@ namespace HBP.Data.Module3D
         {
             MeshPartToDisplay = SelectedMesh.SupportsHemispheres ? meshPartToDisplay : MeshPart.Both;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
-            m_Scene.ResetGenerators();
+            m_Scene.InvalidateSurfaceProjection();
         }
+
         /// <summary>
         /// Load every mesh that has not been loaded yet
         /// </summary>
@@ -298,6 +314,7 @@ namespace HBP.Data.Module3D
                 if (!mesh.IsLoaded) mesh.Load();
             }
         }
+
         /// <summary>
         /// Update the surface meshes from the DLL
         /// </summary>
@@ -307,6 +324,7 @@ namespace HBP.Data.Module3D
             foreach (Column3D column in m_Scene.Columns)
                 column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
         }
+
         /// <summary>
         /// Update meshes to display (fills information)
         /// </summary>
@@ -339,12 +357,14 @@ namespace HBP.Data.Module3D
                 SimplifiedMeshToUse = SelectedMesh.SimplifiedBoth;
                 BrainSurface = SelectedMesh.Both;
             }
+
             // get the middle
             MeshCenter = BrainSurface.Center;
             m_Scene.BrainMaterials.SetBrainCenter(MeshCenter);
 
             m_Scene.UpdateAllCutPlanes();
         }
+
         /// <summary>
         /// Initialize the meshes of the scene
         /// </summary>
@@ -353,6 +373,7 @@ namespace HBP.Data.Module3D
             m_DisplayedObjects.InstantiateBrain();
             m_DisplayedObjects.InstantiateSimplifiedBrain();
         }
+
         #endregion
     }
 }

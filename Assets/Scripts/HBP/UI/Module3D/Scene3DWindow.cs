@@ -148,6 +148,7 @@ namespace HBP.UI.Module3D
                     Destroy(gameObject);
                 }
             }, gameObject);
+            scene.OnSurfaceProjectionDiagnostic.AddSafeListener((type, title, message) => { DialogBoxManager.Open(type, title, message).Forget(); }, gameObject);
             scene.OnChangeVisibleState.AddListener((value) => { gameObject.SetActive(value); });
             Informations.OnExpand.AddListener(() =>
             {

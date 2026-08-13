@@ -153,8 +153,8 @@ namespace HBP.Data.Module3D
                     m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(value[0]).Dispose();
                     m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(value[1]).Dispose();
                     MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.Contains(0);
-                    m_Scene.ResetGenerators();
                     m_Scene.MeshManager.UpdateMeshesFromDLL();
+                    m_Scene.InvalidateSurfaceMesh();
                     Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 }
             }
@@ -182,8 +182,8 @@ namespace HBP.Data.Module3D
             m_MasksStack.Clear();
             m_SimplifiedMasksStack.Clear();
 
-            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.InvalidateSurfaceMesh();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -207,8 +207,8 @@ namespace HBP.Data.Module3D
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
             MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
-            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.InvalidateSurfaceMesh();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -225,8 +225,8 @@ namespace HBP.Data.Module3D
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(m_SimplifiedMasksStack.Pop()).Dispose();
             MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
-            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.InvalidateSurfaceMesh();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();

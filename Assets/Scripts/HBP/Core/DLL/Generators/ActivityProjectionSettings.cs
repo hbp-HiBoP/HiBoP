@@ -11,13 +11,19 @@ namespace HBP.Core.DLL
         private static int s_VolumeGridDimension = DefaultVolumeGridDimension;
         private static VolumeInterpolation s_VolumeInterpolation = DefaultVolumeInterpolation;
 
+        public static event Action OnChanged;
+
         public static int VolumeGridDimension
         {
             get => s_VolumeGridDimension;
             set
             {
                 if (value < 2) throw new ArgumentOutOfRangeException(nameof(value));
-                s_VolumeGridDimension = value;
+                if (s_VolumeGridDimension != value)
+                {
+                    s_VolumeGridDimension = value;
+                    OnChanged?.Invoke();
+                }
             }
         }
 
@@ -31,14 +37,20 @@ namespace HBP.Core.DLL
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
-                s_VolumeInterpolation = value;
+                if (s_VolumeInterpolation != value)
+                {
+                    s_VolumeInterpolation = value;
+                    OnChanged?.Invoke();
+                }
             }
         }
 
         public static void ResetDefaults()
         {
+            bool changed = s_VolumeGridDimension != DefaultVolumeGridDimension || s_VolumeInterpolation != DefaultVolumeInterpolation;
             s_VolumeGridDimension = DefaultVolumeGridDimension;
             s_VolumeInterpolation = DefaultVolumeInterpolation;
+            if (changed) OnChanged?.Invoke();
         }
     }
 }

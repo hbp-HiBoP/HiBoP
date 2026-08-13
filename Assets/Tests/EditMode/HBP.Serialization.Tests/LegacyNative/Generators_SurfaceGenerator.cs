@@ -37,7 +37,7 @@ namespace HBP.Tests.Serialization.LegacyNative
                     throw new InvalidOperationException($"SurfaceGenerator.Initialize cannot use a {activityGenerator.Backend} activity generator with hbp_core.");
                 }
 
-                ThrowIfFailed(hbp_surface_generator_initialize(_handle.Handle, activityGenerator.getHandle().Handle));
+                ThrowIfFailed(hbp_surface_generator_initialize_projection_grid(_handle.Handle, activityGenerator.getHandle().Handle, activityGenerator.GeneratorSurface.Surface.getHandle().Handle));
                 return;
             }
 
@@ -165,8 +165,8 @@ namespace HBP.Tests.Serialization.LegacyNative
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_destroy(IntPtr generator);
 
-        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
-        static private extern HbpCoreStatus hbp_surface_generator_initialize(IntPtr generator, IntPtr activityGenerator);
+        [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_initialize_projection_grid", CallingConvention = CallingConvention.Cdecl)]
+        static private extern HbpCoreStatus hbp_surface_generator_initialize_projection_grid(IntPtr generator, IntPtr activityGenerator, IntPtr surface);
 
         [DllImport(LegacyNativeLibrary.HbpCore, EntryPoint = "hbp_surface_generator_compute_main_uv", CallingConvention = CallingConvention.Cdecl)]
         static private extern HbpCoreStatus hbp_surface_generator_compute_main_uv(IntPtr generator, float calMin, float calMax);
