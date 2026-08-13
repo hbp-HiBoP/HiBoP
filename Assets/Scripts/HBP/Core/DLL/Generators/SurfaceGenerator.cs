@@ -41,6 +41,12 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_surface_generator_compute_main_uv(_handle.Handle, calMin, calMax));
         }
 
+        public SurfaceProjectionCoverage ValidateProjectionCoverage()
+        {
+            ThrowIfFailed(hbp_surface_generator_validate_projection_coverage(_handle.Handle));
+            return ProjectionCoverage;
+        }
+
         public void ComputeActivityUV(int timelineIndex = 0, float alpha = 0)
         {
             int nbVertices = Surface.NumberOfVertices;
@@ -101,6 +107,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_compute_main_uv", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_compute_main_uv(IntPtr generator, float calMin, float calMax);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_validate_projection_coverage", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_generator_validate_projection_coverage(IntPtr generator);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_compute_activity_uv", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_compute_activity_uv(IntPtr generator, int timelineIndex, float alpha);

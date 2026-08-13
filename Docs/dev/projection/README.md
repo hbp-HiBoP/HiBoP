@@ -43,9 +43,9 @@ Les décisions suivantes sont considérées comme validées :
    réellement projetables, et pas uniquement à partir de l'intersection de
    deux AABB.
 7. Aucun message utilisateur de compatibilité ne doit être affiché lors de la
-   seule sélection d'un volume ou d'une surface. Le diagnostic est présenté
-   uniquement lorsqu'une projection d'activité sur la surface est effectivement
-   demandée.
+   seule sélection d'un volume ou d'une surface. Une demande manuelle présente
+   le diagnostic avant calcul avec « Continue / Cancel » ; une demande
+   automatique incompatible attend silencieusement une géométrie compatible.
 8. Le calcul du diagnostic doit être intégré à la construction des stencils et
    mis en cache. Une passe complète supplémentaire sur la surface est exclue.
 9. Le rendu CCEP n'est pas refondu dans ce chantier. Son comportement courant
@@ -484,8 +484,9 @@ Résultats détaillés : [`phase-6-generator-surface-removal.md`](phase-6-genera
 | --- | --- | --- | --- | --- | --- | --- |
 | Changement de surface compatible | réutilisée | réutilisé | reconstruite | selon besoin | sans objet | aucun |
 | Changement de surface incompatible sans projection | réutilisée | réutilisé | différée | selon besoin | sans objet | aucun |
-| Projection sur surface sans couverture | réutilisée | réutilisé | invalide | utilisable | utilisable | une erreur |
-| Projection avec couverture partielle | réutilisée | réutilisé | partielle | utilisable | utilisable | un warning |
+| Projection manuelle sur surface sans couverture | réutilisée | après confirmation | invalide | utilisable | utilisable | warning Continue/Cancel |
+| Projection manuelle avec couverture partielle | réutilisée | après confirmation | partielle | utilisable | utilisable | warning Continue/Cancel |
+| Projection automatique incompatible | réutilisée | différé | neutre | selon état précédent | utilisable | aucun |
 | Changement de volume | reconstruite | recalculé | binding invalidé | binding invalidé | selon demande | aucun avant projection |
 | Changement de rayon iEEG | réutilisée | recalculé | UV actualisées | textures actualisées | selon demande | aucun |
 | Changement d'alpha ou de temps | réutilisée | réutilisé | apparence seule | apparence seule | sans objet | aucun |

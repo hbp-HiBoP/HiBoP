@@ -255,8 +255,11 @@ namespace HBP.Data.Module3D
         public int ActivityFieldVersion { get; private set; }
         public int SurfaceProjectionVersion { get; private set; }
 
-        private int m_LastProjectionDiagnosticGridVersion = -1;
-        private int m_LastProjectionDiagnosticSurfaceVersion = -1;
+        private int m_ValidatedProjectionGridVersion = -1;
+        private int m_ValidatedSurfaceProjectionVersion = -1;
+        private Core.DLL.SurfaceProjectionCoverage m_ValidatedSurfaceProjectionCoverage;
+        private int m_AllowedProjectionGridVersion = -1;
+        private int m_AllowedSurfaceProjectionVersion = -1;
 
         /// <summary>
         /// Geometry generator for cuts
@@ -803,11 +806,6 @@ namespace HBP.Data.Module3D
         /// </summary>
         [HideInInspector] public GenericEvent<bool> OnUpdatingGenerators = new();
 
-        /// <summary>
-        /// Event raised when a requested surface projection has significant coverage problems.
-        /// </summary>
-        [HideInInspector] public GenericEvent<DialogBoxType, string, string> OnSurfaceProjectionDiagnostic = new();
-
         #endregion
 
         #region Private Methods
@@ -859,7 +857,13 @@ namespace HBP.Data.Module3D
             if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
             if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
             if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
-            if (!m_IsGeneratorUpToDate && (PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate || SceneInformation.GeneratorUpdateRequested)) UpdateGenerator();
+            if (!m_IsGeneratorUpToDate)
+            {
+                if (SceneInformation.GeneratorUpdateRequested)
+                    UpdateGenerator();
+                else if (PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate && IsCurrentSurfaceProjectionCompatible())
+                    UpdateGenerator();
+            }
         }
 
         private void OnDestroy()
@@ -928,12 +932,12 @@ namespace HBP.Data.Module3D
         private void ComputeFunctionalSurface()
         {
             UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalSurface");
-            if (m_IsGeneratorUpToDate)
+            bool canProjectActivity = m_IsGeneratorUpToDate && CanProjectActivityOnCurrentSurface();
+            if (canProjectActivity)
             {
                 foreach (Column3D col in Columns)
                 {
                     col.ComputeSurfaceBrainUVWithActivity();
-                    ReportSurfaceProjectionCoverage(col.SurfaceGenerator.ProjectionCoverage);
                 }
             }
 
@@ -941,7 +945,7 @@ namespace HBP.Data.Module3D
             {
                 if (col.SurfaceNeedsUpdate)
                 {
-                    if (!m_IsGeneratorUpToDate)
+                    if (!canProjectActivity)
                     {
                         col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = col.SurfaceGenerator.NullUV;
                         col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = col.SurfaceGenerator.NullUV;
@@ -960,34 +964,64 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-        private void ReportSurfaceProjectionCoverage(Core.DLL.SurfaceProjectionCoverage coverage)
+        public bool TryGetSurfaceProjectionWarning(out DialogBoxType type, out string title, out string message)
         {
-            if (!coverage.RequiresUserMessage) return;
-            if (m_LastProjectionDiagnosticGridVersion == ProjectionGridVersion && m_LastProjectionDiagnosticSurfaceVersion == SurfaceProjectionVersion)
-                return;
+            type = DialogBoxType.Warning;
+            title = null;
+            message = null;
+            if (!TryValidateSurfaceProjection(out Core.DLL.SurfaceProjectionCoverage coverage) || !coverage.RequiresUserMessage)
+                return false;
 
-            m_LastProjectionDiagnosticGridVersion = ProjectionGridVersion;
-            m_LastProjectionDiagnosticSurfaceVersion = SurfaceProjectionVersion;
-
-            string surfaceName = m_MeshManager.SelectedMesh.Name;
-            string volumeName = m_MRIManager.SelectedMRI.Name;
-            DialogBoxType type;
-            string title;
-            string message;
+            string surfaceName = m_MeshManager.SelectedMesh?.Name ?? "Unknown surface";
+            string volumeName = m_MRIManager.SelectedMRI?.Name ?? "Unknown volume";
             if (coverage.classification == Core.DLL.SurfaceProjectionClassification.None)
             {
-                type = DialogBoxType.Error;
                 title = "Activity projection unavailable";
-                message = $"Activity cannot be projected onto surface '{surfaceName}' because none of its {coverage.totalVertexCount:N0} vertices overlap reference volume '{volumeName}'. Verify their coordinate systems and registration. Cuts and NIfTI export remain available.";
+                message = $"Activity cannot be projected onto surface '{surfaceName}' because none of its {coverage.totalVertexCount:N0} vertices overlap reference volume '{volumeName}'. Verify their coordinate systems and registration. Cuts and NIfTI export remain available.\n\nDo you want to continue anyway?";
             }
             else
             {
-                type = DialogBoxType.Warning;
                 title = "Partial activity projection";
-                message = $"Only {coverage.validRatio * 100.0f:0.0}% of surface '{surfaceName}' overlaps reference volume '{volumeName}' ({coverage.validVertexCount:N0}/{coverage.totalVertexCount:N0} vertices). Vertices outside the volume remain uncolored. Verify their coordinate systems and registration.";
+                message = $"Only {coverage.validRatio * 100.0f:0.0}% of surface '{surfaceName}' overlaps reference volume '{volumeName}' ({coverage.validVertexCount:N0}/{coverage.totalVertexCount:N0} vertices). Vertices outside the volume will remain uncolored. Verify their coordinate systems and registration.\n\nDo you want to continue anyway?";
             }
 
-            OnSurfaceProjectionDiagnostic.Invoke(type, title, message);
+            return true;
+        }
+
+        public void AllowCurrentSurfaceProjection()
+        {
+            m_AllowedProjectionGridVersion = ProjectionGridVersion;
+            m_AllowedSurfaceProjectionVersion = SurfaceProjectionVersion;
+        }
+
+        private bool CanProjectActivityOnCurrentSurface()
+        {
+            if (m_AllowedProjectionGridVersion == ProjectionGridVersion && m_AllowedSurfaceProjectionVersion == SurfaceProjectionVersion)
+                return true;
+
+            return IsCurrentSurfaceProjectionCompatible();
+        }
+
+        private bool IsCurrentSurfaceProjectionCompatible()
+        {
+            return TryValidateSurfaceProjection(out Core.DLL.SurfaceProjectionCoverage coverage) && !coverage.RequiresUserMessage;
+        }
+
+        private bool TryValidateSurfaceProjection(out Core.DLL.SurfaceProjectionCoverage coverage)
+        {
+            coverage = default;
+            if (Columns.Count == 0 || m_ActivityProjectionGrid == null || m_MeshManager.BrainSurface == null)
+                return false;
+
+            if (m_ValidatedProjectionGridVersion != ProjectionGridVersion || m_ValidatedSurfaceProjectionVersion != SurfaceProjectionVersion)
+            {
+                m_ValidatedSurfaceProjectionCoverage = Columns[0].SurfaceGenerator.ValidateProjectionCoverage();
+                m_ValidatedProjectionGridVersion = ProjectionGridVersion;
+                m_ValidatedSurfaceProjectionVersion = SurfaceProjectionVersion;
+            }
+
+            coverage = m_ValidatedSurfaceProjectionCoverage;
+            return coverage.classification != Core.DLL.SurfaceProjectionClassification.Unavailable;
         }
 
         /// <summary>

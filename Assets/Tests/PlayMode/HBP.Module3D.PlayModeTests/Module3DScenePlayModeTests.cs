@@ -1095,6 +1095,8 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.MRIManager.SelectedMRI.Volume.IsLoaded, Is.True);
 
             await WaitForConditionAsync(() => baseScene.MeshManager.BrainSurface != null && baseScene.MeshManager.BrainSurface.NumberOfVertices > 0 && column.BrainMesh != null && column.BrainMesh.GetComponent<MeshFilter>().mesh.vertexCount > 0, "hbp_core initial brain geometry update");
+            baseScene.MRIManager.Select(patientMRI.Name, true);
+            await WaitForConditionAsync(() => baseScene.MRIManager.SelectedMRI.Name == patientMRI.Name && !baseScene.SceneInformation.GeometryNeedsUpdate && !baseScene.SceneInformation.ProjectionGridNeedsUpdate, "patient MRI projection-grid update");
 
             baseScene.AddCutPlane();
             await WaitForConditionAsync(() => baseScene.Cuts.Count == 1 && column.CutTextures.CutGenerators.Count == 1 && !baseScene.SceneInformation.CutsNeedUpdate && !baseScene.SceneInformation.BaseCutTexturesNeedUpdate, "hbp_core cut geometry and base cut texture update", () => FormatCutUpdateDiagnostics(baseScene, column));
@@ -1104,6 +1106,8 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(column.CutTextures.BaseBrainCutTextures[0].height, Is.GreaterThan(1));
             Assert.That(column.CutTextures.BaseBrainCutTextures[0].GetPixels32().Any(pixel => pixel.r != 0 || pixel.g != 0 || pixel.b != 0), Is.True);
 
+            Assert.That(baseScene.TryGetSurfaceProjectionWarning(out _, out _, out _), Is.True, "The synthetic preview fixture intentionally has partial coverage.");
+            baseScene.AllowCurrentSurfaceProjection();
             baseScene.UpdateGenerator();
             await WaitForConditionAsync(() => baseScene.IsGeneratorUpToDate, "hbp_core activity generator update", () => FormatGeneratorDiagnostics(baseScene), 600);
             await WaitForConditionAsync(() => !baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate && !baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate, "hbp_core functional cut and surface update");
@@ -1123,47 +1127,40 @@ namespace HBP.Tests.PlayMode.Module3D
             int activityFieldVersion = baseScene.ActivityFieldVersion;
             int surfaceProjectionVersion = baseScene.SurfaceProjectionVersion;
             Mesh3D alternateMesh = baseScene.MeshManager.Meshes.First(mesh => mesh.IsLoaded && !ReferenceEquals(mesh, baseScene.MeshManager.SelectedMesh));
-            int projectionDiagnosticCount = 0;
-            DialogBoxType projectionDiagnosticType = default;
-            string projectionDiagnosticTitle = null;
-            string projectionDiagnosticMessage = null;
-            baseScene.OnSurfaceProjectionDiagnostic.AddListener((type, title, message) =>
-            {
-                ++projectionDiagnosticCount;
-                projectionDiagnosticType = type;
-                projectionDiagnosticTitle = title;
-                projectionDiagnosticMessage = message;
-            });
 
             baseScene.MeshManager.Select(alternateMesh.Name, true);
             Assert.That(baseScene.SceneInformation.GeneratorNeedsUpdate, Is.False);
             Assert.That(baseScene.IsGeneratorUpToDate, Is.True);
-            Assert.That(projectionDiagnosticCount, Is.Zero, "Selecting a surface must not immediately report projection coverage.");
-            await WaitForConditionAsync(() => !baseScene.SceneInformation.GeometryNeedsUpdate && baseScene.SurfaceProjectionVersion > surfaceProjectionVersion && projectionDiagnosticCount == 1, "surface-only projection rebind and deferred diagnostic");
+            await WaitForConditionAsync(() => !baseScene.SceneInformation.GeometryNeedsUpdate && !baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate && baseScene.SurfaceProjectionVersion > surfaceProjectionVersion, "surface-only projection rebind and silent compatibility validation");
 
             Assert.That(baseScene.ActivityProjectionGrid, Is.SameAs(projectionGrid));
             Assert.That(baseScene.ProjectionGridVersion, Is.EqualTo(projectionGridVersion));
             Assert.That(baseScene.ActivityFieldVersion, Is.EqualTo(activityFieldVersion));
             Assert.That(baseScene.IsGeneratorUpToDate, Is.True);
-            Assert.That(projectionDiagnosticType, Is.EqualTo(DialogBoxType.Error));
+            Assert.That(baseScene.TryGetSurfaceProjectionWarning(out DialogBoxType projectionDiagnosticType, out string projectionDiagnosticTitle, out string projectionDiagnosticMessage), Is.True);
+            Assert.That(projectionDiagnosticType, Is.EqualTo(DialogBoxType.Warning));
             Assert.That(projectionDiagnosticTitle, Is.EqualTo("Activity projection unavailable"));
             Assert.That(projectionDiagnosticMessage, Does.Contain(alternateMesh.Name));
             Assert.That(projectionDiagnosticMessage, Does.Contain(baseScene.MRIManager.SelectedMRI.Name));
 
-            baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate = true;
-            await UniTask.Yield();
-            Assert.That(projectionDiagnosticCount, Is.EqualTo(1), "The same binding diagnostic must not be repeated on refresh.");
-
-            baseScene.InvalidateActivityField(false);
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = true;
+            baseScene.InvalidateActivityField();
             Assert.That(baseScene.SceneInformation.GeneratorNeedsUpdate, Is.True);
             Assert.That(baseScene.SceneInformation.ProjectionGridNeedsUpdate, Is.False);
             Assert.That(baseScene.ActivityProjectionGrid, Is.SameAs(projectionGrid));
-            Assert.That(baseScene.IsGeneratorUpToDate, Is.True);
+            Assert.That(baseScene.IsGeneratorUpToDate, Is.False);
+            for (int i = 0; i < 10; ++i) await UniTask.Yield();
+            Assert.That(baseScene.ActivityFieldVersion, Is.EqualTo(activityFieldVersion), "Automatic projection must wait silently while surface coverage is incompatible.");
 
-            baseScene.UpdateGenerator();
-            await WaitForConditionAsync(() => baseScene.IsGeneratorUpToDate && baseScene.ActivityFieldVersion > activityFieldVersion, "activity-only field recompute");
+            int incompatibleSurfaceProjectionVersion = baseScene.SurfaceProjectionVersion;
+            Mesh incompatibleBrainMesh = column.BrainMesh.GetComponent<MeshFilter>().mesh;
+            Vector3[] compatibleVertices = Enumerable.Repeat(baseScene.MRIManager.SelectedMRI.Volume.Center, incompatibleBrainMesh.vertexCount).ToArray();
+            baseScene.MeshManager.BrainSurface.SetBuffers(compatibleVertices, incompatibleBrainMesh.triangles);
+            baseScene.InvalidateSurfaceProjection();
+            await WaitForConditionAsync(() => baseScene.SurfaceProjectionVersion > incompatibleSurfaceProjectionVersion && baseScene.IsGeneratorUpToDate && baseScene.ActivityFieldVersion > activityFieldVersion, "automatic projection after making the surface compatible");
             Assert.That(baseScene.ActivityProjectionGrid, Is.SameAs(projectionGrid));
             Assert.That(baseScene.ProjectionGridVersion, Is.EqualTo(projectionGridVersion));
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
             int recomputedActivityFieldVersion = baseScene.ActivityFieldVersion;
 
             baseScene.InvalidateProjectionGrid();

@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using Cysharp.Threading.Tasks;
+using HBP.Data.Module3D;
+using HBP.UI.Tools;
 
 namespace HBP.UI.Toolbar
 {
@@ -17,6 +20,8 @@ namespace HBP.UI.Toolbar
         /// </summary>
         [SerializeField] private Button m_Remove;
 
+        private bool m_ProjectionConfirmationPending;
+
         #endregion
 
         #region Public Methods
@@ -30,9 +35,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                SelectedScene.InvalidateActivityField();
-                SelectedScene.SceneInformation.GeneratorUpdateRequested = true;
-                UpdateInteractable();
+                RequestComputationAsync().Forget();
             });
             m_Remove.onClick.AddListener(() =>
             {
@@ -59,8 +62,45 @@ namespace HBP.UI.Toolbar
         {
             bool isGeneratorUpToDate = SelectedScene.IsGeneratorUpToDate;
 
-            m_Compute.interactable = SelectedScene.CanComputeFunctionalValues;
+            m_Compute.interactable = SelectedScene.CanComputeFunctionalValues && !m_ProjectionConfirmationPending;
             m_Remove.interactable = isGeneratorUpToDate;
+        }
+
+        private async UniTask RequestComputationAsync()
+        {
+            if (m_ProjectionConfirmationPending) return;
+
+            Base3DScene scene = SelectedScene;
+            m_ProjectionConfirmationPending = true;
+            UpdateInteractable();
+            try
+            {
+                if (scene.SceneInformation.Initialized)
+                    await UniTask.WaitUntil(() => scene == null || scene != SelectedScene || (!scene.SceneInformation.GeometryNeedsUpdate && !scene.SceneInformation.ProjectionGridNeedsUpdate && !scene.SceneInformation.SurfaceProjectionNeedsUpdate));
+                if (scene == null || scene != SelectedScene) return;
+
+                while (scene.TryGetSurfaceProjectionWarning(out Core.Enums.DialogBoxType type, out string title, out string message))
+                {
+                    int projectionGridVersion = scene.ProjectionGridVersion;
+                    int surfaceProjectionVersion = scene.SurfaceProjectionVersion;
+                    int result = await DialogBoxManager.OpenAsync(type, title, message, "Continue", "Cancel");
+                    if (result != 0 || scene == null || scene != SelectedScene) return;
+
+                    if (projectionGridVersion == scene.ProjectionGridVersion && surfaceProjectionVersion == scene.SurfaceProjectionVersion)
+                    {
+                        scene.AllowCurrentSurfaceProjection();
+                        break;
+                    }
+                }
+
+                scene.InvalidateActivityField();
+                scene.SceneInformation.GeneratorUpdateRequested = true;
+            }
+            finally
+            {
+                m_ProjectionConfirmationPending = false;
+                UpdateInteractable();
+            }
         }
 
         #endregion

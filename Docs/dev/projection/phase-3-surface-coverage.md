@@ -9,9 +9,9 @@ pas, ou ne recouvre que partiellement, le volume de référence. Elle ne modifie
 ni la grille d'export Localizer, ni l'affine NIfTI, qui restent les objectifs
 des phases 4 et 5.
 
-L'ABI historique fondée sur `GeneratorSurface` reste disponible. Le nouveau
-comportement strict s'applique au chemin volumique introduit par les phases 1
-et 2.
+Le comportement décrit ici s'applique au chemin volumique introduit par les
+phases 1 et 2. L'ABI historique mentionnée dans la livraison initiale de cette
+phase a ensuite été supprimée par la phase 6.
 
 ## 2. Binding natif et clé de cache
 
@@ -29,9 +29,9 @@ sommets, fusion et transformation. Les UV, couleurs, normales, triangles et
 masques de visibilité n'invalident pas le binding.
 
 L'initialisation de `SurfaceGenerator` ne construit aucun stencil. Le premier
-appel à `ComputeActivityUV` appelle `SurfaceProjectionBinding::ensure`. Les
-appels suivants, y compris les autres instants d'une timeline, réutilisent le
-même binding tant que sa clé ne change pas.
+appel à `ValidateProjectionCoverage` ou `ComputeActivityUV` appelle
+`SurfaceProjectionBinding::ensure`. Le préflight et le rendu réutilisent donc
+le même binding tant que sa clé ne change pas.
 
 ## 3. Rapport de couverture
 
@@ -53,19 +53,20 @@ Les classifications sont `Unavailable` avant la première demande, `None`,
 réutilisation du cache observable sans ajouter de chronométrage C# autour de
 chaque frame.
 
-Le rapport est exposé par la nouvelle fonction ABI
-`hbp_surface_generator_get_projection_coverage` et par la propriété C#
-`SurfaceGenerator.ProjectionCoverage`.
+Le rapport est exposé par `hbp_surface_generator_get_projection_coverage` et
+par la propriété C# `SurfaceGenerator.ProjectionCoverage`. L'appel explicite
+`hbp_surface_generator_validate_projection_coverage` permet de construire le
+rapport avant tout calcul d'activité.
 
 ## 4. Projection et politique utilisateur
 
 Le comportement livré est le suivant :
 
-| Couverture | Projection | Message |
+| Couverture | Projection automatique | Projection forcée par le bouton |
 | --- | --- | --- |
-| nulle | UV activité et alpha neutres sur toute la surface | erreur |
-| partielle significative | sommets valides projetés, sommets extérieurs neutres | warning avec pourcentage |
-| complète ou quasi complète | projection normale | aucun |
+| nulle | suspendue silencieusement | warning « Continue / Cancel » |
+| partielle significative | suspendue silencieusement | warning avec pourcentage et « Continue / Cancel » |
+| complète ou quasi complète | normale | normale, sans message |
 
 Le seuil initial d'un warning partiel est strictement plus de
 `max(32 sommets, 1 % des sommets)` invalides. La comparaison entière utilise la
@@ -80,30 +81,23 @@ migration explicite.
 
 ## 5. Moment du message et déduplication
 
-`Base3DScene` consulte la couverture uniquement après
-`ComputeSurfaceBrainUVWithActivity`, donc lors d'une demande réelle de
-projection. `UpdateProjectionResources`, la sélection d'un volume et la
-sélection d'une surface restent silencieux.
+`Base3DScene` valide la couverture avant de calculer ou d'appliquer l'activité.
+La sélection d'un volume ou d'une surface reste silencieuse : elle peut
+construire le binding en cache, mais n'ouvre aucune boîte de dialogue.
 
-Un diagnostic est dédupliqué avec la clé de binding portée par la scène :
+Le résultat est mémorisé avec la clé portée par la scène :
 
 ```text
 ProjectionGridVersion + SurfaceProjectionVersion
 ```
 
-Cette clé commune à toutes les colonnes empêche une répétition entre colonnes
-ou rafraîchissements tout en autorisant un nouveau diagnostic après changement
-réel de grille ou de surface. La `bindingVersion` native reste un compteur de
-cache propre à chaque `SurfaceGenerator` et ne sert donc pas à dédupliquer des
-colonnes distinctes.
-
-La couche `HBP.Data.Runtime` publie
-`OnSurfaceProjectionDiagnostic(type, title, message)`. `Scene3DWindow`, dans
-la couche UI, transforme cet événement en boîte de dialogue. Cette séparation
-évite une dépendance inverse de l'assembly de données vers l'assembly UI. Les
-messages nomment la surface et le volume, suggèrent de vérifier leurs repères
-et leur recalage, et indiquent que les coupes et l'export restent disponibles
-en cas de couverture nulle.
+Cette clé commune à toutes les colonnes évite toute reconstruction par frame.
+En mode automatique, une couverture problématique conserve l'activité en état
+« à recalculer » et attend une nouvelle version de grille ou de surface. En
+mode manuel, `ComputeActivity` demande confirmation avant d'invalider ou de
+calculer le champ. « Cancel » ne lance rien ; « Continue » autorise uniquement
+le couple grille/surface courant. Si ce couple change pendant que la boîte est
+ouverte, le préflight est recommencé.
 
 ## 6. Performance
 
@@ -142,14 +136,16 @@ Les tests ajoutés couvrent :
   neutres ;
 - les limites exactes du seuil `max(32, 1 %)` ;
 - l'absence de diagnostic au moment de la sélection dans une scène réelle ;
-- une seule erreur différée lors de la projection d'une surface disjointe ;
-- l'absence de répétition au rafraîchissement suivant.
+- le rapport disponible avant `ComputeActivityUV` et réutilisé par celui-ci ;
+- le blocage silencieux de la projection automatique sur un couple incompatible ;
+- la reprise automatique après une nouvelle version de surface compatible ;
+- la production du warning manuel avec les noms de surface et de volume.
 
 Résultats :
 
 - build Release hbp_core réussi ;
 - suite native hbp_core : **13/13 tests réussis** ;
-- suite Unity EditMode `HBP.Serialization.Tests` : **474/474 tests réussis** ;
+- suite Unity EditMode `HBP.Serialization.Tests` : **472/472 tests réussis** ;
 - test PlayMode ciblé de cycle grille/champ/surface et diagnostic :
   **1/1 réussi** ;
 - benchmark MNI réel réussi ;
@@ -161,7 +157,8 @@ Résultats :
 La gate de phase 3 est satisfaite :
 
 - les sélections seules ne produisent aucun message ;
-- une projection incompatible produit un seul diagnostic pertinent ;
+- une projection manuelle incompatible produit un diagnostic avant calcul ;
+- une projection automatique incompatible attend silencieusement ;
 - les couvertures nulle et partielle ne provoquent ni crash ni lecture de
   voxel de bord trompeuse sur le nouveau chemin ;
 - le rapport ne nécessite aucune passe géométrique supplémentaire ;

@@ -42,7 +42,8 @@ Dans HiBoP :
   `ActivityProjectionGrid` ;
 - retrait des tests qui figeaient la concaténation surface + grille ou exigeaient
   que l'export volumique conserve les dimensions de l'ancien objet hybride ;
-- mise à jour de l'inventaire à 253 `DllImport`, dont 199 pour `hbp_core`.
+- mise à jour de l'inventaire à 254 `DllImport`, dont 200 pour `hbp_core` après
+  l'ajout du préflight de couverture.
 
 Dans `hbp_core` :
 
@@ -53,15 +54,15 @@ Dans `hbp_core` :
 - conservation exclusive des variantes explicites
   `*_initialize_projection_grid` ;
 - migration du smoke test, des tests fonctionnels et du benchmark natif ;
-- mise à jour de la baseline ABI à 218 symboles.
+- mise à jour de la baseline ABI à 219 symboles.
 
 ## Validation
 
 - compilation Release de `hbp_core` réussie ;
 - 13/13 tests natifs CTest réussis ;
-- baseline ABI validée contre le header public et la DLL Windows : 218 symboles ;
+- baseline ABI validée contre le header public et la DLL Windows : 219 symboles ;
 - DLL copiée dans `Assets/Plugins/x86_64/Windows/hbp_core.dll`, SHA-256
-  `1683D524CC6F1BF910602A2A6040EB8D4434CC7B0FF81B479F324EBC5E29F456` ;
+  `8D8CA2F1F0E6504C2AA0A302E9127F8AE4408E1C5AA6FF68E97666A92D339ADB` ;
 - formatage C# appliqué avec `Tools/format-code.cmd` ;
 - compilation Unity réussie ;
 - 472/472 tests `HBP.Serialization.Tests` EditMode réussis.
@@ -75,6 +76,12 @@ Les tests de couverture de surface, de géométrie NIfTI, de séparation de la
 résolution Localizer, d'iEEG, de densité, de fMRI et de MEG continuent à couvrir
 les responsabilités déplacées. Le rendu CCEP reste volontairement inchangé et
 pourra faire l'objet d'une refonte dédiée.
+
+Après validation manuelle, le diagnostic de couverture a été déplacé avant le
+calcul : une demande par le bouton propose désormais « Continue / Cancel »,
+tandis que la projection automatique attend silencieusement un couple
+surface/volume compatible. Le préflight construit et met en cache le même
+binding natif que le rendu, sans calculer le champ d'activité.
 
 ## Gate de sortie
 

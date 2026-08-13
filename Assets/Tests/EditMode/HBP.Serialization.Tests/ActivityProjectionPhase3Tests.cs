@@ -61,6 +61,10 @@ namespace HBP.Tests.Serialization
                 Object.DestroyImmediate(mesh);
             }
 
+            SurfaceProjectionCoverage preflightCoverage = projection.ValidateProjectionCoverage();
+            Assert.That(preflightCoverage.classification, Is.EqualTo(SurfaceProjectionClassification.Partial));
+            Assert.That(preflightCoverage.validVertexCount, Is.EqualTo(2));
+
             projection.ComputeActivityUV(0, 0.25f);
             SurfaceProjectionCoverage partialCoverage = projection.ProjectionCoverage;
             Assert.That(partialCoverage.totalVertexCount, Is.EqualTo(4));
@@ -68,6 +72,7 @@ namespace HBP.Tests.Serialization
             Assert.That(partialCoverage.invalidVertexCount, Is.EqualTo(2));
             Assert.That(partialCoverage.validRatio, Is.EqualTo(0.5f));
             Assert.That(partialCoverage.classification, Is.EqualTo(SurfaceProjectionClassification.Partial));
+            Assert.That(partialCoverage.bindingVersion, Is.EqualTo(preflightCoverage.bindingVersion));
             Assert.That(projection.AlphaUV.Count(uv => uv.y == 0.0f), Is.EqualTo(2));
             Assert.That(projection.AlphaUV.Count(uv => uv == new Vector2(0.01f, 1.0f)), Is.EqualTo(2));
 
@@ -85,6 +90,8 @@ namespace HBP.Tests.Serialization
             }, TetrahedronTriangles);
             projection.Initialize(density, surface);
             Assert.That(projection.ProjectionCoverage.classification, Is.EqualTo(SurfaceProjectionClassification.Unavailable));
+            SurfaceProjectionCoverage disjointPreflightCoverage = projection.ValidateProjectionCoverage();
+            Assert.That(disjointPreflightCoverage.classification, Is.EqualTo(SurfaceProjectionClassification.None));
             projection.ComputeActivityUV(0, 0.5f);
             SurfaceProjectionCoverage disjointCoverage = projection.ProjectionCoverage;
             Assert.That(disjointCoverage.classification, Is.EqualTo(SurfaceProjectionClassification.None));
