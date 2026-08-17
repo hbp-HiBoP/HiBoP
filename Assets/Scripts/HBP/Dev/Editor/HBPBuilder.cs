@@ -15,6 +15,33 @@ namespace HBP.Dev
         private static string m_Data = "Assets/Data/";
         private static string m_DataBuild = "Data/";
 
+        public static void BuildFromCommandLine()
+        {
+            try
+            {
+                string buildsDirectory = GetCommandLineArgument("-buildOutput");
+                if (string.IsNullOrWhiteSpace(buildsDirectory))
+                {
+                    throw new BuildFailedException("Missing required -buildOutput argument.");
+                }
+
+                if (buildsDirectory[buildsDirectory.Length - 1] != '/' && buildsDirectory[buildsDirectory.Length - 1] != '\\')
+                {
+                    buildsDirectory += Path.DirectorySeparatorChar;
+                }
+
+                BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
+                ScriptingImplementation scriptingBackend = GetCommandLineScriptingBackend(target);
+                WriteBuildInfo();
+                BuildProjectAndZipIt(buildsDirectory, false, target, scriptingBackend);
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+                EditorApplication.Exit(1);
+            }
+        }
+
         public static void DefaultBuild()
         {
             BuildProjectAndZipIt(@"D:/HBP/HiBoP_builds/", false, BuildTarget.StandaloneWindows64);
@@ -24,23 +51,26 @@ namespace HBP.Dev
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, bool connectProfiler = false)
         {
+            BuildProjectAndZipIt(buildsDirectory, development, target, GetDefaultScriptingBackend(target), connectProfiler);
+        }
+
+        public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, ScriptingImplementation scriptingBackend, bool connectProfiler = false)
+        {
             SerializationTypeRegistryGenerator.EnsureUpToDateForBuild();
             PrepareBuildTarget(target);
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, scriptingBackend);
 
             string os = "";
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
-                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
                     UnityEditor.WindowsStandalone.UserBuildSettings.architecture = OSArchitecture.x64;
                     os = "win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
-                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.IL2CPP);
                     os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
-                    PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
                     UnityEditor.OSXStandalone.UserBuildSettings.architecture = OSArchitecture.ARM64;
                     os = "macos64";
                     break;
@@ -177,6 +207,61 @@ namespace HBP.Dev
                 throw new BuildFailedException($"Package {packageName} is required to build the Linux IL2CPP player. Add it to Packages/manifest.json and let Unity resolve packages before building.");
             }
         }
+
+        private static string GetCommandLineArgument(string argumentName)
+        {
+            string[] arguments = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < arguments.Length - 1; i++)
+            {
+                if (arguments[i] == argumentName)
+                {
+                    return arguments[i + 1];
+                }
+            }
+
+            return null;
+        }
+
+        private static ScriptingImplementation GetCommandLineScriptingBackend(BuildTarget target)
+        {
+            string value = GetCommandLineArgument("-scriptingBackend");
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return GetDefaultScriptingBackend(target);
+            }
+
+            if (string.Equals(value, "IL2CPP", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return ScriptingImplementation.IL2CPP;
+            }
+
+            if (string.Equals(value, "Mono", System.StringComparison.OrdinalIgnoreCase)
+                || string.Equals(value, "Mono2x", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return ScriptingImplementation.Mono2x;
+            }
+
+            throw new BuildFailedException($"Unsupported -scriptingBackend value: {value}. Use Mono or IL2CPP.");
+        }
+
+        private static ScriptingImplementation GetDefaultScriptingBackend(BuildTarget target)
+        {
+            return target == BuildTarget.StandaloneOSX
+                ? ScriptingImplementation.Mono2x
+                : ScriptingImplementation.IL2CPP;
+        }
+
+        internal static void WriteBuildInfo()
+        {
+            BuildInfo buildInfo = new()
+            {
+                UnityVersion = Application.unityVersion,
+                Version = Application.version,
+                BuildDate = System.DateTime.Now
+            };
+            File.WriteAllText("Assets/Resources/BuildInfo.json", JsonConvert.SerializeObject(buildInfo));
+            AssetDatabase.Refresh();
+        }
     }
 
     public class HBPBuilderWindow : EditorWindow
@@ -187,6 +272,9 @@ namespace HBP.Dev
         private bool m_Windows = true;
         private bool m_Linux = true;
         private bool m_MacOSX = true;
+        private bool m_WindowsIL2CPP = true;
+        private bool m_LinuxIL2CPP = true;
+        private bool m_MacOSXIL2CPP = false;
 
         [MenuItem("Tools/Build HiBoP")]
         public static void OpenBuildWindow()
@@ -209,11 +297,26 @@ namespace HBP.Dev
             m_DevelopmentBuild = GUILayout.Toggle(m_DevelopmentBuild, "Development Build");
             m_ConnectProfiler = GUILayout.Toggle(m_ConnectProfiler, "Connect Profiler");
             m_Windows = GUILayout.Toggle(m_Windows, "Windows");
+            if (m_Windows)
+            {
+                m_WindowsIL2CPP = GUILayout.Toggle(m_WindowsIL2CPP, "Windows IL2CPP");
+            }
+
             m_Linux = GUILayout.Toggle(m_Linux, "Linux");
+            if (m_Linux)
+            {
+                m_LinuxIL2CPP = GUILayout.Toggle(m_LinuxIL2CPP, "Linux IL2CPP");
+            }
+
             m_MacOSX = GUILayout.Toggle(m_MacOSX, "MacOSX");
+            if (m_MacOSX)
+            {
+                m_MacOSXIL2CPP = GUILayout.Toggle(m_MacOSXIL2CPP, "MacOSX IL2CPP");
+            }
+
             if (GUILayout.Button("Build!"))
             {
-                WriteBuildInfo();
+                HBPBuilder.WriteBuildInfo();
                 if (m_BuildDirectory[m_BuildDirectory.Length - 1] != '/' && m_BuildDirectory[m_BuildDirectory.Length - 1] != '\\')
                 {
                     m_BuildDirectory += '/';
@@ -221,33 +324,27 @@ namespace HBP.Dev
 
                 if (m_Windows)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64, m_ConnectProfiler);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneWindows64, GetScriptingBackend(m_WindowsIL2CPP), m_ConnectProfiler);
                 }
 
                 if (m_Linux)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneLinux64, m_ConnectProfiler);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneLinux64, GetScriptingBackend(m_LinuxIL2CPP), m_ConnectProfiler);
                 }
 
                 if (m_MacOSX)
                 {
-                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX, m_ConnectProfiler);
+                    HBPBuilder.BuildProjectAndZipIt(m_BuildDirectory, m_DevelopmentBuild, BuildTarget.StandaloneOSX, GetScriptingBackend(m_MacOSXIL2CPP), m_ConnectProfiler);
                 }
 
                 Close();
             }
         }
 
-        void WriteBuildInfo()
+        private static ScriptingImplementation GetScriptingBackend(bool il2cpp)
         {
-            BuildInfo buildInfo = new()
-            {
-                UnityVersion = Application.unityVersion,
-                Version = Application.version,
-                BuildDate = System.DateTime.Now
-            };
-            File.WriteAllText("Assets/Resources/BuildInfo.json", JsonConvert.SerializeObject(buildInfo));
-            AssetDatabase.Refresh();
+            return il2cpp ? ScriptingImplementation.IL2CPP : ScriptingImplementation.Mono2x;
         }
+
     }
 }
