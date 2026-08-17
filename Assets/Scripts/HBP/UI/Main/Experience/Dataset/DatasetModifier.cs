@@ -12,7 +12,8 @@ namespace HBP.UI.Main
     /// </summary>
     public class DatasetModifier : ObjectModifier<Dataset>
     {
-        #region Properties		
+        #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_ProtocolDropdown;
 
@@ -23,10 +24,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -41,9 +39,11 @@ namespace HBP.UI.Main
         }
 
         public Protocol SelectedProtocol => ObjectTemp.Protocol;
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -62,6 +62,7 @@ namespace HBP.UI.Main
             m_DataInfoListGestion.List.OnUpdateObject.AddListener(UpdateData);
             m_DataInfoListGestion.ObjectCreator.DatabaseFilterMethod = data => data.Protocol == ObjectTemp.Protocol;
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -72,6 +73,7 @@ namespace HBP.UI.Main
             m_ProtocolDropdown.value = DatabaseManager.Database.Protocols.IndexOf(objectToDisplay.Protocol);
             m_DataInfoListGestion.List.Set(objectToDisplay.Data);
         }
+
         /// <summary>
         /// Change the porotocol.
         /// </summary>
@@ -79,8 +81,13 @@ namespace HBP.UI.Main
         protected virtual void ChangeProtocol(int index)
         {
             ObjectTemp.Protocol = DatabaseManager.Database.Protocols[index];
-            LoadingManager.Load(update => m_DataInfoListGestion.UpdateAllObjectsAsync(update));
+            foreach (Core.Data.DataInfo dataInfo in ObjectTemp.Data)
+            {
+                dataInfo.MarkValidationStale(Core.Data.ValidationAspect.Epoching);
+                dataInfo.PendingValidationRequest = (dataInfo.PendingValidationRequest ?? new Core.Data.ValidationRequest(Core.Data.ValidationAspect.None)).Merge(new Core.Data.ValidationRequest(Core.Data.ValidationAspect.Epoching, dataInfoIDs: new[] { dataInfo.ID }, protocolIDs: new[] { ObjectTemp.Protocol.ID }, force: true));
+            }
         }
+
         /// <summary>
         /// Change the name.
         /// </summary>
@@ -96,6 +103,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Add data to the dataset.
         /// </summary>
@@ -104,6 +112,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.AddData(data);
         }
+
         /// <summary>
         /// Remove data from the dataset.
         /// </summary>
@@ -112,6 +121,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.RemoveData(data);
         }
+
         /// <summary>
         /// Update data of the dataset.
         /// </summary>
@@ -120,6 +130,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.UpdateData(data);
         }
+
         #endregion
     }
 }

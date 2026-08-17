@@ -10,13 +10,12 @@ namespace HBP.UI.Informations.Graphs
     public class Listener : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] Vector2 m_AbscissaDisplayRange;
+
         public Vector2 AbscissaDisplayRange
         {
-            get
-            {
-                return m_AbscissaDisplayRange;
-            }
+            get { return m_AbscissaDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
@@ -27,12 +26,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] Vector2 m_OrdinateDisplayRange;
+
         public Vector2 OrdinateDisplayRange
         {
-            get
-            {
-                return m_OrdinateDisplayRange;
-            }
+            get { return m_OrdinateDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
@@ -48,43 +45,40 @@ namespace HBP.UI.Informations.Graphs
         bool m_FirstUse = true;
 
         [SerializeField] float m_ZoomSpeed = 0.05f;
+
         public float ZoomSpeed
         {
-            get
-            {
-                return m_ZoomSpeed;
-            }
-            set
-            {
-                SetPropertyUtility.SetStruct(ref m_ZoomSpeed, value);
-            }
+            get { return m_ZoomSpeed; }
+            set { SetPropertyUtility.SetStruct(ref m_ZoomSpeed, value); }
         }
 
         #region Events
+
         [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+
         public Vector2Event OnChangeAbscissaDisplayRange
         {
-            get
-            {
-                return m_OnChangeAbscissaDisplayRange;
-            }
+            get { return m_OnChangeAbscissaDisplayRange; }
         }
+
         [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+
         public Vector2Event OnChangeOrdinateDisplayRange
         {
-            get
-            {
-                return m_OnChangeOrdinateDisplayRange;
-            }
+            get { return m_OnChangeOrdinateDisplayRange; }
         }
+
         #endregion
+
         #endregion
 
         #region Public Methods
+
         public void OnBeginDrag()
         {
             m_MouseLastPosition = Input.mousePosition;
         }
+
         public void OnDrag()
         {
             Vector2 mouseActualPosition = Input.mousePosition;
@@ -93,21 +87,25 @@ namespace HBP.UI.Informations.Graphs
             Move(proportionnalDisplacement);
             m_MouseLastPosition = mouseActualPosition;
         }
+
         public void OnScroll()
         {
             float delta = Input.mouseScrollDelta.y;
             if (delta > 0) Zoom();
-            else if(delta < 0) Dezoom();
+            else if (delta < 0) Dezoom();
         }
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_LastHeight = m_RectTransform.rect.height;
             m_LastWidth = m_RectTransform.rect.width;
         }
+
         void OnRectTransformDimensionsChange()
         {
             if (gameObject.activeInHierarchy)
@@ -115,10 +113,12 @@ namespace HBP.UI.Informations.Graphs
                 OnRect().Forget();
             }
         }
+
         void SetOrdinateDisplayRange()
         {
             OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }
+
         void SetAbscissaDisplayRange()
         {
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
@@ -150,17 +150,19 @@ namespace HBP.UI.Informations.Graphs
 
         void Move(Vector2 command)
         {
-            if(command.x != 0)
+            if (command.x != 0)
             {
                 m_AbscissaDisplayRange += (m_AbscissaDisplayRange.x - m_AbscissaDisplayRange.y) * command.x * Vector2.one;
                 OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
             }
+
             if (command.y != 0)
             {
                 m_OrdinateDisplayRange += (m_OrdinateDisplayRange.x - m_OrdinateDisplayRange.y) * command.y * Vector2.one;
                 OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
             }
         }
+
         void Zoom()
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
@@ -175,6 +177,7 @@ namespace HBP.UI.Informations.Graphs
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
             OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }
+
         void Dezoom()
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
@@ -189,11 +192,13 @@ namespace HBP.UI.Informations.Graphs
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
             OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }
+
         void ChangeRectSize(Vector2 command)
         {
             OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
             OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }
+
         #endregion
     }
 }

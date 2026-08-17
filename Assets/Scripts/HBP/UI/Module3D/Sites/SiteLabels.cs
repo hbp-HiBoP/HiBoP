@@ -10,15 +10,18 @@ namespace HBP.UI.Module3D
     public class SiteLabels : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private InputField m_AddSiteLabelInputField;
         [SerializeField] private Text m_AutocompleteText;
         [SerializeField] private Button m_AddSiteLabelButton;
         [SerializeField] private RectTransform m_SiteLabelsContainer;
         [SerializeField] private GameObject m_SiteLabelPrefab;
         private Core.Object3D.Site m_Site;
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(Core.Object3D.Site site)
         {
             m_Site = site;
@@ -31,6 +34,7 @@ namespace HBP.UI.Module3D
                     Destroy(label.gameObject);
                 }
             }
+
             foreach (var label in site.State.Labels)
             {
                 if (!m_SiteLabelsContainer.GetComponentsInChildren<SiteLabelItem>().Any(l => l.Label == label))
@@ -38,6 +42,7 @@ namespace HBP.UI.Module3D
                     Instantiate(m_SiteLabelPrefab, m_SiteLabelsContainer).GetComponent<SiteLabelItem>().Initialize(label);
                 }
             }
+
             foreach (var item in m_SiteLabelsContainer.GetComponentsInChildren<SiteLabelItem>())
             {
                 item.OnRemoveLabel.RemoveAllListeners();
@@ -46,10 +51,7 @@ namespace HBP.UI.Module3D
 
             // Listeners
             m_AddSiteLabelButton.onClick.RemoveAllListeners();
-            m_AddSiteLabelButton.onClick.AddListener(() =>
-            {
-                AddLabel(m_AddSiteLabelInputField.text);
-            });
+            m_AddSiteLabelButton.onClick.AddListener(() => { AddLabel(m_AddSiteLabelInputField.text); });
             m_AddSiteLabelInputField.onEndEdit.RemoveAllListeners();
             m_AddSiteLabelInputField.onEndEdit.AddListener((text) =>
             {
@@ -89,9 +91,11 @@ namespace HBP.UI.Module3D
                 }
             });
         }
+
         #endregion
 
         #region Private Methods
+
         public void Update()
         {
             if (Input.GetKeyDown(KeyCode.Tab))
@@ -113,10 +117,12 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+
         private void OnEnable()
         {
             m_AddSiteLabelInputField.text = "";
         }
+
         private void AddLabel(string text)
         {
             if (!string.IsNullOrEmpty(text))
@@ -125,6 +131,7 @@ namespace HBP.UI.Module3D
                 m_AddSiteLabelInputField.text = "";
             }
         }
+
         #endregion
     }
 }

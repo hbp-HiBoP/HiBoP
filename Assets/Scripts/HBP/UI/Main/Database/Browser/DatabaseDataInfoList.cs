@@ -10,15 +10,28 @@ namespace HBP.UI.Database
     public class DatabaseDataInfoList : ActionableList<DataInfo>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, State, DescendingState, Type, DescendingType }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            State,
+            DescendingState,
+            Type,
+            DescendingType
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         public SortingDisplayer m_NameSortingDisplayer;
         public SortingDisplayer m_TypeSortingDisplayer;
         public SortingDisplayer m_StateSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add dataInfo.
         /// </summary>
@@ -29,9 +42,11 @@ namespace HBP.UI.Database
             SortByNone();
             base.AddObject(objectToAdd);
         }
+
         #endregion
 
         #region Sorting Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -51,10 +66,12 @@ namespace HBP.UI.Database
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -86,10 +103,12 @@ namespace HBP.UI.Database
                     m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by sate.
         /// </summary>
@@ -121,10 +140,12 @@ namespace HBP.UI.Database
                     m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by sate.
         /// </summary>
@@ -147,6 +168,7 @@ namespace HBP.UI.Database
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_StateSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

@@ -6,17 +6,21 @@ namespace HBP.UI.Toolbar
     public class TransparentBrain : Tool
     {
         #region Properties
+
         /// <summary>
         /// Toggle to make the brain transparent or not
         /// </summary>
         [SerializeField] private Toggle m_Toggle;
+
         /// <summary>
         /// Slider to control the alpha of the transparent brain
         /// </summary>
         [SerializeField] private Slider m_Slider;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -36,6 +40,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.IsBrainTransparent = isOn;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -46,6 +51,7 @@ namespace HBP.UI.Toolbar
             m_Slider.value = 0.2f;
             m_Slider.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -56,6 +62,7 @@ namespace HBP.UI.Toolbar
             m_Toggle.interactable = true;
             m_Slider.interactable = isBrainTransparent;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -64,6 +71,7 @@ namespace HBP.UI.Toolbar
             m_Toggle.isOn = SelectedScene.IsBrainTransparent;
             m_Slider.value = SelectedScene.BrainMaterials.Alpha;
         }
+
         #endregion
     }
 }

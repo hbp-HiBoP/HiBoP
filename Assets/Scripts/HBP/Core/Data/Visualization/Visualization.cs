@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using HBP.Core.Database;
 using HBP.Core.Exceptions;
 using HBP.Core.Interfaces;
 using HBP.Core.Tools;
@@ -20,29 +21,33 @@ namespace HBP.Core.Data
     * \version 2.0
     * \date 09 mai 2017
     * \brief 3D brain visualization.
-    * 
+    *
     * \details Define a 3D brain visualization and contains:
-    * 
+    *
     *   - \a ID.
     *   - \a Name.
     *   - \a Configuration.
-    *   - \a Columns.   
+    *   - \a Columns.
     */
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class Visualization : BaseData, ILoadable<Visualization>, INameable
     {
         #region Properties
+
         public const string EXTENSION = ".visualization";
+
         /// <summary>
         /// Name of the visualization.
         /// </summary>
         [JsonProperty(Order = 2)] public string Name { get; set; }
 
         [JsonProperty("Patients", Order = 3)] List<string> m_PatientsID;
+
         /// <summary>
         /// Patients of the Visualization.
         /// </summary>
         private List<Patient> m_Patients = new();
+
         public List<Patient> Patients
         {
             get => m_Patients;
@@ -62,6 +67,7 @@ namespace HBP.Core.Data
         /// Columns of the visualization.
         /// </summary>
         [JsonProperty(Order = 5)] public List<Column> Columns { get; set; }
+
         /// <summary>
         /// EEG Columns of the visualization.
         /// </summary>
@@ -69,6 +75,7 @@ namespace HBP.Core.Data
         {
             get { return new ReadOnlyCollection<IEEGColumn>(Columns.OfType<IEEGColumn>().ToArray()); }
         }
+
         /// <summary>
         /// Anatomic columns of the visualization.
         /// </summary>
@@ -79,34 +86,22 @@ namespace HBP.Core.Data
 
         public ReadOnlyCollection<CCEPColumn> CCEPColumns
         {
-            get
-            {
-                return new ReadOnlyCollection<CCEPColumn>(Columns.OfType<CCEPColumn>().ToArray());
-            }
+            get { return new ReadOnlyCollection<CCEPColumn>(Columns.OfType<CCEPColumn>().ToArray()); }
         }
 
         public ReadOnlyCollection<FMRIColumn> FMRIColumns
         {
-            get
-            {
-                return new ReadOnlyCollection<FMRIColumn>(Columns.OfType<FMRIColumn>().ToArray());
-            }
+            get { return new ReadOnlyCollection<FMRIColumn>(Columns.OfType<FMRIColumn>().ToArray()); }
         }
 
         public ReadOnlyCollection<MEGColumn> MEGColumns
         {
-            get
-            {
-                return new ReadOnlyCollection<MEGColumn>(Columns.OfType<MEGColumn>().ToArray());
-            }
+            get { return new ReadOnlyCollection<MEGColumn>(Columns.OfType<MEGColumn>().ToArray()); }
         }
 
         public ReadOnlyCollection<StaticColumn> StaticColumns
         {
-            get
-            {
-                return new ReadOnlyCollection<StaticColumn>(Columns.OfType<StaticColumn>().ToArray());
-            }
+            get { return new ReadOnlyCollection<StaticColumn>(Columns.OfType<StaticColumn>().ToArray()); }
         }
 
         /// <summary>
@@ -116,9 +111,11 @@ namespace HBP.Core.Data
         {
             get { return Columns.Count > 0 && Columns.All((column) => column.IsCompatible(Patients)); }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new visualization instance.
         /// </summary>
@@ -132,6 +129,7 @@ namespace HBP.Core.Data
             Columns = columns.ToList();
             Configuration = configuration;
         }
+
         /// <summary>
         /// Create a new visualization instance.
         /// </summary>
@@ -145,6 +143,7 @@ namespace HBP.Core.Data
             Columns = columns.ToList();
             Configuration = configuration;
         }
+
         /// <summary>
         /// Create a new visualization instance.
         /// </summary>
@@ -154,6 +153,7 @@ namespace HBP.Core.Data
         public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns, string ID) : this(name, patients, columns, new VisualizationConfiguration(), ID)
         {
         }
+
         /// <summary>
         /// Create a new visualization instance.
         /// </summary>
@@ -162,23 +162,37 @@ namespace HBP.Core.Data
         public Visualization(string name, IEnumerable<Patient> patients, IEnumerable<Column> columns) : this(name, patients, columns, new VisualizationConfiguration())
         {
         }
+
         /// <summary>
         /// Create a new visualization instance with default value.
         /// </summary>
         public Visualization() : this("Unknown", new Patient[0], new Column[0])
         {
-
         }
+
         #endregion
 
         #region Public Static Methods
+
         public static bool LoadFromFile(string path, out Visualization result)
         {
             result = null;
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Visualization>(path);
-                return result != null;
+                if (result == null)
+                {
+                    return false;
+                }
+
+                Project project = ApplicationState.LoadedProject;
+                if (project != null)
+                {
+                    LoadingContext context = new(Array.Empty<BaseTag>(), DatabaseManager.Database.Protocols, project.Patients, project.Datasets);
+                    context.ResolveProject(project.Patients, Array.Empty<Group>(), project.Datasets, new[] { result });
+                }
+
+                return true;
             }
             catch (Exception e)
             {
@@ -186,19 +200,24 @@ namespace HBP.Core.Data
                 throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
+
         public static string[] GetExtensions()
         {
             return new string[] { EXTENSION[0] == '.' ? EXTENSION.Substring(1) : EXTENSION };
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Load the visualization.
         /// </summary>
         /// <returns></returns>
         public async UniTask LoadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
+            await UniTask.SwitchToMainThread();
+            DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, UnityEngine.SystemInfo.systemMemorySize);
             await UniTask.SwitchToThreadPool();
 
             int nbDynamicColumns = CCEPColumns.Count + IEEGColumns.Count;
@@ -231,16 +250,19 @@ namespace HBP.Core.Data
                 await LoadColumnsAsync(dataInfoByColumn, (localProgress, duration, text) => onChangeProgress(progress + localProgress * loadColumnsProgress, duration, text), token);
                 progress += loadColumnsProgress;
             }
+
             if (nbFMRIColumns > 0)
             {
                 await LoadFMRIColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadFMRIColumnsProgress, duration, text), token);
                 progress += loadFMRIColumnsProgress;
             }
+
             if (nbMEGColumns > 0)
             {
                 await LoadMEGColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadMEGColumnsProgress, duration, text), token);
                 progress += loadMEGColumnsProgress;
             }
+
             if (nbStaticColumns > 0)
             {
                 await LoadStaticColumnsAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * loadStaticColumnsProgress, duration, text), token);
@@ -249,17 +271,19 @@ namespace HBP.Core.Data
 
             onChangeProgress(1.0f, 0, new LoadingText("Visualization loaded successfully"));
         }
+
         /// <summary>
         /// Swap two columns by index.
         /// </summary>
         /// <param name="index1">Index of the first column to swap.</param>
         /// <param name="index2">Index of the second column to swap.</param>
-        public void SwapColumns(int index1,int index2)
+        public void SwapColumns(int index1, int index2)
         {
             Column tmp = Columns[index1];
             Columns[index1] = Columns[index2];
             Columns[index2] = tmp;
         }
+
         /// <summary>
         /// Get the DataInfo of the column.
         /// </summary>
@@ -280,6 +304,7 @@ namespace HBP.Core.Data
                 return null;
             }
         }
+
         /// <summary>
         /// Get the DataInfo used by the column for a specific Patient.
         /// </summary>
@@ -305,6 +330,7 @@ namespace HBP.Core.Data
                 return null;
             }
         }
+
         /// <summary>
         /// Get the dataInfo of all columns for a specific patient
         /// </summary>
@@ -314,17 +340,29 @@ namespace HBP.Core.Data
         {
             return IEEGColumns.Select(c => GetDataInfo(patient, c)).Distinct();
         }
+
+        public IEnumerable<DataInfo> GetRequiredDataInfos()
+        {
+            IEnumerable<DataInfo> dynamicDataInfos = Columns.Where(column => column is IEEGColumn || column is CCEPColumn).SelectMany(column => GetDataInfo(column) ?? Enumerable.Empty<DataInfo>());
+            IEnumerable<DataInfo> fmriDataInfos = FMRIColumns.SelectMany(column => column.Dataset.GetFMRIDataInfos().Where(data => Patients.Contains(data.Patient)).Cast<DataInfo>().Concat(column.Dataset.GetSharedFMRIDataInfos()));
+            IEnumerable<DataInfo> megDataInfos = MEGColumns.SelectMany(column => column.Dataset.GetMEGDataInfos().Where(data => Patients.Contains(data.Patient)));
+            IEnumerable<DataInfo> staticDataInfos = StaticColumns.SelectMany(column => column.Dataset.GetStaticDataInfos().Where(data => Patients.Contains(data.Patient) && column.DataName == data.Name));
+            return dynamicDataInfos.Concat(fmriDataInfos).Concat(megDataInfos).Concat(staticDataInfos).Where(dataInfo => dataInfo != null).Distinct();
+        }
+
         public override void GenerateID()
         {
             base.GenerateID();
             foreach (var column in Columns) column.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
             foreach (var column in Columns) IDs.AddRange(column.GetAllIdentifiable());
             return IDs;
         }
+
         public void Unload()
         {
             foreach (var column in Columns)
@@ -332,23 +370,43 @@ namespace HBP.Core.Data
                 column.Unload();
             }
         }
-        public void UpdatePatients()
+
+        internal void ResolveReferences(LoadingContext context)
         {
-            if (ApplicationState.LoadedProject != null)
+            ResolvePatientReferences(context, true);
+
+            foreach (Column column in Columns ?? Enumerable.Empty<Column>())
             {
-                m_Patients = (m_PatientsID ?? new List<string>())
-                    .Select(id => ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == id))
-                    .Where(p => p != null)
-                    .ToList();
-            }
-            else
-            {
-                m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
+                switch (column)
+                {
+                    case IEEGColumn ieeg:
+                        ieeg.ResolveReferences(context);
+                        break;
+                    case CCEPColumn ccep:
+                        ccep.ResolveReferences(context);
+                        break;
+                    case FMRIColumn fmri:
+                        fmri.ResolveReferences(context);
+                        break;
+                    case MEGColumn meg:
+                        meg.ResolveReferences(context);
+                        break;
+                    case StaticColumn @static:
+                        @static.ResolveReferences(context);
+                        break;
+                }
             }
         }
+
+        internal void ResolvePatientReferences(LoadingContext context, bool required)
+        {
+            m_Patients = (m_PatientsID ?? new List<string>()).Select(id => required ? context.ResolveRequired(context.PatientById, id, "patient", $"Visualization '{ID}'") : context.ResolveOptional(context.PatientById, id)).Where(patient => patient != null).ToList();
+        }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -357,6 +415,7 @@ namespace HBP.Core.Data
         {
             return new Visualization(Name, Patients.ToList(), Columns.DeepClone(), Configuration.Clone() as VisualizationConfiguration, ID);
         }
+
         /// <summary>
         /// Copy an instance in this instance.
         /// </summary>
@@ -364,7 +423,7 @@ namespace HBP.Core.Data
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is Visualization visualization)
+            if (copy is Visualization visualization)
             {
                 Name = visualization.Name;
                 Patients = visualization.Patients;
@@ -373,9 +432,11 @@ namespace HBP.Core.Data
                 Configuration = visualization.Configuration;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private async UniTask<Dictionary<Column, IEnumerable<DataInfo>>> FindDataInfoToReadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -399,6 +460,7 @@ namespace HBP.Core.Data
                             }
                         }
                     }
+
                     dataInfoByColumn.Add(column, dataInfoForThisColumn);
                 }
                 else if (column is CCEPColumn ccepColumn)
@@ -414,12 +476,16 @@ namespace HBP.Core.Data
                             }
                         }
                     }
+
                     dataInfoByColumn.Add(column, dataInfoForThisColumn);
                 }
+
                 count++;
             }
+
             return dataInfoByColumn;
         }
+
         private async UniTask LoadDataAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             const float LOADING_DATA_PROGRESS = 0.95f;
@@ -431,7 +497,9 @@ namespace HBP.Core.Data
                 try
                 {
                     // PROBABLY FIXME
-                    Data data = DataManager.GetData(dataInfo);
+                    // Epoched data are accounted after their processed column has built
+                    // the complete derived graph (channel and event statistics included).
+                    Data data = dataInfo is IEpochable ? DataManager.GetData(dataInfo, updateMemoryUsage: false) : DataManager.GetData(dataInfo);
                     if (data is EpochedData epochedData)
                     {
                         foreach (var column in dataInfoByColumn.Keys)
@@ -454,8 +522,9 @@ namespace HBP.Core.Data
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
-            DataManager.NormalizeiEEGData();
+            DataManager.NormalizeiEEGData(PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
+
         private async UniTask LoadColumnsAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -481,9 +550,10 @@ namespace HBP.Core.Data
                     token.ThrowIfCancellationRequested();
                     IEEGColumn iEEGColumn = iEEGColumns[i];
                     progress += loadingDataStep;
-                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count() , new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
+                    onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[iEEGColumn].Count(), new LoadingText("Loading iEEG column ", iEEGColumn.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
                     iEEGColumn.Data.Load(dataInfoByColumn[iEEGColumn].OfType<IEEGDataInfo>(), iEEGColumn.Bloc);
                 }
+
                 Frequency maxiEEGFrequency = new(iEEGColumns.Max(column => column.Data.MaxFrequency));
                 for (int i = 0; i < nbIEEGColumns; ++i)
                 {
@@ -509,6 +579,7 @@ namespace HBP.Core.Data
                     onChangeProgress(progress, TIME_BY_DATAINFO * dataInfoByColumn[ccepColumn].Count(), new LoadingText("Loading CCEP column ", ccepColumn.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
                     ccepColumn.Data.Load(dataInfoByColumn[ccepColumn].OfType<CCEPDataInfo>(), ccepColumn.Bloc);
                 }
+
                 Frequency maxCCEPFrequency = new(ccepColumns.Max(column => column.Data.Frequencies.Max(f => f.RawValue)));
                 for (int i = 0; i < nbCCEPColumns; ++i)
                 {
@@ -525,6 +596,7 @@ namespace HBP.Core.Data
 
             await UniTask.SwitchToMainThread();
         }
+
         private async UniTask LoadFMRIColumnsAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -548,8 +620,8 @@ namespace HBP.Core.Data
                     await fmriColumn.Data.LoadAsync(dataInfos, sharedFMRIDataInfos);
                 }
             }
-
         }
+
         private async UniTask LoadMEGColumnsAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -573,6 +645,7 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         private async UniTask LoadStaticColumnsAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -596,33 +669,42 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Interfaces
+
         bool ILoadable<Visualization>.LoadFromFile(string path, out Visualization[] result)
         {
             bool success = LoadFromFile(path, out Visualization visualization);
             result = new Visualization[] { visualization };
             return success;
         }
+
         string[] ILoadable<Visualization>.GetExtensions()
         {
             return GetExtensions();
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnSerializing()
         {
             base.OnSerializing();
             m_Patients = m_Patients?.Where(p => p != null).ToList() ?? new List<Patient>();
             m_PatientsID = m_Patients.Where(p => !string.IsNullOrEmpty(p.ID)).Select(p => p.ID).ToList();
         }
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            UpdatePatients();
+            m_PatientsID ??= new List<string>();
+            m_Patients = new List<Patient>();
+            Columns ??= new List<Column>();
         }
+
         #endregion
     }
 }

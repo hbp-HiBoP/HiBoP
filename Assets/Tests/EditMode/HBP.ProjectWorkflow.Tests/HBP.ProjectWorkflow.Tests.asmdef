@@ -1,0 +1,24 @@
+{
+    "name": "HBP.ProjectWorkflow.Tests",
+    "rootNamespace": "HBP.Tests.ProjectWorkflow",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.UI.Runtime",
+        "UniTask"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

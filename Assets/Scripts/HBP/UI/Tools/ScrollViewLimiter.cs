@@ -7,12 +7,15 @@ namespace HBP.UI.Tools
     public class ScrollViewLimiter : MonoBehaviour
     {
         #region Properties
+
         ScrollRect m_ScrollRect;
         LayoutElement m_LayoutElement;
         public int Max;
+
         #endregion
 
         #region Private Methods
+
         private void OnEnable()
         {
             m_ScrollRect = GetComponent<ScrollRect>();
@@ -24,6 +27,7 @@ namespace HBP.UI.Tools
         {
             m_LayoutElement.preferredHeight = Mathf.Min(m_ScrollRect.content.rect.height, Max);
         }
+
         #endregion
     }
 }

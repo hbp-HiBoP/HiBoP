@@ -25,26 +25,30 @@ namespace HBP.Core.Data
     public class ChannelData
     {
         #region Properties
+
         /// <summary>
         /// Unit of data contained in this channel.
         /// </summary>
         public string Unit { get; set; }
+
         /// <summary>
         /// Data contained in this channel by bloc.
         /// </summary>
         public Dictionary<Bloc, BlocChannelData> DataByBloc { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new ChannelData instance.
         /// </summary>
         /// <param name="data">Data contained in this channel</param>
         /// <param name="channel">Name of the Channel</param>
-        public ChannelData(EpochedData data, string channel) : this(data.DataByBloc.ToDictionary(kv => kv.Key,kv => new BlocChannelData(kv.Value,channel)),data.UnitByChannel[channel])
+        public ChannelData(EpochedData data, string channel) : this(data.DataByBloc.ToDictionary(kv => kv.Key, kv => new BlocChannelData(kv.Value, channel)), data.UnitByChannel[channel])
         {
-
         }
+
         /// <summary>
         /// Create new ChannelData instance.
         /// </summary>
@@ -55,9 +59,11 @@ namespace HBP.Core.Data
             DataByBloc = dataByBloc;
             Unit = unit;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Clear all the data in this ChannelData instance. Called by the Data manager.
         /// </summary>
@@ -68,8 +74,10 @@ namespace HBP.Core.Data
             {
                 blocChannelData.Clear();
             }
+
             DataByBloc.Clear();
         }
+
         #endregion
     }
 }

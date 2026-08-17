@@ -10,11 +10,14 @@ namespace HBP.UI.Main
     public class SubBlocSelector : ObjectSelector<Core.Data.SubBloc>
     {
         #region Properties
+
         [SerializeField] SubBlocList m_List;
+
         /// <summary>
         /// UI subBlocs list.
         /// </summary>
         protected override SelectableList<Core.Data.SubBloc> List => m_List;
+
         #endregion
     }
 }

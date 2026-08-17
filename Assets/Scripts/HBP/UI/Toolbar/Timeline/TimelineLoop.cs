@@ -7,21 +7,20 @@ namespace HBP.UI.Toolbar
     public class TimelineLoop : Tool
     {
         #region Properties
+
         /// <summary>
         /// Make the timeline loop
         /// </summary>
         [SerializeField] private Toggle m_Toggle;
 
         private bool m_IsGlobal = false;
+
         /// <summary>
         /// Are the changes applied to all columns ?
         /// </summary>
         public bool IsGlobal
         {
-            get
-            {
-                return m_IsGlobal;
-            }
+            get { return m_IsGlobal; }
             set
             {
                 m_IsGlobal = value;
@@ -31,9 +30,11 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -42,7 +43,7 @@ namespace HBP.UI.Toolbar
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
                 if (ListenerLock) return;
-                
+
                 if (SelectedColumn is Column3DDynamic)
                 {
                     foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
@@ -59,6 +60,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -67,6 +69,7 @@ namespace HBP.UI.Toolbar
             m_Toggle.isOn = false;
             m_Toggle.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -77,6 +80,7 @@ namespace HBP.UI.Toolbar
 
             m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -95,6 +99,7 @@ namespace HBP.UI.Toolbar
                 m_Toggle.isOn = false;
             }
         }
+
         #endregion
     }
 }

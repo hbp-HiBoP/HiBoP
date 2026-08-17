@@ -13,13 +13,12 @@ namespace HBP.UI.Informations.Graphs
     public class Graph : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private string m_Title;
+
         public string Title
         {
-            get
-            {
-                return m_Title;
-            }
+            get { return m_Title; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Title, value))
@@ -30,28 +29,23 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private string m_AbscissaUnit;
+
         public string AbscissaUnit
         {
-            get
-            {
-                return m_AbscissaUnit;
-            }
+            get { return m_AbscissaUnit; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_AbscissaUnit, value))
                 {
-
                 }
             }
         }
 
         [SerializeField] private string m_AbscissaLabel;
+
         public string AbscissaLabel
         {
-            get
-            {
-                return m_AbscissaLabel;
-            }
+            get { return m_AbscissaLabel; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_AbscissaLabel, value))
@@ -62,12 +56,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private string m_OrdinateUnit;
+
         public string OrdinateUnit
         {
-            get
-            {
-                return m_OrdinateUnit;
-            }
+            get { return m_OrdinateUnit; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_OrdinateUnit, value))
@@ -78,12 +70,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private string m_OrdinateLabel;
+
         public string OrdinateLabel
         {
-            get
-            {
-                return m_OrdinateLabel;
-            }
+            get { return m_OrdinateLabel; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_OrdinateLabel, value))
@@ -94,12 +84,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Color m_FontColor;
+
         public Color FontColor
         {
-            get
-            {
-                return m_FontColor;
-            }
+            get { return m_FontColor; }
             set
             {
                 if (SetPropertyUtility.SetColor(ref m_FontColor, value))
@@ -110,12 +98,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Color m_BackgroundColor;
+
         public Color BackgroundColor
         {
-            get
-            {
-                return m_BackgroundColor;
-            }
+            get { return m_BackgroundColor; }
             set
             {
                 if (SetPropertyUtility.SetColor(ref m_BackgroundColor, value))
@@ -126,12 +112,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Vector2 m_OrdinateDisplayRange;
+
         public Vector2 OrdinateDisplayRange
         {
-            get
-            {
-                return m_OrdinateDisplayRange;
-            }
+            get { return m_OrdinateDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
@@ -142,12 +126,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Vector2 m_DefaultOrdinateDisplayRange;
+
         public Vector2 DefaultOrdinateDisplayRange
         {
-            get
-            {
-                return m_DefaultOrdinateDisplayRange;
-            }
+            get { return m_DefaultOrdinateDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_DefaultOrdinateDisplayRange, value))
@@ -158,12 +140,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Vector2 m_AbscissaDisplayRange;
+
         public Vector2 AbscissaDisplayRange
         {
-            get
-            {
-                return m_AbscissaDisplayRange;
-            }
+            get { return m_AbscissaDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
@@ -174,12 +154,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Vector2 m_DefaultAbscissaDisplayRange;
+
         public Vector2 DefaultAbscissaDisplayRange
         {
-            get
-            {
-                return m_DefaultAbscissaDisplayRange;
-            }
+            get { return m_DefaultAbscissaDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_DefaultAbscissaDisplayRange, value))
@@ -190,12 +168,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] bool m_UseDefaultDisplayRange = true;
+
         public bool UseDefaultDisplayRange
         {
-            get
-            {
-                return m_UseDefaultDisplayRange;
-            }
+            get { return m_UseDefaultDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_UseDefaultDisplayRange, value))
@@ -206,12 +182,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private bool m_DisplayCurrentTime;
+
         public bool DisplayCurrentTime
         {
-            get
-            {
-                return m_DisplayCurrentTime;
-            }
+            get { return m_DisplayCurrentTime; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_DisplayCurrentTime, value))
@@ -222,12 +196,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private float m_CurrentTime;
+
         public float CurrentTime
         {
-            get
-            {
-                return m_CurrentTime;
-            }
+            get { return m_CurrentTime; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_CurrentTime, value))
@@ -238,135 +210,111 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] List<Curve> m_Curves = new();
+
         public ReadOnlyCollection<Curve> Curves
         {
-            get
-            {
-                return new ReadOnlyCollection<Curve>(m_Curves);
-            }
+            get { return new ReadOnlyCollection<Curve>(m_Curves); }
         }
 
         #region Events
-        [SerializeField] private StringEvent m_OnChangeTitle;
+
+        [SerializeField] private StringEvent m_OnChangeTitle = new();
+
         public StringEvent OnChangeTitle
         {
-            get
-            {
-                return m_OnChangeTitle;
-            }
+            get { return m_OnChangeTitle; }
         }
 
-        [SerializeField] private StringEvent m_OnChangeAbscissaUnit;
+        [SerializeField] private StringEvent m_OnChangeAbscissaUnit = new();
+
         public StringEvent OnChangeAbscissaUnit
         {
-            get
-            {
-                return m_OnChangeAbscissaUnit;
-            }
+            get { return m_OnChangeAbscissaUnit; }
         }
 
-        [SerializeField] private StringEvent m_OnChangeAbscissaLabel;
+        [SerializeField] private StringEvent m_OnChangeAbscissaLabel = new();
+
         public StringEvent OnChangeAbscissaLabel
         {
-            get
-            {
-                return m_OnChangeAbscissaLabel;
-            }
+            get { return m_OnChangeAbscissaLabel; }
         }
 
-        [SerializeField] private StringEvent m_OnChangeOrdinateUnit;
+        [SerializeField] private StringEvent m_OnChangeOrdinateUnit = new();
+
         public StringEvent OnChangeOrdinateUnit
         {
-            get
-            {
-                return m_OnChangeOrdinateUnit;
-            }
+            get { return m_OnChangeOrdinateUnit; }
         }
 
-        [SerializeField] private StringEvent m_OnChangeOrdinateLabel;
+        [SerializeField] private StringEvent m_OnChangeOrdinateLabel = new();
+
         public StringEvent OnChangeOrdinateLabel
         {
-            get
-            {
-                return m_OnChangeOrdinateLabel;
-            }
+            get { return m_OnChangeOrdinateLabel; }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeFontColor;
+        [SerializeField] private ColorEvent m_OnChangeFontColor = new();
+
         public ColorEvent OnChangeFontColor
         {
-            get
-            {
-                return m_OnChangeFontColor;
-            }
+            get { return m_OnChangeFontColor; }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeBackgroundColor;
+        [SerializeField] private ColorEvent m_OnChangeBackgroundColor = new();
+
         public ColorEvent OnChangeBackgroundColor
         {
-            get
-            {
-                return m_OnChangeBackgroundColor;
-            }
+            get { return m_OnChangeBackgroundColor; }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange = new();
+
         public Vector2Event OnChangeOrdinateDisplayRange
         {
-            get
-            {
-                return m_OnChangeOrdinateDisplayRange;
-            }
+            get { return m_OnChangeOrdinateDisplayRange; }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange = new();
+
         public Vector2Event OnChangeAbscissaDisplayRange
         {
-            get
-            {
-                return m_OnChangeAbscissaDisplayRange;
-            }
+            get { return m_OnChangeAbscissaDisplayRange; }
         }
 
-        [SerializeField] private BoolEvent m_OnChangeUseDefaultRange;
+        [SerializeField] private BoolEvent m_OnChangeUseDefaultRange = new();
+
         public BoolEvent OnChangeUseDefaultRange
         {
-            get
-            {
-                return m_OnChangeUseDefaultRange;
-            }
+            get { return m_OnChangeUseDefaultRange; }
         }
 
-        [SerializeField] private BoolEvent m_OnChangeDisplayCurrentTime;
+        [SerializeField] private BoolEvent m_OnChangeDisplayCurrentTime = new();
+
         public BoolEvent OnChangeDisplayCurrentTime
         {
-            get
-            {
-                return m_OnChangeDisplayCurrentTime;
-            }
+            get { return m_OnChangeDisplayCurrentTime; }
         }
 
-        [SerializeField]  private FloatEvent m_OnChangeCurrentTime;
+        [SerializeField] private FloatEvent m_OnChangeCurrentTime = new();
+
         public FloatEvent OnChangeCurrentTime
         {
-            get
-            {
-                return m_OnChangeCurrentTime;
-            }
+            get { return m_OnChangeCurrentTime; }
         }
 
-        [SerializeField] private CurvesEvent m_OnChangeCurves;
+        [SerializeField] private CurvesEvent m_OnChangeCurves = new();
+
         public CurvesEvent OnChangeCurves
         {
-            get
-            {
-                return m_OnChangeCurves;
-            }
+            get { return m_OnChangeCurves; }
         }
+
         #endregion
+
         #endregion
 
         #region Public Methods
+
         public void SetEnabled(string id, bool enabled)
         {
             Curve curveFound = FindCurve(id);
@@ -374,24 +322,29 @@ namespace HBP.UI.Informations.Graphs
             {
                 curveFound.Enabled = enabled;
             }
+
             SetCurves();
         }
+
         public void UpdateCurve(string id)
         {
             Curve curveFound = FindCurve(id);
             Debug.Log(curveFound.Data.Thickness);
         }
+
         public void AddCurve(Curve curve)
         {
             m_Curves.Add(curve);
             AddListenerOnChangeDataEvent(curve);
             SetCurves();
         }
+
         public void RemoveCurve(Curve curve)
         {
             m_Curves.Remove(curve);
             SetCurves();
         }
+
         public void SetCurves(Curve[] curves)
         {
             m_Curves = new List<Curve>(curves);
@@ -399,17 +352,21 @@ namespace HBP.UI.Informations.Graphs
             {
                 AddListenerOnChangeDataEvent(curve);
             }
+
             SetCurves();
         }
+
         public void ClearCurves()
         {
             m_Curves = new List<Curve>();
             SetCurves();
         }
+
         public string[] GetEnabledCurvesName()
         {
             return GetEnabledCurves(m_Curves).Where(c => c.Data != null || c.SubCurves.Any(sc => sc.Data != null && sc.Enabled)).Select(c => c.Name).Distinct().ToArray();
         }
+
         public string ToSVG()
         {
             System.Globalization.CultureInfo oldCulture = System.Globalization.CultureInfo.CurrentCulture;
@@ -430,31 +387,35 @@ namespace HBP.UI.Informations.Graphs
                 if (curve is ShapedCurveData shapedCurve)
                 {
                     builder = new System.Text.StringBuilder();
-                    for (int i = 0; i < shapedCurve.Points.Length; ++i)
+                    for (int i = 0; i < shapedCurve.Count; ++i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y + (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                     }
-                    for (int i = shapedCurve.Points.Length - 1; i >= 0; --i)
+
+                    for (int i = shapedCurve.Count - 1; i >= 0; --i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y - (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                     }
+
                     svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:" + curve.Color.ToHexString() + ";stroke-width:0;fill-opacity:0.5\"/>");
                 }
 
                 // Write curve
                 builder = new System.Text.StringBuilder();
-                foreach (var point in curve.Points)
+                for (int i = 0; i < curve.Count; i++)
                 {
+                    Vector2 point = curve.GetPoint(i);
                     Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                     localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
                     builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                 }
+
                 svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:none;stroke:" + curve.Color.ToHexString() + ";stroke-width:" + curve.Thickness + "\"/>");
                 svgBuilder.AppendLine("</g>");
             }
@@ -474,6 +435,7 @@ namespace HBP.UI.Informations.Graphs
                         coef /= 10;
                         normalizedStep *= 10;
                     }
+
                     while (normalizedStep > 10)
                     {
                         float tempResult;
@@ -504,6 +466,7 @@ namespace HBP.UI.Informations.Graphs
                         coef *= 10;
                         normalizedStep /= 10;
                     }
+
                     if (normalizedStep > 1 && normalizedStep <= 5)
                     {
                         normalizedStep = 5;
@@ -512,6 +475,7 @@ namespace HBP.UI.Informations.Graphs
                     {
                         normalizedStep = 10;
                     }
+
                     float step = normalizedStep * coef;
 
                     int division = Mathf.FloorToInt(min / step);
@@ -524,8 +488,10 @@ namespace HBP.UI.Informations.Graphs
                         value += step;
                     }
                 }
+
                 return values;
             }
+
             // Title
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y / 2).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:50\">" + Title + "</text>");
@@ -544,6 +510,7 @@ namespace HBP.UI.Informations.Graphs
                 svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 40).ToString() + "\" y=\"" + position + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
                 svgBuilder.AppendLine("</g>");
             }
+
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 100).ToString() + "\" y=\"" + (curveViewport.y + (curveViewport.height / 2)).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" transform=\"rotate(-90 " + (curveViewport.x - 100).ToString() + "," + (curveViewport.y + (curveViewport.height / 2)).ToString() + ")\" style=\"font-size:30\">" + string.Format("{0} ({1})", m_OrdinateLabel, m_OrdinateUnit) + "</text>");
@@ -563,6 +530,7 @@ namespace HBP.UI.Informations.Graphs
                 svgBuilder.AppendLine("<text x=\"" + position + "\" y=\"" + (curveViewport.y + curveViewport.height + 30).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
                 svgBuilder.AppendLine("</g>");
             }
+
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y + curveViewport.height + 70).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + string.Format("{0} ({1})", m_AbscissaLabel, m_AbscissaUnit) + "</text>");
@@ -583,11 +551,13 @@ namespace HBP.UI.Informations.Graphs
                 svgBuilder.AppendLine("</g>");
                 id++;
             }
+
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("</svg>");
             System.Globalization.CultureInfo.CurrentCulture = oldCulture;
             return svgBuilder.ToString();
         }
+
         public Dictionary<string, string> ToCSV()
         {
             Dictionary<string, string> csv = new();
@@ -600,34 +570,40 @@ namespace HBP.UI.Informations.Graphs
                 csvBuilder.AppendLine("X\tY\tSEM");
                 if (curveData is ShapedCurveData shapedCurveData)
                 {
-                    for (int i = 0; i < shapedCurveData.Points.Length; ++i)
+                    for (int i = 0; i < shapedCurveData.Count; ++i)
                     {
-                        Vector2 point = shapedCurveData.Points[i];
+                        Vector2 point = shapedCurveData.GetPoint(i);
                         csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, shapedCurveData.Shapes[i]));
                     }
                 }
                 else
                 {
-                    for (int i = 0; i < curveData.Points.Length; ++i)
+                    for (int i = 0; i < curveData.Count; ++i)
                     {
-                        Vector2 point = curveData.Points[i];
+                        Vector2 point = curveData.GetPoint(i);
                         csvBuilder.AppendLine(string.Format("{0}\t{1}\t{2}", point.x, point.y, 0));
                     }
                 }
+
                 csv.Add(curve.ID, csvBuilder.ToString());
             }
+
             return csv;
         }
+
         #endregion
 
         #region Private Methods
+
         private void Start()
         {
             OnValidate();
         }
+
         #endregion
 
         #region Setters
+
         void OnValidate()
         {
             SetTitle();
@@ -642,34 +618,42 @@ namespace HBP.UI.Informations.Graphs
             SetAbscissaDisplayRange();
             SetCurves();
         }
+
         void SetTitle()
         {
             m_OnChangeTitle.Invoke(m_Title);
         }
+
         void SetAbscissaUnit()
         {
             m_OnChangeAbscissaUnit.Invoke(m_AbscissaUnit);
         }
+
         void SetAbscissaLabel()
         {
             m_OnChangeAbscissaLabel.Invoke(m_AbscissaLabel);
         }
+
         void SetOrdinateUnit()
         {
             m_OnChangeOrdinateUnit.Invoke(m_OrdinateUnit);
         }
+
         void SetOrdinateLabel()
         {
             m_OnChangeOrdinateLabel.Invoke(m_OrdinateLabel);
         }
+
         void SetFontColor()
         {
             m_OnChangeFontColor.Invoke(m_FontColor);
         }
+
         void SetBackgroundColor()
         {
             m_OnChangeBackgroundColor.Invoke(m_BackgroundColor);
         }
+
         void SetOrdinateDisplayRange()
         {
             m_OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
@@ -684,6 +668,7 @@ namespace HBP.UI.Informations.Graphs
             //    m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
             //}
         }
+
         void SetAbscissaDisplayRange()
         {
             m_OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
@@ -698,6 +683,7 @@ namespace HBP.UI.Informations.Graphs
             //    m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
             //}
         }
+
         void SetDefaultAbscissaDisplayRange()
         {
             if (m_UseDefaultDisplayRange)
@@ -705,6 +691,7 @@ namespace HBP.UI.Informations.Graphs
                 AbscissaDisplayRange = m_DefaultAbscissaDisplayRange;
             }
         }
+
         void SetDefaultOrdinateDisplayRange()
         {
             if (m_UseDefaultDisplayRange)
@@ -712,6 +699,7 @@ namespace HBP.UI.Informations.Graphs
                 OrdinateDisplayRange = m_DefaultOrdinateDisplayRange;
             }
         }
+
         void SetUseDefaultDisplayRange()
         {
             if (m_UseDefaultDisplayRange)
@@ -719,8 +707,10 @@ namespace HBP.UI.Informations.Graphs
                 AbscissaDisplayRange = DefaultAbscissaDisplayRange;
                 OrdinateDisplayRange = DefaultOrdinateDisplayRange;
             }
+
             m_OnChangeUseDefaultRange.Invoke(m_UseDefaultDisplayRange);
         }
+
         void SetCurrentTime()
         {
             OnChangeCurrentTime.Invoke(m_CurrentTime);
@@ -730,10 +720,12 @@ namespace HBP.UI.Informations.Graphs
         {
             OnChangeDisplayCurrentTime.Invoke(m_DisplayCurrentTime);
         }
+
         void SetCurves()
         {
             m_OnChangeCurves.Invoke(m_Curves.ToArray());
         }
+
         List<Curve> GetEnabledCurves(IEnumerable<Curve> curves)
         {
             if (curves.Count() == 0) return new List<Curve>();
@@ -747,8 +739,10 @@ namespace HBP.UI.Informations.Graphs
                     result.AddRange(GetEnabledCurves(curve.SubCurves));
                 }
             }
+
             return result;
         }
+
         Curve FindCurve(string ID)
         {
             Curve result = null;
@@ -757,8 +751,10 @@ namespace HBP.UI.Informations.Graphs
                 result = FindCurve(curve, ID);
                 if (result != null) break;
             }
+
             return result;
         }
+
         Curve FindCurve(Curve curve, string ID)
         {
             Curve result = null;
@@ -774,8 +770,10 @@ namespace HBP.UI.Informations.Graphs
                     if (result != null) break;
                 }
             }
+
             return result;
         }
+
         void AddListenerOnChangeDataEvent(Curve curve)
         {
             curve.OnChangeData.AddListener(SetCurves);
@@ -784,20 +782,21 @@ namespace HBP.UI.Informations.Graphs
                 AddListenerOnChangeDataEvent(subCurve);
             }
         }
+
         #endregion
 
         #region Public Class
+
         [Serializable]
         public class Curve
         {
             #region Properties
+
             [SerializeField] bool m_Enabled;
+
             public bool Enabled
             {
-                get
-                {
-                    return m_Enabled;
-                }
+                get { return m_Enabled; }
                 set
                 {
                     if (SetPropertyUtility.SetStruct(ref m_Enabled, value))
@@ -808,12 +807,10 @@ namespace HBP.UI.Informations.Graphs
             }
 
             [SerializeField] CurveData m_Data;
+
             public CurveData Data
             {
-                get
-                {
-                    return m_Data;
-                }
+                get { return m_Data; }
                 set
                 {
                     if (SetPropertyUtility.SetClass(ref m_Data, value))
@@ -822,22 +819,19 @@ namespace HBP.UI.Informations.Graphs
                     }
                 }
             }
+
             [SerializeField] UnityEvent m_OnChangeData = new();
+
             public UnityEvent OnChangeData
             {
-                get
-                {
-                    return m_OnChangeData;
-                }
+                get { return m_OnChangeData; }
             }
 
             [SerializeField] Color m_DefaultColor;
+
             public Color DefaultColor
             {
-                get
-                {
-                    return m_DefaultColor;
-                }
+                get { return m_DefaultColor; }
             }
 
             public Color Color
@@ -856,51 +850,39 @@ namespace HBP.UI.Informations.Graphs
             }
 
             [SerializeField] string m_Name;
+
             public string Name
             {
-                get
-                {
-                    return m_Name;
-                }
-                set
-                {
-                    SetPropertyUtility.SetClass(ref m_Name, value);
-                }
+                get { return m_Name; }
+                set { SetPropertyUtility.SetClass(ref m_Name, value); }
             }
 
             [SerializeField] string m_ID;
+
             public string ID
             {
-                get
-                {
-                    return m_ID;
-                }
-                set
-                {
-                    SetPropertyUtility.SetClass(ref m_ID, value);
-                }
+                get { return m_ID; }
+                set { SetPropertyUtility.SetClass(ref m_ID, value); }
             }
 
             [NonSerialized] List<Curve> m_SubCurves = new();
+
             public ReadOnlyCollection<Curve> SubCurves
             {
-                get
-                {
-                    return new ReadOnlyCollection<Curve>(m_SubCurves);
-                }
+                get { return new ReadOnlyCollection<Curve>(m_SubCurves); }
             }
 
             [SerializeField] BoolEvent m_OnChangeIsActive = new();
+
             public BoolEvent OnChangeIsActive
             {
-                get
-                {
-                    return m_OnChangeIsActive;
-                }
+                get { return m_OnChangeIsActive; }
             }
+
             #endregion
 
             #region Constructor
+
             public Curve(string name, CurveData data, bool isActive, string id, Curve[] subCurves, Color defaultColor)
             {
                 Name = name;
@@ -910,32 +892,48 @@ namespace HBP.UI.Informations.Graphs
                 m_SubCurves = subCurves.ToList();
                 m_DefaultColor = defaultColor;
             }
+
             #endregion
 
             #region Public Methods
+
             public void AddSubCurve(Curve curve)
             {
                 m_SubCurves.Add(curve);
             }
+
             public void RemoveSubCurve(Curve curve)
             {
                 m_SubCurves.Remove(curve);
             }
+
             #endregion
 
             #region Private Methods
+
             void SetEnabled()
             {
                 m_OnChangeIsActive.Invoke(m_Enabled);
             }
+
             void SetData()
             {
                 m_OnChangeData.Invoke();
             }
+
             #endregion
         }
-        [Serializable] public class CurveEvent : UnityEvent<Curve> { }
-        [Serializable] public class CurvesEvent : UnityEvent<Curve[]> { }
+
+        [Serializable]
+        public class CurveEvent : UnityEvent<Curve>
+        {
+        }
+
+        [Serializable]
+        public class CurvesEvent : UnityEvent<Curve[]>
+        {
+        }
+
         #endregion
     }
 }

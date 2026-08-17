@@ -8,15 +8,13 @@ namespace HBP.UI.Database
     public class WorkspaceItem : ActionnableItem<Workspace>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_SelectedText;
 
         public override Workspace Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -27,13 +25,16 @@ namespace HBP.UI.Database
                 SetNotInteractable();
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void UpdateSelectedWorkspace(Workspace selectedWorkspace)
         {
             m_SelectedText.gameObject.SetActive(selectedWorkspace.ID == Object.ID);
         }
+
         #endregion
     }
 }

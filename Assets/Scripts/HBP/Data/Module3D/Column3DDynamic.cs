@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Enums;
 using HBP.Core.Data;
+using HBP.Core.Preferences;
 
 namespace HBP.Data.Module3D
 {
@@ -12,28 +13,51 @@ namespace HBP.Data.Module3D
     public abstract class Column3DDynamic : Column3D
     {
         #region Properties
+
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
         public abstract Timeline Timeline { get; }
 
+        public abstract Timeline ProjectionTimeline { get; }
+        public TemporalSamplingPolicy TemporalSampling => PersistentDataManager.UserPreferences.Data.EEG.TemporalSampling;
+        public TemporalSample CurrentProjectionSample => Timeline.GetProjectionSample(ProjectionTimeline, Timeline.CurrentIndex, TemporalSampling);
+
+        public SubTimeline CurrentProjectionSubtimeline
+        {
+            get
+            {
+                SubTimeline current = Timeline.CurrentSubtimeline;
+                foreach (KeyValuePair<SubBloc, SubTimeline> pair in Timeline.SubTimelinesBySubBloc)
+                {
+                    if (ReferenceEquals(pair.Value, current) && ProjectionTimeline.SubTimelinesBySubBloc.TryGetValue(pair.Key, out SubTimeline projection))
+                        return projection;
+                }
+
+                return ProjectionTimeline.CurrentSubtimeline;
+            }
+        }
+
         /// <summary>
         /// Parameters on how to display the activity on the column
         /// </summary>
         public DynamicDataParameters DynamicParameters { get; } = new DynamicDataParameters();
-        
+
         /// <summary>
         /// Values of the signal in a 1D array (used for the DLL)
         /// </summary>
         public float[] ActivityValues { get; protected set; } = new float[0];
+
         /// <summary>
         /// Values of the signal of the sites that are not masked (and have correct values)
         /// </summary>
-        public float[] ActivityValuesOfUnmaskedSites { get; protected set; } = new float[0];
+        public RunningStatistics ActivityStatistics { get; protected set; }
+
         /// <summary>
         /// Signal values by site global ID
         /// </summary>
         public float[][] ActivityValuesBySiteID { get; protected set; } = new float[0][];
+
         /// <summary>
         /// Units of the signal values of each site
         /// </summary>
@@ -43,20 +67,25 @@ namespace HBP.Data.Module3D
         /// Size of each site depending on its activity
         /// </summary>
         protected List<Vector3> m_ElectrodesSizeScale = new();
+
         /// <summary>
         /// Does the site have a positive activity value ?
         /// </summary>
         protected List<bool> m_ElectrodesPositiveColor = new();
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when updating the current timeline ID
         /// </summary>
         [HideInInspector] public UnityEvent OnUpdateCurrentTimelineID = new();
+
         #endregion
 
         #region Private Methods
+
         protected virtual void Update()
         {
             if (Timeline != null)
@@ -64,10 +93,12 @@ namespace HBP.Data.Module3D
                 Timeline.Play();
             }
         }
+
         /// <summary>
         /// Set activity data for each site
         /// </summary>
         protected abstract void SetActivityData();
+
         /// <summary>
         /// Update sites sizes and colors arrays depending on the activity (to be called before the rendering update)
         /// </summary>
@@ -84,7 +115,7 @@ namespace HBP.Data.Module3D
                 if ((Sites[ii].State.IsOutOfROI && !showAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
-                float value = ActivityValuesBySiteID[ii][Timeline.CurrentIndex];
+                float value = CurrentProjectionSample.Evaluate(ActivityValuesBySiteID[ii]);
                 if (value < DynamicParameters.SpanMin)
                     value = DynamicParameters.SpanMin;
                 if (value > DynamicParameters.SpanMax)
@@ -113,15 +144,18 @@ namespace HBP.Data.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
             ActivityGenerator = new Core.DLL.IEEGGenerator();
         }
+
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
@@ -130,10 +164,10 @@ namespace HBP.Data.Module3D
         public override void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(implantation, sceneSitePatientParent);
-            
+
             m_ElectrodesSizeScale = new List<Vector3>(RawElectrodes.NumberOfSites);
             m_ElectrodesPositiveColor = new List<bool>(RawElectrodes.NumberOfSites);
-            
+
             for (int ii = 0; ii < RawElectrodes.NumberOfSites; ii++)
             {
                 m_ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
@@ -142,6 +176,7 @@ namespace HBP.Data.Module3D
 
             SetActivityData();
         }
+
         /// <summary>
         /// Method called when initializing the activity on the column
         /// </summary>
@@ -155,12 +190,10 @@ namespace HBP.Data.Module3D
                     Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
                 }
             });
-            Timeline.OnStopTimelinePlay.AddListener(() =>
-            {
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
+            Timeline.OnStopTimelinePlay.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
             SetActivityData();
         }
+
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state
         /// </summary>
@@ -201,19 +234,59 @@ namespace HBP.Data.Module3D
                     site.transform.localScale = Vector3.one;
                     siteType = SiteType.Normal;
                 }
+
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }
+
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
         /// <param name="brainSurface">Surface of the brain</param>
         public override void ComputeSurfaceBrainUVWithActivity()
         {
-            SurfaceGenerator.ComputeActivityUV(Timeline.CurrentIndex, ActivityAlpha);
+            TemporalSample sample = CurrentProjectionSample;
+            SurfaceGenerator.ComputeActivityUV(sample.Index, ActivityAlpha);
         }
+
+        public int[] GetUnmaskedHistogramBins(float minimum, float maximum, int binCount)
+        {
+            if (binCount <= 0)
+                throw new System.ArgumentOutOfRangeException(nameof(binCount));
+            int[] bins = new int[binCount];
+            float difference = maximum - minimum;
+            if (difference == 0f)
+            {
+                minimum -= 1f;
+                maximum += 1f;
+                difference = maximum - minimum;
+            }
+
+            for (int site = 0; site < Sites.Count; ++site)
+            {
+                if (Sites[site].State.IsMasked)
+                    continue;
+                float[] values = ActivityValuesBySiteID[site];
+                for (int index = 0; index < values.Length; ++index)
+                {
+                    float coefficient = Mathf.Abs((values[index] - minimum) / difference);
+                    int bin = Mathf.Clamp((int)(coefficient * (binCount - 1)), 0, binCount - 1);
+                    bins[bin]++;
+                }
+            }
+
+            return bins;
+        }
+
+        public void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics)
+        {
+            long managedBytes = ActivityValues?.LongLength * sizeof(float) ?? 0;
+            long nativeBytes = (metrics.storedValueCount + metrics.storedWeightCount) * sizeof(float) + metrics.spatialIndexCacheBytes;
+            DataManager.RegisterMemoryUsage(this, MemoryCacheCategory.NativeProjection, managedBytes + nativeBytes, true);
+        }
+
         #endregion
     }
 }

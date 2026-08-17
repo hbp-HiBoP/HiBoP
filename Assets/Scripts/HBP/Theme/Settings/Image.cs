@@ -2,7 +2,7 @@
 
 namespace HBP.Theme
 {
-    [CreateAssetMenu(menuName ="Theme/Settings/Image")]
+    [CreateAssetMenu(menuName = "Theme/Settings/Image")]
     public class Image : Settings
     {
         public Sprite SourceImage;
@@ -13,13 +13,12 @@ namespace HBP.Theme
         public bool FillCenter;
         public bool Clockwise;
         public int FillOrigin;
-        [Range(0.0f,1.0f)]
-        public float FillAmount;
+        [Range(0.0f, 1.0f)] public float FillAmount;
 
         public override void Set(GameObject gameObject)
         {
             UnityEngine.UI.Image image = gameObject.GetComponent<UnityEngine.UI.Image>();
-            if(image)
+            if (image)
             {
                 image.sprite = SourceImage;
                 image.material = Material;

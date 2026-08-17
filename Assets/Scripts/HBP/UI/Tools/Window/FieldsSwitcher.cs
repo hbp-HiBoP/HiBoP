@@ -6,10 +6,13 @@ namespace HBP.UI.Tools
     public class FieldsSwitcher : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private InputField[] m_InputFields;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.Tab))
@@ -17,6 +20,7 @@ namespace HBP.UI.Tools
                 SelectNext();
             }
         }
+
         private void SelectNext()
         {
             for (int i = 0; i < m_InputFields.Length; ++i)
@@ -29,6 +33,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         #endregion
     }
 }

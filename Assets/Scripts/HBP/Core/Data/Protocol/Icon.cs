@@ -41,31 +41,28 @@ namespace HBP.Core.Data
     public class Icon : BaseData, INameable
     {
         #region Properties
+
         /// <summary>
         /// Name of the icon.
         /// </summary>
         [JsonProperty] public string Name { get; set; }
+
         /// <summary>
         /// Path to the image icon with Aliases.
         /// </summary>
         [JsonProperty("ImagePath")] private string m_ImagePath = "";
+
         /// <summary>
         /// Path of the image icon without Aliases.
         /// </summary>
-        [JsonIgnore]
-        public string ImagePath
+        [JsonIgnore] public string ImagePath
         {
-            get
-            {
-                return m_ImagePath.ConvertToFullPath();
-            }
-            set
-            {
-                m_ImagePath = value.ConvertToShortPath();
-            }
+            get { return m_ImagePath.ConvertToFullPath(); }
+            set { m_ImagePath = value.ConvertToShortPath(); }
         }
 
         Sprite m_Image;
+
         /// <summary>
         /// Image of the icon.
         /// </summary>
@@ -78,6 +75,7 @@ namespace HBP.Core.Data
                     Sprite sprite;
                     if (SpriteExtension.LoadSpriteFromFile(out sprite, ImagePath)) m_Image = sprite;
                 }
+
                 return m_Image;
             }
         }
@@ -86,9 +84,11 @@ namespace HBP.Core.Data
         /// Temporal window when the icon is displayed.
         /// </summary>
         [JsonProperty] public TimeWindow Window { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new Icon instance.
         /// </summary>
@@ -101,6 +101,7 @@ namespace HBP.Core.Data
             ImagePath = path;
             Window = window;
         }
+
         /// <summary>
         /// Create a new Icon instance.
         /// </summary>
@@ -114,6 +115,7 @@ namespace HBP.Core.Data
             ImagePath = path;
             Window = window;
         }
+
         /// <summary>
         /// Create a new Icon instance.
         /// </summary>
@@ -124,23 +126,26 @@ namespace HBP.Core.Data
         public Icon(string name, string path, Vector2Int window, string ID) : this(name, path, new TimeWindow(window), ID)
         {
         }
+
         /// <summary>
         /// Create a new Icon instance with default value.
         /// </summary>
         public Icon() : this("New Icon", string.Empty, new TimeWindow(-300, 300))
         {
         }
+
         /// <summary>
         /// Create a new Icon instance with a specified window.
         /// </summary>
         /// <param name="window">Window when the icon is displayed</param>
-        public Icon(TimeWindow window): this("New Icon", string.Empty, window)
+        public Icon(TimeWindow window) : this("New Icon", string.Empty, window)
         {
-            
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone the icon instance.
         /// </summary>
@@ -149,6 +154,7 @@ namespace HBP.Core.Data
         {
             return new Icon(Name, ImagePath, Window, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
@@ -159,13 +165,16 @@ namespace HBP.Core.Data
                 Window = icon.Window;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             m_ImagePath = m_ImagePath.StandardizeToEnvironement();
         }
+
         #endregion
     }
 }

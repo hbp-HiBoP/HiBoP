@@ -1,0 +1,26 @@
+{
+    "name": "HBP.Rendering.Tests",
+    "rootNamespace": "HBP.Tests.Rendering",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Rendering.Runtime",
+        "HBP.UI.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

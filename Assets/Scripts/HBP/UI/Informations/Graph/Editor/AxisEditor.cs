@@ -7,6 +7,7 @@ namespace HBP.UI.Informations.Graphs
     public class AxisEditor : Editor
     {
         #region Properties
+
         bool m_ShowTickMarks = false;
         bool m_ShowGraphics = false;
         SerializedProperty m_Direction;
@@ -24,6 +25,7 @@ namespace HBP.UI.Informations.Graphs
         SerializedProperty m_UseIndependantTickMark;
         SerializedProperty m_Format;
         SerializedProperty m_CultureInfo;
+
         #endregion
 
         public void OnEnable()
@@ -72,17 +74,18 @@ namespace HBP.UI.Informations.Graphs
             }
 
             m_ShowTickMarks = EditorGUILayout.Foldout(m_ShowTickMarks, "TickMarks");
-            if(m_ShowTickMarks)
+            if (m_ShowTickMarks)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_Format);
                 EditorGUILayout.PropertyField(m_CultureInfo);
-                EditorGUILayout.PropertyField(m_UseIndependantTickMark);     
+                EditorGUILayout.PropertyField(m_UseIndependantTickMark);
                 EditorGUILayout.PropertyField(m_IndependantValue);
                 EditorGUILayout.PropertyField(m_IndependantTickMark);
                 EditorGUILayout.PropertyField(m_TickMarks, true);
                 EditorGUI.indentLevel--;
             }
+
             serializedObject.ApplyModifiedProperties();
         }
     }

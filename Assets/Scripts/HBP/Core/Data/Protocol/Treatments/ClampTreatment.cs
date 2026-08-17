@@ -47,26 +47,34 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Clamp")]
     public class ClampTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
+
         #region Properties
+
         /// <summary>
         /// True to floor by a minimum value, False otherwise.
         /// </summary>
         [JsonProperty] public bool UseMinClamp { get; set; }
+
         /// <summary>
         /// Minimum value to floor with.
         /// </summary>
         [JsonProperty] public float Min { get; set; }
+
         /// <summary>
         /// True to cap by a maximum value, False otherwise.
         /// </summary>
         [JsonProperty] public bool UseMaxClamp { get; set; }
+
         /// <summary>
         /// Maximum value to cap with.
         /// </summary>
         [JsonProperty] public float Max { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new ClampTreatment instance with default values.
         /// </summary>
@@ -77,17 +85,19 @@ namespace HBP.Core.Data
             Min = 0;
             Max = 1;
         }
+
         /// <summary>
         /// Create a new ClampTreatment instance with a unique identifier.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
-        public ClampTreatment(string ID) :  base(ID)
+        public ClampTreatment(string ID) : base(ID)
         {
             UseMinClamp = false;
             UseMaxClamp = false;
             Min = 0;
             Max = 1;
         }
+
         /// <summary>
         /// Create a new ClampTreatment instance
         /// </summary>
@@ -107,6 +117,7 @@ namespace HBP.Core.Data
             Min = min;
             Max = max;
         }
+
         /// <summary>
         /// Create a new ClampTreatment instance
         /// </summary>
@@ -120,20 +131,22 @@ namespace HBP.Core.Data
         /// <param name="max">Maximum value to cap with</param>
         /// <param name="order">Order of the treatmeants to apply to the subBloc</param>
         /// <param name="ID">Unique identifier</param>
-        public ClampTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, bool useMinClamp, float min , bool useMaxClamp, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
+        public ClampTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, bool useMinClamp, float min, bool useMaxClamp, float max, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
             UseMinClamp = useMinClamp;
             UseMaxClamp = useMaxClamp;
             Min = min;
             Max = max;
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             int start, end;
-            if(UseOnWindow)
+            if (UseOnWindow)
             {
                 start = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
                 end = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
@@ -160,6 +173,7 @@ namespace HBP.Core.Data
                             values[i] = Max;
                             continue;
                         }
+
                         if (values[i] < Min)
                         {
                             values[i] = Min;
@@ -196,6 +210,7 @@ namespace HBP.Core.Data
                             baseline[i] = Max;
                             continue;
                         }
+
                         if (baseline[i] < Min)
                         {
                             baseline[i] = Min;
@@ -205,24 +220,28 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new ClampTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, UseMinClamp, Min, UseMaxClamp, Max, Order, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is ClampTreatment clampTreatment)
+            if (copy is ClampTreatment clampTreatment)
             {
                 UseMinClamp = clampTreatment.UseMinClamp;
                 Min = clampTreatment.Min;
                 UseMaxClamp = clampTreatment.UseMaxClamp;
                 Max = clampTreatment.Max;
             }
-            if(copy is ThresholdTreatment tresholdTreatment)
+
+            if (copy is ThresholdTreatment tresholdTreatment)
             {
                 UseMinClamp = tresholdTreatment.UseMinTreshold;
                 Min = tresholdTreatment.Min;
@@ -230,6 +249,7 @@ namespace HBP.Core.Data
                 Max = tresholdTreatment.Max;
             }
         }
+
         #endregion
     }
 }

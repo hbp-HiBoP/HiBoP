@@ -59,6 +59,7 @@ namespace HBP.Core.Data
     public class StaticDataInfo : PatientDataInfo
     {
         #region Constructors
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
@@ -70,6 +71,7 @@ namespace HBP.Core.Data
         public StaticDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID, ID)
         {
         }
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
@@ -80,16 +82,18 @@ namespace HBP.Core.Data
         public StaticDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID)
         {
         }
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public StaticDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.CSV(), new Error[0], new Warning[0], null, "")
+        public StaticDataInfo() : this("Data", null, new Container.CSV(), new Error[0], new Warning[0], null, "")
         {
-
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -98,19 +102,23 @@ namespace HBP.Core.Data
         {
             return new StaticDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, CorrespondingDatabaseID, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetStaticErrors());
             return errors;
         }
+
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
@@ -122,11 +130,18 @@ namespace HBP.Core.Data
             if (DataContainer is Container.CSV csvDataContainer)
             {
                 Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
-                if (new FileInfo(csvDataContainer.SavedFile).Exists)
+                if (new FileInfo(csvDataContainer.File).Exists)
                 {
-                    using (StreamReader sr = new(csvDataContainer.SavedFile))
+                    try
                     {
+                        using StreamReader sr = new(csvDataContainer.File);
                         string line = sr.ReadLine();
+                        if (string.IsNullOrEmpty(line))
+                        {
+                            errors.Add(new InvalidDataFileError("The CSV file is empty."));
+                            return errors;
+                        }
+
                         int length = csvParser.Split(line).Length;
                         int lineCount = 1;
                         while (!string.IsNullOrEmpty(line = sr.ReadLine()))
@@ -137,14 +152,23 @@ namespace HBP.Core.Data
                             {
                                 errors.Add(new InvalidDataFileError(string.Format("Line {0} does not contain enough data elements.", lineCount)));
                             }
+
                             for (int i = 1; i < splits.Length; ++i)
                             {
-                                if (!NumberExtension.TryParseFloat(splits[i], out float result))
+                                if (!NumberExtension.TryParseFloat(splits[i], out _))
                                 {
                                     errors.Add(new InvalidDataFileError(string.Format("Data at position [{0},{1}] is not a float and can not be parsed.", lineCount, i)));
                                 }
                             }
                         }
+                    }
+                    catch (IOException exception)
+                    {
+                        errors.Add(new InvalidDataFileError(exception.Message));
+                    }
+                    catch (UnauthorizedAccessException exception)
+                    {
+                        errors.Add(new InvalidDataFileError(exception.Message));
                     }
                 }
             }
@@ -152,14 +176,30 @@ namespace HBP.Core.Data
             {
                 throw new Exception("Invalid data container type");
             }
+
             return errors;
         }
+
+        internal override IEnumerable<ValidationState> GetValidationStates(ValidationAspect aspect, ValidationRequest request, DataInfoValidationContext context)
+        {
+            if (aspect != ValidationAspect.StaticContent)
+            {
+                return base.GetValidationStates(aspect, request, context);
+            }
+
+            return new[]
+            {
+                CreateValidationState(aspect, string.Empty, context.SourceSignature, GetStaticErrors(), Array.Empty<Warning>())
+            };
+        }
+
         protected override IEnumerable<Warning> GetWarnings()
         {
             List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetStaticWarnings());
             return warnings;
         }
+
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
@@ -170,6 +210,7 @@ namespace HBP.Core.Data
             List<Warning> warnings = new();
             return warnings;
         }
+
         #endregion
     }
 }

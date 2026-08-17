@@ -9,17 +9,26 @@ namespace HBP.UI.Module3D
     public static class AdvancedSiteConditionStrings
     {
         #region Properties
+
         public static string PATH = Path.Combine(Application.persistentDataPath, "AdvancedConditions.txt");
         public static string SEPARATOR = "//.//";
         private static List<string> m_Conditions = new();
-        public static ReadOnlyCollection<string> Conditions { get { return new ReadOnlyCollection<string>(m_Conditions); } }
+
+        public static ReadOnlyCollection<string> Conditions
+        {
+            get { return new ReadOnlyCollection<string>(m_Conditions); }
+        }
+
         #endregion
 
         #region Events
+
         public static UnityEvent OnChangeConditions = new();
+
         #endregion
 
         #region Public Methods
+
         public static void LoadConditions()
         {
             if (new FileInfo(PATH).Exists)
@@ -33,6 +42,7 @@ namespace HBP.UI.Module3D
                 }
             }
         }
+
         public static void AddCondition(string condition)
         {
             if (!m_Conditions.Contains(condition))
@@ -41,6 +51,7 @@ namespace HBP.UI.Module3D
                 SaveConditions();
             }
         }
+
         public static void RemoveCondition(string condition)
         {
             if (m_Conditions.Contains(condition))
@@ -49,9 +60,11 @@ namespace HBP.UI.Module3D
                 SaveConditions();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private static void SaveConditions()
         {
             using (StreamWriter sw = new(PATH))
@@ -61,9 +74,11 @@ namespace HBP.UI.Module3D
                     sw.Write(condition);
                     sw.Write(SEPARATOR);
                 }
+
                 OnChangeConditions.Invoke();
             }
         }
+
         #endregion
     }
 }

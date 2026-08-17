@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class AttributesFilterConditionSubModifier : SubModifier<AttributesFilterCondition>
     {
         #region Properties
+
         [SerializeField] Dropdown m_TypeDropdown;
         [SerializeField] GameObject m_LabelValueField;
         [SerializeField] InputField m_LabelValueInputField;
@@ -20,14 +21,17 @@ namespace HBP.UI.Main
         [SerializeField] Image m_ColorPickedImage;
 
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
             set => m_FilteringObjects = value;
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -38,9 +42,11 @@ namespace HBP.UI.Main
             m_CaseSensitiveToggle.onValueChanged.AddListener(OnChangeCaseSensitive);
             m_ColorPickerButton.onClick.AddListener(OnClickColorPicker);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(AttributesFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -60,18 +66,22 @@ namespace HBP.UI.Main
             Object.Type = (AttributesFilterCondition.AttributeType)value;
             UpdateFieldVisibility(Object.Type);
         }
+
         private void OnChangeLabelValue(string value)
         {
             Object.LabelValue = value;
         }
+
         private void OnChangeExactMatch(bool value)
         {
             Object.ExactMatch = value;
         }
+
         private void OnChangeCaseSensitive(bool value)
         {
             Object.CaseSensitive = value;
         }
+
         private async void OnClickColorPicker()
         {
             Object.Color = await ColorPickerManager.OpenColorPickerAsync(m_ColorPickedImage.color);
@@ -86,6 +96,7 @@ namespace HBP.UI.Main
             m_LabelValueField.SetActive(isLabel);
             m_ColorField.SetActive(isColor);
         }
+
         #endregion
     }
 }

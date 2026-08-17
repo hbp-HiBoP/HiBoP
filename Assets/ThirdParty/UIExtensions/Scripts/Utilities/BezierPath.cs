@@ -5,7 +5,7 @@
     http://devmag.org.za/2011/04/05/bzier-curves-a-tutorial/
     http://devmag.org.za/2011/06/23/bzier-path-algorithms/
 
-    Use this code as you wish, at your own risk. If it blows up 
+    Use this code as you wish, at your own risk. If it blows up
     your computer, makes a plane crash, or otherwise cause damage,
     injury, or death, it is not my fault.
 
@@ -19,7 +19,7 @@ using System.Collections.Generic;
 namespace UnityEngine.UI.Extensions
 {
     /**
-        Class for representing a Bezier path, and methods for getting suitable points to 
+        Class for representing a Bezier path, and methods for getting suitable points to
         draw the curve with line segments.
 */
     public class BezierPath
@@ -45,7 +45,7 @@ namespace UnityEngine.UI.Extensions
 
         /**
             Sets the control points of this Bezier path.
-            Points 0-3 forms the first Bezier curve, points 
+            Points 0-3 forms the first Bezier curve, points
             3-6 forms the second curve, etc.
         */
         public void SetControlPoints(List<Vector2> newControlPoints)
@@ -144,9 +144,7 @@ namespace UnityEngine.UI.Extensions
 
             for (i = 2; i < sourcePoints.Count; i++)
             {
-                if (
-                    ((potentialSamplePoint - sourcePoints[i]).sqrMagnitude > minSqrDistance) &&
-                    ((samplePoints.Peek() - sourcePoints[i]).sqrMagnitude > maxSqrDistance))
+                if (((potentialSamplePoint - sourcePoints[i]).sqrMagnitude > minSqrDistance) && ((samplePoints.Peek() - sourcePoints[i]).sqrMagnitude > maxSqrDistance))
                 {
                     samplePoints.Push(potentialSamplePoint);
                 }
@@ -171,11 +169,11 @@ namespace UnityEngine.UI.Extensions
 
         /**
             Caluclates a point on the path.
-            
-            @param curveIndex The index of the curve that the point is on. For example, 
+
+            @param curveIndex The index of the curve that the point is on. For example,
             the second curve (index 1) is the curve with controlpoints 3, 4, 5, and 6.
-            
-            @param t The paramater indicating where on the curve the point is. 0 corresponds 
+
+            @param t The paramater indicating where on the curve the point is. 0 corresponds
             to the "left" point, 1 corresponds to the "right" end point.
         */
         public Vector2 CalculateBezierPoint(int curveIndex, float t)
@@ -201,8 +199,8 @@ namespace UnityEngine.UI.Extensions
             for (int curveIndex = 0; curveIndex < curveCount; curveIndex++)
             {
                 if (curveIndex == 0) //Only do this for the first end point. 
-                                     //When i != 0, this coincides with the 
-                                     //end point of the previous segment,
+                    //When i != 0, this coincides with the 
+                    //end point of the previous segment,
                 {
                     drawingPoints.Add(CalculateBezierPoint(curveIndex, 0));
                 }
@@ -292,8 +290,7 @@ namespace UnityEngine.UI.Extensions
         /**
             @returns the number of points added.
         */
-        int FindDrawingPoints(int curveIndex, float t0, float t1,
-            List<Vector2> pointList, int insertionIndex)
+        int FindDrawingPoints(int curveIndex, float t0, float t1, List<Vector2> pointList, int insertionIndex)
         {
             Vector2 left = CalculateBezierPoint(curveIndex, t0);
             Vector2 right = CalculateBezierPoint(curveIndex, t1);
@@ -325,7 +322,6 @@ namespace UnityEngine.UI.Extensions
         }
 
 
-
         /**
             Caluclates a point on the Bezier curve represented with the four controlpoints given.
         */
@@ -344,7 +340,6 @@ namespace UnityEngine.UI.Extensions
             p += ttt * p3; //fourth term
 
             return p;
-
         }
     }
 }

@@ -25,6 +25,7 @@ namespace HBP.Core.Data
     public class IntTagValue : TagValue<IntTag, int>
     {
         #region Properties
+
         public override IntTag Tag
         {
             get => base.Tag;
@@ -34,6 +35,7 @@ namespace HBP.Core.Data
                 base.Tag.OnNeedToRecalculateValue.AddListener(() => Value = Value);
             }
         }
+
         public override int Value
         {
             get => base.Value;
@@ -42,9 +44,11 @@ namespace HBP.Core.Data
                 if (Tag != null) base.Value = Tag.Clamp(value);
             }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new instance of IntTagValue.
         /// </summary>
@@ -54,6 +58,7 @@ namespace HBP.Core.Data
         public IntTagValue(IntTag tag, int value, string ID) : base(tag, value, ID)
         {
         }
+
         /// <summary>
         /// Create a new instance of IntTagValue.
         /// </summary>
@@ -62,19 +67,23 @@ namespace HBP.Core.Data
         public IntTagValue(IntTag tag, int value) : base(tag, value)
         {
         }
+
         /// <summary>
         /// Create a new instance of IntTagValue.
         /// </summary>
         public IntTagValue() : this(null, default)
         {
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new IntTagValue(Tag, Value, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -82,11 +91,13 @@ namespace HBP.Core.Data
             {
                 Value = Mathf.RoundToInt(floatTagValue.Value);
             }
+
             if (copy is BoolTagValue boolTagValue)
             {
                 Value = Convert.ToInt32(boolTagValue.Value);
             }
         }
+
         #endregion
     }
 }

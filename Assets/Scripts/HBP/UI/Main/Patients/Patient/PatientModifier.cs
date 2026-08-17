@@ -13,6 +13,7 @@ namespace HBP.UI.Main
     public class PatientModifier : ObjectModifier<Patient>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
 
         [SerializeField] MeshListGestion m_MeshListGestion;
@@ -25,10 +26,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -49,9 +47,11 @@ namespace HBP.UI.Main
                 m_TagValueListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -81,6 +81,7 @@ namespace HBP.UI.Main
             m_TagValueListGestion.List.OnRemoveObject.AddListener(RemoveTag);
             m_TagValueListGestion.List.OnUpdateObject.AddListener(UpdateTag);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -95,13 +96,14 @@ namespace HBP.UI.Main
             m_TagValueListGestion.Tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags).ToArray();
             m_TagValueListGestion.List.Set(objectToDisplay.Tags);
         }
+
         /// <summary>
         /// Change the patient name.
         /// </summary>
         /// <param name="name">Name of the patient</param>
         protected void ChangeName(string name)
         {
-            if(name != "")
+            if (name != "")
             {
                 ObjectTemp.Name = name;
             }
@@ -118,22 +120,24 @@ namespace HBP.UI.Main
         /// <param name="mesh">Mesh to add</param>
         protected void AddMesh(BaseMesh mesh)
         {
-            if(!ObjectTemp.Meshes.Contains(mesh))
+            if (!ObjectTemp.Meshes.Contains(mesh))
             {
                 ObjectTemp.Meshes.Add(mesh);
             }
         }
+
         /// <summary>
         /// Remove mesh from the patient.
         /// </summary>
         /// <param name="mesh">Mesh to remove</param>
         protected void RemoveMesh(BaseMesh mesh)
         {
-            if(ObjectTemp.Meshes.Contains(mesh))
+            if (ObjectTemp.Meshes.Contains(mesh))
             {
                 ObjectTemp.Meshes.Remove(mesh);
             }
         }
+
         /// <summary>
         /// Update mesh from the patient.
         /// </summary>
@@ -141,7 +145,7 @@ namespace HBP.UI.Main
         protected void UpdateMesh(BaseMesh mesh)
         {
             int index = ObjectTemp.Meshes.FindIndex(m => m.Equals(mesh));
-            if(index != -1)
+            if (index != -1)
             {
                 ObjectTemp.Meshes[index] = mesh;
             }
@@ -158,6 +162,7 @@ namespace HBP.UI.Main
                 ObjectTemp.MRIs.Add(mri);
             }
         }
+
         /// <summary>
         /// Remove MRI from the patient.
         /// </summary>
@@ -169,6 +174,7 @@ namespace HBP.UI.Main
                 ObjectTemp.MRIs.Remove(mri);
             }
         }
+
         /// <summary>
         /// Update MRI from the patient.
         /// </summary>
@@ -193,6 +199,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Sites.Add(site);
             }
         }
+
         /// <summary>
         /// Remove site from the patient.
         /// </summary>
@@ -204,6 +211,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Sites.Remove(site);
             }
         }
+
         /// <summary>
         /// Update site from the patient.
         /// </summary>
@@ -228,6 +236,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Tags.Add(tag);
             }
         }
+
         /// <summary>
         /// Remove tag from the patient.
         /// </summary>
@@ -239,6 +248,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Tags.Remove(tag);
             }
         }
+
         /// <summary>
         /// Update tag from the patient.
         /// </summary>
@@ -251,6 +261,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Tags[index] = tag;
             }
         }
+
         #endregion
     }
-} 
+}

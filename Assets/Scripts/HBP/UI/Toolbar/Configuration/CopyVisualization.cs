@@ -10,13 +10,16 @@ namespace HBP.UI.Toolbar
     public class CopyVisualization : Tool
     {
         #region Properties
+
         /// <summary>
         /// Copy the selected visualization to the project
         /// </summary>
         [SerializeField] private Button m_Copy;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -43,6 +46,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -50,6 +54,7 @@ namespace HBP.UI.Toolbar
         {
             m_Copy.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -57,9 +62,11 @@ namespace HBP.UI.Toolbar
         {
             m_Copy.interactable = true;
         }
+
         #endregion
 
         #region Private Methods
+
         private void SaveVisualizationToProject(Visualization visualization)
         {
             var projectVisualizations = ApplicationState.LoadedProject.Visualizations;
@@ -72,11 +79,14 @@ namespace HBP.UI.Toolbar
                     count++;
                     name = string.Format("{0}({1})", visualization.Name, count);
                 }
+
                 visualization.Name = name;
             }
+
             ApplicationState.LoadedProject.AddVisualization(visualization);
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Visualization saved", "The selected visualization has been saved under the name <color=#3080ffff>" + visualization.Name + "</color>.").Forget();
         }
+
         #endregion
     }
 }

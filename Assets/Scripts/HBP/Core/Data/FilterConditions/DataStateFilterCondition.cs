@@ -8,6 +8,7 @@ namespace HBP.Core.Data
     public class DataStateFilterCondition : BaseFilterCondition
     {
         #region Properties
+
         [JsonProperty("State")] public DataInfo.DataState State { get; set; }
 
         public override string Description
@@ -23,25 +24,34 @@ namespace HBP.Core.Data
                 };
             }
         }
+
         #endregion
 
         #region Constructors
-        public DataStateFilterCondition() : this(DataInfo.DataState.Ok, false) { }
+
+        public DataStateFilterCondition() : this(DataInfo.DataState.Ok, false)
+        {
+        }
+
         public DataStateFilterCondition(DataInfo.DataState state, bool isNot) : base(isNot)
         {
             State = state;
         }
+
         public DataStateFilterCondition(DataInfo.DataState state, bool isNot, string ID) : base(isNot, ID)
         {
             State = state;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new DataStateFilterCondition(State, IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -50,17 +60,21 @@ namespace HBP.Core.Data
                 State = dataStateFilterCondition.State;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is DataInfo dataInfo)
             {
                 return (dataInfo.State == State) != IsNot;
             }
+
             return false;
         }
+
         #endregion
     }
 }

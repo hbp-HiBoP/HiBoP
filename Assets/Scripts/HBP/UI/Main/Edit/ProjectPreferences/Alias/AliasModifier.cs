@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class AliasModifier : ObjectModifier<Core.Data.Alias>
     {
         #region Properties
+
         [SerializeField] InputField m_KeyInputField;
         [SerializeField] FolderSelector m_ValueFolderSelector;
 
@@ -26,9 +27,11 @@ namespace HBP.UI.Main
                 m_ValueFolderSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -39,6 +42,7 @@ namespace HBP.UI.Main
             m_KeyInputField.onValueChanged.AddListener(key => ObjectTemp.Key = key);
             m_ValueFolderSelector.onValueChanged.AddListener(value => ObjectTemp.Value = value);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -48,7 +52,7 @@ namespace HBP.UI.Main
             m_KeyInputField.text = objectToDisplay.Key;
             m_ValueFolderSelector.Folder = objectToDisplay.Value;
         }
+
         #endregion
     }
 }
-

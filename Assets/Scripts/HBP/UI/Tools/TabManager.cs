@@ -10,14 +10,13 @@ namespace HBP.UI.Tools
     public class TabManager : MonoBehaviour
     {
         #region Properties
+
         public int MaxNbOfTabs = 8;
         public int MinNbOfTabs = 0;
+
         public int ActiveTabIndex
         {
-            get
-            {
-                return m_Tabs.FindIndex(t => t.IsActive);
-            }
+            get { return m_Tabs.FindIndex(t => t.IsActive); }
             set
             {
                 if (value >= 0 && value < m_Tabs.Count)
@@ -35,11 +34,14 @@ namespace HBP.UI.Tools
         public GenericEvent<int, int> OnSwapColumns { get; } = new GenericEvent<int, int>();
 
         List<Tab> m_Tabs = new();
+
         //Transform m_TabToMove;
         ToggleGroup m_ToggleGroup;
+
         #endregion
 
         #region Public Methods
+
         public void ChangeTabTitle(string title)
         {
             int position = ActiveTabIndex;
@@ -48,6 +50,7 @@ namespace HBP.UI.Tools
                 m_Tabs[position].Title = title;
             }
         }
+
         public void AddTab(string titleTab = "", int position = -1, bool isActive = false)
         {
             Tab tab = Instantiate(TabPrefab, transform).GetComponent<Tab>();
@@ -61,10 +64,12 @@ namespace HBP.UI.Tools
 
             CheckIfButtonsHasToBeInteractable();
         }
+
         public void RemoveActiveTab()
         {
             RemoveTab(m_Tabs.FindIndex(tab => tab.IsActive));
         }
+
         public void RemoveTab(int position = -1)
         {
             Tab tabToRemove = m_Tabs[position];
@@ -78,6 +83,7 @@ namespace HBP.UI.Tools
             {
                 OnActiveTabChanged.Invoke();
             }
+
             CheckIfButtonsHasToBeInteractable();
         }
 
@@ -93,9 +99,11 @@ namespace HBP.UI.Tools
         //    tab.SetSiblingIndex(i1);
         //    OnSwapColumns.Invoke(i1, i2);
         //}
+
         #endregion
 
         #region Private Methods
+
         void OnTabChangeValue(bool value)
         {
             if (value)
@@ -103,17 +111,20 @@ namespace HBP.UI.Tools
                 OnActiveTabChanged.Invoke();
             }
         }
+
         void Awake()
         {
             m_ToggleGroup = GetComponent<ToggleGroup>();
             CheckIfButtonsHasToBeInteractable();
         }
+
         void CheckIfButtonsHasToBeInteractable()
         {
             int nbOfChild = transform.childCount;
             AddButton.interactable = nbOfChild < MaxNbOfTabs;
             RemoveButton.interactable = nbOfChild > MinNbOfTabs;
         }
+
         #endregion
     }
 }

@@ -9,15 +9,18 @@ namespace HBP.Data.Informations.TrialMatrix
     public class Data
     {
         #region Properties
+
         public string Title { get; set; }
         public Bloc[] Blocs { get; set; }
         public Vector2 Limits { get; set; }
         public Tuple<Tuple<Core.Data.Bloc, Core.Data.SubBloc>[], Core.Tools.TimeWindow>[] SubBlocsAndWindowByColumn { get; }
         public TrialMatrixGrid.TrialMatrixData DataStruct { get; set; }
         public ChannelStruct[] ChannelStructs { get; set; }
+
         #endregion
 
         #region Constructors
+
         public Data(TrialMatrixGrid.TrialMatrixData dataStruct, ChannelStruct[] channelStructs)
         {
             Title = dataStruct.Dataset.Name + " " + dataStruct.Name;
@@ -36,30 +39,17 @@ namespace HBP.Data.Informations.TrialMatrix
             DataStruct = dataStruct;
             ChannelStructs = channelStructs;
         }
+
         #endregion
 
         #region Private Methods
+
         Vector2 CalculateLimits(IEnumerable<Bloc> blocs)
         {
-            List<float> values = new();
-            foreach (var bloc in blocs)
-            {
-                foreach(var channelBloc in bloc.ChannelBlocs)
-                {
-                    if(channelBloc.IsFound)
-                    {
-                        foreach (var subBloc in channelBloc.SubBlocs)
-                        {
-                            foreach (var subTrial in subBloc.SubTrials)
-                            {
-                                values.AddRange(subTrial.Data.Values);
-                            }
-                        }
-                    }
-                }
-            }
-            return values.ToArray().CalculateValueLimit();
+            IEnumerable<float[]> values = blocs.SelectMany(bloc => bloc.ChannelBlocs).Where(channelBloc => channelBloc.IsFound).SelectMany(channelBloc => channelBloc.SubBlocs).SelectMany(subBloc => subBloc.SubTrials).Select(subTrial => subTrial.Data.Values);
+            return Core.Data.StreamingStatistics.CalculateValueLimit(values);
         }
+
         #endregion
     }
 }

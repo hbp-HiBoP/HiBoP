@@ -15,31 +15,34 @@ namespace HBP.UI.Tools.Lists
     public class List<T> : BaseList
     {
         #region Properties
+
         /// <summary>
         /// UI items displayed by the list.
         /// </summary>
         protected System.Collections.Generic.List<Item<T>> m_Items = new();
+
         public virtual ReadOnlyCollection<Item<T>> Items => new(m_Items);
 
         protected System.Collections.Generic.List<T> m_Objects = new();
+
         /// <summary>
         /// Objects of the list.
         /// </summary>
         public virtual ReadOnlyCollection<T> Objects
         {
-            get
-            {
-                return new ReadOnlyCollection<T>(m_Objects);
-            }
+            get { return new ReadOnlyCollection<T>(m_Objects); }
         }
+
         /// <summary>
         /// List of the displayed objects.
         /// </summary>
         protected System.Collections.Generic.List<T> m_DisplayedObjects = new();
+
         /// <summary>
         /// Current mask applied to the list.
         /// </summary>
         protected bool[] m_CurrentMask = null;
+
         /// <summary>
         /// Whether masked objects are currently hidden.
         /// </summary>
@@ -69,10 +72,12 @@ namespace HBP.UI.Tools.Lists
         /// Callback executed when a object is added.
         /// </summary> 
         public UnityEvent<T> OnAddObject { get; } = new GenericEvent<T>();
+
         /// <summary>
         /// Callback executed when a object is removed.
         /// </summary> 
         public UnityEvent<T> OnRemoveObject { get; } = new GenericEvent<T>();
+
         /// <summary>
         /// Callback executed when a object is updated.
         /// </summary> 
@@ -90,9 +95,11 @@ namespace HBP.UI.Tools.Lists
                 foreach (var item in m_Items) item.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Set the objects of the list.
         /// </summary>
@@ -103,6 +110,7 @@ namespace HBP.UI.Tools.Lists
             Remove(m_Objects.ToArray());
             Add(obj);
         }
+
         /// <summary>
         /// Add a object to the list.
         /// </summary>
@@ -113,6 +121,7 @@ namespace HBP.UI.Tools.Lists
             AddObject(obj);
             OnAddObject.Invoke(obj);
         }
+
         /// <summary>
         /// Add multiple objects to the list.
         /// </summary>
@@ -123,6 +132,7 @@ namespace HBP.UI.Tools.Lists
             foreach (T obj in objectsToAdd.ToArray())
                 Add(obj);
         }
+
         /// <summary>
         /// Remove a object from the list.
         /// </summary>
@@ -133,6 +143,7 @@ namespace HBP.UI.Tools.Lists
             RemoveObject(obj);
             OnRemoveObject.Invoke(obj);
         }
+
         /// <summary>
         /// Remove multiple objects from the list.
         /// </summary>
@@ -143,6 +154,7 @@ namespace HBP.UI.Tools.Lists
             foreach (T obj in objectsToRemove.ToArray())
                 Remove(obj);
         }
+
         /// <summary>
         /// Update a object from the list.
         /// </summary>
@@ -161,17 +173,19 @@ namespace HBP.UI.Tools.Lists
                 OnUpdateObject.Invoke(objectToUpdate);
             }
         }
+
         /// <summary>
         /// Refresh all the list.
         /// </summary>
         public virtual void Refresh()
         {
-            Item<T>[] items =  m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
-            for (int i = m_FirstIndexDisplayed, j=0; i < m_LastIndexDisplayed && j < m_Items.Count; i++, j++)
+            Item<T>[] items = m_Items.OrderByDescending((item) => item.transform.localPosition.y).ToArray();
+            for (int i = m_FirstIndexDisplayed, j = 0; i < m_LastIndexDisplayed && j < m_Items.Count; i++, j++)
             {
                 items[j].Object = m_DisplayedObjects[i];
             }
         }
+
         /// <summary>
         /// Refresh the position of the items.
         /// </summary>
@@ -184,6 +198,7 @@ namespace HBP.UI.Tools.Lists
                 item.transform.localPosition = new Vector3(item.transform.localPosition.x, -i * m_ItemHeight, item.transform.localPosition.z);
             }
         }
+
         /// <summary>
         /// Scroll the list to the target object with the shortest scroll amount.
         /// </summary>
@@ -209,6 +224,7 @@ namespace HBP.UI.Tools.Lists
                 ScrollRect.content.hasChanged = true;
             }
         }
+
         /// <summary>
         /// Mask the list of objects to only display some of them
         /// </summary>
@@ -223,6 +239,7 @@ namespace HBP.UI.Tools.Lists
 
             return true;
         }
+
         /// <summary>
         /// Apply the current mask with the current hide setting.
         /// </summary>
@@ -235,16 +252,20 @@ namespace HBP.UI.Tools.Lists
             {
                 if (m_CurrentMask[i] || !m_HideMaskedObjects) m_DisplayedObjects.Add(m_Objects[i]);
             }
+
             ScrollRect.content.sizeDelta = new Vector2(0, m_ItemHeight * m_DisplayedObjects.Count);
             ScrollRect.content.hasChanged = true;
         }
+
         #endregion
 
         #region Private Methods
+
         protected virtual IEnumerable<T> DefaultSorting(IEnumerable<T> objects)
         {
             return objects;
         }
+
         /// <summary>
         /// Display all the items.
         /// </summary>
@@ -288,6 +309,7 @@ namespace HBP.UI.Tools.Lists
 
             Refresh();
         }
+
         /// <summary>
         /// Update the content size and position to fit with the number of items displayed.
         /// </summary>
@@ -309,9 +331,11 @@ namespace HBP.UI.Tools.Lists
                     }
                 }
             }
+
             ScrollRect.verticalScrollbar = ScrollRect.verticalScrollbar;
             ScrollRect.content.hasChanged = true;
         }
+
         /// <summary>
         /// Spawn new items.
         /// </summary>
@@ -325,6 +349,7 @@ namespace HBP.UI.Tools.Lists
                 SpawnItemAt(index);
             }
         }
+
         /// <summary>
         /// Spawn a item at a specified index.
         /// </summary>
@@ -340,6 +365,7 @@ namespace HBP.UI.Tools.Lists
             m_Items.Add(item);
             SetItem(item, obj);
         }
+
         /// <summary>
         /// Set a item with a object to display.
         /// </summary>
@@ -349,6 +375,7 @@ namespace HBP.UI.Tools.Lists
         {
             item.Object = obj;
         }
+
         /// <summary>
         /// Destroy items.
         /// </summary>
@@ -367,6 +394,7 @@ namespace HBP.UI.Tools.Lists
                 DestroyItem(items[index]);
             }
         }
+
         /// <summary>
         /// Destroy a specific item.
         /// </summary>
@@ -376,6 +404,7 @@ namespace HBP.UI.Tools.Lists
             Destroy(item.gameObject);
             m_Items.Remove(item);
         }
+
         /// <summary>
         /// Move items upwards.
         /// </summary>
@@ -395,6 +424,7 @@ namespace HBP.UI.Tools.Lists
                 SetItem(item, newObj);
             }
         }
+
         /// <summary>
         /// Move items downwards.
         /// </summary>
@@ -414,6 +444,7 @@ namespace HBP.UI.Tools.Lists
                 SetItem(item, newObj);
             }
         }
+
         /// <summary>
         /// Get the limits of the elements displayed.
         /// </summary>
@@ -439,6 +470,7 @@ namespace HBP.UI.Tools.Lists
                 lastIndexDisplayed = Mathf.Clamp(lastIndexDisplayed, 0, lastIndexMaximumValue);
             }
         }
+
         /// <summary>
         /// Get the item which display a specified object.
         /// </summary>
@@ -455,37 +487,44 @@ namespace HBP.UI.Tools.Lists
                     return true;
                 }
             }
+
             itemToReturn = null;
             return false;
         }
+
         protected virtual async void Start()
         {
-            await UniTask.WaitForEndOfFrame();
+            await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
             OnViewportChanged();
             OnContentChanged();
         }
+
         protected virtual void Update()
         {
             if (ScrollRect.viewport.hasChanged)
             {
                 OnViewportChanged();
             }
+
             if (ScrollRect.content.hasChanged)
             {
                 OnContentChanged();
             }
         }
+
         private void OnViewportChanged()
         {
             m_MaximumNumberOfItems = Mathf.CeilToInt(ScrollRect.viewport.rect.height / m_ItemHeight) + NUMBER_OF_ADDITIONAL_ITEMS;
             ScrollRect.verticalNormalizedPosition = Mathf.Clamp(ScrollRect.verticalNormalizedPosition, 0f, 1f);
             ScrollRect.viewport.hasChanged = false;
         }
+
         private void OnContentChanged()
         {
             Display();
             ScrollRect.content.hasChanged = false;
         }
+
         protected virtual void AddObject(T obj)
         {
             m_Objects.Add(obj);
@@ -493,6 +532,7 @@ namespace HBP.UI.Tools.Lists
             ScrollRect.content.sizeDelta += new Vector2(0, m_ItemHeight);
             ScrollRect.content.hasChanged = true;
         }
+
         protected virtual void RemoveObject(T obj)
         {
             m_Objects.Remove(obj);
@@ -500,11 +540,13 @@ namespace HBP.UI.Tools.Lists
             {
                 DestroyItem(1, false);
             }
+
             m_DisplayedObjects.Remove(obj);
             UpdateContent();
             GetLimits(out m_FirstIndexDisplayed, out m_LastIndexDisplayed);
             Refresh();
         }
+
         #endregion
-    } 
+    }
 }

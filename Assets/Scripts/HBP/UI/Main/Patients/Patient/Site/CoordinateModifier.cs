@@ -13,6 +13,7 @@ namespace HBP.UI.Main
     public class CoordinateModifier : ObjectModifier<Coordinate>
     {
         #region Properties
+
         [SerializeField] InputField m_ReferenceSystemInputField;
         [SerializeField] InputField m_XInputField;
         [SerializeField] InputField m_YInputField;
@@ -23,10 +24,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -38,9 +36,11 @@ namespace HBP.UI.Main
                 m_ZInputField.interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -53,6 +53,7 @@ namespace HBP.UI.Main
             m_YInputField.onValueChanged.AddListener(ChangeY);
             m_ZInputField.onValueChanged.AddListener(ChangeZ);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -64,13 +65,14 @@ namespace HBP.UI.Main
             m_YInputField.text = objectToModify.Position.y.ToString(CultureInfo.InvariantCulture);
             m_ZInputField.text = objectToModify.Position.z.ToString(CultureInfo.InvariantCulture);
         }
+
         /// <summary>
         /// Change the reference system.
         /// </summary>
         /// <param name="referenceSystem">Name of the reference system</param>
         void ChangeReferenceSystem(string referenceSystem)
         {
-            if(referenceSystem != "")
+            if (referenceSystem != "")
             {
                 ObjectTemp.ReferenceSystem = referenceSystem;
             }
@@ -79,17 +81,19 @@ namespace HBP.UI.Main
                 m_ReferenceSystemInputField.text = ObjectTemp.ReferenceSystem;
             }
         }
+
         /// <summary>
         /// Change the x.
         /// </summary>
         /// <param name="value">Value</param>
         void ChangeX(string value)
         {
-            if(NumberExtension.TryParseFloat(value, out float x))
+            if (NumberExtension.TryParseFloat(value, out float x))
             {
                 ObjectTemp.Position = new SerializableVector3(x, ObjectTemp.Position.y, ObjectTemp.Position.z);
             }
         }
+
         /// <summary>
         /// Change the y.
         /// </summary>
@@ -101,6 +105,7 @@ namespace HBP.UI.Main
                 ObjectTemp.Position = new SerializableVector3(ObjectTemp.Position.x, y, ObjectTemp.Position.z);
             }
         }
+
         /// <summary>
         /// Change the z.
         /// </summary>
@@ -109,9 +114,10 @@ namespace HBP.UI.Main
         {
             if (NumberExtension.TryParseFloat(value, out float z))
             {
-                ObjectTemp.Position = new SerializableVector3(ObjectTemp.Position.x, ObjectTemp.Position.y,z);
+                ObjectTemp.Position = new SerializableVector3(ObjectTemp.Position.x, ObjectTemp.Position.y, z);
             }
         }
+
         #endregion
     }
 }

@@ -1,0 +1,23 @@
+{
+    "name": "HBP.Workflow.PlayModeTests",
+    "rootNamespace": "HBP.Tests.PlayMode.Workflow",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.UI.Runtime",
+        "HBP.PlayModeTestUtilities",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

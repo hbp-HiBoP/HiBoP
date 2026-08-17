@@ -55,15 +55,19 @@ namespace HBP.Core.Data
     public class SharedFMRIDataInfo : DataInfo
     {
         #region Properties
+
         [JsonProperty("MaskDataContainer")] protected Container.Nifti m_MaskDataContainer;
+
         public Container.Nifti MaskDataContainer
         {
             get => m_MaskDataContainer;
             set => m_MaskDataContainer = value;
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
@@ -76,6 +80,7 @@ namespace HBP.Core.Data
         {
             m_MaskDataContainer = maskDataContainer;
         }
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
@@ -87,16 +92,18 @@ namespace HBP.Core.Data
         {
             m_MaskDataContainer = maskDataContainer;
         }
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public SharedFMRIDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Nifti(), new Container.Nifti(), new Error[0], new Warning[0], "")
+        public SharedFMRIDataInfo() : this("Data", null, new Container.Nifti(), new Container.Nifti(), new Error[0], new Warning[0], "")
         {
-
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -105,6 +112,7 @@ namespace HBP.Core.Data
         {
             return new SharedFMRIDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, MaskDataContainer.Clone() as Container.Nifti, Errors, Warnings, CorrespondingDatabaseID, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -113,15 +121,47 @@ namespace HBP.Core.Data
                 m_MaskDataContainer = fMRIDataInfo.MaskDataContainer;
             }
         }
+
+        internal override void ApplyValidationState(DataInfo validatedSnapshot)
+        {
+            base.ApplyValidationState(validatedSnapshot);
+            m_MaskDataContainer.ApplyValidationState(((SharedFMRIDataInfo)validatedSnapshot).m_MaskDataContainer);
+        }
+
+        internal override void ApplyValidationState(DataInfo validatedSnapshot, ValidationRequest request)
+        {
+            base.ApplyValidationState(validatedSnapshot, request);
+            if (request.Matches(this, ValidationAspect.SourceAvailability))
+            {
+                m_MaskDataContainer.ApplyValidationState(((SharedFMRIDataInfo)validatedSnapshot).m_MaskDataContainer);
+            }
+        }
+
         #endregion
 
         #region Private Methods
+
+        internal override IEnumerable<ValidationState> GetValidationStates(ValidationAspect aspect, ValidationRequest request, DataInfoValidationContext context)
+        {
+            IEnumerable<ValidationState> states = base.GetValidationStates(aspect, request, context);
+            if (aspect != ValidationAspect.SourceAvailability || string.IsNullOrEmpty(MaskDataContainer?.File))
+            {
+                return states;
+            }
+
+            return states.Concat(new[]
+            {
+                CreateValidationState(aspect, "Mask", context.SourceSignature, MaskDataContainer.GetErrors(), MaskDataContainer.GetWarnings())
+            });
+        }
+
         protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetFMRIErrors());
             return errors;
         }
+
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
@@ -133,12 +173,14 @@ namespace HBP.Core.Data
             if (!string.IsNullOrEmpty(MaskDataContainer.File)) errors.AddRange(MaskDataContainer.GetErrors());
             return errors;
         }
+
         protected override IEnumerable<Warning> GetWarnings()
         {
             List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetFMRIWarnings());
             return warnings;
         }
+
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
@@ -150,6 +192,7 @@ namespace HBP.Core.Data
             if (!string.IsNullOrEmpty(MaskDataContainer.File)) warnings.AddRange(MaskDataContainer.GetWarnings());
             return warnings;
         }
+
         #endregion
     }
 }

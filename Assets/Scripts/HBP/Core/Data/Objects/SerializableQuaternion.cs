@@ -19,6 +19,7 @@ namespace HBP.Core.Data
             z = quaternion.z;
             w = quaternion.w;
         }
+
         public Quaternion ToQuaternion()
         {
             return new Quaternion(x, y, z, w);

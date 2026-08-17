@@ -7,21 +7,26 @@ namespace HBP.UI.Toolbar
     public class BrainMeshes : Tool
     {
         #region Properties
+
         /// <summary>
         /// Display left part of the mesh
         /// </summary>
         [SerializeField] private Toggle m_Left;
+
         /// <summary>
         /// Display right part of the mesh
         /// </summary>
         [SerializeField] private Toggle m_Right;
+
         /// <summary>
         /// Is the currently selected mesh left-right or single ?
         /// </summary>
         private bool m_IsMeshLeftRight;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Return the mesh part according to which mesh is displayed
         /// </summary>
@@ -35,9 +40,11 @@ namespace HBP.UI.Toolbar
             if (!left && right) return MeshPart.Right;
             return MeshPart.Both;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -89,6 +96,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -99,16 +107,18 @@ namespace HBP.UI.Toolbar
             m_Right.isOn = false;
             m_Right.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D;
+            bool isMeshLeftRight = SelectedScene.MeshManager.SelectedMesh.SupportsHemispheres;
 
             m_Left.interactable = isMeshLeftRight;
             m_Right.interactable = isMeshLeftRight;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -135,12 +145,13 @@ namespace HBP.UI.Toolbar
                     break;
             }
         }
+
         /// <summary>
         /// Callback method when the brain has been changed
         /// </summary>
         public void ChangeBrainTypeCallback()
         {
-            m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh is Core.Object3D.LeftRightMesh3D;
+            m_IsMeshLeftRight = SelectedScene.MeshManager.SelectedMesh.SupportsHemispheres;
             if (!m_IsMeshLeftRight)
             {
                 m_Left.isOn = false;
@@ -160,6 +171,7 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
     }
 }

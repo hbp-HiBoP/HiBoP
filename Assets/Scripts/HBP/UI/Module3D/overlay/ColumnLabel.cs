@@ -11,14 +11,17 @@ namespace HBP.UI.Module3D
     public class ColumnLabel : ColumnOverlayElement, IPointerDownHandler, IPointerUpHandler, IDragHandler
     {
         #region Properties
+
         /// <summary>
         /// Displays the name of the column
         /// </summary>
         [SerializeField] private Text m_Text;
+
         /// <summary>
         /// Button to swap this column with the one at the left
         /// </summary>
         [SerializeField] private Button m_Left;
+
         /// <summary>
         /// Button to swap this column with the one at the right
         /// </summary>
@@ -28,13 +31,16 @@ namespace HBP.UI.Module3D
         /// Prefab of the object used when drag and dropping to swap the column
         /// </summary>
         [SerializeField] private GameObject m_ColumnImagePrefab;
+
         /// <summary>
         /// Currently instanced object used when drag and dropping to swap the column
         /// </summary>
         private GameObject m_CurrentImage;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (m_RectTransform.hasChanged)
@@ -51,16 +57,20 @@ namespace HBP.UI.Module3D
                     m_Text.gameObject.SetActive(true);
                     m_Right.gameObject.SetActive(true);
                 }
+
                 m_RectTransform.hasChanged = false;
             }
+
             if (m_CurrentImage)
             {
                 m_CurrentImage.transform.position = Input.mousePosition;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Setup the overlay element
         /// </summary>
@@ -73,24 +83,21 @@ namespace HBP.UI.Module3D
             IsActive = true;
 
             m_Text.text = column.Name;
-            m_Left.onClick.AddListener(() =>
-            {
-                columnUI.Move(-1);
-            });
-            m_Right.onClick.AddListener(() =>
-            {
-                columnUI.Move(+1);
-            });
+            m_Left.onClick.AddListener(() => { columnUI.Move(-1); });
+            m_Right.onClick.AddListener(() => { columnUI.Move(+1); });
         }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             if (m_CurrentImage)
             {
                 Destroy(m_CurrentImage);
             }
+
             m_CurrentImage = Instantiate(m_ColumnImagePrefab, m_ColumnUI.ParentGrid.transform);
             m_CurrentImage.transform.Find("Label").GetComponent<Text>().text = m_ColumnUI.Column.Name;
         }
+
         public void OnPointerUp(PointerEventData eventData)
         {
             if (m_CurrentImage)
@@ -100,10 +107,12 @@ namespace HBP.UI.Module3D
                 m_ColumnUI.UpdateBorderVisibility(true);
             }
         }
+
         public void OnDrag(PointerEventData eventData)
         {
             m_ColumnUI.UpdateBorderVisibility();
         }
+
         #endregion
     }
 }

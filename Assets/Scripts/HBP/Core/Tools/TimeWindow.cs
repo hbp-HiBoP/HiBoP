@@ -9,35 +9,40 @@ namespace HBP.Core.Tools
     public struct TimeWindow
     {
         #region Properties
+
         [JsonProperty] public int Start { get; set; }
         [JsonProperty] public int End { get; set; }
+
         [JsonIgnore] public int Length
         {
-            get
-            {
-                return End - Start;
-            }
+            get { return End - Start; }
         }
+
         #endregion
 
         #region Constructors
+
         public TimeWindow(Vector2Int position)
         {
             Start = position.x;
             End = position.y;
         }
-        public TimeWindow(int start,int end)
+
+        public TimeWindow(int start, int end)
         {
             Start = start;
             End = end;
         }
+
         #endregion
 
         #region Public Methods
+
         public override string ToString()
         {
             return String.Format("({0},{1})", Start, End);
         }
+
         public override bool Equals(object obj)
         {
             if (obj is TimeWindow)
@@ -57,28 +62,32 @@ namespace HBP.Core.Tools
                 return false;
             }
         }
+
         public override int GetHashCode()
         {
             return Start.GetHashCode() * End.GetHashCode();
         }
+
         public static bool operator ==(TimeWindow window1, TimeWindow window2)
         {
             return window1.Equals(window2);
         }
+
         public static bool operator !=(TimeWindow window1, TimeWindow window2)
         {
             return !window1.Equals(window2);
         }
+
         public Vector2 ToVector2()
         {
             return new Vector2(Start, End);
         }
+
         public Vector2Int ToVector2Int()
         {
             return new Vector2Int(Start, End);
         }
+
         #endregion
     }
-
 }
-

@@ -23,50 +23,46 @@ namespace HBP.Data.Module3D
     public class Module3DMain : Singleton<Module3DMain>
     {
         #region Properties
+
         /// <summary>
         /// Default layer string for the visible meshes layer
         /// </summary>
         public const string DEFAULT_MESHES_LAYER = "Default";
+
         /// <summary>
         /// Default layer string for the invisible meshes layer
         /// </summary>
         public const string HIDDEN_MESHES_LAYER = "Hidden Meshes";
-        
+
         /// <summary>
         /// Currently selected scene
         /// </summary>
         public static Base3DScene SelectedScene
         {
-            get
-            {
-                return m_Instance.m_Scenes.FirstOrDefault(s => s.IsSelected);
-            }
+            get { return m_Instance.m_Scenes.FirstOrDefault(s => s.IsSelected); }
         }
+
         /// <summary>
         /// Currently selected column
         /// </summary>
         public static Column3D SelectedColumn
         {
-            get
-            {
-                return SelectedScene?.SelectedColumn;
-            }
+            get { return SelectedScene?.SelectedColumn; }
         }
+
         /// <summary>
         /// Currently selected view
         /// </summary>
         public static View3D SelectedView
         {
-            get
-            {
-                return SelectedColumn?.SelectedView;
-            }
+            get { return SelectedColumn?.SelectedView; }
         }
 
         /// <summary>
         /// Maximum number of views a user can add to a scene
         /// </summary>
         public const int MAXIMUM_VIEW_NUMBER = 5;
+
         /// <summary>
         /// Space between scenes in world space
         /// </summary>
@@ -78,101 +74,127 @@ namespace HBP.Data.Module3D
         public static int NumberOfScenesLoadedSinceStart { get; set; }
 
         private List<Base3DScene> m_Scenes = new();
+
         /// <summary>
         /// List of open scenes
         /// </summary>
         public static ReadOnlyCollection<Base3DScene> Scenes
         {
-            get
-            {
-                return new ReadOnlyCollection<Base3DScene>(m_Instance.m_Scenes);
-            }
+            get { return new ReadOnlyCollection<Base3DScene>(m_Instance.m_Scenes); }
         }
+
         /// <summary>
         /// List of all the loaded visualizations
         /// </summary>
         public static ReadOnlyCollection<Visualization> Visualizations
         {
-            get
-            {
-                return new ReadOnlyCollection<Visualization>((from scene in Scenes select scene.Visualization).ToList());
-            }
+            get { return new ReadOnlyCollection<Visualization>((from scene in Scenes select scene.Visualization).ToList()); }
         }
 
         [SerializeField] private SharedMaterials m_SharedMaterials;
-        public static SharedMaterials SharedMaterials { get { return m_Instance.m_SharedMaterials; } }
+
+        public static SharedMaterials SharedMaterials
+        {
+            get { return m_Instance.m_SharedMaterials; }
+        }
 
         [SerializeField] private GameObject m_SharedDirectionalLight;
+
         /// <summary>
         /// Shared directional light between all scenes
         /// </summary>
-        public static GameObject SharedDirectionalLight { get { return m_Instance.m_SharedDirectionalLight; } }
+        public static GameObject SharedDirectionalLight
+        {
+            get { return m_Instance.m_SharedDirectionalLight; }
+        }
+
         [SerializeField] private GameObject m_SharedSpotlight;
+
         /// <summary>
         /// Shared spotlight between all scenes
         /// </summary>
-        public static GameObject SharedSpotlight { get { return m_Instance.m_SharedSpotlight; } }
+        public static GameObject SharedSpotlight
+        {
+            get { return m_Instance.m_SharedSpotlight; }
+        }
 
         /// <summary>
         /// Parent gameobject of every scenes
         /// </summary>
         [SerializeField] private Transform m_ScenesParent;
+
         /// <summary>
         /// Prefab corresponding to a scene
         /// </summary>
         [SerializeField] private GameObject m_ScenePrefab;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when hovering a site to display its information
         /// </summary>
         [HideInInspector] public static GenericEvent<SiteInfo> OnDisplaySiteInformation = new();
+
         /// <summary>
         /// Event called when hovering a atlas area to display its information
         /// </summary>
         [HideInInspector] public static GenericEvent<AtlasInfo> OnDisplayAtlasInformation = new();
+
         /// <summary>
         /// Event called when a scene is added
         /// </summary>
         [HideInInspector] public static GenericEvent<Base3DScene> OnAddScene = new();
+
         /// <summary>
         /// Event called when a scene is removed
         /// </summary>
         [HideInInspector] public static GenericEvent<Base3DScene> OnRemoveScene = new();
+
         /// <summary>
         /// Event called after all new scenes have been opened and initialized
         /// </summary>
         [HideInInspector] public static UnityEvent OnFinishedAddingNewScenes = new();
+
         /// <summary>
         /// Event called when changing the selected scene
         /// </summary>
         [HideInInspector] public static GenericEvent<Base3DScene> OnSelectScene = new();
+
         [HideInInspector] public static GenericEvent<Base3DScene> OnDeselectScene = new();
+
         /// <summary>
         /// Event called when minimizing a scene
         /// </summary>
         [HideInInspector] public static GenericEvent<Base3DScene> OnMinimizeScene = new();
+
         /// <summary>
         /// Event called when changing the selected column
         /// </summary>
         [HideInInspector] public static GenericEvent<Column3D> OnSelectColumn = new();
+
         /// <summary>
         /// Event called when changing the selected view
         /// </summary>
         [HideInInspector] public static GenericEvent<View3D> OnSelectView = new();
+
         /// <summary>
         /// Event called when changing the index of the timeline of the selected column
         /// </summary>
         [HideInInspector] public static UnityEvent OnUpdateSelectedColumnTimeLineIndex = new();
+
         /// <summary>
         /// Event called when requesting an update in the toolbar
         /// </summary>
         [HideInInspector] public static UnityEvent OnRequestUpdateInToolbar = new();
+
         [HideInInspector] public static UnityEvent OnRequestUpdateInSiteList = new();
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialization()
         {
             SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
@@ -196,19 +218,22 @@ namespace HBP.Data.Module3D
                     };
                     return mesh != null && mesh.IsPointInside(site.Information.DefaultPosition);
                 case SpecificSiteLocationFilterCondition.SpecificLocationType.CutPlane:
-                    var planes = selectedScene.Cuts.Select(c => (Core.Object3D.Plane)c).ToList();
+                    var planes = selectedScene.Cuts.Select(c => (Core.DLL.Plane)c).ToList();
                     return selectedScene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, planes, 1.0f);
                 default:
                     return null;
             }
         }
+
         void OnDestroy()
         {
-            Object3DManager.Clean();
+            Object3DManager.Reset();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Remove every scenes corresponding to a visualization
         /// </summary>
@@ -221,6 +246,7 @@ namespace HBP.Data.Module3D
                 RemoveScene(scene);
             }
         }
+
         /// <summary>
         /// Remove a scene
         /// </summary>
@@ -231,6 +257,7 @@ namespace HBP.Data.Module3D
             m_Instance.m_Scenes.Remove(scene);
             scene.Clean().Forget();
         }
+
         /// <summary>
         /// Load a single patient scene extracted from a visualization
         /// </summary>
@@ -251,14 +278,17 @@ namespace HBP.Data.Module3D
                 visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;
                 visualizationToLoad.Configuration.FirstColumnToSelect = scene.Columns.FindIndex(c => c == scene.SelectedColumn);
             }
+
             if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
                 visualizationToLoad.Configuration.PreloadedMeshes = scene.MeshManager.PreloadedMeshes[patient];
                 visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
             }
+
             visualizationToLoad.GenerateID();
             return visualizationToLoad;
         }
+
         /// <summary>
         /// Save all the configurations of the scenes
         /// </summary>
@@ -269,6 +299,7 @@ namespace HBP.Data.Module3D
                 scene.SaveConfiguration();
             }
         }
+
         /// <summary>
         /// Reload all scenes
         /// </summary>
@@ -280,9 +311,11 @@ namespace HBP.Data.Module3D
             {
                 RemoveScene(scene);
             }
+
             IEnumerable<string> visualizationIDs = (from scene in scenes select scene.Visualization.ID);
             return (from visualization in ApplicationState.LoadedProject.Visualizations where visualizationIDs.Contains(visualization.ID) select visualization).ToList();
         }
+
         /// <summary>
         /// Remove all scenes
         /// </summary>
@@ -294,9 +327,11 @@ namespace HBP.Data.Module3D
                 RemoveScene(scene);
             }
         }
+
         #endregion
 
         #region Coroutines
+
         /// <summary>
         /// Coroutine used to load visualizations one by one
         /// </summary>
@@ -304,20 +339,43 @@ namespace HBP.Data.Module3D
         /// <returns></returns>
         public static async UniTask LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
-            Dictionary<Visualization, int> weightByVisualization = visualizations.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count + v.StaticColumns.Count);
+            Visualization[] visualizationSnapshot = visualizations.ToArray();
+            Project project = ApplicationState.LoadedProject;
+            DataInfo[] requiredDataInfos = visualizationSnapshot.SelectMany(visualization => visualization.GetRequiredDataInfos()).Distinct().ToArray();
+            Patient[] requiredPatients = visualizationSnapshot.SelectMany(visualization => visualization.Patients).Distinct().ToArray();
+            ValidationRequest validationRequest = new(ValidationAspect.None);
+            if (requiredDataInfos.Length > 0)
+            {
+                validationRequest = validationRequest.Merge(new ValidationRequest(ValidationAspect.DataInfoAll, dataInfoIDs: requiredDataInfos.Select(dataInfo => dataInfo.ID)));
+            }
+
+            if (requiredPatients.Length > 0)
+            {
+                validationRequest = validationRequest.Merge(new ValidationRequest(ValidationAspect.PatientAssets, patientIDs: requiredPatients.Select(patient => patient.ID)));
+            }
+
+            float validationWeight = project != null && project.RequiresValidation(validationRequest) ? 0.25f : 0;
+            if (project != null && validationWeight > 0)
+            {
+                await project.EnsureProjectValidatedForImmediateLoadAsync(validationRequest, (progress, duration, text) => onChangeProgress(progress * validationWeight, duration, text), token);
+            }
+
+            token.ThrowIfCancellationRequested();
+
+            Dictionary<Visualization, int> weightByVisualization = visualizationSnapshot.ToDictionary(v => v, v => (v.CCEPColumns.Count + v.IEEGColumns.Count) * v.Patients.Count + v.AnatomicColumns.Count + v.FMRIColumns.Count + v.MEGColumns.Count + v.StaticColumns.Count);
             int totalWeight = weightByVisualization.Values.Sum();
             float progress = 0;
             const float LOADING_VISUALIZATION_PROGRESS = 0.5f;
             const float LOADING_SCENE_PROGRESS = 0.5f;
-            foreach (Visualization visualization in visualizations)
+            foreach (Visualization visualization in visualizationSnapshot)
             {
                 try
                 {
                     token.ThrowIfCancellationRequested();
                     float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                     if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
-                    await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS, duration, text), token);
-                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight, duration, text), token);
+                    await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(validationWeight + (progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS) * (1 - validationWeight), duration, text), token);
+                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(validationWeight + (progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight) * (1 - validationWeight), duration, text), token);
                     progress += visualizationWeight;
                 }
                 catch (OperationCanceledException e)
@@ -332,8 +390,10 @@ namespace HBP.Data.Module3D
                     throw e;
                 }
             }
+
             OnFinishedAddingNewScenes.Invoke();
         }
+
         /// <summary>
         /// Coroutine to load a visualization asynchronously
         /// </summary>
@@ -390,8 +450,8 @@ namespace HBP.Data.Module3D
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVEB) Object3DManager.Localizers.TryLoad("MVEB");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVIS) Object3DManager.Localizers.TryLoad("MVIS");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.TryLoad("VISU");
-
         }
+
         #endregion
     }
 }

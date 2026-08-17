@@ -1,8 +1,8 @@
 ﻿using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.Rendering;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace HBP.Data.Module3D
 {
@@ -12,31 +12,28 @@ namespace HBP.Data.Module3D
     public class View3D : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Camera 3D associated to the view
         /// </summary>
         [SerializeField] private Camera3D m_Camera3D;
+
         /// <summary>
         /// Physical camera component of this view
         /// </summary>
         public Camera Camera
         {
-            get
-            {
-                return m_Camera3D.Camera;
-            }
+            get { return m_Camera3D.Camera; }
         }
 
         private bool m_IsSelected = false;
+
         /// <summary>
         /// True if this view is the last view in which the user clicked
         /// </summary>
         public bool IsSelected
         {
-            get
-            {
-                return m_IsSelected;
-            }
+            get { return m_IsSelected; }
             set
             {
                 m_IsSelected = value;
@@ -49,15 +46,13 @@ namespace HBP.Data.Module3D
         }
 
         private bool m_IsMinimized = false;
+
         /// <summary>
         /// True if the view is minimized
         /// </summary>
         public bool IsMinimized
         {
-            get
-            {
-                return m_IsMinimized;
-            }
+            get { return m_IsMinimized; }
             set
             {
                 m_IsMinimized = value;
@@ -69,6 +64,7 @@ namespace HBP.Data.Module3D
                 {
                     m_Camera3D.CullingMask = m_MinimizedCullingMask;
                 }
+
                 m_Camera3D.Camera.enabled = !m_IsMinimized;
             }
         }
@@ -88,14 +84,8 @@ namespace HBP.Data.Module3D
         /// </summary>
         public float Aspect
         {
-            get
-            {
-                return m_Camera3D.Camera.aspect;
-            }
-            set
-            {
-                m_Camera3D.Camera.aspect = value;
-            }
+            get { return m_Camera3D.Camera.aspect; }
+            set { m_Camera3D.Camera.aspect = value; }
         }
 
         /// <summary>
@@ -103,56 +93,35 @@ namespace HBP.Data.Module3D
         /// </summary>
         public bool AutomaticRotation
         {
-            get
-            {
-                return m_Camera3D.AutomaticRotation;
-            }
-            set
-            {
-                m_Camera3D.AutomaticRotation = value;
-            }
+            get { return m_Camera3D.AutomaticRotation; }
+            set { m_Camera3D.AutomaticRotation = value; }
         }
+
         /// <summary>
         /// Automatic rotation speed
         /// </summary>
         public float AutomaticRotationSpeed
         {
-            get
-            {
-                return m_Camera3D.AutomaticRotationSpeed;
-            }
-            set
-            {
-                m_Camera3D.AutomaticRotationSpeed = value;
-            }
+            get { return m_Camera3D.AutomaticRotationSpeed; }
+            set { m_Camera3D.AutomaticRotationSpeed = value; }
         }
+
         /// <summary>
         /// Set the edge mode
         /// </summary>
         public bool ShowEdges
         {
-            get
-            {
-                return m_Camera3D.GetComponent<PostProcessLayer>().enabled;
-            }
-            set
-            {
-                m_Camera3D.GetComponent<PostProcessLayer>().enabled = value;
-            }
+            get { return m_Camera3D.EdgeSettings.EdgesEnabled; }
+            set { m_Camera3D.EdgeSettings.EdgesEnabled = value; }
         }
+
         /// <summary>
         /// Camera rotation type (trackball or orbital)
         /// </summary>
         public CameraControl CameraType
         {
-            get
-            {
-                return m_Camera3D.Type;
-            }
-            set
-            {
-                m_Camera3D.Type = value;
-            }
+            get { return m_Camera3D.Type; }
+            set { m_Camera3D.Type = value; }
         }
 
         /// <summary>
@@ -161,18 +130,12 @@ namespace HBP.Data.Module3D
         /// <param name="texture">Texture to be rendered on</param>
         public RenderTexture TargetTexture
         {
-            get
-            {
-                return m_Camera3D.Camera.targetTexture;
-            }
+            get { return m_Camera3D.Camera.targetTexture; }
             set
             {
-                if (value.width == 0 || value.height == 0 || float.IsNaN(value.height) || float.IsNaN(value.width)) return;
+                if (value != null && (value.width <= 0 || value.height <= 0))
+                    return;
 
-                if (m_Camera3D.Camera.targetTexture)
-                {
-                    m_Camera3D.Camera.targetTexture.Release();
-                }
                 m_Camera3D.Camera.targetTexture = value;
             }
         }
@@ -182,30 +145,23 @@ namespace HBP.Data.Module3D
         /// </summary>
         public Quaternion LocalCameraRotation
         {
-            get
-            {
-                return m_Camera3D.transform.localRotation;
-            }
+            get { return m_Camera3D.transform.localRotation; }
         }
+
         /// <summary>
         /// Position of the camera in the view reference
         /// </summary>
         public Vector3 LocalCameraPosition
         {
-            get
-            {
-                return m_Camera3D.transform.localPosition;
-            }
+            get { return m_Camera3D.transform.localPosition; }
         }
+
         /// <summary>
         /// Target of the camera in the view reference
         /// </summary>
         public Vector3 LocalCameraTarget
         {
-            get
-            {
-                return m_Camera3D.LocalTarget;
-            }
+            get { return m_Camera3D.LocalTarget; }
         }
 
         /// <summary>
@@ -213,20 +169,15 @@ namespace HBP.Data.Module3D
         /// </summary>
         public bool DisplayRotationCircles
         {
-            get
-            {
-                return m_Camera3D.DisplayRotationCircles;
-            }
-            set
-            {
-                m_Camera3D.DisplayRotationCircles = value;
-            }
+            get { return m_Camera3D.DisplayRotationCircles; }
+            set { m_Camera3D.DisplayRotationCircles = value; }
         }
 
         /// <summary>
         /// Default minimized culling mask value
         /// </summary>
         private int m_MinimizedCullingMask;
+
         /// <summary>
         /// Default regular culling mask value
         /// </summary>
@@ -235,17 +186,21 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when selecting this view
         /// </summary>
         [HideInInspector] public UnityEvent OnSelect = new();
+
         /// <summary>
         /// Event called when the camera is moved (rotation, strafe, zoom)
         /// </summary>
         [HideInInspector] public UnityEvent OnMoveView = new();
+
         #endregion
 
         #region Public Methods
+
         public void Initialize(int lineID, string columnLayer)
         {
             gameObject.name = "View " + lineID;
@@ -273,6 +228,7 @@ namespace HBP.Data.Module3D
                 m_Camera3D.CullingMask = m_MinimizedCullingMask;
             }
         }
+
         /// <summary>
         /// Synchronize the camera of this view using the camera from a reference view
         /// </summary>
@@ -282,6 +238,7 @@ namespace HBP.Data.Module3D
             m_Camera3D.transform.localPosition = reference.m_Camera3D.transform.localPosition;
             m_Camera3D.transform.localRotation = reference.m_Camera3D.transform.localRotation;
         }
+
         /// <summary>
         /// Set the viewport of the camera
         /// </summary>
@@ -293,6 +250,7 @@ namespace HBP.Data.Module3D
         {
             m_Camera3D.Camera.rect = new Rect(x / Screen.width, y / Screen.height, width / Screen.width, height / Screen.height);
         }
+
         /// <summary>
         /// Rotate the camera by a specific amount
         /// </summary>
@@ -303,6 +261,7 @@ namespace HBP.Data.Module3D
             m_Camera3D.VerticalRotation(amount.y);
             OnMoveView.Invoke();
         }
+
         /// <summary>
         /// Strafe the camera by a specific amount
         /// </summary>
@@ -313,15 +272,17 @@ namespace HBP.Data.Module3D
             m_Camera3D.VerticalStrafe(amount.y);
             OnMoveView.Invoke();
         }
+
         /// <summary>
         /// Zoom with the camera by a specific amount
         /// </summary>
         /// <param name="amount">Distance of the zoom</param>
         public void ZoomCamera(float amount)
         {
-            m_Camera3D.Zoom(5*amount);
+            m_Camera3D.Zoom(5 * amount);
             OnMoveView.Invoke();
         }
+
         /// <summary>
         /// Set the camera settings
         /// </summary>
@@ -334,6 +295,7 @@ namespace HBP.Data.Module3D
             m_Camera3D.transform.localRotation = rotation;
             m_Camera3D.Target = target;
         }
+
         /// <summary>
         /// Set the default state of the view
         /// </summary>
@@ -356,6 +318,7 @@ namespace HBP.Data.Module3D
                     break;
             }
         }
+
         /// <summary>
         /// Get a texture of the rendered image from the camera
         /// </summary>
@@ -364,25 +327,40 @@ namespace HBP.Data.Module3D
         /// <returns>Texture</returns>
         public Texture2D GetTexture(int width, int height, Color background)
         {
-            // Save old parameters
             RenderTexture currentRenderTexture = m_Camera3D.Camera.targetTexture;
             float currentAspect = m_Camera3D.Camera.aspect;
             Color currentBackground = m_Camera3D.Camera.backgroundColor;
-            // Get texture
-            RenderTexture screenshotRenderTexture = new(width, height, 24);
-            screenshotRenderTexture.antiAliasing = 1;
-            m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
-            m_Camera3D.Camera.aspect = (float)width / height;
-            m_Camera3D.Camera.backgroundColor = background;
-            m_Camera3D.Camera.Render();
-            Texture2D texture = m_Camera3D.Camera.targetTexture.ToTexture2D();
-            // Restore old parameters
-            m_Camera3D.Camera.targetTexture = currentRenderTexture;
-            m_Camera3D.Camera.aspect = currentAspect;
-            m_Camera3D.Camera.backgroundColor = currentBackground;
-            screenshotRenderTexture.Release();
-            return texture;
+            RenderTexture screenshotRenderTexture = new(HBPRenderTextureDescriptorFactory.CreateViewDescriptor(width, height))
+            {
+                name = $"HBP Export {width}x{height}",
+                hideFlags = HideFlags.DontSave
+            };
+
+            try
+            {
+                screenshotRenderTexture.Create();
+                m_Camera3D.Camera.targetTexture = screenshotRenderTexture;
+                m_Camera3D.Camera.aspect = (float)width / height;
+                m_Camera3D.Camera.backgroundColor = background;
+                m_Camera3D.Camera.Render();
+                Texture2D texture = screenshotRenderTexture.ToTexture2D();
+                if (Mathf.Approximately(background.a, 0.0f))
+                    RenderingColorUtility.ConvertPremultipliedToStraightAlpha(texture);
+                return texture;
+            }
+            finally
+            {
+                m_Camera3D.Camera.targetTexture = currentRenderTexture;
+                m_Camera3D.Camera.aspect = currentAspect;
+                m_Camera3D.Camera.backgroundColor = currentBackground;
+                screenshotRenderTexture.Release();
+                if (Application.isPlaying)
+                    Destroy(screenshotRenderTexture);
+                else
+                    DestroyImmediate(screenshotRenderTexture);
+            }
         }
+
         #endregion
     }
 }

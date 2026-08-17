@@ -9,6 +9,7 @@ namespace HBP.UI.Database
     public class DatabaseReferenceItem : ActionnableItem<DatabaseReference>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_TypeText;
         [SerializeField] Text m_LastUpdatedText;
@@ -16,10 +17,7 @@ namespace HBP.UI.Database
 
         public override DatabaseReference Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -32,6 +30,7 @@ namespace HBP.UI.Database
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

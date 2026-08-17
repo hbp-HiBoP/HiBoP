@@ -9,6 +9,7 @@ namespace HBP.UI.Tools
     public class TextWithLink : MonoBehaviour, IPointerClickHandler, IPointerMoveHandler
     {
         #region Properties
+
         private TMP_Text m_TextWithLink;
         private string m_OriginalText;
         private string m_BaseHexColor;
@@ -17,14 +18,17 @@ namespace HBP.UI.Tools
         private ThemeElement m_ThemeElement;
         [SerializeField] State m_DefaultState;
         [SerializeField] State m_HoverState;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_TextWithLink = GetComponent<TMP_Text>();
             m_ThemeElement = GetComponent<ThemeElement>();
         }
+
         private void Start()
         {
             m_OriginalText = m_TextWithLink.text;
@@ -39,9 +43,11 @@ namespace HBP.UI.Tools
                 m_HighlightHexColor = ColorUtility.ToHtmlStringRGB(highlightColor);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void OnPointerClick(PointerEventData eventData)
         {
             int linkIndex = TMP_TextUtilities.FindIntersectingLink(m_TextWithLink, eventData.position, null);
@@ -51,6 +57,7 @@ namespace HBP.UI.Tools
                 Application.OpenURL(linkInfo.GetLinkID());
             }
         }
+
         public void OnPointerMove(PointerEventData eventData)
         {
             int linkIndex = TMP_TextUtilities.FindIntersectingLink(m_TextWithLink, eventData.position, null);
@@ -64,8 +71,10 @@ namespace HBP.UI.Tools
                 m_TextWithLink.text = m_OriginalText;
                 m_ThemeElement.Set(m_DefaultState);
             }
+
             m_TextWithLink.ForceMeshUpdate();
         }
+
         #endregion
     }
 }

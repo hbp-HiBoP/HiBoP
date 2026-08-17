@@ -12,40 +12,45 @@ namespace HBP.Core.Data
     public class FloatTag : BaseTag
     {
         #region Properties
+
         [JsonProperty("Clamped")] bool m_Clamped;
+
         public bool Clamped
         {
             get => m_Clamped;
             set
             {
-                if(m_Clamped != value)
+                if (m_Clamped != value)
                 {
                     m_Clamped = value;
                     OnNeedToRecalculateValue.Invoke();
                 }
             }
         }
+
         [JsonProperty("Min")] float m_Min;
+
         public float Min
         {
             get => m_Min;
             set
             {
-                if(m_Min != value)
+                if (m_Min != value)
                 {
                     m_Min = value;
                     OnNeedToRecalculateValue.Invoke();
                 }
             }
-
         }
+
         [JsonProperty("Max")] float m_Max;
+
         public float Max
         {
             get => m_Max;
             set
             {
-                if(m_Max != value)
+                if (m_Max != value)
                 {
                     m_Max = value;
                     OnNeedToRecalculateValue.Invoke();
@@ -54,37 +59,46 @@ namespace HBP.Core.Data
         }
 
         public UnityEvent OnNeedToRecalculateValue { get; set; } = new UnityEvent();
+
         #endregion
 
         #region Constructors
+
         public FloatTag() : this("", false, 0, 0)
         {
         }
+
         public FloatTag(string name) : this(name, false, 0, 0)
         {
         }
+
         public FloatTag(string name, string ID) : this(name, false, 0, 0, ID)
         {
         }
+
         public FloatTag(string name, bool clamped, float min, float max) : base(name)
         {
             Clamped = clamped;
             Min = min;
             Max = max;
         }
-        public FloatTag(string name, bool clamped, float min, float max, string ID) : base(name,ID)
+
+        public FloatTag(string name, bool clamped, float min, float max, string ID) : base(name, ID)
         {
             Clamped = clamped;
             Min = min;
             Max = max;
         }
+
         #endregion
 
         #region Public Methods
+
         public float Clamp(float value)
         {
             return Clamped ? Mathf.Clamp(value, Min, Max) : value;
         }
+
         public float Convert(object value)
         {
             if (value != null && value is float)
@@ -96,19 +110,22 @@ namespace HBP.Core.Data
                 throw new Exception("Wrong value type");
             }
         }
+
         public override object Clone()
         {
             return new FloatTag(Name, Clamped, Min, Max, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is FloatTag floatTag)
+            if (copy is FloatTag floatTag)
             {
                 Clamped = floatTag.Clamped;
                 Min = floatTag.Min;
                 Max = floatTag.Max;
             }
+
             if (copy is IntTag intTag)
             {
                 Clamped = intTag.Clamped;
@@ -116,14 +133,17 @@ namespace HBP.Core.Data
                 Max = intTag.Max;
             }
         }
+
         public override BaseTagValue CreateValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float result))
             {
                 return new FloatTagValue(this, result);
             }
+
             return null;
         }
+
         #endregion
     }
 }

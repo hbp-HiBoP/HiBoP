@@ -9,21 +9,26 @@ namespace HBP.UI.Toolbar
     public class ConfigurationLoaderSaver : Tool
     {
         #region Properties
+
         /// <summary>
         /// Save the configuration to the visualization
         /// </summary>
         [SerializeField] private Button m_Save;
+
         /// <summary>
         /// Load the configuration from a visualization
         /// </summary>
         [SerializeField] private Button m_Load;
+
         /// <summary>
         /// Reset the configuration of this scene
         /// </summary>
         [SerializeField] private Button m_Reset;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -40,14 +45,10 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                ObjectSelector<Visualization> selector = WindowsManager.OpenSelector(ApplicationState.LoadedProject.Visualizations, null, false);
-                selector.OnOk.AddListener(() =>
+                ToolbarExternalActions.SelectVisualization(ApplicationState.LoadedProject.Visualizations, visualization =>
                 {
-                    if (selector.ObjectsSelected.Length > 0)
-                    {
-                        SelectedScene.Visualization.Configuration = selector.ObjectsSelected[0].Configuration.Clone() as VisualizationConfiguration;
-                        SelectedScene.LoadConfiguration();
-                    }
+                    SelectedScene.Visualization.Configuration = visualization.Configuration.Clone() as VisualizationConfiguration;
+                    SelectedScene.LoadConfiguration();
                 });
             });
             m_Reset.onClick.AddListener(() =>
@@ -57,6 +58,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.ResetConfiguration();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -66,6 +68,7 @@ namespace HBP.UI.Toolbar
             m_Load.interactable = false;
             m_Reset.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -75,6 +78,7 @@ namespace HBP.UI.Toolbar
             m_Load.interactable = true;
             m_Reset.interactable = true;
         }
+
         #endregion
     }
 }

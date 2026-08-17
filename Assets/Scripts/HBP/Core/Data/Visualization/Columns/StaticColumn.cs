@@ -11,18 +11,19 @@ namespace HBP.Core.Data
     public class StaticColumn : Column
     {
         #region Properties
+
         [JsonProperty("Dataset")] string datasetID;
+        Dataset m_Dataset;
+
         /// <summary>
         /// Dataset of the column.
         /// </summary>
         public Dataset Dataset
         {
-            get
-            {
-                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
-            }
+            get => m_Dataset;
             set
             {
+                m_Dataset = value;
                 if (value == null)
                 {
                     datasetID = string.Empty;
@@ -40,26 +41,30 @@ namespace HBP.Core.Data
         [JsonProperty] public string DataName { get; set; }
 
         [JsonProperty] public StaticConfiguration StaticConfiguration { get; set; }
-        
+
         /// <summary>
         /// Data of the column.
         /// </summary>
         [JsonIgnore] public Processed.StaticData Data { get; set; } = new Processed.StaticData();
+
         #endregion
 
         #region Constructors
+
         public StaticColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, StaticConfiguration staticConfiguration, string ID) : base(name, baseConfiguration, ID)
         {
             StaticConfiguration = staticConfiguration;
             Dataset = dataset;
             DataName = dataName;
         }
+
         public StaticColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, StaticConfiguration staticConfiguration) : base(name, baseConfiguration)
         {
             StaticConfiguration = staticConfiguration;
             Dataset = dataset;
             DataName = dataName;
         }
+
         public StaticColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
         {
             foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
@@ -76,49 +81,64 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         public StaticColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, new StaticConfiguration())
         {
         }
+
         public StaticColumn() : this("", new BaseConfiguration())
         {
         }
+
         #endregion
 
         #region Public Methods
+
+        internal void ResolveReferences(LoadingContext context)
+        {
+            m_Dataset = context.ResolveRequired(context.DatasetById, datasetID, "dataset", $"StaticColumn '{ID}'");
+        }
+
         public override void GenerateID()
         {
             base.GenerateID();
             StaticConfiguration.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
             IDs.AddRange(StaticConfiguration.GetAllIdentifiable());
             return IDs;
         }
+
         public override object Clone()
         {
             return new StaticColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, StaticConfiguration.Clone() as StaticConfiguration, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is StaticColumn staticColumn)
+            if (copy is StaticColumn staticColumn)
             {
                 StaticConfiguration.Copy(staticColumn.StaticConfiguration);
                 Dataset = staticColumn.Dataset;
                 DataName = staticColumn.DataName;
             }
         }
+
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             StaticDataInfo[] staticDataInfos = Dataset?.GetStaticDataInfos();
             return Dataset != null && Dataset.Protocol != null && patients.All((patient) => staticDataInfos.Any((data) => data.Patient == patient && data.IsOk));
         }
+
         public override void Unload()
         {
             Data.Unload();
         }
-        #endregion  
+
+        #endregion
     }
 }

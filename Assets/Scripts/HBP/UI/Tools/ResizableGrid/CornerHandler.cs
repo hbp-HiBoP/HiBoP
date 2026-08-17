@@ -6,6 +6,7 @@ namespace HBP.UI.Tools.ResizableGrids
     public class CornerHandler : Handler
     {
         #region Properties
+
         [SerializeField] protected Theme.State m_CornerState;
 
         /// <summary>
@@ -17,9 +18,11 @@ namespace HBP.UI.Tools.ResizableGrids
         /// Associated horizontal handler
         /// </summary>
         private HorizontalHandler m_HorizontalHandler;
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (m_VerticalHandler != null && m_HorizontalHandler != null)
@@ -28,13 +31,16 @@ namespace HBP.UI.Tools.ResizableGrids
                 GetComponent<RectTransform>().anchorMax = new Vector2(m_VerticalHandler.Position, m_HorizontalHandler.Position);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize(ResizableGrid resizableGrid)
         {
             base.Initialize(resizableGrid);
         }
+
         /// <summary>
         /// Initialize the corner handler with the corresponding handlers
         /// </summary>
@@ -47,6 +53,7 @@ namespace HBP.UI.Tools.ResizableGrids
             GetComponent<RectTransform>().anchorMin = new Vector2(m_VerticalHandler.Position, m_HorizontalHandler.Position);
             GetComponent<RectTransform>().anchorMax = new Vector2(m_VerticalHandler.Position, m_HorizontalHandler.Position);
         }
+
         /// <summary>
         /// Callback event when clicking on the handler
         /// </summary>
@@ -58,6 +65,7 @@ namespace HBP.UI.Tools.ResizableGrids
             m_VerticalHandler.IsClicked = true;
             m_ThemeElement.Set(m_CornerState);
         }
+
         /// <summary>
         /// Callback event when releasing the click on the handler
         /// </summary>
@@ -68,6 +76,7 @@ namespace HBP.UI.Tools.ResizableGrids
             m_HorizontalHandler.IsClicked = false;
             m_VerticalHandler.IsClicked = false;
         }
+
         /// <summary>
         /// Callback event when entering in the handler
         /// </summary>
@@ -79,6 +88,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 m_ThemeElement.Set(m_CornerState);
             }
         }
+
         /// <summary>
         /// Callback event when dragging the handler
         /// </summary>
@@ -90,6 +100,7 @@ namespace HBP.UI.Tools.ResizableGrids
             GetComponent<RectTransform>().anchorMin = new Vector2(m_VerticalHandler.Position, m_HorizontalHandler.Position);
             GetComponent<RectTransform>().anchorMax = new Vector2(m_VerticalHandler.Position, m_HorizontalHandler.Position);
         }
+
         #endregion
     }
 }

@@ -8,16 +8,14 @@ namespace HBP.UI.Main
     public class ProjectPreferencesSubModifier : SubModifier<ProjectPreferences>
     {
         #region Properties
+
         [SerializeField] InputField m_DefaultName;
         [SerializeField] FolderSelector m_DefaultLocation;
         [SerializeField] FolderSelector m_DefaultExportDatabase;
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -27,9 +25,11 @@ namespace HBP.UI.Main
                 m_DefaultExportDatabase.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -38,9 +38,11 @@ namespace HBP.UI.Main
             m_DefaultLocation.onValueChanged.AddListener(value => Object.DefaultLocation = value);
             m_DefaultExportDatabase.onValueChanged.AddListener(value => Object.DefaultExportLocation = value);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(ProjectPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -49,6 +51,7 @@ namespace HBP.UI.Main
             m_DefaultLocation.Folder = objectToDisplay.DefaultLocation;
             m_DefaultExportDatabase.Folder = objectToDisplay.DefaultExportLocation;
         }
+
         #endregion
     }
 }

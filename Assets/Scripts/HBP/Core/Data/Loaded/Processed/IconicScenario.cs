@@ -9,13 +9,15 @@ namespace HBP.Core.Data.Processed
     * \version 1.0
     * \date 11 janvier 2017
     * \brief Iconic scenario represent a scenario with some icons which represent a step in a experiment.
-    * 
+    *
     * \details Iconic scenario represent a scenario with some icons which represent a step in a experiment
     */
     public class IconicScenario
     {
         #region Properties
+
         private List<Icon> m_Icons;
+
         /// <summary>
         /// Icons of the iconic scenario.
         /// </summary>
@@ -23,9 +25,11 @@ namespace HBP.Core.Data.Processed
         {
             get { return new ReadOnlyCollection<Icon>(m_Icons); }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new iconic scenario instance.
         /// </summary>
@@ -46,16 +50,18 @@ namespace HBP.Core.Data.Processed
                 }
             }
         }
+
         /// <summary>
         /// Create a new iconic scenario instance with default values.
         /// </summary>
-        public IconicScenario() : this(new Bloc(), new Tools.Frequency(0) ,null)
+        public IconicScenario() : this(new Bloc(), new Tools.Frequency(0), null)
         {
-
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add icon.
         /// </summary>
@@ -64,6 +70,7 @@ namespace HBP.Core.Data.Processed
         {
             m_Icons.Add(icon);
         }
+
         /// <summary>
         /// Add icons.
         /// </summary>
@@ -72,6 +79,7 @@ namespace HBP.Core.Data.Processed
         {
             foreach (Icon icon in icons) AddIcon(icon);
         }
+
         /// <summary>
         /// Remove icon.
         /// </summary>
@@ -80,6 +88,7 @@ namespace HBP.Core.Data.Processed
         {
             m_Icons.Remove(icon);
         }
+
         /// <summary>
         /// Remove icons.
         /// </summary>
@@ -88,6 +97,7 @@ namespace HBP.Core.Data.Processed
         {
             foreach (Icon icon in icons) RemoveIcon(icon);
         }
+
         /// <summary>
         /// Set icons.
         /// </summary>
@@ -97,18 +107,20 @@ namespace HBP.Core.Data.Processed
             this.m_Icons = new List<Icon>();
             AddIcon(icons);
         }
+
         /// <summary>
         /// Reposition icons.
         /// </summary>
         /// <param name="offset">Difference of the size before the main event.</param>
         public void Reposition(int offset)
         {
-            foreach(Icon icon in Icons)
+            foreach (Icon icon in Icons)
             {
                 icon.StartPosition += offset;
                 icon.EndPosition += offset;
             }
         }
+
         /// <summary>
         /// Load the textures of the icons
         /// </summary>
@@ -119,6 +131,7 @@ namespace HBP.Core.Data.Processed
                 icon.Load();
             }
         }
+
         #endregion
     }
 }

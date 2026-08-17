@@ -10,6 +10,7 @@ namespace HBP.Core.Data
     public class PatientTagFilterCondition : BaseFilterCondition
     {
         #region Properties
+
         public override string Description
         {
             get
@@ -33,42 +34,55 @@ namespace HBP.Core.Data
 
                     return result;
                 }
+
                 return "Filter not supported";
             }
         }
 
-        public enum TargetType { Patient, Sites }
+        public enum TargetType
+        {
+            Patient,
+            Sites
+        }
+
         [JsonProperty("Target")] public TargetType Target { get; set; }
 
         [JsonProperty("Tag")] private string m_TagID = "";
         public BaseTag Tag { get; set; }
 
         [JsonProperty("Value")] public TagFilterValue Value { get; set; }
+
         #endregion
 
         #region Constructors
+
         public PatientTagFilterCondition() : this(TargetType.Patient, null, new EmptyTagFilterValue(), false)
         {
         }
+
         public PatientTagFilterCondition(TargetType target, BaseTag tag, TagFilterValue value, bool isNot) : base(isNot)
         {
             Target = target;
             Tag = tag;
             Value = value;
         }
+
         public PatientTagFilterCondition(TargetType target, BaseTag tag, TagFilterValue value, bool isNot, string ID) : base(isNot, ID)
         {
             Target = target;
             Tag = tag;
             Value = value;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new PatientTagFilterCondition(Target, Tag, Value.Clone() as TagFilterValue, IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -79,9 +93,11 @@ namespace HBP.Core.Data
                 Value = tagFilterCondition.Value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is Patient patient)
@@ -111,21 +127,30 @@ namespace HBP.Core.Data
                     }
                 }
             }
+
             return false;
         }
+
         #endregion
 
         #region Serialization
+
+        internal void ResolveReferences(LoadingContext context)
+        {
+            Tag = context.ResolveOptional(context.TagById, m_TagID ?? Tag?.ID);
+        }
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            Tag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.ID == m_TagID);
         }
+
         protected override void OnSerializing()
         {
             base.OnSerializing();
             m_TagID = Tag?.ID ?? "";
         }
+
         #endregion
     }
 }

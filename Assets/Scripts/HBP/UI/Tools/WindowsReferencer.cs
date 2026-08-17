@@ -15,12 +15,10 @@ namespace HBP.UI.Tools
         public UnityEvent<Window> OnCloseWindow { get; protected set; } = new GenericEvent<Window>();
 
         [SerializeField] protected List<Window> m_Windows = new();
+
         public ReadOnlyCollection<Window> Windows
         {
-            get
-            {
-                return new ReadOnlyCollection<Window>(m_Windows);
-            }
+            get { return new ReadOnlyCollection<Window>(m_Windows); }
         }
 
         public void SaveAll()
@@ -28,17 +26,20 @@ namespace HBP.UI.Tools
             DialogWindow[] windowsToSave = m_Windows.OfType<DialogWindow>().ToArray();
             foreach (var window in windowsToSave) window.OK();
         }
+
         public void CloseAll()
         {
             Window[] windowsToClose = m_Windows.ToArray();
             foreach (var window in windowsToClose) window.Close();
         }
+
         public void Add(Window window)
         {
             m_Windows.Add(window);
             window.OnClose.AddListener(() => Remove(window));
             OnOpenWindow.Invoke(window);
         }
+
         public void Remove(Window window)
         {
             m_Windows.Remove(window);

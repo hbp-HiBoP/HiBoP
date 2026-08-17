@@ -13,17 +13,20 @@ namespace HBP.Core.Preferences
     public class VisualizationPreferences : ICloneable
     {
         #region Properties
+
         [JsonProperty] public _3DPreferences _3D { get; set; }
         [JsonProperty] public TrialMatrixPreferences TrialMatrix { get; set; }
         [JsonProperty] public GraphPreferences Graph { get; set; }
         [JsonProperty] public CutPreferences Cut { get; set; }
+
         #endregion
 
         #region Constructors
+
         public VisualizationPreferences() : this(new _3DPreferences(), new TrialMatrixPreferences(), new GraphPreferences(), new CutPreferences())
         {
-
         }
+
         public VisualizationPreferences(_3DPreferences _3d, TrialMatrixPreferences trialMatrix, GraphPreferences graph, CutPreferences cut)
         {
             _3D = _3d;
@@ -31,13 +34,16 @@ namespace HBP.Core.Preferences
             Graph = graph;
             Cut = cut;
         }
+
         #endregion
 
         #region Public Methods
+
         public object Clone()
         {
             return new VisualizationPreferences(_3D.Clone() as _3DPreferences, TrialMatrix.Clone() as TrialMatrixPreferences, Graph.Clone() as GraphPreferences, Cut.Clone() as CutPreferences);
         }
+
         #endregion
     }
 
@@ -45,8 +51,11 @@ namespace HBP.Core.Preferences
     public class _3DPreferences : ICloneable
     {
         #region Properties
+
         [JsonProperty] public bool AutomaticEEGUpdate { get; set; }
         [JsonProperty] public bool RawCuts { get; set; }
+        [JsonProperty] public bool MaskActivityOnMRIBackground { get; set; }
+        [JsonProperty] public bool SmoothActivityBoundaries { get; set; }
         [JsonProperty] public LayoutDirection VisualizationsLayoutDirection { get; set; }
         [JsonProperty] public SiteInfluenceByDistanceType SiteInfluenceByDistance { get; set; }
         [JsonProperty] public string DefaultSelectedMRIInSinglePatientVisualization { get; set; }
@@ -55,23 +64,17 @@ namespace HBP.Core.Preferences
         [JsonProperty] public string DefaultSelectedMRIInMultiPatientsVisualization { get; set; }
         [JsonProperty] public string DefaultSelectedMeshInMultiPatientsVisualization { get; set; }
         [JsonProperty] public string DefaultSelectedImplantationInMultiPatientsVisualization { get; set; }
+
         #endregion
 
         #region Constructors
-        public _3DPreferences(
-            bool automaticEEGUpdate = true,
-            bool rawCuts = false,
-            LayoutDirection visualizationsLayoutDirection = LayoutDirection.Vertical,
-            SiteInfluenceByDistanceType siteInfluenceByDistance = SiteInfluenceByDistanceType.Quadratic,
-            string defaultSelectedMRIInSinglePatientVisualization = "Preimplantation",
-            string defaultSelectedMeshInSinglePatientVisualization = "Grey matter",
-            string defaultSelectedImplantationInSinglePatientVisualization = "Patient",
-            string defaultSelectedMRIInMultiPatientsVisualization = "MNI",
-            string defaultSelectedMeshInMultiPatientsVisualization = "MNI Grey matter",
-            string defaultSelectedImplantationInMultiPatientsVisualization = "MNI")
+
+        public _3DPreferences(bool automaticEEGUpdate = true, bool rawCuts = false, LayoutDirection visualizationsLayoutDirection = LayoutDirection.Vertical, SiteInfluenceByDistanceType siteInfluenceByDistance = SiteInfluenceByDistanceType.Quadratic, string defaultSelectedMRIInSinglePatientVisualization = "Preimplantation", string defaultSelectedMeshInSinglePatientVisualization = "Grey matter", string defaultSelectedImplantationInSinglePatientVisualization = "Patient", string defaultSelectedMRIInMultiPatientsVisualization = "MNI", string defaultSelectedMeshInMultiPatientsVisualization = "MNI Grey matter", string defaultSelectedImplantationInMultiPatientsVisualization = "MNI", bool maskActivityOnMRIBackground = true, bool smoothActivityBoundaries = true)
         {
             AutomaticEEGUpdate = automaticEEGUpdate;
             RawCuts = rawCuts;
+            MaskActivityOnMRIBackground = maskActivityOnMRIBackground;
+            SmoothActivityBoundaries = smoothActivityBoundaries;
             VisualizationsLayoutDirection = visualizationsLayoutDirection;
             SiteInfluenceByDistance = siteInfluenceByDistance;
             DefaultSelectedMRIInSinglePatientVisualization = defaultSelectedMRIInSinglePatientVisualization;
@@ -81,13 +84,16 @@ namespace HBP.Core.Preferences
             DefaultSelectedMeshInMultiPatientsVisualization = defaultSelectedMeshInMultiPatientsVisualization;
             DefaultSelectedImplantationInMultiPatientsVisualization = defaultSelectedImplantationInMultiPatientsVisualization;
         }
+
         #endregion
 
         #region Public Methods
+
         public object Clone()
         {
-            return new _3DPreferences(AutomaticEEGUpdate, RawCuts, VisualizationsLayoutDirection, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization);
+            return new _3DPreferences(AutomaticEEGUpdate, RawCuts, VisualizationsLayoutDirection, SiteInfluenceByDistance, DefaultSelectedMRIInSinglePatientVisualization, DefaultSelectedMeshInSinglePatientVisualization, DefaultSelectedImplantationInSinglePatientVisualization, DefaultSelectedMRIInMultiPatientsVisualization, DefaultSelectedMeshInMultiPatientsVisualization, DefaultSelectedImplantationInMultiPatientsVisualization, MaskActivityOnMRIBackground, SmoothActivityBoundaries);
         }
+
         #endregion
     }
 
@@ -95,6 +101,7 @@ namespace HBP.Core.Preferences
     public class TrialMatrixPreferences : ICloneable
     {
         #region Properties
+
         public const int MINIMUM_TRIAL_HEIGHT = 5;
         public const int MAXIMUM_TRIAL_HEIGHT = 50;
         public const float MINIMUM_TRIAL_RATIO = 0.001f;
@@ -113,13 +120,12 @@ namespace HBP.Core.Preferences
         [JsonProperty] public float TrialRatio { get; set; }
         [JsonProperty] public float BlocRatio { get; set; }
         [JsonProperty] public float ProtocolRatio { get; set; }
+
         #endregion
 
         #region Constructors
-        public TrialMatrixPreferences(bool showWholeProtocol = true, bool trialsSynchronization = true, bool trialSmooting = true,
-            int numberOfIntermediateValues = 3, bool smooth2D = true, BlocFormatType subBlocFormat = BlocFormatType.BlocRatio,
-            int trialHeight = (int)(0.3f * (MAXIMUM_TRIAL_HEIGHT - MINIMUM_TRIAL_HEIGHT)), float trialRatio = 0.3f * (MAXIMUM_TRIAL_RATIO - MINIMUM_TRIAL_RATIO), float blocRatio = 0.3f * (MAXIMUM_BLOC_RATIO - MINIMUM_BLOC_RATIO),
-            float protocolRatio = 0.3f * (MAXIMUM_PROTOCOL_RATIO - MINIMUM_PROTOCOL_RATIO))
+
+        public TrialMatrixPreferences(bool showWholeProtocol = true, bool trialsSynchronization = true, bool trialSmooting = true, int numberOfIntermediateValues = 3, bool smooth2D = true, BlocFormatType subBlocFormat = BlocFormatType.BlocRatio, int trialHeight = (int)(0.3f * (MAXIMUM_TRIAL_HEIGHT - MINIMUM_TRIAL_HEIGHT)), float trialRatio = 0.3f * (MAXIMUM_TRIAL_RATIO - MINIMUM_TRIAL_RATIO), float blocRatio = 0.3f * (MAXIMUM_BLOC_RATIO - MINIMUM_BLOC_RATIO), float protocolRatio = 0.3f * (MAXIMUM_PROTOCOL_RATIO - MINIMUM_PROTOCOL_RATIO))
         {
             ShowWholeProtocol = showWholeProtocol;
             TrialsSynchronization = trialsSynchronization;
@@ -132,13 +138,16 @@ namespace HBP.Core.Preferences
             BlocRatio = blocRatio;
             ProtocolRatio = protocolRatio;
         }
+
         #endregion
 
         #region Public Methods
+
         public object Clone()
         {
             return new TrialMatrixPreferences(ShowWholeProtocol, TrialsSynchronization, TrialSmoothing, NumberOfIntermediateValues, Smooth2D, SubBlocFormat, TrialHeight, TrialRatio, BlocRatio, ProtocolRatio);
         }
+
         #endregion
     }
 
@@ -147,6 +156,7 @@ namespace HBP.Core.Preferences
     public class GraphPreferences : ICloneable
     {
         #region Properties
+
         public const int MINIMUM_NUMBER_OF_SITES = 2;
         public const int MAXIMUM_NUMBER_OF_SITES = 10;
         public const int MINIMUM_NUMBER_OF_COLUMNS = 8;
@@ -156,8 +166,9 @@ namespace HBP.Core.Preferences
 
         [JsonProperty] public bool ShowCurvesOfMinimizedColumns { get; set; }
         [JsonProperty] public bool ShowSEM { get; set; }
-        
+
         [JsonProperty] private int m_MaxSites;
+
         [JsonIgnore] public int MaxSites
         {
             get => m_MaxSites;
@@ -170,7 +181,9 @@ namespace HBP.Core.Preferences
                 }
             }
         }
+
         [JsonProperty] private int m_MaxColumns;
+
         [JsonIgnore] public int MaxColumns
         {
             get => m_MaxColumns;
@@ -183,7 +196,9 @@ namespace HBP.Core.Preferences
                 }
             }
         }
+
         [JsonProperty] private int m_MaxGroups;
+
         [JsonIgnore] public int MaxGroups
         {
             get => m_MaxGroups;
@@ -201,9 +216,11 @@ namespace HBP.Core.Preferences
         [JsonProperty] public ColorGrid ROIColors { get; set; }
         [JsonProperty] public ColorGrid GroupColors { get; set; }
         [JsonProperty] public ColorGrid LocalizersColors { get; set; }
+
         #endregion
 
         #region Constructors
+
         public GraphPreferences(bool showCurvesOfMinimizedColumns = true, bool showSEM = true, int maxSites = 2, int maxColumns = 8, int maxGroups = 1)
         {
             ShowCurvesOfMinimizedColumns = showCurvesOfMinimizedColumns;
@@ -213,13 +230,16 @@ namespace HBP.Core.Preferences
             m_MaxGroups = maxGroups;
             InitializeDefaultColors();
         }
+
         #endregion
 
         #region Public Methods
+
         public void SetDefaultColors()
         {
             InitializeDefaultColors();
         }
+
         public void UpdateMaxDimensions(int maxSites, int maxColumns, int maxGroups)
         {
             if (maxSites > MaxSites || maxColumns > MaxColumns)
@@ -233,6 +253,7 @@ namespace HBP.Core.Preferences
                         newSiteColors.SetColor(r, c, SiteColors.GetColor(r, c));
                     }
                 }
+
                 SiteColors = newSiteColors;
             }
 
@@ -244,6 +265,7 @@ namespace HBP.Core.Preferences
                 {
                     newROIColors.SetColor(0, c, ROIColors.GetColor(0, c));
                 }
+
                 ROIColors = newROIColors;
             }
 
@@ -258,6 +280,7 @@ namespace HBP.Core.Preferences
                         newGroupColors.SetColor(r, c, GroupColors.GetColor(r, c));
                     }
                 }
+
                 GroupColors = newGroupColors;
             }
 
@@ -272,6 +295,7 @@ namespace HBP.Core.Preferences
                         newLocalizersColors.SetColor(0, c, LocalizersColors.GetColor(0, c));
                     }
                 }
+
                 LocalizersColors = newLocalizersColors;
             }
 
@@ -279,6 +303,7 @@ namespace HBP.Core.Preferences
             MaxColumns = maxColumns;
             MaxGroups = maxGroups;
         }
+
         public object Clone()
         {
             GraphPreferences clone = new(ShowCurvesOfMinimizedColumns, ShowSEM);
@@ -291,9 +316,11 @@ namespace HBP.Core.Preferences
             clone.LocalizersColors = LocalizersColors?.Clone() as ColorGrid;
             return clone;
         }
+
         #endregion
 
         #region Private Methods
+
         private void InitializeDefaultColors()
         {
             SiteColors = new ColorGrid(MaxSites, MaxColumns, ColorGrid.ColorGridType.Site);
@@ -354,6 +381,7 @@ namespace HBP.Core.Preferences
                 new(64f / 255f, 224f / 255f, 208f / 255f)
             });
         }
+
         #endregion
     }
 
@@ -361,21 +389,27 @@ namespace HBP.Core.Preferences
     public class CutPreferences : ICloneable
     {
         #region Properties
+
         [JsonProperty] public bool ShowCutLines { get; set; }
+
         #endregion
 
         #region Constructors
+
         public CutPreferences(bool showCutLines = true)
         {
             ShowCutLines = showCutLines;
         }
+
         #endregion
 
         #region Public Methods
+
         public object Clone()
         {
             return new CutPreferences(ShowCutLines);
         }
+
         #endregion
     }
 
@@ -383,43 +417,58 @@ namespace HBP.Core.Preferences
     public class ColorGrid : ICloneable
     {
         #region Enums
-        public enum ColorGridType { Site, ROI, Group, Localizers }
+
+        public enum ColorGridType
+        {
+            Site,
+            ROI,
+            Group,
+            Localizers
+        }
+
         #endregion
 
         #region Properties
+
         [JsonProperty] private SerializableColor[,] m_Colors;
         [JsonProperty] private ColorGridType m_Type;
 
         public int Rows => m_Colors?.GetLength(0) ?? 0;
         public int Columns => m_Colors?.GetLength(1) ?? 0;
+
         #endregion
 
         #region Constructors
+
         public ColorGrid(int rows, int columns, ColorGridType type)
         {
             m_Colors = new SerializableColor[rows, columns];
             m_Type = type;
         }
+
         #endregion
 
         #region Public Methods
+
         public Color GetColor(int row, int column)
         {
             if (row >= 0 && row < Rows && column >= 0 && column < Columns)
             {
                 return m_Colors[row, column].ToColor();
             }
-            
+
             // Si on dépasse les bornes, générer une couleur aléatoire et l'ajouter à la grille
             Color randomColor = GenerateRandomColor(row, column);
             SetColor(row, column, randomColor);
             return randomColor;
         }
+
         public void SetColor(int row, int column, Color color)
         {
             EnsureSize(row + 1, column + 1);
             m_Colors[row, column] = new SerializableColor(color);
         }
+
         public void InitializeWithColors(Color[] colors)
         {
             int colorIndex = 0;
@@ -439,6 +488,7 @@ namespace HBP.Core.Preferences
                 }
             }
         }
+
         public object Clone()
         {
             ColorGrid clone = new(Rows, Columns, m_Type);
@@ -449,11 +499,14 @@ namespace HBP.Core.Preferences
                     clone.m_Colors[r, c] = m_Colors[r, c];
                 }
             }
+
             return clone;
         }
+
         #endregion
 
         #region Private Methods
+
         private void EnsureSize(int minRows, int minColumns)
         {
             if (Rows < minRows || Columns < minColumns)
@@ -487,6 +540,7 @@ namespace HBP.Core.Preferences
                 m_Colors = newColors;
             }
         }
+
         private Color GenerateRandomColor(int row, int column)
         {
             int baseSeed = m_Type switch
@@ -504,6 +558,7 @@ namespace HBP.Core.Preferences
             UnityEngine.Random.state = oldState;
             return randomColor;
         }
+
         #endregion
     }
 }

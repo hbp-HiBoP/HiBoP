@@ -10,10 +10,12 @@ namespace HBP.Core.Object3D
     public class FMRI
     {
         #region Properties
+
         /// <summary>
         /// Name of the MRI
         /// </summary>
         public string Name { get; set; }
+
         private readonly string m_File = "";
         private readonly string m_MaskFile = "";
         public List<Volume> Volumes { get; private set; } = new List<Volume>();
@@ -26,18 +28,22 @@ namespace HBP.Core.Object3D
         public float TimeStep { get; private set; } = 1;
         public string TimeUnit { get; private set; } = "dt";
         public MRICalValues ExtremeValues { get; private set; }
-        public Texture HistogramTexture { get; private set; }
+        public int[] HistogramBins { get; private set; }
+
         #endregion
 
         #region Constructors
+
         public FMRI()
         {
             Name = "Default";
             Volumes.Add(new Volume());
         }
+
         public FMRI(Data.MRI mri, Data.MRI mask, bool loadInBackground = true) : this(mri.Name, mri.File, mask.File, loadInBackground)
         {
         }
+
         public FMRI(string name, string file, string maskFile = "", bool loadInBackground = true)
         {
             Name = name;
@@ -46,13 +52,16 @@ namespace HBP.Core.Object3D
             if (loadInBackground)
                 Load(file, maskFile).Forget();
         }
+
         #endregion
 
         #region Private Methods
+
         private async UniTaskVoid Load(string file, string maskFile)
         {
             await LoadAsync(file, maskFile);
         }
+
         /// <summary>
         /// Load the FMRI
         /// </summary>
@@ -66,18 +75,21 @@ namespace HBP.Core.Object3D
             {
                 throw new HBPException("fMRI loading error", $"The fMRI {Name} could not be loaded.");
             }
+
             for (int i = 0; i < nifti.NumberOfVolumes; i++)
             {
                 Volumes.Add(nifti.ExtractVolume(i));
             }
+
             ExtremeValues = nifti.ExtremeValues;
-            HistogramTexture = Texture.GenerateDistributionHistogram(nifti, 440, 440, false);
+            HistogramBins = nifti.GetHistogramBins(UnityTextureFactory.HistogramBinCount);
             if (nifti.NumberOfVolumes > 0)
             {
                 StartTime = nifti.StartTime;
                 TimeStep = nifti.TimeStep;
                 TimeUnit = nifti.TimeUnit;
             }
+
             nifti.Dispose();
             // MASK
             if (!string.IsNullOrEmpty(maskFile))
@@ -87,21 +99,26 @@ namespace HBP.Core.Object3D
                 {
                     throw new HBPException("Mask loading error", $"The mask of the fMRI {Name} could not be loaded.");
                 }
+
                 if (!MaskVolume.BoundingBox.Compare(Volumes[0].BoundingBox))
                 {
                     throw new HBPException("Mask and fMRI bounding box mismatch", $"The mask of the fMRI {Name} does not have the same bounding box as the fMRI.");
                 }
             }
+
             Loading = false;
             Loaded = true;
         }
+
         #endregion
 
         #region Public Methods
+
         public async UniTask LoadAsync()
         {
             await LoadAsync(m_File, m_MaskFile);
         }
+
         /// <summary>
         /// Dispose all DLL objects
         /// </summary>
@@ -112,6 +129,7 @@ namespace HBP.Core.Object3D
                 volume.Dispose();
             }
         }
+
         #endregion
     }
 }

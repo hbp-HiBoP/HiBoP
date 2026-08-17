@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class ProtocolGestion : GestionWindow<Protocol>
     {
         #region Properties
+
         [SerializeField] ProtocolListGestion m_ListGestion;
         public override ListGestion<Protocol> ListGestion => m_ListGestion;
 
@@ -26,47 +27,31 @@ namespace HBP.UI.Main
                 m_ListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override async void OK()
         {
-            bool requiresReload = false;
-            bool requiresCheck = false;
-
-            if (DataManager.HasData)
-            {
-                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Reload required", "Some data is already loaded. Your recent changes won't be applied unless you reload the data.\n\nWould you like to save and reload now?", "Save&Reload", "Cancel");
-                
-                if (result == 0)
-                    requiresReload = true;
-                else
-                    return;
-            }
-
-            if (m_ListGestion.ModifiedProtocols.Count > 0)
-            {
-                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Data check required", "Some protocols have been modified. A data integrity check is required to ensure there are no errors.\n\nWould you like to proceed with the check?", "Check", "Cancel");
-
-                if (result == 0)
-                    requiresCheck = true;
-                else
-                    return;
-            }
+            bool requiresReload = DataManager.HasData;
+            ValidationRequest validationRequest = ValidationImpactAnalyzer.ForProtocols(m_OldValues, m_ListGestion.List.Objects);
 
             base.OK();
-            DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects);
+            DatabaseManager.Database.SetProtocols(m_ListGestion.List.Objects, validationRequest);
+            if (validationRequest.Aspects != ValidationAspect.None)
+            {
+                ApplicationState.LoadedProject?.InvalidateValidation(validationRequest);
+            }
+
             await DatabaseWorkflow.SaveProtocolsAsync();
             InteractableStateManager.SetInteractables();
-            if (requiresCheck)
-            {
-                await LoadingManager.LoadAsync(update => Dataset.CheckDatasetsAsync(m_ListGestion.ModifiedProtocols, true, update));
-            }
             await UniTask.SwitchToMainThread();
             if (requiresReload)
             {
-                DataManager.Clear();
+                DataManager.ClearDerivedData();
             }
+
             if (ApplicationState.LoadedProject != null)
             {
                 var visualizations = Module3DMain.PrepareReloadScenes();
@@ -74,20 +59,24 @@ namespace HBP.UI.Main
                 UITools.CheckProjectIDAndAskForRegeneration().Forget();
             }
         }
+
         public override void Close()
         {
             if (m_ListGestion.HasBeenModified)
                 LoadingManager.Load(update => RestoreOldValuesAsync(DatabaseManager.Database.Protocols, update), false);
             base.Close();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields()
         {
             base.SetFields();
             SetList(DatabaseManager.Database.Protocols);
         }
+
         #endregion
     }
 }

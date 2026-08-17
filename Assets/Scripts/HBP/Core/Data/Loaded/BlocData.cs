@@ -7,18 +7,19 @@ namespace HBP.Core.Data
     public class BlocData
     {
         #region Properties
+
         public bool IsValid
         {
-            get
-            {
-                return Trials.Length > 0 && Trials.Any(t => t.IsValid);
-            }
+            get { return Trials.Length > 0 && Trials.Any(t => t.IsValid); }
         }
+
         public Tools.Frequency Frequency { get; set; }
         public Trial[] Trials { get; set; }
+
         #endregion
 
         #region Constructors
+
         public BlocData(DynamicData data, Bloc bloc)
         {
             // Find all occurences for each event.
@@ -29,6 +30,7 @@ namespace HBP.Core.Data
 
             // Initialize loop.
             List<Trial> trials = new(MainSubBlocMainEventOccurences.Length);
+            EpochCompatibilityBuffer compatibilityBuffer = new();
             int startIndex, endIndex;
 
             // All main event position but the last one.
@@ -36,26 +38,40 @@ namespace HBP.Core.Data
             {
                 startIndex = (i - 1 < 0) ? 0 : MainSubBlocMainEventOccurences[i - 1].Index;
                 endIndex = (i + 1 >= MainSubBlocMainEventOccurences.Length) ? int.MaxValue : MainSubBlocMainEventOccurences[i + 1].Index;
-                trials.Add(new Trial(data.ValuesByChannel, data.UnitByChannel, startIndex, MainSubBlocMainEventOccurences[i], endIndex, occurencesByEvent, bloc, data.Frequency));
+                trials.Add(new Trial(data.ValuesByChannel, data.UnitByChannel, startIndex, MainSubBlocMainEventOccurences[i], endIndex, occurencesByEvent, bloc, data.Frequency, i, compatibilityBuffer));
             }
+
             Trials = SortTrials(bloc, trials);
+            for (int trialIndex = 0; trialIndex < Trials.Length; ++trialIndex)
+            {
+                foreach (SubTrial subTrial in Trials[trialIndex].SubTrialBySubBloc.Values)
+                {
+                    if (subTrial.Descriptor != null)
+                        subTrial.Descriptor.TrialIndex = trialIndex;
+                }
+            }
 
             Frequency = data.Frequency;
         }
+
         #endregion
 
         #region Public Methods
+
         public void Clear()
         {
             foreach (var trial in Trials)
             {
                 trial.Clear();
             }
+
             Trials = new Trial[0];
         }
+
         #endregion
 
         #region Private Methods
+
         static Trial[] SortTrials(Bloc bloc, IEnumerable<Trial> trials)
         {
             var orderedTrials = trials.Where(t => t.IsValid).ToList();
@@ -95,40 +111,51 @@ namespace HBP.Core.Data
 
                 orderedTrials.AddRange(trialsNotFound);
             }
+
             return orderedTrials.ToArray();
         }
 
         #endregion
 
         #region Structs
+
         public struct EventOccurences
         {
             #region Properties
+
             Dictionary<int, EventOccurence[]> m_OccurencesByCode;
+
             #endregion
 
             #region Constructors
+
             public EventOccurences(Dictionary<int, EventOccurence[]> occurencesByCode)
             {
                 m_OccurencesByCode = occurencesByCode;
             }
+
             #endregion
 
             #region Public Methods
+
             public EventOccurence[] GetOccurences()
             {
                 return m_OccurencesByCode.SelectMany((kv) => kv.Value).ToArray();
             }
+
             public EventOccurence[] GetOccurences(int code)
             {
                 return m_OccurencesByCode[code];
             }
+
             public EventOccurence[] GetOccurences(int start, int end)
             {
                 return m_OccurencesByCode.SelectMany((kv) => kv.Value.Where(o => o.Index >= start && o.Index <= end)).ToArray();
             }
+
             #endregion
         }
+
         #endregion
     }
-} 
+}

@@ -12,10 +12,13 @@ namespace HBP.UI.Main
     public class VersionLabel : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] Text m_Text;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_Text.text = string.Format("{0} {1}", Application.productName, Application.version);
@@ -57,6 +60,7 @@ namespace HBP.UI.Main
                     WindowsManager.Open("Version Window", null);
             }
         }
+
         #endregion
     }
 }

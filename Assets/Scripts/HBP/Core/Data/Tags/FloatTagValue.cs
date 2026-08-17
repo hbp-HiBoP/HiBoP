@@ -24,6 +24,7 @@ namespace HBP.Core.Data
     public class FloatTagValue : TagValue<FloatTag, float>
     {
         #region Properties
+
         public override FloatTag Tag
         {
             get => base.Tag;
@@ -33,6 +34,7 @@ namespace HBP.Core.Data
                 base.Tag.OnNeedToRecalculateValue.AddListener(RecalculateValue);
             }
         }
+
         public override float Value
         {
             get => base.Value;
@@ -41,9 +43,11 @@ namespace HBP.Core.Data
                 if (Tag != null) base.Value = Tag.Clamp(value);
             }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new instance of FloatTagValue.
         /// </summary>
@@ -52,8 +56,8 @@ namespace HBP.Core.Data
         /// <param name="ID">Unique identifier</param>
         public FloatTagValue(FloatTag tag, float value, string ID) : base(tag, value, ID)
         {
-
         }
+
         /// <summary>
         /// Create a new instance of FloatTagValue.
         /// </summary>
@@ -61,21 +65,24 @@ namespace HBP.Core.Data
         /// <param name="value">Value associated with the tag</param>
         public FloatTagValue(FloatTag tag, float value) : base(tag, value)
         {
-
         }
+
         /// <summary>
         /// Create a new instance of FloatTagValue.
         /// </summary>
         public FloatTagValue() : this(null, default)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override object Clone()
         {
             return new FloatTagValue(Tag, Value, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -85,6 +92,7 @@ namespace HBP.Core.Data
                 {
                     Value = intValue;
                 }
+
                 if (baseTagValue.Value is string stringValue)
                 {
                     if (NumberExtension.TryParseFloat(stringValue, out float floatValue))
@@ -94,9 +102,11 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Recalculate the value.
         /// </summary>
@@ -104,6 +114,7 @@ namespace HBP.Core.Data
         {
             Value = Value;
         }
+
         #endregion
     }
 }

@@ -52,32 +52,28 @@ namespace HBP.Core.Data
     public class PatientDataInfo : DataInfo
     {
         #region Properties
+
         [JsonProperty("Patient")] protected string m_PatientID;
         protected Patient m_Patient;
+
         /// <summary>
         /// Patient who has passed the experiment.
         /// </summary>
         ///
         public Patient Patient
         {
-            get
-            {
-                // Utile si le patient ne fait pas parti de la base de données
-                if (m_Patient == null)
-                {
-                    UpdatePatient();
-                }
-                return m_Patient; 
-            }
+            get => m_Patient;
             set
             {
                 if (value != null) m_PatientID = value.ID;
                 m_Patient = value;
             }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
@@ -89,6 +85,7 @@ namespace HBP.Core.Data
         {
             Patient = patient;
         }
+
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
@@ -99,15 +96,18 @@ namespace HBP.Core.Data
         {
             Patient = patient;
         }
+
         /// <summary>
         /// Create a new PatientDataInfo instance.
         /// </summary>
-        public PatientDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], ApplicationState.LoadedProject.Patients.FirstOrDefault(), "")
+        public PatientDataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], null, "")
         {
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -116,6 +116,7 @@ namespace HBP.Core.Data
         {
             return new PatientDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, CorrespondingDatabaseID, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
@@ -124,15 +125,37 @@ namespace HBP.Core.Data
                 Patient = patientDataInfo.Patient;
             }
         }
+
         #endregion
 
         #region Private Methods
+
+        internal override IEnumerable<ValidationState> GetValidationStates(ValidationAspect aspect, ValidationRequest request, DataInfoValidationContext context)
+        {
+            if (aspect != ValidationAspect.Structure)
+            {
+                return base.GetValidationStates(aspect, request, context);
+            }
+
+            List<Error> errors = base.GetValidationStates(aspect, request, context).SelectMany(state => state.Errors).ToList();
+            if (m_Patient == null)
+            {
+                errors.Add(new PatientEmptyError());
+            }
+
+            return new[]
+            {
+                CreateValidationState(aspect, string.Empty, $"{Name}|{Protocol?.ID}|{Patient?.ID}", errors, System.Array.Empty<Warning>())
+            };
+        }
+
         protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetPatientErrors());
             return errors;
         }
+
         /// <summary>
         /// Get all dataInfo errors related to the patient.
         /// </summary>
@@ -143,35 +166,56 @@ namespace HBP.Core.Data
             if (m_Patient == null) errors.Add(new PatientEmptyError());
             return errors;
         }
+
         protected override IEnumerable<Warning> GetWarnings()
         {
             List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetPatientWarnings());
             return warnings;
         }
+
         private IEnumerable<Warning> GetPatientWarnings()
         {
             List<Warning> warnings = new();
             return warnings;
         }
+
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Rebinds this instance against the currently published graph. Loading
+        /// code should use <see cref="LoadingContext"/> directly.
+        /// </summary>
         public void UpdatePatient()
         {
-            if (ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(ds => ds.Data.Contains(this)))
-                m_Patient = ApplicationState.LoadedProject.Patients.FirstOrDefault(p => p.ID == m_PatientID);
-            else
-                m_Patient = DatabaseManager.Database.Patients.FirstOrDefault(p => p.ID == m_PatientID);
+            IEnumerable<Patient> patients = ApplicationState.LoadedProject != null && ApplicationState.LoadedProject.Datasets.Any(dataset => dataset.Data.Contains(this)) ? ApplicationState.LoadedProject.Patients : DatabaseManager.Database.Patients;
+            LoadingContext context = new(System.Array.Empty<BaseTag>(), DatabaseManager.Database.Protocols, patients);
+            m_Patient = context.ResolveRequired(context.PatientById, m_PatientID ?? m_Patient?.ID, "patient", $"{GetType().Name} '{ID}'");
         }
+
+        internal override void ResolveReferences(LoadingContext context)
+        {
+            base.ResolveReferences(context);
+            ResolvePatientReference(context, true);
+        }
+
+        internal void ResolvePatientReference(LoadingContext context, bool required)
+        {
+            string patientID = m_PatientID ?? m_Patient?.ID;
+            m_Patient = required ? context.ResolveRequired(context.PatientById, patientID, "patient", $"{GetType().Name} '{ID}'") : context.ResolveOptional(context.PatientById, patientID);
+        }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            UpdatePatient();
         }
+
         #endregion
     }
 }

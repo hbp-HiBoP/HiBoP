@@ -5,8 +5,8 @@ namespace HBP.UI.Tools
 {
     public class TupleSeparator : MonoBehaviour
     {
-        [SerializeField]FloatEvent m_OnChangeFirstValue;
-        [SerializeField]FloatEvent m_OnChangeSecondValue;
+        [SerializeField] FloatEvent m_OnChangeFirstValue;
+        [SerializeField] FloatEvent m_OnChangeSecondValue;
 
         public void OnChangeTuple(float v1, float v2)
         {
@@ -15,6 +15,8 @@ namespace HBP.UI.Tools
         }
 
         [System.Serializable]
-        public class FloatEvent : UnityEvent<float> { }
+        public class FloatEvent : UnityEvent<float>
+        {
+        }
     }
 }

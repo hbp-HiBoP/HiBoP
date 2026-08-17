@@ -15,13 +15,26 @@ using System.Globalization;
 namespace HBP.UI.Informations
 {
     #region Enums
-    public enum LocalizersGraphsMode { Voxel, Region, Atlas }
-    public enum LocalizersGraphsAtlas { MarsAtlas, Jubrain }
+
+    public enum LocalizersGraphsMode
+    {
+        Voxel,
+        Region,
+        Atlas
+    }
+
+    public enum LocalizersGraphsAtlas
+    {
+        MarsAtlas,
+        Jubrain
+    }
+
     #endregion
 
     public class LocalizersPanel : MonoBehaviour
     {
         #region Properties
+
         // General
         [SerializeField] private Dropdown m_LocalizersGraphsModeDropdown;
         [SerializeField] private Dropdown m_LocalizersGraphsAtlasDropdown;
@@ -37,7 +50,7 @@ namespace HBP.UI.Informations
         [SerializeField] private InputField m_GainFactorInputField;
         [SerializeField] private InputField m_OffsetInputField;
         [SerializeField] private Text m_RescalingFormulaText;
-        
+
         // Protocols
         [SerializeField] private Dropdown m_DataTypeDropdown;
         [SerializeField] private GameObject m_ProtocolItemPrefab;
@@ -48,16 +61,16 @@ namespace HBP.UI.Informations
 
         private List<ProtocolItem> m_ProtocolItems = new();
         private string m_SelectedDataType;
-        
+
         // Rescaling parameters
         private bool m_EnableRescaling = false;
         private float m_BaselineValue = 0f;
         private float m_GainFactor = 1f;
         private float m_Offset = 0f;
-        
+
         public string SelectedDataType => m_SelectedDataType;
         public List<ProtocolItem> ProtocolItems => m_ProtocolItems;
-        
+
         // Rescaling properties
         public bool EnableRescaling => m_EnableRescaling;
         public float BaselineValue => m_BaselineValue;
@@ -65,13 +78,17 @@ namespace HBP.UI.Informations
         public float Offset => m_Offset;
 
         private LocalizersGraphsWorker m_Worker = new();
+
         #endregion
 
         #region Events
+
         public GenericEvent<Dictionary<ChannelStruct, List<LocalizerCurveData>>> OnGenerateLocalizersGraphs = new();
+
         #endregion
 
         #region Public Methods
+
         public void Initialize()
         {
             m_LocalizersGraphsModeDropdown.Set(typeof(LocalizersGraphsMode), (int)LocalizersGraphsMode.Voxel);
@@ -88,14 +105,15 @@ namespace HBP.UI.Informations
 
             InitializeRescaling();
             InitializeProtocols();
-        } 
+        }
+
         public async void GenerateLocalizersGraphs()
         {
             var mode = (LocalizersGraphsMode)m_LocalizersGraphsModeDropdown.value;
             var atlas = (LocalizersGraphsAtlas)m_LocalizersGraphsAtlasDropdown.value;
             var precision = (int)m_LocalizersGraphsPrecisionSlider.value;
             var dataType = m_DataTypeDropdown.options[m_DataTypeDropdown.value].text;
-            
+
             // Create rescaling parameters
             var rescalingParams = new RescalingParameters(m_EnableRescaling, m_BaselineValue, m_GainFactor, m_Offset);
             try
@@ -119,9 +137,11 @@ namespace HBP.UI.Informations
                 throw e;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void OnChangeLocalizersGraphsMode(int value)
         {
             LocalizersGraphsMode mode = (LocalizersGraphsMode)value;
@@ -129,6 +149,7 @@ namespace HBP.UI.Informations
             m_LocalizersGraphsRegionSettingsContainer.SetActive(mode == LocalizersGraphsMode.Region);
             m_LocalizersGraphsAtlasSettingsContainer.SetActive(mode == LocalizersGraphsMode.Atlas);
         }
+
         private void InitializeRescaling()
         {
             // Initialize rescaling toggle
@@ -137,42 +158,45 @@ namespace HBP.UI.Informations
                 m_EnableRescalingToggle.isOn = m_EnableRescaling;
                 m_EnableRescalingToggle.onValueChanged.AddListener(OnToggleRescaling);
             }
-            
+
             // Initialize baseline value input field
             if (m_BaselineValueInputField != null)
             {
                 m_BaselineValueInputField.text = m_BaselineValue.ToString(CultureInfo.InvariantCulture);
                 m_BaselineValueInputField.onEndEdit.AddListener(OnChangeBaselineValue);
             }
-            
+
             // Initialize gain factor input field
             if (m_GainFactorInputField != null)
             {
                 m_GainFactorInputField.text = m_GainFactor.ToString(CultureInfo.InvariantCulture);
                 m_GainFactorInputField.onEndEdit.AddListener(OnChangeGainFactor);
             }
-            
+
             // Initialize offset input field
             if (m_OffsetInputField != null)
             {
                 m_OffsetInputField.text = m_Offset.ToString(CultureInfo.InvariantCulture);
                 m_OffsetInputField.onEndEdit.AddListener(OnChangeOffset);
             }
-            
+
             // Set initial state of rescaling container
             UpdateRescalingContainerState();
             UpdateRescalingFormulaText();
         }
+
         private void OnToggleRescaling(bool enabled)
         {
             m_EnableRescaling = enabled;
             UpdateRescalingContainerState();
             UpdateRescalingFormulaText();
         }
+
         private void UpdateRescalingContainerState()
         {
             m_RescalingContainer.gameObject.SetActive(m_EnableRescaling);
         }
+
         private void UpdateRescalingFormulaText()
         {
             if (m_RescalingFormulaText != null)
@@ -180,12 +204,8 @@ namespace HBP.UI.Informations
                 if (m_EnableRescaling)
                 {
                     // Format the formula with current values
-                    string formula = string.Format(CultureInfo.InvariantCulture, 
-                        "newValue = (oldValue - {0}) � {1} + {0} + {2}",
-                        m_BaselineValue.ToString("0.##"),
-                        m_GainFactor.ToString("0.##"),
-                        m_Offset.ToString("0.##"));
-                    
+                    string formula = string.Format(CultureInfo.InvariantCulture, "newValue = (oldValue - {0}) � {1} + {0} + {2}", m_BaselineValue.ToString("0.##"), m_GainFactor.ToString("0.##"), m_Offset.ToString("0.##"));
+
                     m_RescalingFormulaText.text = formula;
                 }
                 else
@@ -194,6 +214,7 @@ namespace HBP.UI.Informations
                 }
             }
         }
+
         private void OnChangeBaselineValue(string value)
         {
             if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float parsedValue))
@@ -207,6 +228,7 @@ namespace HBP.UI.Informations
                 m_BaselineValueInputField.text = m_BaselineValue.ToString(CultureInfo.InvariantCulture);
             }
         }
+
         private void OnChangeGainFactor(string value)
         {
             if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float parsedValue))
@@ -229,6 +251,7 @@ namespace HBP.UI.Informations
                 m_GainFactorInputField.text = m_GainFactor.ToString(CultureInfo.InvariantCulture);
             }
         }
+
         private void OnChangeOffset(string value)
         {
             if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out float parsedValue))
@@ -242,12 +265,14 @@ namespace HBP.UI.Informations
                 m_OffsetInputField.text = m_Offset.ToString(CultureInfo.InvariantCulture);
             }
         }
+
         private void InitializeProtocols()
         {
             foreach (var protocolItem in m_ProtocolItems)
             {
                 Destroy(protocolItem.gameObject);
             }
+
             m_ProtocolItems.Clear();
 
             foreach (var protocolName in Object3DManager.Localizers.AvailableProtocolNames)
@@ -258,6 +283,7 @@ namespace HBP.UI.Informations
                 m_ProtocolItems.Add(protocolItem);
             }
         }
+
         #endregion
     }
 }

@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class SingleTagFilterItem : ActionnableItem<SingleTagFilter>
     {
         #region Properties
+
         [SerializeField] Text m_Text;
 
         public override SingleTagFilter Object
@@ -23,6 +24,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

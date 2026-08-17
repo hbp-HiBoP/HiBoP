@@ -8,18 +8,31 @@ namespace HBP.UI.Main
     /// <summary>
     /// List to display datasets.
     /// </summary>
-	public class DatasetList : ActionableList<Core.Data.Dataset>
+    public class DatasetList : ActionableList<Core.Data.Dataset>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Protocol, DescendingProtocol, Data, DescendingData }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Protocol,
+            DescendingProtocol,
+            Data,
+            DescendingData
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_ProtocolSortingDisplayer;
         [SerializeField] SortingDisplayer m_DataSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -39,10 +52,12 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -74,10 +89,12 @@ namespace HBP.UI.Main
                     m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by protocol.
         /// </summary>
@@ -109,10 +126,12 @@ namespace HBP.UI.Main
                     m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by data.
         /// </summary>
@@ -136,6 +155,7 @@ namespace HBP.UI.Main
             m_ProtocolSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DataSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

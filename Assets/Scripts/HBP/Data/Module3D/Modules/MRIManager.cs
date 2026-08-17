@@ -18,10 +18,12 @@ namespace HBP.Data.Module3D
     public class MRIManager : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene of the manager
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+
         /// <summary>
         /// Component containing references to GameObjects of the 3D scene
         /// </summary>
@@ -31,44 +33,57 @@ namespace HBP.Data.Module3D
         /// List of the MRIs of the scene
         /// </summary>
         public List<Core.Object3D.MRI3D> MRIs { get; set; } = new List<Core.Object3D.MRI3D>();
+
         /// <summary>
         /// List of loaded MRIs
         /// </summary>
-        public List<Core.Object3D.MRI3D> LoadedMRIs { get { return (from mri in MRIs where mri.IsLoaded select mri).ToList(); } }
+        public List<Core.Object3D.MRI3D> LoadedMRIs
+        {
+            get { return (from mri in MRIs where mri.IsLoaded select mri).ToList(); }
+        }
+
+        /// <summary>
+        /// Anatomical MRIs belonging to the patient, excluding the shared MNI volume.
+        /// </summary>
+        public List<Core.Object3D.MRI3D> PatientMRIs => MRIs.Where(mri => mri != null && !mri.HasBeenLoadedOutside).ToList();
+
         /// <summary>
         /// Selected MRI3D ID
         /// </summary>
         public int SelectedMRIID { get; private set; }
+
         /// <summary>
         /// Selected MRI3D
         /// </summary>
         public Core.Object3D.MRI3D SelectedMRI
         {
-            get
-            {
-                return MRIs[SelectedMRIID];
-            }
+            get { return MRIs[SelectedMRIID]; }
         }
+
         /// <summary>
         /// List of the preloaded MRIs of the scene
         /// </summary>
         public Dictionary<Patient, List<Core.Object3D.MRI3D>> PreloadedMRIs { get; set; } = new Dictionary<Patient, List<Core.Object3D.MRI3D>>();
+
         /// <summary>
         /// Min calibration factor (between 0 and 1)
         /// </summary>
         public float MRICalMinFactor { get; private set; } = 0.0f;
+
         /// <summary>
         /// Max calibration factor (between 0 and 1)
         /// </summary>
         public float MRICalMaxFactor { get; private set; } = 1.0f;
-        
+
         /// <summary>
         /// Center of the loaded mri
         /// </summary>
         public Vector3 VolumeCenter { get; private set; } = new Vector3(0, 0, 0);
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a MRI to the MRI manager
         /// </summary>
@@ -97,6 +112,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Add a MRI to the MRI manager preloaded MRIs
         /// </summary>
@@ -109,6 +125,7 @@ namespace HBP.Data.Module3D
                 PreloadedMRIs[patient].Add(new Core.Object3D.MRI3D(mri, true));
             }
         }
+
         /// <summary>
         /// Set the calibration values
         /// </summary>
@@ -123,6 +140,7 @@ namespace HBP.Data.Module3D
                 m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
             }
         }
+
         /// <summary>
         /// Set the MRI to be used
         /// </summary>
@@ -135,9 +153,10 @@ namespace HBP.Data.Module3D
             SelectedMRIID = mriID;
             VolumeCenter = SelectedMRI.Volume.Center;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
-            m_Scene.ResetGenerators();
+            m_Scene.InvalidateProjectionGrid();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Load every MRI that has not been loaded yet
         /// </summary>
@@ -148,6 +167,7 @@ namespace HBP.Data.Module3D
                 if (!mri.IsLoaded) mri.Load();
             }
         }
+
         #endregion
     }
 }

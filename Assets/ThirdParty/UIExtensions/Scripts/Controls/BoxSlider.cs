@@ -21,28 +21,75 @@ namespace UnityEngine.UI.Extensions
         }
 
         [Serializable]
-        public class BoxSliderEvent : UnityEvent<float, float> { }
+        public class BoxSliderEvent : UnityEvent<float, float>
+        {
+        }
 
-        [SerializeField]
-        private RectTransform m_HandleRect;
-        public RectTransform HandleRect { get { return m_HandleRect; } set { if (SetClass(ref m_HandleRect, value)) { UpdateCachedReferences(); RequestVisualUpdate(); } } }
+        [SerializeField] private RectTransform m_HandleRect;
 
-        [Space(6)]
+        public RectTransform HandleRect
+        {
+            get { return m_HandleRect; }
+            set
+            {
+                if (SetClass(ref m_HandleRect, value))
+                {
+                    UpdateCachedReferences();
+                    RequestVisualUpdate();
+                }
+            }
+        }
 
-        [SerializeField]
-        private float m_MinValue = 0;
-        public float MinValue { get { return m_MinValue; } set { if (SetStruct(ref m_MinValue, value)) { SetX(m_ValueX); SetY(m_ValueY); RequestVisualUpdate(); } } }
+        [Space(6)] [SerializeField] private float m_MinValue = 0;
 
-        [SerializeField]
-        private float m_MaxValue = 1;
-        public float MaxValue { get { return m_MaxValue; } set { if (SetStruct(ref m_MaxValue, value)) { SetX(m_ValueX); SetY(m_ValueY); RequestVisualUpdate(); } } }
+        public float MinValue
+        {
+            get { return m_MinValue; }
+            set
+            {
+                if (SetStruct(ref m_MinValue, value))
+                {
+                    SetX(m_ValueX);
+                    SetY(m_ValueY);
+                    RequestVisualUpdate();
+                }
+            }
+        }
 
-        [SerializeField]
-        private bool m_WholeNumbers = false;
-        public bool WholeNumbers { get { return m_WholeNumbers; } set { if (SetStruct(ref m_WholeNumbers, value)) { SetX(m_ValueX); SetY(m_ValueY); RequestVisualUpdate(); } } }
+        [SerializeField] private float m_MaxValue = 1;
 
-        [SerializeField]
-        private float m_ValueX = 1f;
+        public float MaxValue
+        {
+            get { return m_MaxValue; }
+            set
+            {
+                if (SetStruct(ref m_MaxValue, value))
+                {
+                    SetX(m_ValueX);
+                    SetY(m_ValueY);
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] private bool m_WholeNumbers = false;
+
+        public bool WholeNumbers
+        {
+            get { return m_WholeNumbers; }
+            set
+            {
+                if (SetStruct(ref m_WholeNumbers, value))
+                {
+                    SetX(m_ValueX);
+                    SetY(m_ValueY);
+                    RequestVisualUpdate();
+                }
+            }
+        }
+
+        [SerializeField] private float m_ValueX = 1f;
+
         public float ValueX
         {
             get
@@ -51,10 +98,7 @@ namespace UnityEngine.UI.Extensions
                     return Mathf.Round(m_ValueX);
                 return m_ValueX;
             }
-            set
-            {
-                SetX(value);
-            }
+            set { SetX(value); }
         }
 
         public float NormalizedValueX
@@ -65,14 +109,11 @@ namespace UnityEngine.UI.Extensions
                     return 0;
                 return Mathf.InverseLerp(MinValue, MaxValue, ValueX);
             }
-            set
-            {
-                this.ValueX = Mathf.Lerp(MinValue, MaxValue, value);
-            }
+            set { this.ValueX = Mathf.Lerp(MinValue, MaxValue, value); }
         }
 
-        [SerializeField]
-        private float m_ValueY = 1f;
+        [SerializeField] private float m_ValueY = 1f;
+
         public float ValueY
         {
             get
@@ -81,10 +122,7 @@ namespace UnityEngine.UI.Extensions
                     return Mathf.Round(m_ValueY);
                 return m_ValueY;
             }
-            set
-            {
-                SetY(value);
-            }
+            set { SetY(value); }
         }
 
         public float NormalizedValueY
@@ -95,10 +133,7 @@ namespace UnityEngine.UI.Extensions
                     return 0;
                 return Mathf.InverseLerp(MinValue, MaxValue, ValueY);
             }
-            set
-            {
-                this.ValueY = Mathf.Lerp(MinValue, MaxValue, value);
-            }
+            set { this.ValueY = Mathf.Lerp(MinValue, MaxValue, value); }
         }
 
         [Space(6)]
@@ -106,7 +141,12 @@ namespace UnityEngine.UI.Extensions
         // Allow for delegate-based subscriptions for faster events than 'eventReceiver', and allowing for multiple receivers.
         [SerializeField]
         private BoxSliderEvent m_OnValueChanged = new();
-        public BoxSliderEvent OnValueChanged { get { return m_OnValueChanged; } set { m_OnValueChanged = value; } }
+
+        public BoxSliderEvent OnValueChanged
+        {
+            get { return m_OnValueChanged; }
+            set { m_OnValueChanged = value; }
+        }
 
         // Private fields
 
@@ -123,10 +163,14 @@ namespace UnityEngine.UI.Extensions
 #endif
 
         // Size of each step.
-        float StepSize { get { return WholeNumbers ? 1 : (MaxValue - MinValue) * 0.1f; } }
+        float StepSize
+        {
+            get { return WholeNumbers ? 1 : (MaxValue - MinValue) * 0.1f; }
+        }
 
         protected BoxSlider()
-        { }
+        {
+        }
 
 #if UNITY_EDITOR
         protected override void OnValidate()
@@ -141,6 +185,7 @@ namespace UnityEngine.UI.Extensions
                     m_MinValue = Mathf.Round(m_MinValue);
                     m_MaxValue = Mathf.Round(m_MaxValue);
                 }
+
                 UpdateCachedReferences();
                 SetX(m_ValueX, false);
                 SetY(m_ValueY, false);
@@ -151,7 +196,6 @@ namespace UnityEngine.UI.Extensions
             {
                 m_IsValidating = false;
             }
-
         }
 
 #endif // if UNITY_EDITOR
@@ -166,12 +210,10 @@ namespace UnityEngine.UI.Extensions
 
         public void LayoutComplete()
         {
-
         }
 
         public void GraphicUpdateComplete()
         {
-
         }
 
         public static bool SetClass<T>(ref T currentValue, T newValue) where T : class
@@ -214,7 +256,6 @@ namespace UnityEngine.UI.Extensions
 
         void UpdateCachedReferences()
         {
-
             if (m_HandleRect)
             {
                 m_HandleTransform = m_HandleRect.transform;
@@ -363,7 +404,6 @@ namespace UnityEngine.UI.Extensions
 
                 float valY = Mathf.Clamp01((localCursor - m_Offset)[1] / clickRect.rect.size[1]);
                 NormalizedValueY = (valY);
-
             }
         }
 
@@ -406,6 +446,5 @@ namespace UnityEngine.UI.Extensions
         {
             eventData.useDragThreshold = false;
         }
-
     }
 }

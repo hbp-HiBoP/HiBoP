@@ -1,4 +1,5 @@
 using HBP.Core.Preferences;
+using HBP.Core.DLL;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -21,8 +22,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a();
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0>(this UnityEvent<T0> e, UnityAction<T0> a, GameObject parent)
         {
             void action(T0 t0)
@@ -30,8 +33,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0, T1>(this UnityEvent<T0, T1> e, UnityAction<T0, T1> a, GameObject parent)
         {
             void action(T0 t0, T1 t1)
@@ -39,8 +44,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0, t1);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0, T1, T2>(this UnityEvent<T0, T1, T2> e, UnityAction<T0, T1, T2> a, GameObject parent)
         {
             void action(T0 t0, T1 t1, T2 t2)
@@ -48,8 +55,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0, t1, t2);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0, T1, T2, T3>(this UnityEvent<T0, T1, T2, T3> e, UnityAction<T0, T1, T2, T3> a, GameObject parent)
         {
             void action(T0 t0, T1 t1, T2 t2, T3 t3)
@@ -57,8 +66,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0, t1, t2, t3);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0>(this GenericEvent<T0> e, UnityAction<T0> a, GameObject parent)
         {
             void action(T0 t0)
@@ -66,8 +77,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0, T1>(this GenericEvent<T0, T1> e, UnityAction<T0, T1> a, GameObject parent)
         {
             void action(T0 t0, T1 t1)
@@ -75,8 +88,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0, t1);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0, T1, T2>(this GenericEvent<T0, T1, T2> e, UnityAction<T0, T1, T2> a, GameObject parent)
         {
             void action(T0 t0, T1 t1, T2 t2)
@@ -84,8 +99,10 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0, t1, t2);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
+
         public static void AddSafeListener<T0, T1, T2, T3>(this GenericEvent<T0, T1, T2, T3> e, UnityAction<T0, T1, T2, T3> a, GameObject parent)
         {
             void action(T0 t0, T1 t1, T2 t2, T3 t3)
@@ -93,6 +110,7 @@ namespace HBP.Core.Tools
                 if (parent != null) a(t0, t1, t2, t3);
                 else e.RemoveListener(action);
             }
+
             e.AddListener(action);
         }
     }
@@ -107,16 +125,20 @@ namespace HBP.Core.Tools
                 x *= vector.x;
                 y *= vector.y;
             }
+
             return new Vector2(x, y);
         }
+
         public static Vector2 MultiplyByElements(Vector2 v1, Vector2 v2)
         {
             return MultiplyByElements(new Vector2[] { v1, v2 });
         }
+
         public static Vector2 Abs(this Vector2 vector)
         {
             return new Vector2(Mathf.Abs(vector.x), Mathf.Abs(vector.y));
         }
+
         public static float Range(this Vector2 vector)
         {
             return vector.y - vector.x;
@@ -131,6 +153,7 @@ namespace HBP.Core.Tools
             dropdown.SetValue(enumValue);
             dropdown.RefreshShownValue();
         }
+
         public static Type[] Set(this Dropdown dropdown, Type parentType)
         {
             Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).ToArray();
@@ -145,10 +168,12 @@ namespace HBP.Core.Tools
                     displayedType.Add(type);
                 }
             }
+
             dropdown.options = options;
             dropdown.RefreshShownValue();
             return displayedType.ToArray();
         }
+
         public static Type[] Set(this Dropdown dropdown, Type parentType, Attribute attribute)
         {
             static int orderMethod(Type t)
@@ -157,12 +182,7 @@ namespace HBP.Core.Tools
                 return attribute.Length > 0 ? (attribute[0] as SortingOrderAttribute).Order : int.MaxValue;
             }
 
-            Type[] types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(t => t.IsSubclassOf(parentType))
-                .Where(t => t.GetCustomAttributes(true).Contains(attribute))
-                .OrderBy(orderMethod)
-                .ToArray();
+            Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).Where(t => t.GetCustomAttributes(true).Contains(attribute)).OrderBy(orderMethod).ToArray();
 
             List<Dropdown.OptionData> options = new();
             foreach (var type in types)
@@ -177,10 +197,12 @@ namespace HBP.Core.Tools
                     options.Add(new Dropdown.OptionData(StringExtension.CamelCaseToWords(type.Name)));
                 }
             }
+
             dropdown.options = options;
             dropdown.RefreshShownValue();
             return types;
         }
+
         public static Type[] Set(this Dropdown dropdown, Type parentType, TypedAttribute attribute)
         {
             static int orderMethod(Type t)
@@ -189,17 +211,7 @@ namespace HBP.Core.Tools
                 return attribute.Length > 0 ? (attribute[0] as SortingOrderAttribute).Order : int.MaxValue;
             }
 
-            Type[] types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(t => t.IsSubclassOf(parentType))
-                .Where(t => t.GetCustomAttributes(true)
-                    .OfType<TypedAttribute>()
-                    .FirstOrDefault(a =>
-                        attribute.Types != null && a.Types != null &&
-                        attribute.Types.Any(attrType => a.Types.Any(type => type.IsAssignableFrom(attrType)))
-                    ) != null)
-                .OrderBy(orderMethod)
-                .ToArray();
+            Type[] types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(s => s.GetTypes()).Where(t => t.IsSubclassOf(parentType)).Where(t => t.GetCustomAttributes(true).OfType<TypedAttribute>().FirstOrDefault(a => attribute.Types != null && a.Types != null && attribute.Types.Any(attrType => a.Types.Any(type => type.IsAssignableFrom(attrType)))) != null).OrderBy(orderMethod).ToArray();
 
             List<Dropdown.OptionData> options = new();
             foreach (var type in types)
@@ -214,10 +226,12 @@ namespace HBP.Core.Tools
                     options.Add(new Dropdown.OptionData(StringExtension.CamelCaseToWords(type.Name)));
                 }
             }
+
             dropdown.options = options;
             dropdown.RefreshShownValue();
             return types;
         }
+
         public static void SetValue(this Dropdown dropdown, int value)
         {
             if (dropdown.value == value)
@@ -258,12 +272,14 @@ namespace HBP.Core.Tools
                 names.Add(tr.name);
                 tr = tr.parent;
             }
+
             int size = names.Count;
             for (int i = size - 1; i >= 0; i--)
             {
                 stringBuilder.Append(names[i]);
                 if (i > 0) stringBuilder.Append("/");
             }
+
             return stringBuilder.ToString();
         }
     }
@@ -278,11 +294,13 @@ namespace HBP.Core.Tools
             rect.y -= (rectTransform.pivot.y * size.y);
             return rect;
         }
+
         public static Vector2 GetRatioPosition(this RectTransform rectTransform, Vector2 position)
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, position, null, out Vector2 pointInRectangle);
             return new Vector2(pointInRectangle.x / rectTransform.rect.width, pointInRectangle.y / rectTransform.rect.height) + rectTransform.pivot;
         }
+
         public static void ClampToRectTransform(this RectTransform clampedRectTransform, RectTransform clampingRectTransform, RectOffset offset)
         {
             Vector3 l_pos = clampedRectTransform.localPosition;
@@ -297,6 +315,7 @@ namespace HBP.Core.Tools
 
             clampedRectTransform.localPosition = l_pos;
         }
+
         public static Canvas GetTopmostCanvas(this RectTransform rectTransform)
         {
             Canvas[] parentCanvases = rectTransform.GetComponentsInParent<Canvas>();
@@ -304,6 +323,7 @@ namespace HBP.Core.Tools
             {
                 return parentCanvases[^1];
             }
+
             return null;
         }
     }
@@ -312,19 +332,19 @@ namespace HBP.Core.Tools
     {
         public static Texture2D ToTexture2D(this RenderTexture renderTexture)
         {
-            // Remember currently active render texture
             RenderTexture currentActiveRenderTexture = RenderTexture.active;
-
-            // Set the supplied RenderTexture as the active one
-            RenderTexture.active = renderTexture;
-
-            // Create a new Texture2D and read the RenderTexture image into it
-            Texture2D texture = new(renderTexture.width, renderTexture.height);
-            texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
-
-            // Restores previously active render texture
-            RenderTexture.active = currentActiveRenderTexture;
-            return texture;
+            try
+            {
+                RenderTexture.active = renderTexture;
+                Texture2D texture = new(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false, false);
+                texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+                texture.Apply(false, false);
+                return texture;
+            }
+            finally
+            {
+                RenderTexture.active = currentActiveRenderTexture;
+            }
         }
     }
 
@@ -334,11 +354,35 @@ namespace HBP.Core.Tools
         {
             return "#" + ((int)(color.r * 255)).ToString("X2") + ((int)(color.g * 255)).ToString("X2") + ((int)(color.b * 255)).ToString("X2");
         }
+
+        internal static Color4[] ToNativeColor4Array(this Color32[] colors)
+        {
+            if (colors == null || colors.Length == 0)
+            {
+                throw new ArgumentException("Color scheme cannot be empty.", nameof(colors));
+            }
+
+            Color4[] result = new Color4[colors.Length];
+            for (int i = 0; i < colors.Length; ++i)
+            {
+                Color32 color = colors[i];
+                result[i] = new Color4
+                {
+                    r = color.r / 255.0f,
+                    g = color.g / 255.0f,
+                    b = color.b / 255.0f,
+                    a = color.a / 255.0f
+                };
+            }
+
+            return result;
+        }
     }
 
     public static class SpriteExtension
     {
         static string[] EXTENSIONS = new string[] { "png", "jpg" };
+
         public static bool LoadSpriteFromFile(out Sprite sprite, string path)
         {
             sprite = Sprite.Create(new Texture2D(1, 1), new Rect(), new Vector2());
@@ -350,6 +394,7 @@ namespace HBP.Core.Tools
             }
             else return false;
         }
+
         public static bool LoadTexture2DFromFile(out Texture2D texture, string path)
         {
             texture = new Texture2D(0, 0);
@@ -364,12 +409,15 @@ namespace HBP.Core.Tools
                     {
                         return true;
                     }
+
                     return false;
                 }
                 else return false;
             }
+
             return false;
         }
+
         public static bool IsFileLoadable(string path)
         {
             return File.Exists(path) && EXTENSIONS.Contains(new FileInfo(path).Extension[1..]);
@@ -397,6 +445,7 @@ namespace HBP.Core.Tools
                 return false;
             }
         }
+
         public static void Rotate(ref Texture2D textureToRotate)
         {
             Texture2D l_texture = new(textureToRotate.height, textureToRotate.width);
@@ -407,9 +456,11 @@ namespace HBP.Core.Tools
                     l_texture.SetPixel(x, y, textureToRotate.GetPixel(y, x));
                 }
             }
+
             l_texture.Apply();
             textureToRotate = l_texture;
         }
+
         public static Texture2D RotateTexture(this Texture2D textureToRotate)
         {
             Texture2D l_texture = new(textureToRotate.height, textureToRotate.width);
@@ -420,9 +471,11 @@ namespace HBP.Core.Tools
                     l_texture.SetPixel(x, y, textureToRotate.GetPixel(y, x));
                 }
             }
+
             l_texture.Apply();
             return l_texture;
         }
+
         public static Texture2D ScreenRectToTexture(Rect rect)
         {
             Texture2D texture = new((int)rect.width, (int)rect.height, TextureFormat.RGB24, false);
@@ -430,11 +483,13 @@ namespace HBP.Core.Tools
             texture.Apply();
             return texture;
         }
+
         public static void SaveToPNG(this Texture2D texture, string path)
         {
             byte[] pngBytes = texture.EncodeToPNG();
             File.WriteAllBytes(path, pngBytes);
         }
+
         public static Texture2D Generate(int width = 1, int height = 1, float mipMapBias = -10f, int anisoLvl = 9, FilterMode filter = FilterMode.Trilinear, TextureWrapMode wrap = TextureWrapMode.Clamp)
         {
             Texture2D tex = new(width, height)
@@ -449,11 +504,13 @@ namespace HBP.Core.Tools
             tex.anisoLevel = anisoLvl;
             return tex;
         }
+
         public static string ToBase64(this Texture2D texture)
         {
             byte[] bytes = texture.EncodeToPNG();
             return Convert.ToBase64String(bytes);
         }
+
         public static Texture2D ToTexture2D(string base64)
         {
             byte[] bytes = Convert.FromBase64String(base64);
@@ -461,6 +518,7 @@ namespace HBP.Core.Tools
             texture.LoadImage(bytes);
             return texture;
         }
+
         public static Texture2D UpscaleSmooth(this Texture2D source, int factor)
         {
             if (factor < 2) return source;
@@ -475,8 +533,8 @@ namespace HBP.Core.Tools
 
             Color[,] srcColors = new Color[srcWidth, srcHeight];
             for (int y = 0; y < srcHeight; y++)
-                for (int x = 0; x < srcWidth; x++)
-                    srcColors[x, y] = source.GetPixel(x, y);
+            for (int x = 0; x < srcWidth; x++)
+                srcColors[x, y] = source.GetPixel(x, y);
 
             for (int y = 0; y < newHeight; y++)
             {
@@ -498,11 +556,7 @@ namespace HBP.Core.Tools
                     Color c11 = srcColors[x1, y1];
 
                     // Interpolation bilinéaire
-                    Color interpolated =
-                        (1 - tx) * (1 - ty) * c00 +
-                        (tx) * (1 - ty) * c10 +
-                        (1 - tx) * (ty) * c01 +
-                        (tx) * (ty) * c11;
+                    Color interpolated = (1 - tx) * (1 - ty) * c00 + (tx) * (1 - ty) * c10 + (1 - tx) * (ty) * c01 + (tx) * (ty) * c11;
 
                     result.SetPixel(x, y, interpolated);
                 }
@@ -526,14 +580,18 @@ namespace HBP.Core.Tools
                 localPath = path.Remove(0, PROJECT_TOKEN.Length);
                 localPath = ApplicationState.ExtractProjectFolder + localPath;
             }
-            
-            foreach (var alias in PersistentDataManager.Aliases.Aliases)
+
+            if (PersistentDataManager.IsInitialized)
             {
-                alias.ConvertKeyToValue(ref localPath);
+                foreach (var alias in PersistentDataManager.Aliases.Aliases)
+                {
+                    alias.ConvertKeyToValue(ref localPath);
+                }
             }
 
             return localPath.StandardizeToEnvironement();
         }
+
         public static string ConvertToShortPath(this string path)
         {
             string localPath = path;
@@ -542,14 +600,18 @@ namespace HBP.Core.Tools
             {
                 localPath = PROJECT_TOKEN + path.Remove(0, ApplicationState.ExtractProjectFolder.Length);
             }
-            
-            foreach (var alias in PersistentDataManager.Aliases.Aliases)
+
+            if (PersistentDataManager.IsInitialized)
             {
-                alias.ConvertValueToKey(ref localPath);
+                foreach (var alias in PersistentDataManager.Aliases.Aliases)
+                {
+                    alias.ConvertValueToKey(ref localPath);
+                }
             }
 
             return localPath.StandardizeToEnvironement();
         }
+
         public static string StandardizeToEnvironement(this string path)
         {
             string result = path;
@@ -573,6 +635,7 @@ namespace HBP.Core.Tools
                     text.font.GetCharacterInfo(c, out CharacterInfo charInfo, text.fontSize);
                     totalWidth += charInfo.advance;
                 }
+
                 text.GetComponent<LayoutElement>().minWidth = totalWidth;
             }
         }

@@ -7,12 +7,13 @@ using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {
-	/// <summary>
-	/// Window to modify a group.
-	/// </summary>
-	public class GroupModifier : ObjectModifier<Group> 
-	{
+    /// <summary>
+    /// Window to modify a group.
+    /// </summary>
+    public class GroupModifier : ObjectModifier<Group>
+    {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] PatientListGestion m_PatientListGestion;
 
@@ -21,10 +22,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -34,9 +32,11 @@ namespace HBP.UI.Main
                 m_PatientListGestion.Modifiable = false;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Open a patient selector.
         /// </summary>
@@ -46,9 +46,11 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => m_PatientListGestion.List.Add(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -61,6 +63,7 @@ namespace HBP.UI.Main
             m_PatientListGestion.List.OnAddObject.AddListener(AddPatient);
             m_PatientListGestion.List.OnRemoveObject.AddListener(RemovePatient);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -70,13 +73,14 @@ namespace HBP.UI.Main
             m_NameInputField.text = objectToDisplay.Name;
             m_PatientListGestion.List.Set(objectToDisplay.Patients);
         }
+
         /// <summary>
         /// Change the name of the group.
         /// </summary>
         /// <param name="name">Name</param>
         protected void ChangeName(string name)
         {
-            if(name != "")
+            if (name != "")
             {
                 ObjectTemp.Name = name;
             }
@@ -85,6 +89,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Add patient to the group.
         /// </summary>
@@ -93,6 +98,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Patients.AddIfAbsent(patient);
         }
+
         /// <summary>
         /// Remove patient from the group.
         /// </summary>
@@ -101,6 +107,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.Patients.Remove(patient);
         }
+
         #endregion
     }
 }

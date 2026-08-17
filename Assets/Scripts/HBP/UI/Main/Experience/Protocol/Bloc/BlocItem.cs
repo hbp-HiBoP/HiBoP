@@ -9,9 +9,10 @@ namespace HBP.UI.Main
     /// <summary>
     /// Component to display bloc in list.
     /// </summary>
-	public class BlocItem : ActionnableItem<Core.Data.Bloc>
-	{
+    public class BlocItem : ActionnableItem<Core.Data.Bloc>
+    {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Image m_Image;
         [SerializeField] Tooltip m_ImageTooltip;
@@ -24,10 +25,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.Bloc Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -42,6 +40,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

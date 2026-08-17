@@ -8,6 +8,7 @@ namespace HBP.UI.Database
     public class WorkspaceModifier : ObjectModifier<Workspace>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
 
         public override bool Interactable
@@ -19,19 +20,23 @@ namespace HBP.UI.Database
                 m_NameInputField.interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
 
             m_NameInputField.onValueChanged.AddListener(name => ObjectTemp.Name = name);
         }
+
         protected override void SetFields(Workspace objectToModify)
         {
             m_NameInputField.text = objectToModify.Name;
         }
+
         #endregion
     }
 }

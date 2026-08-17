@@ -12,7 +12,9 @@ namespace HBP.UI.Tools
     public abstract class ListGestion<T> : MonoBehaviour where T : Core.Data.BaseData, new()
     {
         #region Properties
+
         [SerializeField] protected bool m_Interactable;
+
         /// <summary>
         /// Use to enable or disable the ability to select a selectable UI element (for example, a Button).
         /// </summary>
@@ -28,6 +30,7 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] protected bool m_Modifiable;
+
         /// <summary>
         /// Use to enable or disable the ability to modify elements of the list.
         /// </summary>
@@ -53,21 +56,28 @@ namespace HBP.UI.Tools
         /// UI list which display the elements.
         /// </summary>
         public abstract ActionableList<T> List { get; }
+
         /// <summary>
         /// ObjectCreator contains all the tools to create a new element.
         /// </summary>
         public abstract ObjectCreator<T> ObjectCreator { get; }
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new();
+
         /// <summary>
         /// Children windows referencer.
         /// </summary>
-        public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
+        public virtual WindowsReferencer WindowsReferencer
+        {
+            get => m_WindowsReferencer;
+        }
 
         [SerializeField] Button m_CreateButton, m_RemoveButton;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Create a new element and add it to the list.
         /// </summary>
@@ -76,6 +86,7 @@ namespace HBP.UI.Tools
             ObjectCreator.ExistingObjects = List.Objects.ToList();
             ObjectCreator.Create();
         }
+
         /// <summary>
         /// Remove all the selected elements from the list.
         /// </summary>
@@ -83,18 +94,22 @@ namespace HBP.UI.Tools
         {
             List.Remove(List.ObjectsSelected);
         }
+
         #endregion
 
         #region Protected Methods
+
         void OnValidate()
         {
             Interactable = Interactable;
             Modifiable = Modifiable;
         }
+
         void Awake()
         {
             Initialize();
         }
+
         /// <summary>
         /// Called on Awake(). You can override this function and use this to initialize anything needed by your list gestion.
         /// </summary>
@@ -116,6 +131,7 @@ namespace HBP.UI.Tools
             ObjectCreator.OnObjectCreated.AddListener(OnObjectCreated);
             ObjectCreator.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
         }
+
         /// <summary>
         /// Open a ObjectModifier to modify a object.
         /// </summary>
@@ -128,6 +144,7 @@ namespace HBP.UI.Tools
             WindowsReferencer.Add(modifier);
             return modifier;
         }
+
         /// <summary>
         /// Callback executed when a ObjectModifier is modified.
         /// </summary>
@@ -145,9 +162,11 @@ namespace HBP.UI.Tools
                         count++;
                         name = string.Format("{0}({1})", nameable.Name, count);
                     }
+
                     nameable.Name = name;
                 }
             }
+
             if (!List.Objects.Contains(obj))
             {
                 List.Add(obj);
@@ -157,6 +176,7 @@ namespace HBP.UI.Tools
                 List.UpdateObject(obj);
             }
         }
+
         /// <summary>
         /// Callback executed when an object is created.
         /// </summary>
@@ -167,6 +187,7 @@ namespace HBP.UI.Tools
             {
                 obj.GenerateID();
             }
+
             if (obj is INameable nameable)
             {
                 if (List.Objects.Any(c => (c as INameable).Name == nameable.Name && !c.Equals(obj)))
@@ -178,12 +199,15 @@ namespace HBP.UI.Tools
                         count++;
                         name = string.Format("{0}({1})", nameable.Name, count);
                     }
+
                     nameable.Name = name;
                 }
             }
+
             List.Add(obj);
             HasBeenModified = true;
         }
+
         /// <summary>
         /// Callback executed when an object is updated.
         /// </summary>
@@ -194,6 +218,7 @@ namespace HBP.UI.Tools
             ObjectCreator.ExistingObjects[index] = obj;
             HasBeenModified = true;
         }
+
         protected virtual bool CheckUnicity(T obj)
         {
             foreach (var newObject in obj.GetAllIdentifiable())
@@ -206,8 +231,10 @@ namespace HBP.UI.Tools
                     }
                 }
             }
+
             return true;
         }
+
         #endregion
     }
 }

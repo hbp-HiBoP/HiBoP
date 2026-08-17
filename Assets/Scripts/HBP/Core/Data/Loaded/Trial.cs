@@ -6,22 +6,24 @@ namespace HBP.Core.Data
     public class Trial
     {
         #region Properties
+
         public bool IsValid
         {
-            get
-            {
-                return SubTrialBySubBloc.Values.All(sb => sb.Found);
-            }
+            get { return SubTrialBySubBloc.Values.All(sb => sb.Found); }
         }
+
         public Dictionary<SubBloc, SubTrial> SubTrialBySubBloc { get; set; }
+
         #endregion
 
         #region Constructor
+
         public Trial(Dictionary<SubBloc, SubTrial> subTrialBySubBloc)
         {
             SubTrialBySubBloc = subTrialBySubBloc;
         }
-        public Trial(Dictionary<string,float[]> valuesByChannel, Dictionary<string, string> unitByChannel,  int startIndex, EventOccurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.Frequency frequency)
+
+        internal Trial(Dictionary<string, float[]> valuesByChannel, Dictionary<string, string> unitByChannel, int startIndex, EventOccurence mainEventOccurence, int endIndex, Dictionary<Event, BlocData.EventOccurences> occurencesByEvent, Bloc bloc, Tools.Frequency frequency, int trialIndex, EpochCompatibilityBuffer compatibilityBuffer)
         {
             SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>(bloc.SubBlocs.Count); // Initialize dictionary
 
@@ -29,7 +31,7 @@ namespace HBP.Core.Data
             int mainSubBlocIndex = orderedSubBlocs.IndexOf(bloc.MainSubBloc); // Find main sub bloc index.
 
             // Generate main Sub Trial
-            SubTrial mainSubTrial = new(valuesByChannel, unitByChannel, mainEventOccurence, bloc.MainSubBloc, occurencesByEvent, frequency);
+            SubTrial mainSubTrial = new(valuesByChannel, unitByChannel, mainEventOccurence, bloc.MainSubBloc, occurencesByEvent, frequency, trialIndex, mainSubBlocIndex, compatibilityBuffer);
             SubTrialBySubBloc.Add(bloc.MainSubBloc, mainSubTrial);
 
             // Research before.
@@ -42,12 +44,13 @@ namespace HBP.Core.Data
                 if (occurences.Length > 0)
                 {
                     EventOccurence mainEventOccurenceOfSecondaryBloc = occurences.LastOrDefault();
-                    subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
+                    subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency, trialIndex, i, compatibilityBuffer);
                 }
                 else
                 {
                     subTrial = new SubTrial(false);
                 }
+
                 SubTrialBySubBloc.Add(subBloc, subTrial);
                 if (subTrial.Found) end = subTrial.InformationsByEvent[subBloc.MainEvent].Occurences[0].Index;
             }
@@ -63,28 +66,33 @@ namespace HBP.Core.Data
                 if (occurences.Length > 0)
                 {
                     EventOccurence mainEventOccurenceOfSecondaryBloc = occurences.FirstOrDefault();
-                    subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency);
+                    subTrial = new SubTrial(valuesByChannel, unitByChannel, mainEventOccurenceOfSecondaryBloc, subBloc, occurencesByEvent, frequency, trialIndex, i, compatibilityBuffer);
                 }
                 else
                 {
                     subTrial = new SubTrial(false);
                 }
+
                 SubTrialBySubBloc.Add(subBloc, subTrial);
                 if (subTrial.Found) start = subTrial.InformationsByEvent[subBloc.MainEvent].Occurences[0].Index;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public void Clear()
         {
             foreach (var subTrial in SubTrialBySubBloc.Values)
             {
                 subTrial.Clear();
             }
+
             SubTrialBySubBloc.Clear();
             SubTrialBySubBloc = new Dictionary<SubBloc, SubTrial>();
         }
+
         #endregion
     }
 }

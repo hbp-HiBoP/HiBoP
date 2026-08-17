@@ -16,11 +16,13 @@ namespace HBP.UI.Tools
     public class ListFilter : DialogWindow
     {
         #region Properties
+
         [SerializeField] protected FilterConditionListGestion m_ListGestion;
         [SerializeField] protected Button m_ApplyButton;
         [SerializeField] protected Button m_ResetButton;
 
         protected List<object> m_FilteringObjects = new();
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
@@ -30,16 +32,20 @@ namespace HBP.UI.Tools
                 m_ListGestion.FilteringObjects = value;
             }
         }
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when applying a filter to the corresponding list
         /// </summary>
         public GenericEvent<bool[]> OnApplyFilters = new();
+
         #endregion
 
         #region Public Methods
+
         public override void Close()
         {
             base.Close();
@@ -48,19 +54,23 @@ namespace HBP.UI.Tools
                 PersistentDataManager.FilterConditionsPresets.SetCurrentPreset(new FilterConditionsPreset(m_ListGestion.List.Objects), m_FilteringObjects[0].GetType());
             }
         }
+
         public void ApplyFilters()
         {
             LoadingManager.Load((update, token) => ApplyFiltersAsync(update, token), false);
         }
+
         public virtual void ResetFilters()
         {
             OnApplyFilters.Invoke(Enumerable.Repeat(true, FilteringObjects.Count).ToArray());
         }
+
         public void OpenPresetsWindow()
         {
             var modifier = WindowsManager.OpenModifier(PersistentDataManager.FilterConditionsPresets, this).GetComponent<FilterConditionsPresetCollectionModifier>();
             modifier.FilteringObjects = m_FilteringObjects;
         }
+
         public void CreatePresetFromSelected()
         {
             var preset = new FilterConditionsPreset("New preset", m_ListGestion.List.ObjectsSelected);
@@ -78,6 +88,7 @@ namespace HBP.UI.Tools
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Preset created", "The preset has been created and added to the list of presets.").Forget();
             });
         }
+
         public void LoadConditionsFromPreset()
         {
             if (m_FilteringObjects.Count == 0)
@@ -87,18 +98,18 @@ namespace HBP.UI.Tools
             }
 
             var selector = WindowsManager.OpenSelector(PersistentDataManager.FilterConditionsPresets.GetPresets(m_FilteringObjects[0].GetType()), this) as FilterConditionsPresetSelector;
-            selector.OnOk.AddListener(() =>
-            {
-                m_ListGestion.List.Add(selector.ObjectsSelected.SelectMany(p => p.Conditions).Where(c => !m_ListGestion.List.Objects.Contains(c)));
-            });
+            selector.OnOk.AddListener(() => { m_ListGestion.List.Add(selector.ObjectsSelected.SelectMany(p => p.Conditions).Where(c => !m_ListGestion.List.Objects.Contains(c))); });
         }
+
         public void SetPreset(FilterConditionsPreset preset)
         {
             m_ListGestion.List.Set(preset.Conditions);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -112,6 +123,7 @@ namespace HBP.UI.Tools
             m_ListGestion.List.OnRemoveObject.AddListener((condition) => SetButtonsState());
             m_ListGestion.List.OnAddObject.AddListener((condition) => SetButtonsState());
         }
+
         protected virtual async UniTask ApplyFiltersAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
@@ -136,6 +148,7 @@ namespace HBP.UI.Tools
 
             OnApplyFilters.Invoke(result);
         }
+
         protected virtual bool CheckConditions(object obj)
         {
             bool result = true;
@@ -143,12 +156,15 @@ namespace HBP.UI.Tools
             {
                 result &= condition.Check(obj);
             }
+
             return result;
         }
+
         protected virtual void SetButtonsState()
         {
             m_ApplyButton.interactable = m_ListGestion.List.ObjectsSelected.Length > 0;
         }
+
         #endregion
     }
 }

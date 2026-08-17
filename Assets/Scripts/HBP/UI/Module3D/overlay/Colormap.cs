@@ -13,6 +13,7 @@ namespace HBP.UI.Module3D
     public class Colormap : ColumnOverlayElement
     {
         #region Properties
+
         /// <summary>
         /// Image containing the colormap sprite
         /// </summary>
@@ -22,10 +23,12 @@ namespace HBP.UI.Module3D
         /// Displays the minimum value for the colormap
         /// </summary>
         [SerializeField] private Text m_Min;
+
         /// <summary>
         /// Displays the middle value for the colormap
         /// </summary>
         [SerializeField] private Text m_Mid;
+
         /// <summary>
         /// Displays the maximum value for the colormap
         /// </summary>
@@ -35,9 +38,11 @@ namespace HBP.UI.Module3D
         /// Links between the type of a color and its sprite
         /// </summary>
         private Dictionary<ColorType, Sprite> m_SpriteByColorType = new();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             foreach (var colormap in System.Enum.GetValues(typeof(ColorType)).Cast<ColorType>())
@@ -45,9 +50,11 @@ namespace HBP.UI.Module3D
                 m_SpriteByColorType.Add(colormap, Resources.Load<Sprite>(System.IO.Path.Combine("Colormaps", string.Format("colormap_{0}", ((int)colormap).ToString()))) as Sprite);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Setup the overlay element
         /// </summary>
@@ -84,25 +91,13 @@ namespace HBP.UI.Module3D
             }
             else if (column is Column3DFMRI fmriColumn)
             {
-                fmriColumn.FMRIParameters.OnUpdateCalValues.AddListener(() =>
-                {
-                    UpdateTextFMRI(fmriColumn);
-                });
-                fmriColumn.OnChangeSelectedFMRI.AddListener(() =>
-                {
-                    UpdateTextFMRI(fmriColumn);
-                });
+                fmriColumn.FMRIParameters.OnUpdateCalValues.AddListener(() => { UpdateTextFMRI(fmriColumn); });
+                fmriColumn.OnChangeSelectedFMRI.AddListener(() => { UpdateTextFMRI(fmriColumn); });
             }
             else if (column is Column3DMEG megColumn)
             {
-                megColumn.MEGParameters.OnUpdateCalValues.AddListener(() =>
-                {
-                    UpdateTextMEG(megColumn);
-                });
-                megColumn.OnChangeSelectedMEG.AddListener(() =>
-                {
-                    UpdateTextMEG(megColumn);
-                });
+                megColumn.MEGParameters.OnUpdateCalValues.AddListener(() => { UpdateTextMEG(megColumn); });
+                megColumn.OnChangeSelectedMEG.AddListener(() => { UpdateTextMEG(megColumn); });
             }
             else if (column is Column3DStatic staticColumn)
             {
@@ -114,9 +109,11 @@ namespace HBP.UI.Module3D
                 });
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private void UpdateTextFMRI(Column3DFMRI fmriColumn)
         {
             Core.Tools.MRICalValues values = fmriColumn.SelectedFMRI.ExtremeValues;
@@ -145,6 +142,7 @@ namespace HBP.UI.Module3D
                 m_Max.text = positiveMax.ToString("0.0");
             }
         }
+
         private void UpdateTextMEG(Column3DMEG megColumn)
         {
             Core.Tools.MRICalValues values = megColumn.SelectedFMRI.ExtremeValues;
@@ -173,6 +171,7 @@ namespace HBP.UI.Module3D
                 m_Max.text = positiveMax.ToString("0.0");
             }
         }
+
         #endregion
     }
 }

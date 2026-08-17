@@ -13,15 +13,13 @@ namespace HBP.Data.Module3D
     public class Column3DStatic : Column3D
     {
         #region Properties
+
         /// <summary>
         /// Static data of this column (contains information about what to display)
         /// </summary>
         public StaticColumn ColumnStaticData
         {
-            get
-            {
-                return ColumnData as StaticColumn;
-            }
+            get { return ColumnData as StaticColumn; }
         }
 
         /// <summary>
@@ -31,12 +29,10 @@ namespace HBP.Data.Module3D
 
         public string[] Labels { get; private set; } = new string[0];
         private int m_SelectedLabelIndex = 0;
+
         public int SelectedLabelIndex
         {
-            get
-            {
-                return m_SelectedLabelIndex;
-            }
+            get { return m_SelectedLabelIndex; }
             set
             {
                 m_SelectedLabelIndex = (value + Labels.Length) % Labels.Length;
@@ -48,10 +44,12 @@ namespace HBP.Data.Module3D
         /// Values of the signal in a 1D array (used for the DLL)
         /// </summary>
         public float[] ActivityValues { get; protected set; } = new float[0];
+
         /// <summary>
         /// Values of the signal of the sites that are not masked (and have correct values)
         /// </summary>
         public float[] ActivityValuesOfUnmaskedSites { get; protected set; } = new float[0];
+
         /// <summary>
         /// Signal values by site global ID
         /// </summary>
@@ -61,17 +59,22 @@ namespace HBP.Data.Module3D
         /// Size of each site depending on its activity
         /// </summary>
         protected List<Vector3> m_ElectrodesSizeScale = new();
+
         /// <summary>
         /// Does the site have a positive activity value ?
         /// </summary>
         protected List<bool> m_ElectrodesPositiveColor = new();
+
         #endregion
 
         #region Events
+
         public UnityEvent OnUpdateSelectedLabel = new();
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Set activity data for each site
         /// </summary>
@@ -120,6 +123,7 @@ namespace HBP.Data.Module3D
                     float val = ActivityValuesByLabelIDBySiteID[s][t];
                     ActivityValues[t * sitesCount + s] = val;
                 }
+
                 if (!Sites[s].State.IsMasked)
                 {
                     for (int t = 0; t < labelsLength; ++t)
@@ -139,6 +143,7 @@ namespace HBP.Data.Module3D
             if (StaticParameters.MaximumAmplitude == float.MinValue) StaticParameters.MaximumAmplitude = 1;
             ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
         }
+
         /// <summary>
         /// Update sites sizes and colors arrays depending on the activity (to be called before the rendering update)
         /// </summary>
@@ -184,15 +189,18 @@ namespace HBP.Data.Module3D
 
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
             ActivityGenerator = new Core.DLL.IEEGGenerator();
         }
+
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
@@ -201,10 +209,10 @@ namespace HBP.Data.Module3D
         public override void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.UpdateSites(implantation, sceneSitePatientParent);
-            
+
             m_ElectrodesSizeScale = new List<Vector3>(RawElectrodes.NumberOfSites);
             m_ElectrodesPositiveColor = new List<bool>(RawElectrodes.NumberOfSites);
-            
+
             for (int ii = 0; ii < RawElectrodes.NumberOfSites; ii++)
             {
                 m_ElectrodesSizeScale.Add(new Vector3(1, 1, 1));
@@ -213,6 +221,7 @@ namespace HBP.Data.Module3D
 
             SetActivityData();
         }
+
         /// <summary>
         /// Method called when initializing the activity on the column
         /// </summary>
@@ -220,6 +229,7 @@ namespace HBP.Data.Module3D
         {
             SetActivityData();
         }
+
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state
         /// </summary>
@@ -260,11 +270,13 @@ namespace HBP.Data.Module3D
                     site.transform.localScale = Vector3.one;
                     siteType = SiteType.Normal;
                 }
+
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }
+
         /// <summary>
         /// Compute the UVs of the meshes for the brain activity
         /// </summary>
@@ -273,6 +285,7 @@ namespace HBP.Data.Module3D
         {
             SurfaceGenerator.ComputeActivityUV(SelectedLabelIndex, ActivityAlpha);
         }
+
         /// <summary>
         /// Load the column configuration from the column data
         /// </summary>
@@ -284,6 +297,7 @@ namespace HBP.Data.Module3D
             StaticParameters.SetSpanValues(ColumnStaticData.StaticConfiguration.SpanMin, ColumnStaticData.StaticConfiguration.Middle, ColumnStaticData.StaticConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
+
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
@@ -295,6 +309,7 @@ namespace HBP.Data.Module3D
             ColumnStaticData.StaticConfiguration.SpanMax = StaticParameters.SpanMax;
             base.SaveConfiguration();
         }
+
         /// <summary>
         /// Reset the configuration of this column
         /// </summary>
@@ -304,6 +319,7 @@ namespace HBP.Data.Module3D
             StaticParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }
+
         #endregion
     }
 }

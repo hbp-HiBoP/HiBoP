@@ -8,8 +8,10 @@ namespace HBP.UI.Informations
     public class ChannelStructsGroupSelector : ObjectSelector<ChannelStructsGroup>
     {
         #region Properties
+
         [SerializeField] ChannelStructsGroupList m_List;
         protected override SelectableList<ChannelStructsGroup> List => m_List;
+
         #endregion
     }
 }

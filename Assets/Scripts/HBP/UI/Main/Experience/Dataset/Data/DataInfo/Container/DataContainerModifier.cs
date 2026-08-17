@@ -14,6 +14,7 @@ namespace HBP.UI.Main
     public class DataContainerModifier : SubModifier<DataContainer>
     {
         #region Properties
+
         [SerializeField] Dropdown m_ContainerTypeDropdown;
         [SerializeField] Button m_DisplayHeaderDataButton;
         [SerializeField] ElanDataContainerSubModifier m_ElanDataContainerSubModifier;
@@ -34,12 +35,10 @@ namespace HBP.UI.Main
         CSV m_CSVDataContainerTemp;
 
         DataAttribute m_DataAttribute;
+
         public DataAttribute DataAttribute
         {
-            get
-            {
-                return m_DataAttribute;
-            }
+            get { return m_DataAttribute; }
             set
             {
                 m_DataAttribute = value;
@@ -51,10 +50,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -70,18 +66,22 @@ namespace HBP.UI.Main
                 m_CSVDataContainerSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
             m_ContainerTypeDropdown.onValueChanged.AddListener(ChangeDataInfoType);
             m_DisplayHeaderDataButton.onClick.AddListener(DisplayHeaderData);
         }
+
         #endregion
 
         #region Private Methods
+
         void ChangeDataInfoType(int i)
         {
             Type type = m_Types[i];
@@ -186,15 +186,18 @@ namespace HBP.UI.Main
                 m_FIFDataContainerSubModifier.IsActive = false;
                 m_CSVDataContainerSubModifier.IsActive = false;
             }
+
             UpdateDisplayHeaderDataButtonVisibility();
             OnChangeDataType.Invoke();
         }
+
         void UpdateDisplayHeaderDataButtonVisibility()
         {
             Type containerType = m_Object.GetType();
             bool hasIEEGAttribute = containerType != null && containerType.GetCustomAttributes(typeof(IEEG), false).Length > 0;
             m_DisplayHeaderDataButton.gameObject.SetActive(hasIEEGAttribute);
         }
+
         async void DisplayHeaderData()
         {
             try
@@ -241,7 +244,7 @@ namespace HBP.UI.Main
                 }
 
                 // Try to load the file
-                Core.DLL.EEG.File file = new(type, false, files);
+                using Core.DLL.EEG.File file = new(type, false, files);
 
                 // Format header information
                 System.Text.StringBuilder headerInfo = new();
@@ -257,17 +260,17 @@ namespace HBP.UI.Main
                 {
                     headerInfo.AppendLine($"<b>Channels</b> ({file.ElectrodeCount}):");
                     var electrodes = file.Electrodes;
-                    
+
                     // Group channels by electrode prefix
                     var groupedChannels = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>();
                     var otherChannels = new System.Collections.Generic.List<string>();
-                    
+
                     foreach (var electrode in electrodes)
                     {
                         string label = electrode.Label;
                         // Extract prefix (all characters except trailing digits)
                         var match = System.Text.RegularExpressions.Regex.Match(label, @"^(.*?)(\d+)$");
-                        
+
                         if (match.Success)
                         {
                             string prefix = match.Groups[1].Value;
@@ -275,6 +278,7 @@ namespace HBP.UI.Main
                             {
                                 groupedChannels[prefix] = new System.Collections.Generic.List<string>();
                             }
+
                             groupedChannels[prefix].Add(label);
                         }
                         else
@@ -283,11 +287,11 @@ namespace HBP.UI.Main
                             otherChannels.Add(label);
                         }
                     }
-                    
+
                     // Sort groups by prefix using SiteNameComparer
                     var sortedGroups = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, System.Collections.Generic.List<string>>>(groupedChannels);
                     sortedGroups.Sort((a, b) => new SiteNameComparer().Compare(a.Value[0], b.Value[0]));
-                    
+
                     // Display each group
                     foreach (var group in sortedGroups)
                     {
@@ -295,14 +299,14 @@ namespace HBP.UI.Main
                         group.Value.Sort(new SiteNameComparer());
                         headerInfo.AppendLine($"  • {group.Key} - {string.Join(", ", group.Value)}");
                     }
-                    
+
                     // Display "Other" channels if any
                     if (otherChannels.Count > 0)
                     {
                         otherChannels.Sort();
                         headerInfo.AppendLine($"  • Other - {string.Join(", ", otherChannels)}");
                     }
-                    
+
                     headerInfo.AppendLine();
                 }
                 else
@@ -316,7 +320,7 @@ namespace HBP.UI.Main
                 {
                     headerInfo.AppendLine($"<b>Triggers</b> ({file.TriggerCount}):");
                     var triggers = file.Triggers;
-                    
+
                     // Group triggers by code and count occurrences
                     var triggerStats = new System.Collections.Generic.Dictionary<int, int>();
                     foreach (var trigger in triggers)
@@ -325,13 +329,14 @@ namespace HBP.UI.Main
                         {
                             triggerStats[trigger.Code] = 0;
                         }
+
                         triggerStats[trigger.Code]++;
                     }
-                    
+
                     // Sort by code and display
                     var sortedStats = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<int, int>>(triggerStats);
                     sortedStats.Sort((a, b) => a.Key.CompareTo(b.Key));
-                    
+
                     foreach (var stat in sortedStats)
                     {
                         headerInfo.AppendLine($"  • Code {stat.Key}: {stat.Value} occurrence{(stat.Value > 1 ? "s" : "")}");
@@ -351,9 +356,11 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Unable to Load File", $"The file could not be loaded. Please check that the file path is correct and the file is valid.\n\nError: {ex.Message}", "OK").Forget();
             }
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(DataContainer objectToDisplay)
         {
             m_ElanDataContainerTemp = new Elan("", "", "", new Error[0], new Warning[0], objectToDisplay.ID);
@@ -392,9 +399,11 @@ namespace HBP.UI.Main
             {
                 m_CSVDataContainerTemp = objectToDisplay as CSV;
             }
+
             m_ContainerTypeDropdown.SetValue(Array.IndexOf(m_Types, Object.GetType()));
             UpdateDisplayHeaderDataButtonVisibility();
         }
+
         #endregion
     }
 }

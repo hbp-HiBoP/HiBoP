@@ -7,10 +7,12 @@ namespace HBP.Data.Module3D
     public class ROIManager : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene of the manager
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+
         /// <summary>
         /// Component containing references to GameObjects of the 3D scene
         /// </summary>
@@ -22,15 +24,13 @@ namespace HBP.Data.Module3D
         public List<ROI> ROIs { get; protected set; } = new List<ROI>();
 
         protected ROI m_SelectedROI = null;
+
         /// <summary>
         /// Currently selected ROI
         /// </summary>
         public ROI SelectedROI
         {
-            get
-            {
-                return m_SelectedROI;
-            }
+            get { return m_SelectedROI; }
             set
             {
                 if (m_SelectedROI != null)
@@ -51,31 +51,24 @@ namespace HBP.Data.Module3D
                 UpdateROIMasks();
             }
         }
+
         /// <summary>
         /// ID of the currently selected ROI
         /// </summary>
         public int SelectedROIID
         {
-            get
-            {
-                return ROIs.FindIndex((roi) => roi == SelectedROI);
-            }
-            set
-            {
-                SelectedROI = value == -1 ? null : ROIs[value];
-            }
+            get { return ROIs.FindIndex((roi) => roi == SelectedROI); }
+            set { SelectedROI = value == -1 ? null : ROIs[value]; }
         }
-        
+
         private bool m_ROICreationMode;
+
         /// <summary>
         /// Is ROI creation mode activated ?
         /// </summary>
         public bool ROICreationMode
         {
-            get
-            {
-                return m_ROICreationMode;
-            }
+            get { return m_ROICreationMode; }
             set
             {
                 m_ROICreationMode = value;
@@ -83,9 +76,11 @@ namespace HBP.Data.Module3D
                     SelectedROI.SetRenderingState(value);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a ROI to this column
         /// </summary>
@@ -100,24 +95,16 @@ namespace HBP.Data.Module3D
                 m_Scene.OnUpdateROI.Invoke();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
-            roi.OnChangeNumberOfSpheres.AddListener(() =>
-            {
-                UpdateROIMasks();
-            });
-            roi.OnChangeSphereParameters.AddListener(() =>
-            {
-                UpdateROIMasks();
-            });
-            roi.OnChangeSphereSelectionState.AddListener(() =>
-            {
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
+            roi.OnChangeNumberOfSpheres.AddListener(() => { UpdateROIMasks(); });
+            roi.OnChangeSphereParameters.AddListener(() => { UpdateROIMasks(); });
+            roi.OnChangeSphereSelectionState.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
             ROIs.Add(roi);
             UpdateROIMasks();
             SelectedROI = ROIs.Last();
 
             return roi;
         }
+
         /// <summary>
         /// Create a new ROI using the parameters of another ROI
         /// </summary>
@@ -131,6 +118,7 @@ namespace HBP.Data.Module3D
                 newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.Radius);
             }
         }
+
         /// <summary>
         /// Remove the currently selected ROI
         /// </summary>
@@ -149,6 +137,7 @@ namespace HBP.Data.Module3D
                 SelectedROI = null;
             }
         }
+
         /// <summary>
         /// Remove all ROIs of the manager
         /// </summary>
@@ -158,10 +147,12 @@ namespace HBP.Data.Module3D
             {
                 Destroy(roi.gameObject);
             }
+
             ROIs.Clear();
             UpdateROIMasks();
             SelectedROI = null;
         }
+
         /// <summary>
         /// Move the selected sphere by a specific delta from a camera perspective
         /// </summary>
@@ -181,6 +172,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Update the ROI mask for this column
         /// </summary>
@@ -204,15 +196,17 @@ namespace HBP.Data.Module3D
                     for (int ii = 0; ii < maskROI.Length; ++ii)
                         maskROI[ii] = column.Sites[ii].State.IsOutOfROI;
 
-                    SelectedROI.UpdateMask(column.RawElectrodes, maskROI);
+                    SelectedROI.UpdateMask(column.Sites, maskROI);
                     for (int ii = 0; ii < column.Sites.Count; ++ii)
                         column.Sites[ii].State.IsOutOfROI = maskROI[ii];
                 }
             }
-            m_Scene.ResetGenerators(false);
+
+            m_Scene.InvalidateActivityField(false);
             m_Scene.OnUpdateROI.Invoke();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Load the ROIs from the visualization configuration
         /// </summary>
@@ -228,8 +222,10 @@ namespace HBP.Data.Module3D
                     newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
                 }
             }
+
             ROICreationMode = !ROICreationMode;
         }
+
         #endregion
     }
 }

@@ -9,9 +9,11 @@ namespace HBP.Core.Object3D
     public class DiFuMoInformation
     {
         #region Structs
+
         public struct Labels
         {
             #region Propreties
+
             public int Component { get; private set; }
             public string Name { get; private set; }
             public string YeoNetworks7 { get; private set; }
@@ -19,9 +21,11 @@ namespace HBP.Core.Object3D
             public float GM { get; private set; }
             public float WM { get; private set; }
             public float CSF { get; private set; }
+
             #endregion
 
             #region Constructors
+
             public Labels(int component, string name, string yeoNetworks7, string yeoNetworks17, float gm, float wm, float csf)
             {
                 Component = component;
@@ -32,24 +36,31 @@ namespace HBP.Core.Object3D
                 WM = wm;
                 CSF = csf;
             }
+
             #endregion
         }
+
         #endregion
 
         #region Properties
+
         public List<Labels> AllLabels { get; } = new List<Labels>();
         public bool Loaded { get; private set; } = false;
         public bool Loading { get; private set; } = false;
+
         #endregion
 
         #region Constructors
+
         public DiFuMoInformation(string csvFile)
         {
             LoadAsync(csvFile).Forget();
         }
+
         #endregion
 
         #region Private Methods
+
         private async UniTaskVoid LoadAsync(string csvFile)
         {
             await UniTask.SwitchToThreadPool();
@@ -73,18 +84,23 @@ namespace HBP.Core.Object3D
                         AllLabels.Add(new Labels(component, name, yeoNetworks7, yeoNetworks17, gm, wm, csf));
                     }
                 }
-                AllLabels.Sort(delegate (Labels a, Labels b) { return a.Component.CompareTo(b.Component); });
+
+                AllLabels.Sort(delegate(Labels a, Labels b) { return a.Component.CompareTo(b.Component); });
             }
+
             Loading = false;
             Loaded = true;
         }
+
         #endregion
 
         #region Public Methods
+
         public Labels GetLabels(int component)
         {
             return AllLabels[component];
         }
+
         #endregion
     }
 }

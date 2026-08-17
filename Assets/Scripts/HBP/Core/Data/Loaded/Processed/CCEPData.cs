@@ -7,6 +7,7 @@ namespace HBP.Core.Data.Processed
     public class CCEPData : DynamicData
     {
         #region Properties
+
         public List<BlocEventsStatistics> EventStatistics { get; set; } = new List<BlocEventsStatistics>();
         public Dictionary<string, Dictionary<string, BlocChannelData>> DataByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, BlocChannelData>>();
         public Dictionary<string, Dictionary<string, BlocChannelStatistics>> StatisticsByChannelIDByStimulatedChannelID { get; set; } = new Dictionary<string, Dictionary<string, BlocChannelStatistics>>();
@@ -15,14 +16,39 @@ namespace HBP.Core.Data.Processed
 
         private Dictionary<string, Dictionary<string, Tools.Frequency>> m_FrequencyByChannelIDByStimulatedChannelID = new();
         public List<Tools.Frequency> Frequencies = new();
+        private readonly List<CCEPDataInfo> m_PinnedDataInfos = new();
+
         #endregion
 
         #region Public Methods
+
         public void Load(IEnumerable<CCEPDataInfo> columnData, Bloc bloc)
         {
             foreach (CCEPDataInfo dataInfo in columnData)
             {
-                Core.Data.CCEPData data = DataManager.GetData(dataInfo) as Core.Data.CCEPData;
+                bool pinAdded = !m_PinnedDataInfos.Contains(dataInfo);
+                if (pinAdded)
+                {
+                    DataManager.PinData(dataInfo);
+                    m_PinnedDataInfos.Add(dataInfo);
+                }
+
+                Core.Data.CCEPData data;
+                try
+                {
+                    data = DataManager.GetData(dataInfo, updateMemoryUsage: false) as Core.Data.CCEPData;
+                }
+                catch
+                {
+                    if (pinAdded)
+                    {
+                        m_PinnedDataInfos.Remove(dataInfo);
+                        DataManager.UnpinData(dataInfo);
+                    }
+
+                    throw;
+                }
+
                 string stimulatedChannelID = dataInfo.Patient.ID + "_" + data.StimulatedChannel;
 
                 // Values
@@ -33,11 +59,12 @@ namespace HBP.Core.Data.Processed
                 foreach (var channel in data.UnitByChannel.Keys)
                 {
                     string channelID = dataInfo.Patient.ID + "_" + channel;
-                    if (!dataByChannelID.ContainsKey(channelID)) dataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel));
-                    if (!statisticsByChannelID.ContainsKey(channelID)) statisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel));
+                    if (!dataByChannelID.ContainsKey(channelID)) dataByChannelID.Add(channelID, DataManager.GetData(dataInfo, bloc, channel, updateMemoryUsage: false));
+                    if (!statisticsByChannelID.ContainsKey(channelID)) statisticsByChannelID.Add(channelID, DataManager.GetStatistics(dataInfo, bloc, channel, updateMemoryUsage: false));
                     if (!frequencyByChannelID.ContainsKey(channelID)) frequencyByChannelID.Add(channelID, data.Frequency);
                     if (!unitByChannelID.ContainsKey(channelID)) unitByChannelID.Add(channelID, data.UnitByChannel[channel]);
                 }
+
                 if (!DataByChannelIDByStimulatedChannelID.ContainsKey(stimulatedChannelID)) DataByChannelIDByStimulatedChannelID.Add(stimulatedChannelID, dataByChannelID);
                 if (!StatisticsByChannelIDByStimulatedChannelID.ContainsKey(stimulatedChannelID)) StatisticsByChannelIDByStimulatedChannelID.Add(stimulatedChannelID, statisticsByChannelID);
                 if (!m_FrequencyByChannelIDByStimulatedChannelID.ContainsKey(stimulatedChannelID)) m_FrequencyByChannelIDByStimulatedChannelID.Add(stimulatedChannelID, frequencyByChannelID);
@@ -45,11 +72,18 @@ namespace HBP.Core.Data.Processed
                 if (!Frequencies.Contains(data.Frequency)) Frequencies.Add(data.Frequency);
 
                 // Events
-                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc));
+                EventStatistics.Add(DataManager.GetEventsStatistics(dataInfo, bloc, updateMemoryUsage: false));
+                // Refresh once after all channel-level derived data have been created.
+                DataManager.RefreshDerivedMemoryUsage(dataInfo);
             }
         }
+
         public override void Unload()
         {
+            DataManager.UnregisterMemoryUsage(this);
+            foreach (CCEPDataInfo dataInfo in m_PinnedDataInfos)
+                DataManager.UnpinData(dataInfo);
+            m_PinnedDataInfos.Clear();
             base.Unload();
             EventStatistics.Clear();
             DataByChannelIDByStimulatedChannelID.Clear();
@@ -59,12 +93,9 @@ namespace HBP.Core.Data.Processed
             m_FrequencyByChannelIDByStimulatedChannelID.Clear();
             Frequencies.Clear();
         }
+
         public void SetTimeline(Tools.Frequency maxFrequency, Bloc columnBloc, IEnumerable<Bloc> blocs)
         {
-            // Process frequencies
-            Frequencies.Add(maxFrequency);
-            Frequencies = Frequencies.GroupBy(f => f.Value).Select(g => g.First()).ToList();
-
             // Get index of each subBloc
             Dictionary<SubBloc, int> indexBySubBloc = new();
             foreach (var bloc in blocs)
@@ -83,6 +114,7 @@ namespace HBP.Core.Data.Processed
             {
                 eventStatisticsBySubBloc.Add(subBloc, new List<SubBlocEventsStatistics>());
             }
+
             foreach (var blocEventStatistics in EventStatistics)
             {
                 foreach (var subBlocEventStatistics in blocEventStatistics.EventsStatisticsBySubBloc)
@@ -93,6 +125,8 @@ namespace HBP.Core.Data.Processed
 
             // Create timeline and iconic scenario
             Timeline = new Timeline(columnBloc, eventStatisticsBySubBloc, indexBySubBloc, maxFrequency);
+            Tools.Frequency projectionFrequency = Frequencies.OrderByDescending(frequency => frequency.RawValue).First();
+            ProjectionTimeline = projectionFrequency.Value == maxFrequency.Value ? Timeline : new Timeline(columnBloc, eventStatisticsBySubBloc, indexBySubBloc, projectionFrequency);
             IconicScenario = new IconicScenario(columnBloc, maxFrequency, Timeline);
 
             // Standardize values
@@ -107,17 +141,22 @@ namespace HBP.Core.Data.Processed
                     foreach (var subBloc in columnBloc.OrderedSubBlocs)
                     {
                         float[] subBlocValues = statistics.Trial.ChannelSubTrialBySubBloc[subBloc].Values;
-                        SubTimeline subTimeline = Timeline.SubTimelinesBySubBloc[subBloc];
+                        SubTimeline subTimeline = ProjectionTimeline.SubTimelinesBySubBloc[subBloc];
                         if (subTimeline.Before > 0) values.AddRange(Enumerable.Repeat(subBlocValues[0], subTimeline.Before));
                         values.AddRange(subBlocValues.Interpolate(subTimeline.Length, 0, 0));
                         if (subTimeline.After > 0) values.AddRange(Enumerable.Repeat(subBlocValues[subBlocValues.Length - 1], subTimeline.After));
                     }
+
                     processedValuesByChannelID.Add(channelID, values.ToArray());
                 }
+
                 ProcessedValuesByChannelIDByStimulatedChannelID.Add(dataByChannelIDByStimulatedChannelID.Key, processedValuesByChannelID);
             }
+
+            long managedBytes = ProcessedValuesByChannelIDByStimulatedChannelID.Values.SelectMany(valuesByChannel => valuesByChannel.Values).Sum(values => values.LongLength * sizeof(float));
+            DataManager.RegisterMemoryUsage(this, MemoryCacheCategory.ManagedDerived, managedBytes, true);
         }
+
         #endregion
     }
 }
-

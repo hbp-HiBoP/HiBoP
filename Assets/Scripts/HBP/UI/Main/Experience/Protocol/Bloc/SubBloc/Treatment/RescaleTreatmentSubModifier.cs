@@ -9,6 +9,7 @@ namespace HBP.UI.Main
     public class RescaleTreatmentSubModifier : SubModifier<Core.Data.RescaleTreatment>
     {
         #region Properties
+
         [SerializeField] InputField m_MinBeforeInputField;
         [SerializeField] InputField m_MaxBeforeInputField;
 
@@ -17,10 +18,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -30,9 +28,11 @@ namespace HBP.UI.Main
                 m_MaxAfterInputField.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -42,9 +42,11 @@ namespace HBP.UI.Main
             m_MinAfterInputField.onEndEdit.AddListener(OnChangeMinAfterValue);
             m_MaxAfterInputField.onEndEdit.AddListener(OnChangeMaxAfterValue);
         }
+
         #endregion
 
         #region Private Methods
+
         void OnChangeMinBeforeValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float floatResult))
@@ -52,6 +54,7 @@ namespace HBP.UI.Main
                 Object.BeforeMin = floatResult;
             }
         }
+
         void OnChangeMaxBeforeValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float floatResult))
@@ -59,6 +62,7 @@ namespace HBP.UI.Main
                 Object.BeforeMax = floatResult;
             }
         }
+
         void OnChangeMinAfterValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float floatResult))
@@ -66,6 +70,7 @@ namespace HBP.UI.Main
                 Object.AfterMin = floatResult;
             }
         }
+
         void OnChangeMaxAfterValue(string value)
         {
             if (NumberExtension.TryParseFloat(value, out float floatResult))
@@ -73,6 +78,7 @@ namespace HBP.UI.Main
                 Object.AfterMax = floatResult;
             }
         }
+
         protected override void SetFields(Core.Data.RescaleTreatment objectToDisplay)
         {
             m_MinBeforeInputField.text = objectToDisplay.BeforeMin.ToString("0.##", CultureInfo.InvariantCulture);
@@ -81,6 +87,7 @@ namespace HBP.UI.Main
             m_MinAfterInputField.text = objectToDisplay.AfterMin.ToString("0.##", CultureInfo.InvariantCulture);
             m_MaxAfterInputField.text = objectToDisplay.AfterMax.ToString("0.##", CultureInfo.InvariantCulture);
         }
+
         #endregion
     }
 }

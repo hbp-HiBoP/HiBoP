@@ -1,506 +1,335 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Runtime.InteropServices;
-using UnityEngine;
+using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
+using HBP.Core.Tools;
+using UnityEngine;
 
 namespace HBP.Core.DLL
 {
-    /// <summary>
-    /// Class representing the bounding box in the DLL
-    /// </summary>
-    public class BBox : CppDLLImportBase
+    public enum PreviewThresholdMode
     {
-        #region Properties
-        /// <summary>
-        /// Minimum point of the bounding box
-        /// </summary>
-        public Vector3 Min
-        {
-            get
-            {
-                float[] min = new float[3];
-                getMin_BBox(_handle, min);
-                return new Vector3(min[0], min[1], min[2]);
-            }
-        }
-        /// <summary>
-        /// Maximum point of the bounding box
-        /// </summary>
-        public Vector3 Max
-        {
-            get
-            {
-                float[] max = new float[3];
-                getMax_BBox(_handle, max);
-                return new Vector3(max[0], max[1], max[2]);
-            }
-        }
-        /// <summary>
-        /// Center point of the bounding box
-        /// </summary>
-        public Vector3 Center
-        {
-            get
-            {
-                float[] center = new float[3];
-                getCenter_BBox(_handle, center);
-                return new Vector3(center[0], center[1], center[2]);
-            }
-        }
-        /// <summary>
-        /// Length of the diagonal Max-Min
-        /// </summary>
-        public float DiagonalLength
-        {
-            get
-            {
-                return (Max - Min).magnitude;
-            }
-        }
-        /// <summary>
-        /// List of the points of the bounding box (8 points)
-        /// </summary>
-        public List<Vector3> Points
-        {
-            get
-            {
-                float[] points = new float[3 * 8];
-                getPoints_BBox(_handle, points);
-                List<Vector3> pointsV = new(8);
-
-                for (int ii = 0; ii < 8; ii++)
-                {
-                    pointsV.Add(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]));
-                }
-
-                return pointsV;
-            }
-        }
-        /// <summary>
-        /// List of the pairs of points composing the edges of the bounding box
-        /// </summary>
-        public List<Object3D.Segment3> Segments
-        {
-            get
-            {
-                float[] points = new float[3 * 2 * 12];
-                getLinesPairPoints_BBox(_handle, points);
-                List<Object3D.Segment3> linesPoints = new(12);
-
-                for (int ii = 0; ii < 12; ii++)
-                {
-                    linesPoints.Add(new Object3D.Segment3(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]), new Vector3(points[3 * ii + 3], points[3 * ii + 4], points[3 * ii + 5])));
-                }
-
-                return linesPoints;
-            }
-        }
-        #endregion
-
-        #region Public Methods
-        /// <summary>
-        /// Get the points of the intersection of a plane and this bounding box
-        /// </summary>
-        /// <param name="planeIntersec">Plane to intersect with</param>
-        /// <returns>List of the points composing the intersection</returns>
-        public List<Vector3> IntersectionPointsWithPlane(Object3D.Plane planeIntersec)
-        {
-            float[] points = new float[8 * 3];
-            getIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
-            List<Vector3> intersecPoints = new(4);
-
-            for (int ii = 0; ii < 8; ++ii)
-            {
-                Vector3 point = new(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]);
-                if (point.x == 0 && point.y == 0 && point.z == 0)
-                    continue;
-                intersecPoints.Add(point);
-            }
-
-            return intersecPoints;
-        }
-        /// <summary>
-        /// Get the lines of the intersection of a plane and this bounding box
-        /// </summary>
-        /// <param name="planeIntersec">Plane to intersect with</param>
-        /// <returns>List of the pairs of points composing the lines of the intersection</returns>
-        public List<Object3D.Segment3> IntersectionLinesWithPlane(Object3D.Plane planeIntersec)
-        {
-            float[] points = new float[4 * 2 * 3];
-            getLinesIntersectionsWithPlane_BBox(_handle, planeIntersec.ConvertToArray(), points);
-            List<Object3D.Segment3> intersecLines = new(4);
-
-            for (int ii = 0; ii < 4; ++ii)
-            {
-                intersecLines.Add(new Object3D.Segment3(new Vector3(points[3 * ii], points[3 * ii + 1], points[3 * ii + 2]), new Vector3(points[3 * ii + 3], points[3 * ii + 4], points[3 * ii + 5])));
-            }
-
-            return intersecLines;
-        }
-        /// <summary>
-        /// Get the intersection segment of two planes with the ends of the segment being on the bounding box
-        /// </summary>
-        /// <param name="planeA">First plane of the intersection</param>
-        /// <param name="planeB">Second plane of the intersection</param>
-        /// <returns>List of 2 points composing the segment</returns>
-        public Object3D.Segment3 IntersectionSegmentBetweenTwoPlanes(Object3D.Plane planeA, Object3D.Plane planeB)
-        {
-            float[] result = new float[2 * 3];
-            bool isOk = find_intersection_segment_BBox(_handle, planeA.ConvertToArray(), planeB.ConvertToArray(), result);
-            if (!isOk)
-            {
-                return null;
-            }
-            else
-            {
-                return new Object3D.Segment3(new Vector3(result[0], result[1], result[2]), new Vector3(result[3], result[4], result[5]));
-            }
-        }
-        /// <summary>
-        /// Merge two BBox into one
-        /// </summary>
-        /// <param name="other"></param>
-        public void Update(BBox other)
-        {
-            update_BBox(_handle, other.getHandle());
-        }
-        /// <summary>
-        /// Get the offset value for a cut plane given the number of cuts
-        /// </summary>
-        /// <param name="cutPlane">Cut plane to compute the offset for</param>
-        /// <param name="nbCuts">Number of desired cuts</param>
-        /// <returns>Value of the offset</returns>
-        public float SizeOffsetCutPlane(Object3D.Plane cutPlane, int nbCuts)
-        {
-            return size_offset_cut_plane_Surface(_handle, cutPlane.ConvertToArray(), nbCuts);
-        }
-        public bool Compare(BBox other)
-        {
-            return (Min == other.Min && Max == other.Max && Center == other.Center);
-        }
-        #endregion
-
-        #region Memory Management
-        public BBox()
-        {
-            _handle = new HandleRef(this, create_BBox());
-        }
-        public BBox(IntPtr bBoxPointer)
-        {
-            _handle = new HandleRef(this, bBoxPointer);
-        }
-        public static BBox Merge(BBox bbox1, BBox bbox2)
-        {
-            BBox bbox = new();
-            bbox.Update(bbox1);
-            bbox.Update(bbox2);
-            return bbox;
-        }
-        /// <summary>
-        /// Allocate DLL memory
-        /// </summary>
-        protected override void create_DLL_class()
-        {
-            _handle = new HandleRef(this, create_BBox());
-        }
-        /// <summary>
-        /// Clean DLL memory
-        /// </summary>
-        protected override void delete_DLL_class()
-        {
-            delete_BBox(_handle);
-        }
-        #endregion
-
-        #region DLLImport
-        [DllImport("hbp_export", EntryPoint = "create_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr create_BBox();
-        [DllImport("hbp_export", EntryPoint = "delete_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void delete_BBox(HandleRef handleBBox);
-        [DllImport("hbp_export", EntryPoint = "getMin_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void getMin_BBox(HandleRef handleBBox, float[] min);
-        [DllImport("hbp_export", EntryPoint = "getMax_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void getMax_BBox(HandleRef handleBBox, float[] max);
-        [DllImport("hbp_export", EntryPoint = "getPoints_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void getPoints_BBox(HandleRef handleBBox, float[] points);
-        [DllImport("hbp_export", EntryPoint = "getLinesPairPoints_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void getLinesPairPoints_BBox(HandleRef handleBBox, float[] points);
-        [DllImport("hbp_export", EntryPoint = "getIntersectionsWithPlane_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void getIntersectionsWithPlane_BBox(HandleRef handleBBox, float[] plane, float[] interPoints);
-        [DllImport("hbp_export", EntryPoint = "getLinesIntersectionsWithPlane_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void getLinesIntersectionsWithPlane_BBox(HandleRef handleBBox, float[] plane, float[] interPoints);
-        [DllImport("hbp_export", EntryPoint = "find_intersection_segment_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern bool find_intersection_segment_BBox(HandleRef handleBBox, float[] planeA, float[] planeB, float[] interPoints);
-        [DllImport("hbp_export", EntryPoint = "getCenter_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void getCenter_BBox(HandleRef handleBBox, float[] center);
-        [DllImport("hbp_export", EntryPoint = "update_BBox", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void update_BBox(HandleRef handleBBox1, HandleRef handleBBox2);
-        [DllImport("hbp_export", EntryPoint = "size_offset_cut_plane_Surface", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float size_offset_cut_plane_Surface(HandleRef handleSurface, float[] planeCut, int nbCuts);
-        #endregion
+        AutoOtsu = 0,
+        Absolute = 1,
+        Normalized = 2
     }
 
-    /// <summary>
-    /// Class representing a volumr loaded from a NIFTI file
-    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PreviewSurfaceOptions
+    {
+        public uint StructSize;
+        public PreviewThresholdMode ThresholdMode;
+        public float Threshold;
+        public int MaximumGridDimension;
+        public int TargetTriangleCount;
+        public int BinaryClosingIterations;
+        public int ScalarSmoothingIterations;
+        public int KeepLargestComponent;
+        public int FillInternalCavities;
+        public int PadWithBackground;
+
+        public static PreviewSurfaceOptions Default => new()
+        {
+            StructSize = (uint)Marshal.SizeOf<PreviewSurfaceOptions>(),
+            ThresholdMode = PreviewThresholdMode.AutoOtsu,
+            Threshold = 0.0f,
+            MaximumGridDimension = 160,
+            TargetTriangleCount = 20000,
+            BinaryClosingIterations = 1,
+            ScalarSmoothingIterations = 1,
+            KeepLargestComponent = 1,
+            FillInternalCavities = 1,
+            PadWithBackground = 1
+        };
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct PreviewSurfaceReport
+    {
+        public uint StructSize;
+        public float AppliedThreshold;
+        public int InputX;
+        public int InputY;
+        public int InputZ;
+        public int SampledX;
+        public int SampledY;
+        public int SampledZ;
+        public int ForegroundVoxelCount;
+        public int ComponentCount;
+        public int VertexCountBeforeSimplification;
+        public int TriangleCountBeforeSimplification;
+        public int VertexCountAfterSimplification;
+        public int TriangleCountAfterSimplification;
+        public double PreprocessingMilliseconds;
+        public double ExtractionMilliseconds;
+        public double PostprocessingMilliseconds;
+    }
+
+    /// <summary>Volume loaded from a NIFTI file.</summary>
     public class Volume : CppDLLImportBase
     {
-        #region Properties
-        /// <summary>
-        /// Is the volume completely loaded ?
-        /// </summary>
         public bool IsLoaded { get; private set; }
-        /// <summary>
-        /// Center point of the volume
-        /// </summary>
+
         public Vector3 Center
         {
             get
             {
-                float[] center = new float[3];
-                center_Volume(_handle, center);
-                return new Vector3(center[0], center[1], center[2]);
+                ThrowIfFailed(hbp_volume_get_center(_handle.Handle, out Vec3 value));
+                return value.ToVector3();
             }
         }
-        /// <summary>
-        /// Space between two voxels in x, y and z directions
-        /// </summary>
+
         public Vector3 Spacing
         {
             get
             {
-                float[] spacing = new float[3];
-                spacing_Volume(_handle, spacing);
-                return new Vector3(spacing[0], spacing[1], spacing[2]);
+                ThrowIfFailed(hbp_volume_get_spacing(_handle.Handle, out Vec3 value));
+                return value.ToVector3(convertReferenceSystem: false);
             }
         }
-        /// <summary>
-        /// Get the calibration values of the loaded MRI
-        /// </summary>
-        public Tools.MRICalValues ExtremeValues
+
+        public Vector3Int Dimensions
         {
             get
             {
-                Tools.MRICalValues values = new();
-
-                float[] valuesF = new float[6];
-                retrieveExtremeValues_Volume(_handle, valuesF);
-
-                values.Min = valuesF[0];
-                values.Max = valuesF[1];
-                values.LoadedCalMin = valuesF[2];
-                values.LoadedCalMax = valuesF[3];
-                values.ComputedCalMin = valuesF[4];
-                values.ComputedCalMax = valuesF[5];
-
-                return values;
+                ThrowIfFailed(hbp_volume_get_dimensions(_handle.Handle, out VolumeDimensions dimensions));
+                return new Vector3Int(dimensions.x, dimensions.y, dimensions.z);
             }
         }
-        /// <summary>
-        /// Bounding box of this volume
-        /// </summary>
+
+        public MRICalValues ExtremeValues
+        {
+            get
+            {
+                ThrowIfFailed(hbp_volume_get_extrema(_handle.Handle, out VolumeExtrema values));
+                return new MRICalValues
+                {
+                    Min = values.min,
+                    Max = values.max,
+                    LoadedCalMin = values.loadedCalMin,
+                    LoadedCalMax = values.loadedCalMax,
+                    ComputedCalMin = values.recomputedCalMin,
+                    ComputedCalMax = values.recomputedCalMax
+                };
+            }
+        }
+
         public BBox BoundingBox
         {
             get
             {
-                return new BBox(boundingBox_Volume(_handle));
+                ThrowIfFailed(hbp_volume_get_bounding_box(_handle.Handle, out IntPtr bbox));
+                return new BBox(bbox);
             }
         }
-        #endregion
 
-        #region Public Methods
-        /// <summary>
-        /// Load a NIFTI file to a DLL Volume
-        /// </summary>
-        /// <param name="path">Path to the NIFTI file</param>
-        /// <returns></returns>
+        public Volume()
+        {
+        }
+
+        internal Volume(IntPtr volumePointer) : base(volumePointer)
+        {
+        }
+
         public bool LoadNIFTIFile(string path)
         {
-            IsLoaded = (loadNiiFile_Volume(_handle, path) == 1);
+            IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
             return IsLoaded;
         }
+
         /// <summary>
-        /// Get the offset value for a cut plane given the number of cuts
+        /// Extracts a transient preview surface from the loaded MRI and transfers ownership of the
+        /// returned native handle to the managed <see cref="Surface"/>.
         /// </summary>
-        /// <param name="cutPlane">Cut plane to compute the offset for</param>
-        /// <param name="nbCuts">Number of desired cuts</param>
-        /// <returns>Value of the offset</returns>
-        public float SizeOffsetCutPlane(Object3D.Plane cutPlane, int nbCuts)
+        public Surface ExtractPreviewSurface(PreviewSurfaceOptions options, out PreviewSurfaceReport report)
         {
-            return sizeOffsetCutPlane_Volume(_handle, cutPlane.ConvertToArray(), nbCuts);
+            if (!IsLoaded)
+            {
+                throw new InvalidOperationException("A NIfTI volume must be loaded before extracting a preview surface.");
+            }
+
+            options.StructSize = (uint)Marshal.SizeOf<PreviewSurfaceOptions>();
+            report = new PreviewSurfaceReport
+            {
+                StructSize = (uint)Marshal.SizeOf<PreviewSurfaceReport>()
+            };
+
+            HbpCoreStatus status = hbp_volume_extract_preview_surface(_handle.Handle, ref options, out IntPtr surfaceHandle, ref report);
+            if (status != HbpCoreStatus.Ok)
+            {
+                string nativeError = HbpCoreRuntime.LastError;
+                if (surfaceHandle != IntPtr.Zero)
+                {
+                    Surface.DestroyOwnedHandle(surfaceHandle);
+                }
+
+                throw new InvalidOperationException($"hbp_core preview surface extraction failed with status {status}: {nativeError}");
+            }
+
+            if (surfaceHandle == IntPtr.Zero)
+            {
+                throw new InvalidOperationException("hbp_core preview surface extraction succeeded without returning a surface handle.");
+            }
+
+            return Surface.FromOwnedLoadedHandle(surfaceHandle);
         }
-        /// <summary>
-        /// Get information for a plane depending on the volume and on the input orientation
-        /// </summary>
-        /// <param name="plane">Plane to update</param>
-        /// <param name="orientation">Orientation of the cut</param>
-        /// <param name="flip">Is the cut flipped ?</param>
-        public void SetPlaneWithOrientation(Object3D.Plane plane, CutOrientation orientation, bool flip)
+
+        public float SizeOffsetCutPlane(Plane cutPlane, int nbCuts)
         {
+            if (cutPlane == null) throw new ArgumentNullException(nameof(cutPlane));
+            ThrowIfFailed(hbp_volume_size_offset_cut_plane(_handle.Handle, cutPlane.getHandle().Handle, nbCuts, out float offset));
+            return offset;
+        }
+
+        public void SetPlaneWithOrientation(Plane plane, CutOrientation orientation, bool flip)
+        {
+            if (plane == null) throw new ArgumentNullException(nameof(plane));
             plane.Normal = GetOrientationVector(orientation, flip);
         }
+
         public Vector3 GetOrientationVector(CutOrientation orientation, bool flip)
         {
-            float[] normal = new float[3];
-            definePlaneWithOrientation_Volume(_handle, normal, (int)orientation, flip);
-            return new Vector3(normal[0], normal[1], normal[2]);
+            ThrowIfFailed(hbp_volume_get_orientation_vector(_handle.Handle, (int)orientation, flip ? 1 : 0, out Vec3 value));
+            return value.ToVector3();
         }
-        /// <summary>
-        /// Returns a cube bbox around the volume depending on the used cuts
-        /// </summary>
-        /// <param name="cuts">List of the cuts of the scene</param>
-        /// <returns>The cube bounding box around the volume</returns>
-        public BBox GetCubeBoundingBox(List<Object3D.Cut> cuts)
-        {
-            float[] planes = new float[cuts.Count * 6];
-            int planesCount = 0;
-            for (int ii = 0; ii < cuts.Count; ++ii)
-            {
-                if (cuts[ii].Orientation != CutOrientation.Custom)
-                {
-                    for (int jj = 0; jj < 3; ++jj)
-                    {
-                        planes[ii * 6 + jj] = cuts[ii].Point[jj];
-                        planes[ii * 6 + jj + 3] = cuts[ii].Normal[jj];
-                    }
-                    planesCount++;
-                }
-            }
-            return new BBox(cube_bounding_box_Volume(_handle, planes, planesCount));
-        }
-        /// <summary>
-        /// Get values of the closest voxel of the Volume for each vertex of the input surface
-        /// </summary>
-        /// <param name="surface"></param>
-        /// <returns></returns>
+
         public float[] GetVerticesValues(Surface surface)
         {
+            if (surface == null) throw new ArgumentNullException(nameof(surface));
             float[] result = new float[surface.NumberOfVertices];
-            get_vertices_values_Volume(_handle, surface.getHandle(), result);
+            GCHandle resultHandle = GCHandle.Alloc(result, GCHandleType.Pinned);
+            try
+            {
+                ThrowIfFailed(hbp_volume_copy_surface_values_ptr(_handle.Handle, surface.getHandle().Handle, resultHandle.AddrOfPinnedObject(), result.Length));
+            }
+            finally
+            {
+                resultHandle.Free();
+            }
+
             return result;
         }
+
         public Color[] ConvertValuesToColors(float[] values, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
         {
-            Color[] colors = new Color[values.Length];
-            float[] result = new float[values.Length * 4];
-            get_colors_from_values_Volume(_handle, values, values.Length, negativeMin, negativeMax, positiveMin, positiveMax, alpha, result);
-            for (int i = 0; i < colors.Length; ++i)
-            {
-                colors[i] = new Color(result[4 * i], result[4 * i + 1], result[4 * i + 2], result[4 * i + 3]);
-            }
+            if (values == null) throw new ArgumentNullException(nameof(values));
+            Color4[] nativeColors = new Color4[values.Length];
+            ThrowIfFailed(hbp_volume_copy_fmri_colors_from_values(_handle.Handle, values, values.Length, negativeMin, negativeMax, positiveMin, positiveMax, alpha, nativeColors, nativeColors.Length));
+            Color[] colors = new Color[nativeColors.Length];
+            for (int i = 0; i < colors.Length; ++i) colors[i] = nativeColors[i].ToColor();
             return colors;
         }
-        public Color[] ConvertValuesToColors(float[] values, int[] mask, float min, float middle, float max, Texture texture)
+
+        public Color[] ConvertValuesToColors(float[] values, int[] mask, float min, float middle, float max, Color32[] colorScheme)
         {
-            Color[] colors = new Color[values.Length];
-            float[] result = new float[values.Length * 4];
-            get_colors_from_values_texture_Volume(_handle, values, mask, values.Length, min, middle, max, texture.getHandle(), result);
-            for (int i = 0; i < colors.Length; ++i)
-            {
-                colors[i] = new Color(result[4 * i], result[4 * i + 1], result[4 * i + 2], result[4 * i + 3]);
-            }
+            if (values == null) throw new ArgumentNullException(nameof(values));
+            if (mask == null) throw new ArgumentNullException(nameof(mask));
+            if (colorScheme == null) throw new ArgumentNullException(nameof(colorScheme));
+            Color4[] nativeColorScheme = colorScheme.ToNativeColor4Array();
+            Color4[] nativeColors = new Color4[values.Length];
+            ThrowIfFailed(hbp_volume_copy_localizer_colors_from_values(_handle.Handle, values, mask, values.Length, min, middle, max, nativeColorScheme, nativeColorScheme.Length, nativeColors, nativeColors.Length));
+            Color[] colors = new Color[nativeColors.Length];
+            for (int i = 0; i < colors.Length; ++i) colors[i] = nativeColors[i].ToColor();
             return colors;
         }
+
         public float GetValueFromPosition(Vector3 position)
         {
-            return get_value_from_position_Volume(_handle, -position.x, position.y, position.z);
+            Vec3 nativePosition = Vec3.FromVector3(position);
+            ThrowIfFailed(hbp_volume_sample_value(_handle.Handle, ref nativePosition, out float value));
+            return value;
         }
+
         public float GetAverageValueAroundPositionWithMask(Vector3 position, int precision, Volume maskVolume, ref float[] rawValues, ref int actualLength)
         {
-            return get_average_value_around_position_with_mask_Volume(_handle, -position.x, position.y, position.z, precision, maskVolume.getHandle(), rawValues, rawValues.Length, ref actualLength);
+            Vec3 nativePosition = Vec3.FromVector3(position);
+            IntPtr maskHandle = maskVolume == null ? IntPtr.Zero : maskVolume.getHandle().Handle;
+            float[] targetRawValues = rawValues ?? Array.Empty<float>();
+            ThrowIfFailed(hbp_volume_get_average_value_around_position_with_mask(_handle.Handle, ref nativePosition, precision, maskHandle, out float average, targetRawValues, targetRawValues.Length, out actualLength));
+            return average;
         }
-        #endregion
 
-        #region Memory Management
-        /// <summary>
-        /// Allocate DLL memory
-        /// </summary>
+        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f)
+        {
+            if (binCount <= 0) throw new ArgumentOutOfRangeException(nameof(binCount));
+            int[] bins = new int[binCount];
+            ThrowIfFailed(hbp_volume_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
+            return bins;
+        }
+
+        internal void MarkLoaded()
+        {
+            IsLoaded = true;
+        }
+
         protected override void create_DLL_class()
         {
-            _handle = new HandleRef(this, create_Volume());
+            ThrowIfFailed(hbp_volume_create(out IntPtr volume));
+            _handle = new HandleRef(this, volume);
         }
-        /// <summary>
-        /// Clean DLL memory
-        /// </summary>
+
         protected override void delete_DLL_class()
         {
-            delete_Volume(_handle);
+            ThrowIfFailed(hbp_volume_destroy(_handle.Handle));
         }
-        #endregion
 
-        #region DLLimport
-        [DllImport("hbp_export", EntryPoint = "create_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr create_Volume();
-        [DllImport("hbp_export", EntryPoint = "delete_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void delete_Volume(HandleRef handleVolume);
-        [DllImport("hbp_export", EntryPoint = "center_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void center_Volume(HandleRef handleVolume, float[] center);
-        [DllImport("hbp_export", EntryPoint = "bBox_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void bBox_Volume(HandleRef handleVolume, float[] minMax);
-        [DllImport("hbp_export", EntryPoint = "diagonalLenght_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float diagonalLenght_Volume(HandleRef handleVolume);
-        [DllImport("hbp_export", EntryPoint = "boundingBox_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr boundingBox_Volume(HandleRef handleVolume);
-        [DllImport("hbp_export", EntryPoint = "spacing_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void spacing_Volume(HandleRef handleVolume, float[] spacing);
-        [DllImport("hbp_export", EntryPoint = "definePlaneWithOrientation_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void definePlaneWithOrientation_Volume(HandleRef handleVolume, float[] planeNormal, int idOrientation, bool flip);
-        [DllImport("hbp_export", EntryPoint = "sizeOffsetCutPlane_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float sizeOffsetCutPlane_Volume(HandleRef handleVolume, float[] planeCut, int nbCuts);
-        [DllImport("hbp_export", EntryPoint = "retrieveExtremeValues_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void retrieveExtremeValues_Volume(HandleRef handleVolume, float[] extremeValues);
-        [DllImport("hbp_export", EntryPoint = "cube_bounding_box_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr cube_bounding_box_Volume(HandleRef handleSurface, float[] planes, int planesCount);
-        [DllImport("hbp_export", EntryPoint = "loadNiiFile_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern int loadNiiFile_Volume(HandleRef handleNii, string pathFile);
-        [DllImport("hbp_export", EntryPoint = "get_vertices_values_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void get_vertices_values_Volume(HandleRef handleVolume, HandleRef surfaceHandle, float[] result);
-        [DllImport("hbp_export", EntryPoint = "get_colors_from_values_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void get_colors_from_values_Volume(HandleRef handleVolume, float[] values, int valuesLength, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, float[] result);
-        [DllImport("hbp_export", EntryPoint = "get_colors_from_values_texture_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void get_colors_from_values_texture_Volume(HandleRef handleVolume, float[] values, int[] mask, int valuesLength, float min, float middle, float max, HandleRef textureHandle, float[] result);
-        [DllImport("hbp_export", EntryPoint = "get_value_from_position_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float get_value_from_position_Volume(HandleRef handleVolume, float x, float y, float z);
-        [DllImport("hbp_export", EntryPoint = "get_average_value_around_position_with_mask_Volume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern float get_average_value_around_position_with_mask_Volume(HandleRef handleVolume, float x, float y, float z, int precision, HandleRef maskVolume, float[] rawValues, int length, ref int actualLength);
-        #endregion
-    }
-
-    public class MultiVolume : CppDLLImportBase
-    {
-        #region Public Methods
-        public void AddVolume(Volume volume)
+        private static void ThrowIfFailed(HbpCoreStatus status)
         {
-            add_volume_MultiVolume(_handle, volume.getHandle());
+            if (status != HbpCoreStatus.Ok)
+            {
+                throw new InvalidOperationException($"hbp_core Volume call failed with status {status}: {HbpCoreRuntime.LastError}");
+            }
         }
-        #endregion
 
-        #region Memory Management
-        /// <summary>
-        /// Allocate DLL memory
-        /// </summary>
-        protected override void create_DLL_class()
-        {
-            _handle = new HandleRef(this, create_MultiVolume());
-        }
-        /// <summary>
-        /// Clean DLL memory
-        /// </summary>
-        protected override void delete_DLL_class()
-        {
-            delete_MultiVolume(_handle);
-        }
-        #endregion
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_create", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_create(out IntPtr volume);
 
-        #region DLLimport
-        [DllImport("hbp_export", EntryPoint = "create_MultiVolume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern IntPtr create_MultiVolume();
-        [DllImport("hbp_export", EntryPoint = "delete_MultiVolume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void delete_MultiVolume(HandleRef handleMultiVolume);
-        [DllImport("hbp_export", EntryPoint = "add_volume_MultiVolume", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void add_volume_MultiVolume(HandleRef handleMultiVolume, HandleRef handleVolume);
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_destroy", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_destroy(IntPtr volume);
 
-        #endregion
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_load_nifti", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_load_nifti(IntPtr volume, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_center", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_center(IntPtr volume, out Vec3 center);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_spacing", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_spacing(IntPtr volume, out Vec3 spacing);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_dimensions", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_dimensions(IntPtr volume, out VolumeDimensions dimensions);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_extrema", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_extrema(IntPtr volume, out VolumeExtrema extrema);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_bounding_box", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_bounding_box(IntPtr volume, out IntPtr bbox);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_orientation_vector", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_orientation_vector(IntPtr volume, int cutOrientation, int flip, out Vec3 normal);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_sample_value", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_sample_value(IntPtr volume, ref Vec3 position, out float value);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_get_average_value_around_position_with_mask", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_get_average_value_around_position_with_mask(IntPtr volume, ref Vec3 position, int precision, IntPtr mask, out float average, [Out] float[] rawValues, int rawValueCapacity, out int actualCount);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_size_offset_cut_plane", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_size_offset_cut_plane(IntPtr volume, IntPtr plane, int cutCount, out float offset);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_extract_preview_surface", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_extract_preview_surface(IntPtr volume, ref PreviewSurfaceOptions options, out IntPtr surface, ref PreviewSurfaceReport report);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_copy_surface_values_ptr(IntPtr volume, IntPtr surface, IntPtr values, int valueCapacity);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_fmri_colors_from_values", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_copy_fmri_colors_from_values(IntPtr volume, [In] float[] values, int valueCount, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha, [Out] Color4[] colors, int colorCapacity);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_localizer_colors_from_values", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_copy_localizer_colors_from_values(IntPtr volume, [In] float[] values, [In] int[] mask, int valueCount, float minValue, float middleValue, float maxValue, [In] Color4[] colorScheme, int colorCount, [Out] Color4[] colors, int colorCapacity);
     }
 }

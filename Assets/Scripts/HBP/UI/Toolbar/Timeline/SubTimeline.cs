@@ -8,38 +8,47 @@ namespace HBP.UI.Toolbar
     public class SubTimeline : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Text to display the minimum time of the subtimeline
         /// </summary>
         [SerializeField] private Text m_MinText;
+
         /// <summary>
         /// Text to display the maximum time of the subtimeline
         /// </summary>
         [SerializeField] private Text m_MaxText;
+
         /// <summary>
         /// Text to display the current time of the subtimeline
         /// </summary>
         [SerializeField] private Text m_Current;
+
         /// <summary>
         /// Container for the events
         /// </summary>
         [SerializeField] private RectTransform m_Events;
+
         /// <summary>
         /// RectTransform to represent the time before the subtimeline
         /// </summary>
         [SerializeField] private RectTransform m_Before;
+
         /// <summary>
         /// RectTransform to contain information of the subtimeline
         /// </summary>
         [SerializeField] private RectTransform m_During;
+
         /// <summary>
         /// RectTransform to represent the time after the subtimeline
         /// </summary>
         [SerializeField] private RectTransform m_After;
+
         /// <summary>
         /// Timeline data of the parent timeline
         /// </summary>
         private Core.Data.BasicTimeline m_Timeline;
+
         /// <summary>
         /// Subtimeline data of the subtimeline
         /// </summary>
@@ -49,13 +58,16 @@ namespace HBP.UI.Toolbar
         /// Prefab for the main event
         /// </summary>
         [SerializeField] private GameObject m_MainEventPrefab;
+
         /// <summary>
         /// Prefab for the secondary events
         /// </summary>
         [SerializeField] private GameObject m_SecondaryEventPrefab;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the subtimeline
         /// </summary>
@@ -79,6 +91,7 @@ namespace HBP.UI.Toolbar
             m_After.anchorMax = new Vector2(1, 1);
             ShowEvents();
         }
+
         /// <summary>
         /// Update the text displaying the current time of the subtimeline
         /// </summary>
@@ -94,9 +107,11 @@ namespace HBP.UI.Toolbar
                 m_Current.gameObject.SetActive(false);
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Display the events on the subtimeline
         /// </summary>
@@ -119,19 +134,16 @@ namespace HBP.UI.Toolbar
                 {
                     eventGameObject = Instantiate(m_SecondaryEventPrefab, m_Events);
                 }
+
                 int eventIndex = m_SubTimeline.Frequency.ConvertToFlooredNumberOfSamples(eventStatistics.RoundedTimeFromStart);
                 float eventPosition = Mathf.InverseLerp(0, m_SubTimeline.Length - 1, eventIndex);
                 RectTransform eventRectTransform = eventGameObject.GetComponent<RectTransform>();
                 eventRectTransform.anchorMin = new Vector2(eventPosition, eventRectTransform.anchorMin.y);
                 eventRectTransform.anchorMax = new Vector2(eventPosition, eventRectTransform.anchorMax.y);
-                eventRectTransform.GetComponent<Tooltip>().Text = string.Format("{0} | {1} ({2}{3}) | {4}%",
-                    e.Name,
-                    eventIndex,
-                    m_SubTimeline.TimeStep * eventIndex + m_SubTimeline.MinTime,
-                    m_Timeline.Unit,
-                    eventStatistics.NumberOfOccurenceBySubTrial * 100);
+                eventRectTransform.GetComponent<Tooltip>().Text = string.Format("{0} | {1} ({2}{3}) | {4}%", e.Name, eventIndex, m_SubTimeline.TimeStep * eventIndex + m_SubTimeline.MinTime, m_Timeline.Unit, eventStatistics.NumberOfOccurenceBySubTrial * 100);
             }
         }
+
         /// <summary>
         /// Remove the events of the subtimeline
         /// </summary>
@@ -142,6 +154,7 @@ namespace HBP.UI.Toolbar
                 Destroy(timelineEvent.gameObject);
             }
         }
+
         #endregion
     }
 }

@@ -7,26 +7,37 @@ namespace HBP.UI.Tools
     public class ImageRatio : LayoutElement
     {
         #region Properties
-        public enum ControlType { HeightControlsWidth, WidthControlsHeight }
+
+        public enum ControlType
+        {
+            HeightControlsWidth,
+            WidthControlsHeight
+        }
+
         public ControlType Type;
         Image m_Image;
         RectTransform m_RectTransform;
+
         #endregion
 
         #region Public Methods
+
         public override void CalculateLayoutInputHorizontal()
         {
             base.CalculateLayoutInputHorizontal();
             CalculateLayoutParameters();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void OnEnable()
         {
             m_RectTransform = GetComponent<RectTransform>();
             m_Image = GetComponent<Image>();
         }
+
         void CalculateLayoutParameters()
         {
             switch (Type)
@@ -47,6 +58,7 @@ namespace HBP.UI.Tools
                     break;
             }
         }
+
         #endregion
     }
 }

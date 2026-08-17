@@ -11,34 +11,41 @@ namespace HBP.Core.Data
     public class DataTypeFilterCondition : BaseFilterCondition
     {
         #region Properties
+
         [JsonProperty("DataType")] public Type Type { get; set; }
 
         public override string Description
         {
-            get
-            {
-                return $"Data is{(IsNot ? " not " : " ")}of type {Type.GetDisplayName()}";
-            }
+            get { return $"Data is{(IsNot ? " not " : " ")}of type {Type.GetDisplayName()}"; }
         }
+
         #endregion
 
         #region Constructors
-        public DataTypeFilterCondition() : this(null, false) { }
+
+        public DataTypeFilterCondition() : this(null, false)
+        {
+        }
+
         public DataTypeFilterCondition(Type type, bool isNot) : base(isNot)
         {
             Type = type;
         }
+
         public DataTypeFilterCondition(Type type, bool isNot, string ID) : base(isNot, ID)
         {
             Type = type;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new DataTypeFilterCondition(Type, IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -47,9 +54,11 @@ namespace HBP.Core.Data
                 Type = dataTypeFilterCondition.Type;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is DataInfo dataInfo)
@@ -59,8 +68,10 @@ namespace HBP.Core.Data
                 else
                     return (dataInfo.GetType() == Type) != IsNot;
             }
+
             return false;
         }
+
         #endregion
     }
 }

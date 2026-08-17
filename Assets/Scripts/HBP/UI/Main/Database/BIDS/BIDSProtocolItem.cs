@@ -9,15 +9,18 @@ namespace HBP.UI.Main
     public class BIDSProtocolItem : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private Text m_ProtocolNameText;
         [SerializeField] private Toggle m_Toggle;
-        
+
         public string Name => m_ProtocolNameText.text;
         public bool IsSelected => m_Toggle.isOn;
         public Toggle.ToggleEvent OnToggleChanged => m_Toggle.onValueChanged;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the protocol item with protocol name.
         /// </summary>
@@ -36,6 +39,7 @@ namespace HBP.UI.Main
         {
             m_Toggle.isOn = selected;
         }
+
         #endregion
     }
 }

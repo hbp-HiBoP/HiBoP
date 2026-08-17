@@ -17,18 +17,22 @@ namespace HBP.Core.Object3D
     public class SiteInformation
     {
         #region Properties
+
         /// <summary>
         /// Reference to the site data of this site
         /// </summary>
         public Data.Site SiteData { get; set; }
+
         /// <summary>
         /// Reference to the patient this site belongs to
         /// </summary>
         public Data.Patient Patient { get; set; }
+
         /// <summary>
         /// Raw name of the site (as read in the implantation file)
         /// </summary>
         public string Name { get; set; }
+
         /// <summary>
         /// Global Index of the site (same index as in the raw site list)
         /// </summary>
@@ -39,43 +43,35 @@ namespace HBP.Core.Object3D
         /// </summary>
         public string PatientID
         {
-            get
-            {
-                return Patient.ID;
-            }
+            get { return Patient.ID; }
         }
+
         /// <summary>
         /// Full ID of this site
         /// </summary>
         public string FullID
         {
-            get
-            {
-                return PatientID + "_" + Name;
-            }
+            get { return PatientID + "_" + Name; }
         }
+
         public string FullName
         {
-            get
-            {
-                return Patient.Name + "_" + Name;
-            }
+            get { return Patient.Name + "_" + Name; }
         }
+
         /// <summary>
         /// Format the name of the string with information from the patient it is from in order to display it properly
         /// </summary>
         public string DisplayedName
         {
-            get
-            {
-                return Name + " (" + Patient.Name + ")";
-            }
+            get { return Name + " (" + Patient.Name + ")"; }
         }
 
         /// <summary>
-        /// Initial position of this site
+        /// Initial position of this site in the Unity left-handed reference system.
         /// </summary>
         public Vector3 DefaultPosition { get; set; }
+
         #endregion
     }
 
@@ -89,6 +85,7 @@ namespace HBP.Core.Object3D
     public class SiteState
     {
         #region Properties
+
         /// <summary>
         /// Default color of any site
         /// </summary>
@@ -108,15 +105,13 @@ namespace HBP.Core.Object3D
         public bool IsOutOfROI { get; set; }
 
         private bool m_IsFiltered = true;
+
         /// <summary>
         /// Is the site filtered (using the site list on the right)
         /// </summary>
         public bool IsFiltered
         {
-            get
-            {
-                return m_IsFiltered;
-            }
+            get { return m_IsFiltered; }
             set
             {
                 m_IsFiltered = value;
@@ -125,15 +120,13 @@ namespace HBP.Core.Object3D
         }
 
         private bool m_IsBlackListed;
+
         /// <summary>
         /// Is the site blacklisted ?
         /// </summary>
         public bool IsBlackListed
         {
-            get
-            {
-                return m_IsBlackListed;
-            }
+            get { return m_IsBlackListed; }
             set
             {
                 m_IsBlackListed = value;
@@ -142,15 +135,13 @@ namespace HBP.Core.Object3D
         }
 
         private bool m_IsHighlighted;
+
         /// <summary>
         /// Is the site highlighted ?
         /// </summary>
         public bool IsHighlighted
         {
-            get
-            {
-                return m_IsHighlighted;
-            }
+            get { return m_IsHighlighted; }
             set
             {
                 m_IsHighlighted = value;
@@ -159,15 +150,13 @@ namespace HBP.Core.Object3D
         }
 
         private Color m_Color = DefaultColor;
+
         /// <summary>
         /// Color of the site (the color will be applied if the site is in a regular state)
         /// </summary>
         public Color Color
         {
-            get
-            {
-                return m_Color;
-            }
+            get { return m_Color; }
             set
             {
                 m_Color = value;
@@ -179,16 +168,20 @@ namespace HBP.Core.Object3D
         /// Labels of the site
         /// </summary>
         public List<string> Labels { get; set; } = new List<string>();
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when changing any parameter of this class
         /// </summary>
         public UnityEvent OnChangeState = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a new label (if the label is not already in the list)
         /// </summary>
@@ -201,6 +194,7 @@ namespace HBP.Core.Object3D
                 OnChangeState.Invoke();
             }
         }
+
         /// <summary>
         /// Remove a label from the list
         /// </summary>
@@ -210,6 +204,7 @@ namespace HBP.Core.Object3D
             Labels.Remove(label);
             OnChangeState.Invoke();
         }
+
         /// <summary>
         /// Remove all labels
         /// </summary>
@@ -218,6 +213,7 @@ namespace HBP.Core.Object3D
             Labels.Clear();
             OnChangeState.Invoke();
         }
+
         /// <summary>
         /// Copy a state to this state
         /// </summary>
@@ -226,6 +222,7 @@ namespace HBP.Core.Object3D
         {
             ApplyState(state.IsBlackListed, state.IsHighlighted, state.Color, state.Labels);
         }
+
         /// <summary>
         /// Set all values of the state at once
         /// </summary>
@@ -241,7 +238,8 @@ namespace HBP.Core.Object3D
             Labels = labels.ToList();
             OnChangeState.Invoke();
         }
-        public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted,  bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
+
+        public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted, bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
         {
             if (importHighlighted && m_IsHighlighted != isHighlighted)
                 m_IsHighlighted = isHighlighted;
@@ -269,8 +267,10 @@ namespace HBP.Core.Object3D
                     Labels = labels.ToList();
                 }
             }
+
             OnChangeState.Invoke();
         }
+
         #endregion
     }
 
@@ -280,12 +280,14 @@ namespace HBP.Core.Object3D
     public class Site : MonoBehaviour, IConfigurable
     {
         #region Properties
+
         /// <summary>
         /// Has this site been initialized ?
         /// </summary>
         private bool m_IsInitialized = false;
 
         bool m_IsActive;
+
         /// <summary>
         /// Is this site active ?
         /// </summary>
@@ -298,6 +300,7 @@ namespace HBP.Core.Object3D
                     m_IsActive = gameObject.activeSelf;
                     m_IsInitialized = true;
                 }
+
                 return m_IsActive;
             }
             set
@@ -308,15 +311,13 @@ namespace HBP.Core.Object3D
         }
 
         private bool m_IsSelected;
+
         /// <summary>
         /// Is the site selected ?
         /// </summary>
         public bool IsSelected
         {
-            get
-            {
-                return m_IsSelected;
-            }
+            get { return m_IsSelected; }
             set
             {
                 if (m_IsSelected != value)
@@ -346,33 +347,41 @@ namespace HBP.Core.Object3D
         /// Associated data
         /// </summary>
         public Data.BlocChannelData Data { get; set; }
+
         /// <summary>
         /// Associated data statistics
         /// </summary>
         public Data.BlocChannelStatistics Statistics { get; set; }
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when selecting or unselecting this site
         /// </summary>
         public GenericEvent<bool> OnSelectSite = new();
+
         /// <summary>
         /// Event called when loading or reseting the configuration of this site
         /// </summary>
         public UnityEvent OnChangeConfiguration = new();
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             Information = new SiteInformation();
             State = new SiteState();
             Configuration = new Data.SiteConfiguration();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Load a configuration to this site from the configuration in the associated visualization
         /// </summary>
@@ -387,6 +396,7 @@ namespace HBP.Core.Object3D
 
             OnChangeConfiguration.Invoke();
         }
+
         /// <summary>
         /// Save the configuration of this site to the configuration in the associated visualization
         /// </summary>
@@ -397,6 +407,7 @@ namespace HBP.Core.Object3D
             Configuration.Color = State.Color;
             Configuration.Labels = State.Labels.ToArray();
         }
+
         /// <summary>
         /// Reset the configuration of this site
         /// </summary>
@@ -409,6 +420,7 @@ namespace HBP.Core.Object3D
 
             OnChangeConfiguration.Invoke();
         }
+
         #endregion
     }
 }

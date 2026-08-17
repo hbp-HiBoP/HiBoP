@@ -41,25 +41,25 @@ namespace HBP.Data.Module3D
     public class TriangleEraser : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene of the Triangle Eraser
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+
         /// <summary>
         /// Component containing references to GameObjects of the 3D scene
         /// </summary>
         [SerializeField] private DisplayedObjects m_DisplayedObjects;
 
         private bool m_IsEnabled = false;
+
         /// <summary>
         /// Can the user perform erasing actions ?
         /// </summary>
         public bool IsEnabled
         {
-            get
-            {
-                return m_IsEnabled;
-            }
+            get { return m_IsEnabled; }
             set
             {
                 if (m_IsEnabled != value)
@@ -70,31 +70,28 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Check if the current mode of the triangle eraser needs a click on the scene to perform its action
         /// </summary>
         public bool IsClickAvailable
         {
-            get
-            {
-                return (CurrentMode != TriEraserMode.Expand) && (CurrentMode != TriEraserMode.Invert);
-            }
+            get { return (CurrentMode != TriEraserMode.Expand) && (CurrentMode != TriEraserMode.Invert); }
         }
+
         /// <summary>
         /// Does the mesh have erased triangles ?
         /// </summary>
         public bool MeshHasInvisibleTriangles { get; private set; } = false;
 
         private TriEraserMode m_CurrentMode = TriEraserMode.OneTri;
+
         /// <summary>
         /// Currently selected erasing mode (see <see cref="TriEraserMode"/> for possible values)
         /// </summary>
         public TriEraserMode CurrentMode
         {
-            get
-            {
-                return m_CurrentMode;
-            }
+            get { return m_CurrentMode; }
             set
             {
                 TriEraserMode previousMode = m_CurrentMode;
@@ -107,20 +104,20 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Number of degrees to consider for the zone erasing mode (maximum angle between a triangle and the clicked triangle to define a zone)
         /// </summary>
         public int Degrees { get; set; } = 30;
+
         /// <summary>
         /// Is there something in the stack so the user can revert some erasing actions ? (maximum stack size is <see cref="MAX_STACK_SIZE"/>)
         /// </summary>
         public bool CanCancelLastAction
         {
-            get
-            {
-                return m_MasksStack.Count > 0;
-            }
+            get { return m_MasksStack.Count > 0; }
         }
+
         /// <summary>
         /// Maximum stack size for erasing actions
         /// </summary>
@@ -130,10 +127,12 @@ namespace HBP.Data.Module3D
         /// Stack containing the mask data for every triangles of the whole mesh
         /// </summary>
         private LimitedSizeStack<int[]> m_MasksStack = new(MAX_STACK_SIZE);
+
         /// <summary>
         /// Stack containing the mask data for every triangles of the simplified mesh
         /// </summary>
         private LimitedSizeStack<int[]> m_SimplifiedMasksStack = new(MAX_STACK_SIZE);
+
         /// <summary>
         /// Currently used masks: the first array is the currently used mask for the whole mesh, the second array is the currently used mask for the simplified mesh (if using simplified mesh for better colliders)
         /// </summary>
@@ -154,15 +153,17 @@ namespace HBP.Data.Module3D
                     m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(value[0]).Dispose();
                     m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(value[1]).Dispose();
                     MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.Contains(0);
-                    m_Scene.ResetGenerators();
                     m_Scene.MeshManager.UpdateMeshesFromDLL();
+                    m_Scene.InvalidateSurfaceMesh();
                     Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Reset the Triangle Eraser to default values (masks with only 1s, new gameObjects etc.)
         /// </summary>
@@ -181,12 +182,13 @@ namespace HBP.Data.Module3D
             m_MasksStack.Clear();
             m_SimplifiedMasksStack.Clear();
 
-            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.InvalidateSurfaceMesh();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Erase triangles and update the invisible mesh
         /// </summary>
@@ -194,9 +196,6 @@ namespace HBP.Data.Module3D
         /// <param name="hitPoint">Hitpoint of the raycast triggered from a mouse click</param>
         public void EraseTriangles(Vector3 rayDirection, Vector3 hitPoint)
         {
-            rayDirection.x = -rayDirection.x;
-            hitPoint.x = -hitPoint.x;
-
             // Save current masks
             m_MasksStack.Push(m_Scene.MeshManager.BrainSurface.VisibilityMask);
             m_SimplifiedMasksStack.Push(m_Scene.MeshManager.SimplifiedMeshToUse.VisibilityMask);
@@ -208,12 +207,13 @@ namespace HBP.Data.Module3D
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
             MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
-            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.InvalidateSurfaceMesh();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         /// <summary>
         /// Cancel the last action and update the invisible mesh
         /// </summary>
@@ -225,12 +225,13 @@ namespace HBP.Data.Module3D
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(m_SimplifiedMasksStack.Pop()).Dispose();
             MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
 
-            m_Scene.ResetGenerators();
             m_Scene.MeshManager.UpdateMeshesFromDLL();
+            m_Scene.InvalidateSurfaceMesh();
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
+
         #endregion
     }
 }

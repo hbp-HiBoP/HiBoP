@@ -52,20 +52,21 @@ namespace HBP.UI.Informations
     public class LocalizersGraphsWorker
     {
         #region Public Methods
+
         public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsVoxelAsync(string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new();
-            var sites = GetSceneSites();
-            
+
             // Calculate total work units for progress tracking
             var selectedProtocols = protocolItems.Where(p => p.IsSelected).ToList();
             var totalBlocs = selectedProtocols.Sum(p => p.SelectedBlocs.Count);
-            
+
             if (totalBlocs == 0)
             {
                 return result;
             }
 
+            var sites = GetSceneSites();
             progress?.Invoke(0.0f, 0, new LoadingText("Initializing localizer graphs generation"));
 
             int processedBlocs = 0;
@@ -75,7 +76,7 @@ namespace HBP.UI.Informations
             foreach (var protocolItem in selectedProtocols)
             {
                 var selectedBlocNames = protocolItem.SelectedBlocs.Select(b => b.Name).ToList();
-                
+
                 if (selectedBlocNames.Count == 0)
                     continue;
 
@@ -87,7 +88,7 @@ namespace HBP.UI.Informations
                 {
                     token.ThrowIfCancellationRequested();
                     blocIndex++;
-                    
+
                     // Progress for loading phase
                     float loadingProgress = (float)(processedBlocs + 1) / totalBlocs;
                     progress?.Invoke(loadingProgress, 2f, new LoadingText("Loading bloc ", $"{blocItem.Name} from {protocolItem.Name}", $" [{blocIndex}/{totalNumberOfBlocs}]"));
@@ -95,10 +96,10 @@ namespace HBP.UI.Informations
                     // Check if bloc is already loaded
                     var existingBloc = data?.Blocs.FirstOrDefault(b => b.Name == blocItem.Name);
                     bool blocWasLoadedExternally = existingBloc?.Loaded ?? false;
-                        
+
                     // Load only this specific bloc
                     var newlyLoadedBlocs = await Object3DManager.Localizers.LoadSpecificBlocsAsync(protocolItem.Name, dataType, new[] { blocItem.Name });
-                        
+
                     // Get the protocol and data after loading
                     protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolItem.Name);
                     if (protocol == null)
@@ -116,7 +117,7 @@ namespace HBP.UI.Informations
                     {
                         // Extract all the data we need from this bloc
                         await UniTask.SwitchToThreadPool();
-                        var times = GetTimes(bloc.FMRI);
+                        var times = GetTimes(bloc);
                         foreach (var site in sites)
                         {
                             var channelStruct = new ChannelStruct(site.Information.Name, site.Information.Patient);
@@ -126,24 +127,25 @@ namespace HBP.UI.Informations
                                 result[channelStruct] = curves;
                             }
 
-                            float maskValue = bloc.FMRI.MaskVolume.GetValueFromPosition(site.Information.DefaultPosition);
-                            if (maskValue <= 0) continue; // Skip if outside mask
+                            if (!IsInsideMask(site.Information.DefaultPosition, bloc)) continue; // Skip if outside mask
 
-                            var values = GetVoxelData(site.Information.DefaultPosition, bloc.FMRI);
-                            
+                            var values = GetVoxelData(site.Information.DefaultPosition, bloc);
+
                             // Apply rescaling if enabled
                             if (rescalingParams.EnableRescaling)
                             {
                                 ApplyRescaling(values, rescalingParams);
                             }
-                            
+
                             var points = new List<Vector2>();
                             for (int i = 0; i < times.Length; i++)
                             {
                                 points.Add(new Vector2(times[i], values[i]));
                             }
+
                             curves.Add(new LocalizerCurveData(dataType, protocolItem.Name, blocItem.Name, points.ToArray()));
                         }
+
                         await UniTask.SwitchToMainThread();
                     }
                     finally
@@ -164,10 +166,10 @@ namespace HBP.UI.Informations
 
             return result;
         }
+
         public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsRegionAsync(int precision, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new();
-            var sites = GetSceneSites();
 
             // Calculate total work units for progress tracking
             var selectedProtocols = protocolItems.Where(p => p.IsSelected).ToList();
@@ -178,6 +180,7 @@ namespace HBP.UI.Informations
                 return result;
             }
 
+            var sites = GetSceneSites();
             progress?.Invoke(0.0f, 0, new LoadingText("Initializing localizer graphs generation"));
 
             int processedBlocs = 0;
@@ -228,7 +231,7 @@ namespace HBP.UI.Informations
                     {
                         // Extract all the data we need from this bloc
                         await UniTask.SwitchToThreadPool();
-                        var times = GetTimes(bloc.FMRI);
+                        var times = GetTimes(bloc);
                         foreach (var site in sites)
                         {
                             var channelStruct = new ChannelStruct(site.Information.Name, site.Information.Patient);
@@ -237,7 +240,8 @@ namespace HBP.UI.Informations
                                 curves = new List<LocalizerCurveData>();
                                 result[channelStruct] = curves;
                             }
-                            var (values, rawValues) = GetRegionData(site.Information.DefaultPosition, bloc.FMRI, precision);
+
+                            var (values, rawValues) = GetRegionData(site.Information.DefaultPosition, bloc, precision);
 
                             // Apply rescaling if enabled
                             if (rescalingParams.EnableRescaling)
@@ -248,7 +252,7 @@ namespace HBP.UI.Informations
                                     ApplyRescaling(rawValues[i], rescalingParams);
                                 }
                             }
-                            
+
                             var sem = rawValues.Select(rv => rv.SEM()).ToArray();
 
                             var points = new List<Vector2>();
@@ -256,8 +260,10 @@ namespace HBP.UI.Informations
                             {
                                 points.Add(new Vector2(times[i], values[i]));
                             }
+
                             curves.Add(new LocalizerCurveData(dataType, protocolItem.Name, blocItem.Name, points.ToArray(), sem.ToArray()));
                         }
+
                         await UniTask.SwitchToMainThread();
                     }
                     finally
@@ -278,18 +284,13 @@ namespace HBP.UI.Informations
 
             return result;
         }
+
         public async UniTask<Dictionary<ChannelStruct, List<LocalizerCurveData>>> GenerateLocalizersGraphsAtlasAsync(LocalizersGraphsAtlas atlas, string dataType, List<ProtocolItem> protocolItems, RescalingParameters rescalingParams, Action<float, float, LoadingText> progress, CancellationToken token)
         {
             Dictionary<ChannelStruct, List<LocalizerCurveData>> result = new();
-            BrainAtlas selectedAtlas = atlas switch
-            {
-                LocalizersGraphsAtlas.MarsAtlas => Object3DManager.MarsAtlas,
-                LocalizersGraphsAtlas.Jubrain => Object3DManager.JuBrain,
-                _ => null,
-            };
-            if (selectedAtlas == null) throw new HBPException("Atlas not found", $"The atlas '{atlas}' is not available.");
+            if (!TryGetSelectedAtlas(atlas, out BrainAtlas selectedAtlas)) throw new HBPException("Atlas not found", $"The atlas '{atlas}' is not available.");
 
-            if (!selectedAtlas.Loaded) selectedAtlas.Load();
+            if (!IsAtlasLoaded(selectedAtlas)) LoadAtlas(selectedAtlas);
 
             var sites = GetSceneSites();
 
@@ -308,7 +309,7 @@ namespace HBP.UI.Informations
             var regionIndices = new HashSet<int>();
             foreach (var site in sites)
             {
-                int regionIndex = selectedAtlas.GetClosestAreaIndex(site.Information.DefaultPosition, 1);
+                int regionIndex = GetClosestAreaIndex(selectedAtlas, site.Information.DefaultPosition, 1);
                 if (regionIndex > 0)
                 {
                     regionIndices.Add(regionIndex);
@@ -328,12 +329,13 @@ namespace HBP.UI.Informations
             {
                 token.ThrowIfCancellationRequested();
                 progress?.Invoke(0.2f, 1f, new LoadingText($"Getting coordinates of atlas areas"));
-                
-                var coordinates = selectedAtlas.GetAreaCoordinates(regionIndex);
+
+                var coordinates = GetAreaCoordinates(selectedAtlas, regionIndex);
                 if (coordinates.Length > 0)
                 {
                     regionVoxels[regionIndex] = coordinates;
                 }
+
                 processedRegions++;
             }
 
@@ -385,28 +387,29 @@ namespace HBP.UI.Informations
                     {
                         // Extract all the data we need from this bloc
                         await UniTask.SwitchToThreadPool();
-                        var times = GetTimes(bloc.FMRI);
-                        
+                        var times = GetTimes(bloc);
+
                         // Step 3 & 4: Get values for each region and calculate mean and SEM
                         var regionData = new Dictionary<int, (float[] meanValues, float[] semValues)>();
-                        
+
                         foreach (var kvp in regionVoxels)
                         {
                             int regionIndex = kvp.Key;
                             Vector3[] voxels = kvp.Value;
-                            
-                            float[] meanValues = new float[bloc.FMRI.Volumes.Count];
-                            float[] semValues = new float[bloc.FMRI.Volumes.Count];
-                            
+
+                            int volumeCount = GetVolumeCount(bloc);
+                            float[] meanValues = new float[volumeCount];
+                            float[] semValues = new float[volumeCount];
+
                             // For each volume, get all voxel values in this region
-                            for (int volumeIndex = 0; volumeIndex < bloc.FMRI.Volumes.Count; volumeIndex++)
+                            for (int volumeIndex = 0; volumeIndex < volumeCount; volumeIndex++)
                             {
                                 var voxelValues = new List<float>();
-                                
+
                                 foreach (var voxel in voxels)
                                 {
-                                    float value = bloc.FMRI.Volumes[volumeIndex].GetValueFromPosition(voxel);
-                                    float maskValue = bloc.FMRI.MaskVolume.GetValueFromPosition(voxel);
+                                    float value = GetVolumeValue(voxel, bloc, volumeIndex);
+                                    float maskValue = GetMaskValue(voxel, bloc);
                                     if (maskValue > 0)
                                     {
                                         voxelValues.Add(value);
@@ -432,11 +435,11 @@ namespace HBP.UI.Informations
                                     semValues[volumeIndex] = 0f;
                                 }
                             }
-                            
-                            
+
+
                             regionData[regionIndex] = (meanValues, semValues);
                         }
-                        
+
                         // Step 5: Assign data to sites based on their region
                         foreach (var site in sites)
                         {
@@ -446,8 +449,8 @@ namespace HBP.UI.Informations
                                 curves = new List<LocalizerCurveData>();
                                 result[channelStruct] = curves;
                             }
-                            
-                            int siteRegionIndex = selectedAtlas.GetClosestAreaIndex(site.Information.DefaultPosition, 1);
+
+                            int siteRegionIndex = GetClosestAreaIndex(selectedAtlas, site.Information.DefaultPosition, 1);
                             if (siteRegionIndex >= 0 && regionData.TryGetValue(siteRegionIndex, out var siteRegionData))
                             {
                                 var points = new List<Vector2>();
@@ -455,10 +458,11 @@ namespace HBP.UI.Informations
                                 {
                                     points.Add(new Vector2(times[i], siteRegionData.meanValues[i]));
                                 }
+
                                 curves.Add(new LocalizerCurveData(dataType, protocolItem.Name, blocItem.Name, points.ToArray(), siteRegionData.semValues));
                             }
                         }
-                        
+
                         await UniTask.SwitchToMainThread();
                     }
                     finally
@@ -479,9 +483,11 @@ namespace HBP.UI.Informations
 
             return result;
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Apply rescaling to an array of values using the formula: newValue = (oldValue - baseline) * gain + baseline + offset
         /// </summary>
@@ -498,38 +504,105 @@ namespace HBP.UI.Informations
                 values[i] = (values[i] - rescalingParams.BaselineValue) * rescalingParams.GainFactor + rescalingParams.BaselineValue + rescalingParams.Offset;
             }
         }
-        private List<Site> GetSceneSites()
+
+        protected virtual List<Site> GetSceneSites()
         {
             return Module3DMain.SelectedScene.Columns.SelectMany(c => c.Sites).Where(s => !s.State.IsMasked).GroupBy(s => s.Information.FullID).Select(g => g.First()).ToList();
         }
-        private float[] GetTimes(FMRI fmri)
+
+        protected virtual bool TryGetSelectedAtlas(LocalizersGraphsAtlas atlas, out BrainAtlas selectedAtlas)
         {
+            selectedAtlas = atlas switch
+            {
+                LocalizersGraphsAtlas.MarsAtlas => Object3DManager.MarsAtlas,
+                LocalizersGraphsAtlas.Jubrain => Object3DManager.JuBrain,
+                _ => null,
+            };
+            return selectedAtlas != null;
+        }
+
+        protected virtual bool IsAtlasLoaded(BrainAtlas atlas)
+        {
+            return atlas.Loaded;
+        }
+
+        protected virtual void LoadAtlas(BrainAtlas atlas)
+        {
+            atlas.Load();
+        }
+
+        protected virtual int GetClosestAreaIndex(BrainAtlas atlas, Vector3 position, int precision)
+        {
+            return atlas.GetClosestAreaIndex(position, precision);
+        }
+
+        protected virtual Vector3[] GetAreaCoordinates(BrainAtlas atlas, int regionIndex)
+        {
+            return atlas.GetAreaCoordinates(regionIndex);
+        }
+
+        protected virtual FMRI GetFMRI(LocalizerBloc bloc)
+        {
+            return bloc.FMRI;
+        }
+
+        protected virtual bool IsInsideMask(Vector3 position, LocalizerBloc bloc)
+        {
+            return GetMaskValue(position, bloc) > 0;
+        }
+
+        protected virtual float GetMaskValue(Vector3 position, LocalizerBloc bloc)
+        {
+            return GetFMRI(bloc).MaskVolume.GetValueFromPosition(position);
+        }
+
+        protected virtual int GetVolumeCount(LocalizerBloc bloc)
+        {
+            return GetFMRI(bloc).Volumes.Count;
+        }
+
+        protected virtual float GetVolumeValue(Vector3 voxel, LocalizerBloc bloc, int volumeIndex)
+        {
+            return GetFMRI(bloc).Volumes[volumeIndex].GetValueFromPosition(voxel);
+        }
+
+        protected virtual float[] GetTimes(LocalizerBloc bloc)
+        {
+            FMRI fmri = GetFMRI(bloc);
             float[] values = new float[fmri.Volumes.Count];
             for (int i = 0; i < fmri.Volumes.Count; i++)
             {
                 values[i] = fmri.StartTime + i * fmri.TimeStep;
             }
+
             return values;
         }
-        private float[] GetVoxelData(Vector3 voxel, FMRI fmri)
+
+        protected virtual float[] GetVoxelData(Vector3 voxel, LocalizerBloc bloc)
         {
-            float[] values = new float[fmri.Volumes.Count];
-            for (int i = 0; i < fmri.Volumes.Count; i++)
+            int volumeCount = GetVolumeCount(bloc);
+            float[] values = new float[volumeCount];
+            for (int i = 0; i < volumeCount; i++)
             {
-                values[i] = fmri.Volumes[i].GetValueFromPosition(voxel);
+                values[i] = GetVolumeValue(voxel, bloc, i);
             }
+
             return values;
         }
-        private (float[], float[][]) GetRegionData(Vector3 voxel, FMRI fmri, int precision)
+
+        protected virtual (float[], float[][]) GetRegionData(Vector3 voxel, LocalizerBloc bloc, int precision)
         {
             int numberOfVoxels = (int)Math.Pow((2 * precision + 1), 3);
-            float[] values = new float[fmri.Volumes.Count];
-            float[][] rawValues = new float[fmri.Volumes.Count][];
-            for (int i = 0; i < fmri.Volumes.Count; i++)
+            int volumeCount = GetVolumeCount(bloc);
+            float[] values = new float[volumeCount];
+            float[][] rawValues = new float[volumeCount][];
+            for (int i = 0; i < volumeCount; i++)
             {
                 rawValues[i] = new float[numberOfVoxels];
             }
-            for (int i = 0; i < fmri.Volumes.Count; i++)
+
+            FMRI fmri = GetFMRI(bloc);
+            for (int i = 0; i < volumeCount; i++)
             {
                 int actualLength = 0;
                 values[i] = fmri.Volumes[i].GetAverageValueAroundPositionWithMask(voxel, precision, fmri.MaskVolume, ref rawValues[i], ref actualLength);
@@ -538,8 +611,10 @@ namespace HBP.UI.Informations
                     Array.Resize(ref rawValues[i], actualLength);
                 }
             }
+
             return (values, rawValues);
         }
+
         #endregion
     }
 }

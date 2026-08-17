@@ -4,13 +4,12 @@ using System.Collections;
 
 namespace TMPro.Examples
 {
-
     public class SkewTextExample : MonoBehaviour
     {
-
         private TMP_Text m_TextComponent;
 
         public AnimationCurve VertexCurve = new(new Keyframe(0, 0), new Keyframe(0.25f, 2.0f), new Keyframe(0.5f, 0), new Keyframe(0.75f, 2.0f), new Keyframe(1, 0f));
+
         //public float AngleMultiplier = 1.0f;
         //public float SpeedMultiplier = 1.0f;
         public float CurveScale = 1.0f;
@@ -82,9 +81,8 @@ namespace TMPro.Examples
                 //vertices = textInfo.meshInfo[0].vertices;
                 //int lastVertexIndex = textInfo.characterInfo[characterCount - 1].vertexIndex;
 
-                float boundsMinX = m_TextComponent.bounds.min.x;  //textInfo.meshInfo[0].mesh.bounds.min.x;
-                float boundsMaxX = m_TextComponent.bounds.max.x;  //textInfo.meshInfo[0].mesh.bounds.max.x;
-
+                float boundsMinX = m_TextComponent.bounds.min.x; //textInfo.meshInfo[0].mesh.bounds.min.x;
+                float boundsMaxX = m_TextComponent.bounds.max.x; //textInfo.meshInfo[0].mesh.bounds.max.x;
 
 
                 for (int i = 0; i < characterCount; i++)

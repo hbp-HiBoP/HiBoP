@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Enums;
 using HBP.Core.Object3D;
 
 namespace HBP.UI.Toolbar
@@ -8,14 +7,17 @@ namespace HBP.UI.Toolbar
     public class AtlasState : Tool
     {
         #region Properties
+
         /// <summary>
         /// Displays the IBC atlas
         /// </summary>
         [SerializeField] private Toggle m_IBCToggle;
+
         /// <summary>
         /// Displays the JuBrain atlas
         /// </summary>
         [SerializeField] private Toggle m_JubrainToggle;
+
         /// <summary>
         /// Displays the MarsAtlas
         /// </summary>
@@ -24,9 +26,11 @@ namespace HBP.UI.Toolbar
         [SerializeField] private Toggle m_DiFuMoToggle;
 
         [SerializeField] private Toggle m_LocalizersToggle;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add the listener to this tool
         /// </summary>
@@ -63,6 +67,7 @@ namespace HBP.UI.Toolbar
                 SelectedScene.FMRIManager.DisplayLocalizers = isOn;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -79,16 +84,18 @@ namespace HBP.UI.Toolbar
             m_LocalizersToggle.isOn = false;
             m_LocalizersToggle.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isIBCAvailable = Object3DManager.IBC.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool isJuBrainAtlasAvailable = Object3DManager.JuBrain.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool canUseMarsAtlas = Object3DManager.MarsAtlas.Loaded && (SelectedScene.MeshManager.SelectedMesh.IsMarsAtlasLoaded || SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI);
-            bool isDiFuMoAvailable = Object3DManager.DiFuMo.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
-            bool isLocalizersAvailable = Object3DManager.Localizers.Loaded && SelectedScene.MeshManager.SelectedMesh.Type == MeshType.MNI;
+            bool supportsMNIResources = SelectedScene.MeshManager.SelectedMesh.SupportsMNIResources;
+            bool isIBCAvailable = Object3DManager.IBC.Loaded && supportsMNIResources;
+            bool isJuBrainAtlasAvailable = Object3DManager.JuBrain.Loaded && supportsMNIResources;
+            bool canUseMarsAtlas = Object3DManager.MarsAtlas.Loaded && SelectedScene.MeshManager.SelectedMesh.SupportsMarsAtlas;
+            bool isDiFuMoAvailable = Object3DManager.DiFuMo.Loaded && supportsMNIResources;
+            bool isLocalizersAvailable = Object3DManager.Localizers.Loaded && supportsMNIResources;
 
             m_IBCToggle.interactable = isIBCAvailable;
             m_JubrainToggle.interactable = isJuBrainAtlasAvailable;
@@ -96,6 +103,7 @@ namespace HBP.UI.Toolbar
             m_DiFuMoToggle.interactable = isDiFuMoAvailable;
             m_LocalizersToggle.interactable = isLocalizersAvailable;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -107,6 +115,7 @@ namespace HBP.UI.Toolbar
             m_DiFuMoToggle.isOn = SelectedScene.FMRIManager.DisplayDiFuMo;
             m_LocalizersToggle.isOn = SelectedScene.FMRIManager.DisplayLocalizers;
         }
+
         #endregion
     }
 }

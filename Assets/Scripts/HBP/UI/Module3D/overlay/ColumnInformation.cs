@@ -10,25 +10,31 @@ namespace HBP.UI.Module3D
     public class ColumnInformation : ColumnOverlayElement
     {
         #region Properties
+
         /// <summary>
         /// Displays the protocol used in this column
         /// </summary>
         [SerializeField] private Text m_Protocol;
+
         /// <summary>
         /// Displays the bloc used in this column
         /// </summary>
         [SerializeField] private Text m_Bloc;
+
         /// <summary>
         /// Displays the dataset used in this column
         /// </summary>
         [SerializeField] private Text m_Dataset;
+
         /// <summary>
         /// Displays the data used in this column
         /// </summary>
         [SerializeField] private Text m_Data;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Setup the overlay element
         /// </summary>
@@ -60,10 +66,7 @@ namespace HBP.UI.Module3D
                 m_Bloc.text = "FMRI";
                 m_Dataset.text = fmriColumn.ColumnFMRIData.Dataset.Name;
                 m_Data.text = fmriColumn.SelectedFMRI.Name;
-                fmriColumn.OnChangeSelectedFMRI.AddListener(() =>
-                {
-                    m_Data.text = fmriColumn.SelectedFMRI.Name;
-                });
+                fmriColumn.OnChangeSelectedFMRI.AddListener(() => { m_Data.text = fmriColumn.SelectedFMRI.Name; });
             }
             else if (column is Column3DMEG megColumn)
             {
@@ -71,10 +74,7 @@ namespace HBP.UI.Module3D
                 m_Bloc.text = "MEG";
                 m_Dataset.text = megColumn.ColumnMEGData.Dataset.Name;
                 m_Data.text = megColumn.SelectedMEGItem.Label;
-                megColumn.OnChangeSelectedMEG.AddListener(() =>
-                {
-                    m_Data.text = megColumn.SelectedMEGItem.Label;
-                });
+                megColumn.OnChangeSelectedMEG.AddListener(() => { m_Data.text = megColumn.SelectedMEGItem.Label; });
             }
             else if (column is Column3DStatic staticColumn)
             {
@@ -82,16 +82,14 @@ namespace HBP.UI.Module3D
                 m_Bloc.text = "Static";
                 m_Dataset.text = staticColumn.ColumnStaticData.Dataset.Name;
                 m_Data.text = string.Format("{0} ({1})", staticColumn.ColumnStaticData.DataName, staticColumn.Labels[staticColumn.SelectedLabelIndex]);
-                staticColumn.OnUpdateSelectedLabel.AddListener(() =>
-                {
-                    m_Data.text = string.Format("{0} ({1})", staticColumn.ColumnStaticData.DataName, staticColumn.Labels[staticColumn.SelectedLabelIndex]);
-                });
+                staticColumn.OnUpdateSelectedLabel.AddListener(() => { m_Data.text = string.Format("{0} ({1})", staticColumn.ColumnStaticData.DataName, staticColumn.Labels[staticColumn.SelectedLabelIndex]); });
             }
             else
             {
                 IsActive = false;
             }
         }
+
         #endregion
     }
 }

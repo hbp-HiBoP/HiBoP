@@ -10,10 +10,18 @@ namespace HBP.Core.Data
     public class RawSitePositionFilterCondition : BaseFilterCondition
     {
         #region Enums
-        public enum AxisType { X, Y, Z }
+
+        public enum AxisType
+        {
+            X,
+            Y,
+            Z
+        }
+
         #endregion
 
         #region Properties
+
         [JsonProperty("Axis")] public AxisType Axis { get; set; }
         [JsonProperty("ComparisonType")] public NumberComparisonType ComparisonType { get; set; }
         [JsonProperty("Value")] public float Value { get; set; }
@@ -38,12 +46,16 @@ namespace HBP.Core.Data
                 return $"The {axisStr} position of the site is{(IsNot ? " not" : "")} {comparisonStr}";
             }
         }
+
         #endregion
 
         #region Constructors
-        public RawSitePositionFilterCondition() : this(AxisType.X, NumberComparisonType.Equal, 0, 0, 0, false) { }
-        public RawSitePositionFilterCondition(AxisType axis, NumberComparisonType comparisonType, float value, float min, float max, bool isNot)
-            : base(isNot)
+
+        public RawSitePositionFilterCondition() : this(AxisType.X, NumberComparisonType.Equal, 0, 0, 0, false)
+        {
+        }
+
+        public RawSitePositionFilterCondition(AxisType axis, NumberComparisonType comparisonType, float value, float min, float max, bool isNot) : base(isNot)
         {
             Axis = axis;
             ComparisonType = comparisonType;
@@ -51,8 +63,8 @@ namespace HBP.Core.Data
             Min = min;
             Max = max;
         }
-        public RawSitePositionFilterCondition(AxisType axis, NumberComparisonType comparisonType, float value, float min, float max, bool isNot, string ID)
-            : base(isNot, ID)
+
+        public RawSitePositionFilterCondition(AxisType axis, NumberComparisonType comparisonType, float value, float min, float max, bool isNot, string ID) : base(isNot, ID)
         {
             Axis = axis;
             ComparisonType = comparisonType;
@@ -60,13 +72,16 @@ namespace HBP.Core.Data
             Min = min;
             Max = max;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new RawSitePositionFilterCondition(Axis, ComparisonType, Value, Min, Max, IsNot, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -79,14 +94,17 @@ namespace HBP.Core.Data
                 Max = other.Max;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is Object3D.Site site)
             {
-                float axisValue = Axis switch
+                // Filter values are persisted in the original native coordinate convention.
+                float nativeAxisValue = Axis switch
                 {
                     AxisType.X => -site.Information.DefaultPosition.x,
                     AxisType.Y => site.Information.DefaultPosition.y,
@@ -94,24 +112,26 @@ namespace HBP.Core.Data
                     _ => float.MinValue
                 };
 
-                if (axisValue == float.MinValue)
+                if (nativeAxisValue == float.MinValue)
                     return false;
 
                 bool result = ComparisonType switch
                 {
-                    NumberComparisonType.Equal => axisValue == Value,
-                    NumberComparisonType.Greater => axisValue > Value,
-                    NumberComparisonType.GreaterOrEqual => axisValue >= Value,
-                    NumberComparisonType.Lower => axisValue < Value,
-                    NumberComparisonType.LowerOrEqual => axisValue <= Value,
-                    NumberComparisonType.Range => axisValue >= Min && axisValue <= Max,
+                    NumberComparisonType.Equal => nativeAxisValue == Value,
+                    NumberComparisonType.Greater => nativeAxisValue > Value,
+                    NumberComparisonType.GreaterOrEqual => nativeAxisValue >= Value,
+                    NumberComparisonType.Lower => nativeAxisValue < Value,
+                    NumberComparisonType.LowerOrEqual => nativeAxisValue <= Value,
+                    NumberComparisonType.Range => nativeAxisValue >= Min && nativeAxisValue <= Max,
                     _ => false
                 };
 
                 return result != IsNot;
             }
+
             return false;
         }
+
         #endregion
     }
 }

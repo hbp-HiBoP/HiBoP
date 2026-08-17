@@ -12,6 +12,7 @@ namespace HBP.UI.Tools
     public class ContentSizeClamper : UIBehaviour, ILayoutController, ILayoutSelfController
     {
         #region Properties
+
         protected DrivenRectTransformTracker m_Tracker;
 
         public enum ClampMode
@@ -23,12 +24,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] protected ClampMode m_MaxHorizontalClamp;
+
         public ClampMode MaxHorizontalClamp
         {
-            get
-            {
-                return m_MaxHorizontalClamp;
-            }
+            get { return m_MaxHorizontalClamp; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MaxHorizontalClamp, value))
@@ -36,13 +35,12 @@ namespace HBP.UI.Tools
                 SetDirty();
             }
         }
+
         [SerializeField] protected float m_MaxHorizontalCustomValue = float.MaxValue;
+
         public float MaxHorizontalCustomValue
         {
-            get
-            {
-                return m_MaxHorizontalCustomValue;
-            }
+            get { return m_MaxHorizontalCustomValue; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MaxHorizontalCustomValue, value))
@@ -52,12 +50,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] protected ClampMode m_MinHorizontalClamp;
+
         public ClampMode MinHorizontalClamp
         {
-            get
-            {
-                return m_MinHorizontalClamp;
-            }
+            get { return m_MinHorizontalClamp; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MinHorizontalClamp, value))
@@ -65,13 +61,12 @@ namespace HBP.UI.Tools
                 SetDirty();
             }
         }
+
         [SerializeField] protected float m_MinHorizontalCustomValue = 0;
+
         public float MinHorizontalCustomValue
         {
-            get
-            {
-                return m_MinHorizontalCustomValue;
-            }
+            get { return m_MinHorizontalCustomValue; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MinHorizontalCustomValue, value))
@@ -81,12 +76,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] protected ClampMode m_MaxVerticalClamp;
+
         public ClampMode MaxVerticalClamp
         {
-            get
-            {
-                return m_MaxVerticalClamp;
-            }
+            get { return m_MaxVerticalClamp; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MaxVerticalClamp, value))
@@ -94,13 +87,12 @@ namespace HBP.UI.Tools
                 SetDirty();
             }
         }
+
         [SerializeField] protected float m_MaxVerticalCustomValue = float.MaxValue;
+
         public float MaxVerticalCustomValue
         {
-            get
-            {
-                return m_MaxVerticalCustomValue;
-            }
+            get { return m_MaxVerticalCustomValue; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MaxVerticalCustomValue, value))
@@ -110,12 +102,10 @@ namespace HBP.UI.Tools
         }
 
         [SerializeField] protected ClampMode m_MinVerticalClamp;
+
         public ClampMode MinVerticalClamp
         {
-            get
-            {
-                return m_MinVerticalClamp;
-            }
+            get { return m_MinVerticalClamp; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MinVerticalClamp, value))
@@ -123,13 +113,12 @@ namespace HBP.UI.Tools
                 SetDirty();
             }
         }
+
         [SerializeField] protected float m_MinVerticalCustomValue = 0;
+
         public float MinVerticalCustomValue
         {
-            get
-            {
-                return m_MinVerticalCustomValue;
-            }
+            get { return m_MinVerticalCustomValue; }
             set
             {
                 if (!SetPropertyUtility.SetStruct(ref m_MinVerticalCustomValue, value))
@@ -139,6 +128,7 @@ namespace HBP.UI.Tools
         }
 
         [NonSerialized] private RectTransform m_RectTransform;
+
         protected RectTransform RectTransform
         {
             get
@@ -147,15 +137,19 @@ namespace HBP.UI.Tools
                 return m_RectTransform;
             }
         }
+
         #endregion
 
         #region Constructors
+
         protected ContentSizeClamper()
         {
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         ///   <para>Method called by the layout system.</para>
         /// </summary>
@@ -164,6 +158,7 @@ namespace HBP.UI.Tools
             m_Tracker.Clear();
             HandleSelfFittingAlongAxis(0);
         }
+
         /// <summary>
         ///   <para>Method called by the layout system.</para>
         /// </summary>
@@ -171,14 +166,17 @@ namespace HBP.UI.Tools
         {
             HandleSelfFittingAlongAxis(1);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void OnEnable()
         {
             base.OnEnable();
             SetDirty();
         }
+
         /// <summary>
         ///   <para>See MonoBehaviour.OnDisable.</para>
         /// </summary>
@@ -188,10 +186,12 @@ namespace HBP.UI.Tools
             LayoutRebuilder.MarkLayoutForRebuild(RectTransform);
             base.OnDisable();
         }
+
         protected override void OnRectTransformDimensionsChange()
         {
             this.SetDirty();
         }
+
         protected void HandleSelfFittingAlongAxis(int axis)
         {
             //if (RectTransform.rect.width == 0 && RectTransform.rect.height == 0) return;
@@ -210,6 +210,7 @@ namespace HBP.UI.Tools
                     min = axis != 0 ? MinVerticalCustomValue : MinHorizontalCustomValue;
                     break;
             }
+
             switch (maxClampMode)
             {
                 case ClampMode.MinSize:
@@ -236,6 +237,7 @@ namespace HBP.UI.Tools
             //    m_Tracker.Add(this, RectTransform, axis != 0 ? DrivenTransformProperties.SizeDeltaY : DrivenTransformProperties.SizeDeltaX);
             //}
         }
+
         /// <summary>
         ///   <para>Mark the ContentSizeFitter as dirty.</para>
         /// </summary>
@@ -251,6 +253,7 @@ namespace HBP.UI.Tools
             SetDirty();
         }
 #endif
+
         #endregion
     }
 }

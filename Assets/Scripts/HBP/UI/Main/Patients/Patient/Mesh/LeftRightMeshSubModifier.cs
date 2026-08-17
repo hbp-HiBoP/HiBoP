@@ -6,6 +6,7 @@ namespace HBP.UI.Main
     public class LeftRightMeshSubModifier : SubModifier<Core.Data.LeftRightMesh>
     {
         #region Properties
+
         [SerializeField] FileSelector m_LeftMeshFileSelector;
         [SerializeField] FileSelector m_RightMeshFileSelector;
 
@@ -24,9 +25,11 @@ namespace HBP.UI.Main
                 m_RightMarsAtlasFileSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -39,6 +42,7 @@ namespace HBP.UI.Main
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(Core.Data.LeftRightMesh objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -47,6 +51,7 @@ namespace HBP.UI.Main
             m_LeftMarsAtlasFileSelector.File = objectToDisplay.SavedLeftMarsAtlasHemisphere;
             m_RightMarsAtlasFileSelector.File = objectToDisplay.SavedRightMarsAtlasHemisphere;
         }
+
         #endregion
     }
 }

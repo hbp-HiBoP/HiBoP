@@ -10,14 +10,13 @@ namespace HBP.UI.Main
     public class GroupFilterConditionSubModifier : SubModifier<GroupFilterCondition>
     {
         #region Properties
+
         protected List<object> m_FilteringObjects;
+
         public List<object> FilteringObjects
         {
             get => m_FilteringObjects;
-            set
-            {
-                m_FilteringObjects = value;
-            }
+            set { m_FilteringObjects = value; }
         }
 
         [SerializeField] FileSelector m_GroupFileSelector;
@@ -32,36 +31,42 @@ namespace HBP.UI.Main
                 m_GroupFileSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
-            
+
             // Configure the file selector for .group files
             m_GroupFileSelector.Extension = Group.GetExtensions()[0]; // "group"
             m_GroupFileSelector.Message = "Select a group file";
-            
+
             // Listen for file selection changes
             m_GroupFileSelector.onValueChanged.AddListener(OnGroupFileChanged);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(GroupFilterCondition objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 
             // Set the file path in the selector
             m_GroupFileSelector.File = objectToDisplay.GroupFilePath ?? "";
-            
+
             // Update the group info display
             UpdateGroupInfo();
         }
+
         #endregion
 
         #region Private Methods
+
         private void OnGroupFileChanged(string filePath)
         {
             if (Object != null)
@@ -95,6 +100,7 @@ namespace HBP.UI.Main
             string patientCount = loadedGroup.PatientsID.Count == 1 ? "1 patient" : $"{loadedGroup.PatientsID.Count} patients";
             m_GroupInfoText.text = $"Group: {loadedGroup.Name} ({patientCount})";
         }
+
         #endregion
     }
 }

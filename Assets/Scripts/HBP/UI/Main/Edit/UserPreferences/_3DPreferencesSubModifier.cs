@@ -10,8 +10,11 @@ namespace HBP.UI.Main
     public class _3DPreferencesSubModifier : SubModifier<_3DPreferences>
     {
         #region Properties
+
         [SerializeField] Toggle m_AutomaticEEGUpdateToggle;
         [SerializeField] Toggle m_RawCutsToggle;
+        [SerializeField] Toggle m_MaskActivityOnMRIBackgroundToggle;
+        [SerializeField] Toggle m_SmoothActivityBoundariesToggle;
         [SerializeField] Dropdown m_VisualizationsLayoutDirectionDropdown;
         [SerializeField] Dropdown m_SiteInfluenceDropdown;
 
@@ -26,16 +29,15 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
 
                 m_AutomaticEEGUpdateToggle.interactable = value;
                 m_RawCutsToggle.interactable = value;
+                m_MaskActivityOnMRIBackgroundToggle.interactable = value;
+                m_SmoothActivityBoundariesToggle.interactable = value;
                 m_VisualizationsLayoutDirectionDropdown.interactable = value;
                 m_SiteInfluenceDropdown.interactable = value;
                 m_DefaultSelectedMRIInSinglePatientInputField.interactable = value;
@@ -46,15 +48,19 @@ namespace HBP.UI.Main
                 m_DefaultSelectedImplantionInMultiPatientsInputField.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
 
             m_AutomaticEEGUpdateToggle.onValueChanged.AddListener((value) => Object.AutomaticEEGUpdate = value);
             m_RawCutsToggle.onValueChanged.AddListener((value) => Object.RawCuts = value);
+            m_MaskActivityOnMRIBackgroundToggle.onValueChanged.AddListener((value) => Object.MaskActivityOnMRIBackground = value);
+            m_SmoothActivityBoundariesToggle.onValueChanged.AddListener((value) => Object.SmoothActivityBoundaries = value);
             m_VisualizationsLayoutDirectionDropdown.onValueChanged.AddListener((value) => Object.VisualizationsLayoutDirection = (LayoutDirection)value);
             m_SiteInfluenceDropdown.onValueChanged.AddListener((value) => Object.SiteInfluenceByDistance = (SiteInfluenceByDistanceType)value);
 
@@ -66,15 +72,19 @@ namespace HBP.UI.Main
             m_DefaultSelectedMeshInMultiPatientsInputField.onValueChanged.AddListener((value) => Object.DefaultSelectedMeshInMultiPatientsVisualization = value);
             m_DefaultSelectedImplantionInMultiPatientsInputField.onValueChanged.AddListener((value) => Object.DefaultSelectedImplantationInMultiPatientsVisualization = value);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields(_3DPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
 
             m_AutomaticEEGUpdateToggle.isOn = objectToDisplay.AutomaticEEGUpdate;
             m_RawCutsToggle.isOn = objectToDisplay.RawCuts;
+            m_MaskActivityOnMRIBackgroundToggle.isOn = objectToDisplay.MaskActivityOnMRIBackground;
+            m_SmoothActivityBoundariesToggle.isOn = objectToDisplay.SmoothActivityBoundaries;
             m_VisualizationsLayoutDirectionDropdown.Set(typeof(LayoutDirection), (int)objectToDisplay.VisualizationsLayoutDirection);
             m_SiteInfluenceDropdown.Set(typeof(SiteInfluenceByDistanceType), (int)objectToDisplay.SiteInfluenceByDistance);
 
@@ -86,6 +96,7 @@ namespace HBP.UI.Main
             m_DefaultSelectedMeshInMultiPatientsInputField.text = objectToDisplay.DefaultSelectedMeshInMultiPatientsVisualization;
             m_DefaultSelectedImplantionInMultiPatientsInputField.text = objectToDisplay.DefaultSelectedImplantationInMultiPatientsVisualization;
         }
+
         #endregion
     }
 }

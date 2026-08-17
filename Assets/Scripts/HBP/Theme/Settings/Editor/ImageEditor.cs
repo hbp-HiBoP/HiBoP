@@ -21,7 +21,7 @@ namespace HBP.Theme
             EditorGUILayout.PropertyField(sourceImageProperty);
             EditorGUILayout.PropertyField(materialProperty);
             EditorGUILayout.PropertyField(typeProperty);
-            UnityEngine.UI.Image.Type type = (UnityEngine.UI.Image.Type) typeProperty.enumValueIndex;
+            UnityEngine.UI.Image.Type type = (UnityEngine.UI.Image.Type)typeProperty.enumValueIndex;
 
             EditorGUI.indentLevel++;
             switch (type)
@@ -64,14 +64,16 @@ namespace HBP.Theme
                             EditorGUILayout.PropertyField(preserveAspectProperty);
                             break;
                         case UnityEngine.UI.Image.FillMethod.Radial360:
-                            fillOriginProperty.intValue = (int)(UnityEngine.UI.Image.Origin360) EditorGUILayout.EnumPopup("Fill Origin", (UnityEngine.UI.Image.Origin360)fillOriginProperty.intValue);
+                            fillOriginProperty.intValue = (int)(UnityEngine.UI.Image.Origin360)EditorGUILayout.EnumPopup("Fill Origin", (UnityEngine.UI.Image.Origin360)fillOriginProperty.intValue);
                             EditorGUILayout.PropertyField(fillAmountProperty);
                             EditorGUILayout.PropertyField(ClockwiseProperty);
                             EditorGUILayout.PropertyField(preserveAspectProperty);
                             break;
                     }
+
                     break;
             }
+
             EditorGUI.indentLevel--;
             serializedObject.ApplyModifiedProperties();
         }

@@ -4,31 +4,31 @@ namespace HBP.UI.Main
 {
     public class MEGcDataInfoSubModifier : SubModifier<Core.Data.MEGcDataInfo>
     {
-        #region Properties     
+        #region Properties
+
         public override bool Interactable
         {
-            get
-            {
-                return m_Interactable;
-            }
-            set
-            {
-                base.Interactable = value;
-            }
+            get { return m_Interactable; }
+            set { base.Interactable = value; }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(Core.Data.MEGcDataInfo objectToDisplay)
         {
         }
+
         #endregion
     }
 }

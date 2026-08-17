@@ -8,28 +8,35 @@ namespace HBP.UI.Toolbar
     public class LocalizersTimeline : Tool
     {
         #region Properties
+
         /// <summary>
         /// Slider to change the current sample of the timeline
         /// </summary>
         [SerializeField] private Slider m_Slider;
+
         /// <summary>
         /// Transform that will contain the zero marker
         /// </summary>
         [SerializeField] private RectTransform m_TimelineContainer;
+
         /// <summary>
         /// Prefab for the zero marker
         /// </summary>
         [SerializeField] private GameObject m_ZeroMarkerPrefab;
+
         [SerializeField] private Text m_StartTimeText;
         [SerializeField] private Text m_CurrentTimeText;
         [SerializeField] private Text m_EndTimeText;
+
         /// <summary>
         /// Reference to the instantiated zero marker
         /// </summary>
         private GameObject m_ZeroMarker;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Create and position the zero marker on the timeline
         /// </summary>
@@ -44,15 +51,15 @@ namespace HBP.UI.Toolbar
                 float timeZero = 0f;
                 float startTime = currentFMRI.StartTime;
                 float endTime = startTime + currentFMRI.TimeStep * (currentFMRI.Volumes.Count - 1);
-                
+
                 // Only create marker if zero is within the timeline range
                 if (timeZero >= startTime && timeZero <= endTime)
                 {
                     float normalizedPosition = Mathf.InverseLerp(startTime, endTime, timeZero);
-                    
+
                     m_ZeroMarker = Instantiate(m_ZeroMarkerPrefab, m_TimelineContainer);
                     RectTransform markerRect = m_ZeroMarker.GetComponent<RectTransform>();
-                    
+
                     // Position the marker at the zero time position
                     markerRect.anchorMin = new Vector2(normalizedPosition, 0);
                     markerRect.anchorMax = new Vector2(normalizedPosition, 1);
@@ -60,6 +67,7 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         /// <summary>
         /// Remove the zero marker
         /// </summary>
@@ -71,6 +79,7 @@ namespace HBP.UI.Toolbar
                 m_ZeroMarker = null;
             }
         }
+
         /// <summary>
         /// Update the timeline display based on current FMRI
         /// </summary>
@@ -84,10 +93,10 @@ namespace HBP.UI.Toolbar
                 m_Slider.minValue = 0;
                 m_Slider.maxValue = currentFMRI.Volumes.Count - 1;
                 m_Slider.value = SelectedScene.FMRIManager.SelectedLocalizersTimelineIndex;
-                
+
                 // Create zero marker
                 CreateZeroMarker();
-                
+
                 // Update time texts
                 UpdateTimeTexts();
             }
@@ -100,13 +109,14 @@ namespace HBP.UI.Toolbar
                 ClearTimeTexts();
             }
         }
+
         /// <summary>
         /// Update the time texts with current FMRI timing information
         /// </summary>
         private void UpdateTimeTexts()
         {
             var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedScene.FMRIManager.SelectedLocalizersProtocol, SelectedScene.FMRIManager.SelectedLocalizersData, SelectedScene.FMRIManager.SelectedLocalizersBloc);
-            
+
             if (currentFMRI != null && currentFMRI.Loaded)
             {
                 float startTime = currentFMRI.StartTime;
@@ -119,15 +129,18 @@ namespace HBP.UI.Toolbar
                 m_EndTimeText.text = $"{endTime.ToString("N0")} {currentFMRI.TimeUnit}";
             }
         }
+
         private void ClearTimeTexts()
         {
             m_StartTimeText.text = "";
             m_CurrentTimeText.text = "";
             m_EndTimeText.text = "";
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -142,6 +155,7 @@ namespace HBP.UI.Toolbar
                 UpdateTimeTexts();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -152,6 +166,7 @@ namespace HBP.UI.Toolbar
             m_Slider.interactable = false;
             DeleteZeroMarker();
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -164,6 +179,7 @@ namespace HBP.UI.Toolbar
             gameObject.SetActive(isLocalizersDisplayed);
             m_Slider.interactable = isLocalizersDisplayed && hasFMRI;
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -178,6 +194,7 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
     }
 }

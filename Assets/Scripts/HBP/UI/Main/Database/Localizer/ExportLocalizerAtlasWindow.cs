@@ -24,24 +24,30 @@ namespace HBP.UI.Main
     public class ExportLocalizerAtlasWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] private Button m_SelectPatientsButton;
         [SerializeField] private Text m_PatientsSelectedText;
-        
+
         [SerializeField] private Transform m_ProtocolsContainer;
         [SerializeField] private GameObject m_ProtocolItemPrefab;
-        
+
         [SerializeField] private Transform m_DataNamesContainer;
         [SerializeField] private GameObject m_DataNameItemPrefab;
-        
+
         [SerializeField] private FolderSelector m_ExportFolderSelector;
-        
+        [SerializeField] private InputField m_MaximumGridDimensionInputField;
+        [SerializeField] private Text m_ExportGridPreviewText;
+
         private List<Patient> m_AvailablePatients = new();
         private List<Patient> m_SelectedPatients = new();
         private List<ExportProtocolItem> m_ProtocolItems = new();
         private List<ExportDataNameItem> m_DataNameItems = new();
+        private LocalizerExportGridSettings m_ExportGridSettings;
+
         #endregion
-        
+
         #region Public Methods
+
         public override async void OK()
         {
             if (m_SelectedPatients.Count == 0)
@@ -49,27 +55,46 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No patients selected", "Please select at least one patient.").Forget();
                 return;
             }
-            
+
             var selectedProtocols = m_ProtocolItems.Where(p => p.IsSelected).ToList();
             if (selectedProtocols.Count == 0)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No protocols selected", "Please select at least one protocol block.").Forget();
                 return;
             }
-            
+
             var selectedDataNames = m_DataNameItems.Where(d => d.IsSelected).ToList();
             if (selectedDataNames.Count == 0)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No data selected", "Please select at least one data type.").Forget();
                 return;
             }
-            
+
             if (!Directory.Exists(m_ExportFolderSelector.Folder))
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Invalid output folder", "The specified output folder does not exist.").Forget();
                 return;
             }
-            
+
+            if (!TryGetExportGridSettings(out LocalizerExportGridSettings exportGridSettings, out string gridSettingsError))
+            {
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Invalid export resolution", gridSettingsError).Forget();
+                return;
+            }
+
+            Vector3Int referenceDimensions = Object3DManager.MNI.MRI.Volume.Dimensions;
+            if (exportGridSettings.RequiresLargeExportConfirmation(referenceDimensions))
+            {
+                Vector3Int exportDimensions = exportGridSettings.CalculateDimensions(referenceDimensions);
+                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Large Localizer export", $"The selected grid will contain {FormatVoxelCount(exportGridSettings.CalculateVoxelCount(referenceDimensions))} voxels ({FormatDimensions(exportDimensions)}). Memory usage and export time can be high and grow with the number of time points.\n\nWould you like to continue?", "Continue", "Cancel");
+                if (result != 0)
+                {
+                    return;
+                }
+            }
+
+            m_ExportGridSettings = exportGridSettings;
+
             if (ApplicationState.LoadedProject != null)
             {
                 if (ApplicationState.LoadedProject.Visualizations.Any(v => Module3DMain.Visualizations.Contains(v)))
@@ -85,42 +110,54 @@ namespace HBP.UI.Main
                     }
                 }
             }
-            
+
             base.OK();
 
-            await LoadingManager.LoadAsync(ExportAtlasAsync);
+            try
+            {
+                await LoadingManager.LoadAsync(ExportValidatedAtlasAsync);
+            }
+            catch (Exception)
+            {
+                return;
+            }
+
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Export complete", "The export of localizer atlas is complete.").Forget();
         }
+
         #endregion
-        
+
         #region Protected Methods
+
         protected override void Initialize()
         {
             base.Initialize();
-            
+
             m_SelectPatientsButton.onClick.AddListener(OpenPatientSelector);
+            m_MaximumGridDimensionInputField.onValueChanged.AddListener(_ => UpdateUI());
         }
+
         protected override void SetFields()
         {
             base.SetFields();
 
             m_ExportFolderSelector.Folder = PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
+            m_MaximumGridDimensionInputField.SetTextWithoutNotify(LocalizerExportGridSettings.DefaultMaximumDimension.ToString());
             SetAvailablePatients();
             SetupProtocols();
             SetupDataNames();
             UpdateUI();
         }
+
         #endregion
-        
+
         #region Private Methods
+
         private void SetAvailablePatients()
         {
-            m_AvailablePatients = DatabaseManager.Database.Patients
-                .Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>()
-                .Any(d => d.Patient == p))
-                .OrderBy(p => p.Name)
-                .ToList();
+            m_AvailablePatients = DatabaseManager.Database.Patients.Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Any(d => d.Patient == p)).OrderBy(p => p.Name).ToList();
         }
+
         private void SetupProtocols()
         {
             // Clear existing protocol items
@@ -128,8 +165,9 @@ namespace HBP.UI.Main
             {
                 if (item != null) Destroy(item.gameObject);
             }
+
             m_ProtocolItems.Clear();
-            
+
             // Get all protocols from database
             var protocols = DatabaseManager.Database.Protocols.OrderBy(p => p.Name).ToList();
             foreach (var protocol in protocols)
@@ -144,6 +182,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         private void SetupDataNames()
         {
             // Clear existing data name items
@@ -151,16 +190,12 @@ namespace HBP.UI.Main
             {
                 if (item != null) Destroy(item.gameObject);
             }
+
             m_DataNameItems.Clear();
-            
+
             // Get all distinct data names from database
-            var dataNames = DatabaseManager.Database.DataInfos
-                .OfType<IEEGDataInfo>()
-                .Select(d => d.Name)
-                .Distinct()
-                .OrderBy(name => name)
-                .ToList();
-            
+            var dataNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Select(d => d.Name).Distinct().OrderBy(name => name).ToList();
+
             foreach (var dataName in dataNames)
             {
                 GameObject itemObj = Instantiate(m_DataNameItemPrefab, m_DataNamesContainer);
@@ -173,6 +208,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         private void OpenPatientSelector()
         {
             ObjectSelector<Patient> selector = WindowsManager.OpenSelector(m_AvailablePatients, this);
@@ -180,11 +216,13 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => OnPatientsSelected(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         private void OnPatientsSelected(Patient[] selectedPatients)
         {
             m_SelectedPatients = selectedPatients.ToList();
             UpdateUI();
         }
+
         private void UpdateUI()
         {
             // Update patients text
@@ -200,14 +238,72 @@ namespace HBP.UI.Main
             {
                 m_PatientsSelectedText.text = $"{m_SelectedPatients.Count} patients selected";
             }
-            
+
             // Enable/disable export button
-            bool canExport = m_SelectedPatients.Count > 0 &&
-                           m_ProtocolItems.Any(p => p.IsSelected) &&
-                           m_DataNameItems.Any(d => d.IsSelected) &&
-                           !string.IsNullOrEmpty(m_ExportFolderSelector.Folder);
-            
+            bool hasValidGridSettings = TryGetExportGridSettings(out LocalizerExportGridSettings exportGridSettings, out string gridSettingsError);
+            UpdateExportGridPreview(exportGridSettings, gridSettingsError);
+
+            bool canExport = m_SelectedPatients.Count > 0 && m_ProtocolItems.Any(p => p.IsSelected) && m_DataNameItems.Any(d => d.IsSelected) && !string.IsNullOrEmpty(m_ExportFolderSelector.Folder) && hasValidGridSettings;
+
             m_OKButton.interactable = canExport;
+        }
+
+        private bool TryGetExportGridSettings(out LocalizerExportGridSettings settings, out string error)
+        {
+            settings = null;
+            if (!int.TryParse(m_MaximumGridDimensionInputField.text, out int maximumDimension))
+            {
+                error = "Maximum grid dimension must be a whole number.";
+                return false;
+            }
+
+            if (maximumDimension < LocalizerExportGridSettings.MinimumMaximumDimension || maximumDimension > LocalizerExportGridSettings.MaximumAllowedDimension)
+            {
+                error = $"Maximum grid dimension must be between {LocalizerExportGridSettings.MinimumMaximumDimension} and {LocalizerExportGridSettings.MaximumAllowedDimension}.";
+                return false;
+            }
+
+            settings = new LocalizerExportGridSettings(maximumDimension);
+            error = string.Empty;
+            return true;
+        }
+
+        private void UpdateExportGridPreview(LocalizerExportGridSettings settings, string error)
+        {
+            if (settings == null)
+            {
+                m_ExportGridPreviewText.text = error;
+                return;
+            }
+
+            Volume referenceVolume = Object3DManager.MNI?.MRI?.Volume;
+            if (referenceVolume == null || !referenceVolume.IsLoaded)
+            {
+                m_ExportGridPreviewText.text = "Grid preview unavailable until the MNI volume is loaded.";
+                return;
+            }
+
+            Vector3Int dimensions = settings.CalculateDimensions(referenceVolume.Dimensions);
+            long voxelCount = settings.CalculateVoxelCount(referenceVolume.Dimensions);
+            long activityBytesPerTimePoint = checked(voxelCount * sizeof(float));
+            string largeExportSuffix = settings.RequiresLargeExportConfirmation(referenceVolume.Dimensions) ? " Confirmation will be requested before export." : string.Empty;
+            m_ExportGridPreviewText.text = $"Grid: {FormatDimensions(dimensions)} ({FormatVoxelCount(voxelCount)} voxels). Uncompressed data: {FormatBytes(activityBytesPerTimePoint)} per time point + {FormatBytes(voxelCount)} mask.{largeExportSuffix}";
+        }
+
+        private static string FormatDimensions(Vector3Int dimensions)
+        {
+            return $"{dimensions.x} × {dimensions.y} × {dimensions.z}";
+        }
+
+        private static string FormatVoxelCount(long voxelCount)
+        {
+            return voxelCount.ToString("N0");
+        }
+
+        private static string FormatBytes(long byteCount)
+        {
+            const double bytesPerMebibyte = 1024.0 * 1024.0;
+            return $"{byteCount / bytesPerMebibyte:0.##} MiB";
         }
 
         private async UniTask ExportAtlasAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -217,10 +313,10 @@ namespace HBP.UI.Main
             var failedDataInfos = new List<(IEEGDataInfo dataInfo, string patientName, string error)>();
 
             // Initialize generator
-            GeneratorSurface generatorSurface = new();
-            generatorSurface.Initialize(Object3DManager.MNI.GreyMatter.Both, Object3DManager.MNI.MRI.Volume, 120);
-            IEEGGenerator generator = new();
-            generator.Initialize(generatorSurface);
+            using ActivityProjectionGrid projectionGrid = new();
+            projectionGrid.Initialize(Object3DManager.MNI.MRI.Volume, m_ExportGridSettings.MaximumDimension, m_ExportGridSettings.Interpolation);
+            using IEEGGenerator generator = new();
+            generator.Initialize(projectionGrid);
 
             var selectedDataNames = m_DataNameItems.Where(d => d.IsSelected).Select(d => d.DataName).ToList();
             var selectedProtocols = m_ProtocolItems.Where(p => p.IsSelected).ToList();
@@ -238,6 +334,7 @@ namespace HBP.UI.Main
                     {
                         totalDataInfosToLoad += DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Count(d => d.Patient == patient && d.Protocol.Name == protocolItem.Name && d.Name == dataName);
                     }
+
                     totalBlocsToProcess += protocolItem.SelectedBlocs.Count;
                 }
             }
@@ -342,14 +439,28 @@ namespace HBP.UI.Main
                 ShowFailedDataInfosDialog(failedDataInfos);
             }
         }
+
+        private async UniTask ExportValidatedAtlasAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            GlobalDatabase database = DatabaseManager.Database;
+            ValidationRequest validationRequest = new(ValidationAspect.SourceAvailability | ValidationAspect.SourceReadability | ValidationAspect.Epoching | ValidationAspect.ChannelMapping | ValidationAspect.PatientAssets, patientIDs: m_SelectedPatients.Select(patient => patient.ID));
+            float validationWeight = database.RequiresValidation(validationRequest) ? 0.1f : 0;
+            if (validationWeight > 0)
+            {
+                await database.EnsureDatabaseValidatedAsync(validationRequest, (progress, duration, text) => updateProgress(progress * validationWeight, duration, text), token);
+            }
+
+            await ExportAtlasAsync((progress, duration, text) => updateProgress(validationWeight + progress * (1 - validationWeight), duration, text), token);
+        }
+
         private Implantation3D GenerateImplantation3D(List<Patient> patients)
         {
             if (patients.Count == 0) return null;
-            
+
             var siteInfos = new List<Implantation3D.SiteInfo>();
             Regex regex = new(@"^([a-zA-Z']+)([0-9]+)$");
             int globalSiteIndex = 0;
-            
+
             foreach (var patient in patients)
             {
                 var patientIndex = patients.IndexOf(patient);
@@ -358,29 +469,30 @@ namespace HBP.UI.Main
                 {
                     GroupCollection groups = regex.Match(site.Name).Groups;
                     var mniCoordinate = site.Coordinates.FirstOrDefault(c => c.ReferenceSystem == "MNI");
-                    
+
                     if (mniCoordinate == null)
                     {
                         continue;
                     }
-                    
+
                     var siteInfo = new Implantation3D.SiteInfo
                     {
                         Name = site.Name,
-                        Position = mniCoordinate.Position.ToVector3(),
+                        NativePosition = mniCoordinate.Position.ToVector3(),
                         Index = globalSiteIndex++,
                         PatientIndex = patientIndex,
                         Patient = patient,
                         Electrode = groups.Count == 3 ? groups[1].ToString() : "Other",
                         SiteData = site
                     };
-                    
+
                     siteInfos.Add(siteInfo);
                 }
             }
-            
+
             return new Implantation3D("MNI", siteInfos, patients);
         }
+
         private Core.Data.Processed.IEEGData GenerateProcessedIEEGData(List<IEEGDataInfo> allDataInfos, Bloc bloc)
         {
             if (allDataInfos == null || allDataInfos.Count == 0 || bloc == null) return null;
@@ -391,6 +503,7 @@ namespace HBP.UI.Main
             processedIEEGData.SetTimeline(maxFrequency, bloc, allBlocs);
             return processedIEEGData;
         }
+
         private float[] ExtractActivityValues(Core.Data.Processed.IEEGData processedIEEGData, Implantation3D implantation)
         {
             int timelineLength = processedIEEGData.Timeline.Length;
@@ -427,8 +540,10 @@ namespace HBP.UI.Main
                     allValues[t * sitesCount + s] = val;
                 }
             }
+
             return allValues;
         }
+
         private string GenerateOutputPath(string protocolName, string dataName, string blocName)
         {
             string exportFolder = m_ExportFolderSelector.Folder;
@@ -437,6 +552,7 @@ namespace HBP.UI.Main
             string dataFolder = Path.Combine(protocolFolder, dataName);
             return Path.Combine(dataFolder, $"{blocName}.nii.gz");
         }
+
         private void ShowFailedDataInfosDialog(List<(IEEGDataInfo dataInfo, string patientName, string error)> failedDataInfos)
         {
             var message = $"{failedDataInfos.Count} data could not be loaded and have been skipped:\n\n";
@@ -444,10 +560,12 @@ namespace HBP.UI.Main
             {
                 message += $"• Patient: {patientName}, Protocol: {dataInfo.Protocol.Name}, Data: {dataInfo.Name}\nError: {error}\n\n";
             }
+
             message += "The atlases have been exported only with valid data.";
 
             DialogBoxManager.OpenScrollable(DialogBoxType.Warning, "Loading Errors", message, "OK").Forget();
         }
+
         #endregion
     }
 }

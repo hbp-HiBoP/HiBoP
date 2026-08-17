@@ -1,7 +1,5 @@
 ﻿using HBP.Core.Tools;
-using System;
 using System.ComponentModel;
-using HBP.Core.DLL;
 
 namespace HBP.Core.Data
 {
@@ -43,22 +41,25 @@ namespace HBP.Core.Data
     [DisplayName("Median")]
     public class MedianTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Buffer;
+
         #region Constructors
+
         /// <summary>
         /// Create a new MedianTreatment instance with default values.
         /// </summary>
         public MedianTreatment() : base()
         {
-
         }
+
         /// <summary>
         /// Create a new MedianTreatment instance with default values and a specified unique identifier.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
         public MedianTreatment(string ID) : base(ID)
         {
-
         }
+
         /// <summary>
         /// Create a new MedianTreatment instance.
         /// </summary>
@@ -71,47 +72,57 @@ namespace HBP.Core.Data
         public MedianTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
-            float[] windowSubArray = new float[0];
-            float[] baselineSubArray = new float[0];
+            float[] workspace = new float[values.Length + baseline.Length];
+            Apply(ref values, ref baseline, windowMainEventIndex, baselineMainEventIndex, frequency, workspace);
+        }
+
+        public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency, float[] workspace)
+        {
             int startWindow = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
             int endWindow = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
             int startBaseline = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
             int endBaseline = baselineMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Baseline.End);
+            int count = 0;
             if (UseOnWindow)
             {
-                windowSubArray = new float[endWindow - startWindow + 1];
-                Array.Copy(values, startWindow, windowSubArray, 0, windowSubArray.Length);
+                for (int i = startWindow; i <= endWindow; ++i)
+                    workspace[count++] = values[i];
             }
+
             if (UseOnBaseline)
             {
-                baselineSubArray = new float[endBaseline - startBaseline + 1];
-                Array.Copy(baseline, startBaseline, baselineSubArray, 0, baselineSubArray.Length);
+                for (int i = startBaseline; i <= endBaseline; ++i)
+                    workspace[count++] = baseline[i];
             }
-            float[] subArray = new float[windowSubArray.Length + baselineSubArray.Length];
-            windowSubArray.CopyTo(subArray, 0);
-            baselineSubArray.CopyTo(subArray, windowSubArray.Length);
-            float median = subArray.Median();
+
+            float median = StreamingStatistics.Median(workspace, count);
             if (UseOnWindow)
             {
                 for (int i = startWindow; i <= endWindow; i++) values[i] = median;
             }
+
             if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; i++) baseline[i] = median;
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new MedianTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
+
         #endregion
     }
 }

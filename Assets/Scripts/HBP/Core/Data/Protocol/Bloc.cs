@@ -41,37 +41,49 @@ namespace HBP.Core.Data
     public class Bloc : BaseData, INameable
     {
         #region Properties
-        public enum SortingMethodError { NoError, NoSortingConditionFound, InvalidNumberOfElements, SubBlocNotFound, EventNotFound, InvalidCommand }
+
+        public enum SortingMethodError
+        {
+            NoError,
+            NoSortingConditionFound,
+            InvalidNumberOfElements,
+            SubBlocNotFound,
+            EventNotFound,
+            InvalidCommand
+        }
+
         /// <summary>
         /// Name of the bloc.
         /// </summary>
         [JsonProperty] public string Name { get; set; }
+
         /// <summary>
         /// Position of the bloc.
         /// </summary>
         [JsonProperty] public int Order { get; set; }
+
         [JsonProperty("IllustrationPath")] string m_IllustrationPath = "";
+
         /// <summary>
         /// Path of the bloc illustration.
         /// </summary>
-        [JsonIgnore]
-        public string IllustrationPath
+        [JsonIgnore] public string IllustrationPath
         {
-            get
-            {
-                return m_IllustrationPath.ConvertToFullPath();
-            }
+            get { return m_IllustrationPath.ConvertToFullPath(); }
             set
             {
                 m_IllustrationPath = value.ConvertToShortPath();
                 m_NeedToReload = true;
             }
         }
+
         /// <summary>
         /// True if the image need to be reload from the illustration path. False otherwise.
         /// </summary>
         bool m_NeedToReload;
+
         Sprite m_Image;
+
         /// <summary>
         /// Image loaded from the illustration path.
         /// </summary>
@@ -84,67 +96,62 @@ namespace HBP.Core.Data
                     if (SpriteExtension.LoadSpriteFromFile(out Sprite sprite, IllustrationPath)) m_Image = sprite;
                     m_NeedToReload = false;
                 }
+
                 return m_Image;
             }
         }
+
         /// <summary>
         /// Sorting trials of the bloc.
         /// </summary>
         [JsonProperty] public string Sort { get; set; }
+
         /// <summary>
         /// The subBlocs of the bloc.
         /// </summary>
         [JsonProperty] public List<SubBloc> SubBlocs { get; set; }
+
         /// <summary>
         /// Main subBloc of the bloc.
         /// </summary>
         public SubBloc MainSubBloc
         {
-            get
-            {
-                return SubBlocs.FirstOrDefault(s => s.Type == Enums.MainSecondaryEnum.Main);
-            }
+            get { return SubBlocs.FirstOrDefault(s => s.Type == Enums.MainSecondaryEnum.Main); }
         }
+
         public ReadOnlyCollection<SubBloc> SecondarySubBlocs
         {
-            get
-            {
-                return new ReadOnlyCollection<SubBloc>(SubBlocs.FindAll(s => s.Type == Enums.MainSecondaryEnum.Secondary));
-            }
+            get { return new ReadOnlyCollection<SubBloc>(SubBlocs.FindAll(s => s.Type == Enums.MainSecondaryEnum.Secondary)); }
         }
+
         /// <summary>
         /// Subblocs ordered by SubBloc.Order.
         /// </summary>
         public IOrderedEnumerable<SubBloc> OrderedSubBlocs
         {
-            get
-            {
-                return SubBlocs.OrderBy(s => s.Order).ThenBy(s => s.Name);
-            }
+            get { return SubBlocs.OrderBy(s => s.Order).ThenBy(s => s.Name); }
         }
+
         /// <summary>
         /// Position of the main subBloc.
         /// </summary>
         public int MainSubBlocPosition
         {
-            get
-            {
-                return Array.IndexOf(OrderedSubBlocs.ToArray(), MainSubBloc);
-            }
+            get { return Array.IndexOf(OrderedSubBlocs.ToArray(), MainSubBloc); }
         }
+
         /// <summary>
         /// True if the bloc is visualizable, False otherwise.
         /// </summary>
         public bool IsVisualizable
         {
-            get
-            {
-                return MainSubBloc != null && SubBlocs.All(s => s.IsVisualizable);
-            }
+            get { return MainSubBloc != null && SubBlocs.All(s => s.IsVisualizable); }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new bloc instance.
         /// </summary>
@@ -162,6 +169,7 @@ namespace HBP.Core.Data
             Sort = sort;
             SubBlocs = subBlocs.ToList();
         }
+
         /// <summary>
         /// Create a new bloc instance.
         /// </summary>
@@ -178,22 +186,25 @@ namespace HBP.Core.Data
             Sort = sort;
             SubBlocs = subBlocs.ToList();
         }
+
         /// <summary>
         /// Create a new bloc instance at a position with default values.
         /// </summary>
         public Bloc(int order) : this("New bloc", order, string.Empty, string.Empty, new List<SubBloc>())
         {
         }
+
         /// <summary>
         /// Create a new blocs instance with default values.
         /// </summary>
         public Bloc() : this(0)
         {
-
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Get all the errors from the sorting.
         /// </summary>
@@ -241,11 +252,13 @@ namespace HBP.Core.Data
                     return SortingMethodError.InvalidNumberOfElements;
                 }
             }
+
             if (orderOk.All(o => o))
                 return SortingMethodError.NoError;
             else
                 return SortingMethodError.NoSortingConditionFound;
         }
+
         /// <summary>
         /// Generate unique identifier.
         /// </summary>
@@ -254,12 +267,14 @@ namespace HBP.Core.Data
             base.GenerateID();
             foreach (var subBloc in SubBlocs) subBloc.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
             foreach (var subBloc in SubBlocs) IDs.AddRange(subBloc.GetAllIdentifiable());
             return IDs;
         }
+
         /// <summary>
         /// Get sorting method error in a displayable form.
         /// </summary>
@@ -285,9 +300,11 @@ namespace HBP.Core.Data
                     return "Unknown error.";
             }
         }
+
         #endregion
 
         #region Public Static Methods
+
         /// <summary>
         /// Get number of trialMatrix columns to display these blocs.
         /// </summary>
@@ -303,14 +320,16 @@ namespace HBP.Core.Data
                 before = Mathf.Max(before, mainPosition);
                 after = Mathf.Max(after, bloc.SubBlocs.Count - 1 - mainPosition);
             }
+
             return before + 1 + after;
         }
+
         /// <summary>
         /// Get subBlocs and window by column.
         /// </summary>
         /// <param name="blocs">Blocs to display</param>
         /// <returns>Tuple containing a array of tuple of bloc and subbloc</returns>
-        public static Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
+        public static Tuple<Tuple<Bloc, SubBloc>[], TimeWindow>[] GetSubBlocsAndWindowByColumn(IEnumerable<Bloc> blocs)
         {
             List<Tuple<int, List<Tuple<Bloc, SubBloc>>>> subBlocsByColumns = new();
             foreach (var bloc in blocs)
@@ -324,19 +343,23 @@ namespace HBP.Core.Data
                     subBlocsByColumns.Find(t => t.Item1 == column).Item2.Add(new Tuple<Bloc, SubBloc>(bloc, orderedSubBlocs[i]));
                 }
             }
+
             subBlocsByColumns = subBlocsByColumns.OrderBy(t => t.Item1).ToList();
 
-            List<Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>> timeLimitsByColumns = new();
+            List<Tuple<Tuple<Bloc, SubBloc>[], TimeWindow>> timeLimitsByColumns = new();
             foreach (var tuple in subBlocsByColumns)
             {
                 TimeWindow window = new(tuple.Item2.Min(s => s.Item2.Window.Start), tuple.Item2.Max(s => s.Item2.Window.End));
-                timeLimitsByColumns.Add(new Tuple<Tuple<Bloc,SubBloc>[], TimeWindow>(tuple.Item2.ToArray(), window));
+                timeLimitsByColumns.Add(new Tuple<Tuple<Bloc, SubBloc>[], TimeWindow>(tuple.Item2.ToArray(), window));
             }
+
             return timeLimitsByColumns.ToArray();
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Copy the instance.
         /// </summary>
@@ -353,6 +376,7 @@ namespace HBP.Core.Data
                 SubBlocs = bloc.SubBlocs;
             }
         }
+
         /// <summary>
         /// Clone the instance.
         /// </summary>
@@ -361,13 +385,16 @@ namespace HBP.Core.Data
         {
             return new Bloc(Name, Order, IllustrationPath, Sort, SubBlocs.DeepClone(), ID);
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             m_IllustrationPath = m_IllustrationPath.StandardizeToEnvironement();
         }
+
         #endregion
     }
 }

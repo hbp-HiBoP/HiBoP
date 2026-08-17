@@ -12,6 +12,7 @@ namespace HBP.UI.Module3D
     public class SceneBarElement : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Associated logical scene
         /// </summary>
@@ -21,10 +22,12 @@ namespace HBP.UI.Module3D
         /// Displays the name of the scene
         /// </summary>
         [SerializeField] private UnityEngine.UI.Text m_Text;
+
         /// <summary>
         /// Toggle used to hide/display the scene
         /// </summary>
         [SerializeField] private Toggle m_Toggle;
+
         /// <summary>
         /// Button used to close the scene
         /// </summary>
@@ -34,13 +37,16 @@ namespace HBP.UI.Module3D
         /// Theme Element state used when the scene is selected
         /// </summary>
         [SerializeField] private Theme.State m_SelectedState;
+
         /// <summary>
         /// Corresponding theme element (to display when the scene is selected)
         /// </summary>
         [SerializeField] private ThemeElement m_ThemeElement;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the scene bar element
         /// </summary>
@@ -53,10 +59,7 @@ namespace HBP.UI.Module3D
 
             m_Text.text = scene.Name;
 
-            m_Button.onClick.AddListener(() =>
-            {
-                Module3DMain.RemoveScene(scene);
-            });
+            m_Button.onClick.AddListener(() => { Module3DMain.RemoveScene(scene); });
 
             Module3DMain.OnRemoveScene.AddSafeListener((s) =>
             {
@@ -67,14 +70,13 @@ namespace HBP.UI.Module3D
             }, gameObject);
 
             m_Toggle.isOn = true;
-            m_Toggle.onValueChanged.AddListener((isOn) =>
-            {
-                scene.UpdateVisibleState(isOn);
-            });
+            m_Toggle.onValueChanged.AddListener((isOn) => { scene.UpdateVisibleState(isOn); });
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Set the selected or unselected state of the scene bar element
         /// </summary>
@@ -90,6 +92,7 @@ namespace HBP.UI.Module3D
                 m_ThemeElement.Set();
             }
         }
+
         #endregion
     }
 }

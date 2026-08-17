@@ -5,21 +5,34 @@ using HBP.UI.Tools;
 
 namespace HBP.UI.Main
 {
-	/// <summary>
-	/// List to display events.
-	/// </summary>
-	public class EventList : ActionableList<Core.Data.Event> 
-	{
+    /// <summary>
+    /// List to display events.
+    /// </summary>
+    public class EventList : ActionableList<Core.Data.Event>
+    {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Code, DescendingCode, Type, DescendingType }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Code,
+            DescendingCode,
+            Type,
+            DescendingType
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_CodeSortingDisplayer;
         [SerializeField] SortingDisplayer m_TypeSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -44,6 +57,7 @@ namespace HBP.UI.Main
             m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -80,10 +94,11 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by code.
         /// </summary>
-		public void SortByCode()
+        public void SortByCode()
         {
             switch (m_OrderBy)
             {
@@ -116,6 +131,7 @@ namespace HBP.UI.Main
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         /// <summary>
         /// Sort by type.
         /// </summary>
@@ -139,6 +155,7 @@ namespace HBP.UI.Main
             m_CodeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_TypeSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

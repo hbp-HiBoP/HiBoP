@@ -10,14 +10,20 @@ namespace HBP.UI.Informations.Graphs
     public class Axis : MonoBehaviour
     {
         #region Properties
-        public enum DirectionEnum { LeftToRight, RightToLeft, BottomToTop, TopToBottom }
+
+        public enum DirectionEnum
+        {
+            LeftToRight,
+            RightToLeft,
+            BottomToTop,
+            TopToBottom
+        }
+
         [SerializeField] DirectionEnum m_Direction;
+
         public DirectionEnum Direction
         {
-            get
-            {
-                return m_Direction;
-            }
+            get { return m_Direction; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_Direction, value))
@@ -28,12 +34,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] Color m_Color;
+
         public Color Color
         {
-            get
-            {
-                return m_Color;
-            }
+            get { return m_Color; }
             set
             {
                 if (SetPropertyUtility.SetColor(ref m_Color, value))
@@ -45,12 +49,10 @@ namespace HBP.UI.Informations.Graphs
 
         [SerializeField] Text m_UnitText;
         [SerializeField] string m_Unit;
+
         public string Unit
         {
-            get
-            {
-                return m_Unit;
-            }
+            get { return m_Unit; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Unit, value))
@@ -62,12 +64,10 @@ namespace HBP.UI.Informations.Graphs
 
         [SerializeField] Text m_LabelText;
         [SerializeField] string m_Label;
+
         public string Label
         {
-            get
-            {
-                return m_Label;
-            }
+            get { return m_Label; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Label, value))
@@ -78,15 +78,13 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] bool m_UseIndependantTickMark;
+
         public bool UseIndependantTickMark
         {
-            get
-            {
-                return m_UseIndependantTickMark;
-            }
+            get { return m_UseIndependantTickMark; }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_UseIndependantTickMark, value))
+                if (SetPropertyUtility.SetStruct(ref m_UseIndependantTickMark, value))
                 {
                     SetUseIndependentTickMark();
                 }
@@ -94,12 +92,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] float m_IndependantValue;
+
         public float IndependantValue
         {
-            get
-            {
-                return m_IndependantValue;
-            }
+            get { return m_IndependantValue; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_IndependantValue, value))
@@ -111,26 +107,18 @@ namespace HBP.UI.Informations.Graphs
 
         public float IndependantNormalizedValue
         {
-            get
-            {
-                return ValueToNormalizedValue(m_IndependantValue);
-            }
-            set
-            {
-                IndependantValue = NormalizedValueToValue(value);
-            }
+            get { return ValueToNormalizedValue(m_IndependantValue); }
+            set { IndependantValue = NormalizedValueToValue(value); }
         }
-        
+
         [SerializeField] Image m_VisualImage;
         [SerializeField] Image m_VisualArrowImage;
 
         [SerializeField] Vector2 m_DisplayRange;
+
         public Vector2 DisplayRange
         {
-            get
-            {
-                return m_DisplayRange;
-            }
+            get { return m_DisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_DisplayRange, value))
@@ -140,39 +128,31 @@ namespace HBP.UI.Informations.Graphs
             }
         }
 
-        [SerializeField] string m_Format ="N2";
+        [SerializeField] string m_Format = "N2";
+
         public string Format
         {
-            get
-            {
-                return m_Format;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_Format, value);
-            }
+            get { return m_Format; }
+            set { SetPropertyUtility.SetClass(ref m_Format, value); }
         }
 
         [SerializeField] string m_CultureInfo = "en-US";
+
         public string CultureInfo
         {
-            get
-            {
-                return m_CultureInfo;
-            }
-            set
-            {
-                SetPropertyUtility.SetClass(ref m_CultureInfo, value);
-            }
+            get { return m_CultureInfo; }
+            set { SetPropertyUtility.SetClass(ref m_CultureInfo, value); }
         }
 
         [SerializeField] float[] m_Values;
         Dictionary<float, MajorTickMark> m_TickMarkByValue = new();
         [SerializeField] List<MajorTickMark> m_TickMarks = new();
         [SerializeField] MajorTickMark m_IndependantTickMark;
+
         #endregion
 
         #region Private Setter
+
         void SetPosition(TickMark tickMark, float value)
         {
             float position = (value - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
@@ -194,10 +174,12 @@ namespace HBP.UI.Informations.Graphs
                     break;
             }
         }
+
         void SetIndependentValue()
         {
             SetIndependantTickMark();
         }
+
         void SetColor()
         {
             if (m_Color != null)
@@ -209,6 +191,7 @@ namespace HBP.UI.Informations.Graphs
                         if (tickMark != null) tickMark.Color = m_Color;
                     }
                 }
+
                 if (m_IndependantTickMark != null) m_IndependantTickMark.Color = m_Color;
                 if (m_VisualArrowImage != null) m_VisualArrowImage.color = m_Color;
                 if (m_VisualImage != null) m_VisualImage.color = m_Color;
@@ -216,18 +199,22 @@ namespace HBP.UI.Informations.Graphs
                 if (m_UnitText != null) m_UnitText.color = m_Color;
             }
         }
+
         void SetLabel()
         {
             if (m_LabelText != null && m_Label != null) m_LabelText.text = m_Label;
         }
+
         void SetUnit()
         {
             if (m_UnitText != null && m_Unit != null) m_UnitText.text = string.Format("({0})", m_Unit);
         }
+
         void SetDirection()
         {
             SetTickMarks();
         }
+
         void SetDisplayRange()
         {
             float range = m_DisplayRange.y - m_DisplayRange.x;
@@ -241,6 +228,7 @@ namespace HBP.UI.Informations.Graphs
                     coef /= 10;
                     normalizedStep *= 10;
                 }
+
                 while (normalizedStep > 10)
                 {
                     float tempResult;
@@ -271,6 +259,7 @@ namespace HBP.UI.Informations.Graphs
                     coef *= 10;
                     normalizedStep /= 10;
                 }
+
                 if (normalizedStep > 1 && normalizedStep <= 5)
                 {
                     normalizedStep = 5;
@@ -279,6 +268,7 @@ namespace HBP.UI.Informations.Graphs
                 {
                     normalizedStep = 10;
                 }
+
                 float step = normalizedStep * coef;
 
                 List<float> values = new();
@@ -291,15 +281,17 @@ namespace HBP.UI.Informations.Graphs
                     values.Add(value);
                     value += step;
                 }
+
                 m_Values = values.ToArray();
                 SetTickMarks();
                 SetIndependantTickMark();
             }
         }
+
         void SetUseIndependentTickMark()
         {
-            if(m_IndependantTickMark != null) m_IndependantTickMark.gameObject.SetActive(m_UseIndependantTickMark);
-            if(!m_UseIndependantTickMark)
+            if (m_IndependantTickMark != null) m_IndependantTickMark.gameObject.SetActive(m_UseIndependantTickMark);
+            if (!m_UseIndependantTickMark)
             {
                 foreach (var tickMark in m_TickMarks)
                 {
@@ -311,6 +303,7 @@ namespace HBP.UI.Informations.Graphs
                 SetIndependantTickMark();
             }
         }
+
         void SetIndependantTickMark()
         {
             if (m_IndependantTickMark && m_UseIndependantTickMark)
@@ -335,6 +328,7 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         void SetTickMarks()
         {
             m_TickMarkByValue = new Dictionary<float, MajorTickMark>();
@@ -358,14 +352,17 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         float ValueToNormalizedValue(float value)
         {
             return (value - m_DisplayRange.x) / (m_DisplayRange.y - m_DisplayRange.x);
         }
+
         float NormalizedValueToValue(float normalizedValue)
         {
             return normalizedValue * (m_DisplayRange.y - m_DisplayRange.x) + m_DisplayRange.x;
         }
+
         void OnValidate()
         {
             SetDirection();
@@ -376,11 +373,13 @@ namespace HBP.UI.Informations.Graphs
             SetUseIndependentTickMark();
             SetIndependentValue();
         }
+
         private void OnRectTransformDimensionsChange()
         {
             SetTickMarks();
             SetIndependantTickMark();
         }
+
         #endregion
     }
 }

@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class AnatomyPreferencesSubModifier : SubModifier<AnatomicPreferences>
     {
         #region Properties
+
         [SerializeField] Toggle m_SiteNameCorrectionToggle;
         [SerializeField] Toggle m_PreloadMeshesToggle;
         [SerializeField] Toggle m_PreloadMRIsToggle;
@@ -16,10 +17,7 @@ namespace HBP.UI.Main
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -31,9 +29,11 @@ namespace HBP.UI.Main
                 m_PreloadSinglePatientDataInMultiPatientVisualizationToggle.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
@@ -44,9 +44,11 @@ namespace HBP.UI.Main
             m_PreloadImplantationsToggle.onValueChanged.AddListener(value => Object.ImplantationPreloading = value);
             m_PreloadSinglePatientDataInMultiPatientVisualizationToggle.onValueChanged.AddListener(value => Object.PreloadSinglePatientDataInMultiPatientVisualization = value);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(AnatomicPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
@@ -57,7 +59,7 @@ namespace HBP.UI.Main
             m_PreloadImplantationsToggle.isOn = objectToDisplay.ImplantationPreloading;
             m_PreloadSinglePatientDataInMultiPatientVisualizationToggle.isOn = objectToDisplay.PreloadSinglePatientDataInMultiPatientVisualization;
         }
+
         #endregion
     }
 }
-

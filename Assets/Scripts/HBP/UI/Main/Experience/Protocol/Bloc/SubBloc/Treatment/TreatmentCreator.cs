@@ -6,16 +6,15 @@ namespace HBP.UI.Main
     public class TreatmentCreator : ObjectCreator<Core.Data.Treatment>
     {
         #region Properties
+
         Core.Tools.TimeWindow m_Window;
+
         /// <summary>
         /// SubBloc Window.
         /// </summary>
         public Core.Tools.TimeWindow Window
         {
-            get
-            {
-                return m_Window;
-            }
+            get { return m_Window; }
             set
             {
                 m_Window = value;
@@ -27,15 +26,13 @@ namespace HBP.UI.Main
         }
 
         Core.Tools.TimeWindow m_Baseline;
+
         /// <summary>
         /// SubBloc Baseline.
         /// </summary>
         public Core.Tools.TimeWindow Baseline
         {
-            get
-            {
-                return m_Baseline;
-            }
+            get { return m_Baseline; }
             set
             {
                 m_Baseline = value;
@@ -45,19 +42,23 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Create Treatment from Scrath.
         /// </summary>
         public override void CreateFromScratch()
         {
-            OpenModifier(new Core.Data.AbsTreatment(true,Window,false,Baseline,0));
+            OpenModifier(new Core.Data.AbsTreatment(true, Window, false, Baseline, 0));
         }
+
         #endregion
 
         #region Protected Methods
+
         /// <summary>
         /// Open a Treatment modifier.
         /// </summary>
@@ -65,11 +66,12 @@ namespace HBP.UI.Main
         /// <returns>Treatment modifier</returns>
         protected override ObjectModifier<Core.Data.Treatment> OpenModifier(Core.Data.Treatment item)
         {
-            TreatmentModifier modifier =  base.OpenModifier(item) as TreatmentModifier;
+            TreatmentModifier modifier = base.OpenModifier(item) as TreatmentModifier;
             modifier.Window = Window;
             modifier.Baseline = Baseline;
             return modifier;
         }
+
         #endregion
     }
 }

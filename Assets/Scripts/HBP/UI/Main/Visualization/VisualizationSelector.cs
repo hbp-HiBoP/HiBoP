@@ -10,11 +10,14 @@ namespace HBP.UI.Main
     public class VisualizationSelector : ObjectSelector<Core.Data.Visualization>
     {
         #region Properties
+
         [SerializeField] VisualizationList m_List;
+
         /// <summary>
         /// UI visualizations list.
         /// </summary>
         protected override SelectableList<Core.Data.Visualization> List => m_List;
+
         #endregion
     }
 }

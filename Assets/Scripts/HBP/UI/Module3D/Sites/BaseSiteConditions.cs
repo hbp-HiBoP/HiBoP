@@ -19,34 +19,42 @@ namespace HBP.UI.Module3D
     public abstract class BaseSiteConditions : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Associated Base3DScene
         /// </summary>
         protected Base3DScene m_Scene;
+
         /// <summary>
         /// Current queue of all sites that match the conditions (used to smooth the checking)
         /// </summary>
         private Queue<Core.Object3D.Site> m_MatchingSites = new();
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when updating the filtering progress
         /// </summary>
         public GenericEvent<float> OnFilter = new();
+
         /// <summary>
         /// Event called when the filtering is finished
         /// </summary>
         public GenericEvent<bool> OnEndFilter = new();
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Check all the set conditions for a specific site
         /// </summary>
         /// <param name="site">Site to check</param>
         /// <returns>True if the conditions are met</returns>
         protected abstract bool CheckConditions(Core.Object3D.Site site);
+
         /// <summary>
         /// Check if the site is highlighted
         /// </summary>
@@ -56,6 +64,7 @@ namespace HBP.UI.Module3D
         {
             return site.State.IsHighlighted;
         }
+
         /// <summary>
         /// Check if the site is blacklisted
         /// </summary>
@@ -65,6 +74,7 @@ namespace HBP.UI.Module3D
         {
             return site.State.IsBlackListed;
         }
+
         /// <summary>
         /// Check if the site has a label which contains the input string
         /// </summary>
@@ -75,6 +85,7 @@ namespace HBP.UI.Module3D
         {
             return site.State.Labels.Any(l => l.ToLower().Contains(label.ToLower()));
         }
+
         /// <summary>
         /// Check if the site is in the currently selected ROI
         /// </summary>
@@ -84,6 +95,7 @@ namespace HBP.UI.Module3D
         {
             return !site.State.IsOutOfROI;
         }
+
         /// <summary>
         /// Check if the site is in the currently selected mesh
         /// </summary>
@@ -93,6 +105,7 @@ namespace HBP.UI.Module3D
         {
             return m_Scene.MeshManager.SelectedMesh.SimplifiedBoth.IsPointInside(site.Information.DefaultPosition);
         }
+
         /// <summary>
         /// Check if the site is in the left hemisphere of the currently selected mesh
         /// </summary>
@@ -109,6 +122,7 @@ namespace HBP.UI.Module3D
                 throw new InvalidBasicConditionException("The selected mesh is a single file mesh.\nYou can not filter by hemisphere.");
             }
         }
+
         /// <summary>
         /// Check if the site is in the right hemisphere of the currently selected mesh
         /// </summary>
@@ -125,6 +139,7 @@ namespace HBP.UI.Module3D
                 throw new InvalidBasicConditionException("The selected mesh is a single file mesh.\nYou can not filter by hemisphere.");
             }
         }
+
         /// <summary>
         /// Check if the site is on any cut plane of the scene
         /// </summary>
@@ -132,8 +147,9 @@ namespace HBP.UI.Module3D
         /// <returns>True if the site is on any cut plane of the scene</returns>
         protected bool CheckOnPlane(Core.Object3D.Site site)
         {
-            return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as Core.Object3D.Plane, 1.0f);
+            return m_Scene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, from cut in m_Scene.Cuts select cut as Core.DLL.Plane, 1.0f);
         }
+
         /// <summary>
         /// Check if the site is in a specific area of the selected atlas
         /// </summary>
@@ -149,6 +165,7 @@ namespace HBP.UI.Module3D
                 {
                     if (areaID == comparedID) return true;
                 }
+
                 string[] areaInformation = m_Scene.AtlasManager.SelectedAtlas.GetInformation(areaID);
                 if (m_Scene.AtlasManager.SelectedAtlas is MarsAtlas && areaInformation.Length == 5)
                 {
@@ -163,8 +180,10 @@ namespace HBP.UI.Module3D
                     if (areaInformation[0].ToUpper().Contains(areaName.ToUpper())) return true;
                 }
             }
+
             return false;
         }
+
         /// <summary>
         /// Check if the position of the site is above or under the input value
         /// </summary>
@@ -176,6 +195,7 @@ namespace HBP.UI.Module3D
         {
             return CompareValue(-site.Information.DefaultPosition.x, superior, stringValue);
         }
+
         /// <summary>
         /// Check if the position of the site is above or under the input value
         /// </summary>
@@ -187,6 +207,7 @@ namespace HBP.UI.Module3D
         {
             return CompareValue(site.Information.DefaultPosition.y, superior, stringValue);
         }
+
         /// <summary>
         /// Check if the position of the site is above or under the input value
         /// </summary>
@@ -198,6 +219,7 @@ namespace HBP.UI.Module3D
         {
             return CompareValue(site.Information.DefaultPosition.z, superior, stringValue);
         }
+
         /// <summary>
         /// Check if the site name contains the input string
         /// </summary>
@@ -208,6 +230,7 @@ namespace HBP.UI.Module3D
         {
             return site.Information.Name.ToUpper().Contains(name.ToUpper());
         }
+
         /// <summary>
         /// Check if the site patient name contains the input string
         /// </summary>
@@ -218,6 +241,7 @@ namespace HBP.UI.Module3D
         {
             return site.Information.Patient.Name.ToUpper().Contains(patientName.ToUpper());
         }
+
         /// <summary>
         /// Check if the site has the input tag and if the value of this tag contains the input string
         /// </summary>
@@ -238,6 +262,7 @@ namespace HBP.UI.Module3D
             }
             else return false;
         }
+
         // TODO : Consider start and end for all following methods
         /// <summary>
         /// Check if the mean of the values of the associated channel if above or under the input value
@@ -256,8 +281,10 @@ namespace HBP.UI.Module3D
                     return CompareValue(allValues.Mean(), superior, stringValue);
                 }
             }
+
             return false;
         }
+
         /// <summary>
         /// Check if the median of the values of the associated channel if above or under the input value
         /// </summary>
@@ -275,8 +302,10 @@ namespace HBP.UI.Module3D
                     return CompareValue(allValues.Median(), superior, stringValue);
                 }
             }
+
             return false;
         }
+
         /// <summary>
         /// Check if the maximum value of the associated channel if above or under the input value
         /// </summary>
@@ -294,8 +323,10 @@ namespace HBP.UI.Module3D
                     return CompareValue(allValues.Max(), superior, stringValue);
                 }
             }
+
             return false;
         }
+
         /// <summary>
         /// Check if the minimum value of the associated channel if above or under the input value
         /// </summary>
@@ -313,8 +344,10 @@ namespace HBP.UI.Module3D
                     return CompareValue(allValues.Min(), superior, stringValue);
                 }
             }
+
             return false;
         }
+
         /// <summary>
         /// Check if the standard deviation of the associated channel if above or under the input value
         /// </summary>
@@ -332,8 +365,10 @@ namespace HBP.UI.Module3D
                     return CompareValue(allValues.StandardDeviation(), superior, stringValue);
                 }
             }
+
             return false;
         }
+
         /// <summary>
         /// Compare two values (one is a float, the other is a parsable to float string)
         /// </summary>
@@ -352,9 +387,11 @@ namespace HBP.UI.Module3D
                 throw new ParsingValueException(stringValueToCompare);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this object
         /// </summary>
@@ -363,9 +400,11 @@ namespace HBP.UI.Module3D
         {
             m_Scene = scene;
         }
+
         #endregion
 
         #region Coroutines
+
         /// <summary>
         /// Coroutine used to check the conditions in asynchronous mode
         /// </summary>
@@ -375,6 +414,7 @@ namespace HBP.UI.Module3D
         {
             int length = sites.Count;
             float progress = 0;
+
             async UniTaskVoid reportProgress(CancellationToken cancellationToken)
             {
                 while (true)
@@ -385,10 +425,12 @@ namespace HBP.UI.Module3D
                         Core.Object3D.Site filteredSite = m_MatchingSites.Dequeue();
                         filteredSite.State.IsFiltered = true;
                     }
+
                     OnFilter.Invoke(progress);
                     await UniTask.WaitForEndOfFrame();
                 }
             }
+
             reportProgress(progressToken).Forget();
             bool filtered = false;
             await UniTask.SwitchToThreadPool();
@@ -403,8 +445,10 @@ namespace HBP.UI.Module3D
                     {
                         m_MatchingSites.Enqueue(site);
                     }
+
                     progress = (float)(i + 1) / length;
                 }
+
                 filtered = true;
             }
             catch (OperationCanceledException)
@@ -414,9 +458,11 @@ namespace HBP.UI.Module3D
             {
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
+
             await UniTask.SwitchToMainThread();
             OnEndFilter.Invoke(filtered);
         }
+
         #endregion
     }
 }

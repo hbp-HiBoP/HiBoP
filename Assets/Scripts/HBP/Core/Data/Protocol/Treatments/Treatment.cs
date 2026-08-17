@@ -4,6 +4,13 @@ using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
+    public enum TreatmentExecutionKind
+    {
+        Pointwise,
+        Scalar,
+        Buffer
+    }
+
     /// <summary>
     /// Class which define a treatment to apply at a subBloc.
     /// </summary>
@@ -43,43 +50,53 @@ namespace HBP.Core.Data
     public class Treatment : BaseData
     {
         #region Properties
+
         /// <summary>
         /// Order of the tretmeant to apply to the subBloc.
         /// </summary>
         [JsonProperty] public int Order { get; set; }
+
         /// <summary>
         /// True if we apply the treatment on the window, False otherwise.
         /// </summary>
         [JsonProperty] public bool UseOnWindow { get; set; }
+
         /// <summary>
         /// Temporal window to apply the treatment on the window of the subBloc.
         /// </summary>
         [JsonProperty] public TimeWindow Window { get; set; }
+
         /// <summary>
         /// True if we apply the treatment on the baseline, False otherwise.
         /// </summary>
         [JsonProperty] public bool UseOnBaseline { get; set; }
+
         /// <summary>
         /// Temporal window to apply the treatment on the baseline of the subBloc.
         /// </summary>
         [JsonProperty] public TimeWindow Baseline { get; set; }
+
+        public virtual TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Buffer;
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new Treatment instance with default values.
         /// </summary>
         public Treatment() : this(true, new TimeWindow(), false, new TimeWindow(), 0)
         {
         }
+
         /// <summary>
         /// Create a new Treatment instance.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
         public Treatment(string ID) : this(true, new TimeWindow(), false, new TimeWindow(), 0, ID)
         {
-
         }
+
         /// <summary>
         /// Create a new treatment window.
         /// </summary>
@@ -96,6 +113,7 @@ namespace HBP.Core.Data
             Baseline = baseline;
             Order = order;
         }
+
         /// <summary>
         /// Create a new treatment window.
         /// </summary>
@@ -113,9 +131,11 @@ namespace HBP.Core.Data
             Baseline = baseline;
             Order = order;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Apply the treatment of the subBloc.
         /// </summary>
@@ -127,17 +147,25 @@ namespace HBP.Core.Data
         public virtual void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
         }
+
+        public virtual void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency, float[] workspace)
+        {
+            Apply(ref values, ref baseline, windowMainEventIndex, baselineMainEventIndex, frequency);
+        }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new Treatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is Treatment treatment)
+            if (copy is Treatment treatment)
             {
                 UseOnWindow = treatment.UseOnWindow;
                 Window = treatment.Window;
@@ -146,6 +174,7 @@ namespace HBP.Core.Data
                 Order = treatment.Order;
             }
         }
+
         #endregion
     }
 }

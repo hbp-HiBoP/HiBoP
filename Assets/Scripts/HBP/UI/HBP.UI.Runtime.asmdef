@@ -4,6 +4,7 @@
     "references": [
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
+        "HBP.Rendering.Runtime",
         "HBP.Theme.Runtime",
         "UniTask",
         "ThirdParty.UIExtensions.Runtime",

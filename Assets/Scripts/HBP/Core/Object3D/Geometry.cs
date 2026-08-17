@@ -4,88 +4,12 @@ using UnityEngine;
 namespace HBP.Core.Object3D
 {
     /// <summary>
-    /// This class defines a plane with a point and a normal
-    /// </summary>
-    [System.Serializable]
-    public class Plane
-    {
-        #region Properties
-        /// <summary>
-        /// Point on the plane
-        /// </summary>
-        public Vector3 Point { get; set; }
-        /// <summary>
-        /// Normal to the plane
-        /// </summary>
-        public Vector3 Normal { get; set; }
-        #endregion
-
-        #region Constructors
-        public Plane()
-        {
-            Point = new Vector3(0, 0, 0);
-            Normal = new Vector3(1, 0, 0);
-        }
-        public Plane(Vector3 point, Vector3 normal)
-        {
-            Point = point;
-            Normal = normal;
-        }
-        #endregion
-
-        #region Public Methods
-        /// <summary>
-        /// Convert to float array for DLL use
-        /// </summary>
-        /// <returns>Array of values [PointX, PointY, PointZ, NormalX, NormalY, NormalZ]</returns>
-        public float[] ConvertToArray()
-        {
-            return new float[] { Point[0], Point[1], Point[2], Normal[0], Normal[1], Normal[2] };
-        }
-        #endregion
-    }
-
-    /// <summary>
-    /// This class defines a segment between two points
-    /// </summary>
-    public class Segment3
-    {
-        #region Properties
-        /// <summary>
-        /// First end of the segment
-        /// </summary>
-        public Vector3 End1 { get; set; }
-        /// <summary>
-        /// Second end of the segment
-        /// </summary>
-        public Vector3 End2 { get; set; }
-        /// <summary>
-        /// Length of the segment
-        /// </summary>
-        public float Length
-        {
-            get
-            {
-                return (End2 - End1).magnitude;
-            }
-        }
-        #endregion
-
-        #region Constructors
-        public Segment3(Vector3 end1, Vector3 end2)
-        {
-            End1 = end1;
-            End2 = end2;
-        }
-        #endregion
-    }
-
-    /// <summary>
     /// This class contains utility functions concerning geometry
     /// </summary>
     public class Geometry
     {
         #region Public Methods
+
         /// <summary>
         /// Create an array of points reprensentinf a circle
         /// </summary>
@@ -105,6 +29,7 @@ namespace HBP.Core.Object3D
 
             return verts;
         }
+
         /// <summary>
         /// Create a sphere mesh
         /// </summary>
@@ -117,6 +42,7 @@ namespace HBP.Core.Object3D
             Mesh mesh = new();
 
             #region Vertices
+
             Vector3[] vertices = new Vector3[(nbLong + 1) * nbLat + 2];
             float _pi = Mathf.PI;
             float _2pi = _pi * 2f;
@@ -137,16 +63,21 @@ namespace HBP.Core.Object3D
                     vertices[lon + lat * (nbLong + 1) + 1] = new Vector3(sin1 * cos2, cos1, sin1 * sin2) * radius;
                 }
             }
+
             vertices[vertices.Length - 1] = Vector3.up * -radius;
+
             #endregion
 
-            #region Normales		
+            #region Normales
+
             Vector3[] normales = new Vector3[vertices.Length];
             for (int n = 0; n < vertices.Length; n++)
                 normales[n] = vertices[n].normalized;
+
             #endregion
 
             #region UVs
+
             //Vector2[] uvs = new Vector2[vertices.Length];
             //for(int ii = 0; ii < uvs.Length; ++ii)
             //{
@@ -157,11 +88,12 @@ namespace HBP.Core.Object3D
             //for (int lat = 0; lat < nbLat; lat++)
             //    for (int lon = 0; lon <= nbLong; lon++)
             //        uvs[lon + lat * (nbLong + 1) + 1] = new Vector2((float)lon / nbLong, 1f - (float)(lat + 1) / (nbLat + 1));
+
             #endregion
 
             #region Triangles
-            int nbFaces = vertices.Length;
-            int nbTriangles = nbFaces * 2;
+
+            int nbTriangles = nbLong * nbLat * 2;
             int nbIndexes = nbTriangles * 3;
             int[] triangles = new int[nbIndexes];
 
@@ -199,6 +131,7 @@ namespace HBP.Core.Object3D
                 triangles[i++] = vertices.Length - (lon + 2) - 1;
                 triangles[i++] = vertices.Length - (lon + 1) - 1;
             }
+
             #endregion
 
             mesh.vertices = vertices;
@@ -207,10 +140,10 @@ namespace HBP.Core.Object3D
             mesh.triangles = triangles;
 
             mesh.RecalculateBounds();
-            ;
 
             return mesh;
         }
+
         /// <summary>
         /// Display the normals of a gameobject in the scene view
         /// </summary>
@@ -228,14 +161,11 @@ namespace HBP.Core.Object3D
 
             for (int ii = 0; ii < normals.Length; ++ii)
             {
-                Vector3 invPos = obj.transform.position + vertices[ii];
-                invPos.x = -invPos.x;
-                Vector3 norm = normals[ii];
-                norm.x = -norm.x;
-
-                Debug.DrawRay(invPos, 3 * norm, Color.green);
+                Vector3 position = obj.transform.position + vertices[ii];
+                Debug.DrawRay(position, 3 * normals[ii], Color.green);
             }
         }
+
         /// <summary>
         /// Display a bounding box in the scene view
         /// </summary>
@@ -245,38 +175,34 @@ namespace HBP.Core.Object3D
         /// <param name="duration">Duration for which the bounding box is displayed</param>
         public static void DisplayBBoxDebug(DLL.BBox bbox, Vector3 offset, Color color, float duration = 50)
         {
-            List<Segment3> rawSegments = bbox.Segments;
-            List<Segment3> segments = new(rawSegments.Count);
+            List<DLL.Segment3> rawSegments = bbox.Segments;
             foreach (var s in rawSegments)
             {
-                segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
-            }
-
-            for (int ii = 0; ii < segments.Count; ++ii)
-            {
-                Debug.DrawRay(offset + segments[ii].End1, segments[ii].End2 - segments[ii].End1, color, duration);
+                Vector3 end1 = s.End1;
+                Vector3 end2 = s.End2;
+                Debug.DrawRay(offset + end1, end2 - end1, color, duration);
+                s.Dispose();
             }
         }
+
         /// <summary>
         /// Display the intersection between a bouding box and a plane
         /// </summary>
         /// <param name="bbox">Bounding box of the intersection</param>
         /// <param name="plane">Plane of the intersection</param>
         /// <param name="offset">Offset for the center of the intersection</param>
-        public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, Plane plane, Vector3 offset)
+        public static void DisplayBBoxPlaneIntersection(DLL.BBox bbox, DLL.Plane plane, Vector3 offset)
         {
-            List<Segment3> rawSegments = bbox.IntersectionLinesWithPlane(plane);
-            List<Segment3> segments = new(rawSegments.Count);
+            List<DLL.Segment3> rawSegments = bbox.IntersectionLinesWithPlane(plane);
             foreach (var s in rawSegments)
             {
-                segments.Add(new Segment3(new Vector3(-s.End1.x, s.End1.y, s.End1.z), new Vector3(-s.End2.x, s.End2.y, s.End2.z)));
-            }
-
-            for (int ii = 0; ii < segments.Count; ++ii)
-            {
-                Debug.DrawRay(offset + segments[ii].End1, segments[ii].End2 - segments[ii].End1, Color.green);
+                Vector3 end1 = s.End1;
+                Vector3 end2 = s.End2;
+                Debug.DrawRay(offset + end1, end2 - end1, Color.green);
+                s.Dispose();
             }
         }
+
         /// <summary>
         /// Display a bouding box using open gl
         /// </summary>
@@ -293,12 +219,13 @@ namespace HBP.Core.Object3D
             mat.SetPass(0);
             GL.Color(new Color(mat.color.r, mat.color.g, mat.color.b, mat.color.a));
 
-            List<Segment3> segments = bbox.Segments;
+            List<DLL.Segment3> segments = bbox.Segments;
 
             for (int ii = 0; ii < segments.Count; ++ii)
             {
                 GL.Vertex(segments[ii].End1);
                 GL.Vertex(segments[ii].End2);
+                segments[ii].Dispose();
             }
 
             GL.Begin(GL.TRIANGLES);
@@ -311,6 +238,7 @@ namespace HBP.Core.Object3D
 
             GL.PopMatrix();
         }
+
         /// <summary>
         /// Create a tetrahedron mesh
         /// </summary>
@@ -325,17 +253,21 @@ namespace HBP.Core.Object3D
             Vector3 p2 = new(height * 0.5f, 0, Mathf.Sqrt(height * 0.75f));
             Vector3 p3 = new(height * 0.5f, Mathf.Sqrt(height * 0.75f), Mathf.Sqrt(height * 0.75f) / 3);
 
-            mesh.vertices = new Vector3[]{
-            p0,p1,p2,
-            p0,p2,p3,
-            p2,p1,p3,
-            p0,p3,p1};
+            mesh.vertices = new Vector3[]
+            {
+                p0, p1, p2,
+                p0, p2, p3,
+                p2, p1, p3,
+                p0, p3, p1
+            };
 
-            mesh.triangles = new int[]{
-            0,1,2,
-            3,4,5,
-            6,7,8,
-            9,10,11};
+            mesh.triangles = new int[]
+            {
+                0, 1, 2,
+                3, 4, 5,
+                6, 7, 8,
+                9, 10, 11
+            };
 
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
@@ -343,6 +275,7 @@ namespace HBP.Core.Object3D
 
             return mesh;
         }
+
         /// <summary>
         /// Create a tube mesh
         /// </summary>
@@ -366,6 +299,7 @@ namespace HBP.Core.Object3D
 
             int nbVerticesCap = nbSides * 2 + 2;
             int nbVerticesSides = nbSides * 2 + 2;
+
             #region Vertices
 
             // bottom + top + sides
@@ -430,6 +364,7 @@ namespace HBP.Core.Object3D
                 vertices[vert + 1] = new Vector3(cos * (bottomRadius1), 0, sin * (bottomRadius1));
                 vert += 2;
             }
+
             #endregion
 
             #region Normales
@@ -475,9 +410,11 @@ namespace HBP.Core.Object3D
                 normales[vert + 1] = normales[vert];
                 vert += 2;
             }
+
             #endregion
 
             #region UVs
+
             Vector2[] uvs = new Vector2[vertices.Length];
 
             vert = 0;
@@ -516,9 +453,11 @@ namespace HBP.Core.Object3D
                 uvs[vert++] = new Vector2(t, 0f);
                 uvs[vert++] = new Vector2(t, 1f);
             }
+
             #endregion
 
             #region Triangles
+
             int nbFace = nbSides * 4;
             int nbTriangles = nbFace * 2;
             int nbIndexes = nbTriangles * 3;
@@ -594,6 +533,7 @@ namespace HBP.Core.Object3D
 
                 sideCounter++;
             }
+
             #endregion
 
             mesh.vertices = vertices;
@@ -606,6 +546,7 @@ namespace HBP.Core.Object3D
 
             return mesh;
         }
+
         #endregion
     }
 }

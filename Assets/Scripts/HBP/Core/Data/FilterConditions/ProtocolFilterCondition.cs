@@ -14,6 +14,7 @@ namespace HBP.Core.Data
     public class ProtocolFilterCondition : BaseFilterCondition
     {
         #region Properties
+
         public override string Description
         {
             get
@@ -66,21 +67,34 @@ namespace HBP.Core.Data
 
         [JsonProperty("Protocols")] public List<Protocol> Protocols { get; set; }
 
-        public enum CheckScope { Database, CurrentProject }
+        public enum CheckScope
+        {
+            Database,
+            CurrentProject
+        }
+
         [JsonProperty("Scope")] public CheckScope Scope { get; set; }
 
-        public enum CheckLogic { All, Any }
+        public enum CheckLogic
+        {
+            All,
+            Any
+        }
+
         [JsonProperty("Logic")] public CheckLogic Logic { get; set; }
 
         [JsonProperty("Name")] public string Name { get; set; } = "";
         [JsonProperty("ExactMatch")] public bool ExactMatch { get; set; } = false;
         [JsonProperty("CaseSensitive")] public bool CaseSensitive { get; set; } = false;
+
         #endregion
 
         #region Constructors
+
         public ProtocolFilterCondition() : this(new List<Protocol>(), CheckScope.Database, CheckLogic.All, false, "", false, false)
         {
         }
+
         public ProtocolFilterCondition(IEnumerable<Protocol> protocols, CheckScope scope, CheckLogic logic, bool isNot, string name = "", bool exactMatch = false, bool caseSensitive = false) : base(isNot)
         {
             Protocols = new List<Protocol>(protocols);
@@ -90,6 +104,7 @@ namespace HBP.Core.Data
             ExactMatch = exactMatch;
             CaseSensitive = caseSensitive;
         }
+
         public ProtocolFilterCondition(IEnumerable<Protocol> protocols, CheckScope scope, CheckLogic logic, bool isNot, string ID, string name = "", bool exactMatch = false, bool caseSensitive = false) : base(isNot, ID)
         {
             Protocols = new List<Protocol>(protocols);
@@ -99,13 +114,16 @@ namespace HBP.Core.Data
             ExactMatch = exactMatch;
             CaseSensitive = caseSensitive;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new ProtocolFilterCondition(Protocols, Scope, Logic, IsNot, ID, Name, ExactMatch, CaseSensitive);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -119,9 +137,11 @@ namespace HBP.Core.Data
                 CaseSensitive = protocolFilterCondition.CaseSensitive;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool Check(object obj)
         {
             if (obj is Patient patient)
@@ -144,6 +164,7 @@ namespace HBP.Core.Data
                             dataName = dataName.ToLower();
                             filterName = filterName.ToLower();
                         }
+
                         if (ExactMatch)
                         {
                             return dataName == filterName;
@@ -159,6 +180,7 @@ namespace HBP.Core.Data
                 {
                     return data.Count > 0 != IsNot;
                 }
+
                 return Logic switch
                 {
                     CheckLogic.All => (data.Count > 0 && Protocols.All(p => data.Any(d => d.Protocol == p))) != IsNot,
@@ -166,8 +188,10 @@ namespace HBP.Core.Data
                     _ => false,
                 };
             }
+
             return false;
         }
+
         #endregion
     }
 }

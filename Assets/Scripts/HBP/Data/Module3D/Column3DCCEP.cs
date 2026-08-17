@@ -15,39 +15,42 @@ namespace HBP.Data.Module3D
     /// </summary>
     public class Column3DCCEP : Column3DDynamic
     {
+        private float[] m_ZeroActivityValues = System.Array.Empty<float>();
+
         #region Properties
+
         /// <summary>
         /// CCEP data of this column (contains information about what to display)
         /// </summary>
         public CCEPColumn ColumnCCEPData
         {
-            get
-            {
-                return ColumnData as CCEPColumn;
-            }
+            get { return ColumnData as CCEPColumn; }
         }
+
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
         public override Timeline Timeline
         {
-            get
-            {
-                return ColumnCCEPData.Data.Timeline;
-            }
+            get { return ColumnCCEPData.Data.Timeline; }
         }
 
-        public enum CCEPMode { Site, MarsAtlas }
+        public override Timeline ProjectionTimeline => ColumnCCEPData.Data.ProjectionTimeline;
+
+        public enum CCEPMode
+        {
+            Site,
+            MarsAtlas
+        }
+
         private CCEPMode m_Mode = CCEPMode.Site;
+
         /// <summary>
         /// Current mode of CCEP
         /// </summary>
         public CCEPMode Mode
         {
-            get
-            {
-                return m_Mode;
-            }
+            get { return m_Mode; }
             set
             {
                 m_Mode = value;
@@ -62,16 +65,15 @@ namespace HBP.Data.Module3D
         /// List of all possible sources for this column
         /// </summary>
         public List<Core.Object3D.Site> Sources { get; private set; } = new List<Core.Object3D.Site>();
+
         private Core.Object3D.Site m_SelectedSiteSource = null;
+
         /// <summary>
         /// Currently selected source site
         /// </summary>
         public Core.Object3D.Site SelectedSourceSite
         {
-            get
-            {
-                return m_SelectedSiteSource;
-            }
+            get { return m_SelectedSiteSource; }
             set
             {
                 if (m_SelectedSiteSource != value)
@@ -82,27 +84,23 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Is a source selected in this column ?
         /// </summary>
         public bool IsSourceSiteSelected
         {
-            get
-            {
-                return m_SelectedSiteSource != null;
-            }
+            get { return m_SelectedSiteSource != null; }
         }
 
         private int m_SelectedSourceMarsAtlasLabel = -1;
+
         /// <summary>
         /// Currently selected source area
         /// </summary>
         public int SelectedSourceMarsAtlasLabel
         {
-            get
-            {
-                return m_SelectedSourceMarsAtlasLabel;
-            }
+            get { return m_SelectedSourceMarsAtlasLabel; }
             set
             {
                 if (m_SelectedSourceMarsAtlasLabel != value)
@@ -113,16 +111,15 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Is a source area selected in this column ?
         /// </summary>
         public bool IsSourceMarsAtlasLabelSelected
         {
-            get
-            {
-                return m_SelectedSourceMarsAtlasLabel != -1;
-            }
+            get { return m_SelectedSourceMarsAtlasLabel != -1; }
         }
+
         /// <summary>
         /// Mask for the mars atlas areas
         /// </summary>
@@ -133,30 +130,32 @@ namespace HBP.Data.Module3D
         /// </summary>
         public bool IsSourceSelected
         {
-            get
-            {
-                return IsSourceSiteSelected || IsSourceMarsAtlasLabelSelected;
-            }
+            get { return IsSourceSiteSelected || IsSourceMarsAtlasLabelSelected; }
         }
 
         /// <summary>
         /// Latencies of the first spike of each site for the selected source
         /// </summary>
         public float[] Latencies { get; private set; }
+
         /// <summary>
         /// Amplitudes of the first spike of each site for the selected source
         /// </summary>
         public float[] Amplitudes { get; private set; }
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when selecting a source for this column
         /// </summary>
         public UnityEvent OnSelectSource = new();
+
         #endregion
-        
+
         #region Private Methods
+
         /// <summary>
         /// Set activity data for each site
         /// </summary>
@@ -165,13 +164,16 @@ namespace HBP.Data.Module3D
             if (ColumnCCEPData == null) return;
 
             // Reset values
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
             ActivityValuesBySiteID = new float[sitesCount][];
+            m_ZeroActivityValues = new float[timelineLength];
             for (int i = 0; i < sitesCount; i++)
             {
-                ActivityValuesBySiteID[i] = new float[timelineLength];
+                ActivityValuesBySiteID[i] = m_ZeroActivityValues;
             }
+
+            ActivityStatistics = new RunningStatistics();
             ActivityUnitsBySiteID = new string[sitesCount];
             Latencies = new float[sitesCount];
             Amplitudes = new float[sitesCount];
@@ -192,6 +194,7 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         /// <summary>
         /// Update sites sizes and colors arrays depending on the activity (to be called before the rendering update)
         /// </summary>
@@ -203,9 +206,10 @@ namespace HBP.Data.Module3D
                 base.UpdateSitesSizeAndColorOfSites(showAllSites);
             }
         }
+
         private void SetActivityDataSourceSite()
         {
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
 
             // Retrieve values
@@ -227,15 +231,16 @@ namespace HBP.Data.Module3D
                     }
                     else
                     {
-                        ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.Index] = m_ZeroActivityValues;
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.Index] = m_ZeroActivityValues;
                     site.State.IsMasked = true;
                 }
+
                 if (unitByChannel.TryGetValue(site.Information.FullID, out string unit))
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = unit;
@@ -244,15 +249,17 @@ namespace HBP.Data.Module3D
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
+
                 if (dataByChannel.TryGetValue(site.Information.FullID, out BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
+
                 if (statisticsByChannel.TryGetValue(site.Information.FullID, out BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                     ChannelSubTrialStat trial = blocChannelStatistics.Trial.ChannelSubTrialBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
-                    SubTimeline mainSubTimeline = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
+                    SubTimeline mainSubTimeline = ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc];
                     int mainEventIndex = mainSubTimeline.Frequency.ConvertToFlooredNumberOfSamples(mainSubTimeline.StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
                     for (int i = mainEventIndex + 2; i < mainSubTimeline.Length - 2; i++)
                     {
@@ -265,45 +272,23 @@ namespace HBP.Data.Module3D
                     }
                 }
             }
+
             if (numberOfSitesWithValues == 0)
             {
                 throw new NoMatchingSitesException();
             }
 
-            DynamicParameters.MinimumAmplitude = float.MaxValue;
-            DynamicParameters.MaximumAmplitude = float.MinValue;
-
-            int length = timelineLength * sitesCount;
-            ActivityValues = new float[length];
-            List<float> iEEGNotMasked = new();
-            for (int s = 0; s < sitesCount; ++s)
-            {
-                for (int t = 0; t < timelineLength; ++t)
-                {
-                    float val = ActivityValuesBySiteID[s][t];
-                    ActivityValues[t * sitesCount + s] = val;
-                }
-                if (!Sites[s].State.IsMasked)
-                {
-                    for (int t = 0; t < timelineLength; ++t)
-                    {
-                        float val = ActivityValuesBySiteID[s][t];
-                        iEEGNotMasked.Add(val);
-
-                        //update min/ max values
-                        if (val > DynamicParameters.MaximumAmplitude)
-                            DynamicParameters.MaximumAmplitude = val;
-                        else if (val < DynamicParameters.MinimumAmplitude)
-                            DynamicParameters.MinimumAmplitude = val;
-                    }
-                }
-            }
-            ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            bool[] maskedSites = Sites.Select(site => site.State.IsMasked).ToArray();
+            ActivityValues = ProjectionBufferBuilder.FlattenTimeMajor(ActivityValuesBySiteID, maskedSites, timelineLength, out RunningStatistics statistics, out float minimum, out float maximum);
+            ActivityStatistics = statistics;
+            DynamicParameters.MinimumAmplitude = minimum;
+            DynamicParameters.MaximumAmplitude = maximum;
             DynamicParameters.ResetSpanValues(this);
         }
+
         private void SetActivityDataSourceArea()
         {
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
 
             foreach (var site in Sites)
@@ -332,6 +317,7 @@ namespace HBP.Data.Module3D
                         sitesOfLabel.Add(Sites[i]);
                     }
                 }
+
                 sitesByMarsAtlasLabel.Add(label, sitesOfLabel);
             }
 
@@ -341,6 +327,7 @@ namespace HBP.Data.Module3D
             {
                 sitesMask[i] = true;
             }
+
             List<Core.Object3D.Site> sitesInSelectedSourceArea = sitesByMarsAtlasLabel[m_SelectedSourceMarsAtlasLabel];
             Dictionary<int, List<float[]>> valuesByMarsAtlasArea = new();
             Dictionary<int, bool> maskByMarsAtlasArea = new();
@@ -348,6 +335,7 @@ namespace HBP.Data.Module3D
             {
                 valuesByMarsAtlasArea.Add(label, new List<float[]>());
             }
+
             foreach (var sourceSite in sitesInSelectedSourceArea)
             {
                 // Retrieve values
@@ -370,9 +358,11 @@ namespace HBP.Data.Module3D
                             }
                         }
                     }
+
                     valuesByMarsAtlasArea[label].AddRange(valuesOfMarsAtlasArea);
                 }
             }
+
             foreach (var label in marsAtlasLabels)
             {
                 maskByMarsAtlasArea.Add(label, valuesByMarsAtlasArea[label].Count == 0);
@@ -391,18 +381,21 @@ namespace HBP.Data.Module3D
                     {
                         result[i] += values[j][i];
                     }
+
                     if (values.Count != 0)
                         result[i] /= values.Count;
                 }
+
                 activityByMarsAtlasArea.Add(label, result);
             }
+
             DynamicParameters.MinimumAmplitude = float.MaxValue;
             DynamicParameters.MaximumAmplitude = float.MinValue;
             int highestLabel = marsAtlasLabels.Max();
             ActivityValues = new float[timelineLength * (highestLabel + 1)];
             AreaMask = new int[highestLabel + 1];
-            List<float> unmaskedActivity = new();
-            foreach(var label in marsAtlasLabels)
+            RunningStatistics unmaskedStatistics = new();
+            foreach (var label in marsAtlasLabels)
             {
                 float[] activityOfArea = activityByMarsAtlasArea[label];
                 bool isMasked = maskByMarsAtlasArea[label];
@@ -413,20 +406,27 @@ namespace HBP.Data.Module3D
                     ActivityValues[label * timelineLength + t] = val;
                     if (!isMasked)
                     {
-                        unmaskedActivity.Add(val);
+                        unmaskedStatistics.Add(val);
                         if (val > DynamicParameters.MaximumAmplitude)
                             DynamicParameters.MaximumAmplitude = val;
-                        else if (val < DynamicParameters.MinimumAmplitude)
+                        if (val < DynamicParameters.MinimumAmplitude)
                             DynamicParameters.MinimumAmplitude = val;
                     }
                 }
             }
-            ActivityValuesOfUnmaskedSites = unmaskedActivity.ToArray();
+
+            ActivityStatistics = unmaskedStatistics;
+            if (unmaskedStatistics.Count == 0)
+            {
+                DynamicParameters.MinimumAmplitude = -1f;
+                DynamicParameters.MaximumAmplitude = 1f;
+            }
+
             DynamicParameters.ResetSpanValues(this);
 
             // Set value by site ID
-            int mainEventIndex = Timeline.Frequency.ConvertToFlooredNumberOfSamples(Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
-            int subTimelineLength = Timeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
+            int mainEventIndex = ProjectionTimeline.Frequency.ConvertToFlooredNumberOfSamples(ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
+            int subTimelineLength = ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
             foreach (var kv in sitesByMarsAtlasLabel)
             {
                 float[] areaActivity = activityByMarsAtlasArea[kv.Key];
@@ -436,10 +436,11 @@ namespace HBP.Data.Module3D
                     if (areaActivity[i - 1] > areaActivity[i - 2] && areaActivity[i] > areaActivity[i - 1] && areaActivity[i] > areaActivity[i + 1] && areaActivity[i + 1] > areaActivity[i + 2]) // Maybe FIXME: method to compute amplitude and latency
                     {
                         amplitude = areaActivity[i];
-                        latency = Timeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainEventIndex);
+                        latency = ProjectionTimeline.Frequency.ConvertNumberOfSamplesToMilliseconds(i - mainEventIndex);
                         break;
                     }
                 }
+
                 foreach (var site in kv.Value)
                 {
                     ActivityValuesBySiteID[site.Information.Index] = areaActivity;
@@ -449,9 +450,11 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
@@ -462,6 +465,7 @@ namespace HBP.Data.Module3D
             base.UpdateSites(implantation, sceneSitePatientParent);
             Sources = Sites.Where(s => ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Keys.Contains(s.Information.FullID)).ToList();
         }
+
         /// <summary>
         /// Update the visibility, the size and the color of the sites depending on their state
         /// </summary>
@@ -507,11 +511,13 @@ namespace HBP.Data.Module3D
                     site.transform.localScale = Vector3.one;
                     siteType = SiteType.Normal;
                 }
+
                 if (!activity) site.IsActive = true;
                 site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }
+
         /// <summary>
         /// Load the column configuration from the column data
         /// </summary>
@@ -523,6 +529,7 @@ namespace HBP.Data.Module3D
             DynamicParameters.SetSpanValues(ColumnCCEPData.DynamicConfiguration.SpanMin, ColumnCCEPData.DynamicConfiguration.Middle, ColumnCCEPData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
+
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
@@ -534,6 +541,7 @@ namespace HBP.Data.Module3D
             ColumnCCEPData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
             base.SaveConfiguration();
         }
+
         /// <summary>
         /// Reset the configuration of this column
         /// </summary>
@@ -543,6 +551,7 @@ namespace HBP.Data.Module3D
             DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }
+
         #endregion
     }
 }

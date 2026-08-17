@@ -15,15 +15,17 @@ namespace HBP.UI.Main
     public class BasicBlocImporterWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] private Button m_PreviousButton;
         [SerializeField] private Button m_NextButton;
         [SerializeField] private Button m_FinishButton;
-        
+
         [SerializeField] private BasicBlocImporterPanel[] m_Panels;
-        
+
         public BlocImporterData Data { get; private set; } = new BlocImporterData();
 
         private string m_FilePath;
+
         public string FilePath
         {
             get => m_FilePath;
@@ -35,37 +37,43 @@ namespace HBP.UI.Main
         }
 
         private int m_CurrentPanelIndex = 0;
+
         #endregion
 
         #region Events
+
         public GenericEvent<Bloc[]> OnBlocsImported = new();
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
-            
+
             m_PreviousButton.onClick.AddListener(GoToPreviousPanel);
             m_NextButton.onClick.AddListener(GoToNextPanel);
             m_FinishButton.onClick.AddListener(FinishImport);
-            
+
             foreach (var panel in m_Panels)
             {
                 panel.Initialize(Data);
                 panel.OnUpdateNavigation.AddListener(UpdateButtonStates);
                 panel.gameObject.SetActive(false);
             }
-            
+
             UpdateButtonStates();
             ShowPanel(0);
         }
+
         private void SetFilePath(string filePath)
         {
             Data.Clear();
             LoadEvents(filePath);
             RefreshCurrentPanel();
         }
+
         private void LoadEvents(string filePath)
         {
             FileInfo fileInfo = new(filePath);
@@ -101,8 +109,8 @@ namespace HBP.UI.Main
             {
                 throw new Exception("Invalid data container type");
             }
-            
-            Core.DLL.EEG.File file = new(type, false, files);
+
+            using Core.DLL.EEG.File file = new(type, false, files);
             List<Core.DLL.EEG.Trigger> triggers = file.Triggers;
 
             if (triggers.Count == 0)
@@ -116,21 +124,25 @@ namespace HBP.UI.Main
             {
                 Data.OccurencesByCode[uniqueCode] = 0;
             }
+
             foreach (var trigger in triggers)
             {
                 Data.OccurencesByCode[trigger.Code]++;
             }
         }
+
         private void ShowPanel(int index)
         {
             for (int i = 0; i < m_Panels.Length; i++)
             {
                 m_Panels[i].gameObject.SetActive(i == index);
             }
+
             m_CurrentPanelIndex = index;
             RefreshCurrentPanel();
             UpdateButtonStates();
         }
+
         private void RefreshCurrentPanel()
         {
             if (m_CurrentPanelIndex < m_Panels.Length)
@@ -138,26 +150,27 @@ namespace HBP.UI.Main
                 m_Panels[m_CurrentPanelIndex].Refresh();
             }
         }
+
         private void UpdateButtonStates()
         {
             m_PreviousButton.interactable = m_CurrentPanelIndex > 0;
-            
+
             bool showNext = false;
             bool showFinish = false;
             bool secondButtonEnabled = false;
-            
+
             switch (m_CurrentPanelIndex)
             {
                 case 0: // Panel 1: Code selection
                     showNext = true;
                     secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
                     break;
-                    
+
                 case 1: // Panel 2: Bloc naming
                     showNext = true;
                     secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
                     break;
-                    
+
                 case 2: // Panel 3: Response code selection
                     // Show Finish if no response codes selected, otherwise show Next
                     if (Data.SelectedResponseCodes.Count == 0)
@@ -170,13 +183,14 @@ namespace HBP.UI.Main
                         showNext = true;
                         secondButtonEnabled = true; // Can always proceed to next if response codes selected
                     }
+
                     break;
-                    
+
                 case 3: // Panel 4: Response assignment
                     showFinish = true;
                     secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
                     break;
-                    
+
                 default:
                     // Fallback for any additional panels
                     if (m_CurrentPanelIndex < m_Panels.Length - 1)
@@ -189,16 +203,18 @@ namespace HBP.UI.Main
                         showFinish = true;
                         secondButtonEnabled = m_Panels[m_CurrentPanelIndex].CanProceed();
                     }
+
                     break;
             }
-            
+
             // Apply button states
             m_NextButton.gameObject.SetActive(showNext);
             m_NextButton.interactable = secondButtonEnabled;
-            
+
             m_FinishButton.gameObject.SetActive(showFinish);
             m_FinishButton.interactable = secondButtonEnabled;
         }
+
         private void GoToPreviousPanel()
         {
             if (m_CurrentPanelIndex > 0)
@@ -206,6 +222,7 @@ namespace HBP.UI.Main
                 ShowPanel(m_CurrentPanelIndex - 1);
             }
         }
+
         private void GoToNextPanel()
         {
             if (m_CurrentPanelIndex < m_Panels.Length - 1 && m_Panels[m_CurrentPanelIndex].CanProceed())
@@ -214,6 +231,7 @@ namespace HBP.UI.Main
                 ShowPanel(m_CurrentPanelIndex + 1);
             }
         }
+
         private void FinishImport()
         {
             if (m_Panels[m_CurrentPanelIndex].CanProceed())
@@ -227,14 +245,15 @@ namespace HBP.UI.Main
                 Close();
             }
         }
+
         private List<Bloc> CreateBlocsFromData()
         {
             List<Bloc> blocs = new();
-            
+
             for (int i = 0; i < Data.CreatedBlocs.Count; i++)
             {
                 var blocData = Data.CreatedBlocs[i];
-                
+
                 // Create main event with all main codes
                 var mainEvent = new Core.Data.Event(Core.Enums.MainSecondaryEnum.Main)
                 {
@@ -272,9 +291,10 @@ namespace HBP.UI.Main
 
                 blocs.Add(bloc);
             }
-            
+
             return blocs;
         }
+
         #endregion
     }
 }

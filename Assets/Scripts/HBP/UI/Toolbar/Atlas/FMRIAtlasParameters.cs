@@ -7,17 +7,21 @@ namespace HBP.UI.Toolbar
     public class FMRIAtlasParameters : Tool
     {
         #region Properties
+
         /// <summary>
         /// Module to handle the threshold MRI
         /// </summary>
         [SerializeField] private ThresholdFMRI m_ThresholdFMRI;
+
         /// <summary>
         /// Slider to set the alpha of the contrast
         /// </summary>
         [SerializeField] private Slider m_AlphaSlider;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -43,6 +47,7 @@ namespace HBP.UI.Toolbar
                 ListenerLock = false;
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -50,6 +55,7 @@ namespace HBP.UI.Toolbar
         {
             gameObject.SetActive(false);
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -58,6 +64,7 @@ namespace HBP.UI.Toolbar
             bool isIBC = SelectedScene.FMRIManager.DisplayIBCContrasts;
             gameObject.SetActive(isIBC);
         }
+
         /// <summary>
         /// Update the status of the tool
         /// </summary>
@@ -70,6 +77,7 @@ namespace HBP.UI.Toolbar
                 m_AlphaSlider.value = SelectedScene.FMRIManager.FMRIAlpha;
             }
         }
+
         #endregion
     }
 }

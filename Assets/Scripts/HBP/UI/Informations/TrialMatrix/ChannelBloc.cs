@@ -18,13 +18,12 @@ namespace HBP.UI.Informations.TrialMatrix
     public class ChannelBloc : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] string m_Title;
+
         public string Title
         {
-            get
-            {
-                return m_Title;
-            }
+            get { return m_Title; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Title, value))
@@ -35,12 +34,10 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         [SerializeField, ReadOnly] bool m_Hovered;
+
         public bool Hovered
         {
-            get
-            {
-                return m_Hovered;
-            }
+            get { return m_Hovered; }
             private set
             {
                 if (SetPropertyUtility.SetStruct(ref m_Hovered, value))
@@ -51,12 +48,10 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         Color[] m_Colors;
+
         public Color[] Colors
         {
-            get
-            {
-                return m_Colors;
-            }
+            get { return m_Colors; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Colors, value))
@@ -69,12 +64,10 @@ namespace HBP.UI.Informations.TrialMatrix
         public data.ChannelBloc Data { private set; get; }
 
         [SerializeField] bool[] m_TrialIsSelected;
+
         public bool[] TrialIsSelected
         {
-            get
-            {
-                return m_TrialIsSelected;
-            }
+            get { return m_TrialIsSelected; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_TrialIsSelected, value))
@@ -83,30 +76,29 @@ namespace HBP.UI.Informations.TrialMatrix
                 }
             }
         }
-        [SerializeField] UnityEvent m_OnChangeTrialSelected;
+
+        [SerializeField] UnityEvent m_OnChangeTrialSelected = new();
+
         public UnityEvent OnChangeTrialSelected
         {
-            get
-            {
-                return m_OnChangeTrialSelected;
-            }
+            get { return m_OnChangeTrialSelected; }
         }
 
         public SubBloc SubBlocHovered
         {
-            get
-            {
-                return SubBlocs.FirstOrDefault(c => c.Hovered);
-            }
+            get { return SubBlocs.FirstOrDefault(c => c.Hovered); }
         }
+
         List<SubBloc> m_SubBlocs = new();
-        public ReadOnlyCollection<SubBloc> SubBlocs { get { return new ReadOnlyCollection<SubBloc>(m_SubBlocs); } }
+
+        public ReadOnlyCollection<SubBloc> SubBlocs
+        {
+            get { return new ReadOnlyCollection<SubBloc>(m_SubBlocs); }
+        }
+
         public SubBloc MainSubBloc
         {
-            get
-            {
-                return m_SubBlocs.First(s => s.Data.SubBlocProtocol == Data.Bloc.MainSubBloc);
-            }
+            get { return m_SubBlocs.First(s => s.Data.SubBlocProtocol == Data.Bloc.MainSubBloc); }
         }
 
         [SerializeField] GameObject m_SubBlocPrefab;
@@ -123,28 +115,26 @@ namespace HBP.UI.Informations.TrialMatrix
         int m_LastDragTrial;
         bool[] m_OnBeginDragStates;
 
-        [SerializeField] StringEvent m_OnChangeTitle;
+        [SerializeField] StringEvent m_OnChangeTitle = new();
+
         public StringEvent OnChangeTitle
         {
-            get
-            {
-                return m_OnChangeTitle;
-            }
+            get { return m_OnChangeTitle; }
         }
 
-        [SerializeField] UnityEvent m_OnChangeHovered;
+        [SerializeField] UnityEvent m_OnChangeHovered = new();
+
         public UnityEvent OnChangeHovered
         {
-            get
-            {
-                return m_OnChangeHovered;
-            }
+            get { return m_OnChangeHovered; }
         }
 
         public UnityEvent OnSet = new();
+
         #endregion
 
         #region Public Methods
+
         public void Set(data.ChannelBloc data, Color[] colors, Vector2 limits)
         {
             m_SelectionMasks = new List<GameObject>();
@@ -159,7 +149,7 @@ namespace HBP.UI.Informations.TrialMatrix
 
         public void OnPointerDown(BaseEventData baseEventData)
         {
-            PointerEventData pointerEventData = (PointerEventData) baseEventData;
+            PointerEventData pointerEventData = (PointerEventData)baseEventData;
             m_OnPointerDownTrial = GetTrialAtPosition(pointerEventData.pressPosition);
             m_LastDragTrial = m_OnPointerDownTrial;
             if (!pointerEventData.dragging)
@@ -179,6 +169,7 @@ namespace HBP.UI.Informations.TrialMatrix
                             start = m_OnPointerDownTrial;
                             end = m_AnchorTrial;
                         }
+
                         // LeftClick and Shift and Ctrl
                         if (Input.GetKey(KeyCode.LeftControl))
                         {
@@ -210,16 +201,19 @@ namespace HBP.UI.Informations.TrialMatrix
                 {
                     TrialIsSelected = Enumerable.Repeat(true, m_TrialIsSelected.Length).ToArray();
                 }
+
                 m_LastPointerDownTrial = m_OnPointerDownTrial;
             }
         }
+
         public void OnBeginDrag(BaseEventData baseEventData)
         {
             m_OnBeginDragStates = m_TrialIsSelected;
         }
+
         public void OnDrag(BaseEventData baseEventData)
         {
-            PointerEventData pointerEventData = (PointerEventData) baseEventData;          
+            PointerEventData pointerEventData = (PointerEventData)baseEventData;
             int dragTrial = GetTrialAtPosition(pointerEventData.position);
 
             if (m_LastDragTrial != dragTrial)
@@ -241,10 +235,12 @@ namespace HBP.UI.Informations.TrialMatrix
                             start = dragTrial;
                             end = m_OnPointerDownTrial;
                         }
+
                         for (int i = start; i <= end; i++)
                         {
                             selectedTrials[i] = !selectedTrials[i];
                         }
+
                         TrialIsSelected = selectedTrials;
                     }
                     // Shift
@@ -261,6 +257,7 @@ namespace HBP.UI.Informations.TrialMatrix
                             start = dragTrial;
                             end = m_LastPointerDownTrial;
                         }
+
                         SelectTrials(start, end, true, true);
                     }
                 }
@@ -281,10 +278,12 @@ namespace HBP.UI.Informations.TrialMatrix
                             start = dragTrial;
                             end = m_OnPointerDownTrial - 1;
                         }
+
                         for (int i = start; i <= end; i++)
                         {
                             selectedTrials[i] = !selectedTrials[i];
                         }
+
                         TrialIsSelected = selectedTrials;
                     }
                     // Nothing
@@ -301,12 +300,15 @@ namespace HBP.UI.Informations.TrialMatrix
                             start = dragTrial;
                             end = m_LastPointerDownTrial;
                         }
+
                         SelectTrials(start, end, true, false);
                     }
                 }
+
                 m_LastDragTrial = dragTrial;
             }
         }
+
         public void OnScroll(BaseEventData baseEventData)
         {
             if (m_TrialIsSelected.Length == 0) return;
@@ -332,6 +334,7 @@ namespace HBP.UI.Informations.TrialMatrix
                     }
                 }
             }
+
             if (delta != 0)
             {
                 bool[] trialIsSelected = new bool[m_TrialIsSelected.Length];
@@ -343,22 +346,27 @@ namespace HBP.UI.Informations.TrialMatrix
                         trialIsSelected[i] = m_TrialIsSelected[index];
                     }
                 }
+
                 TrialIsSelected = trialIsSelected;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_RectTransform = GetComponent<RectTransform>();
         }
+
         void OnValidate()
         {
             SetTitle();
             SetColors();
             SetSelections();
         }
+
         void AddSubBloc(data.SubBloc data, Color[] colors, Vector2 limits)
         {
             SubBloc subBloc = Instantiate(m_SubBlocPrefab, m_SubBlocContainer).GetComponent<SubBloc>();
@@ -394,14 +402,17 @@ namespace HBP.UI.Informations.TrialMatrix
 
             m_SubBlocs.Add(subBloc);
         }
+
         void Clear()
         {
             foreach (var subBloc in m_SubBlocs)
             {
                 Destroy(subBloc.gameObject);
             }
+
             m_SubBlocs = new List<SubBloc>();
         }
+
         void AddMask(int start, int end)
         {
             RectTransform rectTransform = Instantiate(m_SelectionPrefab, m_SelectionContainer).GetComponent<RectTransform>();
@@ -414,16 +425,19 @@ namespace HBP.UI.Informations.TrialMatrix
             rectTransform.offsetMax = new Vector2(0, 0);
             m_SelectionMasks.Add(rectTransform.gameObject);
         }
+
         void ClearMasks()
         {
             foreach (var selectionMask in m_SelectionMasks) Destroy(selectionMask);
             m_SelectionMasks.Clear();
         }
+
         int GetTrialAtPosition(Vector3 position)
         {
             Vector2 ratio = m_RectTransform.GetRatioPosition(position);
             return Mathf.FloorToInt((1 - ratio.y) * MainSubBloc.Data.SubTrials.Length);
         }
+
         void SelectTrials(int startIndex, int endIndex, bool select, bool additive = false)
         {
             if (m_TrialIsSelected.Length == 0) return;
@@ -436,8 +450,10 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 selection[i] = select;
             }
+
             TrialIsSelected = selection;
         }
+
         void InverseSelectionTrials(int startIndex, int endIndex, bool additive = false)
         {
             bool[] selection = additive ? m_TrialIsSelected.ToArray() : Enumerable.Repeat(false, m_TrialIsSelected.Length).ToArray();
@@ -445,15 +461,19 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 selection[i] = !selection[i];
             }
+
             TrialIsSelected = selection;
         }
+
         #endregion
 
         #region Setters
+
         void SetTitle()
         {
             OnChangeTitle.Invoke(m_Title);
         }
+
         void SetColors()
         {
             foreach (var subBloc in m_SubBlocs)
@@ -461,8 +481,14 @@ namespace HBP.UI.Informations.TrialMatrix
                 subBloc.Colors = m_Colors;
             }
         }
+
         void SetSelections()
         {
+            if (m_TrialIsSelected == null)
+            {
+                return;
+            }
+
             List<Tuple<int, int>> masks = new();
             bool inside = false;
             int startIndex = -1;
@@ -483,6 +509,7 @@ namespace HBP.UI.Informations.TrialMatrix
                         startIndex = i;
                         inside = true;
                     }
+
                     if (i == m_TrialIsSelected.Length - 1)
                     {
                         masks.Add(new Tuple<int, int>(startIndex, i + 1));
@@ -496,12 +523,15 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 AddMask(mask.Item1, mask.Item2);
             }
+
             m_OnChangeTrialSelected.Invoke();
         }
+
         void SetHovered()
         {
             m_OnChangeHovered.Invoke();
         }
+
         #endregion
     }
 }

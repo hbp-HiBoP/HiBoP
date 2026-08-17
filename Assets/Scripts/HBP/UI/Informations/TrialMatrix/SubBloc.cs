@@ -7,24 +7,22 @@ using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.Core.Preferences;
-using HBP.Core.DLL;
-using HBP.Core.Tools;
+using System.Collections.Generic;
 
 namespace HBP.UI.Informations.TrialMatrix
 {
     public class SubBloc : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] data.SubBloc m_Data;
+
         public data.SubBloc Data
         {
-            get
-            {
-                return m_Data;
-            }
+            get { return m_Data; }
             set
             {
-                if(SetPropertyUtility.SetClass(ref m_Data, value))
+                if (SetPropertyUtility.SetClass(ref m_Data, value))
                 {
                     SetData();
                 }
@@ -32,15 +30,13 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         Color[] m_Colors;
+
         public Color[] Colors
         {
-            get
-            {
-                return m_Colors;
-            }
+            get { return m_Colors; }
             set
             {
-                if(SetPropertyUtility.SetClass(ref m_Colors, value))
+                if (SetPropertyUtility.SetClass(ref m_Colors, value))
                 {
                     SetColors();
                 }
@@ -48,15 +44,13 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         [SerializeField] Vector2 m_Limits;
+
         public Vector2 Limits
         {
-            get
-            {
-                return m_Limits;
-            }
+            get { return m_Limits; }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_Limits, value))
+                if (SetPropertyUtility.SetStruct(ref m_Limits, value))
                 {
                     SetLimits();
                 }
@@ -64,37 +58,31 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         [SerializeField] bool m_Hovered = false;
+
         public bool Hovered
         {
-            get
-            {
-                return m_Hovered;
-            }
+            get { return m_Hovered; }
             set
             {
-                if(SetPropertyUtility.SetStruct(ref m_Hovered, value))
+                if (SetPropertyUtility.SetStruct(ref m_Hovered, value))
                 {
                     SetHovered();
                 }
             }
         }
 
-        [SerializeField] UnityEvent m_OnChangeHovered;
+        [SerializeField] UnityEvent m_OnChangeHovered = new();
+
         public UnityEvent OnChangeHovered
         {
-            get
-            {
-                return m_OnChangeHovered;
-            }
+            get { return m_OnChangeHovered; }
         }
 
         [SerializeField] BaseEventData m_OnPointerDown;
+
         public BaseEventData OnPointerDown
         {
-            get
-            {
-                return m_OnPointerDown;
-            }
+            get { return m_OnPointerDown; }
         }
 
         [SerializeField] RawImage m_RawImage;
@@ -104,13 +92,18 @@ namespace HBP.UI.Informations.TrialMatrix
         [SerializeField] GameObject m_EventPrefab;
         [SerializeField] RectTransform m_EventContainer;
         [SerializeField] LayoutElement m_LayoutElement;
+        readonly List<RawImage> m_TileImages = new();
+        readonly List<Texture2D> m_TileTextures = new();
+        Color32[] m_Color32Buffer;
+
         #endregion
 
         #region Public Methods
+
         public void Set(data.SubBloc data, Color[] colors, Vector2 limits)
         {
             m_Data = data;
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 m_Colors = colors;
                 m_Limits = limits;
@@ -119,6 +112,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 if (data.IsFiller)
                 {
                     gameObject.name = "Filler";
+                    ClearTextureResources();
                 }
                 else
                 {
@@ -126,16 +120,25 @@ namespace HBP.UI.Informations.TrialMatrix
                     SetTexture();
                     GenerateEventIndicators(data);
                 }
+
                 SetFillers();
             }
         }
+
         #endregion
 
         #region Private Methods
+
         void Awake()
         {
             m_LayoutElement = GetComponent<LayoutElement>();
         }
+
+        void OnDestroy()
+        {
+            ClearTextureResources();
+        }
+
         void OnValidate()
         {
             SetColors();
@@ -146,24 +149,19 @@ namespace HBP.UI.Informations.TrialMatrix
 
         void SetTexture()
         {
-            if(m_Data != null)
+            if (m_Data != null && !m_Data.IsFiller && m_Colors != null && m_Colors.Length > 0)
             {
                 float[][] trials = ExtractDataTrials(m_Data.SubTrials);
-                if (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing)
-                {
-                    trials = SmoothTrials(trials, PersistentDataManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues, PersistentDataManager.UserPreferences.Visualization.TrialMatrix.Smooth2D);
-                }
-
-                Texture2D texture = GenerateTexture(trials, m_Limits, m_Colors);
-                texture.mipMapBias = -5;
-                texture.wrapMode = TextureWrapMode.Clamp;
-                texture.filterMode = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing && PersistentDataManager.UserPreferences.Visualization.TrialMatrix.Smooth2D ? FilterMode.Bilinear : FilterMode.Point;
-                m_RawImage.texture = texture;
+                bool smooth = PersistentDataManager.UserPreferences.Visualization.TrialMatrix.TrialSmoothing;
+                bool smooth2D = smooth && PersistentDataManager.UserPreferences.Visualization.TrialMatrix.Smooth2D;
+                TrialMatrixTiles tiles = TrialMatrixTileBuilder.Build(trials, m_Limits, GetColor32Buffer(), smooth, PersistentDataManager.UserPreferences.Visualization.TrialMatrix.NumberOfIntermediateValues, smooth2D, SystemInfo.maxTextureSize);
+                ApplyTiles(tiles, smooth2D ? FilterMode.Bilinear : FilterMode.Point);
             }
         }
+
         void SetFillers()
         {
-            if(m_Data.IsFiller)
+            if (m_Data.IsFiller)
             {
                 m_LeftFillerLayoutElement.flexibleWidth = 1;
                 m_RightFillerLayoutElement.flexibleWidth = 0;
@@ -176,51 +174,73 @@ namespace HBP.UI.Informations.TrialMatrix
                 m_MainTextureLayoutElement.flexibleWidth = m_Data.SubBlocProtocol.Window.Length;
             }
         }
-        Texture2D GenerateTexture(float[][] trials, Vector2 limits, Color[] colors)
-        {
-            // Caculate texture size.
-            int height = trials.Length;
-            if (height == 0) return new Texture2D(0,0);
-            int width = trials[0].Length;
-            Texture2D texture = new(width, height, TextureFormat.RGBA32, false);
-            Color[] pixels = new Color[width * height];
 
-            // Set pixels
-            float[] trial;
-            int start = 0;
-            for (int y = 0; y < height; y++)
+        Color32[] GetColor32Buffer()
+        {
+            if (m_Color32Buffer == null || m_Color32Buffer.Length != m_Colors.Length)
+                m_Color32Buffer = new Color32[m_Colors.Length];
+            for (int i = 0; i < m_Colors.Length; i++)
+                m_Color32Buffer[i] = m_Colors[i];
+            return m_Color32Buffer;
+        }
+
+        void ApplyTiles(TrialMatrixTiles tiles, FilterMode filterMode)
+        {
+            EnsureTileImages(tiles.Tiles.Count);
+            long textureBytes = 0;
+            for (int i = 0; i < tiles.Tiles.Count; i++)
             {
-                trial = trials[height - 1 - y];
-                for (int x = 0; x < width; x++)
-                {
-                    pixels[start + x] = GetColor(trial[x], limits, colors);
-                }
-                start += width;
+                TrialMatrixTile tile = tiles.Tiles[i];
+                RawImage image = m_TileImages[i];
+                RectTransform rect = image.rectTransform;
+                rect.anchorMin = new Vector2((float)tile.CoreX / tiles.Width, (float)tile.CoreY / tiles.Height);
+                rect.anchorMax = new Vector2((float)(tile.CoreX + tile.CoreWidth) / tiles.Width, (float)(tile.CoreY + tile.CoreHeight) / tiles.Height);
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+                image.uvRect = tile.UvRect;
+                image.enabled = true;
+
+                Texture2D texture = GetOrCreateTexture(i, tile.TextureWidth, tile.TextureHeight);
+                texture.filterMode = filterMode;
+                texture.SetPixelData(tile.Pixels, 0);
+                texture.Apply(false, false);
+                image.texture = texture;
+                textureBytes += (long)tile.TextureWidth * tile.TextureHeight * 4;
             }
 
-            // Set texture.
-            texture.SetPixels(pixels);
-            texture.filterMode = FilterMode.Point;
-            texture.anisoLevel = 0;
-            texture.Apply();
-            return texture;
+            TrimTextures(tiles.Tiles.Count);
+            DataManager.RegisterMemoryUsage(this, MemoryCacheCategory.Texture, textureBytes, true);
         }
-        float[][] SmoothTrials(float[][] trials, int pass, bool smooth2D)
+
+        void EnsureTileImages(int count)
         {
-            if (smooth2D)
+            if (m_TileImages.Count == 0)
+                m_TileImages.Add(m_RawImage);
+            while (m_TileImages.Count < count)
             {
-                return trials.LinearSmooth2D(pass);
+                GameObject tileObject = new($"Texture Tile {m_TileImages.Count}", typeof(RectTransform), typeof(CanvasRenderer), typeof(RawImage));
+                tileObject.layer = m_RawImage.gameObject.layer;
+                RectTransform rect = tileObject.transform as RectTransform;
+                rect.SetParent(m_RawImage.rectTransform.parent, false);
+                rect.SetSiblingIndex(m_RawImage.rectTransform.GetSiblingIndex() + m_TileImages.Count);
+                RawImage image = tileObject.GetComponent<RawImage>();
+                image.raycastTarget = m_RawImage.raycastTarget;
+                image.maskable = m_RawImage.maskable;
+                image.color = m_RawImage.color;
+                m_TileImages.Add(image);
             }
-            else
+
+            while (m_TileImages.Count > System.Math.Max(1, count))
             {
-                float[][] result = new float[trials.Length][];
-                for (int l = 0; l < result.Length; l++)
-                {
-                    result[l] = trials[l].LinearSmooth(pass);
-                }
-                return result;
+                int last = m_TileImages.Count - 1;
+                DestroyObject(m_TileImages[last].gameObject);
+                m_TileImages.RemoveAt(last);
             }
+
+            if (count == 0)
+                m_RawImage.enabled = false;
         }
+
         float[][] ExtractDataTrials(data.SubTrial[] subTrials)
         {
             float[][] result = new float[subTrials.Length][];
@@ -228,19 +248,66 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 result[l] = subTrials[l].Data.Values;
             }
+
             return result;
         }
-        Color GetColor(float value, Vector2 limits, Color[] colors)
+
+        Texture2D GetOrCreateTexture(int index, int width, int height)
         {
-            float ratio = 0.5f;
-            if(limits.y != limits.x)
+            while (m_TileTextures.Count <= index)
+                m_TileTextures.Add(null);
+            Texture2D texture = m_TileTextures[index];
+            if (texture == null || texture.width != width || texture.height != height)
             {
-                ratio = (value - limits.x) / (limits.y - limits.x);
-                ratio = Mathf.Clamp01(ratio);
+                DestroyObject(texture);
+                texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+                {
+                    name = $"Trial Matrix Tile {index}",
+                    mipMapBias = -5,
+                    wrapMode = TextureWrapMode.Clamp,
+                    anisoLevel = 0
+                };
+                m_TileTextures[index] = texture;
             }
-            int x = Mathf.RoundToInt(ratio * (colors.Length - 1));
-            return colors[x];
+
+            return texture;
         }
+
+        void TrimTextures(int count)
+        {
+            for (int i = m_TileTextures.Count - 1; i >= count; i--)
+            {
+                DestroyObject(m_TileTextures[i]);
+                m_TileTextures.RemoveAt(i);
+            }
+        }
+
+        void ClearTextureResources()
+        {
+            DataManager.UnregisterMemoryUsage(this);
+            foreach (Texture2D texture in m_TileTextures)
+                DestroyObject(texture);
+            m_TileTextures.Clear();
+            for (int i = m_TileImages.Count - 1; i >= 1; i--)
+                DestroyObject(m_TileImages[i].gameObject);
+            m_TileImages.Clear();
+            if (m_RawImage != null)
+            {
+                m_RawImage.texture = null;
+                m_RawImage.enabled = false;
+            }
+        }
+
+        static void DestroyObject(Object value)
+        {
+            if (value == null)
+                return;
+            if (Application.isPlaying)
+                Destroy(value);
+            else
+                DestroyImmediate(value);
+        }
+
         void GenerateEventIndicators(data.SubBloc subBloc)
         {
             foreach (var _event in subBloc.SubBlocProtocol.Events)
@@ -266,7 +333,7 @@ namespace HBP.UI.Informations.TrialMatrix
                     rect.anchorMax = new Vector2(x, 1);
                     rect.anchoredPosition = new Vector2(0, 0);
                 }
-                else if(_event.Type == MainSecondaryEnum.Secondary)
+                else if (_event.Type == MainSecondaryEnum.Secondary)
                 {
                     for (int i = 0; i < subBloc.SubTrials.Length; i++)
                     {
@@ -294,18 +361,22 @@ namespace HBP.UI.Informations.TrialMatrix
         {
             SetTexture();
         }
+
         void SetHovered()
         {
             m_OnChangeHovered.Invoke();
         }
+
         void SetLimits()
         {
             SetTexture();
         }
+
         void SetData()
         {
             Set(m_Data, m_Colors, m_Limits);
         }
+
         #endregion
     }
 }

@@ -9,23 +9,29 @@ namespace HBP.Core.Object3D
     public class IBCObjects
     {
         #region Properties
+
         /// <summary>
         /// Contains information about labels of the contrasts
         /// </summary>
         public IBCInformation Information { get; private set; }
+
         public FMRI FMRI { get; private set; }
         public bool Loaded => FMRI != null && Information != null && FMRI.Loaded && Information.Loaded;
         public bool Loading => FMRI != null && Information != null && (FMRI.Loading || Information.Loading);
+
         #endregion
 
         #region Private Methods
+
         #endregion
 
         #region Public Methods
+
         public void Clean()
         {
             FMRI?.Clean();
         }
+
         public void Load()
         {
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
@@ -33,6 +39,7 @@ namespace HBP.Core.Object3D
             FMRI = new FMRI("IBC", file);
             Information = new IBCInformation(csvFile);
         }
+
         #endregion
     }
 }

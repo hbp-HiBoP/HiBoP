@@ -10,18 +10,22 @@ namespace HBP.UI.Toolbar
     public class ThresholdMRI : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Texture to be applied to the image
         /// </summary>
         private Texture2D m_MRIHistogram;
+
         /// <summary>
         /// Minimum Cal value
         /// </summary>
         private float m_MRICalMin = 0.0f;
+
         /// <summary>
         /// Maximum Cal value
         /// </summary>
         private float m_MRICalMax = 1.0f;
+
         /// <summary>
         /// Textures of the histograms (one per MRI)
         /// </summary>
@@ -33,14 +37,17 @@ namespace HBP.UI.Toolbar
         /// Used to display the current histogram
         /// </summary>
         [SerializeField] private RawImage m_Histogram;
+
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
         [SerializeField] private RectTransform m_HandlerZone;
+
         /// <summary>
         /// Handler responsible for the minimum value
         /// </summary>
         [SerializeField] private ThresholdHandler m_MinHandler;
+
         /// <summary>
         /// Handler responsible for the maximum value
         /// </summary>
@@ -50,13 +57,17 @@ namespace HBP.UI.Toolbar
         /// Is the module initialized ?
         /// </summary>
         private bool m_Initialized;
+
         #endregion
 
         #region Events
+
         public GenericEvent<float, float> OnChangeValues = new();
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
@@ -69,17 +80,28 @@ namespace HBP.UI.Toolbar
                 {
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
-                Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(mri3D.Volume, 440, 440);
-                texture.UpdateTexture2D(m_MRIHistogram);
-                texture.Dispose();
+
+                int[] bins = mri3D.Volume.GetHistogramBins(UnityTextureFactory.HistogramBinCount);
+                if (bins != null)
+                {
+                    m_MRIHistogram = UnityTextureFactory.GenerateDistributionHistogram(bins, 440, 440);
+                }
+                else
+                {
+                    m_MRIHistogram = UnityTextureFactory.GenerateSolidTexture(440, 440, new Color32(0, 0, 0, 255));
+                }
+
                 m_HistogramByMRI.Add(mri3D, m_MRIHistogram);
             }
+
             m_Histogram.texture = m_MRIHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this module
         /// </summary>
@@ -122,6 +144,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Update Maximum and Minimum Cal value
         /// </summary>
@@ -153,6 +176,7 @@ namespace HBP.UI.Toolbar
 
             m_Initialized = true;
         }
+
         /// <summary>
         /// Method used to clean useless histograms
         /// </summary>
@@ -168,6 +192,7 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
     }
 }

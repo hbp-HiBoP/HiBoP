@@ -10,6 +10,7 @@ namespace HBP.UI.Tools
     public class SelectionManager : Manager<SelectionManager>
     {
         #region Properties
+
         [SerializeField] private Selector m_Selection;
         List<Selector> m_Selectors = new();
 
@@ -17,22 +18,27 @@ namespace HBP.UI.Tools
         private List<RectTransform> m_Containers = new();
 
         public static bool IsAnySelected => m_Instance.m_Selectors.Any(s => s.Selected);
+
         #endregion
 
         #region Public Methods
+
         public static void Add(Selector selector)
         {
             m_Instance.m_Selectors.Add(selector);
             selector.OnChangeValue.AddListener((selected) => m_Instance.OnChangeSelection(selected, selector));
             selector.Selected = true;
         }
+
         public static void Remove(Selector selector)
         {
             m_Instance.m_Selectors.Remove(selector);
         }
+
         #endregion
 
         #region Private Methods
+
         void OnChangeSelection(bool selected, Selector selector)
         {
             if (selected)
@@ -48,6 +54,7 @@ namespace HBP.UI.Tools
                 if (m_Selection == selector) m_Selection = null;
             }
         }
+
         void Update()
         {
             if (Input.GetMouseButtonDown(0))
@@ -55,7 +62,12 @@ namespace HBP.UI.Tools
                 Selector selector = null;
                 PointerEventData pointerEventData = new(EventSystem.current);
                 pointerEventData.position = Input.mousePosition;
-                var results = FindObjectsByType<GraphicRaycaster>(FindObjectsInactive.Exclude).SelectMany(r => { List<RaycastResult> res = new(); r.Raycast(pointerEventData, res); return res; }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
+                var results = FindObjectsByType<GraphicRaycaster>(FindObjectsInactive.Exclude).SelectMany(r =>
+                {
+                    List<RaycastResult> res = new();
+                    r.Raycast(pointerEventData, res);
+                    return res;
+                }).OrderByDescending(r => r.sortingOrder).ThenByDescending(r => r.depth);
                 foreach (var result in results)
                 {
                     selector = result.gameObject.GetComponentInParent<Selector>();
@@ -76,6 +88,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         #endregion
     }
 }

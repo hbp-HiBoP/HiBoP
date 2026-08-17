@@ -5,18 +5,23 @@ namespace HBP.Core.Data
     public class EpochedData : Data
     {
         #region Properties
+
         public virtual Dictionary<Bloc, BlocData> DataByBloc { get; set; }
         public virtual Dictionary<string, string> UnitByChannel { get; set; }
         public virtual Tools.Frequency Frequency { get; set; }
+
         #endregion
 
         #region Constructors
-        public EpochedData(DataInfo dataInfo)
-        {
-            DynamicData rawData = new(dataInfo);
 
+        public EpochedData(DataInfo dataInfo) : this(dataInfo, new DynamicData(dataInfo))
+        {
+        }
+
+        internal EpochedData(DataInfo dataInfo, DynamicData rawData)
+        {
             // Get UnitByChannel.
-            UnitByChannel = rawData.UnitByChannel;
+            UnitByChannel = new Dictionary<string, string>(rawData.UnitByChannel);
 
             // Get Frequency.
             Frequency = rawData.Frequency;
@@ -28,9 +33,11 @@ namespace HBP.Core.Data
                 DataByBloc.Add(bloc, new BlocData(rawData, bloc));
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Clear()
         {
             foreach (var blocData in DataByBloc.Values) blocData.Clear();
@@ -38,6 +45,7 @@ namespace HBP.Core.Data
             UnitByChannel.Clear();
             Frequency = new Tools.Frequency();
         }
+
         #endregion
     }
 }

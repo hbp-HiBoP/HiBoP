@@ -11,14 +11,19 @@ namespace HBP.Core.Object3D
     public class SharedMaterials : ScriptableObject
     {
         #region Properties
+
         /// <summary>
         /// Materials used for the ROI spheres
         /// </summary>
-        [field: SerializeField] public ROIMaterials ROI { get; private set; } = new ROIMaterials();
+        [field: SerializeField]
+        public ROIMaterials ROI { get; private set; } = new ROIMaterials();
+
         /// <summary>
         /// Materials used for the sites
         /// </summary>
-        [field: SerializeField] public SiteMaterials Site { get; private set; } = new SiteMaterials();
+        [field: SerializeField]
+        public SiteMaterials Site { get; private set; } = new SiteMaterials();
+
         #endregion
     }
 
@@ -29,14 +34,19 @@ namespace HBP.Core.Object3D
     public class ROIMaterials
     {
         #region Properties
+
         /// <summary>
         /// Material used for a ROI sphere in a regular state
         /// </summary>
-        [field: SerializeField] public Material Normal { get; private set; }
+        [field: SerializeField]
+        public Material Normal { get; private set; }
+
         /// <summary>
         /// Material used for a ROI sphere when it is selected
         /// </summary>
-        [field: SerializeField] public Material Selected { get; private set; }
+        [field: SerializeField]
+        public Material Selected { get; private set; }
+
         #endregion
     }
 
@@ -47,6 +57,7 @@ namespace HBP.Core.Object3D
     public class SiteMaterials
     {
         #region Properties
+
         /// <summary>
         /// Dictionary containing the site material for each color that has been used in the scene
         /// </summary>
@@ -55,32 +66,43 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Default material for a site
         /// </summary>
-        [field: SerializeField] public Material Basic { get; private set; }
+        [field: SerializeField]
+        public Material Basic { get; private set; }
 
         /// <summary>
         /// Material used when the activity of the site is negative
         /// </summary>
-        [field: SerializeField] public SiteMaterial Negative { get; private set; }
+        [field: SerializeField]
+        public SiteMaterial Negative { get; private set; }
+
         /// <summary>
         /// Material used when the activity of the site is positive
         /// </summary>
-        [field: SerializeField] public SiteMaterial Positive { get; private set; }
+        [field: SerializeField]
+        public SiteMaterial Positive { get; private set; }
+
         /// <summary>
         /// Material used when the site is blacklisted
         /// </summary>
-        [field: SerializeField] public SiteMaterial Blacklisted { get; private set; }
+        [field: SerializeField]
+        public SiteMaterial Blacklisted { get; private set; }
 
         /// <summary>
         /// Material used if the site is a source for CCEP
         /// </summary>
-        [field: SerializeField] public SiteMaterial Source { get; private set; }
+        [field: SerializeField]
+        public SiteMaterial Source { get; private set; }
+
         /// <summary>
         /// Material used if the site is not a source for CCEP
         /// </summary>
-        [field: SerializeField] public SiteMaterial NotASource { get; private set; }
+        [field: SerializeField]
+        public SiteMaterial NotASource { get; private set; }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Get the site material corresponding to the input color
         /// </summary>
@@ -96,11 +118,14 @@ namespace HBP.Core.Object3D
                 material.color = color;
                 m_MaterialByColor.Add(color, material);
             }
+
             return material;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Get the material for a specific site
         /// </summary>
@@ -120,6 +145,7 @@ namespace HBP.Core.Object3D
                 _ => GetMaterial(baseColor, highlighted),
             };
         }
+
         #endregion
     }
 

@@ -7,16 +7,15 @@ namespace HBP.UI.Tools.ResizableGrids
     public class Column : MonoBehaviour
     {
         #region Properties
+
         List<View> m_Views = new();
+
         /// <summary>
         /// Views of this column
         /// </summary>
         public ReadOnlyCollection<View> Views
         {
-            get
-            {
-                return new ReadOnlyCollection<View>(m_Views);
-            }
+            get { return new ReadOnlyCollection<View>(m_Views); }
         }
 
         /// <summary>
@@ -24,14 +23,13 @@ namespace HBP.UI.Tools.ResizableGrids
         /// </summary>
         public int ViewNumber
         {
-            get
-            {
-                return m_Views.Count;
-            }
+            get { return m_Views.Count; }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Add a view to this column
         /// </summary>
@@ -41,6 +39,7 @@ namespace HBP.UI.Tools.ResizableGrids
             m_Views.Add(view);
             view.transform.SetAsFirstSibling();
         }
+
         /// <summary>
         /// Remove a view from this column
         /// </summary>
@@ -53,6 +52,7 @@ namespace HBP.UI.Tools.ResizableGrids
                 m_Views.RemoveAt(lineID);
             }
         }
+
         #endregion
     }
 }

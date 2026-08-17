@@ -8,14 +8,13 @@ namespace HBP.UI.Informations.Graphs
     public class ShapedCurve : Curve
     {
         #region Properties
+
         [SerializeField] UIVerticalShapeRenderer m_ShapeRenderer;
+        float[] m_RenderShapeBuffer = System.Array.Empty<float>();
 
         public new ShapedCurveData Data
         {
-            get
-            {
-                return m_Data as ShapedCurveData;
-            }
+            get { return m_Data as ShapedCurveData; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Data, value))
@@ -24,12 +23,14 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         #endregion
 
         #region Setters
+
         protected override void SetData()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 base.SetData();
                 if (m_Data is ShapedCurveData)
@@ -40,116 +41,101 @@ namespace HBP.UI.Informations.Graphs
                 }
                 else
                 {
-                    m_ShapeRenderer.Points = new Vector2[0];
-                    m_ShapeRenderer.ShapeThickness = new float[0];
+                    m_ShapeRenderer.SetData(System.Array.Empty<Vector2>(), System.Array.Empty<float>(), 0);
                 }
             }
         }
+
         protected override void SetAbscissaDisplayRange()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 base.SetAbscissaDisplayRange();
-                if(m_Data is ShapedCurveData)
+                if (m_Data is ShapedCurveData)
                 {
-                    m_ShapeRenderer.Points = m_CurveRenderer.Points;
+                    if (!Application.isPlaying) SetPoints();
                 }
                 else
                 {
-                    m_ShapeRenderer.Points = new Vector2[0];
-                    m_ShapeRenderer.ShapeThickness = new float[0];
+                    m_ShapeRenderer.SetData(System.Array.Empty<Vector2>(), System.Array.Empty<float>(), 0);
                 }
             }
         }
+
         protected override void SetOrdinateDisplayRange()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
                 base.SetOrdinateDisplayRange();
-                if(m_Data is ShapedCurveData)
+                if (m_Data is ShapedCurveData)
                 {
-                    RectTransform rectTransform = transform as RectTransform;
-                    float[] shapes = new float[Data.Shapes.Length];
-                    for (int i = 0; i < Data.Shapes.Length; i++)
-                    {
-                        shapes[i] = Data.Shapes[i] * rectTransform.rect.height / (m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
-                    }
-
-                    m_ShapeRenderer.Points = m_CurveRenderer.Points;
-                    m_ShapeRenderer.ShapeThickness = shapes;
+                    if (!Application.isPlaying) SetPoints();
                 }
                 else
                 {
-                    m_ShapeRenderer.Points = new Vector2[0];
-                    m_ShapeRenderer.ShapeThickness = new float[0];
+                    m_ShapeRenderer.SetData(System.Array.Empty<Vector2>(), System.Array.Empty<float>(), 0);
                 }
-
             }
         }
+
         protected override void SetPoints()
         {
-            if(m_Data != null)
+            if (m_Data != null)
             {
-                if(m_Data is ShapedCurveData)
+                if (m_Data is ShapedCurveData)
                 {
                     ShapedCurveData shapedData = m_Data as ShapedCurveData;
-                    List<Vector2> points = new(shapedData.Points.Length);
-                    List<float> shapes = new(shapedData.Shapes.Length);
-                    bool first = true;
-                    float x, y;
-                    for (int i = 0; i < shapedData.Points.Length; i++)
+                    if (!TryGetVisibleRange(out int startIndex, out int endIndex))
                     {
-                        Vector2 point = shapedData.Points[i];
-                        if (point.x >= m_AbscissaDisplayRange.x)
-                        {
-                            if (first && i >= 1)
-                            {
-                                Vector2 pointBefore = m_Data.Points[i - 1];
-                                x = m_xRatio * (pointBefore.x - m_AbscissaDisplayRange.x);
-                                y = m_yRatio * (pointBefore.y - m_OrdinateDisplayRange.x);
-                                points.Add(new Vector2(x, y));
-                                shapes.Add(m_yRatio * shapedData.Shapes[i]);
-                            }
-                            first = false;
-                            x = m_xRatio * (point.x - m_AbscissaDisplayRange.x);
-                            y = m_yRatio * (point.y - m_OrdinateDisplayRange.x);
-                            shapes.Add(m_yRatio * shapedData.Shapes[i]);
-                            points.Add(new Vector2(x, y));
-                        }
-                        if(point.x > m_AbscissaDisplayRange.y)
-                        {
-                            break;
-                        }
+                        m_RenderPointCount = 0;
+                        m_CurveRenderer.SetPoints(m_RenderPointBuffer, 0);
+                        m_ShapeRenderer.SetData(m_RenderPointBuffer, m_RenderShapeBuffer, 0);
+                        m_NeedSetPoints = false;
+                        return;
                     }
 
-                    float pointsByPixel = m_NumberOfPixelsByPoint * points.Count / (m_RectTransform.rect.width);
-                    int downSampling = Mathf.CeilToInt(pointsByPixel);
-                    if (downSampling > 1)
+                    int length = endIndex + 1 - startIndex;
+                    int downSampling = GetDownSampling(length);
+                    m_RenderPointCount = downSampling > 1 ? length / downSampling + 1 : length;
+                    EnsurePointCapacity(m_RenderPointCount);
+                    EnsureShapeCapacity(m_RenderPointCount);
+
+                    int regularCount = downSampling > 1 ? m_RenderPointCount - 1 : m_RenderPointCount;
+                    for (int i = 0; i < regularCount; i++)
                     {
-                        List<Vector2> newPoints = new(points.Count / downSampling);
-                        List<float> newShapes = new(points.Count / downSampling);
-                        for (int i = 0; i < (points.Count / downSampling); i++)
-                        {
-                            int d = i * downSampling;
-                            newPoints.Add(points[d]);
-                            newShapes.Add(shapes[d]);
-                        }
-                        newPoints.Add(points[points.Count - 1]);
-                        newShapes.Add(shapes[shapes.Count - 1]);
-                        points = newPoints;
-                        shapes = newShapes;
+                        int sourceIndex = startIndex + i * downSampling;
+                        FillPointAndShape(shapedData, sourceIndex, i, startIndex);
                     }
-                    m_CurveRenderer.Points = points.ToArray();
-                    m_ShapeRenderer.Points = m_CurveRenderer.Points;
-                    m_ShapeRenderer.ShapeThickness = shapes.ToArray();
+
+                    if (downSampling > 1)
+                        FillPointAndShape(shapedData, endIndex, m_RenderPointCount - 1, startIndex);
+
+                    m_CurveRenderer.SetPoints(m_RenderPointBuffer, m_RenderPointCount);
+                    m_ShapeRenderer.SetData(m_RenderPointBuffer, m_RenderShapeBuffer, m_RenderPointCount);
                     m_NeedSetPoints = false;
                 }
                 else
                 {
-                    base.SetData();
-                }        
+                    base.SetPoints();
+                }
             }
         }
+
+        void FillPointAndShape(ShapedCurveData data, int sourceIndex, int destinationIndex, int startIndex)
+        {
+            Vector2 point = data.GetPoint(sourceIndex);
+            m_RenderPointBuffer[destinationIndex] = new Vector2(m_xRatio * (point.x - m_AbscissaDisplayRange.x), m_yRatio * (point.y - m_OrdinateDisplayRange.x));
+            int shapeIndex = sourceIndex == startIndex && point.x < m_AbscissaDisplayRange.x && sourceIndex + 1 < data.Count ? sourceIndex + 1 : sourceIndex;
+            m_RenderShapeBuffer[destinationIndex] = m_yRatio * data.Shapes[shapeIndex];
+        }
+
+        void EnsureShapeCapacity(int required)
+        {
+            if (m_RenderShapeBuffer.Length >= required)
+                return;
+            System.Array.Resize(ref m_RenderShapeBuffer, Mathf.NextPowerOfTwo(required));
+        }
+
         #endregion
     }
 }

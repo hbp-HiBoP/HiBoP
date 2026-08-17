@@ -9,13 +9,21 @@ namespace HBP.Core.DLL
     {
         private bool m_DLLObjectsPanelOpen = false;
         private DLLDebugManager.DLLObject m_LastClickedObject = null;
+
         public override void OnInspectorGUI()
         {
+            EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
+            DLLDebugManager manager = (DLLDebugManager)target;
+            if (EditorGUI.EndChangeCheck())
+            {
+                manager.ApplyActivityProjectionSettings();
+            }
+
+            EditorGUILayout.HelpBox("Activity projection settings are used the next time a projection is created. " + "Relaunch the projection after changing them; the current projection is not rebuilt automatically.", MessageType.Info);
             m_DLLObjectsPanelOpen = EditorGUILayout.Foldout(m_DLLObjectsPanelOpen, "DLL Objects");
             if (m_DLLObjectsPanelOpen)
             {
-                DLLDebugManager manager = (DLLDebugManager)target;
                 var list = manager.DLLObjects.OrderBy(t => t.Type).ThenBy(t => t.CleanedBy).ToList();
                 GUIStyle normalStyle = new(EditorStyles.textField);
                 GUIStyle cleanedByGCStyle = new(EditorStyles.textField);
@@ -41,6 +49,7 @@ namespace HBP.Core.DLL
                             styleToUse = normalStyle;
                             break;
                     }
+
                     EditorGUILayout.BeginHorizontal();
                     GUILayout.Label(item.Type, styleToUse);
                     GUILayout.Label(item.ID.ToString(), styleToUse, GUILayout.MaxWidth(100));
@@ -49,11 +58,14 @@ namespace HBP.Core.DLL
                         m_LastClickedObject = item;
                         Debug.Log(item.StackTrace);
                     }
+
                     EditorGUILayout.EndHorizontal();
                 }
+
                 EditorGUILayout.EndVertical();
             }
-            if(GUILayout.Button("GC Collect"))
+
+            if (GUILayout.Button("GC Collect"))
             {
                 System.GC.Collect();
             }

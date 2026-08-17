@@ -10,11 +10,14 @@ namespace HBP.UI.Main
     public class GroupSelector : ObjectSelector<Core.Data.Group>
     {
         #region Properties
+
         [SerializeField] GroupList m_List;
+
         /// <summary>
         /// UI groups list.
         /// </summary>
         protected override SelectableList<Core.Data.Group> List => m_List;
+
         #endregion
     }
 }

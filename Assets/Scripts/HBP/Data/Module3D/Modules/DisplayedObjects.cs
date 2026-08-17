@@ -10,35 +10,33 @@ namespace HBP.Data.Module3D
     public class DisplayedObjects : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
 
         [SerializeField] private Transform m_BrainSurfaceMeshesParent;
+
         /// <summary>
         /// Parent of surface meshes
         /// </summary>
         public Transform BrainSurfaceMeshesParent
         {
-            get
-            {
-                return m_BrainSurfaceMeshesParent;
-            }
-            set
-            {
-                m_BrainSurfaceMeshesParent = value;
-            }
+            get { return m_BrainSurfaceMeshesParent; }
+            set { m_BrainSurfaceMeshesParent = value; }
         }
-        
+
         /// <summary>
         /// Parent of the cut meshes
         /// </summary>
         [SerializeField] private Transform m_BrainCutMeshesParent;
+
         /// <summary>
         /// Parent of the sites
         /// </summary>
         [SerializeField] private Transform m_SitesMeshesParent;
+
         /// <summary>
         /// List of every patient parents for the sites
         /// </summary>
@@ -48,14 +46,17 @@ namespace HBP.Data.Module3D
         /// Mesh of the brain surface
         /// </summary>
         public GameObject Brain { get; private set; }
+
         /// <summary>
         /// Meshes of the cuts
         /// </summary>
         public List<GameObject> BrainCutMeshes { get; private set; } = new List<GameObject>();
+
         /// <summary>
         /// Mesh of the invisible surface
         /// </summary>
         public GameObject InvisibleBrain { get; private set; }
+
         /// <summary>
         /// Mesh of the simplified brain
         /// </summary>
@@ -70,37 +71,46 @@ namespace HBP.Data.Module3D
         /// Prefab for the 3D brain mesh part
         /// </summary>
         [SerializeField] private GameObject m_BrainPrefab;
+
         /// <summary>
         /// Prefab for the 3D simplified brain mesh
         /// </summary>
         [SerializeField] private GameObject m_SimplifiedBrainPrefab;
+
         /// <summary>
         /// Prefab for the 3D invisible brain mesh
         /// </summary>
         [SerializeField] private GameObject m_InvisibleBrainPrefab;
+
         /// <summary>
         /// Prefab for the 3D cut
         /// </summary>
         [SerializeField] private GameObject m_CutPrefab;
+
         /// <summary>
         /// Prefab for the 3D site
         /// </summary>
         [SerializeField] private GameObject m_SitePrefab;
+
         /// <summary>
         /// Prefab for the ROI
         /// </summary>
         [SerializeField] private GameObject m_ROIPrefab;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             // Mark brain mesh as dynamic
             m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Instantiate the gameObjects responsible for the invisible brain
         /// </summary>
@@ -112,10 +122,11 @@ namespace HBP.Data.Module3D
 
             InvisibleBrain = Instantiate(m_InvisibleBrainPrefab, BrainSurfaceMeshesParent);
             InvisibleBrain.layer = LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
-            InvisibleBrain.transform.localScale = new Vector3(-1, 1, 1);
+            InvisibleBrain.transform.localScale = Vector3.one;
             InvisibleBrain.transform.localPosition = new Vector3(0, 0, 0);
             InvisibleBrain.SetActive(visible);
         }
+
         /// <summary>
         /// Instantiate all the gameObjects representing the sites on the scene
         /// </summary>
@@ -126,6 +137,7 @@ namespace HBP.Data.Module3D
             {
                 Destroy(sitePatient.gameObject);
             }
+
             SitesPatientParent = new List<GameObject>();
 
             if (implantation == null) return;
@@ -148,6 +160,7 @@ namespace HBP.Data.Module3D
                     electrodeGameObject.transform.localPosition = Vector3.zero;
                     electrodeTransforms.Add(electrode, electrodeGameObject.transform);
                 }
+
                 // Instantiate sites
                 foreach (var siteInfo in implantation.GetSitesOfPatient(patient))
                 {
@@ -179,8 +192,10 @@ namespace HBP.Data.Module3D
             {
                 column.UpdateSites(implantation, SitesPatientParent);
             }
+
             m_Scene.ROIManager.UpdateROIMasks();
         }
+
         /// <summary>
         /// Instantiate the brain mesh
         /// </summary>
@@ -196,6 +211,7 @@ namespace HBP.Data.Module3D
             Brain.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             Brain.SetActive(true);
         }
+
         /// <summary>
         /// Instantiate the simplified brain mesh
         /// </summary>
@@ -209,6 +225,7 @@ namespace HBP.Data.Module3D
             SimplifiedBrain.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             SimplifiedBrain.SetActive(true);
         }
+
         /// <summary>
         /// Instantiate the gameObject for a new cut in the scene
         /// </summary>
@@ -220,6 +237,7 @@ namespace HBP.Data.Module3D
             cut.transform.localPosition = Vector3.zero;
             BrainCutMeshes.Add(cut);
         }
+
         /// <summary>
         /// Instantiate a ROI on the scene
         /// </summary>
@@ -228,6 +246,7 @@ namespace HBP.Data.Module3D
         {
             return Instantiate(m_ROIPrefab, m_ROIParent).GetComponent<ROI>();
         }
+
         #endregion
     }
 }

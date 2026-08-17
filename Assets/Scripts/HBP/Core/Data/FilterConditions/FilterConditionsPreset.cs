@@ -10,34 +10,43 @@ namespace HBP.Core.Data
     public class FilterConditionsPreset : BaseData
     {
         #region Properties
+
         [JsonProperty] public string Name { get; set; }
         [JsonProperty] public List<BaseFilterCondition> Conditions { get; set; }
+
         #endregion
 
         #region Constructors
+
         public FilterConditionsPreset() : this("", new List<BaseFilterCondition>())
         {
         }
+
         public FilterConditionsPreset(IEnumerable<BaseFilterCondition> conditions) : this("", conditions)
         {
         }
+
         public FilterConditionsPreset(string name, IEnumerable<BaseFilterCondition> conditions) : base()
         {
             Name = name;
             Conditions = conditions.ToList();
         }
+
         public FilterConditionsPreset(string name, IEnumerable<BaseFilterCondition> conditions, string ID) : base(ID)
         {
             Name = name;
             Conditions = conditions.ToList();
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new FilterConditionsPreset(Name, Conditions.DeepClone(), ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -47,6 +56,7 @@ namespace HBP.Core.Data
                 Conditions = filterGroup.Conditions.DeepClone().ToList();
             }
         }
+
         #endregion
     }
 }

@@ -10,6 +10,7 @@ namespace HBP.Core.Tools
         {
             Types = new Type[] { typeof(object) };
         }
+
         public TypedAttribute(params Type[] type)
         {
             Types = type;

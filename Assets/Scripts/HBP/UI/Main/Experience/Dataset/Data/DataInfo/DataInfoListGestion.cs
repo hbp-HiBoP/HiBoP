@@ -1,46 +1,28 @@
 ﻿using UnityEngine;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using HBP.UI.Tools.Lists;
 using HBP.UI.Tools;
-using Cysharp.Threading.Tasks;
 using System;
-using HBP.Core.Tools;
 
 namespace HBP.UI.Main
 {
     public class DataInfoListGestion : ListGestion<Core.Data.DataInfo>
     {
         #region Properties
+
         [SerializeField] protected DataInfoList m_List;
         public override ActionableList<Core.Data.DataInfo> List => m_List;
 
         [SerializeField] protected DataInfoCreator m_ObjectCreator;
         public override ObjectCreator<Core.Data.DataInfo> ObjectCreator => m_ObjectCreator;
-        #endregion
 
-        #region Public Methods
-        public async UniTask UpdateAllObjectsAsync(Action<float, float, LoadingText> updateProgress)
-        {
-            Core.Data.DataInfo[] dataInfos = List.Objects.ToArray();
-            int count = 0;
-            updateProgress.Invoke(0, 0, new LoadingText("Checking dataset"));
-            foreach (var obj in dataInfos)
-            {
-                await UniTask.SwitchToThreadPool();
-                obj.CheckErrorsAndWarnings(true);
-                await UniTask.SwitchToMainThread();
-                List.UpdateObject(obj);
-                count++;
-                updateProgress.Invoke((float)count / dataInfos.Length, 0, new LoadingText("Checking dataset", " ", $"{count}/{dataInfos.Length}"));
-            }
-        }
         #endregion
 
         #region Protected Methods
+
         protected override void OnSaveModifier(Core.Data.DataInfo obj)
         {
-            obj.CheckErrorsAndWarnings(true);
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {
@@ -51,9 +33,11 @@ namespace HBP.UI.Main
                 List.UpdateObject(obj);
             }
         }
+
         protected override void OnObjectCreated(Core.Data.DataInfo obj)
         {
-            obj.CheckErrorsAndWarnings();
+            obj.PendingValidationRequest = new Core.Data.ValidationRequest(Core.Data.ValidationAspect.DataInfoAll, dataInfoIDs: new[] { obj.ID }, force: true);
+            obj.MarkValidationStale(Core.Data.ValidationAspect.DataInfoAll);
             RenameObject(obj);
             if (!List.Objects.Contains(obj))
             {
@@ -63,8 +47,10 @@ namespace HBP.UI.Main
             {
                 List.UpdateObject(obj);
             }
+
             HasBeenModified = true;
         }
+
         private void RenameObject(Core.Data.DataInfo obj)
         {
             if (obj is Core.Data.IEEGDataInfo ieegDataInfo)
@@ -79,6 +65,7 @@ namespace HBP.UI.Main
                         count++;
                         name = string.Format("{0}({1})", obj.Name, count);
                     }
+
                     obj.Name = name;
                 }
             }
@@ -94,6 +81,7 @@ namespace HBP.UI.Main
                         count++;
                         name = string.Format("{0}({1})", obj.Name, count);
                     }
+
                     obj.Name = name;
                 }
             }
@@ -109,6 +97,7 @@ namespace HBP.UI.Main
                         count++;
                         name = string.Format("{0}({1})", obj.Name, count);
                     }
+
                     obj.Name = name;
                 }
             }
@@ -124,6 +113,7 @@ namespace HBP.UI.Main
                         count++;
                         name = string.Format("{0}({1})", obj.Name, count);
                     }
+
                     obj.Name = name;
                 }
             }
@@ -138,10 +128,12 @@ namespace HBP.UI.Main
                         count++;
                         name = string.Format("{0}({1})", obj.Name, count);
                     }
+
                     obj.Name = name;
                 }
             }
         }
+
         #endregion
     }
 }

@@ -7,10 +7,13 @@ namespace HBP.UI.Toolbar
     public class ExportActivityToNifti : Tool
     {
         #region Properties
+
         [SerializeField] private Button m_OpenWindowButton;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -20,9 +23,10 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                WindowsManager.Open("Export activity to nifti window", null);
+                ToolbarExternalActions.OpenWindow("Export activity to nifti window");
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -30,6 +34,7 @@ namespace HBP.UI.Toolbar
         {
             m_OpenWindowButton.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -39,6 +44,7 @@ namespace HBP.UI.Toolbar
 
             m_OpenWindowButton.interactable = isGeneratorUpToDate;
         }
+
         #endregion
     }
 }

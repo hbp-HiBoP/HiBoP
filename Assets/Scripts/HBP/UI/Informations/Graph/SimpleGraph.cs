@@ -13,13 +13,12 @@ namespace HBP.UI.Informations.Graphs
     public class SimpleGraph : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private string m_Title;
+
         public string Title
         {
-            get
-            {
-                return m_Title;
-            }
+            get { return m_Title; }
             set
             {
                 if (SetPropertyUtility.SetClass(ref m_Title, value))
@@ -30,12 +29,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Color m_FontColor;
+
         public Color FontColor
         {
-            get
-            {
-                return m_FontColor;
-            }
+            get { return m_FontColor; }
             set
             {
                 if (SetPropertyUtility.SetColor(ref m_FontColor, value))
@@ -46,12 +43,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Color m_BackgroundColor;
+
         public Color BackgroundColor
         {
-            get
-            {
-                return m_BackgroundColor;
-            }
+            get { return m_BackgroundColor; }
             set
             {
                 if (SetPropertyUtility.SetColor(ref m_BackgroundColor, value))
@@ -62,12 +57,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Vector2 m_OrdinateDisplayRange;
+
         public Vector2 OrdinateDisplayRange
         {
-            get
-            {
-                return m_OrdinateDisplayRange;
-            }
+            get { return m_OrdinateDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
@@ -78,12 +71,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] private Vector2 m_AbscissaDisplayRange;
+
         public Vector2 AbscissaDisplayRange
         {
-            get
-            {
-                return m_AbscissaDisplayRange;
-            }
+            get { return m_AbscissaDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
@@ -94,12 +85,10 @@ namespace HBP.UI.Informations.Graphs
         }
 
         [SerializeField] bool m_IsSelected = false;
+
         public bool IsSelected
         {
-            get
-            {
-                return m_IsSelected;
-            }
+            get { return m_IsSelected; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_IsSelected, value))
@@ -112,81 +101,69 @@ namespace HBP.UI.Informations.Graphs
         public ChannelStruct ChannelStruct { get; set; }
 
         [SerializeField] List<Graph.Curve> m_Curves = new();
+
         public ReadOnlyCollection<Graph.Curve> Curves
         {
-            get
-            {
-                return new ReadOnlyCollection<Graph.Curve>(m_Curves);
-            }
+            get { return new ReadOnlyCollection<Graph.Curve>(m_Curves); }
         }
+
         #endregion
 
         #region Events
-        [SerializeField] private StringEvent m_OnChangeTitle;
+
+        [SerializeField] private StringEvent m_OnChangeTitle = new();
+
         public StringEvent OnChangeTitle
         {
-            get
-            {
-                return m_OnChangeTitle;
-            }
+            get { return m_OnChangeTitle; }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeFontColor;
+        [SerializeField] private ColorEvent m_OnChangeFontColor = new();
+
         public ColorEvent OnChangeFontColor
         {
-            get
-            {
-                return m_OnChangeFontColor;
-            }
+            get { return m_OnChangeFontColor; }
         }
 
-        [SerializeField] private ColorEvent m_OnChangeBackgroundColor;
+        [SerializeField] private ColorEvent m_OnChangeBackgroundColor = new();
+
         public ColorEvent OnChangeBackgroundColor
         {
-            get
-            {
-                return m_OnChangeBackgroundColor;
-            }
+            get { return m_OnChangeBackgroundColor; }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange = new();
+
         public Vector2Event OnChangeOrdinateDisplayRange
         {
-            get
-            {
-                return m_OnChangeOrdinateDisplayRange;
-            }
+            get { return m_OnChangeOrdinateDisplayRange; }
         }
 
-        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+        [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange = new();
+
         public Vector2Event OnChangeAbscissaDisplayRange
         {
-            get
-            {
-                return m_OnChangeAbscissaDisplayRange;
-            }
+            get { return m_OnChangeAbscissaDisplayRange; }
         }
 
-        [SerializeField] private Graph.CurvesEvent m_OnChangeCurves;
+        [SerializeField] private Graph.CurvesEvent m_OnChangeCurves = new();
+
         public Graph.CurvesEvent OnChangeCurves
         {
-            get
-            {
-                return m_OnChangeCurves;
-            }
+            get { return m_OnChangeCurves; }
         }
-        
-        [SerializeField] private BoolEvent m_OnChangeSelected;
+
+        [SerializeField] private BoolEvent m_OnChangeSelected = new();
+
         public BoolEvent OnChangeSelected
         {
-            get
-            {
-                return m_OnChangeSelected;
-            }
+            get { return m_OnChangeSelected; }
         }
+
         #endregion
 
         #region Public Methods
+
         public void SetEnabled(string id, bool enabled)
         {
             Graph.Curve curveFound = FindCurve(id);
@@ -194,23 +171,28 @@ namespace HBP.UI.Informations.Graphs
             {
                 curveFound.Enabled = enabled;
             }
+
             SetCurves();
         }
+
         public void UpdateCurve(string id)
         {
             Graph.Curve curveFound = FindCurve(id);
         }
+
         public void AddCurve(Graph.Curve curve)
         {
             m_Curves.Add(curve);
             AddListenerOnChangeDataEvent(curve);
             SetCurves();
         }
+
         public void RemoveCurve(Graph.Curve curve)
         {
             m_Curves.Remove(curve);
             SetCurves();
         }
+
         public void SetCurves(Graph.Curve[] curves)
         {
             m_Curves = new List<Graph.Curve>(curves);
@@ -218,13 +200,16 @@ namespace HBP.UI.Informations.Graphs
             {
                 AddListenerOnChangeDataEvent(curve);
             }
+
             SetCurves();
         }
+
         public void ClearCurves()
         {
             m_Curves = new List<Graph.Curve>();
             SetCurves();
         }
+
         public string ToSVG()
         {
             System.Globalization.CultureInfo oldCulture = System.Globalization.CultureInfo.CurrentCulture;
@@ -244,31 +229,35 @@ namespace HBP.UI.Informations.Graphs
                 if (curve is ShapedCurveData shapedCurve)
                 {
                     builder = new System.Text.StringBuilder();
-                    for (int i = 0; i < shapedCurve.Points.Length; ++i)
+                    for (int i = 0; i < shapedCurve.Count; ++i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y + (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                     }
-                    for (int i = shapedCurve.Points.Length - 1; i >= 0; --i)
+
+                    for (int i = shapedCurve.Count - 1; i >= 0; --i)
                     {
-                        Vector2 point = shapedCurve.Points[i];
+                        Vector2 point = shapedCurve.GetPoint(i);
                         Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                         localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y - (shapedCurve.Shapes[i] * ratio.y) / 2);
                         builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                     }
+
                     svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:" + curve.Color.ToHexString() + ";stroke-width:0;fill-opacity:0.5\"/>");
                 }
 
                 // Write curve
                 builder = new System.Text.StringBuilder();
-                foreach (var point in curve.Points)
+                for (int i = 0; i < curve.Count; i++)
                 {
+                    Vector2 point = curve.GetPoint(i);
                     Vector2 localPoint = point.GetLocalPosition(limits.Origin, ratio);
                     localPoint = new Vector2(localPoint.x + curveViewport.x, localPoint.y - curveViewport.y);
                     builder.Append(localPoint.x + "," + (curveViewport.height - localPoint.y).ToString() + " ");
                 }
+
                 svgBuilder.AppendLine("<path d=\"M " + builder.ToString() + "\" style=\"" + "fill:none;stroke:" + curve.Color.ToHexString() + ";stroke-width:" + curve.Thickness + "\"/>");
                 svgBuilder.AppendLine("</g>");
             }
@@ -288,6 +277,7 @@ namespace HBP.UI.Informations.Graphs
                         coef /= 10;
                         normalizedStep *= 10;
                     }
+
                     while (normalizedStep > 10)
                     {
                         float tempResult;
@@ -318,6 +308,7 @@ namespace HBP.UI.Informations.Graphs
                         coef *= 10;
                         normalizedStep /= 10;
                     }
+
                     if (normalizedStep > 1 && normalizedStep <= 5)
                     {
                         normalizedStep = 5;
@@ -326,6 +317,7 @@ namespace HBP.UI.Informations.Graphs
                     {
                         normalizedStep = 10;
                     }
+
                     float step = normalizedStep * coef;
 
                     int division = Mathf.FloorToInt(min / step);
@@ -338,8 +330,10 @@ namespace HBP.UI.Informations.Graphs
                         value += step;
                     }
                 }
+
                 return values;
             }
+
             // Title
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y / 2).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:50\">" + Title + "</text>");
@@ -358,6 +352,7 @@ namespace HBP.UI.Informations.Graphs
                 svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 40).ToString() + "\" y=\"" + position + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
                 svgBuilder.AppendLine("</g>");
             }
+
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x - 100).ToString() + "\" y=\"" + (curveViewport.y + (curveViewport.height / 2)).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" transform=\"rotate(-90 " + (curveViewport.x - 100).ToString() + "," + (curveViewport.y + (curveViewport.height / 2)).ToString() + ")\" style=\"font-size:30\">" + string.Format("{0} ({1})", "Activity", "µV") + "</text>");
@@ -377,6 +372,7 @@ namespace HBP.UI.Informations.Graphs
                 svgBuilder.AppendLine("<text x=\"" + position + "\" y=\"" + (curveViewport.y + curveViewport.height + 30).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + value + "</text>");
                 svgBuilder.AppendLine("</g>");
             }
+
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("<g>");
             svgBuilder.AppendLine("<text x=\"" + (curveViewport.x + (curveViewport.width / 2)).ToString() + "\" y=\"" + (curveViewport.y + curveViewport.height + 70).ToString() + "\" text-anchor=\"middle\" dy=\".3em\" style=\"font-size:30\">" + string.Format("{0} ({1})", "Latency", "ms") + "</text>");
@@ -397,21 +393,26 @@ namespace HBP.UI.Informations.Graphs
                 svgBuilder.AppendLine("</g>");
                 id++;
             }
+
             svgBuilder.AppendLine("</g>");
             svgBuilder.AppendLine("</svg>");
             System.Globalization.CultureInfo.CurrentCulture = oldCulture;
             return svgBuilder.ToString();
         }
+
         #endregion
 
         #region Private Methods
+
         private void Start()
         {
             OnValidate();
         }
+
         #endregion
 
         #region Setters
+
         void OnValidate()
         {
             SetTitle();
@@ -421,30 +422,37 @@ namespace HBP.UI.Informations.Graphs
             SetAbscissaDisplayRange();
             SetCurves();
         }
+
         void SetTitle()
         {
             m_OnChangeTitle.Invoke(m_Title);
         }
+
         void SetFontColor()
         {
             m_OnChangeFontColor.Invoke(m_FontColor);
         }
+
         void SetBackgroundColor()
         {
             m_OnChangeBackgroundColor.Invoke(m_BackgroundColor);
         }
+
         void SetOrdinateDisplayRange()
         {
             m_OnChangeOrdinateDisplayRange.Invoke(m_OrdinateDisplayRange);
         }
+
         void SetAbscissaDisplayRange()
         {
             m_OnChangeAbscissaDisplayRange.Invoke(m_AbscissaDisplayRange);
         }
+
         void SetCurves()
         {
             m_OnChangeCurves.Invoke(m_Curves.ToArray());
         }
+
         List<Graph.Curve> GetAllCurves(IEnumerable<Graph.Curve> curves)
         {
             if (curves.Count() == 0) return new List<Graph.Curve>();
@@ -455,8 +463,10 @@ namespace HBP.UI.Informations.Graphs
                 result.Add(curve);
                 result.AddRange(GetAllCurves(curve.SubCurves));
             }
+
             return result;
         }
+
         Graph.Curve FindCurve(string ID)
         {
             Graph.Curve result = null;
@@ -465,8 +475,10 @@ namespace HBP.UI.Informations.Graphs
                 result = FindCurve(curve, ID);
                 if (result != null) break;
             }
+
             return result;
         }
+
         Graph.Curve FindCurve(Graph.Curve curve, string ID)
         {
             Graph.Curve result = null;
@@ -482,8 +494,10 @@ namespace HBP.UI.Informations.Graphs
                     if (result != null) break;
                 }
             }
+
             return result;
         }
+
         void AddListenerOnChangeDataEvent(Graph.Curve curve)
         {
             curve.OnChangeData.AddListener(SetCurves);
@@ -492,6 +506,7 @@ namespace HBP.UI.Informations.Graphs
                 AddListenerOnChangeDataEvent(subCurve);
             }
         }
+
         #endregion
     }
 }

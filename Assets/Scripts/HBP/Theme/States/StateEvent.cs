@@ -3,5 +3,7 @@
 namespace HBP.Theme
 {
     [System.Serializable]
-    public class StateEvent : UnityEvent<State> { }
+    public class StateEvent : UnityEvent<State>
+    {
+    }
 }

@@ -10,41 +10,62 @@ namespace HBP.UI.Toolbar
     public class ThresholdIEEG : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Texture to be applied to the image
         /// </summary>
         private Texture2D m_IEEGHistogram;
+
         /// <summary>
         /// Minimum Span value
         /// </summary>
         private float m_SpanMinFactor = 0.0f;
-        private float SpanMin { get { return m_SpanMinFactor * m_Amplitude + m_MinAmplitude; } }
+
+        private float SpanMin
+        {
+            get { return m_SpanMinFactor * m_Amplitude + m_MinAmplitude; }
+        }
+
         /// <summary>
         /// Middle Span value
         /// </summary>
         private float m_MiddleFactor = 0.5f;
-        private float Middle { get { return m_MiddleFactor * m_Amplitude + m_MinAmplitude; } }
+
+        private float Middle
+        {
+            get { return m_MiddleFactor * m_Amplitude + m_MinAmplitude; }
+        }
+
         /// <summary>
         /// Maximum Span value
         /// </summary>
         private float m_SpanMaxFactor = 1.0f;
-        private float SpanMax { get { return m_SpanMaxFactor * m_Amplitude + m_MinAmplitude; } }
+
+        private float SpanMax
+        {
+            get { return m_SpanMaxFactor * m_Amplitude + m_MinAmplitude; }
+        }
+
         /// <summary>
         /// Minimum value
         /// </summary>
         private float m_MinAmplitude = float.MinValue;
+
         /// <summary>
         /// Maximum value
         /// </summary>
         private float m_MaxAmplitude = float.MaxValue;
+
         /// <summary>
         /// Amplitude
         /// </summary>
         private float m_Amplitude = 1.0f;
+
         /// <summary>
         /// Is the module initialized ?
         /// </summary>
         private bool m_Initialized = false;
+
         /// <summary>
         /// Textures of the histograms (iEEG: one per column; CCEP: one per column per selected source))
         /// </summary>
@@ -56,60 +77,75 @@ namespace HBP.UI.Toolbar
         /// Used to display the current histogram
         /// </summary>
         [SerializeField] private RawImage m_Histogram;
+
         /// <summary>
         /// Used to set the thresholds either with min/middle/max (assymmetry) or middle/amplitude (symmetry)
         /// </summary>
         [SerializeField] private Toggle m_SymmetryToggle;
+
         /// <summary>
         /// Text field for the min value
         /// </summary>
         [SerializeField] private Text m_MinText;
+
         /// <summary>
         /// Text field for the max value
         /// </summary>
         [SerializeField] private Text m_MaxText;
+
         /// <summary>
         /// Input field for the span min value
         /// </summary>
         [SerializeField] private InputField m_SpanMinInput;
+
         /// <summary>
         /// Input field for the middle value
         /// </summary>
         [SerializeField] private InputField m_MiddleInput;
+
         /// <summary>
         /// Input field for the span max value
         /// </summary>
         [SerializeField] private InputField m_SpanMaxInput;
+
         /// <summary>
         /// Input field for the amplitude
         /// </summary>
         [SerializeField] private InputField m_AmplitudeInput;
+
         /// <summary>
         /// Zone in which the handlers can move
         /// </summary>
         [SerializeField] private RectTransform m_HandlerZone;
+
         /// <summary>
         /// Handler responsible for the minimum value
         /// </summary>
         [SerializeField] private ThresholdHandler m_MinHandler;
+
         /// <summary>
         /// Handler responsible for the middle value
         /// </summary>
         [SerializeField] private ThresholdHandler m_MidHandler;
+
         /// <summary>
         /// Handler responsible for the maximum value
         /// </summary>
         [SerializeField] private ThresholdHandler m_MaxHandler;
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when changing at least one of the three threshold values
         /// </summary>
         public GenericEvent<float, float, float> OnChangeValues = new();
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Update IEEG Histogram Texture
         /// </summary>
@@ -119,26 +155,28 @@ namespace HBP.UI.Toolbar
             string histogramID = GenerateHistogramID(column);
             if (!m_Histograms.TryGetValue(histogramID, out m_IEEGHistogram))
             {
-                float[] iEEGValues = column.ActivityValuesOfUnmaskedSites;
                 if (!m_IEEGHistogram)
                 {
                     m_IEEGHistogram = new Texture2D(1, 1);
                 }
-                if (iEEGValues.Length > 0)
+
+                if (column.ActivityStatistics.Count > 0)
                 {
-                    Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
-                    texture.UpdateTexture2D(m_IEEGHistogram);
-                    texture.Dispose();
+                    int[] bins = column.GetUnmaskedHistogramBins(m_MinAmplitude, m_MaxAmplitude, UnityTextureFactory.HistogramBinCount);
+                    m_IEEGHistogram = UnityTextureFactory.GenerateDistributionHistogram(bins, 440, 440);
                 }
                 else
                 {
                     m_IEEGHistogram = Texture2D.blackTexture;
                 }
+
                 m_Histograms.Add(histogramID, m_IEEGHistogram);
             }
+
             m_Histogram.texture = m_IEEGHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         /// <summary>
         /// Update IEEG Histogram Texture
         /// </summary>
@@ -153,21 +191,23 @@ namespace HBP.UI.Toolbar
                 {
                     m_IEEGHistogram = new Texture2D(1, 1);
                 }
+
                 if (iEEGValues.Length > 0)
                 {
-                    Core.DLL.Texture texture = Core.DLL.Texture.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
-                    texture.UpdateTexture2D(m_IEEGHistogram);
-                    texture.Dispose();
+                    m_IEEGHistogram = UnityTextureFactory.GenerateDistributionHistogram(iEEGValues, 440, 440, m_MinAmplitude, m_MaxAmplitude);
                 }
                 else
                 {
                     m_IEEGHistogram = Texture2D.blackTexture;
                 }
+
                 m_Histograms.Add(histogramID, m_IEEGHistogram);
             }
+
             m_Histogram.texture = m_IEEGHistogram;
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         /// <summary>
         /// Update IEEG Histogram for FMRIManager (Localizers case)
         /// </summary>
@@ -175,21 +215,30 @@ namespace HBP.UI.Toolbar
         {
             UnityEngine.Profiling.Profiler.BeginSample("LOCALIZERS HISTOGRAM");
             var currentFMRI = manager.CurrentFMRI;
-            if (currentFMRI != null && currentFMRI.HistogramTexture != null)
+            if (currentFMRI != null && currentFMRI.HistogramBins != null)
             {
                 if (!m_IEEGHistogram)
                 {
                     m_IEEGHistogram = new Texture2D(1, 1);
                 }
-                currentFMRI.HistogramTexture.UpdateTexture2D(m_IEEGHistogram);
+
+                UnityTextureFactory.UpdateDistributionHistogram(m_IEEGHistogram, currentFMRI.HistogramBins, 440, 440, false);
                 m_Histogram.texture = m_IEEGHistogram;
             }
             else
             {
-                m_Histogram.texture = Texture2D.blackTexture;
+                if (!m_IEEGHistogram)
+                {
+                    m_IEEGHistogram = new Texture2D(1, 1);
+                }
+
+                UnityTextureFactory.UpdateSolidTexture(m_IEEGHistogram, 440, 440, new Color32(0, 0, 0, 255));
+                m_Histogram.texture = m_IEEGHistogram;
             }
+
             UnityEngine.Profiling.Profiler.EndSample();
         }
+
         /// <summary>
         /// Set the values of the threshold
         /// </summary>
@@ -224,6 +273,7 @@ namespace HBP.UI.Toolbar
                 OnChangeValues.Invoke(SpanMin, Middle, SpanMax);
             }
         }
+
         /// <summary>
         /// Generate a unique histogram ID for the column
         /// </summary>
@@ -237,11 +287,14 @@ namespace HBP.UI.Toolbar
                 if (columnCCEP.IsSourceSiteSelected) histogramID += columnCCEP.SelectedSourceSite.Information.Name;
                 else if (columnCCEP.IsSourceMarsAtlasLabelSelected) histogramID += columnCCEP.SelectedSourceMarsAtlasLabel;
             }
+
             return histogramID;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize this module
         /// </summary>
@@ -376,6 +429,7 @@ namespace HBP.UI.Toolbar
                 }
             });
         }
+
         /// <summary>
         /// Update IEEG values
         /// </summary>
@@ -398,6 +452,7 @@ namespace HBP.UI.Toolbar
 
             m_Initialized = true;
         }
+
         /// <summary>
         /// Update IEEG values
         /// </summary>
@@ -420,6 +475,7 @@ namespace HBP.UI.Toolbar
 
             m_Initialized = true;
         }
+
         public void UpdateIEEGValues(FMRIManager manager)
         {
             m_Initialized = false;
@@ -442,6 +498,7 @@ namespace HBP.UI.Toolbar
 
             m_Initialized = true;
         }
+
         /// <summary>
         /// Method used to clean useless histograms
         /// </summary>
@@ -457,6 +514,7 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
     }
 }

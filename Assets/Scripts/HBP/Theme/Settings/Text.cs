@@ -6,6 +6,7 @@ namespace HBP.Theme
     public class Text : Settings
     {
         #region Properties
+
         // Character.
         public Font Font;
         public FontStyle FontStyle;
@@ -21,14 +22,15 @@ namespace HBP.Theme
         //public bool BestFit;
         //public Color Color;
         public Material Material;
+
         #endregion
 
         #region Public Methods
+
         public override void Set(GameObject gameObject)
         {
-            
             UnityEngine.UI.Text text = gameObject.GetComponent<UnityEngine.UI.Text>();
-            if(text)
+            if (text)
             {
                 text.font = Font;
                 text.fontStyle = FontStyle;
@@ -44,6 +46,7 @@ namespace HBP.Theme
                 text.material = Material;
             }
         }
+
         #endregion
     }
 }

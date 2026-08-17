@@ -10,9 +10,10 @@ namespace HBP.UI.Main
     /// <summary>
     /// Window to modify a protocol.
     /// </summary>
-	public class ProtocolModifier : ObjectModifier<Protocol>
+    public class ProtocolModifier : ObjectModifier<Protocol>
     {
         #region Properties
+
         [SerializeField] Toggle m_BasicProtocolTabToggle;
         [SerializeField] Toggle m_AdvancedProtocolTabToggle;
         [SerializeField] BasicProtocolSubModifier m_BasicProtocolSubModifier;
@@ -35,10 +36,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -48,14 +46,17 @@ namespace HBP.UI.Main
                 m_AdvancedProtocolSubModifier.Interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void OK()
         {
             if (m_BasicProtocolSubModifier.gameObject.activeSelf) m_ObjectTemp.SetBasicProtocolFeatures();
             base.OK();
         }
+
         public async void OnChangeBasicToggle(bool value)
         {
             if (!value || m_IsChangingTab) return;
@@ -78,6 +79,7 @@ namespace HBP.UI.Main
 
             Refresh();
         }
+
         public async void OnChangeAdvancedToggle(bool value)
         {
             if (!value || m_IsChangingTab) return;
@@ -99,9 +101,11 @@ namespace HBP.UI.Main
 
             Refresh();
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -117,6 +121,7 @@ namespace HBP.UI.Main
             m_AdvancedProtocolSubModifier.WindowsReferencer.OnOpenWindow.AddListener(WindowsReferencer.Add);
             m_AdvancedProtocolSubModifier.WindowsReferencer.OnCloseWindow.AddListener(WindowsReferencer.Remove);
         }
+
         /// <summary>
         /// Set the fields
         /// </summary>
@@ -128,6 +133,7 @@ namespace HBP.UI.Main
             m_BasicProtocolSubModifier.Object = objectToDisplay;
             m_AdvancedProtocolSubModifier.Object = objectToDisplay;
         }
+
         protected void SetDefaultEditionMode(Protocol protocol)
         {
             var isAdvanced = protocol.IsAdvanced;
@@ -136,6 +142,7 @@ namespace HBP.UI.Main
             m_AdvancedProtocolTabToggle.SetIsOnWithoutNotify(isAdvanced);
             m_AdvancedProtocolSubModifier.gameObject.SetActive(isAdvanced);
         }
+
         protected async UniTask<bool> CheckUnsavedChanges()
         {
             if (WindowsReferencer.Windows.Count > 0)
@@ -145,8 +152,10 @@ namespace HBP.UI.Main
 
                 WindowsReferencer.CloseAll();
             }
+
             return true;
         }
+
         protected async UniTask<bool> CheckAdvancedState()
         {
             if (m_ObjectTemp.IsAdvanced)
@@ -154,8 +163,10 @@ namespace HBP.UI.Main
                 var result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Change edition mode", "Switching to basic protocol may remove some advanced features (such as multiple sub-blocs, different windows for each sub-bloc or custom trials sorting methods).\n\nAre you sure you want to continue?", "Continue", "Cancel");
                 if (result == 1) return false;
             }
+
             return true;
         }
+
         #endregion
     }
 }

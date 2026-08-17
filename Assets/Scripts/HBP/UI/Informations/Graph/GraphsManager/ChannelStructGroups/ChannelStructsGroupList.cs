@@ -9,22 +9,35 @@ namespace HBP.UI.Informations
     public class ChannelStructsGroupList : ActionableList<ChannelStructsGroup>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Channels, DescendingChannels }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Channels,
+            DescendingChannels
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
         [SerializeField] SortingDisplayer m_ChannelsSortingDisplayer;
+
         #endregion
 
         #region Private Methods
+
         protected override void AddObject(ChannelStructsGroup objectToAdd)
         {
             SortByNone();
             base.AddObject(objectToAdd);
         }
+
         #endregion
 
         #region Sorting Methods
+
         public void SortByName(Sorting sorting)
         {
             switch (sorting)
@@ -40,9 +53,11 @@ namespace HBP.UI.Informations
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_ChannelsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByName()
         {
             switch (m_OrderBy)
@@ -58,6 +73,7 @@ namespace HBP.UI.Informations
                     break;
             }
         }
+
         public void SortByChannels(Sorting sorting)
         {
             switch (sorting)
@@ -73,9 +89,11 @@ namespace HBP.UI.Informations
                     m_ChannelsSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             Refresh();
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         public void SortByChannels()
         {
             switch (m_OrderBy)
@@ -91,12 +109,14 @@ namespace HBP.UI.Informations
                     break;
             }
         }
+
         public void SortByNone()
         {
             m_OrderBy = OrderBy.None;
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_ChannelsSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
         }
+
         #endregion
     }
 }

@@ -57,14 +57,16 @@ namespace HBP.Core.Data
     public class IEEGDataInfo : PatientDataInfo, IEpochable
     {
         #region Properties
+
         /// <summary>
         /// Normalization of the Data.
         /// </summary>
-        [JsonProperty("Normalization")]
-        public NormalizationType Normalization { get; set; }
+        [JsonProperty("Normalization")] public NormalizationType Normalization { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new iEEG dataInfo instance.
         /// </summary>
@@ -77,6 +79,7 @@ namespace HBP.Core.Data
         {
             Normalization = normalization;
         }
+
         /// <summary>
         /// Create a new iEEG dataInfo instance.
         /// </summary>
@@ -88,15 +91,18 @@ namespace HBP.Core.Data
         {
             Normalization = normalization;
         }
+
         /// <summary>
         /// Create a new iEEG dataInfo instance.
         /// </summary>
-        public IEEGDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, NormalizationType.Auto, "")
+        public IEEGDataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], null, NormalizationType.Auto, "")
         {
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -105,23 +111,134 @@ namespace HBP.Core.Data
         {
             return new IEEGDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, Normalization, CorrespondingDatabaseID, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is IEEGDataInfo iEEGdataInfo)
+            if (obj is IEEGDataInfo iEEGdataInfo)
             {
                 Normalization = iEEGdataInfo.Normalization;
             }
         }
+
         #endregion
 
         #region Private Methods
+
+        internal override IEnumerable<ValidationState> GetValidationStates(ValidationAspect aspect, ValidationRequest request, DataInfoValidationContext context)
+        {
+            if (aspect == ValidationAspect.Epoching)
+            {
+                return GetEpochingValidationStates(request, context);
+            }
+
+            if (aspect == ValidationAspect.ChannelMapping)
+            {
+                return GetChannelValidationStates(context);
+            }
+
+            return base.GetValidationStates(aspect, request, context);
+        }
+
+        private IEnumerable<ValidationState> GetEpochingValidationStates(ValidationRequest request, DataInfoValidationContext context)
+        {
+            if (Protocol == null)
+            {
+                return new[]
+                {
+                    CreateNotApplicableState(ValidationAspect.Epoching)
+                };
+            }
+
+            SubBloc[] subBlocs = Protocol.Blocs.SelectMany(bloc => bloc.SubBlocs).Where(subBloc => request.MatchesSubBloc(this, subBloc)).ToArray();
+            if (subBlocs.Length == 0)
+            {
+                return new[]
+                {
+                    CreateNotApplicableState(ValidationAspect.Epoching)
+                };
+            }
+
+            if (!subBlocs.Any(IsEpochable))
+            {
+                return subBlocs.Select(subBloc => CreateNotApplicableState(ValidationAspect.Epoching, subBloc.ID)).ToArray();
+            }
+
+            if (!context.TryGetEEGMetadata(out EEGValidationMetadata metadata, out Error error))
+            {
+                return new[]
+                {
+                    CreateValidationState(ValidationAspect.Epoching, string.Empty, context.SourceSignature, error == null ? Array.Empty<Error>() : new[] { error }, Array.Empty<Warning>())
+                };
+            }
+
+            HashSet<int> triggerCodes = new(metadata.TriggerCodes);
+            return subBlocs.Select(subBloc =>
+            {
+                if (!IsEpochable(subBloc))
+                {
+                    return CreateNotApplicableState(ValidationAspect.Epoching, subBloc.ID);
+                }
+
+                Event mainEvent = subBloc.MainEvent;
+                bool found = mainEvent != null && mainEvent.Codes.Any(triggerCodes.Contains);
+                return CreateValidationState(ValidationAspect.Epoching, subBloc.ID, GetEpochingSignature(context.SourceSignature, subBloc), Array.Empty<Error>(), found ? Array.Empty<Warning>() : new Warning[]
+                {
+                    new BlocsCantBeEpochedWarning($"{subBloc.Name} ({mainEvent?.Name ?? "no main event"})")
+                });
+            }).ToArray();
+        }
+
+        private static bool IsEpochable(SubBloc subBloc)
+        {
+            return subBloc.Window.Length > 0 && subBloc.MainEvent != null && subBloc.MainEvent.Codes.Count > 0;
+        }
+
+        private IEnumerable<ValidationState> GetChannelValidationStates(DataInfoValidationContext context)
+        {
+            if (Patient == null)
+            {
+                return new[]
+                {
+                    CreateNotApplicableState(ValidationAspect.ChannelMapping)
+                };
+            }
+
+            if (!context.TryGetEEGMetadata(out EEGValidationMetadata metadata, out Error error))
+            {
+                return new[]
+                {
+                    CreateValidationState(ValidationAspect.ChannelMapping, string.Empty, context.SourceSignature, error == null ? Array.Empty<Error>() : new[] { error }, Array.Empty<Warning>())
+                };
+            }
+
+            HashSet<string> channels = new(metadata.ChannelLabels, StringComparer.Ordinal);
+            bool hasMatch = Patient.Sites.Any(site => channels.Contains(site.Name));
+            return new[]
+            {
+                CreateValidationState(ValidationAspect.ChannelMapping, string.Empty, $"{context.SourceSignature}|{GetSiteSignature()}", Array.Empty<Error>(), hasMatch ? Array.Empty<Warning>() : new Warning[] { new NoMatchingSiteWarning() })
+            };
+        }
+
+        private static string GetEpochingSignature(string sourceSignature, SubBloc subBloc)
+        {
+            Event mainEvent = subBloc.MainEvent;
+            string codes = mainEvent == null ? string.Empty : string.Join(",", mainEvent.Codes.Distinct().OrderBy(code => code));
+            return $"{sourceSignature}|{subBloc.Type}|{mainEvent?.ID}|{codes}";
+        }
+
+        private string GetSiteSignature()
+        {
+            return string.Join("|", Patient.Sites.Select(site => site.Name ?? string.Empty).OrderBy(name => name, StringComparer.Ordinal));
+        }
+
         protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetiEEGErrors());
             return errors;
         }
+
         /// <summary>
         /// Get all dataInfo errors related to iEEG.
         /// </summary>
@@ -132,12 +249,14 @@ namespace HBP.Core.Data
             List<Error> errors = new();
             return errors;
         }
+
         protected override IEnumerable<Warning> GetWarnings()
         {
             List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetiEEGWarnings());
             return warnings;
         }
+
         private IEnumerable<Warning> GetiEEGWarnings()
         {
             List<Warning> warnings = new();
@@ -174,21 +293,25 @@ namespace HBP.Core.Data
                 {
                     throw new Exception("Invalid data container type");
                 }
-                DLL.EEG.File file = new(type, false, files);
+
+                using DLL.EEG.File file = new(type, false, files);
                 List<DLL.EEG.Trigger> triggers = file.Triggers;
                 if (Protocol.IsVisualizable && !Protocol.Blocs.All(bloc => bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))))
                 {
                     IEnumerable<string> blocsNotFound = Protocol.Blocs.Where(bloc => !bloc.MainSubBloc.MainEvent.Codes.Any(code => triggers.Any(t => t.Code == code))).Select(bloc => bloc.Name);
                     warnings.Add(new BlocsCantBeEpochedWarning(string.Join(", ", blocsNotFound)));
                 }
+
                 List<DLL.EEG.Electrode> electrodes = file.Electrodes;
                 if (Patient != null && !Patient.Sites.Any(s => electrodes.Any(e => e.Label == s.Name)))
                 {
                     warnings.Add(new NoMatchingSiteWarning());
                 }
-        }
+            }
+
             return warnings;
         }
+
         #endregion
     }
 }

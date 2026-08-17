@@ -18,109 +18,84 @@ namespace HBP.UI.Tools
     public class ObjectCreator<T> : MonoBehaviour where T : Core.Data.BaseData, new()
     {
         #region Properties
+
         [SerializeField] public bool m_IsLoadableFromFile = true;
+
         /// <summary>
         /// True if the Object of type T is creatable from a file, False otherwise.
         /// </summary>
         public bool IsCreatableFromFile
         {
-            get
-            {
-                return m_IsLoadableFromFile;
-            }
-            set
-            {
-                m_IsLoadableFromFile = value;
-            }
+            get { return m_IsLoadableFromFile; }
+            set { m_IsLoadableFromFile = value; }
         }
 
         [SerializeField] bool m_IsLoadableFromDatabase = true;
+
         /// <summary>
         /// True if the Object of type T is creatable from a database, False otherwise.
         /// </summary>
         public bool IsCreatableFromDatabase
         {
-            get
-            {
-                return m_IsLoadableFromDatabase;
-            }
-            set
-            {
-                m_IsLoadableFromDatabase = value;
-            }
+            get { return m_IsLoadableFromDatabase; }
+            set { m_IsLoadableFromDatabase = value; }
         }
 
         [SerializeField] bool m_IsLoadableFromDirectory = true;
+
         /// <summary>
         /// True if the Object of type T is creatable from a database, False otherwise.
         /// </summary>
         public bool IsCreatableFromDirectory
         {
-            get
-            {
-                return m_IsLoadableFromDirectory;
-            }
-            set
-            {
-                m_IsLoadableFromDirectory = value;
-            }
+            get { return m_IsLoadableFromDirectory; }
+            set { m_IsLoadableFromDirectory = value; }
         }
 
         [SerializeField] bool m_IsCreatableFromScratch = true;
+
         /// <summary>
         /// True if the Object of type T is creatable from scratch, False otherwise.
         /// </summary>
         public bool IsCreatableFromScratch
         {
-            get
-            {
-                return m_IsCreatableFromScratch;
-            }
-            set
-            {
-                m_IsCreatableFromScratch = value;
-            }
+            get { return m_IsCreatableFromScratch; }
+            set { m_IsCreatableFromScratch = value; }
         }
 
         [SerializeField] bool m_IsCreatableFromExistingObject = true;
+
         /// <summary>
         /// True if the Object of type T is creatable from a existing object of type T, False otherwise.
         /// </summary>
         public bool IsCreatableFromExistingObject
         {
-            get
-            {
-                return m_IsCreatableFromExistingObject;
-            }
-            set
-            {
-                m_IsCreatableFromExistingObject = value;
-            }
+            get { return m_IsCreatableFromExistingObject; }
+            set { m_IsCreatableFromExistingObject = value; }
         }
 
         [SerializeField] List<T> m_ExistingObjects = new();
+
         /// <summary>
         /// Existing objects to create a new object if is creatable from existing objects.
         /// </summary>
         public List<T> ExistingObjects
         {
-            get
-            {
-                return m_ExistingObjects;
-            }
-            set
-            {
-                m_ExistingObjects = value;
-            }
+            get { return m_ExistingObjects; }
+            set { m_ExistingObjects = value; }
         }
 
         public Func<T, bool> DatabaseFilterMethod { get; set; } = o => true;
 
         [SerializeField] protected WindowsReferencer m_WindowsReferencer = new();
+
         /// <summary>
         /// Windows references used to manage sub windows opened by the object creator.
         /// </summary>
-        public virtual WindowsReferencer WindowsReferencer { get => m_WindowsReferencer; }
+        public virtual WindowsReferencer WindowsReferencer
+        {
+            get => m_WindowsReferencer;
+        }
 
         [SerializeField] protected CreatorContextMenu m_CreatorContextMenu;
 
@@ -128,9 +103,11 @@ namespace HBP.UI.Tools
         /// Event raised when a new object is created.
         /// </summary>
         public UnityEvent<T> OnObjectCreated { get; protected set; } = new GenericEvent<T>();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Create a new object. Use a creator window to select the creation type if needed.
         /// </summary>
@@ -141,6 +118,7 @@ namespace HBP.UI.Tools
                 m_CreatorContextMenu.Close();
                 return;
             }
+
             bool createableFromScratch = IsCreatableFromScratch;
             bool createableFromFile = IsCreatableFromFile && typeof(T).GetInterfaces().Contains(typeof(ILoadable<T>));
             bool createableFromDatabase = IsCreatableFromDatabase && typeof(T).GetInterfaces().Contains(typeof(ILoadableFromDatabase<T>));
@@ -162,6 +140,7 @@ namespace HBP.UI.Tools
                 m_CreatorContextMenu.Open();
             }
         }
+
         /// <summary>
         /// Create a new object with a specified creation type.
         /// </summary>
@@ -186,8 +165,10 @@ namespace HBP.UI.Tools
                     CreateFromDirectory();
                     break;
             }
+
             m_CreatorContextMenu.Close();
         }
+
         /// <summary>
         /// Create a new object from scratch.
         /// </summary>
@@ -195,6 +176,7 @@ namespace HBP.UI.Tools
         {
             OpenModifier(new T());
         }
+
         /// <summary>
         /// Create a new object from a existing object.
         /// </summary>
@@ -202,6 +184,7 @@ namespace HBP.UI.Tools
         {
             OpenSelector(ExistingObjects);
         }
+
         /// <summary>
         /// Create a new object from file.
         /// </summary>
@@ -209,6 +192,7 @@ namespace HBP.UI.Tools
         {
             LoadFromFile();
         }
+
         /// <summary>
         /// Create a new object from a database.
         /// </summary>
@@ -216,6 +200,7 @@ namespace HBP.UI.Tools
         {
             LoadFromDatabase().Forget();
         }
+
         /// <summary>
         /// Create a new object from a directory
         /// </summary>
@@ -223,13 +208,16 @@ namespace HBP.UI.Tools
         {
             LoadFromDirectory().Forget();
         }
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_CreatorContextMenu.OnSelectType.AddListener(Create);
         }
+
         /// <summary>
         /// Open a new object selector.
         /// </summary>
@@ -243,10 +231,12 @@ namespace HBP.UI.Tools
             selector.OnOk.AddListener(() => SaveSelector(selector, generateNewIDs).Forget());
             WindowsReferencer.Add(selector);
         }
+
         protected virtual async UniTaskVoid SaveSelector(ObjectSelector<T> selector, bool generateNewIDs)
         {
             await LoadingManager.LoadAsync(update => SaveSelectorAsync(selector, generateNewIDs, update));
         }
+
         /// <summary>
         /// Create clone of the objects selected in the ObjectSelector.
         /// </summary>
@@ -267,6 +257,7 @@ namespace HBP.UI.Tools
                     cloneList.Add(clone);
                 }
             }
+
             if (generateNewIDs && typeof(T).GetInterfaces().Contains(typeof(IIdentifiable)))
             {
                 foreach (var clone in cloneList)
@@ -275,6 +266,7 @@ namespace HBP.UI.Tools
                     identifiable.GenerateID();
                 }
             }
+
             await UniTask.SwitchToMainThread();
             foreach (var clone in cloneList)
             {
@@ -301,6 +293,7 @@ namespace HBP.UI.Tools
             WindowsReferencer.Add(modifier);
             return modifier;
         }
+
         /// <summary>
         /// Save Object modifier.
         /// </summary>
@@ -332,11 +325,13 @@ namespace HBP.UI.Tools
                     }
                 }
             }
+
             foreach (var item in items)
             {
                 OnObjectCreated.Invoke(item);
             }
         }
+
         protected virtual async UniTaskVoid LoadFromDirectory()
         {
             string[] paths = await FileBrowser.GetExistingDirectoryNamesAsync();
@@ -355,6 +350,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         protected virtual async UniTaskVoid LoadFromDatabase()
         {
             ILoadableFromDatabase<T> loadable = new T() as ILoadableFromDatabase<T>;
@@ -363,6 +359,7 @@ namespace HBP.UI.Tools
             if (result.Count() > 0)
                 OpenSelector(result, true, false, false);
         }
+
         #endregion
     }
 }

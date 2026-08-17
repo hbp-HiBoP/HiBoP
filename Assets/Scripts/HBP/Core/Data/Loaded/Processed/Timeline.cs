@@ -1,5 +1,6 @@
 ﻿using HBP.Core.Tools;
 using System.Collections.Generic;
+using HBP.Core.Enums;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -9,14 +10,17 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
     public abstract class BasicTimeline
     {
         #region Properties
+
         /// <summary>
         /// Length of the timeline
         /// </summary>
         public int Length { get; protected set; }
+
         /// <summary>
         /// Unit of the timeline
         /// </summary>
         public string Unit { get; protected set; }
+
         /// <summary>
         /// Length of the timeline in unit of time
         /// </summary>
@@ -25,15 +29,13 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         public Tools.Frequency Frequency { get; protected set; }
 
         protected int m_CurrentIndex;
+
         /// <summary>
         /// Current index of the timeline
         /// </summary>
         public int CurrentIndex
         {
-            get
-            {
-                return m_CurrentIndex;
-            }
+            get { return m_CurrentIndex; }
             set
             {
                 if (IsLooping)
@@ -44,23 +46,24 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                 {
                     m_CurrentIndex = Mathf.Clamp(value, 0, Length - 1);
                 }
+
                 OnUpdateCurrentIndex.Invoke();
             }
         }
+
         /// <summary>
         /// Is the timeline looping ?
         /// </summary>
         public bool IsLooping { get; set; }
+
         protected bool m_IsPlaying;
+
         /// <summary>
         /// Is the timeline playing ?
         /// </summary>
         public bool IsPlaying
         {
-            get
-            {
-                return m_IsPlaying;
-            }
+            get { return m_IsPlaying; }
             set
             {
                 m_IsPlaying = value;
@@ -72,27 +75,36 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// Time since the last timeline update
         /// </summary>
         protected float m_TimeSinceLastUpdate;
+
         /// <summary>
         /// Step of the timeline
         /// </summary>
         public int Step { get; set; } = 1;
+
         /// <summary>
         /// Time between two timeline updates
         /// </summary>
-        protected float UpdateInterval { get { return 1.0f / Step; } }
+        protected float UpdateInterval
+        {
+            get { return 1.0f / Step; }
+        }
 
         /// <summary>
         /// Current subtimeline compared to the position of the current index
         /// </summary>
         public abstract SubTimeline CurrentSubtimeline { get; }
+
         #endregion
 
         #region Events
+
         public UnityEvent OnUpdateCurrentIndex = new();
         public UnityEvent OnStopTimelinePlay = new();
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Play the timeline
         /// </summary>
@@ -114,28 +126,31 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                 }
             }
         }
+
         #endregion
     }
+
     public class Timeline : BasicTimeline
     {
         #region Properties
+
         /// <summary>
         /// Subtimelines of this timeline
         /// </summary>
         public Dictionary<SubBloc, SubTimeline> SubTimelinesBySubBloc { get; set; }
+
         /// <summary>
         /// Current subtimeline compared to the position of the current index
         /// </summary>
         public override SubTimeline CurrentSubtimeline
         {
-            get
-            {
-                return SubTimelinesBySubBloc.FirstOrDefault(s => s.Value.GlobalMinIndex - s.Value.Before <= m_CurrentIndex && s.Value.GlobalMaxIndex + s.Value.After >= m_CurrentIndex).Value;
-            }
+            get { return SubTimelinesBySubBloc.FirstOrDefault(s => s.Value.GlobalMinIndex - s.Value.Before <= m_CurrentIndex && s.Value.GlobalMaxIndex + s.Value.After >= m_CurrentIndex).Value; }
         }
+
         #endregion
 
         #region Constructors
+
         public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.Frequency frequency)
         {
             Frequency = frequency;
@@ -179,16 +194,56 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             Length = SubTimelinesBySubBloc.Sum(s => s.Value.Length + s.Value.Before + s.Value.After);
             TimeLength = SubTimelinesBySubBloc.Sum(s => s.Value.TimeLength);
         }
+
         #endregion
+
+        public TemporalSample GetProjectionSample(Timeline projectionTimeline, int navigationIndex, TemporalSamplingPolicy policy)
+        {
+            if (projectionTimeline == null)
+                throw new System.ArgumentNullException(nameof(projectionTimeline));
+
+            KeyValuePair<SubBloc, SubTimeline> navigationPair = SubTimelinesBySubBloc.FirstOrDefault(pair => pair.Value.GlobalMinIndex - pair.Value.Before <= navigationIndex && pair.Value.GlobalMaxIndex + pair.Value.After >= navigationIndex);
+            if (navigationPair.Value == null || !projectionTimeline.SubTimelinesBySubBloc.TryGetValue(navigationPair.Key, out SubTimeline projectionSubTimeline))
+            {
+                return new TemporalSample(Mathf.Clamp(navigationIndex, 0, projectionTimeline.Length - 1), 0f);
+            }
+
+            return projectionSubTimeline.GetSampleAtTime(navigationPair.Value.GetLocalTime(navigationIndex), policy);
+        }
     }
+
+    public readonly struct TemporalSample
+    {
+        public int Index { get; }
+        public float Alpha { get; }
+
+        public TemporalSample(int index, float alpha)
+        {
+            Index = index;
+            Alpha = alpha;
+        }
+
+        public float Evaluate(float[] values)
+        {
+            if (values == null || values.Length == 0)
+                return 0f;
+            int lower = Mathf.Clamp(Index, 0, values.Length - 1);
+            int upper = Mathf.Min(lower + 1, values.Length - 1);
+            return Mathf.Lerp(values[lower], values[upper], Alpha);
+        }
+    }
+
     public class FMRITimeline : BasicTimeline
     {
         #region Properties
+
         protected SubTimeline m_DefaultSubtimeline;
         public override SubTimeline CurrentSubtimeline => m_DefaultSubtimeline;
+
         #endregion
 
         #region Public Methods
+
         public void Update(Object3D.FMRI fmri)
         {
             Unit = fmri.TimeUnit;
@@ -198,79 +253,90 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             CurrentIndex = 0;
             m_DefaultSubtimeline = new SubTimeline(fmri);
         }
+
         #endregion
     }
+
     public class SubTimeline
     {
         #region Properties
+
         /// <summary>
         /// Length of the subtimeline
         /// </summary>
         public int Length { get; private set; }
+
         /// <summary>
         /// Number of samples before this subtimeline
         /// </summary>
         public int Before { get; set; }
+
         /// <summary>
         /// Number of samples after this subtimeline
         /// </summary>
         public int After { get; set; }
+
         /// <summary>
         /// Length of the timeline in unit of time
         /// </summary>
-        public float TimeLength { get { return MaxTime - MinTime; } }
-        
+        public float TimeLength
+        {
+            get { return MaxTime - MinTime; }
+        }
+
         public Tools.Frequency Frequency { get; private set; }
 
         private int m_GlobalMinIndex;
+
         /// <summary>
         /// Min index of the subtimeline from the start of the global timeline
         /// </summary>
         public int GlobalMinIndex
         {
-            get
-            {
-                return m_GlobalMinIndex + Before;
-            }
+            get { return m_GlobalMinIndex + Before; }
         }
 
         private int m_GlobalMaxIndex;
+
         /// <summary>
         /// Max index of the subtimeline from the start of the global timeline
         /// </summary>
         public int GlobalMaxIndex
         {
-            get
-            {
-                return m_GlobalMaxIndex + Before;
-            }
+            get { return m_GlobalMaxIndex + Before; }
         }
 
         /// <summary>
         /// Minimum time of the timeline
         /// </summary>
         public float MinTime { get; set; }
+
         /// <summary>
         /// Maximum time of the timeline
         /// </summary>
         public float MaxTime { get; set; }
+
         /// <summary>
         /// Time of the first sample
         /// </summary>
         public float FirstSampleTime { get; set; }
+
         /// <summary>
         /// Time of the last sample
         /// </summary>
         public float LastSampleTime { get; set; }
+
         /// <summary>
         /// Time of a step
         /// </summary>
         public float TimeStep { get; set; }
 
         public Dictionary<Event, EventStatistics> StatisticsByEvent { get; set; } = new Dictionary<Event, EventStatistics>();
+
         #endregion
 
         #region Constructors
+
         public SubTimeline(Object3D.FMRI fmri)
         {
             Length = fmri.Volumes.Count;
@@ -283,6 +349,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             LastSampleTime = MaxTime;
             TimeStep = fmri.TimeStep;
         }
+
         public SubTimeline(SubBloc subBloc, int startIndex, List<SubBlocEventsStatistics> eventStatistics, int maxBefore, int maxAfter, Tools.Frequency frequency)
         {
             Frequency = frequency;
@@ -292,6 +359,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             {
                 StatisticsByEvent.Add(e, EventStatistics.Average(eventStatistics.Select(es => es.StatisticsByEvent[e])));
             }
+
             int mainEventIndex = Frequency.ConvertToFlooredNumberOfSamples(StatisticsByEvent[subBloc.MainEvent].RoundedTimeFromStart);
 
             // Indexes
@@ -308,14 +376,17 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             LastSampleTime = frequency.ConvertNumberOfSamplesToMilliseconds(Length - 1 - mainEventIndex);
             TimeStep = (LastSampleTime - FirstSampleTime) / (Length - 1);
         }
+
         #endregion
 
         #region Public Methods
+
         public void Move(int distance)
         {
             m_GlobalMinIndex += distance;
             m_GlobalMaxIndex += distance;
         }
+
         /// <summary>
         /// Get the time of the current global index in this timeline
         /// </summary>
@@ -325,6 +396,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         {
             return Mathf.Clamp(TimeStep * GetLocalIndex(globalIndex) + FirstSampleTime, MinTime, MaxTime);
         }
+
         /// <summary>
         /// Get the index value relative to the minimum index of the subtimeline
         /// </summary>
@@ -334,8 +406,29 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         {
             return Mathf.Clamp(globalIndex - GlobalMinIndex, 0, Length - 1);
         }
+
+        public TemporalSample GetSampleAtTime(float time, TemporalSamplingPolicy policy)
+        {
+            if (Length <= 1 || TimeStep == 0f)
+                return new TemporalSample(GlobalMinIndex, 0f);
+
+            float samplePosition = Mathf.Clamp((time - FirstSampleTime) / TimeStep, 0f, Length - 1);
+            int lowerLocalIndex = Mathf.FloorToInt(samplePosition);
+            switch (policy)
+            {
+                case TemporalSamplingPolicy.Floor:
+                    return new TemporalSample(GlobalMinIndex + lowerLocalIndex, 0f);
+                case TemporalSamplingPolicy.Round:
+                    return new TemporalSample(GlobalMinIndex + Mathf.RoundToInt(samplePosition), 0f);
+                default:
+                    float alpha = lowerLocalIndex >= Length - 1 ? 0f : samplePosition - lowerLocalIndex;
+                    return new TemporalSample(GlobalMinIndex + lowerLocalIndex, alpha);
+            }
+        }
+
         #endregion
     }
+
     public class TimelineTools
     {
         public static Frequency GetFrequencyFromUnit(string unit, float timeStep)

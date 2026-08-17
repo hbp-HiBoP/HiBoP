@@ -19,10 +19,7 @@ namespace UnityEngine.UI.Extensions.ColorPicker
 
         private RectTransform RectTransform
         {
-            get
-            {
-                return transform as RectTransform;
-            }
+            get { return transform as RectTransform; }
         }
 
         private void Awake()
@@ -119,6 +116,7 @@ namespace UnityEngine.UI.Extensions.ColorPicker
             {
                 Debug.LogWarning("Missing Picker on object [" + name + "]");
             }
+
             Color32 baseColor = picker != null ? picker.CurrentColor : Color.black;
 
             float h = picker != null ? picker.H : 0;
@@ -150,6 +148,7 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                 default:
                     throw new System.NotImplementedException("");
             }
+
             if (vertical)
                 texture = new Texture2D(1, size);
             else
@@ -165,46 +164,54 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                     {
                         colors[inverted ? size - 1 - i : i] = new Color32(i, baseColor.g, baseColor.b, 255);
                     }
+
                     break;
                 case ColorValues.G:
                     for (byte i = 0; i < size; i++)
                     {
                         colors[inverted ? size - 1 - i : i] = new Color32(baseColor.r, i, baseColor.b, 255);
                     }
+
                     break;
                 case ColorValues.B:
                     for (byte i = 0; i < size; i++)
                     {
                         colors[inverted ? size - 1 - i : i] = new Color32(baseColor.r, baseColor.g, i, 255);
                     }
+
                     break;
                 case ColorValues.A:
                     for (byte i = 0; i < size; i++)
                     {
                         colors[inverted ? size - 1 - i : i] = new Color32(i, i, i, 255);
                     }
+
                     break;
                 case ColorValues.Hue:
                     for (int i = 0; i < size; i++)
                     {
                         colors[inverted ? size - 1 - i : i] = HSVUtil.ConvertHsvToRgb(i, 1, 1, 1);
                     }
+
                     break;
                 case ColorValues.Saturation:
                     for (int i = 0; i < size; i++)
                     {
                         colors[inverted ? size - 1 - i : i] = HSVUtil.ConvertHsvToRgb(h * 360, (float)i / size, v, 1);
                     }
+
                     break;
                 case ColorValues.Value:
                     for (int i = 0; i < size; i++)
                     {
                         colors[inverted ? size - 1 - i : i] = HSVUtil.ConvertHsvToRgb(h * 360, s, (float)i / size, 1);
                     }
+
                     break;
                 default:
                     throw new System.NotImplementedException("");
             }
+
             texture.SetPixels32(colors);
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.filterMode = FilterMode.Trilinear;
@@ -228,6 +235,5 @@ namespace UnityEngine.UI.Extensions.ColorPicker
                     break;
             }
         }
-
     }
 }

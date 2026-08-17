@@ -1,0 +1,16 @@
+Brain Vision Data Exchange Header File Version 1.0
+[Common Infos]
+DataFile=native_brainvision_beta.eeg
+MarkerFile=native_brainvision_beta.vmrk
+DataFormat=BINARY
+DataOrientation=MULTIPLEXED
+NumberOfChannels=3
+SamplingInterval=5000.00000
+
+[Binary Infos]
+BinaryFormat=IEEE_FLOAT_32
+
+[Channel Infos]
+Ch1=A1,,1,uV
+Ch2=A2,,1,uV
+Ch3=A3,,1,uV

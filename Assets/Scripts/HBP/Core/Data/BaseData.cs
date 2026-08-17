@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Threading;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -26,19 +27,47 @@ namespace HBP.Core.Data
     public abstract class BaseData : ICopiable, ICloneable, IIdentifiable
     {
         #region Properties
+
         /// <summary>
-        /// Unique identifier to identify the data.
+        /// Unique identifier to identify the data. New objects generate it on
+        /// first access; deserialized objects keep the value read from JSON.
         /// </summary>
-        [JsonProperty] public string ID { get; set; }
+        private string m_ID;
+
+        [JsonProperty] public string ID
+        {
+            get
+            {
+                while (true)
+                {
+                    string currentID = Volatile.Read(ref m_ID);
+                    if (currentID != null)
+                    {
+                        return currentID;
+                    }
+
+                    string generatedID = Guid.NewGuid().ToString();
+                    string observedID = Interlocked.CompareExchange(ref m_ID, generatedID, currentID);
+                    if (ReferenceEquals(observedID, currentID))
+                    {
+                        return generatedID;
+                    }
+                }
+            }
+            set => Volatile.Write(ref m_ID, value);
+        }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new BaseData instance.
         /// </summary>
-        public BaseData() : this(Guid.NewGuid().ToString())
+        public BaseData()
         {
         }
+
         /// <summary>
         /// Create a new BaseData instance.
         /// </summary>
@@ -47,9 +76,11 @@ namespace HBP.Core.Data
         {
             this.ID = ID;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Generate a new unique identifier.
         /// </summary>
@@ -57,6 +88,7 @@ namespace HBP.Core.Data
         {
             ID = Guid.NewGuid().ToString();
         }
+
         /// <summary>
         /// Returns a list of all IDs of this object (including itself)
         /// </summary>
@@ -65,9 +97,11 @@ namespace HBP.Core.Data
         {
             return new List<BaseData>() { this };
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Operator Equals.
         /// </summary>
@@ -84,6 +118,7 @@ namespace HBP.Core.Data
                 return false;
             }
         }
+
         /// <summary>
         /// Get hash code.
         /// </summary>
@@ -92,6 +127,7 @@ namespace HBP.Core.Data
         {
             return ID.GetHashCode();
         }
+
         public static bool operator ==(BaseData a, BaseData b)
         {
             if (ReferenceEquals(a, b))
@@ -106,11 +142,14 @@ namespace HBP.Core.Data
 
             return a.Equals(b);
         }
+
         public static bool operator !=(BaseData a, BaseData b)
         {
             return !(a == b);
         }
+
         public abstract object Clone();
+
         public virtual void Copy(object copy)
         {
             if (copy is BaseData baseData)
@@ -118,60 +157,67 @@ namespace HBP.Core.Data
                 ID = baseData.ID;
             }
         }
+
         #endregion
 
         #region Serialization
+
         [OnSerializing()]
         internal void OnSerializingMethod(StreamingContext context)
         {
             OnSerializing();
         }
+
         [OnSerialized()]
         internal void OnSerializedMethod(StreamingContext context)
         {
             OnSerialized();
         }
+
         [OnDeserializing()]
         internal void OnDeserializingMethod(StreamingContext context)
         {
             OnDeserializing();
         }
+
         [OnDeserialized()]
         internal void OnDeserializedMethod(StreamingContext context)
         {
             OnDeserialized();
         }
+
         /// <summary>
         /// Called on OnSerializing(). You can override this function and use this to do anything needed before serializing.
         /// </summary>
         protected virtual void OnSerializing()
         {
-
         }
+
         /// <summary>
         /// Called on OnSerialized(). You can override this function and use this to do anything needed after serializing.
         /// </summary>
         protected virtual void OnSerialized()
         {
-
         }
+
         /// <summary>
         /// Called on OnDeserializing(). You can override this function and use this to do anything needed before deserializing.
         /// </summary>
         protected virtual void OnDeserializing()
         {
-
         }
+
         /// <summary>
         /// Called on OnDeserialized(). You can override this function and use this to do anything needed before deserializing.
         /// </summary>
         protected virtual void OnDeserialized()
         {
-            if (string.IsNullOrEmpty(ID))
+            if (string.IsNullOrEmpty(Volatile.Read(ref m_ID)))
             {
                 GenerateID();
             }
         }
+
         #endregion
     }
 }

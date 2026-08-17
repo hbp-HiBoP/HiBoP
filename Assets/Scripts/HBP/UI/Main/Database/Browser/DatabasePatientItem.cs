@@ -8,14 +8,12 @@ namespace HBP.UI.Database
     public class DatabasePatientItem : SelectableItem<Patient>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
 
         public override Patient Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -26,6 +24,7 @@ namespace HBP.UI.Database
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

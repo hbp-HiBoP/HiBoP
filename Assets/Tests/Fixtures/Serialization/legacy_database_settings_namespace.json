@@ -1,0 +1,5 @@
+{
+  "$type": "HBP.Data.Database.GlobalDatabaseSettings, Assembly-CSharp",
+  "ID": "legacy-database-settings-001",
+  "IsFirstUse": true
+}

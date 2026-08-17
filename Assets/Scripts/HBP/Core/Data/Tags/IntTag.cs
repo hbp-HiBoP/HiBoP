@@ -11,7 +11,9 @@ namespace HBP.Core.Data
     public class IntTag : BaseTag
     {
         #region Properties
+
         [JsonProperty("Clamped")] bool m_Clamped;
+
         public bool Clamped
         {
             get => m_Clamped;
@@ -24,7 +26,9 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         [JsonProperty("Min")] int m_Min;
+
         public int Min
         {
             get => m_Min;
@@ -36,9 +40,10 @@ namespace HBP.Core.Data
                     OnNeedToRecalculateValue.Invoke();
                 }
             }
-
         }
+
         [JsonProperty("Max")] int m_Max;
+
         public int Max
         {
             get => m_Max;
@@ -53,39 +58,46 @@ namespace HBP.Core.Data
         }
 
         public UnityEvent OnNeedToRecalculateValue { get; set; } = new UnityEvent();
+
         #endregion
 
         #region Constructors
+
         public IntTag() : this("", false, 0, 0)
         {
         }
-        public IntTag(string name) : this (name, false, 0, 0)
-        {
 
+        public IntTag(string name) : this(name, false, 0, 0)
+        {
         }
+
         public IntTag(string name, string ID) : base(name, ID)
         {
-
         }
+
         public IntTag(string name, bool clamped, int min, int max) : base(name)
         {
             Clamped = clamped;
             Min = min;
             Max = max;
         }
+
         public IntTag(string name, bool clamped, int min, int max, string ID) : base(name, ID)
         {
             Clamped = clamped;
             Min = min;
             Max = max;
         }
+
         #endregion
 
         #region Public Methods
+
         public int Clamp(int value)
         {
             return Clamped ? Mathf.Clamp(value, Min, Max) : value;
         }
+
         public int Convert(object value)
         {
             if (value != null && value is int)
@@ -97,34 +109,40 @@ namespace HBP.Core.Data
                 throw new Exception("Wrong value type");
             }
         }
+
         public override object Clone()
         {
             return new IntTag(Name, Clamped, Min, Max, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is IntTag intTag)
+            if (copy is IntTag intTag)
             {
                 Clamped = intTag.Clamped;
                 Min = intTag.Min;
                 Max = intTag.Max;
             }
-            if(copy is FloatTag floatTag)
+
+            if (copy is FloatTag floatTag)
             {
                 Clamped = floatTag.Clamped;
-                Min = (int) floatTag.Min;
-                Max = (int) floatTag.Max;
+                Min = (int)floatTag.Min;
+                Max = (int)floatTag.Max;
             }
         }
+
         public override BaseTagValue CreateValue(string value)
         {
             if (int.TryParse(value, out int result))
             {
                 return new IntTagValue(this, result);
             }
+
             return null;
         }
+
         #endregion
     }
 }

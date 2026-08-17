@@ -10,6 +10,7 @@ namespace HBP.UI.Informations
     public class ChannelStructsGroupItem : ActionnableItem<ChannelStructsGroup>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ChannelsText;
 
@@ -17,10 +18,7 @@ namespace HBP.UI.Informations
 
         public override ChannelStructsGroup Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -32,6 +30,7 @@ namespace HBP.UI.Informations
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

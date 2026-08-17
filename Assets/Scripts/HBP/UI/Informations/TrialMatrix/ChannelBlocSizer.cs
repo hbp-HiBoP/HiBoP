@@ -11,12 +11,15 @@ namespace HBP.UI.Informations.TrialMatrix
     public class ChannelBlocSizer : MonoBehaviour
     {
         #region Properties
+
         private ChannelBloc m_ChannelBloc;
         private RectTransform m_RectTransform;
         private LayoutElement m_LayoutElement;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             m_ChannelBloc = GetComponent<ChannelBloc>();
@@ -25,13 +28,16 @@ namespace HBP.UI.Informations.TrialMatrix
 
             m_ChannelBloc.OnSet.AddListener(SetSize);
         }
+
         void OnRectTransformDimensionsChange()
         {
             SetSize();
         }
+
         #endregion
 
         #region Public Methods
+
         public void SetSize()
         {
             if (m_ChannelBloc.Data.IsFound)
@@ -64,6 +70,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 m_LayoutElement.flexibleHeight = 1;
             }
         }
+
         #endregion
     }
 }

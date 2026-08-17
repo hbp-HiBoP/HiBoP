@@ -2,16 +2,15 @@
 using UnityEngine.UI;
 using HBP.Core.Tools;
 using HBP.Core.Data;
-using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
-using System.Threading;
 
 namespace HBP.UI.Main.QuickStart
 {
     public class QuickStartWindow : Window
     {
         #region Properties
+
         [SerializeField] private Button m_Back;
         [SerializeField] private Button m_Next;
         [SerializeField] private IntroductionPanel m_IntroductionPanel;
@@ -21,12 +20,10 @@ namespace HBP.UI.Main.QuickStart
         [SerializeField] private FunctionalPanel m_FunctionalDataPanel;
         [SerializeField] private FinalizationPanel m_FinalizationPanel;
         private QuickStartPanel m_CurrentPanel;
+
         public QuickStartPanel CurrentPanel
         {
-            get
-            {
-                return m_CurrentPanel;
-            }
+            get { return m_CurrentPanel; }
             set
             {
                 m_CurrentPanel = value;
@@ -52,11 +49,12 @@ namespace HBP.UI.Main.QuickStart
             }
         }
 
-        private Project m_CurrentlyOpenedProject;
-        private string m_CurrentlyOpenedProjectLocation;
+        private HBP.UI.Tools.ProjectWorkflowSnapshot m_QuickStartSnapshot;
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -74,27 +72,25 @@ namespace HBP.UI.Main.QuickStart
                 if (CurrentPanel == null)
                     Finish().Forget();
             });
-            m_CurrentlyOpenedProject = ApplicationState.LoadedProject;
-            m_CurrentlyOpenedProjectLocation = ApplicationState.LoadedProjectLocation;
-            ApplicationState.LoadedProject = new Project();
-            ApplicationState.LoadedProjectLocation = Application.dataPath;
+            m_QuickStartSnapshot = ProjectWorkflowService.Default.QuickStartBegin(Application.dataPath);
         }
+
         private async UniTaskVoid Finish()
         {
             base.Close();
-            await LoadingManager.LoadAsync((update, token) => ApplicationState.LoadedProject.SaveAsync(ApplicationState.LoadedProjectLocation, update, token));
-            InteractableStateManager.SetInteractables();
-            LoadingManager.Load((update, token) => Module3DMain.LoadAsync(ApplicationState.LoadedProject.Visualizations, update, token));
+            await ProjectWorkflowService.Default.QuickStartFinishAsync();
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Close()
         {
             base.Close();
-            ApplicationState.LoadedProject = m_CurrentlyOpenedProject;
-            ApplicationState.LoadedProjectLocation = m_CurrentlyOpenedProjectLocation;
+            ProjectWorkflowService.Default.QuickStartCancel(m_QuickStartSnapshot);
         }
+
         #endregion
     }
 }

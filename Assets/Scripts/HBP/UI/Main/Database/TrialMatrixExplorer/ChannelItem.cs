@@ -8,6 +8,7 @@ namespace HBP.UI.Database
     public class ChannelItem : SelectableItem<ChannelStruct>
     {
         #region Properties
+
         [SerializeField] private Text m_NameText;
 
         public override ChannelStruct Object
@@ -23,6 +24,7 @@ namespace HBP.UI.Database
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

@@ -13,6 +13,7 @@ namespace HBP.UI.Tools
     public class ContentSizeClamperEditor : SelfControllerEditor
     {
         #region Properties
+
         private SerializedProperty m_MinHorizontalClamp;
         private SerializedProperty m_MinHorizontalCustomValue;
 
@@ -24,6 +25,7 @@ namespace HBP.UI.Tools
 
         private SerializedProperty m_MaxVerticalClamp;
         private SerializedProperty m_MaxVerticalCustomValue;
+
         #endregion
 
         protected virtual void OnEnable()
@@ -50,12 +52,13 @@ namespace HBP.UI.Tools
             EditorGUILayout.LabelField("Horizontal");
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(m_MinHorizontalClamp, new GUIContent("Min Clamp"));
-            if((ContentSizeClamper.ClampMode) m_MinHorizontalClamp.enumValueIndex == ContentSizeClamper.ClampMode.Custom)
+            if ((ContentSizeClamper.ClampMode)m_MinHorizontalClamp.enumValueIndex == ContentSizeClamper.ClampMode.Custom)
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_MinHorizontalCustomValue, new GUIContent("Value"));
                 EditorGUI.indentLevel--;
             }
+
             EditorGUILayout.PropertyField(m_MaxHorizontalClamp, new GUIContent("Max Clamp"));
             if ((ContentSizeClamper.ClampMode)m_MaxHorizontalClamp.enumValueIndex == ContentSizeClamper.ClampMode.Custom)
             {
@@ -63,6 +66,7 @@ namespace HBP.UI.Tools
                 EditorGUILayout.PropertyField(m_MaxHorizontalCustomValue, new GUIContent("Value"));
                 EditorGUI.indentLevel--;
             }
+
             EditorGUI.indentLevel--;
             EditorGUILayout.LabelField("Vertical");
             EditorGUI.indentLevel++;
@@ -73,6 +77,7 @@ namespace HBP.UI.Tools
                 EditorGUILayout.PropertyField(m_MinVerticalCustomValue, new GUIContent("Value"));
                 EditorGUI.indentLevel--;
             }
+
             EditorGUILayout.PropertyField(m_MaxVerticalClamp, new GUIContent("Max Clamp"));
             if ((ContentSizeClamper.ClampMode)m_MaxVerticalClamp.enumValueIndex == ContentSizeClamper.ClampMode.Custom)
             {
@@ -80,6 +85,7 @@ namespace HBP.UI.Tools
                 EditorGUILayout.PropertyField(m_MaxVerticalCustomValue, new GUIContent("Value"));
                 EditorGUI.indentLevel--;
             }
+
             EditorGUI.indentLevel--;
             serializedObject.ApplyModifiedProperties();
             base.OnInspectorGUI();

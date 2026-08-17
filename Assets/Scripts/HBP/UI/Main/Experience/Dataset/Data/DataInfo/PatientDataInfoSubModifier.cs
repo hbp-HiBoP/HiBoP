@@ -11,33 +11,35 @@ namespace HBP.UI.Main
 {
     public class PatientDataInfoSubModifier : SubModifier<PatientDataInfo>
     {
-        #region Properties     
+        #region Properties
+
         ReadOnlyCollection<Patient> m_Patients;
         [SerializeField] Dropdown m_PatientDropdown;
 
         public override bool Interactable
         {
-            get
-            {
-                return m_Interactable;
-            }
+            get { return m_Interactable; }
             set
             {
                 m_Interactable = value;
                 m_PatientDropdown.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Initialize()
         {
             base.Initialize();
             m_PatientDropdown.onValueChanged.AddListener((i) => Object.Patient = m_Patients[i]);
         }
+
         #endregion
 
         #region Protected Methods
+
         protected override void SetFields(PatientDataInfo objectToDisplay)
         {
             // FIXME: this is ugly
@@ -52,6 +54,7 @@ namespace HBP.UI.Main
             m_PatientDropdown.options = (from patient in m_Patients select new Dropdown.OptionData(patient.Name, null)).ToList();
             m_PatientDropdown.value = m_Patients.IndexOf(objectToDisplay.Patient);
         }
+
         #endregion
     }
 }

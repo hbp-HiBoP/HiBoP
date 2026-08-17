@@ -14,6 +14,7 @@ namespace HBP.UI.Database
     public class TrialMatrixExplorerWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] private Button m_SelectPatientsButton;
         [SerializeField] private Text m_PatientsSelectedText;
         [SerializeField] private Dropdown m_DataDropdown;
@@ -23,12 +24,14 @@ namespace HBP.UI.Database
 
         List<Patient> m_AvailablePatients;
         List<Patient> m_SelectedPatients = new();
-        
+
         List<string> m_AvailableDataNames;
         string m_SelectedDataName;
+
         #endregion
 
         #region Public Methods
+
         public void SetWithPredefinedData(List<ChannelStruct> channelStructs, List<IEEGDataInfo> dataInfos, string dataName)
         {
             if (channelStructs == null || channelStructs.Count == 0)
@@ -46,9 +49,11 @@ namespace HBP.UI.Database
             // Set the displayer with predefined channels and start loading automatically
             m_TrialMatrixDisplayer.Set(channelStructs, dataInfos, dataName);
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -57,6 +62,7 @@ namespace HBP.UI.Database
             m_DataDropdown.onValueChanged.AddListener(OnChangeDataName);
             m_DisplayMatrixButton.onClick.AddListener(DisplayTrialMatrices);
         }
+
         protected override void SetFields()
         {
             base.SetFields();
@@ -65,10 +71,12 @@ namespace HBP.UI.Database
             SetAvailableDataNames();
             UpdateUI();
         }
+
         protected void SetAvailablePatients()
         {
             m_AvailablePatients = DatabaseManager.Database.Patients.Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Any(d => d.Patient == p)).OrderBy(p => p.Name).ToList();
         }
+
         protected void SetAvailableDataNames()
         {
             m_AvailableDataNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Select(d => d.Name).Distinct().OrderBy(name => name).ToList();
@@ -76,6 +84,7 @@ namespace HBP.UI.Database
             m_DataDropdown.SetValue(0);
             m_SelectedDataName = m_AvailableDataNames.FirstOrDefault();
         }
+
         protected void OpenPatientSelector()
         {
             ObjectSelector<Patient> selector = WindowsManager.OpenSelector(m_AvailablePatients, this);
@@ -83,15 +92,18 @@ namespace HBP.UI.Database
             selector.OnOk.AddListener(() => OnPatientsSelected(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         protected void OnPatientsSelected(Patient[] selectedPatients)
         {
             m_SelectedPatients = selectedPatients.ToList();
             UpdateUI();
         }
+
         protected void OnChangeDataName(int index)
         {
             m_SelectedDataName = m_AvailableDataNames[index];
         }
+
         protected void UpdateUI()
         {
             // Update patients text
@@ -107,10 +119,11 @@ namespace HBP.UI.Database
             {
                 m_PatientsSelectedText.text = $"{m_SelectedPatients.Count} patients selected";
             }
-            
+
             // Enable/disable display button
             m_DisplayMatrixButton.interactable = m_SelectedPatients.Count > 0 && !string.IsNullOrEmpty(m_SelectedDataName);
         }
+
         protected void DisplayTrialMatrices()
         {
             if (m_SelectedPatients.Count > 0 && !string.IsNullOrEmpty(m_SelectedDataName))
@@ -118,6 +131,7 @@ namespace HBP.UI.Database
                 m_TrialMatrixDisplayer.Set(m_SelectedPatients, m_SelectedDataName);
             }
         }
+
         #endregion
     }
 }

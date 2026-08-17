@@ -8,6 +8,7 @@ namespace HBP.UI.Tools
     public class ZoneResizerEditor : Editor
     {
         ZoneResizer instance;
+
         public void OnEnable()
         {
             instance = target as ZoneResizer;
@@ -31,6 +32,7 @@ namespace HBP.UI.Tools
                     instance.TopRect = (RectTransform)EditorGUILayout.ObjectField("Right Rect", instance.TopRect, typeof(RectTransform), true);
                     break;
             }
+
             instance.HandleRect = (RectTransform)EditorGUILayout.ObjectField("Handle Rect", instance.HandleRect, typeof(RectTransform), true);
             instance.MarginWidth = EditorGUILayout.FloatField("Margin Width", instance.MarginWidth);
             EditorGUILayout.BeginHorizontal();

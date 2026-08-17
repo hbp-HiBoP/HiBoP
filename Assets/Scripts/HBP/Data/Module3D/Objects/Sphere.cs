@@ -10,25 +10,25 @@ namespace HBP.Data.Module3D
     public class Sphere : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Minimum value for the radius of the sphere
         /// </summary>
         private float m_MinRadiusSphere = 0.5f;
+
         /// <summary>
         /// Maximum value for the radius of the sphere
         /// </summary>
         private float m_MaxRadiusSphere = 100f;
-        
+
         private Vector3 m_Position;
+
         /// <summary>
         /// Position of the center of the sphere
         /// </summary>
         public Vector3 Position
         {
-            get
-            {
-                return m_Position;
-            }
+            get { return m_Position; }
             set
             {
                 m_Position = value;
@@ -40,21 +40,21 @@ namespace HBP.Data.Module3D
         /// Variable used for the SmoothStep for the animation when displaying the ROI
         /// </summary>
         private float m_RadiusPercentage = 0.0f;
+
         /// <summary>
         /// Target radius at the end of the animation
         /// </summary>
         private float m_TargetRadius = 5.0f;
 
         private float m_Radius = 1.0f;
+        private float m_InfluenceRadius = 1.0f;
+
         /// <summary>
         /// Radius of the sphere
         /// </summary>
         public float Radius
         {
-            get
-            {
-                return m_Radius;
-            }
+            get { return m_Radius; }
             set
             {
                 m_Radius = value;
@@ -68,22 +68,29 @@ namespace HBP.Data.Module3D
                 {
                     m_TargetRadius = m_Radius;
                 }
+
                 transform.localScale = new Vector3(m_Radius, m_Radius, m_Radius);
 
                 OnChangeRadius.Invoke();
             }
         }
 
+        /// <summary>
+        /// Radius used by ROI masking, independent from the display animation.
+        /// </summary>
+        public float InfluenceRadius
+        {
+            get { return m_InfluenceRadius; }
+        }
+
         private bool m_Selected = false;
+
         /// <summary>
         /// Is this sphere currently selected ?
         /// </summary>
         public bool Selected
         {
-            get
-            {
-                return m_Selected;
-            }
+            get { return m_Selected; }
             set
             {
                 m_Selected = value;
@@ -97,16 +104,20 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         #endregion
 
         #region Events
+
         /// <summary>
         /// Event called when changing the radius of the sphere
         /// </summary>
         public UnityEvent OnChangeRadius = new();
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (m_RadiusPercentage < 2.0f)
@@ -115,9 +126,11 @@ namespace HBP.Data.Module3D
                 Radius = Mathf.SmoothStep(m_Radius, m_TargetRadius, m_RadiusPercentage);
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the sphere
         /// </summary>
@@ -129,11 +142,13 @@ namespace HBP.Data.Module3D
         {
             gameObject.layer = layer;
             Position = position;
-            m_TargetRadius = radius;
+            m_InfluenceRadius = Mathf.Clamp(radius, m_MinRadiusSphere, m_MaxRadiusSphere);
+            m_TargetRadius = m_InfluenceRadius;
             gameObject.SetActive(true);
-            
+
             gameObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROISphere;
         }
+
         /// <summary>
         /// Check if a collision occurs between the input ray and the sphere
         /// </summary>
@@ -144,6 +159,28 @@ namespace HBP.Data.Module3D
         {
             return GetComponent<SphereCollider>().Raycast(ray, out hitInfo, Mathf.Infinity);
         }
+
+        /// <summary>
+        /// Return true if the input position is strictly inside the sphere.
+        /// </summary>
+        /// <param name="position">Position to test in Unity space</param>
+        /// <returns>True if the position is inside the sphere</returns>
+        public bool Contains(Vector3 position)
+        {
+            return (position - Position).sqrMagnitude < InfluenceRadius * InfluenceRadius;
+        }
+
+        /// <summary>
+        /// Update the ROI masking radius and synchronize the displayed target radius.
+        /// </summary>
+        /// <param name="radius">New radius</param>
+        public void SetInfluenceRadius(float radius)
+        {
+            m_InfluenceRadius = Mathf.Clamp(radius, m_MinRadiusSphere, m_MaxRadiusSphere);
+            m_TargetRadius = m_InfluenceRadius;
+            Radius = m_InfluenceRadius;
+        }
+
         /// <summary>
         /// Start the growing animation
         /// </summary>
@@ -152,6 +189,7 @@ namespace HBP.Data.Module3D
             m_RadiusPercentage = 0.0f;
             Radius = 1.0f;
         }
+
         #endregion
     }
 }

@@ -10,6 +10,7 @@ namespace HBP.UI.Database
     public class DatabaseDataInfoItem : ActionnableItem<DataInfo>
     {
         #region Properties
+
         [SerializeField] UnityEngine.UI.Text m_NameText;
         [SerializeField] UnityEngine.UI.Text m_TypeText;
         [SerializeField] ThemeElement m_StateThemeElement;
@@ -24,10 +25,7 @@ namespace HBP.UI.Database
         /// </summary>
         public override DataInfo Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -50,6 +48,7 @@ namespace HBP.UI.Database
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

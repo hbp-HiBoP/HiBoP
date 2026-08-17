@@ -35,6 +35,7 @@ namespace HBP.Core.Data.Container
     public class BrainVision : DataContainer
     {
         #region Properties
+
         /// <summary>
         /// Brain vision header extension.
         /// </summary>
@@ -44,23 +45,20 @@ namespace HBP.Core.Data.Container
         /// Path to the BrainVision header file with Alias.
         /// </summary>
         [JsonProperty("Header")] public string SavedHeader { get; protected set; } = "";
+
         /// <summary>
         /// Path to the BrainVision format header file without Alias.
         /// </summary>
         public string Header
         {
-            get
-            {
-                return SavedHeader?.ConvertToFullPath();
-            }
-            set
-            {
-                SavedHeader = value?.ConvertToShortPath();
-            }
+            get { return SavedHeader?.ConvertToFullPath(); }
+            set { SavedHeader = value?.ConvertToShortPath(); }
         }
+
         #endregion
 
         #region Public Methods
+
         public override Error[] GetErrors()
         {
             List<Error> errors = new();
@@ -81,28 +79,44 @@ namespace HBP.Core.Data.Container
                     {
                         errors.Add(new WrongExtensionError("BrainVision header file has a wrong extension"));
                     }
+                    else
+                    {
+                        foreach (string referencedFile in EEGRecordingSource.GetBrainVisionReferencedFiles(headerFile.FullName))
+                        {
+                            if (!File.Exists(referencedFile))
+                            {
+                                errors.Add(new FileDoesNotExistError($"BrainVision referenced file does not exist: {referencedFile}"));
+                            }
+                        }
+                    }
                 }
             }
+
             m_Errors = errors.ToArray();
             return m_Errors;
         }
+
         public override Warning[] GetWarnings()
         {
             List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }
+
         public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
             // TODO
         }
+
         public override void ConvertAllPathsToFullPaths()
         {
             SavedHeader = SavedHeader.ConvertToFullPath();
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new BrainVision data container.
         /// </summary>
@@ -112,6 +126,7 @@ namespace HBP.Core.Data.Container
         {
             Header = header;
         }
+
         /// <summary>
         /// Create a new BrainVision data container.
         /// </summary>
@@ -120,15 +135,18 @@ namespace HBP.Core.Data.Container
         {
             Header = header;
         }
+
         /// <summary>
         /// Create a new BrainVision data container with default values.
         /// </summary>
         public BrainVision() : base()
         {
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -137,6 +155,7 @@ namespace HBP.Core.Data.Container
         {
             return new BrainVision(Header, Errors, Warnings, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -145,14 +164,17 @@ namespace HBP.Core.Data.Container
                 Header = brainVision.Header;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             base.OnSerialized();
             SavedHeader = SavedHeader.StandardizeToEnvironement();
         }
+
         #endregion
     }
 }

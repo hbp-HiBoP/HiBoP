@@ -4,10 +4,8 @@ using System.Collections;
 
 namespace TMPro.Examples
 {
-
     public class VertexColorCycler : MonoBehaviour
     {
-
         private TMP_Text m_TextComponent;
 
         void Awake()
@@ -79,6 +77,5 @@ namespace TMPro.Examples
                 yield return new WaitForSeconds(0.05f);
             }
         }
-
     }
 }

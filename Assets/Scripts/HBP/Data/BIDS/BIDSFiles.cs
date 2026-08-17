@@ -12,7 +12,10 @@ namespace HBP.Data.BIDS
         public string DatasetType = "derivative";
         public GeneratedByField[] GeneratedBy = new GeneratedByField[1] { new() };
 
-        public DatasetDescriptionFile() { }
+        public DatasetDescriptionFile()
+        {
+        }
+
         public DatasetDescriptionFile(string name)
         {
             Name = name;
@@ -33,7 +36,10 @@ namespace HBP.Data.BIDS
         public string iEEGCoordinateSystem = "MNI152Lin";
         public string iEEGCoordinateUnits = "mm";
 
-        public CoordSystemFile() { }
+        public CoordSystemFile()
+        {
+        }
+
         public CoordSystemFile(string coordinateSystem)
         {
             iEEGCoordinateSystem = coordinateSystem;

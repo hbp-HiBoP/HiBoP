@@ -11,16 +11,14 @@ namespace HBP.UI.Database
     public class DatabaseReferenceModifier : ObjectModifier<DatabaseReference>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField;
         [SerializeField] Dropdown m_TypeDropdown;
         [SerializeField] FolderSelector m_FolderSelector;
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
             set
             {
                 base.Interactable = value;
@@ -37,9 +35,11 @@ namespace HBP.UI.Database
 
         Dictionary<DatabaseType, BaseSubModifier> m_SubModifiers;
         Dictionary<DatabaseType, DatabaseReferenceParameters> m_ParametersTemp;
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -69,6 +69,7 @@ namespace HBP.UI.Database
                 { DatabaseType.Tags, new TagsDatabaseParameters() }
             };
         }
+
         protected override void SetFields(DatabaseReference objectToModify)
         {
             base.SetFields();
@@ -77,6 +78,7 @@ namespace HBP.UI.Database
             m_TypeDropdown.Set(typeof(DatabaseType), (int)objectToModify.Type);
             m_FolderSelector.Folder = objectToModify.Path;
         }
+
         protected void OnChangeName(string value)
         {
             if (value != "")
@@ -88,10 +90,12 @@ namespace HBP.UI.Database
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         protected void OnChangePath(string value)
         {
             ObjectTemp.Path = value;
         }
+
         protected void OnChangeType(int value)
         {
             ObjectTemp.Type = (DatabaseType)value;
@@ -107,6 +111,7 @@ namespace HBP.UI.Database
             subModifier.IsActive = true;
             subModifier.Object = ObjectTemp.Parameters;
         }
+
         #endregion
     }
 }

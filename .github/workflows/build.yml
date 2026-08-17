@@ -1,0 +1,111 @@
+name: Build HiBoP
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+            module: StandaloneLinux64
+            modules: ""
+            cli_target: Linux64
+            artifact: HiBoP-Linux
+          - name: Windows
+            os: windows-latest
+            module: StandaloneWindows64
+            modules: ""
+            cli_target: Win64
+            artifact: HiBoP-Windows
+          - name: macOS (ARM64)
+            os: macos-latest
+            module: StandaloneOSX
+            modules: mac-il2cpp
+            cli_target: OSXUniversal
+            artifact: HiBoP-macOS-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Cache Library
+        uses: actions/cache@v5
+        with:
+          path: Library
+          key: Library-${{ matrix.module }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ matrix.module }}-
+            Library-
+
+      - name: Install Unity
+        uses: RageAgainstThePixel/unity-setup@v2
+        with:
+          unity-version: 6000.5.2f1
+          build-targets: ${{ matrix.module }}
+          modules: ${{ matrix.modules }}
+
+      - name: Activate Unity licence
+        uses: RageAgainstThePixel/activate-unity-license@v2
+        with:
+          license: Personal
+          username: ${{ secrets.UNITY_USERNAME }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+
+      - name: Build ${{ matrix.name }}
+        run: |
+          set -euo pipefail
+          "$UNITY_EDITOR_PATH" \
+            -batchmode -quit -nographics \
+            -projectPath "$GITHUB_WORKSPACE" \
+            -buildTarget ${{ matrix.cli_target }} \
+            -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine \
+            -buildOutput "$GITHUB_WORKSPACE/build" \
+            -scriptingBackend IL2CPP \
+            -logFile -
+
+      - name: Package build
+        id: package
+        run: |
+          set -euo pipefail
+          folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
+          name=$(basename "$folder")
+          archive="${name}.zip"
+          case "$RUNNER_OS" in
+            macOS)   ditto -c -k --sequesterRsrc --keepParent "$folder" "$archive" ;;
+            Linux)   ( cd build && zip -r -y -q "../$archive" "$name" ) ;;
+            Windows) ( cd build && 7z a -tzip -bso0 "../$archive" "$name" ) ;;
+          esac
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          ls -lh "$archive"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ steps.package.outputs.archive }}
+          if-no-files-found: error
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "${{ steps.package.outputs.archive }}" --clobber

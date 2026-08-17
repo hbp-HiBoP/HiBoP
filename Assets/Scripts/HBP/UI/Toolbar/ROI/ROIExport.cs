@@ -11,23 +11,27 @@ namespace HBP.UI.Toolbar
     public class ROIExport : Tool
     {
         #region Properties
+
         /// <summary>
         /// Import a ROI from a file
         /// </summary>
         [SerializeField] private Button m_Import;
+
         /// <summary>
         /// Export the selected ROI to a file
         /// </summary>
         [SerializeField] private Button m_Export;
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Save the selected ROI to a file
         /// </summary>
         private async void SaveSelectedROI()
         {
-            string savePath = await FileBrowser.GetSavedFileNameAsync(new string[] { "roi" }, "Save ROI to");
+            string savePath = await ToolbarExternalActions.GetSavedFileNameAsync(new string[] { "roi" }, "Save ROI to");
             if (!string.IsNullOrEmpty(savePath))
             {
                 Core.Data.RegionOfInterest ROI = new(SelectedScene.ROIManager.SelectedROI.Name, SelectedScene.ROIManager.SelectedROI.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList());
@@ -35,12 +39,13 @@ namespace HBP.UI.Toolbar
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Region of Interest saved", "The selected ROI has been saved to <color=#3080ffff>" + savePath + "</color>").Forget();
             }
         }
+
         /// <summary>
         /// Load a ROI from a file to the scene
         /// </summary>
         private async void LoadROI()
         {
-            string loadPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "roi" }, "Load ROI file");
+            string loadPath = await ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "roi" }, "Load ROI file");
             if (!string.IsNullOrEmpty(loadPath))
             {
                 try
@@ -59,9 +64,11 @@ namespace HBP.UI.Toolbar
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -80,6 +87,7 @@ namespace HBP.UI.Toolbar
                 SaveSelectedROI();
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -88,6 +96,7 @@ namespace HBP.UI.Toolbar
             m_Import.interactable = false;
             m_Export.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -98,6 +107,7 @@ namespace HBP.UI.Toolbar
             m_Import.interactable = true;
             m_Export.interactable = hasROI;
         }
-#endregion
+
+        #endregion
     }
 }

@@ -6,12 +6,20 @@ namespace HBP.UI.Tools
     public class SortingDisplayer : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] Theme.State Activated;
         [SerializeField] ThemeElement m_AscendingThemeElement;
         [SerializeField] ThemeElement m_DescendingThemeElement;
 
-        public enum SortingType { None, Ascending, Descending }
+        public enum SortingType
+        {
+            None,
+            Ascending,
+            Descending
+        }
+
         SortingType m_Sorting = SortingType.None;
+
         public SortingType Sorting
         {
             get { return m_Sorting; }
@@ -35,6 +43,7 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         #endregion
     }
 }

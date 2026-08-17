@@ -41,22 +41,25 @@ namespace HBP.Core.Data
     [DisplayName("Min")]
     public class MinTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Scalar;
+
         #region Constructors
+
         /// <summary>
         /// Create a new MinTreatment instance with default values.
         /// </summary>
         public MinTreatment() : base()
         {
-
         }
+
         /// <summary>
         /// Create a new MinTreatment instance with default values and a specified unique identifier.
         /// </summary>
         /// <param name="ID">Unique identifier</param>
         public MinTreatment(string ID) : base(ID)
         {
-
         }
+
         /// <summary>
         /// Create a new MinTreatment instance.
         /// </summary>
@@ -69,9 +72,11 @@ namespace HBP.Core.Data
         public MinTreatment(bool useOnWindow, TimeWindow window, bool useOnBaseline, TimeWindow baseline, int order, string ID) : base(useOnWindow, window, useOnBaseline, baseline, order, ID)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
             int startWindow = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
@@ -86,6 +91,7 @@ namespace HBP.Core.Data
                     if (min > values[i]) min = values[i];
                 }
             }
+
             if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; i++)
@@ -101,6 +107,7 @@ namespace HBP.Core.Data
                     values[i] = min;
                 }
             }
+
             if (UseOnBaseline)
             {
                 for (int i = startBaseline; i <= endBaseline; i++)
@@ -109,13 +116,16 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new MinTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Order, ID);
         }
+
         #endregion
     }
 }

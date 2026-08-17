@@ -1,0 +1,749 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using HBP.Core.Data;
+using HBP.Core.DLL;
+using HBP.Core.DLL.HbpCore;
+using HBP.Core.Enums;
+using HBP.Tests.Serialization.Helpers;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace HBP.Tests.Serialization
+{
+    public class ActivityGeneratorFunctionalTests
+    {
+        [SetUp]
+        public void SetUp()
+        {
+            NativeParityAssert.RequireHbpCore();
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void ActivityProjectionGrid_ProjectsAComputedFieldOntoAnExplicitSurface()
+        {
+            using Surface surface = LoadSurface();
+            using Surface reboundSurface = (Surface)surface.Clone();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid grid = new();
+            grid.Initialize(volume, 8, VolumeInterpolation.Trilinear);
+
+            Vector3Int dimensions = grid.Dimensions;
+            Assert.That(grid.PointCount, Is.EqualTo(dimensions.x * dimensions.y * dimensions.z));
+            Assert.That(grid.Points, Has.Length.EqualTo(grid.PointCount));
+
+            using RawSiteList sites = new();
+            (Vector3 first, _, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+            sites.AddSite("S1", ToNative(first), 0, 0);
+            sites.UpdateMask(0, false);
+
+            using DensityGenerator density = new();
+            density.Initialize(grid);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+            float maxDensity = density.MaxDensity;
+
+            using SurfaceGenerator surfaceGenerator = new();
+            surfaceGenerator.Initialize(density, surface);
+            surfaceGenerator.ComputeMainUV(0.0f, 1.0f);
+            surfaceGenerator.ComputeActivityUV(0, 0.25f);
+            Vector2[] firstProjection = surfaceGenerator.ActivityUV.ToArray();
+
+            surfaceGenerator.Initialize(density, reboundSurface);
+            surfaceGenerator.ComputeActivityUV(0, 0.25f);
+
+            Assert.That(density.ProjectionGrid, Is.SameAs(grid));
+            Assert.That(density.MaxDensity, Is.EqualTo(maxDensity));
+            Assert.That(surfaceGenerator.ActivityUV, Is.EqualTo(firstProjection));
+            Assert.That(surfaceGenerator.AlphaUV, Has.Length.EqualTo(reboundSurface.NumberOfVertices));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void DensityGenerator_CoversNoSitesSingleSiteAllMaskedAndRepeatedCalls()
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
+            using DensityGenerator density = new();
+            density.Initialize(projectionGrid);
+
+            using RawSiteList sites = new();
+            Assert.That(density.Progress, Is.EqualTo(0.0f));
+            density.ComputeActivity(sites, 10.0f, SiteInfluenceByDistanceType.Constant);
+            Assert.That(density.Progress, Is.EqualTo(1.0f));
+            Assert.That(density.MaxDensity, Is.EqualTo(0.0f));
+
+            (Vector3 first, _, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+            sites.AddSite("S1", ToNative(first), 0, 0);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+            Assert.That(density.MaxDensity, Is.EqualTo(0.0f), "Sites are masked by default.");
+
+            sites.UpdateMask(0, false);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+            Assert.That(density.MaxDensity, Is.EqualTo(1.0f));
+
+            sites.AddSite("S2", ToNative(first), 0, 1);
+            sites.UpdateMask(1, false);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+            Assert.That(density.MaxDensity, Is.EqualTo(2.0f));
+
+            sites.UpdateMask(0, true);
+            sites.UpdateMask(1, true);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+            Assert.That(density.MaxDensity, Is.EqualTo(0.0f));
+
+            sites.UpdateMask(1, false);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+            Assert.That(density.MaxDensity, Is.EqualTo(1.0f));
+            Assert.That(density.Progress, Is.EqualTo(1.0f));
+        }
+
+        [TestCase(SiteInfluenceByDistanceType.Constant)]
+        [TestCase(SiteInfluenceByDistanceType.Linear)]
+        [TestCase(SiteInfluenceByDistanceType.Quadratic)]
+        [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
+        public void DensityAndIeegGenerators_ApplyEveryDistanceModeThroughVolumeProjection(SiteInfluenceByDistanceType mode)
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
+            (Vector3 first, Vector3 second, int firstIndex, int secondIndex) = FindTwoPositiveSurfaceVertices(surface, volume);
+            float influenceDistance = Vector3.Distance(first, second) * 2.0f;
+
+            using RawSiteList sites = new();
+            sites.AddSite("S1", ToNative(first), 0, 0);
+            sites.UpdateMask(0, false);
+
+            using DensityGenerator density = new();
+            density.Initialize(projectionGrid);
+            density.ComputeActivity(sites, influenceDistance, mode);
+            using SurfaceGenerator densitySurface = InitializeSurfaceGenerator(density, surface);
+            densitySurface.ComputeActivityUV(0, 0.25f);
+            float firstDensity = densitySurface.ActivityUV[firstIndex].x;
+            float secondDensity = densitySurface.ActivityUV[secondIndex].x;
+            Assert.That(firstDensity, Is.InRange(0.0f, 1.0f));
+            Assert.That(secondDensity, Is.InRange(0.0f, 1.0f));
+            Assert.That(firstDensity, Is.GreaterThanOrEqualTo(secondDensity));
+            if (mode == SiteInfluenceByDistanceType.Constant)
+            {
+                Assert.That(firstDensity, Is.EqualTo(1.0f).Within(0.0005f));
+                Assert.That(secondDensity, Is.EqualTo(1.0f).Within(0.0005f));
+            }
+
+            using IEEGGenerator ieeg = new();
+            ieeg.Initialize(projectionGrid);
+            ieeg.ComputeActivity(sites, influenceDistance, new[] { -0.75f }, 1, 1, mode);
+            ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
+            using SurfaceGenerator ieegSurface = InitializeSurfaceGenerator(ieeg, surface);
+            const float alpha = 0.25f;
+            ieegSurface.ComputeActivityUV(0, alpha);
+            Assert.That(ieegSurface.ActivityUV[firstIndex].x, Is.EqualTo(0.125f).Within(0.0005f));
+            Assert.That(ieegSurface.ActivityUV[secondIndex].x, Is.EqualTo(0.125f).Within(0.0005f));
+            float firstAlpha = ieegSurface.AlphaUV[firstIndex].x;
+            float secondAlpha = ieegSurface.AlphaUV[secondIndex].x;
+            Assert.That(firstAlpha, Is.InRange(alpha, 1.0f));
+            Assert.That(secondAlpha, Is.InRange(alpha, 1.0f));
+            Assert.That(firstAlpha, Is.GreaterThanOrEqualTo(secondAlpha));
+            if (mode == SiteInfluenceByDistanceType.Constant)
+            {
+                Assert.That(firstAlpha, Is.EqualTo(1.0f).Within(0.0005f));
+                Assert.That(secondAlpha, Is.EqualTo(1.0f).Within(0.0005f));
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("HbpCoreOnly")]
+        public void VolumeInterpolation_DrivesBothSurfaceAndCutSampling()
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            (Vector3 first, Vector3 second, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+            using RawSiteList sites = new();
+            sites.AddSite("S1", ToNative(first), 0, 0);
+            sites.AddSite("S2", ToNative(second), 0, 1);
+            sites.UpdateMask(0, false);
+            sites.UpdateMask(1, false);
+            float[] activityValues = { -1.0f, 0.5f, 0.75f, -0.25f };
+
+            (Vector2[] activity, Vector2[] alpha, Color32[] cut) Render(VolumeInterpolation interpolation)
+            {
+                using ActivityProjectionGrid projectionGrid = new();
+                projectionGrid.Initialize(volume, 8, interpolation);
+
+                using IEEGGenerator ieeg = new();
+                ieeg.Initialize(projectionGrid);
+                ieeg.SetSmoothActivityBoundaries(true);
+                ieeg.ComputeActivity(sites, 80.0f, activityValues, timelineLength: 2, numberOfSites: 2, siteInfluenceByDistance: SiteInfluenceByDistanceType.Linear);
+                ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
+
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg, surface);
+                surfaceGenerator.ComputeActivityUV(timelineIndex: 1, alpha: 0.35f);
+
+                using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward)
+                {
+                    Orientation = CutOrientation.Axial
+                };
+                using CutGeometryGenerator geometry = new();
+                geometry.Initialize(volume, cut, 16);
+                using CutGenerator cutGenerator = new();
+                cutGenerator.Initialize(ieeg, geometry, blurFactor: 0);
+                cutGenerator.SetMaskActivityOnMRIBackground(true);
+                cutGenerator.FillTextureWithVolume(HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.Grayscale), 0.0f, 1.0f);
+                cutGenerator.FillTextureWithActivity(HBP.Core.Tools.UnityTextureFactory.Generate1DColorPixels(ColorType.MatLab), timelineIndex: 1, alpha: 0.35f);
+                return (surfaceGenerator.ActivityUV, surfaceGenerator.AlphaUV, cutGenerator.CopyOverlayPixels());
+            }
+
+            var nearest = Render(VolumeInterpolation.Nearest);
+            var trilinear = Render(VolumeInterpolation.Trilinear);
+            Assert.That(trilinear.activity, Is.Not.EqualTo(nearest.activity), "Trilinear interpolation must drive surface activity from the shared volume.");
+            Assert.That(trilinear.alpha, Is.Not.EqualTo(nearest.alpha), "Trilinear interpolation must drive surface weights from the shared volume.");
+            Assert.That(trilinear.cut, Is.Not.EqualTo(nearest.cut), "Trilinear interpolation should affect the sampled cut for this non-uniform fixture.");
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("HbpCoreOnly")]
+        public void CutActivity_ComposesSrgbInputsInLinearSpace()
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid projectionGrid = new();
+            projectionGrid.Initialize(volume, 8, VolumeInterpolation.Trilinear);
+
+            using RawSiteList sites = new();
+            sites.AddSite("S1", ToNative(volume.Center), 0, 0);
+            sites.UpdateMask(0, false);
+
+            using DensityGenerator density = new();
+            density.Initialize(projectionGrid);
+            density.ComputeActivity(sites, 1000.0f, SiteInfluenceByDistanceType.Constant);
+
+            using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward)
+            {
+                Orientation = CutOrientation.Axial
+            };
+            using CutGeometryGenerator geometry = new();
+            geometry.Initialize(volume, cut, 16);
+            using CutGenerator cutGenerator = new();
+            cutGenerator.Initialize(density, geometry, blurFactor: 0);
+
+            Color32 anatomy = new(235, 181, 120, 255);
+            Color32 scientific = new(0, 127, 255, 255);
+            cutGenerator.FillTextureWithVolume(new[] { anatomy, anatomy }, 0.0f, 1.0f);
+            Color32[] basePixels = cutGenerator.CopyBasePixels();
+            cutGenerator.FillTextureWithActivity(new[] { scientific, scientific }, timelineIndex: 0, alpha: 0.25f);
+            Color32[] overlayPixels = cutGenerator.CopyOverlayPixels();
+
+            int sampleIndex = Array.FindIndex(basePixels, pixel => pixel.r == anatomy.r && pixel.g == anatomy.g && pixel.b == anatomy.b);
+            Assert.That(sampleIndex, Is.GreaterThanOrEqualTo(0), "The synthetic cut must contain an anatomical pixel.");
+
+            const float normalizedDensity = 0.1f;
+            const float minimumActivityAlpha = 0.25f;
+            float effectiveAlpha = normalizedDensity * (1.0f - minimumActivityAlpha) + minimumActivityAlpha;
+            float paletteWeightedAlpha = 1.0f - (1.0f - effectiveAlpha) * (1.0f - effectiveAlpha);
+            Color32 expected = ComposeSrgbInLinearSpace(anatomy, scientific, paletteWeightedAlpha);
+            Color32 actual = overlayPixels[sampleIndex];
+            Assert.That(actual.r, Is.EqualTo(expected.r).Within(1));
+            Assert.That(actual.g, Is.EqualTo(expected.g).Within(1));
+            Assert.That(actual.b, Is.EqualTo(expected.b).Within(1));
+            Assert.That(actual.a, Is.EqualTo(255));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void IeegGenerator_HandlesEmptyIdenticalExtremeNegativeAndNonFiniteInputs()
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
+            (Vector3 first, _, int firstIndex, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+
+            using IEEGGenerator ieeg = new();
+            ieeg.Initialize(projectionGrid);
+            using RawSiteList noSites = new();
+            ieeg.ComputeActivity(noSites, 10.0f, Array.Empty<float>(), 1, 0, SiteInfluenceByDistanceType.Constant);
+            using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg, surface);
+            surfaceGenerator.ComputeActivityUV();
+            object nativeActivityBuffer = typeof(SurfaceGenerator).GetField("m_NativeActivityUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator);
+            object nativeAlphaBuffer = typeof(SurfaceGenerator).GetField("m_NativeAlphaUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator);
+            Assert.That(surfaceGenerator.ActivityUV, Has.All.EqualTo(new Vector2(0.5f, 1.0f)));
+            Assert.That(ieeg.Progress, Is.EqualTo(1.0f));
+
+            using RawSiteList oneSite = new();
+            oneSite.AddSite("S1", ToNative(first), 0, 0);
+            oneSite.UpdateMask(0, false);
+            ieeg.ComputeActivity(oneSite, 1000.0f, new[] { 2.0f }, 1, 1, SiteInfluenceByDistanceType.Constant);
+            ieeg.AdjustValues(2.0f, 2.0f, 2.0f);
+            surfaceGenerator.ComputeActivityUV();
+            Assert.That(typeof(SurfaceGenerator).GetField("m_NativeActivityUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator), Is.SameAs(nativeActivityBuffer));
+            Assert.That(typeof(SurfaceGenerator).GetField("m_NativeAlphaUV", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(surfaceGenerator), Is.SameAs(nativeAlphaBuffer));
+            Assert.That(surfaceGenerator.ActivityUV[firstIndex].x, Is.EqualTo(0.5f).Within(0.0005f));
+
+            ieeg.ComputeActivity(oneSite, 1000.0f, new[] { -1.0e20f }, 1, 1, SiteInfluenceByDistanceType.Constant);
+            ieeg.AdjustValues(0.0f, -1.0e20f, 1.0e20f);
+            surfaceGenerator.ComputeActivityUV();
+            Assert.That(surfaceGenerator.ActivityUV[firstIndex].x, Is.EqualTo(0.0f).Within(0.0005f));
+            Assert.That(float.IsFinite(surfaceGenerator.ActivityUV[firstIndex].x), Is.True);
+
+            Assert.Throws<InvalidOperationException>(() => ieeg.ComputeActivity(oneSite, 1000.0f, new[] { float.NaN }, 1, 1, SiteInfluenceByDistanceType.Constant));
+            Assert.Throws<ArgumentException>(() => ieeg.ComputeActivity(oneSite, 1000.0f, Array.Empty<float>(), 1, 1, SiteInfluenceByDistanceType.Constant));
+            Assert.Throws<ArgumentException>(() => ieeg.ComputeActivity(oneSite, 1000.0f, new[] { 1.0f }, 1, 0, SiteInfluenceByDistanceType.Constant));
+            Assert.Throws<InvalidOperationException>(() => ieeg.AdjustValues(0.0f, float.NegativeInfinity, 1.0f));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
+        public void SurfaceGenerator_ComputeMainUvMatchesVolumeOracleAndRejectsInvalidInputs()
+        {
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
+            using DensityGenerator density = new();
+            density.Initialize(projectionGrid);
+            using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(density, surface);
+
+            const float calMin = 0.25f;
+            const float calMax = 0.75f;
+            surfaceGenerator.ComputeMainUV(calMin, calMax);
+            Mesh mesh = new();
+            try
+            {
+                surface.UpdateMeshFromDLL(mesh);
+                float[] values = volume.GetVerticesValues(surface);
+                HBP.Core.Tools.MRICalValues extrema = volume.ExtremeValues;
+                float diff = extrema.ComputedCalMax - extrema.ComputedCalMin;
+                float minValue = extrema.ComputedCalMin + calMin * diff;
+                float maxValue = extrema.ComputedCalMin + calMax * diff;
+                Assert.That(mesh.uv, Has.Length.EqualTo(values.Length));
+                for (int i = 0; i < values.Length; ++i)
+                {
+                    Vector2 expected = Vector2.zero;
+                    if (values[i] > 0.0f)
+                    {
+                        float clamped = Mathf.Clamp(values[i], minValue, maxValue);
+                        expected = new Vector2((clamped - minValue) / diff, 1.0f);
+                    }
+
+                    Assert.That(mesh.uv[i].x, Is.EqualTo(expected.x).Within(0.0005f), $"uv[{i}].x");
+                    Assert.That(mesh.uv[i].y, Is.EqualTo(expected.y).Within(0.0005f), $"uv[{i}].y");
+                }
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+
+            Assert.Throws<InvalidOperationException>(() => surfaceGenerator.ComputeMainUV(float.NaN, 1.0f));
+            using Volume emptyVolume = new();
+            using ActivityProjectionGrid emptyVolumeGrid = new();
+            Assert.Throws<InvalidOperationException>(() => emptyVolumeGrid.Initialize(emptyVolume, 8));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
+        public void IeegGenerator_ComputeActivityAtlasCoversTimelinesMasksAndRepeatedCalls()
+        {
+            string tempDirectory = CreateTempDirectory();
+            try
+            {
+                string indexPath = WriteMarsIndex(tempDirectory);
+                string brodmannPath = Path.Combine(tempDirectory, "brodmann.txt");
+                File.WriteAllText(brodmannPath, "BA0\n");
+                using MarsAtlas atlas = new();
+                Assert.That(atlas.Load(indexPath, brodmannPath, NativeParityAssert.NativePath("Nifti", "fmri_3d.nii")), Is.True);
+
+                using Surface surface = LoadSurface();
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(volume);
+                using IEEGGenerator ieeg = new();
+                ieeg.Initialize(projectionGrid);
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(ieeg, surface);
+
+                int areaCount = atlas.Labels().Max() + 1;
+                const int timelineLength = 2;
+                float[] activity = new float[areaCount * timelineLength];
+                int[] mask = new int[areaCount];
+                for (int label = 1; label < areaCount; ++label)
+                {
+                    activity[label * timelineLength] = (float)label / (areaCount - 1);
+                    activity[label * timelineLength + 1] = -(float)label / (areaCount - 1);
+                }
+
+                ieeg.ComputeActivityAtlas(activity, timelineLength, mask, atlas);
+                ieeg.AdjustValues(0.0f, -1.0f, 1.0f);
+                Assert.That(ieeg.Progress, Is.EqualTo(1.0f));
+                surfaceGenerator.ComputeActivityUV(0, 0.2f);
+
+                Mesh mesh = new();
+                try
+                {
+                    surface.UpdateMeshFromDLL(mesh);
+                    float[] referenceValues = volume.GetVerticesValues(surface);
+                    int influenced = 0;
+                    for (int i = 0; i < mesh.vertexCount; ++i)
+                    {
+                        if (referenceValues[i] <= 0.0f || surfaceGenerator.ActivityUV[i].y > 0.5f) continue;
+                        ++influenced;
+                        Assert.That(surfaceGenerator.ActivityUV[i].x, Is.InRange(0.0f, 1.0f));
+                        Assert.That(surfaceGenerator.ActivityUV[i].y, Is.EqualTo(0.0f).Within(0.0005f));
+                        Assert.That(surfaceGenerator.AlphaUV[i].x, Is.EqualTo(1.0f).Within(0.0005f));
+                        Assert.That(surfaceGenerator.AlphaUV[i].y, Is.EqualTo(0.0f).Within(0.0005f));
+                    }
+
+                    Assert.That(influenced, Is.GreaterThan(0));
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(mesh);
+                }
+
+                Array.Fill(mask, 1);
+                ieeg.ComputeActivityAtlas(activity, timelineLength, mask, atlas);
+                surfaceGenerator.ComputeActivityUV(1, 0.2f);
+                Assert.That(surfaceGenerator.ActivityUV, Has.All.EqualTo(new Vector2(0.5f, 1.0f)));
+                Assert.That(surfaceGenerator.AlphaUV, Has.All.EqualTo(new Vector2(0.01f, 1.0f)));
+                Assert.That(ieeg.Progress, Is.EqualTo(1.0f));
+
+                activity[2] = float.PositiveInfinity;
+                Assert.Throws<InvalidOperationException>(() => ieeg.ComputeActivityAtlas(activity, timelineLength, mask, atlas));
+                Assert.Throws<ArgumentException>(() => ieeg.ComputeActivityAtlas(new float[activity.Length - 1], timelineLength, mask, atlas));
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, true);
+            }
+        }
+
+        [TestCase(GeneratorKind.Fmri)]
+        [TestCase(GeneratorKind.Meg)]
+        [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
+        public void VolumeActivityGenerator_CoversMultiVolumeEveryHideModeAndRepeatedCalls(GeneratorKind kind)
+        {
+            string tempDirectory = CreateTempDirectory();
+            try
+            {
+                string firstPath = WriteNiftiValues(tempDirectory, "signed-a.nii", i => -2.0f + 4.0f * i / 124.0f);
+                string secondPath = WriteNiftiValues(tempDirectory, "signed-b.nii", i => 2.0f - 4.0f * i / 124.0f);
+                string nonFinitePath = WriteNiftiValues(tempDirectory, "non-finite.nii", _ => float.NaN);
+                using Surface surface = LoadSurface();
+                using Volume reference = LoadVolume("fmri_3d.nii");
+                using Volume first = LoadVolumePath(firstPath);
+                using Volume second = LoadVolumePath(secondPath);
+                using Volume nonFinite = LoadVolumePath(nonFinitePath);
+                using Volume emptyMaskA = new();
+                using Volume emptyMaskB = new();
+                using ActivityProjectionGrid projectionGrid = InitializeProjectionGrid(reference);
+                using ActivityGenerator generator = CreateVolumeGenerator(kind);
+                generator.Initialize(projectionGrid);
+                ComputeVolumeActivity(generator, new[] { (first, emptyMaskA), (second, emptyMaskB) });
+                AdjustVolumeValues(generator, 0.25f, 0.75f, 0.25f, 0.75f);
+                using SurfaceGenerator surfaceGenerator = InitializeSurfaceGenerator(generator, surface);
+
+                float[] referenceValues = reference.GetVerticesValues(surface);
+                float[] rawValues = first.GetVerticesValues(surface);
+                float globalMin = Mathf.Min(first.ExtremeValues.Min, second.ExtremeValues.Min);
+                float globalMax = Mathf.Max(first.ExtremeValues.Max, second.ExtremeValues.Max);
+                const float alpha = 0.2f;
+                for (int flags = 0; flags < 8; ++flags)
+                {
+                    bool hideLower = (flags & 1) != 0;
+                    bool hideMiddle = (flags & 2) != 0;
+                    bool hideHigher = (flags & 4) != 0;
+                    SetHideValues(generator, hideLower, hideMiddle, hideHigher);
+                    surfaceGenerator.ComputeActivityUV(0, alpha);
+                    for (int i = 0; i < rawValues.Length; ++i)
+                    {
+                        float normalized = (rawValues[i] - globalMin) / (globalMax - globalMin) * 2.0f - 1.0f;
+                        bool hidden = hideLower && normalized < -0.75f || hideMiddle && normalized > -0.25f && normalized < 0.25f || hideHigher && normalized > 0.75f;
+                        bool visible = referenceValues[i] > 0.0f && !hidden;
+                        Vector2 expected = visible ? new Vector2(0.1f * (1.0f - alpha) + alpha, 0.0f) : new Vector2(0.01f, 1.0f);
+                        Assert.That(surfaceGenerator.AlphaUV[i].x, Is.EqualTo(expected.x).Within(0.0005f), $"flags={flags}, alpha[{i}].x");
+                        Assert.That(surfaceGenerator.AlphaUV[i].y, Is.EqualTo(expected.y).Within(0.0005f), $"flags={flags}, alpha[{i}].y");
+                    }
+                }
+
+                SetHideValues(generator, false, false, false);
+                surfaceGenerator.ComputeActivityUV(0, alpha);
+                Vector2[] firstTimeline = (Vector2[])surfaceGenerator.ActivityUV.Clone();
+                surfaceGenerator.ComputeActivityUV(1, alpha);
+                Assert.That(surfaceGenerator.ActivityUV.Where((value, index) => value != firstTimeline[index]), Is.Not.Empty);
+
+                ComputeVolumeActivity(generator, new[] { (second, emptyMaskB), (first, emptyMaskA) });
+                surfaceGenerator.ComputeActivityUV(1, alpha);
+                AssertVectorArrays(surfaceGenerator.ActivityUV, firstTimeline);
+                Assert.That(generator.Progress, Is.EqualTo(1.0f));
+
+                using Volume emptyMask = new();
+                ComputeVolumeActivity(generator, new[] { (nonFinite, emptyMask) });
+                surfaceGenerator.ComputeActivityUV(0, alpha);
+                Assert.That(surfaceGenerator.ActivityUV, Has.All.EqualTo(new Vector2(0.0f, 0.0f)), "niftilib normalizes non-finite NIfTI samples to visible zero activity before generation");
+                Assert.That(surfaceGenerator.AlphaUV, Has.All.EqualTo(new Vector2(0.28f, 0.0f)));
+                Assert.That(generator.Progress, Is.EqualTo(1.0f));
+                Assert.Throws<InvalidOperationException>(() => ComputeVolumeActivity(generator, Array.Empty<(Volume, Volume)>()));
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, true);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("PreviewSurface.Increment5")]
+        public void IeegGenerator_ExportsActivityAndMaskAsReadableNifti()
+        {
+            string tempDirectory = CreateTempDirectory();
+            try
+            {
+                string activityPath = Path.Combine(tempDirectory, "ieeg-activity.nii.gz");
+                string maskPath = Path.Combine(tempDirectory, "ieeg-mask.nii.gz");
+                using Surface surface = LoadSurface();
+                using Volume volume = LoadVolume("fmri_3d.nii");
+                LocalizerExportGridSettings exportSettings = new(8);
+                using ActivityProjectionGrid projectionGrid = new();
+                projectionGrid.Initialize(volume, exportSettings.MaximumDimension, exportSettings.Interpolation);
+                Vector3Int announcedDimensions = exportSettings.CalculateDimensions(volume.Dimensions);
+                Assert.That(projectionGrid.Dimensions, Is.EqualTo(announcedDimensions));
+                (Vector3 first, _, _, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+                using RawSiteList sites = new();
+                sites.AddSite("S1", ToNative(first), 0, 0);
+                sites.UpdateMask(0, false);
+                using IEEGGenerator ieeg = new();
+                ieeg.Initialize(projectionGrid);
+                ieeg.ComputeActivity(sites, influenceDistance: 80.0f, new[] { 0.5f }, timelineLength: 1, numberOfSites: 1, SiteInfluenceByDistanceType.Linear);
+
+                HBP.Core.Object3D.FMRI fmri = new();
+                try
+                {
+                    fmri.Volumes.Add(new Volume());
+                    SubTimeline timeline = new(fmri);
+                    Assert.That(ieeg.SaveActivityAsNifti(activityPath, timeline, "IEEG activity"), Is.True);
+                    Assert.That(ieeg.SaveMaskAsNifti(maskPath, "IEEG mask"), Is.True);
+                }
+                finally
+                {
+                    fmri.Clean();
+                }
+
+                using NIFTI activity = new();
+                using NIFTI mask = new();
+                Assert.That(activity.Load(activityPath), Is.True);
+                Assert.That(mask.Load(maskPath), Is.True);
+                Assert.That(activity.NumberOfVolumes, Is.GreaterThanOrEqualTo(1));
+                Assert.That(mask.NumberOfVolumes, Is.EqualTo(1));
+                using Volume exportedActivity = activity.ExtractVolume(0);
+                using Volume exportedMask = mask.ExtractVolume(0);
+                Assert.That(exportedActivity.Dimensions, Is.EqualTo(announcedDimensions));
+                Assert.That(exportedMask.Dimensions, Is.EqualTo(announcedDimensions));
+            }
+            finally
+            {
+                Directory.Delete(tempDirectory, true);
+            }
+        }
+
+        private static Surface LoadSurface()
+        {
+            Surface surface = new();
+            try
+            {
+                Assert.That(surface.LoadGIIFile(NativeParityAssert.NativePath("Meshes", "single_surface.gii")), Is.True);
+                return surface;
+            }
+            catch
+            {
+                surface.Dispose();
+                throw;
+            }
+        }
+
+        private static Volume LoadVolume(string fileName) => LoadVolumePath(NativeParityAssert.NativePath("Nifti", fileName));
+
+        private static Volume LoadVolumePath(string path)
+        {
+            Volume volume = new();
+            try
+            {
+                Assert.That(volume.LoadNIFTIFile(path), Is.True, path);
+                return volume;
+            }
+            catch
+            {
+                volume.Dispose();
+                throw;
+            }
+        }
+
+        private static ActivityProjectionGrid InitializeProjectionGrid(Volume volume)
+        {
+            ActivityProjectionGrid grid = new();
+            try
+            {
+                grid.Initialize(volume, 8);
+                return grid;
+            }
+            catch
+            {
+                grid.Dispose();
+                throw;
+            }
+        }
+
+        private static SurfaceGenerator InitializeSurfaceGenerator(ActivityGenerator activity, Surface surface)
+        {
+            SurfaceGenerator generator = new();
+            try
+            {
+                generator.Initialize(activity, surface);
+                return generator;
+            }
+            catch
+            {
+                generator.Dispose();
+                throw;
+            }
+        }
+
+        private static (Vector3 First, Vector3 Second, int FirstIndex, int SecondIndex) FindTwoPositiveSurfaceVertices(Surface surface, Volume volume)
+        {
+            Mesh mesh = new();
+            try
+            {
+                surface.UpdateMeshFromDLL(mesh);
+                float[] values = volume.GetVerticesValues(surface);
+                int first = Array.FindIndex(values, value => value > 0.0f);
+                Assert.That(first, Is.GreaterThanOrEqualTo(0));
+                int second = -1;
+                for (int i = first + 1; i < values.Length; ++i)
+                {
+                    if (values[i] > 0.0f && Vector3.Distance(mesh.vertices[first], mesh.vertices[i]) > 0.0001f)
+                    {
+                        second = i;
+                        break;
+                    }
+                }
+
+                Assert.That(second, Is.GreaterThanOrEqualTo(0));
+                return (mesh.vertices[first], mesh.vertices[second], first, second);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+        }
+
+        private static Color32 ComposeSrgbInLinearSpace(Color32 anatomy, Color32 scientific, float alpha)
+        {
+            return new Color32(LinearToSrgbByte(Mathf.Lerp(SrgbByteToLinear(anatomy.r), SrgbByteToLinear(scientific.r), alpha)), LinearToSrgbByte(Mathf.Lerp(SrgbByteToLinear(anatomy.g), SrgbByteToLinear(scientific.g), alpha)), LinearToSrgbByte(Mathf.Lerp(SrgbByteToLinear(anatomy.b), SrgbByteToLinear(scientific.b), alpha)), 255);
+        }
+
+        private static float SrgbByteToLinear(byte value)
+        {
+            float srgb = value / 255.0f;
+            return srgb <= 0.04045f ? srgb / 12.92f : Mathf.Pow((srgb + 0.055f) / 1.055f, 2.4f);
+        }
+
+        private static byte LinearToSrgbByte(float value)
+        {
+            float linear = Mathf.Clamp01(value);
+            float srgb = linear <= 0.0031308f ? linear * 12.92f : 1.055f * Mathf.Pow(linear, 1.0f / 2.4f) - 0.055f;
+            return (byte)Mathf.Clamp(Mathf.RoundToInt(srgb * 255.0f), 0, 255);
+        }
+
+        private static Vector3 ToNative(Vector3 unity) => new(-unity.x, unity.y, unity.z);
+
+        private static string CreateTempDirectory()
+        {
+            string path = Path.Combine(Path.GetTempPath(), $"hibop_activity_generator_{Guid.NewGuid():N}");
+            Directory.CreateDirectory(path);
+            return path;
+        }
+
+        private static string WriteMarsIndex(string directory)
+        {
+            string path = Path.Combine(directory, "mars-index.csv");
+            List<string> lines = new() { "label,hemisphere,lobe,nameFS,name,fullName,BA,color" };
+            for (int label = 1; label <= 124; ++label)
+            {
+                lines.Add($"{label},L,Frontal,fs_{label},Area{label},Area {label},0,255 0 0");
+            }
+
+            File.WriteAllLines(path, lines);
+            return path;
+        }
+
+        private static string WriteNiftiValues(string directory, string fileName, Func<int, float> valueFactory)
+        {
+            byte[] bytes = File.ReadAllBytes(NativeParityAssert.NativePath("Nifti", "fmri_3d.nii"));
+            int offset = (int)Math.Round(BitConverter.ToSingle(bytes, 108));
+            float min = float.PositiveInfinity;
+            float max = float.NegativeInfinity;
+            for (int i = 0; i < 125; ++i)
+            {
+                float value = valueFactory(i);
+                byte[] encoded = BitConverter.GetBytes(value);
+                Buffer.BlockCopy(encoded, 0, bytes, offset + i * sizeof(float), encoded.Length);
+                if (float.IsFinite(value))
+                {
+                    min = Mathf.Min(min, value);
+                    max = Mathf.Max(max, value);
+                }
+            }
+
+            if (float.IsFinite(min)) Buffer.BlockCopy(BitConverter.GetBytes(min), 0, bytes, 128, sizeof(float));
+            if (float.IsFinite(max)) Buffer.BlockCopy(BitConverter.GetBytes(max), 0, bytes, 124, sizeof(float));
+            string path = Path.Combine(directory, fileName);
+            File.WriteAllBytes(path, bytes);
+            return path;
+        }
+
+        private static ActivityGenerator CreateVolumeGenerator(GeneratorKind kind)
+        {
+            return kind == GeneratorKind.Fmri ? new FMRIGenerator() : new MEGGenerator();
+        }
+
+        private static void ComputeVolumeActivity(ActivityGenerator generator, IEnumerable<(Volume, Volume)> volumes)
+        {
+            if (generator is FMRIGenerator fmri) fmri.ComputeActivity(volumes);
+            else if (generator is MEGGenerator meg) meg.ComputeActivity(volumes);
+            else throw new ArgumentOutOfRangeException(nameof(generator));
+        }
+
+        private static void AdjustVolumeValues(ActivityGenerator generator, float negativeMin, float negativeMax, float positiveMin, float positiveMax)
+        {
+            if (generator is FMRIGenerator fmri) fmri.AdjustValues(negativeMin, negativeMax, positiveMin, positiveMax);
+            else if (generator is MEGGenerator meg) meg.AdjustValues(negativeMin, negativeMax, positiveMin, positiveMax);
+            else throw new ArgumentOutOfRangeException(nameof(generator));
+        }
+
+        private static void SetHideValues(ActivityGenerator generator, bool lower, bool middle, bool higher)
+        {
+            if (generator is FMRIGenerator fmri) fmri.HideExtremeValues(lower, middle, higher);
+            else if (generator is MEGGenerator meg) meg.HideExtremeValues(lower, middle, higher);
+            else throw new ArgumentOutOfRangeException(nameof(generator));
+        }
+
+        private static void AssertVectorArrays(IReadOnlyList<Vector2> actual, IReadOnlyList<Vector2> expected)
+        {
+            Assert.That(actual.Count, Is.EqualTo(expected.Count));
+            for (int i = 0; i < expected.Count; ++i)
+            {
+                Assert.That(actual[i].x, Is.EqualTo(expected[i].x).Within(0.0005f), $"value[{i}].x");
+                Assert.That(actual[i].y, Is.EqualTo(expected[i].y).Within(0.0005f), $"value[{i}].y");
+            }
+        }
+
+        public enum GeneratorKind
+        {
+            Fmri,
+            Meg
+        }
+    }
+}

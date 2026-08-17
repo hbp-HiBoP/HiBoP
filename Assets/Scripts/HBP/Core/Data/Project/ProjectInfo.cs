@@ -1,14 +1,11 @@
-﻿using System.IO;
-using Ionic.Zip;
 using HBP.Core.Exceptions;
-using HBP.Core.Tools;
-using UnityEngine;
 
 namespace HBP.Core.Data
 {
     public class ProjectInfo
     {
         #region Properties
+
         public string Name { get; set; }
         public ProjectPreferences Settings { get; set; }
         public int Patients { get; set; }
@@ -16,9 +13,13 @@ namespace HBP.Core.Data
         public int Datasets { get; set; }
         public int Visualizations { get; set; }
         public string Path { get; set; }
+        public System.Exception SettingsLoadException { get; private set; }
+        public ProjectManifest Manifest { get; private set; }
+
         #endregion
 
         #region Constructors
+
         public ProjectInfo()
         {
             Name = string.Empty;
@@ -28,56 +29,49 @@ namespace HBP.Core.Data
             Datasets = 0;
             Visualizations = 0;
             Path = string.Empty;
+            SettingsLoadException = null;
+            Manifest = null;
         }
-        public ProjectInfo(string path) : base()
+
+        public ProjectInfo(string path) : this()
         {
-            if (Project.IsProject(path))
+            try
             {
-                Path = path;
-                Name = System.IO.Path.GetFileNameWithoutExtension(path);
-                using ZipFile zip = ZipFile.Read(path);
-                foreach (ZipEntry entry in zip)
-                {
-                    if (entry.FileName.EndsWith(Patient.EXTENSION))
-                    {
-                        Patients++;
-                    }
-                    else if (entry.FileName.EndsWith(Group.EXTENSION))
-                    {
-                        Groups++;
-                    }
-                    else if (entry.FileName.EndsWith(Dataset.EXTENSION))
-                    {
-                        Datasets++;
-                    }
-                    else if (entry.FileName.EndsWith(Visualization.EXTENSION))
-                    {
-                        Visualizations++;
-                    }
-                    else if (entry.FileName.EndsWith(ProjectPreferences.EXTENSION))
-                    {
-                        FileInfo settingsFile = new(System.IO.Path.Combine(ApplicationState.TMPFolder, entry.FileName));
-                        if (settingsFile.Exists) settingsFile.Delete();
-                        entry.Extract(ApplicationState.TMPFolder);
-                        try
-                        {
-                            Settings = ClassLoaderSaver.LoadFromJson<ProjectPreferences>(settingsFile.FullName);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogException(e);
-                            Settings = new ProjectPreferences();
-                            Settings.CanLoadProject = false;
-                        }
-                        settingsFile.Directory.Delete(true);
-                    }
-                }
+                ApplyManifest(ProjectManifest.Read(path, true));
             }
-            else
+            catch (DirectoryNotProjectException)
             {
-                throw new DirectoryNotProjectException(path);
+                throw;
+            }
+            catch (System.Exception exception)
+            {
+                throw new DirectoryNotProjectException(path, exception);
             }
         }
+
         #endregion
+
+        internal ProjectManifest GetCurrentManifest()
+        {
+            if (Manifest == null || !Manifest.IsCurrent())
+            {
+                ApplyManifest(ProjectManifest.Read(Path, true));
+            }
+
+            return Manifest;
+        }
+
+        private void ApplyManifest(ProjectManifest manifest)
+        {
+            Manifest = manifest;
+            Path = manifest.Path;
+            Name = manifest.Name;
+            Settings = manifest.Preferences;
+            Patients = manifest.Patients;
+            Groups = manifest.Groups;
+            Datasets = manifest.Datasets;
+            Visualizations = manifest.Visualizations;
+            SettingsLoadException = manifest.PreferencesLoadException;
+        }
     }
 }

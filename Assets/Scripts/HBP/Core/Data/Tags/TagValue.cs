@@ -24,20 +24,16 @@ namespace HBP.Core.Data
     public abstract class TagValue<T, I> : BaseTagValue where T : BaseTag
     {
         #region Properties
+
         /// <summary>
         /// Tag associated with the value.
         /// </summary>
         public virtual new T Tag
         {
-            get
-            {
-                return (T)base.Tag;
-            }
-            set
-            {
-                base.Tag = value;
-            }
+            get { return (T)base.Tag; }
+            set { base.Tag = value; }
         }
+
         /// <summary>
         /// Value associated with the tag.
         /// </summary>
@@ -49,7 +45,7 @@ namespace HBP.Core.Data
                 {
                     return default;
                 }
-                
+
                 // Handle the case where JSON deserialization creates a type mismatch
                 // (e.g., Int64 instead of Int32)
                 try
@@ -77,9 +73,11 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new instance of TagValue.
         /// </summary>
@@ -89,6 +87,7 @@ namespace HBP.Core.Data
         public TagValue(T tag, I value, string ID) : base(tag, value, ID)
         {
         }
+
         /// <summary>
         /// Create a new instance of TagValue.
         /// </summary>
@@ -97,15 +96,18 @@ namespace HBP.Core.Data
         public TagValue(T tag, I value) : base(tag, value)
         {
         }
+
         /// <summary>
         /// Create a new instance of TagValue.
         /// </summary>
         public TagValue() : this(null, default)
         {
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -115,12 +117,14 @@ namespace HBP.Core.Data
                 {
                     Tag = tag;
                 }
+
                 if (baseTagValue.Value is I value)
                 {
                     Value = value;
                 }
             }
         }
+
         #endregion
     }
 }

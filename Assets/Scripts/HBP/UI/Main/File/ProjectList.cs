@@ -11,7 +11,22 @@ namespace HBP.UI.Main
     public class ProjectList : ActionableList<Core.Data.ProjectInfo>
     {
         #region Properties
-        enum OrderBy { None, Name, DescendingName, Patients, DescendingPatients, Groups, DescendingGroups, Datasets, DescendingDatasets, Visualizations, DescendingVisualizations }
+
+        enum OrderBy
+        {
+            None,
+            Name,
+            DescendingName,
+            Patients,
+            DescendingPatients,
+            Groups,
+            DescendingGroups,
+            Datasets,
+            DescendingDatasets,
+            Visualizations,
+            DescendingVisualizations
+        }
+
         OrderBy m_OrderBy = OrderBy.None;
 
         [SerializeField] SortingDisplayer m_NameSortingDisplayer;
@@ -19,9 +34,11 @@ namespace HBP.UI.Main
         [SerializeField] SortingDisplayer m_GroupSortingDisplayer;
         [SerializeField] SortingDisplayer m_DatasetSortingDisplayer;
         [SerializeField] SortingDisplayer m_VisualizationSortingDisplayer;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -41,12 +58,14 @@ namespace HBP.UI.Main
                     m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
+
         /// <summary>
         /// Sort by name.
         /// </summary>
@@ -78,12 +97,14 @@ namespace HBP.UI.Main
                     m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
+
         /// <summary>
         /// Sort by patients.
         /// </summary>
@@ -117,12 +138,14 @@ namespace HBP.UI.Main
                 default:
                     break;
             }
+
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
+
         /// <summary>
         /// Sort by groups.
         /// </summary>
@@ -154,12 +177,14 @@ namespace HBP.UI.Main
                     m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
+
         /// <summary>
         /// Sort by datasets.
         /// </summary>
@@ -170,7 +195,6 @@ namespace HBP.UI.Main
                 case OrderBy.DescendingDatasets: SortByDatasets(Sorting.Ascending); break;
                 default: SortByDatasets(Sorting.Descending); break;
             }
-
         }
 
         /// <summary>
@@ -192,12 +216,14 @@ namespace HBP.UI.Main
                     m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.Descending;
                     break;
             }
+
             m_NameSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_PatientSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_GroupSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             Refresh();
         }
+
         /// <summary>
         /// Sort by visualizations.
         /// </summary>
@@ -221,7 +247,8 @@ namespace HBP.UI.Main
             m_DatasetSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_VisualizationSortingDisplayer.Sorting = SortingDisplayer.SortingType.None;
             m_OrderBy = OrderBy.None;
-         }
+        }
+
         #endregion
     }
 }

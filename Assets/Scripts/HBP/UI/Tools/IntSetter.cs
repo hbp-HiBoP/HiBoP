@@ -7,14 +7,14 @@ namespace HBP.UI.Tools
     public class IntSetter : MonoBehaviour
     {
         #region Properties
+
         public int Value
         {
-            set
-            {
-                OnChangeValue.Invoke(value);
-            }
+            set { OnChangeValue.Invoke(value); }
         }
+
         public IntEvent OnChangeValue;
+
         #endregion
     }
 }

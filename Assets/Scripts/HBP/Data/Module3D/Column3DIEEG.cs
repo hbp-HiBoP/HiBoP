@@ -5,6 +5,7 @@ using HBP.Core.Tools;
 using HBP.Core.Data;
 using HBP.Core.Preferences;
 using HBP.Core.DLL;
+using HBP.Core.Enums;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
@@ -16,41 +17,47 @@ namespace HBP.Data.Module3D
     public class Column3DIEEG : Column3DDynamic
     {
         #region Properties
+
         /// <summary>
         /// IEEG data of this column (contains information about what to display)
         /// </summary>
         public IEEGColumn ColumnIEEGData
         {
-            get
-            {
-                return ColumnData as IEEGColumn;
-            }
+            get { return ColumnData as IEEGColumn; }
         }
+
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
         public override Timeline Timeline
         {
-            get
-            {
-                return ColumnIEEGData.Data.Timeline;
-            }
+            get { return ColumnIEEGData.Data.Timeline; }
         }
+
+        public override Timeline ProjectionTimeline => ColumnIEEGData.Data.ProjectionTimeline;
+
         /// <summary>
         /// Correlation between two sites
         /// </summary>
         public Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> CorrelationBySitePair { get; set; } = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
+
         /// <summary>
         /// Correlation between two sites
         /// </summary>
         public Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> CorrelationMeanBySitePair { get; set; } = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
+
         /// <summary>
         /// Are the correlations between site pairs computed ?
         /// </summary>
-        public bool AreCorrelationsComputed { get { return CorrelationBySitePair.Count > 0; } }
+        public bool AreCorrelationsComputed
+        {
+            get { return CorrelationBySitePair.Count > 0; }
+        }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Set activity data for each site
         /// </summary>
@@ -58,32 +65,34 @@ namespace HBP.Data.Module3D
         {
             if (ColumnIEEGData == null) return;
 
-            int timelineLength = Timeline.Length;
+            int timelineLength = ProjectionTimeline.Length;
             int sitesCount = Sites.Count;
             ActivityValuesBySiteID = new float[sitesCount][];
             ActivityUnitsBySiteID = new string[sitesCount];
-            int numberOfSitesWithValues = 0;
+            float[] zeroValues = new float[timelineLength];
+            bool[] maskedSites = new bool[sitesCount];
             foreach (Core.Object3D.Site site in Sites)
             {
                 if (ColumnIEEGData.Data.ProcessedValuesByChannel.TryGetValue(site.Information.FullID, out float[] values))
                 {
                     if (values.Length > 0)
                     {
-                        numberOfSitesWithValues++;
                         ActivityValuesBySiteID[site.Information.Index] = values;
                         site.State.IsMasked = false;
                     }
                     else
                     {
-                        ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                        ActivityValuesBySiteID[site.Information.Index] = zeroValues;
                         site.State.IsMasked = true;
                     }
                 }
                 else
                 {
-                    ActivityValuesBySiteID[site.Information.Index] = new float[timelineLength];
+                    ActivityValuesBySiteID[site.Information.Index] = zeroValues;
                     site.State.IsMasked = true;
                 }
+
+                maskedSites[site.Information.Index] = site.State.IsMasked;
                 if (ColumnIEEGData.Data.UnitByChannelID.TryGetValue(site.Information.FullID, out string unit))
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = unit;
@@ -92,51 +101,28 @@ namespace HBP.Data.Module3D
                 {
                     ActivityUnitsBySiteID[site.Information.Index] = "";
                 }
+
                 if (ColumnIEEGData.Data.DataByChannelID.TryGetValue(site.Information.FullID, out BlocChannelData blocChannelData))
                 {
                     site.Data = blocChannelData;
                 }
+
                 if (ColumnIEEGData.Data.StatisticsByChannelID.TryGetValue(site.Information.FullID, out BlocChannelStatistics blocChannelStatistics))
                 {
                     site.Statistics = blocChannelStatistics;
                 }
             }
 
-            DynamicParameters.MinimumAmplitude = float.MaxValue;
-            DynamicParameters.MaximumAmplitude = float.MinValue;
-
-            int length = timelineLength * sitesCount;
-            ActivityValues = new float[length];
-            List<float> iEEGNotMasked = new();
-            for (int s = 0; s < sitesCount; ++s)
-            {
-                for (int t = 0; t < timelineLength; ++t)
-                {
-                    float val = ActivityValuesBySiteID[s][t];
-                    ActivityValues[t * sitesCount + s] = val;
-                }
-                if (!Sites[s].State.IsMasked)
-                {
-                    for (int t = 0; t < timelineLength; ++t)
-                    {
-                        float val = ActivityValuesBySiteID[s][t];
-                        iEEGNotMasked.Add(val);
-
-                        if (val > DynamicParameters.MaximumAmplitude)
-                            DynamicParameters.MaximumAmplitude = val;
-                        else if (val < DynamicParameters.MinimumAmplitude)
-                            DynamicParameters.MinimumAmplitude = val;
-                    }
-                }
-            }
-
-            if (DynamicParameters.MinimumAmplitude == float.MaxValue) DynamicParameters.MinimumAmplitude = -1;
-            if (DynamicParameters.MaximumAmplitude == float.MinValue) DynamicParameters.MaximumAmplitude = 1;
-            ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            ActivityValues = ProjectionBufferBuilder.FlattenTimeMajor(ActivityValuesBySiteID, maskedSites, timelineLength, out RunningStatistics statistics, out float minimum, out float maximum);
+            ActivityStatistics = statistics;
+            DynamicParameters.MinimumAmplitude = minimum;
+            DynamicParameters.MaximumAmplitude = maximum;
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>
@@ -149,6 +135,7 @@ namespace HBP.Data.Module3D
             CorrelationBySitePair.Clear();
             CorrelationMeanBySitePair.Clear();
         }
+
         /// <summary>
         /// Compute correlations for all site pairs
         /// </summary>
@@ -174,11 +161,14 @@ namespace HBP.Data.Module3D
                             {
                                 arrayValues[j] = site.Data.Trials[i].Values[j];
                             }
+
                             values.Add(arrayValues);
                         }
+
                         valuesByChannel.Add(site, values);
                     }
                 }
+
                 int siteCount = valuesByChannel.Count;
                 int progressCount = 0;
                 foreach (var kv1 in valuesByChannel)
@@ -199,15 +189,16 @@ namespace HBP.Data.Module3D
 
                         int count = 0;
                         for (int i = 0; i < numberOfTrials; ++i)
-                            for (int j = 0; j < numberOfTrials; ++j)
-                                if (i == j)
-                                    blackData[i] = MathDLL.Pearson(kv1.Value[i], kv2.Value[i]);
-                                else
-                                    greyData[count++] = MathDLL.Pearson(kv1.Value[i], kv2.Value[j]);
+                        for (int j = 0; j < numberOfTrials; ++j)
+                            if (i == j)
+                                blackData[i] = MathDLL.Pearson(kv1.Value[i], kv2.Value[i]);
+                            else
+                                greyData[count++] = MathDLL.Pearson(kv1.Value[i], kv2.Value[j]);
 
                         correlation.Add(kv2.Key, (float)MathDLL.WilcoxonRankSum(blackData, greyData));
                         mean.Add(kv2.Key, (float)blackData.Mean());
                     }
+
                     CorrelationBySitePair.Add(kv1.Key, correlation);
                     CorrelationMeanBySitePair.Add(kv1.Key, mean);
                 }
@@ -226,6 +217,7 @@ namespace HBP.Data.Module3D
                 throw e;
             }
         }
+
         /// <summary>
         /// Which sites are correlated to the input one ?
         /// </summary>
@@ -253,8 +245,10 @@ namespace HBP.Data.Module3D
                     }
                 }
             }
+
             return result;
         }
+
         /// <summary>
         /// Load the column configuration from the column data
         /// </summary>
@@ -266,6 +260,7 @@ namespace HBP.Data.Module3D
             DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax);
             base.LoadConfiguration(false);
         }
+
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
@@ -277,6 +272,7 @@ namespace HBP.Data.Module3D
             ColumnIEEGData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
             base.SaveConfiguration();
         }
+
         /// <summary>
         /// Reset the configuration of this column
         /// </summary>
@@ -286,6 +282,7 @@ namespace HBP.Data.Module3D
             DynamicParameters.ResetSpanValues(this);
             base.ResetConfiguration();
         }
+
         #endregion
     }
 }

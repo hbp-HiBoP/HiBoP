@@ -2,9 +2,8 @@
 using UnityEngine.UI;
 using TMPro;
 
-public class ChatController : MonoBehaviour {
-
-
+public class ChatController : MonoBehaviour
+{
     public TMP_InputField ChatInputField;
 
     public TMP_Text ChatDisplayOutput;
@@ -47,5 +46,4 @@ public class ChatController : MonoBehaviour {
         // Set the scrollbar to the bottom when next text is submitted.
         ChatScrollbar.value = 0;
     }
-
 }

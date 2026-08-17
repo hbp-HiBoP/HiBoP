@@ -13,7 +13,7 @@ namespace HBP.Core.Data
     * \version 1.0
     * \date 10 janvier 2017
     * \brief Visualization column.
-    * 
+    *
     * \detail Visualization column is a class which contains all the information for the display wanted for a column and contains:
     *   - \a Dataset.
     *   - \a DataLabel.
@@ -24,18 +24,19 @@ namespace HBP.Core.Data
     public class IEEGColumn : Column
     {
         #region Properties
+
         [JsonProperty("Dataset")] string datasetID;
+        Dataset m_Dataset;
+
         /// <summary>
         /// Dataset of the column.
         /// </summary>
         public Dataset Dataset
         {
-            get
-            {
-                return ApplicationState.LoadedProject.Datasets.FirstOrDefault(p => p.ID == datasetID);
-            }
+            get => m_Dataset;
             set
             {
+                m_Dataset = value;
                 if (value == null)
                 {
                     datasetID = string.Empty;
@@ -53,24 +54,17 @@ namespace HBP.Core.Data
         [JsonProperty] public string DataName { get; set; }
 
         [JsonProperty("Bloc")] string blocID;
+        Bloc m_Bloc;
+
         /// <summary>
         /// Protocol bloc of the column.
         /// </summary>
         public Bloc Bloc
         {
-            get
-            {
-                if (Dataset != null && Dataset.Protocol != null && Dataset.Protocol.Blocs != null)
-                {
-                    return Dataset.Protocol.Blocs.FirstOrDefault(p => p.ID == blocID);
-                }
-                else
-                {
-                    return null;
-                }
-            }
+            get => m_Bloc;
             set
             {
+                m_Bloc = value;
                 if (value == null)
                 {
                     blocID = string.Empty;
@@ -91,9 +85,11 @@ namespace HBP.Core.Data
         /// Data of the column.
         /// </summary>
         [JsonIgnore] public Processed.IEEGData Data { get; set; } = new Processed.IEEGData();
+
         #endregion
 
         #region Constructors
+
         public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, string ID) : base(name, baseConfiguration, ID)
         {
             Dataset = dataset;
@@ -101,6 +97,7 @@ namespace HBP.Core.Data
             Bloc = bloc;
             DynamicConfiguration = configuration;
         }
+
         public IEEGColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration) : base(name, baseConfiguration)
         {
             Dataset = dataset;
@@ -108,7 +105,8 @@ namespace HBP.Core.Data
             Bloc = bloc;
             DynamicConfiguration = configuration;
         }
-        public IEEGColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name,baseConfiguration)
+
+        public IEEGColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
         {
             foreach (Dataset dataset in ApplicationState.LoadedProject.Datasets)
             {
@@ -125,40 +123,54 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         public IEEGColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new DynamicConfiguration())
         {
-
         }
+
         [JsonConstructor]
         public IEEGColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration())
         {
         }
+
         #endregion
 
         #region Public Methods
+
+        internal void ResolveReferences(LoadingContext context)
+        {
+            m_Dataset = context.ResolveRequired(context.DatasetById, datasetID, "dataset", $"IEEGColumn '{ID}'");
+            m_Bloc = m_Dataset == null ? null : context.ResolveBloc(m_Dataset.Protocol?.ID, blocID, $"IEEGColumn '{ID}'");
+        }
+
         public override void GenerateID()
         {
             base.GenerateID();
             DynamicConfiguration.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
             IDs.AddRange(DynamicConfiguration.GetAllIdentifiable());
             return IDs;
         }
+
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             IEEGDataInfo[] iEEGDataInfos = Dataset?.GetIEEGDataInfos();
             return Dataset != null && Dataset.Protocol != null && Dataset.Protocol.IsVisualizable && patients.All((patient) => iEEGDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
         }
+
         public override void Unload()
         {
             Data.Unload();
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -167,6 +179,7 @@ namespace HBP.Core.Data
         {
             return new IEEGColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -178,6 +191,7 @@ namespace HBP.Core.Data
                 DynamicConfiguration.Copy(ieegColumn.DynamicConfiguration);
             }
         }
+
         #endregion
     }
 }

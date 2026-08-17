@@ -10,26 +10,22 @@ namespace HBP.UI.Tools
     public abstract class DialogWindow : Window
     {
         #region Properties
+
         [SerializeField] protected Button m_OKButton;
 
         [SerializeField] protected UnityEvent m_OnOk;
+
         /// <summary>
         /// Callback executed when the window is validate.
         /// </summary>
         public UnityEvent OnOk
         {
-            get
-            {
-                return m_OnOk;
-            }
+            get { return m_OnOk; }
         }
 
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -37,9 +33,11 @@ namespace HBP.UI.Tools
                 m_OKButton.interactable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Valid and close the window and its children.
         /// </summary>
@@ -49,7 +47,7 @@ namespace HBP.UI.Tools
             OnOk.Invoke();
             base.Close();
         }
+
         #endregion
     }
 }
-

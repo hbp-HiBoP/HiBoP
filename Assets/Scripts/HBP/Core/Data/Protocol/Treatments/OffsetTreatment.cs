@@ -47,14 +47,19 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve, DisplayName("Offset")]
     public class OffsetTreatment : Treatment
     {
+        public override TreatmentExecutionKind ExecutionKind => TreatmentExecutionKind.Pointwise;
+
         #region Properties
+
         /// <summary>
         /// Offset to add to the values.
         /// </summary>
         [JsonProperty] public float Offset { get; set; }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new OffsetTreatment instance with default values.
         /// </summary>
@@ -62,6 +67,7 @@ namespace HBP.Core.Data
         {
             Offset = 0;
         }
+
         /// <summary>
         /// Create a new OffsetTreatment instance with default values and a specified unique identifier.
         /// </summary>
@@ -70,6 +76,7 @@ namespace HBP.Core.Data
         {
             Offset = 0;
         }
+
         /// <summary>
         /// Create a new MedianTreatment instance.
         /// </summary>
@@ -84,12 +91,14 @@ namespace HBP.Core.Data
         {
             Offset = offset;
         }
+
         #endregion
 
         #region Public Methods
+
         public override void Apply(ref float[] values, ref float[] baseline, int windowMainEventIndex, int baselineMainEventIndex, Frequency frequency)
         {
-            if(UseOnWindow)
+            if (UseOnWindow)
             {
                 int startIndex = windowMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Window.Start);
                 int endIndex = windowMainEventIndex + frequency.ConvertToFlooredNumberOfSamples(Window.End);
@@ -98,6 +107,7 @@ namespace HBP.Core.Data
                     values[i] += Offset;
                 }
             }
+
             if (UseOnBaseline)
             {
                 int startIndex = baselineMainEventIndex + frequency.ConvertToCeiledNumberOfSamples(Baseline.Start);
@@ -108,21 +118,25 @@ namespace HBP.Core.Data
                 }
             }
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new OffsetTreatment(UseOnWindow, Window, UseOnBaseline, Baseline, Offset, Order, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
-            if(copy is OffsetTreatment treatment)
+            if (copy is OffsetTreatment treatment)
             {
                 Offset = treatment.Offset;
             }
         }
+
         #endregion
     }
 }

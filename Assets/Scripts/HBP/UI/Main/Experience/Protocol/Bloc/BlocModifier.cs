@@ -12,6 +12,7 @@ namespace HBP.UI.Main
     public class BlocModifier : ObjectModifier<Core.Data.Bloc>
     {
         #region Properties
+
         [SerializeField] InputField m_NameInputField, m_SortInputField, m_OrderInputField;
         [SerializeField] SubBlocListGestion m_SubBlocListGestion;
         [SerializeField] ImageSelector m_ImageFileSelector;
@@ -26,10 +27,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override bool Interactable
         {
-            get
-            {
-                return base.Interactable;
-            }
+            get { return base.Interactable; }
 
             set
             {
@@ -44,9 +42,11 @@ namespace HBP.UI.Main
                 m_ImageFileSelector.interactable = value;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         /// <summary>
         /// Initialize the window.
         /// </summary>
@@ -62,6 +62,7 @@ namespace HBP.UI.Main
             m_SubBlocListGestion.List.OnAddObject.AddListener(AddSubBloc);
             m_SubBlocListGestion.List.OnRemoveObject.AddListener(RemoveSubBloc);
         }
+
         /// <summary>
         /// Set the fields.
         /// </summary>
@@ -77,6 +78,7 @@ namespace HBP.UI.Main
             m_OrderInputField.text = objectToDisplay.Order.ToString();
             m_SubBlocListGestion.List.Set(objectToDisplay.SubBlocs);
         }
+
         /// <summary>
         /// Change name.
         /// </summary>
@@ -92,6 +94,7 @@ namespace HBP.UI.Main
                 m_NameInputField.text = ObjectTemp.Name;
             }
         }
+
         /// <summary>
         /// Change image.
         /// </summary>
@@ -100,6 +103,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.IllustrationPath = value;
         }
+
         /// <summary>
         /// Change sort.
         /// </summary>
@@ -111,6 +115,7 @@ namespace HBP.UI.Main
             m_SortErrorText.Text = ObjectTemp.GetSortingMethodErrorMessage(error);
             m_SortStateThemeElement.Set(error == Core.Data.Bloc.SortingMethodError.NoError ? m_OKState : m_ErrorState);
         }
+
         /// <summary>
         /// Change order.
         /// </summary>
@@ -126,6 +131,7 @@ namespace HBP.UI.Main
                 m_OrderInputField.text = ObjectTemp.Order.ToString();
             }
         }
+
         /// <summary>
         /// Add subBloc to the bloc.
         /// </summary>
@@ -134,6 +140,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.SubBlocs.AddIfAbsent(subBloc);
         }
+
         /// <summary>
         /// Remove subBloc from the bloc.
         /// </summary>
@@ -142,6 +149,7 @@ namespace HBP.UI.Main
         {
             ObjectTemp.SubBlocs.Remove(subBloc);
         }
+
         #endregion
     }
 }

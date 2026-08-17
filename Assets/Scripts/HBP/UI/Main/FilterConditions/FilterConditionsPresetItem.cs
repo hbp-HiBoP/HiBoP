@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class FilterConditionsPresetItem : ActionnableItem<FilterConditionsPreset>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ConditionsText;
 
@@ -16,10 +17,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override FilterConditionsPreset Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -31,6 +29,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

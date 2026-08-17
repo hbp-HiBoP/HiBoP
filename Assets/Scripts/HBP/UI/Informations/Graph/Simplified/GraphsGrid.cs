@@ -16,9 +16,10 @@ namespace HBP.UI.Informations.Graphs
     public class GraphsGrid : MonoBehaviour
     {
         #region Properties
+
         [SerializeField] private GameObject m_ItemAndContainerPrefab;
         [SerializeField] private ScrollRect m_ScrollRect;
-        
+
         [SerializeField] Column[] m_Columns;
         [SerializeField] ChannelStruct[] m_Channels;
         Color m_DefaultColor = new(220.0f / 255f, 220.0f / 255f, 220.0f / 255f, 1);
@@ -28,12 +29,10 @@ namespace HBP.UI.Informations.Graphs
         private Dictionary<SimpleGraph, ChannelStruct> m_ChannelByGraph = new();
 
         [SerializeField] private bool m_UseDefaultOrdinateRange;
+
         public bool UseDefaultOrdinateRange
         {
-            get
-            {
-                return m_UseDefaultOrdinateRange;
-            }
+            get { return m_UseDefaultOrdinateRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_UseDefaultOrdinateRange, value))
@@ -43,12 +42,10 @@ namespace HBP.UI.Informations.Graphs
                     {
                         foreach (var graph in Graphs)
                         {
-                            List<float> values = new();
+                            Core.Data.RunningStatistics statistics = new();
                             foreach (var curve in graph.Curves)
-                            {
-                                values.AddRange(GetValues(curve));
-                            }
-                            graph.OrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
+                                AddValues(curve, ref statistics);
+                            graph.OrdinateDisplayRange = Core.Data.StreamingStatistics.CalculateValueLimit(statistics, 5);
                         }
                     }
                     else
@@ -61,13 +58,12 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         [SerializeField] private Vector2 m_OrdinateDisplayRange;
+
         public Vector2 OrdinateDisplayRange
         {
-            get
-            {
-                return m_OrdinateDisplayRange;
-            }
+            get { return m_OrdinateDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_OrdinateDisplayRange, value))
@@ -83,13 +79,12 @@ namespace HBP.UI.Informations.Graphs
                 }
             }
         }
+
         [SerializeField] private Vector2 m_AbscissaDisplayRange;
+
         public Vector2 AbscissaDisplayRange
         {
-            get
-            {
-                return m_AbscissaDisplayRange;
-            }
+            get { return m_AbscissaDisplayRange; }
             set
             {
                 if (SetPropertyUtility.SetStruct(ref m_AbscissaDisplayRange, value))
@@ -104,61 +99,62 @@ namespace HBP.UI.Informations.Graphs
         }
 
         private int m_NumberOfGridColumns = 2;
-        public int NumberOfGridLines { get { return (int)Mathf.Ceil((float)m_Containers.Count / m_NumberOfGridColumns); } }
+
+        public int NumberOfGridLines
+        {
+            get { return (int)Mathf.Ceil((float)m_Containers.Count / m_NumberOfGridColumns); }
+        }
+
         #endregion
 
         #region Events
+
         [SerializeField] private BoolEvent m_OnChangeUseDefaultOrdinateRange;
+
         public BoolEvent OnChangeUseDefaultOrdinateRange
         {
-            get
-            {
-                return m_OnChangeUseDefaultOrdinateRange;
-            }
+            get { return m_OnChangeUseDefaultOrdinateRange; }
         }
+
         [SerializeField] private Vector2Event m_OnChangeOrdinateDisplayRange;
+
         public Vector2Event OnChangeOrdinateDisplayRange
         {
-            get
-            {
-                return m_OnChangeOrdinateDisplayRange;
-            }
+            get { return m_OnChangeOrdinateDisplayRange; }
         }
+
         [SerializeField] private Vector2Event m_OnChangeAbscissaDisplayRange;
+
         public Vector2Event OnChangeAbscissaDisplayRange
         {
-            get
-            {
-                return m_OnChangeAbscissaDisplayRange;
-            }
+            get { return m_OnChangeAbscissaDisplayRange; }
         }
+
         [SerializeField] private Graph.CurvesEvent m_OnSetGraphs;
+
         public Graph.CurvesEvent OnSetGraphs
         {
-            get
-            {
-                return m_OnSetGraphs;
-            }
+            get { return m_OnSetGraphs; }
         }
+
         [SerializeField] private ChannelsEvent m_OnRequestDisplayChannelsOnGraph;
+
         public ChannelsEvent OnRequestDisplayChannelsOnGraph
         {
-            get
-            {
-                return m_OnRequestDisplayChannelsOnGraph;
-            }
+            get { return m_OnRequestDisplayChannelsOnGraph; }
         }
+
         [SerializeField] private ChannelsEvent m_OnRequestFilterChannels;
+
         public ChannelsEvent OnRequestFilterChannels
         {
-            get
-            {
-                return m_OnRequestFilterChannels;
-            }
+            get { return m_OnRequestFilterChannels; }
         }
+
         #endregion
 
         #region Public Methods
+
         public void SetEnabled(string id, bool enabled)
         {
             foreach (var graph in Graphs)
@@ -166,6 +162,7 @@ namespace HBP.UI.Informations.Graphs
                 graph.SetEnabled(id, enabled);
             }
         }
+
         public void Display(ChannelStruct[] channels, Column[] columns)
         {
             m_Columns = columns.ToArray();
@@ -173,16 +170,19 @@ namespace HBP.UI.Informations.Graphs
 
             SetGraphs();
         }
+
         public void SetNumberOfGridColumns(float numberOfColumns)
         {
             m_NumberOfGridColumns = (int)numberOfColumns;
             UpdateLayout();
         }
+
         public void DisplaySelectedGraphs()
         {
             ChannelStruct[] channels = m_ChannelByGraph.Where(cbg => cbg.Key.IsSelected).Select(cbg => cbg.Value).ToArray();
             m_OnRequestDisplayChannelsOnGraph.Invoke(channels);
         }
+
         public void UnselectAll()
         {
             foreach (var graph in Graphs)
@@ -190,14 +190,17 @@ namespace HBP.UI.Informations.Graphs
                 graph.IsSelected = false;
             }
         }
+
         public void FilterSelectedSites()
         {
             ChannelStruct[] channels = m_ChannelByGraph.Where(cbg => cbg.Key.IsSelected).Select(cbg => cbg.Value).ToArray();
             m_OnRequestFilterChannels.Invoke(channels);
         }
+
         #endregion
 
         #region Private Methods
+
         private void Update()
         {
             if (m_ScrollRect.viewport.hasChanged)
@@ -207,12 +210,14 @@ namespace HBP.UI.Informations.Graphs
                 m_ScrollRect.viewport.hasChanged = false;
             }
         }
+
         void ClearGraphs()
         {
             foreach (Transform child in m_ScrollRect.content)
             {
                 Destroy(child.gameObject);
             }
+
             Graphs = new List<SimpleGraph>();
             m_Containers = new List<GraphsGridContainer>();
             m_ChannelByGraph = new Dictionary<SimpleGraph, ChannelStruct>();
@@ -229,12 +234,10 @@ namespace HBP.UI.Informations.Graphs
             {
                 if (m_UseDefaultOrdinateRange)
                 {
-                    List<float> values = new();
+                    Core.Data.RunningStatistics statistics = new();
                     foreach (var curve in curveByColumn)
-                    {
-                        values.AddRange(GetValues(curve));
-                    }
-                    Vector2 defaultOrdinateDisplayRange = values.ToArray().CalculateValueLimit(5);
+                        AddValues(curve, ref statistics);
+                    Vector2 defaultOrdinateDisplayRange = Core.Data.StreamingStatistics.CalculateValueLimit(statistics, 5);
                     ordinateDisplayRangeByChannel.Add(defaultOrdinateDisplayRange);
                 }
                 else
@@ -256,6 +259,7 @@ namespace HBP.UI.Informations.Graphs
                 m_OnSetGraphs.Invoke(curveByColumnByChannel[0]);
             }
         }
+
         void AddGraph(ChannelStruct channelStruct, Graph.Curve[] curves, Vector2 abscissa, Vector2 ordinate)
         {
             GraphsGridContainer container = Instantiate(m_ItemAndContainerPrefab, m_ScrollRect.content).GetComponent<GraphsGridContainer>();
@@ -269,9 +273,11 @@ namespace HBP.UI.Informations.Graphs
             {
                 graph.AddCurve(curve);
             }
+
             Graphs.Add(graph);
             m_ChannelByGraph.Add(graph, channelStruct);
         }
+
         private void UpdateLayout()
         {
             int numberOfLines = NumberOfGridLines;
@@ -284,8 +290,10 @@ namespace HBP.UI.Informations.Graphs
                     rectTransform.anchorMax = new Vector2((float)(j + 1) / m_NumberOfGridColumns, 1f - ((float)(i / m_NumberOfGridColumns) / numberOfLines));
                 }
             }
+
             m_ScrollRect.viewport.hasChanged = true;
         }
+
         Graph.Curve[][] GenerateDataCurve(Column[] columns, ChannelStruct[] channels)
         {
             List<Graph.Curve[]> result = new();
@@ -303,16 +311,19 @@ namespace HBP.UI.Informations.Graphs
                     Graph.Curve curve = GenerateChannelCurve(column, channel, column.Data.Bloc.MainSubBloc);
                     curves.Add(curve);
                 }
+
                 foreach (var column in nonEpochedDataColumns)
                 {
                     Graph.Curve curve = GenerateNonEpochedChannelCurve(column, channel);
                     curves.Add(curve);
                 }
+
                 result.Add(curves.ToArray());
             }
 
             return result.ToArray();
         }
+
         Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, Core.Data.SubBloc subBloc)
         {
             string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Bloc.Name + "_" + column.Data.Dataset.Name;
@@ -320,6 +331,7 @@ namespace HBP.UI.Informations.Graphs
             Graph.Curve result = new(column.Name, curveData, true, ID, new Graph.Curve[0], m_DefaultColor);
             return result;
         }
+
         Graph.Curve GenerateNonEpochedChannelCurve(Column column, ChannelStruct channel)
         {
             string ID = column.Name + "_" + column.Data.Name + "_" + column.Data.Dataset.Name;
@@ -340,6 +352,7 @@ namespace HBP.UI.Informations.Graphs
             {
                 dataInfo = ccepDataStruct.Dataset.GetCCEPDataInfos().First(d => (d.Patient == channel.Patient && d.StimulatedChannel == ccepDataStruct.Source.Channel && d.Patient == ccepDataStruct.Source.Patient && d.Name == ccepDataStruct.Name));
             }
+
             Core.Data.BlocData blocData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc);
             Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
             Color color = PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(0, Array.IndexOf(m_Columns, column));
@@ -353,63 +366,22 @@ namespace HBP.UI.Informations.Graphs
             {
                 Core.Data.ChannelSubTrial[] channelSubTrials = trials.Select(t => t.ChannelSubTrialBySubBloc[subBloc]).ToArray();
 
-                float[] values = new float[channelSubTrials[0].Values.Length];
-                float[] standardDeviations = new float[values.Length];
-                switch (Core.Data.DataManager.DefaultAveraging)
-                {
-                    case Core.Enums.AveragingType.Mean:
-                        for (int i = 0; i < values.Length; i++)
-                        {
-                            List<float> sum = new();
-                            for (int l = 0; l < trials.Length; l++)
-                            {
-                                sum.Add(channelSubTrials[l].Values[i]);
-                            }
-                            values[i] = sum.ToArray().Mean();
-                            standardDeviations[i] = sum.ToArray().SEM();
-                        }
-                        break;
-                    case Core.Enums.AveragingType.Median:
-                        for (int i = 0; i < values.Length; i++)
-                        {
-                            List<float> sum = new();
-                            for (int l = 0; l < trials.Length; l++)
-                            {
-                                sum.Add(channelSubTrials[l].Values[i]);
-                            }
-                            values[i] = sum.ToArray().Median();
-                            standardDeviations[i] = sum.ToArray().SEM();
-                        }
-                        break;
-                }
+                float[][] series = channelSubTrials.Select(channelSubTrial => channelSubTrial.Values).ToArray();
+                Core.Data.StreamingStatistics.Calculate(series, Core.Data.DataManager.DefaultAveraging, out float[] values, out float[] standardDeviations);
 
-                // Generate points.
-                Vector2[] points = new Vector2[values.Length];
-                for (int i = 0; i < points.Length; i++)
-                {
-                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
-                    float ordinate = values[i];
-                    points[i] = new Vector2(abscissa, ordinate);
-                }
-                result = ShapedCurveData.CreateInstance(points, standardDeviations, color);
+                result = ShapedCurveData.CreateRegular(values, standardDeviations, start, end, color);
             }
             else if (trials.Length == 1)
             {
                 Core.Data.ChannelSubTrial channelSubTrial = trials[0].ChannelSubTrialBySubBloc[subBloc];
                 float[] values = channelSubTrial.Values;
 
-                // Generate points.
-                Vector2[] points = new Vector2[values.Length];
-                for (int i = 0; i < points.Length; i++)
-                {
-                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
-                    float ordinate = values[i];
-                    points[i] = new Vector2(abscissa, ordinate);
-                }
-                result = CurveData.CreateInstance(points, color);
+                result = CurveData.CreateRegular(values, start, end, color);
             }
+
             return result;
         }
+
         CurveData GetNonEpochedCurveData(Column column, ChannelStruct channel)
         {
             CurveData result = null;
@@ -419,6 +391,7 @@ namespace HBP.UI.Informations.Graphs
                 dataInfo = megDataStruct.Dataset.GetMEGDataInfos().OfType<Core.Data.MEGcDataInfo>().FirstOrDefault(d => (d.Patient == channel.Patient && d.Name == megDataStruct.Name));
                 if (dataInfo == null) return null;
             }
+
             Core.Data.MEGcData megData = Core.Data.DataManager.GetData(dataInfo) as Core.Data.MEGcData;
             Color color = PersistentDataManager.UserPreferences.Visualization.Graph.SiteColors.GetColor(Array.IndexOf(m_Channels, channel), Array.IndexOf(m_Columns, column));
             if (megData == null)
@@ -430,37 +403,25 @@ namespace HBP.UI.Informations.Graphs
             {
                 end = megData.Frequency.ConvertNumberOfSamplesToMilliseconds(values.Length);
 
-                // Generate points.
-                Vector2[] points = new Vector2[values.Length];
-                for (int i = 0; i < points.Length; i++)
-                {
-                    float abscissa = start + ((float)i / (points.Length - 1)) * (end - start);
-                    float ordinate = values[i];
-                    points[i] = new Vector2(abscissa, ordinate);
-                }
-                result = CurveData.CreateInstance(points, color);
+                result = CurveData.CreateRegular(values, start, end, color);
             }
 
             return result;
         }
 
-        List<float> GetValues(Graph.Curve curve)
+        void AddValues(Graph.Curve curve, ref Core.Data.RunningStatistics statistics)
         {
-            List<float> result = new();
             if (curve.Data != null)
             {
-                int length = curve.Data.Points.Length;
+                int length = curve.Data.Count;
                 for (int i = 0; i < length; i++)
-                {
-                    result.Add(curve.Data.Points[i].y);
-                }
+                    statistics.Add(curve.Data.GetOrdinate(i));
             }
+
             foreach (var subCurve in curve.SubCurves)
-            {
-                result.AddRange(GetValues(subCurve));
-            }
-            return result;
+                AddValues(subCurve, ref statistics);
         }
+
         #endregion
     }
 }

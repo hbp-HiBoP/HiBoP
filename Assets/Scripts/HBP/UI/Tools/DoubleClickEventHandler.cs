@@ -9,6 +9,7 @@ namespace HBP.UI.Tools
     public class DoubleClickEventHandler : MonoBehaviour, IPointerClickHandler
     {
         #region Properties
+
         public UnityEvent OnSimpleClick;
         public UnityEvent OnDoubleClick;
 
@@ -16,9 +17,11 @@ namespace HBP.UI.Tools
         private float m_LastClickTime = 0f;
         private bool m_IsSecondClick = false;
         private Selectable m_Selectable;
+
         #endregion
 
         #region Public Methods
+
         public void OnPointerClick(PointerEventData eventData)
         {
             if (isActiveAndEnabled && m_Selectable.interactable)
@@ -39,9 +42,11 @@ namespace HBP.UI.Tools
                 }
             }
         }
+
         #endregion
 
         #region Private Methods
+
         void OnEnable()
         {
             m_Selectable = GetComponent<Selectable>();
@@ -56,6 +61,7 @@ namespace HBP.UI.Tools
                 OnSimpleClick.Invoke();
             }
         }
+
         #endregion
     }
 }

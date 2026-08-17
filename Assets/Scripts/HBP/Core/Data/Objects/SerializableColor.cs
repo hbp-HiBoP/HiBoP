@@ -19,6 +19,7 @@ namespace HBP.Core.Data
             b = color.b;
             a = color.a;
         }
+
         public Color ToColor()
         {
             return new Color(r, g, b, a);

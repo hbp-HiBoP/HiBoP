@@ -7,11 +7,14 @@ namespace HBP.UI.Tools
     public class NotRaycastTargetEventTrigger : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
+
         public UnityEvent OnPointerEnter;
         public UnityEvent OnPointerExit;
+
         #endregion
 
         #region Private Methods
+
         void IPointerEnterHandler.OnPointerEnter(PointerEventData eventData)
         {
             OnPointerEnter.Invoke();
@@ -21,6 +24,7 @@ namespace HBP.UI.Tools
         {
             OnPointerExit.Invoke();
         }
+
         #endregion
     }
 }

@@ -12,6 +12,7 @@ namespace HBP.UI.Main.QuickStart
     public class AnatomicalPanel : QuickStartPanel
     {
         #region Properties
+
         [SerializeField] private Toggle m_BIDS;
         [SerializeField] private Toggle m_NotBIDS;
 
@@ -22,9 +23,11 @@ namespace HBP.UI.Main.QuickStart
 
         [SerializeField] private RectTransform m_NotBIDSPanel;
         [SerializeField] private PatientListGestion m_NotBIDSPatientListGestion;
+
         #endregion
 
         #region Private Methods
+
         protected override void Initialize()
         {
             base.Initialize();
@@ -32,20 +35,24 @@ namespace HBP.UI.Main.QuickStart
             m_NotBIDS.onValueChanged.AddListener(m_NotBIDSPanel.gameObject.SetActive);
             m_BIDSFolderSelector.onEndEdit.AddListener((path) => LoadBIDSDatabase(path).Forget());
         }
+
         private async UniTaskVoid LoadBIDSDatabase(string path)
         {
             ILoadableFromDatabase<Patient> loadable = new Patient();
             var result = await LoadingManager.LoadAsync(update => loadable.LoadFromDatabaseAsync(update, p => true));
             FinishedLoadingBIDSDatabase(result);
         }
+
         private void FinishedLoadingBIDSDatabase(IEnumerable<Patient> patients)
         {
             m_BIDSPatientListGestion.List.Set(patients);
             m_BIDSPatientListPanel.gameObject.SetActive(true);
         }
+
         #endregion
 
         #region Public Methods
+
         public override bool OpenNextPanel()
         {
             if (m_BIDS.isOn)
@@ -75,13 +82,16 @@ namespace HBP.UI.Main.QuickStart
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No option selected", "You need to select an option in order to continue.").Forget();
                 return false;
             }
+
             return base.OpenNextPanel();
         }
+
         public override bool OpenPreviousPanel()
         {
             ApplicationState.LoadedProject.SetPatients(new Patient[0]);
             return base.OpenPreviousPanel();
         }
+
         #endregion
     }
 }

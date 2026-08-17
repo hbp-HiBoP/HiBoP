@@ -9,13 +9,16 @@ namespace HBP.UI.Module3D
     public class SceneBar : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Prefab of the object on the scene bar that allows to hide or close a scene
         /// </summary>
         [SerializeField] private GameObject m_SceneBarElementPrefab;
+
         #endregion
 
         #region Private Methods
+
         private void Awake()
         {
             Module3DMain.OnAddScene.AddListener((scene) =>
@@ -24,6 +27,7 @@ namespace HBP.UI.Module3D
                 element.Initialize(scene);
             });
         }
+
         #endregion
     }
 }

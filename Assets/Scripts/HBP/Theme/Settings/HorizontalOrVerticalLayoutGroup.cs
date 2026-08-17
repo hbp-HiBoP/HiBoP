@@ -6,6 +6,7 @@ namespace HBP.Theme
     public class HorizontalOrVerticalLayoutGroup : Settings
     {
         #region Properties
+
         public RectOffset Padding;
         public float Spacing;
         public TextAnchor ChildAlignment;
@@ -13,13 +14,15 @@ namespace HBP.Theme
         public bool ChildControlHeight;
         public bool ChildForceExpandWidth;
         public bool ChildForceExpandHeight;
+
         #endregion
 
         #region Public Methods
+
         public override void Set(GameObject gameObject)
         {
             UnityEngine.UI.HorizontalOrVerticalLayoutGroup horizontalOrVerticalLayoutGroup = gameObject.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>();
-            if(horizontalOrVerticalLayoutGroup)
+            if (horizontalOrVerticalLayoutGroup)
             {
                 horizontalOrVerticalLayoutGroup.padding = Padding;
                 horizontalOrVerticalLayoutGroup.spacing = Spacing;
@@ -30,6 +33,7 @@ namespace HBP.Theme
                 horizontalOrVerticalLayoutGroup.childForceExpandHeight = ChildForceExpandHeight;
             }
         }
+
         #endregion
     }
 }

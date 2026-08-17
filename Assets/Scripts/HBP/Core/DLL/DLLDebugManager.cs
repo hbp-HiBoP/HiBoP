@@ -2,7 +2,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.IO;
 using HBP.Core.Tools;
+using HBP.Core.DLL.HbpCore;
+using HBP.Core.Enums;
 using AOT;
 
 namespace HBP.Core.DLL
@@ -12,8 +15,10 @@ namespace HBP.Core.DLL
     /// </summary>
     public class DLLDebugManager : Manager<DLLDebugManager>
     {
+        private static readonly LoggerDelegate s_LogCallback = LogCallback;
 
         #region Internal Classes
+
         /// <summary>
         /// Class containing information about the instance of a object inheriting from <see cref="Tools.DLL.CppDLLImportBase"/>
         /// </summary>
@@ -24,49 +29,89 @@ namespace HBP.Core.DLL
             public Guid ID;
             public CleanedBy CleanedBy;
         }
+
         #endregion
 
         #region Properties
+
         /// <summary>
         /// Do we log all DLL messages to the Unity console ?
         /// </summary>
         [SerializeField] private bool m_LogDLLToUnity = true;
+
         /// <summary>
         /// Do we log all DLL messages to a file ?
         /// </summary>
         [SerializeField] private bool m_LogDLLToFile = true;
+
         /// <summary>
         /// Do we capture information about DLL objects
         /// </summary>
         [SerializeField] private bool m_GetInformationAboutDLLObjects = true;
 
+        [Header("Activity Projection")] [SerializeField, Min(2)]
+        private int m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
+
+        [SerializeField] private VolumeInterpolation m_VolumeInterpolation = ActivityProjectionSettings.DefaultVolumeInterpolation;
+
         /// <summary>
         /// Enum used to know how a DLL object has been cleaned
         /// </summary>
-        public enum CleanedBy { NotCleaned, GC, Dispose }
+        public enum CleanedBy
+        {
+            NotCleaned,
+            GC,
+            Dispose
+        }
+
         /// <summary>
         /// List of all DLL objects created during this instance of the program
         /// </summary>
         public List<DLLObject> DLLObjects { get; private set; } = new List<DLLObject>();
+
+        public static string CurrentLogFilePath { get; private set; } = string.Empty;
+        public int ActivityProjectionVolumeGridDimension => m_VolumeGridDimension;
+        public VolumeInterpolation ActivityProjectionVolumeInterpolation => m_VolumeInterpolation;
+
         #endregion;
 
         #region Private Methods
+
         protected override void Initialization()
         {
             base.Initialization();
+            ApplyActivityProjectionSettings();
             if (m_LogDLLToUnity)
             {
-                set_debug_callback_Logger(LogCallback);
+                TryAttachHbpCoreLogger(out _);
             }
+
             if (m_LogDLLToFile)
             {
-                redirect_standard_output_to_file_Logger(string.Format("HiBoP_DLL_LOG_{0}_{1}_{2}__{3}_{4}_{5}.log", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second));
+                string logDirectory = Path.Combine(Application.persistentDataPath, "Logs");
+                Directory.CreateDirectory(logDirectory);
+                string logPath = Path.Combine(logDirectory, $"HiBoP_hbp_core_{DateTime.Now:yyyy_MM_dd__HH_mm_ss_fff}.log");
+                if (HbpCoreRuntime.TrySetLogFile(logPath, out string error))
+                {
+                    CurrentLogFilePath = logPath;
+                }
+                else
+                {
+                    Debug.LogWarning($"Unable to initialize the hbp_core log file: {error}");
+                }
             }
         }
+
+        private void OnValidate()
+        {
+            ApplyActivityProjectionSettings();
+        }
+
         private void OnDestroy()
         {
-            reset_Logger();
+            ResetNativeLoggers();
         }
+
         /// <summary>
         /// Log callback when calling the log method within the DLL
         /// </summary>
@@ -77,14 +122,22 @@ namespace HBP.Core.DLL
         {
             switch (type)
             {
-                case 0: Debug.Log(str); return;
-                case 1: Debug.LogWarning(str); return;
-                case 2: Debug.LogError(str); return;
+                case 0:
+                    Debug.Log(str);
+                    return;
+                case 1:
+                    Debug.LogWarning(str);
+                    return;
+                case 2:
+                    Debug.LogError(str);
+                    return;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Method to be used to add a DLL object to the list
         /// </summary>
@@ -106,6 +159,7 @@ namespace HBP.Core.DLL
                 });
             }
         }
+
         /// <summary>
         /// Remove a DLL object from the list
         /// </summary>
@@ -123,17 +177,46 @@ namespace HBP.Core.DLL
             }
         }
 
+        public static bool TryAttachHbpCoreLogger(out string error)
+        {
+            return HbpCoreRuntime.TrySetDebugCallback(s_LogCallback, out error);
+        }
+
+        public static bool TryResetHbpCoreLogger(out string error)
+        {
+            return HbpCoreRuntime.TryResetDebugCallback(out error);
+        }
+
+        public static void ResetNativeLoggers()
+        {
+            TryResetHbpCoreLogger(out _);
+            HbpCoreRuntime.TryResetLogFile(out _);
+            CurrentLogFilePath = string.Empty;
+        }
+
+        public void ApplyActivityProjectionSettings()
+        {
+            if (m_VolumeGridDimension < 2)
+            {
+                m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
+            }
+
+            if (!Enum.IsDefined(typeof(VolumeInterpolation), m_VolumeInterpolation))
+            {
+                m_VolumeInterpolation = ActivityProjectionSettings.DefaultVolumeInterpolation;
+            }
+
+            ActivityProjectionSettings.VolumeGridDimension = m_VolumeGridDimension;
+            ActivityProjectionSettings.VolumeInterpolation = m_VolumeInterpolation;
+        }
+
         #endregion
 
         #region DllImport
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void LoggerDelegate([MarshalAs(UnmanagedType.LPUTF8Str)] string str, int type);
-        [DllImport("hbp_export", EntryPoint = "set_debug_callback_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void set_debug_callback_Logger(LoggerDelegate logCallback);
-        [DllImport("hbp_export", EntryPoint = "redirect_standard_output_to_file_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void redirect_standard_output_to_file_Logger([MarshalAs(UnmanagedType.LPUTF8Str)] string pathToFile);
-        [DllImport("hbp_export", EntryPoint = "reset_Logger", CallingConvention = CallingConvention.Cdecl)]
-        static private extern void reset_Logger();
+
         #endregion
     }
 }

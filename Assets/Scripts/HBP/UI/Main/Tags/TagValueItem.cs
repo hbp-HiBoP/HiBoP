@@ -10,6 +10,7 @@ namespace HBP.UI.Main
     public class TagValueItem : ActionnableItem<Core.Data.BaseTagValue>
     {
         #region Properties
+
         [SerializeField] Text m_NameText;
         [SerializeField] Text m_ValueText;
 
@@ -18,10 +19,7 @@ namespace HBP.UI.Main
         /// </summary>
         public override Core.Data.BaseTagValue Object
         {
-            get
-            {
-                return base.Object;
-            }
+            get { return base.Object; }
             set
             {
                 SetInteractable();
@@ -33,6 +31,7 @@ namespace HBP.UI.Main
                 SetNotInteractable();
             }
         }
+
         #endregion
     }
 }

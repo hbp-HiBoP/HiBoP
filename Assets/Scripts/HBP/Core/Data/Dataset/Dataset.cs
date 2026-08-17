@@ -50,7 +50,9 @@ namespace HBP.Core.Data
     public class Dataset : BaseData, ILoadable<Dataset>, INameable
     {
         #region Properties
+
         public const string EXTENSION = ".dataset";
+
         /// <summary>
         /// Name of the dataset.
         /// </summary>
@@ -58,15 +60,13 @@ namespace HBP.Core.Data
 
         [JsonProperty("Protocol", Order = 3)] string m_ProtocolID;
         Protocol m_Protocol;
+
         /// <summary>
         /// Protocol used during the experiment.
         /// </summary>
         public Protocol Protocol
         {
-            get
-            {
-                return m_Protocol;
-            }
+            get { return m_Protocol; }
             set
             {
                 m_Protocol = value;
@@ -78,19 +78,19 @@ namespace HBP.Core.Data
         }
 
         [JsonProperty("Data", Order = 4)] List<DataInfo> m_Data;
+
         /// <summary>
         /// DataInfo of the dataset.
         /// </summary>
         public ReadOnlyCollection<DataInfo> Data
         {
-            get
-            {
-                return new ReadOnlyCollection<DataInfo>(m_Data);
-            }
+            get { return new ReadOnlyCollection<DataInfo>(m_Data); }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new Dataset instance.
         /// </summary>
@@ -104,6 +104,7 @@ namespace HBP.Core.Data
             Protocol = protocol;
             SetData(data);
         }
+
         /// <summary>
         /// Create a new Dataset instance.
         /// </summary>
@@ -116,15 +117,28 @@ namespace HBP.Core.Data
             Protocol = protocol;
             SetData(data);
         }
+
         /// <summary>
         /// Create a new Dataset instance with default values.
         /// </summary>
-        public Dataset() : this("New dataset", DatabaseManager.Database.Protocols.FirstOrDefault(), new DataInfo[0], Guid.NewGuid().ToString())
+        public Dataset() : this("New dataset", null, new DataInfo[0])
         {
         }
+
         #endregion
 
         #region Public Methods
+
+        internal void ResolveReferences(LoadingContext context)
+        {
+            m_Protocol = context.ResolveRequired(context.ProtocolById, m_ProtocolID ?? m_Protocol?.ID, "protocol", $"Dataset '{ID}'");
+
+            foreach (DataInfo dataInfo in m_Data ?? Enumerable.Empty<DataInfo>())
+            {
+                dataInfo.ResolveReferences(context);
+            }
+        }
+
         /// <summary>
         /// Get all the patient dataInfo.
         /// </summary>
@@ -133,6 +147,7 @@ namespace HBP.Core.Data
         {
             return m_Data.OfType<PatientDataInfo>().ToArray();
         }
+
         /// <summary>
         /// Get all the patient dataInfo for a specified patient.
         /// </summary>
@@ -142,6 +157,7 @@ namespace HBP.Core.Data
         {
             return m_Data.OfType<PatientDataInfo>().Where(d => d.Patient == patient).ToArray();
         }
+
         /// <summary>
         /// Get all the IEEG dataInfo.
         /// </summary>
@@ -150,6 +166,7 @@ namespace HBP.Core.Data
         {
             return m_Data.OfType<IEEGDataInfo>().ToArray();
         }
+
         /// <summary>
         /// Get all the CCEP dataInfo.
         /// </summary>
@@ -158,22 +175,27 @@ namespace HBP.Core.Data
         {
             return m_Data.OfType<CCEPDataInfo>().ToArray();
         }
+
         public FMRIDataInfo[] GetFMRIDataInfos()
         {
             return m_Data.OfType<FMRIDataInfo>().ToArray();
         }
+
         public SharedFMRIDataInfo[] GetSharedFMRIDataInfos()
         {
             return m_Data.OfType<SharedFMRIDataInfo>().ToArray();
         }
+
         public StaticDataInfo[] GetStaticDataInfos()
         {
             return m_Data.OfType<StaticDataInfo>().ToArray();
         }
+
         public PatientDataInfo[] GetMEGDataInfos()
         {
             return m_Data.Where(d => d is MEGcDataInfo || d is MEGvDataInfo).Select(d => d as PatientDataInfo).ToArray();
         }
+
         /// <summary>
         /// Add a dataInfo to the dataset.
         /// </summary>
@@ -188,6 +210,7 @@ namespace HBP.Core.Data
             }
             else return false;
         }
+
         /// <summary>
         /// Add dataInfo to the dataset.
         /// </summary>
@@ -197,6 +220,7 @@ namespace HBP.Core.Data
         {
             return data.All((d) => AddData(d));
         }
+
         /// <summary>
         /// Remove a dataInfo from the dataset.
         /// </summary>
@@ -211,6 +235,7 @@ namespace HBP.Core.Data
             }
             else return false;
         }
+
         /// <summary>
         /// remove dataInfo from the dataset.
         /// </summary>
@@ -223,8 +248,10 @@ namespace HBP.Core.Data
             {
                 result &= RemoveData(d);
             }
+
             return result;
         }
+
         /// <summary>
         /// Update a specified dataInfo.
         /// </summary>
@@ -238,8 +265,10 @@ namespace HBP.Core.Data
                 m_Data[index] = data;
                 return true;
             }
+
             return false;
         }
+
         /// <summary>
         /// Set the data of the dataset.
         /// </summary>
@@ -250,20 +279,24 @@ namespace HBP.Core.Data
             m_Data = new List<DataInfo>();
             return data.All((d) => AddData(d));
         }
+
         public override void GenerateID()
         {
             base.GenerateID();
             foreach (var dataInfo in Data) dataInfo.GenerateID();
         }
+
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
             foreach (var dataInfo in Data) IDs.AddRange(dataInfo.GetAllIdentifiable());
             return IDs;
         }
+
         #endregion
 
         #region Public static Methods
+
         /// <summary>
         /// Get all the extensions of dataset file.
         /// </summary>
@@ -272,6 +305,7 @@ namespace HBP.Core.Data
         {
             return new string[] { EXTENSION[0] == '.' ? EXTENSION[1..] : EXTENSION };
         }
+
         /// <summary>
         /// Load a dataset from a specified file.
         /// </summary>
@@ -284,7 +318,15 @@ namespace HBP.Core.Data
             try
             {
                 result = ClassLoaderSaver.LoadFromJson<Dataset>(path);
-                return result != null;
+                if (result == null)
+                {
+                    return false;
+                }
+
+                IEnumerable<Patient> patients = ApplicationState.LoadedProject?.Patients ?? DatabaseManager.Database.Patients;
+                LoadingContext context = new(Array.Empty<BaseTag>(), DatabaseManager.Database.Protocols, patients, new[] { result });
+                context.ResolveProject(patients, Array.Empty<Group>(), new[] { result }, Array.Empty<Visualization>());
+                return true;
             }
             catch (Exception e)
             {
@@ -292,20 +334,26 @@ namespace HBP.Core.Data
                 throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(path));
             }
         }
-        public static async UniTask CheckDatasetsAsync(IEnumerable<Protocol> protocols, bool force, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
+
+        public static async UniTask<DataInfoValidationResult> ValidateDataInfosAsync(IEnumerable<DataInfo> dataInfos, bool force, Action<float, float, LoadingText> updateProgress, CancellationToken token = default, long generation = 0)
         {
-            List<DataInfo> dataInfos = DatabaseManager.Database.DataInfos.Where(d => protocols.Contains(d.Protocol)).ToList();
-            if (ApplicationState.LoadedProject != null) dataInfos.AddRange(ApplicationState.LoadedProject.Datasets.Where(d => protocols.Contains(d.Protocol)).SelectMany(d => d.Data));
-            var tasks = dataInfos.Select(d => (Func<UniTask>)(async () =>
-            {
-                await UniTask.SwitchToThreadPool();
-                d.CheckErrorsAndWarnings(force);
-            }));
-            await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, 1, "Checking data", updateProgress, 20, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
+            ValidationRequest request = new(ValidationAspect.DataInfoAll, force: force);
+            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(DataInfoValidator.GetWorkCategory(request));
+            return await new DataInfoValidator().ValidateAsync(dataInfos, request, concurrency, token, (completed, total) => updateProgress(total == 0 ? 1 : (float)completed / total, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Checking data") : new LoadingText("Checking data", " ", completed + "/" + total)), generation);
         }
+
+        public static async UniTask CheckDatasetsAsync(IEnumerable<DataInfo> dataInfos, bool force, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
+        {
+            DataInfoValidationResult result = await ValidateDataInfosAsync(dataInfos, force, updateProgress, token);
+            token.ThrowIfCancellationRequested();
+            await UniTask.SwitchToMainThread();
+            result.TryApply(0);
+        }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -314,6 +362,7 @@ namespace HBP.Core.Data
         {
             return new Dataset(Name, Protocol, Data.DeepClone(), ID);
         }
+
         /// <summary>
         /// Copy this a instance to this instance.
         /// </summary>
@@ -328,23 +377,27 @@ namespace HBP.Core.Data
                 SetData(dataset.Data);
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnSerializing()
         {
             base.OnSerializing();
             m_ProtocolID = m_Protocol?.ID;
         }
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
-            var protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.ID == m_ProtocolID) ?? DatabaseManager.Database.Protocols.First();
-            Protocol = protocol;
+            m_Data ??= new List<DataInfo>();
         }
+
         #endregion
 
         #region Interfaces
+
         /// <summary>
         /// Get all the extensions of dataset file.
         /// </summary>
@@ -353,6 +406,7 @@ namespace HBP.Core.Data
         {
             return GetExtensions();
         }
+
         /// <summary>
         /// Load a dataset from a specified file.
         /// </summary>
@@ -365,6 +419,7 @@ namespace HBP.Core.Data
             result = new Dataset[] { dataset };
             return success;
         }
+
         #endregion
     }
 }

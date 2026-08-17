@@ -55,6 +55,7 @@ namespace HBP.Core.Data
     public class MEGcDataInfo : PatientDataInfo
     {
         #region Constructors
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
@@ -66,6 +67,7 @@ namespace HBP.Core.Data
         public MEGcDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID, string ID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID, ID)
         {
         }
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
@@ -76,16 +78,18 @@ namespace HBP.Core.Data
         public MEGcDataInfo(string name, Protocol protocol, Container.DataContainer dataContainer, IEnumerable<Error> errors, IEnumerable<Warning> warnings, Patient patient, string correspondingDatabaseID) : base(name, protocol, dataContainer, errors, warnings, patient, correspondingDatabaseID)
         {
         }
+
         /// <summary>
         /// Create a new CCEPDataInfo instance.
         /// </summary>
-        public MEGcDataInfo() : this("Data", DatabaseManager.Database.Protocols.FirstOrDefault(), new Container.Elan(), new Error[0], new Warning[0], null, "")
+        public MEGcDataInfo() : this("Data", null, new Container.Elan(), new Error[0], new Warning[0], null, "")
         {
-
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -94,19 +98,23 @@ namespace HBP.Core.Data
         {
             return new MEGcDataInfo(Name, Protocol, DataContainer.Clone() as Container.DataContainer, Errors, Warnings, Patient, CorrespondingDatabaseID, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
         }
+
         #endregion
 
         #region Public Methods
+
         protected override IEnumerable<Error> GetErrors()
         {
             List<Error> errors = new(base.GetErrors());
             errors.AddRange(GetMEGErrors());
             return errors;
         }
+
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
@@ -117,12 +125,14 @@ namespace HBP.Core.Data
             List<Error> errors = new();
             return errors;
         }
+
         protected override IEnumerable<Warning> GetWarnings()
         {
             List<Warning> warnings = new(base.GetWarnings());
             warnings.AddRange(GetMEGWarnings());
             return warnings.Distinct().ToArray();
         }
+
         /// <summary>
         /// Get all dataInfo errors related to CCEP.
         /// </summary>
@@ -133,6 +143,7 @@ namespace HBP.Core.Data
             List<Warning> warnings = new();
             return warnings;
         }
+
         #endregion
     }
 }

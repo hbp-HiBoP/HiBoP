@@ -10,10 +10,13 @@ namespace HBP.UI.Toolbar
     public class OpenSiteTools : Tool
     {
         #region Properties
+
         [SerializeField] private Button m_OpenToolsButton;
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Initialize the toolbar
         /// </summary>
@@ -23,16 +26,10 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                var siteTools = WindowsManager.Open("Site Tools window", null).GetComponent<SiteToolsWindow>();
-                siteTools.Scene = SelectedScene;
-                siteTools.OnToolApplied.AddListener(Module3DMain.OnRequestUpdateInSiteList.Invoke);
-
-                Module3DMain.OnRemoveScene.AddSafeListener(s =>
-                {
-                    if (SelectedScene == s) siteTools.Close();
-                }, siteTools.gameObject);
+                ToolbarExternalActions.OpenSiteTools(SelectedScene);
             });
         }
+
         /// <summary>
         /// Set the default state of this tool
         /// </summary>
@@ -40,6 +37,7 @@ namespace HBP.UI.Toolbar
         {
             m_OpenToolsButton.interactable = false;
         }
+
         /// <summary>
         /// Update the interactable state of the tool
         /// </summary>
@@ -47,6 +45,7 @@ namespace HBP.UI.Toolbar
         {
             m_OpenToolsButton.interactable = true;
         }
+
         #endregion
     }
 }

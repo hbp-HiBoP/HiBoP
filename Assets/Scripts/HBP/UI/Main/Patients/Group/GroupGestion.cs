@@ -8,6 +8,7 @@ namespace HBP.UI.Main
     public class GroupGestion : GestionWindow<Group>
     {
         #region Properties
+
         [SerializeField] GroupListGestion m_ListGestion;
         public override ListGestion<Group> ListGestion => m_ListGestion;
 
@@ -22,9 +23,11 @@ namespace HBP.UI.Main
                 m_ListGestion.Modifiable = value;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public override void OK()
         {
             base.OK();
@@ -32,20 +35,24 @@ namespace HBP.UI.Main
             InteractableStateManager.SetInteractables();
             UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
+
         public override void Close()
         {
             if (m_ListGestion.HasBeenModified)
                 LoadingManager.Load(update => RestoreOldValuesAsync(ApplicationState.LoadedProject.Groups, update), false);
             base.Close();
         }
+
         #endregion
 
         #region Private Methods
+
         protected override void SetFields()
         {
             base.SetFields();
             SetList(ApplicationState.LoadedProject.Groups);
         }
+
         #endregion
     }
 }

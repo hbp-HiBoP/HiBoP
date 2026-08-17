@@ -36,36 +36,32 @@ namespace HBP.Core.Data.Container
     public class CSV : DataContainer
     {
         #region Properties
-        readonly string[]  m_Extension = new string[] { ".csv" };
+
+        readonly string[] m_Extension = new string[] { ".csv" };
+
         /// <summary>
         /// Extensions allowed for Nifti data.
         /// </summary>
         public ReadOnlyCollection<string> EXTENSION
         {
-            get
-            {
-                return new ReadOnlyCollection<string>(m_Extension);
-            }
+            get { return new ReadOnlyCollection<string>(m_Extension); }
         }
 
         [JsonProperty("File")] public string SavedFile { get; protected set; }
+
         /// <summary>
         /// Path to the file containing the NIFTI data.
         /// </summary>
         public string File
         {
-            get
-            {
-                return SavedFile?.ConvertToFullPath();
-            }
-            set
-            {
-                SavedFile = value?.ConvertToShortPath();
-            }
+            get { return SavedFile?.ConvertToFullPath(); }
+            set { SavedFile = value?.ConvertToShortPath(); }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new CSV data container.
         /// </summary>
@@ -75,6 +71,7 @@ namespace HBP.Core.Data.Container
         {
             File = file;
         }
+
         /// <summary>
         /// Create a new Nifti data container.
         /// </summary>
@@ -83,16 +80,18 @@ namespace HBP.Core.Data.Container
         {
             File = file;
         }
+
         /// <summary>
         /// Create a new Nifti data container with default values.
         /// </summary>
         public CSV() : base()
         {
-
         }
+
         #endregion
 
         #region Public Methods
+
         public override Error[] GetErrors()
         {
             List<Error> errors = new();
@@ -115,26 +114,32 @@ namespace HBP.Core.Data.Container
                     }
                 }
             }
+
             m_Errors = errors.ToArray();
             return m_Errors;
         }
+
         public override Warning[] GetWarnings()
         {
             List<Warning> warnings = new();
             m_Warnings = warnings.ToArray();
             return m_Warnings;
         }
+
         public override void CopyDataToDirectory(DirectoryInfo destinationDirectory, string projectDirectory, string oldProjectDirectory)
         {
             // TODO
         }
+
         public override void ConvertAllPathsToFullPaths()
         {
             SavedFile = SavedFile.ConvertToFullPath();
         }
+
         #endregion
 
         #region Operators
+
         /// <summary>
         /// Clone this instance.
         /// </summary>
@@ -143,6 +148,7 @@ namespace HBP.Core.Data.Container
         {
             return new CSV(File, Errors, Warnings, ID);
         }
+
         public override void Copy(object copy)
         {
             base.Copy(copy);
@@ -151,14 +157,17 @@ namespace HBP.Core.Data.Container
                 File = csv.File;
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             base.OnDeserialized();
             SavedFile = SavedFile.StandardizeToEnvironement();
         }
+
         #endregion
     }
 }

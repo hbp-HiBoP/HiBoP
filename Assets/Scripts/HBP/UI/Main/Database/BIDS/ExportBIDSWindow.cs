@@ -18,8 +18,9 @@ namespace HBP.UI.Main
     public class ExportBIDSWindow : DialogWindow
     {
         #region Properties
+
         [SerializeField] private InputField m_DatasetNameInputField;
-        
+
         [SerializeField] private Button m_SelectPatientsButton;
         [SerializeField] private Text m_PatientsSelectedText;
 
@@ -34,28 +35,30 @@ namespace HBP.UI.Main
 
         [SerializeField] private Transform m_ProtocolsContainer;
         [SerializeField] private GameObject m_ProtocolItemPrefab;
-        
+
         [SerializeField] private Transform m_DataNamesContainer;
         [SerializeField] private GameObject m_DataNameItemPrefab;
-        
+
         [SerializeField] private FolderSelector m_ExportFolderSelector;
         [SerializeField] private FileSelector m_ConfigurationFileSelector;
-        
+
         private List<Patient> m_AvailablePatients = new();
         private List<Patient> m_SelectedPatients = new();
         private List<BIDSProtocolItem> m_ProtocolItems = new();
         private List<BIDSDataItem> m_DataItems = new();
-        
+
         private List<BaseTag> m_AvailablePatientTags = new();
         private List<BaseTag> m_SelectedPatientTags = new();
-        
+
         private List<BaseTag> m_AvailableSiteTags = new();
         private List<BaseTag> m_SelectedSiteTags = new();
-        
+
         private BIDSExportConfiguration m_Configuration;
+
         #endregion
-        
+
         #region Public Methods
+
         public override async void OK()
         {
             // Validation checks
@@ -64,33 +67,33 @@ namespace HBP.UI.Main
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Dataset name required", "Please enter a dataset name.").Forget();
                 return;
             }
-            
+
             if (m_SelectedPatients.Count == 0)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No patients selected", "Please select at least one patient.").Forget();
                 return;
             }
-            
+
             var selectedProtocols = m_ProtocolItems.Where(p => p.IsSelected).ToList();
             if (selectedProtocols.Count == 0)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No protocols selected", "Please select at least one protocol.").Forget();
                 return;
             }
-            
+
             var selectedData = m_DataItems.Where(d => d.IsSelected).ToList();
             if (selectedData.Count == 0)
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "No data selected", "Please select at least one data type.").Forget();
                 return;
             }
-            
+
             if (!Directory.Exists(m_ExportFolderSelector.Folder))
             {
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Invalid output folder", "The specified output folder does not exist.").Forget();
                 return;
             }
-            
+
             string datasetPath = Path.Combine(m_ExportFolderSelector.Folder, m_DatasetNameInputField.text);
             if (Directory.Exists(datasetPath))
             {
@@ -100,58 +103,71 @@ namespace HBP.UI.Main
                     return;
                 }
             }
-            
+
             base.OK();
-            
-            await LoadingManager.LoadAsync(ExportBIDSAsync);
+
+            try
+            {
+                await LoadingManager.LoadAsync(ExportValidatedBIDSAsync);
+            }
+            catch (System.Exception)
+            {
+                return;
+            }
+
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Export complete", "The BIDS export is complete.").Forget();
         }
+
         #endregion
-        
+
         #region Protected Methods
+
         protected override void Initialize()
         {
             base.Initialize();
-            
+
             m_SelectPatientsButton.onClick.AddListener(OpenPatientSelector);
             m_SelectPatientTagsButton.onClick.AddListener(OpenPatientTagSelector);
             m_SelectSiteTagsButton.onClick.AddListener(OpenSiteTagSelector);
             m_DatasetNameInputField.onValueChanged.AddListener((value) => UpdateUI());
-            
+
             // Initialize configuration file selector if it exists
             if (m_ConfigurationFileSelector != null)
             {
                 m_ConfigurationFileSelector.onValueChanged.AddListener(OnConfigurationFileChanged);
             }
         }
+
         protected override void SetFields()
         {
             base.SetFields();
 
             // Set default dataset name
             m_DatasetNameInputField.text = "BIDS_Dataset";
-            
+
             // Set default anonymization to off
             m_AnonymizeToggle.isOn = false;
-            
+
             // Set default correspondence table export to off
             m_ExportCorrespondenceTableToggle.isOn = false;
-            
+
             // Set default export folder
             m_ExportFolderSelector.Folder = HBP.Core.Preferences.PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation;
-            
+
             // Load configuration
             LoadConfiguration();
-            
+
             SetAvailablePatients();
             SetAvailableTags();
             SetupProtocols();
             SetupDataNames();
             UpdateUI();
         }
+
         #endregion
-        
+
         #region Private Methods
+
         private void LoadConfiguration()
         {
             // Load default configuration or from file if specified
@@ -164,35 +180,33 @@ namespace HBP.UI.Main
                 m_Configuration = BIDSConfigurationManager.GetDefaultConfiguration();
             }
         }
-        
+
         private void OnConfigurationFileChanged(string path)
         {
             LoadConfiguration();
         }
-        
+
         private void SetAvailablePatients()
         {
             // Get patients that have data in the database
-            m_AvailablePatients = DatabaseManager.Database.Patients
-                .Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>()
-                    .Any(d => d.Patient == p))
-                .OrderBy(p => p.Name)
-                .ToList();
+            m_AvailablePatients = DatabaseManager.Database.Patients.Where(p => DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Any(d => d.Patient == p)).OrderBy(p => p.Name).ToList();
         }
+
         private void SetAvailableTags()
         {
             // Get all distinct patient tags
             m_AvailablePatientTags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.PatientsTags).ToList();
-            
+
             // By default, all patient tags are selected
             m_SelectedPatientTags = m_AvailablePatientTags.ToList();
-            
+
             // Get all distinct site tags
             m_AvailableSiteTags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList();
 
             // By default, all site tags are selected
             m_SelectedSiteTags = m_AvailableSiteTags.ToList();
         }
+
         private void SetupProtocols()
         {
             // Clear existing protocol items
@@ -200,15 +214,12 @@ namespace HBP.UI.Main
             {
                 if (item != null) Destroy(item.gameObject);
             }
+
             m_ProtocolItems.Clear();
-            
+
             // Get all distinct protocol names from database data
-            var protocolNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>()
-                .Select(d => d.Protocol.Name)
-                .Distinct()
-                .OrderBy(name => name)
-                .ToList();
-            
+            var protocolNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Select(d => d.Protocol.Name).Distinct().OrderBy(name => name).ToList();
+
             foreach (var protocolName in protocolNames)
             {
                 GameObject itemObj = Instantiate(m_ProtocolItemPrefab, m_ProtocolsContainer);
@@ -221,6 +232,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         private void SetupDataNames()
         {
             // Clear existing data items
@@ -228,15 +240,12 @@ namespace HBP.UI.Main
             {
                 if (item != null) Destroy(item.gameObject);
             }
+
             m_DataItems.Clear();
-            
+
             // Get all distinct data names from database
-            var dataNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>()
-                .Select(d => d.Name)
-                .Distinct()
-                .OrderBy(name => name)
-                .ToList();
-            
+            var dataNames = DatabaseManager.Database.DataInfos.OfType<IEEGDataInfo>().Select(d => d.Name).Distinct().OrderBy(name => name).ToList();
+
             foreach (var dataName in dataNames)
             {
                 GameObject itemObj = Instantiate(m_DataNameItemPrefab, m_DataNamesContainer);
@@ -249,6 +258,7 @@ namespace HBP.UI.Main
                 }
             }
         }
+
         private void OpenPatientSelector()
         {
             ObjectSelector<Patient> selector = WindowsManager.OpenSelector(m_AvailablePatients, this);
@@ -256,11 +266,13 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => OnPatientsSelected(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         private void OnPatientsSelected(Patient[] selectedPatients)
         {
             m_SelectedPatients = selectedPatients.ToList();
             UpdateUI();
         }
+
         private void OpenPatientTagSelector()
         {
             ObjectSelector<BaseTag> selector = WindowsManager.OpenSelector(m_AvailablePatientTags, this);
@@ -268,11 +280,13 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => OnPatientTagsSelected(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         private void OnPatientTagsSelected(BaseTag[] selectedTags)
         {
             m_SelectedPatientTags = selectedTags.ToList();
             UpdateUI();
         }
+
         private void OpenSiteTagSelector()
         {
             ObjectSelector<BaseTag> selector = WindowsManager.OpenSelector(m_AvailableSiteTags, this);
@@ -280,11 +294,13 @@ namespace HBP.UI.Main
             selector.OnOk.AddListener(() => OnSiteTagsSelected(selector.ObjectsSelected));
             WindowsReferencer.Add(selector);
         }
+
         private void OnSiteTagsSelected(BaseTag[] selectedTags)
         {
             m_SelectedSiteTags = selectedTags.ToList();
             UpdateUI();
         }
+
         private void UpdateUI()
         {
             // Update patients text
@@ -300,7 +316,7 @@ namespace HBP.UI.Main
             {
                 m_PatientsSelectedText.text = $"{m_SelectedPatients.Count} patients selected";
             }
-            
+
             // Update patient tags text
             if (m_SelectedPatientTags.Count == 0)
             {
@@ -314,7 +330,7 @@ namespace HBP.UI.Main
             {
                 m_PatientTagsSelectedText.text = $"{m_SelectedPatientTags.Count} patient tags selected";
             }
-            
+
             // Update site tags text
             if (m_SelectedSiteTags.Count == 0)
             {
@@ -328,28 +344,25 @@ namespace HBP.UI.Main
             {
                 m_SiteTagsSelectedText.text = $"{m_SelectedSiteTags.Count} site tags selected";
             }
-            
+
             // Enable/disable export button
-            bool canExport = !string.IsNullOrWhiteSpace(m_DatasetNameInputField.text) &&
-                           m_SelectedPatients.Count > 0 &&
-                           m_ProtocolItems.Any(p => p.IsSelected) &&
-                           m_DataItems.Any(d => d.IsSelected) &&
-                           !string.IsNullOrEmpty(m_ExportFolderSelector.Folder);
-            
+            bool canExport = !string.IsNullOrWhiteSpace(m_DatasetNameInputField.text) && m_SelectedPatients.Count > 0 && m_ProtocolItems.Any(p => p.IsSelected) && m_DataItems.Any(d => d.IsSelected) && !string.IsNullOrEmpty(m_ExportFolderSelector.Folder);
+
             m_OKButton.interactable = canExport;
         }
+
         private async UniTask ExportBIDSAsync(System.Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
             try
             {
                 updateProgress?.Invoke(0, 0, new LoadingText("Initializing BIDS export"));
-                
+
                 // Create BIDS patients list based on anonymization setting
                 var selectedProtocols = DatabaseManager.Database.Protocols.Where(p => m_ProtocolItems.Any(item => item.IsSelected && item.Name == p.Name)).ToList();
                 var selectedDataNames = m_DataItems.Where(d => d.IsSelected).Select(d => d.DataName).ToList();
                 var bidsPatients = BIDSUtility.CreateBIDSPatients(m_SelectedPatients, selectedProtocols, selectedDataNames, m_AnonymizeToggle.isOn);
-                
+
                 // Create dataset directory and general files
                 string datasetPath = await BIDSUtility.CreateRootDirectoryAndFilesAsync(m_DatasetNameInputField.text, bidsPatients, m_ExportFolderSelector.Folder, m_SelectedPatientTags);
 
@@ -377,6 +390,20 @@ namespace HBP.UI.Main
                 throw;
             }
         }
+
+        private async UniTask ExportValidatedBIDSAsync(System.Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            GlobalDatabase database = DatabaseManager.Database;
+            ValidationRequest validationRequest = new(ValidationAspect.SourceAvailability | ValidationAspect.PatientAssets, patientIDs: m_SelectedPatients.Select(patient => patient.ID));
+            float validationWeight = database.RequiresValidation(validationRequest) ? 0.1f : 0;
+            if (validationWeight > 0)
+            {
+                await database.EnsureDatabaseValidatedAsync(validationRequest, (progress, duration, text) => updateProgress(progress * validationWeight, duration, text), token);
+            }
+
+            await ExportBIDSAsync((progress, duration, text) => updateProgress(validationWeight + progress * (1 - validationWeight), duration, text), token);
+        }
+
         #endregion
     }
 }

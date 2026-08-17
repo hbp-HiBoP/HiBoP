@@ -35,36 +35,36 @@ namespace HBP.Core.Data
     public class MRI : BaseData, INameable
     {
         #region Properties
+
         /// <summary>
         /// Extension of MRI files.
         /// </summary>
         public static readonly string[] EXTENSIONS = new string[] { ".nii", ".nii.gz", ".img" };
+
         /// <summary>
         /// Name of the MRI.
         /// </summary>
         [JsonProperty] public string Name { get; set; }
+
         /// <summary>
         /// MRI file path with Alias.
         /// </summary>
         [JsonProperty("File")] public string SavedFile { get; protected set; }
+
         /// <summary>
         /// MRI file path without Alias.
         /// </summary>
         public string File
         {
-            get
-            {
-                return SavedFile.ConvertToFullPath();
-            }
-            set
-            {
-                SavedFile = value.ConvertToShortPath();
-            }
+            get { return SavedFile.ConvertToFullPath(); }
+            set { SavedFile = value.ConvertToShortPath(); }
         }
+
         /// <summary>
         /// True if the MRI was usable, False otherwise.
         /// </summary>
         public bool WasUsable { get; protected set; }
+
         /// <summary>
         /// True if the MRI is usable, False otherwise.
         /// </summary>
@@ -77,19 +77,19 @@ namespace HBP.Core.Data
                 return usable;
             }
         }
+
         /// <summary>
         /// True if the MRI has MRI file, False otherwise.
         /// </summary>
         public virtual bool HasMRI
         {
-            get
-            {
-                return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && EXTENSIONS.Any(e => e == new FileInfo(File).Extension);
-            }
+            get { return !string.IsNullOrEmpty(File) && System.IO.File.Exists(File) && EXTENSIONS.Any(e => e == new FileInfo(File).Extension); }
         }
+
         #endregion
 
         #region Constructors
+
         /// <summary>
         /// Create a new MRI instance.
         /// </summary>
@@ -102,6 +102,7 @@ namespace HBP.Core.Data
             File = path;
             RecalculateIsUsable();
         }
+
         /// <summary>
         /// Create a new MRI instance.
         /// </summary>
@@ -113,13 +114,18 @@ namespace HBP.Core.Data
             File = path;
             RecalculateIsUsable();
         }
+
         /// <summary>
         /// Create a new MRI instance.
         /// </summary>
-        public MRI() : this("New MRI", string.Empty) { }
+        public MRI() : this("New MRI", string.Empty)
+        {
+        }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Recalculate if the MRI is usable.
         /// </summary>
@@ -128,9 +134,16 @@ namespace HBP.Core.Data
         {
             return IsUsable;
         }
+
+        internal void ApplyUsabilityValidation(bool usable)
+        {
+            WasUsable = usable;
+        }
+
         #endregion
 
         #region Public Static Methods
+
         /// <summary>
         /// Loads meshes from a directory.
         /// </summary>
@@ -182,11 +195,14 @@ namespace HBP.Core.Data
                     }
                 }
             }
+
             return MRIs.ToArray();
         }
+
         #endregion
 
         #region Private Static Methods
+
         /// <summary>
         /// Helper method to find MRI files with supported extensions.
         /// </summary>
@@ -204,8 +220,10 @@ namespace HBP.Core.Data
                     return file;
                 }
             }
+
             return null;
         }
+
         /// <summary>
         /// Helper method to find MRI files with a pattern and supported extensions.
         /// </summary>
@@ -223,34 +241,40 @@ namespace HBP.Core.Data
                     return files[0];
                 }
             }
+
             return null;
         }
+
         #endregion
 
         #region Operators
+
         public override object Clone()
         {
             return new MRI(Name, File, ID);
         }
+
         public override void Copy(object obj)
         {
             base.Copy(obj);
-            if(obj is MRI mri)
+            if (obj is MRI mri)
             {
                 Name = mri.Name;
                 File = mri.File;
                 RecalculateIsUsable();
             }
         }
+
         #endregion
 
         #region Serialization
+
         protected override void OnDeserialized()
         {
             SavedFile = SavedFile.StandardizeToEnvironement();
-            RecalculateIsUsable();
             base.OnDeserialized();
         }
+
         #endregion
     }
 }

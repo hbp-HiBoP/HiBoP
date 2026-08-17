@@ -20,14 +20,17 @@ namespace HBP.Core.Data
         {
             return true;
         }
+
         public override string GetDescription(bool isNot)
         {
             return "";
         }
+
         public override object Clone()
         {
             return new EmptyTagFilterValue();
         }
+
         public override void Copy(object copy)
         {
         }
@@ -44,14 +47,17 @@ namespace HBP.Core.Data
                 return (bool)value == Value;
             return false;
         }
+
         public override string GetDescription(bool isNot)
         {
             return $" with value {(isNot ? !Value : Value)}";
         }
+
         public override object Clone()
         {
             return new BoolTagFilterValue { Value = Value };
         }
+
         public override void Copy(object copy)
         {
             if (copy is BoolTagFilterValue boolTagFilterValue)
@@ -83,16 +89,20 @@ namespace HBP.Core.Data
                     return valueString.IndexOf(Value, comparison) >= 0;
                 }
             }
+
             return false;
         }
+
         public override string GetDescription(bool isNot)
         {
             return $" with value{(isNot ? " not" : "")} {(ExactMatch ? "equal to" : "containing")} \"{Value}\" (case {(CaseSensitive ? "sensitive" : "insensitive")})";
         }
+
         public override object Clone()
         {
             return new StringTagFilterValue { Value = Value, ExactMatch = ExactMatch, CaseSensitive = CaseSensitive };
         }
+
         public override void Copy(object copy)
         {
             if (copy is StringTagFilterValue stringTagFilterValue)
@@ -140,6 +150,7 @@ namespace HBP.Core.Data
                         return (floatValue >= Min || ApproximatelyEqual(floatValue, Min)) && (floatValue <= Max || ApproximatelyEqual(floatValue, Max));
                 }
             }
+
             if (value is not null and double)
             {
                 double doubleValue = (double)value;
@@ -197,8 +208,10 @@ namespace HBP.Core.Data
                         return longValue >= Min && longValue <= Max;
                 }
             }
+
             return false;
         }
+
         public override string GetDescription(bool isNot)
         {
             string description = $" with value{(isNot ? " not" : "")} ";
@@ -223,12 +236,15 @@ namespace HBP.Core.Data
                     description += $"between {Min} and {Max} (inclusive)";
                     break;
             }
+
             return description;
         }
+
         public override object Clone()
         {
             return new NumberTagFilterValue { Type = Type, Value = Value, Min = Min, Max = Max };
         }
+
         public override void Copy(object copy)
         {
             if (copy is NumberTagFilterValue numberTagFilterValue)
@@ -253,16 +269,20 @@ namespace HBP.Core.Data
                 int intValue = (int)value;
                 return intValue == Value;
             }
+
             return false;
         }
+
         public override string GetDescription(bool isNot)
         {
             return $" with value{(isNot ? " not" : "")} equal to ";
         }
+
         public override object Clone()
         {
             return new EnumTagFilterValue { Value = Value };
         }
+
         public override void Copy(object copy)
         {
             if (copy is EnumTagFilterValue enumTagFilterValue)

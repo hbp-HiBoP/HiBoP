@@ -1,0 +1,24 @@
+{
+    "name": "HBP.Module3D.PlayModeTests",
+    "rootNamespace": "HBP.Tests.PlayMode.Module3D",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Rendering.Runtime",
+        "HBP.UI.Runtime",
+        "HBP.PlayModeTestUtilities",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

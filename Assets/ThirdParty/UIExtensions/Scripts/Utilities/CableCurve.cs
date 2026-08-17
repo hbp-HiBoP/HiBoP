@@ -9,28 +9,19 @@ namespace UnityEngine.UI.Extensions
     [Serializable]
     public class CableCurve
     {
-        [SerializeField]
-        Vector2 m_start;
-        [SerializeField]
-        Vector2 m_end;
-        [SerializeField]
-        float m_slack;
-        [SerializeField]
-        int m_steps;
-        [SerializeField]
-        bool m_regen;
+        [SerializeField] Vector2 m_start;
+        [SerializeField] Vector2 m_end;
+        [SerializeField] float m_slack;
+        [SerializeField] int m_steps;
+        [SerializeField] bool m_regen;
 
         static Vector2[] emptyCurve = new Vector2[] { new(0.0f, 0.0f), new(0.0f, 0.0f) };
-        [SerializeField]
-        Vector2[] points;
+        [SerializeField] Vector2[] points;
 
         public bool regenPoints
         {
             get { return m_regen; }
-            set
-            {
-                m_regen = value;
-            }
+            set { m_regen = value; }
         }
 
         public Vector2 start
@@ -54,6 +45,7 @@ namespace UnityEngine.UI.Extensions
                 m_end = value;
             }
         }
+
         public float slack
         {
             get { return m_slack; }
@@ -64,6 +56,7 @@ namespace UnityEngine.UI.Extensions
                 m_slack = Mathf.Max(0.0f, value);
             }
         }
+
         public int steps
         {
             get { return m_steps; }
@@ -96,6 +89,7 @@ namespace UnityEngine.UI.Extensions
                         mid = points[m];
                     }
                 }
+
                 return mid;
             }
         }
