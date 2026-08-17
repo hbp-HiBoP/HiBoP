@@ -4,6 +4,17 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+          - macos
 
 permissions:
   contents: write
@@ -17,31 +28,43 @@ defaults:
     shell: bash
 
 jobs:
+  prepare_matrix:
+    name: Select build platforms
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - id: select
+        env:
+          SELECTED_PLATFORM: ${{ inputs.platform || 'all' }}
+        run: |
+          case "$SELECTED_PLATFORM" in
+            all)
+              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
+              ;;
+            linux)
+              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"}]}'
+              ;;
+            windows)
+              matrix='{"include":[{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"}]}'
+              ;;
+            macos)
+              matrix='{"include":[{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
+              ;;
+            *)
+              echo "Unsupported platform: $SELECTED_PLATFORM" >&2
+              exit 1
+              ;;
+          esac
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build ${{ matrix.name }}
+    needs: prepare_matrix
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Linux
-            os: ubuntu-latest
-            module: StandaloneLinux64
-            modules: ""
-            cli_target: Linux64
-            artifact: HiBoP-Linux
-          - name: Windows
-            os: windows-latest
-            module: StandaloneWindows64
-            modules: ""
-            cli_target: Win64
-            artifact: HiBoP-Windows
-          - name: macOS (ARM64)
-            os: macos-latest
-            module: StandaloneOSX
-            modules: mac-il2cpp
-            cli_target: OSXUniversal
-            artifact: HiBoP-macOS-arm64
+      matrix: ${{ fromJSON(needs.prepare_matrix.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -56,12 +79,33 @@ jobs:
             Library-${{ matrix.module }}-
             Library-
 
+      - name: Install Unity Hub (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo install -d /etc/apt/keyrings
+          curl -fsSL https://hub.unity3d.com/linux/keys/public |
+            sudo gpg --dearmor --yes -o /etc/apt/keyrings/unityhub.gpg
+          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/unityhub.gpg] https://hub.unity3d.com/linux/repos/deb stable main" |
+            sudo tee /etc/apt/sources.list.d/unityhub.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install --yes desktop-file-utils unityhub xvfb
+          unity_hub_path="$(readlink -f "$(command -v unityhub)")"
+          test -x "$unity_hub_path"
+          test -r "$(dirname "$unity_hub_path")/resources/app.asar"
+          echo "UNITY_HUB_PATH=$unity_hub_path" >> "$GITHUB_ENV"
+          sudo tee /usr/local/bin/unity-hub > /dev/null <<'EOF'
+          #!/usr/bin/env bash
+          exec xvfb-run --auto-servernum "$UNITY_HUB_PATH" "$@"
+          EOF
+          sudo chmod +x /usr/local/bin/unity-hub
+
       - name: Install Unity
         uses: RageAgainstThePixel/unity-setup@v2
         with:
           unity-version: 6000.5.2f1
           build-targets: ${{ matrix.module }}
           modules: ${{ matrix.modules }}
+          auto-update-hub: false
 
       - name: Activate Unity licence
         uses: RageAgainstThePixel/activate-unity-license@v2

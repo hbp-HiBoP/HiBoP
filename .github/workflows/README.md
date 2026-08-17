@@ -11,10 +11,16 @@ as a build run from `Tools/Build HiBoP`: it copies `Assets/Data`, removes `.meta
 and `.obj` files, excludes Localizer atlases, copies the documentation and
 processes the macOS/Linux plugins.
 
-CI explicitly builds all desktop players with IL2CPP. The macOS job also
-installs Unity's `mac-il2cpp` module. The local build window keeps its historic
-defaults (Windows/Linux IL2CPP, macOS Mono) and provides an IL2CPP toggle for
-each selected platform.
+CI explicitly builds all desktop players with IL2CPP and Development enabled,
+without connecting the profiler. The macOS job also installs Unity's
+`mac-il2cpp` module. The local build window keeps its historic defaults
+(Windows/Linux IL2CPP, macOS Mono) and provides an IL2CPP toggle for each
+selected platform.
+
+The Linux runner installs Unity Hub from Unity's Debian repository and creates
+the headless wrapper expected by `unity-setup`. It resolves the actual package
+path dynamically because Unity Hub 3.20+ uses `/usr/lib/unityhub`, while the
+action still defaults to the obsolete `/opt/unityhub` location.
 
 ## One-time setup
 
@@ -33,8 +39,9 @@ is preferable so that licence activation does not affect a local editor.
 ## Triggering builds
 
 - **Manual test:** open **Actions > Build HiBoP > Run workflow**, select the
-  `develop` branch, then run it. The three archives are available as artifacts
-  on the workflow run; no release is created or modified.
+  `develop` branch and a platform (`all` by default), then run it. The selected
+  archives are available as artifacts on the workflow run; no release is
+  created or modified.
 - **Release:** publish a GitHub Release. The same archives are attached to that
   release after all three builds finish.
 
