@@ -159,7 +159,7 @@ namespace HBP.Core.Data
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             IEEGDataInfo[] iEEGDataInfos = Dataset?.GetIEEGDataInfos();
-            return Dataset != null && Dataset.Protocol != null && Dataset.Protocol.IsVisualizable && patients.All((patient) => iEEGDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
+            return Dataset != null && Dataset.Protocol != null && Dataset.Protocol.IsVisualizable && patients.Any() && patients.All((patient) => iEEGDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
         }
 
         public override void Unload()

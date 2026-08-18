@@ -119,7 +119,7 @@ namespace HBP.Core.Data
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             PatientDataInfo[] megDataInfos = Dataset?.GetMEGDataInfos();
-            return Dataset != null && Dataset.Protocol != null && patients.All((patient) => megDataInfos.Any((data) => data.Patient == patient && data.IsOk));
+            return Dataset != null && Dataset.Protocol != null && patients.Any() && patients.All((patient) => megDataInfos.Any((data) => data.Patient == patient && data.IsOk));
         }
 
         public override void Unload()

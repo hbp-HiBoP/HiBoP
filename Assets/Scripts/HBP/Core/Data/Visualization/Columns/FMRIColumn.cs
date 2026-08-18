@@ -119,7 +119,7 @@ namespace HBP.Core.Data
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             FMRIDataInfo[] fmriDataInfos = Dataset?.GetFMRIDataInfos();
-            return Dataset != null && Dataset.Protocol != null && (patients.All((patient) => fmriDataInfos.Any((data) => data.Patient == patient && data.IsOk)) || Dataset?.GetSharedFMRIDataInfos().Length > 0);
+            return Dataset != null && Dataset.Protocol != null && (Dataset.GetSharedFMRIDataInfos().Length > 0 || (patients.Any() && patients.All((patient) => fmriDataInfos.Any((data) => data.Patient == patient && data.IsOk))));
         }
 
         public override void Unload()
