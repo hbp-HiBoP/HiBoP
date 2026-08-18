@@ -120,7 +120,8 @@ namespace HBP.Dev
             string projectPath = Application.dataPath;
             projectPath = projectPath.Remove(projectPath.Length - 6);
 
-            DirectoryInfo dataDirectoryInfo = new(dataDirectory + m_DataBuild);
+            string dataBuildDirectory = target == BuildTarget.StandaloneOSX ? Path.Combine(dataDirectory, "Contents", "Resources", m_DataBuild) : Path.Combine(dataDirectory, m_DataBuild);
+            DirectoryInfo dataDirectoryInfo = new(dataBuildDirectory);
             new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(dataDirectoryInfo);
             foreach (var file in dataDirectoryInfo.GetFiles("*.meta", SearchOption.AllDirectories))
             {
@@ -147,7 +148,7 @@ namespace HBP.Dev
             }
 
             // Remove Localizer atlas if it exists (we do not ship it with the build)
-            DirectoryInfo localizerDirectory = new(Path.Combine(dataDirectory, m_DataBuild, "Atlases", "Localizers"));
+            DirectoryInfo localizerDirectory = new(Path.Combine(dataBuildDirectory, "Atlases", "Localizers"));
             if (localizerDirectory.Exists)
             {
                 localizerDirectory.Delete(true);
@@ -260,8 +261,7 @@ namespace HBP.Dev
                 return ScriptingImplementation.IL2CPP;
             }
 
-            if (string.Equals(value, "Mono", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "Mono2x", System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(value, "Mono", System.StringComparison.OrdinalIgnoreCase) || string.Equals(value, "Mono2x", System.StringComparison.OrdinalIgnoreCase))
             {
                 return ScriptingImplementation.Mono2x;
             }
@@ -271,9 +271,7 @@ namespace HBP.Dev
 
         private static ScriptingImplementation GetDefaultScriptingBackend(BuildTarget target)
         {
-            return target == BuildTarget.StandaloneOSX
-                ? ScriptingImplementation.Mono2x
-                : ScriptingImplementation.IL2CPP;
+            return target == BuildTarget.StandaloneOSX ? ScriptingImplementation.Mono2x : ScriptingImplementation.IL2CPP;
         }
 
         internal static void WriteBuildInfo()
@@ -370,6 +368,5 @@ namespace HBP.Dev
         {
             return il2cpp ? ScriptingImplementation.IL2CPP : ScriptingImplementation.Mono2x;
         }
-
     }
 }

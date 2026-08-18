@@ -206,8 +206,17 @@ jobs:
             codesign --verify --deep --strict --verbose=2 "$bundle"
           done
 
+          test -d "$app/Contents/Resources/Data"
+          unexpected_root_entries=$(find "$app" -mindepth 1 -maxdepth 1 ! -name Contents -print)
+          if [[ -n "$unexpected_root_entries" ]]; then
+            echo "Unexpected entries at the macOS application bundle root:" >&2
+            echo "$unexpected_root_entries" >&2
+            exit 1
+          fi
+
           # HBPBuilder moves ARM64 plugins after BuildPipeline.BuildPlayer. Sign
-          # the completed bundle so those post-build changes are sealed too.
+          # the completed bundle so those post-build changes and resources are
+          # sealed too.
           codesign --force --deep --sign - "$app"
           codesign --verify --deep --strict --verbose=2 "$app"
           echo "Validated and signed application: $app"
