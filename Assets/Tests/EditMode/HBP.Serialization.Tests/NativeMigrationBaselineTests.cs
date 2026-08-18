@@ -157,6 +157,37 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        public void HbpCorePlugins_AreIncludedOnlyInTheirTargetPlayer()
+        {
+            (string Path, BuildTarget Target)[] plugins =
+            {
+                ("Assets/Plugins/x86_64/Windows/hbp_core.dll", BuildTarget.StandaloneWindows64),
+                ("Assets/Plugins/x86_64/Linux/libhbp_core.so", BuildTarget.StandaloneLinux64),
+                ("Assets/Plugins/x86_64/MacOS/hbp_core.bundle", BuildTarget.StandaloneOSX)
+            };
+            BuildTarget[] standaloneTargets =
+            {
+                BuildTarget.StandaloneWindows64,
+                BuildTarget.StandaloneLinux64,
+                BuildTarget.StandaloneOSX
+            };
+
+            foreach ((string path, BuildTarget expectedTarget) in plugins)
+            {
+                PluginImporter importer = AssetImporter.GetAtPath(path) as PluginImporter;
+                Assert.That(importer, Is.Not.Null, $"{path} must be imported as a native plugin.");
+                Assert.That(importer.GetCompatibleWithAnyPlatform(), Is.False, path);
+                Assert.That(importer.GetCompatibleWithEditor(), Is.True, path);
+
+                foreach (BuildTarget target in standaloneTargets)
+                {
+                    Assert.That(importer.GetCompatibleWithPlatform(target), Is.EqualTo(target == expectedTarget), $"{path} compatibility with {target}");
+                }
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         public void Vec3Conversions_FlipReferenceSystemByDefault_AndAllowExplicitNativeValues()
         {
             Type vec3Type = typeof(Volume).Assembly.GetType("HBP.Core.DLL.Vec3", throwOnError: true);

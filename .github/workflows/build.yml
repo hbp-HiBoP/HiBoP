@@ -70,6 +70,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Prepare macOS native bundles
+        if: matrix.platform == 'macos'
+        run: |
+          set -euo pipefail
+          for bundle_name in hbp_core hbp_math EEGFormat; do
+            bundle="Assets/Plugins/x86_64/MacOS/$bundle_name.bundle"
+            test -d "$bundle"
+            plist="$bundle/Contents/Info.plist"
+            plutil -lint "$plist"
+            executable_name=$(plutil -extract CFBundleExecutable raw "$plist")
+            plugin="$bundle/Contents/MacOS/$executable_name"
+            test -f "$plugin"
+            lipo "$plugin" -verify_arch arm64
+
+            # The bundle may have transited through a Git checkout on Windows.
+            # Recreate its ad-hoc signature before Unity can load the plugin.
+            xattr -cr "$bundle"
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --strict --verbose=2 "$bundle"
+          done
+
       - name: Cache Library
         uses: actions/cache@v5
         with:
@@ -125,6 +146,71 @@ jobs:
             -buildOutput "$GITHUB_WORKSPACE/build" \
             -scriptingBackend IL2CPP \
             -logFile -
+
+      - name: Validate Windows native plugins
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $buildFolder = Get-ChildItem -LiteralPath build -Directory | Select-Object -First 1
+          if (-not $buildFolder) {
+            throw "The Unity build directory was not created."
+          }
+
+          foreach ($pluginName in @("hbp_core.dll", "hbp_math.dll", "EEGFormat.dll")) {
+            $plugins = @(Get-ChildItem -LiteralPath $buildFolder.FullName -Recurse -File -Filter $pluginName)
+            if ($plugins.Count -ne 1) {
+              throw "Expected exactly one packaged $pluginName, found $($plugins.Count)."
+            }
+
+            $bytes = [System.IO.File]::ReadAllBytes($plugins[0].FullName)
+            if ($bytes.Length -lt 2 -or $bytes[0] -ne 0x4d -or $bytes[1] -ne 0x5a) {
+              throw "Packaged plugin is not a PE binary: $($plugins[0].FullName)"
+            }
+            Write-Host "Validated native plugin: $($plugins[0].FullName)"
+          }
+
+      - name: Validate Linux native plugins
+        if: matrix.platform == 'linux'
+        run: |
+          set -euo pipefail
+          folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
+          for plugin_name in libhbp_core.so libhbp_math.so libEEGFormat.so; do
+            plugin=$(find "$folder" -type f -name "$plugin_name" -print -quit)
+            test -n "$plugin"
+            file "$plugin" | grep -q 'ELF 64-bit.*x86-64'
+            if ldd "$plugin" | grep -q 'not found'; then
+              ldd "$plugin"
+              exit 1
+            fi
+            echo "Validated native plugin: $plugin"
+          done
+
+      - name: Validate and sign macOS application
+        if: matrix.platform == 'macos'
+        run: |
+          set -euo pipefail
+          folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
+          app=$(find "$folder" -mindepth 1 -maxdepth 1 -type d -name '*.app' -print -quit)
+          test -n "$app"
+          for bundle_name in hbp_core hbp_math EEGFormat; do
+            bundle="$app/Contents/PlugIns/$bundle_name.bundle"
+            test -d "$bundle"
+            executable_name=$(plutil -extract CFBundleExecutable raw "$bundle/Contents/Info.plist")
+            plugin="$bundle/Contents/MacOS/$executable_name"
+            test -f "$plugin"
+            lipo "$plugin" -verify_arch arm64
+            otool -L "$plugin"
+            xattr -cr "$bundle"
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --strict --verbose=2 "$bundle"
+          done
+
+          # HBPBuilder moves ARM64 plugins after BuildPipeline.BuildPlayer. Sign
+          # the completed bundle so those post-build changes are sealed too.
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          echo "Validated and signed application: $app"
 
       - name: Package build
         id: package
