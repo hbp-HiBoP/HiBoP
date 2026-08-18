@@ -58,7 +58,7 @@ namespace HBP.Tests.Serialization
         {
             if (Environment.GetEnvironmentVariable("HBP_EXPECT_NO_LEGACY_DLL") == "1")
             {
-                string legacyDllPath = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "Windows", "hbp_export.dll");
+                string legacyDllPath = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "Editor", "LegacyNative", "Windows", "x86_64", "hbp_export.dll");
                 Assert.That(File.Exists(legacyDllPath), Is.False, "The no-legacy validation must physically remove hbp_export.dll from the project.");
             }
         }
@@ -141,9 +141,9 @@ namespace HBP.Tests.Serialization
 
             string[] metadataPaths =
             {
-                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "Windows", "hbp_export.dll.meta"),
-                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "Linux", "libhbp_export.so.meta"),
-                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "x86_64", "MacOS", "hbp_export.bundle.meta")
+                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "Editor", "LegacyNative", "Windows", "x86_64", "hbp_export.dll.meta"),
+                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "Editor", "LegacyNative", "Linux", "x86_64", "libhbp_export.so.meta"),
+                Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Plugins", "Editor", "LegacyNative", "macOS", "arm64", "hbp_export.bundle.meta")
             };
 
             foreach (string metadataPath in metadataPaths)
@@ -153,17 +153,37 @@ namespace HBP.Tests.Serialization
                 Assert.That(Regex.IsMatch(metadata, @"Standalone(?s:.{0,120})enabled:\s*1"), Is.False, metadataPath);
                 Assert.That(Regex.IsMatch(metadata, @"(?m)^\s+(Linux64|OSXUniversal|Win|Win64):\s*\r?$\n\s+enabled:\s*1"), Is.False, metadataPath);
             }
+
+            (string Path, string EditorOs, string EditorCpu)[] plugins =
+            {
+                ("Assets/Plugins/Editor/LegacyNative/Windows/x86_64/hbp_export.dll", "Windows", "x86_64"),
+                ("Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libhbp_export.so", "Linux", "x86_64"),
+                ("Assets/Plugins/Editor/LegacyNative/macOS/arm64/hbp_export.bundle", "OSX", "ARM64")
+            };
+            foreach ((string path, string editorOs, string editorCpu) in plugins)
+            {
+                PluginImporter importer = AssetImporter.GetAtPath(path) as PluginImporter;
+                Assert.That(importer, Is.Not.Null, $"{path} must be imported as an editor-only native plugin.");
+                Assert.That(importer.GetEditorData("OS"), Is.EqualTo(editorOs), path);
+                Assert.That(importer.GetEditorData("CPU"), Is.EqualTo(editorCpu), path);
+            }
         }
 
         [Test]
         [Category("NativeMigration")]
-        public void HbpCorePlugins_AreIncludedOnlyInTheirTargetPlayer()
+        public void RuntimeNativePlugins_AreIncludedOnlyInTheirTargetPlayer()
         {
-            (string Path, BuildTarget Target)[] plugins =
+            (string Path, BuildTarget Target, string EditorOs, string EditorCpu)[] plugins =
             {
-                ("Assets/Plugins/x86_64/Windows/hbp_core.dll", BuildTarget.StandaloneWindows64),
-                ("Assets/Plugins/x86_64/Linux/libhbp_core.so", BuildTarget.StandaloneLinux64),
-                ("Assets/Plugins/x86_64/MacOS/hbp_core.bundle", BuildTarget.StandaloneOSX)
+                ("Assets/Plugins/Native/Windows/x86_64/hbp_core.dll", BuildTarget.StandaloneWindows64, "Windows", "x86_64"),
+                ("Assets/Plugins/Native/Windows/x86_64/hbp_math.dll", BuildTarget.StandaloneWindows64, "Windows", "x86_64"),
+                ("Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll", BuildTarget.StandaloneWindows64, "Windows", "x86_64"),
+                ("Assets/Plugins/Native/Linux/x86_64/libhbp_core.so", BuildTarget.StandaloneLinux64, "Linux", "x86_64"),
+                ("Assets/Plugins/Native/Linux/x86_64/libhbp_math.so", BuildTarget.StandaloneLinux64, "Linux", "x86_64"),
+                ("Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so", BuildTarget.StandaloneLinux64, "Linux", "x86_64"),
+                ("Assets/Plugins/Native/macOS/arm64/hbp_core.bundle", BuildTarget.StandaloneOSX, "OSX", "ARM64"),
+                ("Assets/Plugins/Native/macOS/arm64/hbp_math.bundle", BuildTarget.StandaloneOSX, "OSX", "ARM64"),
+                ("Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle", BuildTarget.StandaloneOSX, "OSX", "ARM64")
             };
             BuildTarget[] standaloneTargets =
             {
@@ -172,12 +192,14 @@ namespace HBP.Tests.Serialization
                 BuildTarget.StandaloneOSX
             };
 
-            foreach ((string path, BuildTarget expectedTarget) in plugins)
+            foreach ((string path, BuildTarget expectedTarget, string editorOs, string editorCpu) in plugins)
             {
                 PluginImporter importer = AssetImporter.GetAtPath(path) as PluginImporter;
                 Assert.That(importer, Is.Not.Null, $"{path} must be imported as a native plugin.");
                 Assert.That(importer.GetCompatibleWithAnyPlatform(), Is.False, path);
                 Assert.That(importer.GetCompatibleWithEditor(), Is.True, path);
+                Assert.That(importer.GetEditorData("OS"), Is.EqualTo(editorOs), path);
+                Assert.That(importer.GetEditorData("CPU"), Is.EqualTo(editorCpu), path);
 
                 foreach (BuildTarget target in standaloneTargets)
                 {

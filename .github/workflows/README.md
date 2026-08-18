@@ -22,9 +22,9 @@ No macOS or Linux workstation is required to update `hbp_core`:
 
    | Artifact item | HiBoP destination |
    | --- | --- |
-   | `hbp_core.dll` | `Assets/Plugins/x86_64/Windows/hbp_core.dll` |
-   | `libhbp_core.so` | `Assets/Plugins/x86_64/Linux/libhbp_core.so` |
-   | `hbp_core.bundle` | `Assets/Plugins/x86_64/MacOS/hbp_core.bundle` |
+   | `hbp_core.dll` | `Assets/Plugins/Native/Windows/x86_64/hbp_core.dll` |
+   | `libhbp_core.so` | `Assets/Plugins/Native/Linux/x86_64/libhbp_core.so` |
+   | `hbp_core.bundle` | `Assets/Plugins/Native/macOS/arm64/hbp_core.bundle` |
 
    Keep the existing Unity `.meta` files next to those items.
 3. Commit and push the three replacements.
@@ -37,12 +37,14 @@ Windows checkout does not require `chmod`, `codesign`, a Mac, or any additional
 local preparation. `hbp_core` CI never modifies the HiBoP repository, and the
 HiBoP workflow never rebuilds `hbp_core`.
 
-Before packaging, each job verifies that the platform-specific `hbp_core`,
-`hbp_math` and `EEGFormat` plugins are present in the final player. Linux
-additionally runs `ldd`; macOS checks the ARM64 slices and native dependencies,
-then ad-hoc signs and verifies the completed `.app` after all plugin
-post-processing. This signature makes CI artifacts internally consistent;
-public macOS releases still require a Developer ID signature and notarization.
+Before packaging, each job verifies that exactly one platform-specific copy of
+`hbp_core`, `hbp_math` and `EEGFormat` is present in the final player, in Unity's
+expected location for that platform. The checks also reject the editor-only
+`hbp_export`, OpenCV and Boost dependencies. Linux additionally runs `ldd`;
+macOS checks the ARM64 slices and native dependencies, then ad-hoc signs and
+verifies the completed `.app` after all plugin post-processing. This signature
+makes CI artifacts internally consistent; public macOS releases still require
+a Developer ID signature and notarization.
 
 CI explicitly builds all desktop players with IL2CPP and Development enabled,
 without connecting the profiler. The macOS job also installs Unity's

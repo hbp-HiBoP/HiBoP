@@ -75,17 +75,18 @@ jobs:
         run: |
           set -euo pipefail
           for bundle_name in hbp_core hbp_math EEGFormat; do
-            bundle="Assets/Plugins/x86_64/MacOS/$bundle_name.bundle"
+            bundle="Assets/Plugins/Native/macOS/arm64/$bundle_name.bundle"
             test -d "$bundle"
             plist="$bundle/Contents/Info.plist"
             plutil -lint "$plist"
             executable_name=$(plutil -extract CFBundleExecutable raw "$plist")
             plugin="$bundle/Contents/MacOS/$executable_name"
             test -f "$plugin"
-            lipo "$plugin" -verify_arch arm64
 
             # The bundle may have transited through a Git checkout on Windows.
-            # Recreate its ad-hoc signature before Unity can load the plugin.
+            # Restore its executable mode and ad-hoc signature before Unity loads it.
+            chmod 755 "$plugin"
+            lipo "$plugin" -verify_arch arm64
             xattr -cr "$bundle"
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --strict --verbose=2 "$bundle"
@@ -157,10 +158,24 @@ jobs:
             throw "The Unity build directory was not created."
           }
 
+          $dataFolder = Get-ChildItem -LiteralPath $buildFolder.FullName -Directory -Filter "*_Data" | Select-Object -First 1
+          if (-not $dataFolder) {
+            throw "The Unity data directory was not created."
+          }
+          $pluginsDirectory = Join-Path $dataFolder.FullName "Plugins\x86_64"
+          if (-not (Test-Path -LiteralPath $pluginsDirectory -PathType Container)) {
+            throw "The expected native plugin directory is missing: $pluginsDirectory"
+          }
+
           foreach ($pluginName in @("hbp_core.dll", "hbp_math.dll", "EEGFormat.dll")) {
             $plugins = @(Get-ChildItem -LiteralPath $buildFolder.FullName -Recurse -File -Filter $pluginName)
             if ($plugins.Count -ne 1) {
               throw "Expected exactly one packaged $pluginName, found $($plugins.Count)."
+            }
+
+            $expectedPlugin = Join-Path $pluginsDirectory $pluginName
+            if ($plugins[0].FullName -ne $expectedPlugin) {
+              throw "Packaged plugin is in an unexpected directory: $($plugins[0].FullName)"
             }
 
             $bytes = [System.IO.File]::ReadAllBytes($plugins[0].FullName)
@@ -170,14 +185,31 @@ jobs:
             Write-Host "Validated native plugin: $($plugins[0].FullName)"
           }
 
+          foreach ($legacyPattern in @("hbp_export.dll", "opencv*.dll", "boost*.dll", "concrt*.dll", "msvcp*.dll", "ucrtbase.dll", "vccorlib*.dll", "vcomp*.dll", "vcruntime*.dll")) {
+            $legacyPlugins = @(Get-ChildItem -LiteralPath $dataFolder.FullName -Recurse -File -Filter $legacyPattern)
+            if ($legacyPlugins.Count -ne 0) {
+              throw "Editor-only legacy dependency was packaged: $($legacyPlugins[0].FullName)"
+            }
+          }
+
       - name: Validate Linux native plugins
         if: matrix.platform == 'linux'
         run: |
           set -euo pipefail
           folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
+          data_folder=$(find "$folder" -mindepth 1 -maxdepth 1 -type d -name '*_Data' -print -quit)
+          test -n "$data_folder"
+          plugins_directory="$data_folder/Plugins/x86_64"
+          test -d "$plugins_directory"
           for plugin_name in libhbp_core.so libhbp_math.so libEEGFormat.so; do
-            plugin=$(find "$folder" -type f -name "$plugin_name" -print -quit)
-            test -n "$plugin"
+            mapfile -t plugins < <(find "$folder" -type f -name "$plugin_name" -print)
+            if [[ ${#plugins[@]} -ne 1 ]]; then
+              echo "Expected exactly one packaged $plugin_name, found ${#plugins[@]}." >&2
+              printf '%s\n' "${plugins[@]}" >&2
+              exit 1
+            fi
+            plugin="${plugins[0]}"
+            test "$plugin" = "$plugins_directory/$plugin_name"
             file "$plugin" | grep -q 'ELF 64-bit.*x86-64'
             if ldd "$plugin" | grep -q 'not found'; then
               ldd "$plugin"
@@ -185,6 +217,11 @@ jobs:
             fi
             echo "Validated native plugin: $plugin"
           done
+          legacy_plugin=$(find "$folder" -type f \( -name 'libhbp_export.so' -o -name 'libopencv*' -o -name 'libboost*' \) -print -quit)
+          if [[ -n "$legacy_plugin" ]]; then
+            echo "Editor-only legacy dependency was packaged: $legacy_plugin" >&2
+            exit 1
+          fi
 
       - name: Validate and sign macOS application
         if: matrix.platform == 'macos'
@@ -196,6 +233,8 @@ jobs:
           for bundle_name in hbp_core hbp_math EEGFormat; do
             bundle="$app/Contents/PlugIns/$bundle_name.bundle"
             test -d "$bundle"
+            bundle_count=$(find "$app" -type d -name "$bundle_name.bundle" | wc -l | tr -d ' ')
+            test "$bundle_count" = 1
             executable_name=$(plutil -extract CFBundleExecutable raw "$bundle/Contents/Info.plist")
             plugin="$bundle/Contents/MacOS/$executable_name"
             test -f "$plugin"
@@ -205,6 +244,11 @@ jobs:
             codesign --force --deep --sign - "$bundle"
             codesign --verify --deep --strict --verbose=2 "$bundle"
           done
+
+          legacy_bundle=$(find "$app" -type d -name 'hbp_export.bundle' -print -quit)
+          test -z "$legacy_bundle"
+          legacy_dependency=$(find "$app" -type f \( -name 'libopencv*' -o -name 'libboost*' \) -print -quit)
+          test -z "$legacy_dependency"
 
           test -d "$app/Contents/Resources/Data"
           unexpected_root_entries=$(find "$app" -mindepth 1 -maxdepth 1 ! -name Contents -print)

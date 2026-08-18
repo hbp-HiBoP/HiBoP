@@ -44,7 +44,7 @@ Fichiers notables :
 * `README.md`
 * `packages/manifest.json`
 * `Assets/_Scenes/HiBoP.unity`
-* `Assets/Plugins/x86_64`
+* `Assets/Plugins/Managed`, `Assets/Plugins/Native` et `Assets/Plugins/Editor/LegacyNative`
 * `Assets/ThirdParty`
 * `ProjectSettings/ProjectSettings.asset`
 
@@ -168,7 +168,7 @@ Rôle apparent :
 
 Dépendances principales :
 
-* UIExtensions, StandaloneFileBrowser, DLL natives `hbp_math`, `hbp_export`, `EEGFormat`, OpenCV et bibliothèques OS.
+* UIExtensions, StandaloneFileBrowser, DLL natives runtime `hbp_core`, `hbp_math` et `EEGFormat`, ainsi que `hbp_export`, OpenCV et ses dépendances réservés aux tests Editor.
 
 Ambiguïtés :
 
@@ -179,9 +179,9 @@ Fichiers notables :
 
 * `Assets/ThirdParty/UIExtensions/ThirdParty.UIExtensions.Runtime.asmdef`
 * `Assets/ThirdParty/StandaloneFileBrowser/ThirdParty.SFB.Runtime.asmdef`
-* `Assets/Plugins/x86_64/Windows/hbp_math.dll`
-* `Assets/Plugins/x86_64/Linux/libhbp_math.so`
-* `Assets/Plugins/x86_64/MacOS/hbp_export.bundle`
+* `Assets/Plugins/Native/Windows/x86_64/hbp_math.dll`
+* `Assets/Plugins/Native/Linux/x86_64/libhbp_math.so`
+* `Assets/Plugins/Editor/LegacyNative/macOS/arm64/hbp_export.bundle`
 
 ## 3. Problèmes identifiés
 
@@ -633,9 +633,9 @@ Faible. Attention toutefois si l'équipe veut partager certains layouts ou setti
 * `Assets/Scripts/HBP/Core/Object3D/Mesh3D.cs`
 * `Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs`
 * `Assets/Scripts/HBP/UI/Main/Database/Localizer/ExportLocalizerAtlasWindow.cs`
-* `Assets/Plugins/x86_64/Windows/hbp_math.dll`
-* `Assets/Plugins/x86_64/Linux/libhbp_math.so`
-* `Assets/Plugins/x86_64/MacOS/hbp_export.bundle`
+* `Assets/Plugins/Native/Windows/x86_64/hbp_math.dll`
+* `Assets/Plugins/Native/Linux/x86_64/libhbp_math.so`
+* `Assets/Plugins/Editor/LegacyNative/macOS/arm64/hbp_export.bundle`
 
 **Constat :**
 Les wrappers et générateurs natifs sont au coeur des modèles/3D et sont appelés depuis plusieurs couches sans abstraction applicative claire.
@@ -645,7 +645,7 @@ Les wrappers et générateurs natifs sont au coeur des modèles/3D et sont appel
 * `Base3DScene` manipule `Core.DLL.GeneratorSurface`, `Core.DLL.CutGeometryGenerator`, `Core.DLL.BBox`.
 * `ExportLocalizerAtlasWindow` instancie directement `GeneratorSurface`.
 * `Mesh3D` charge des fichiers GIFTI via des objets `Surface`.
-* Les plugins natifs sont présents pour Windows/Linux/MacOS sous `Assets/Plugins/x86_64`.
+* Les plugins natifs runtime sont séparés par OS et architecture sous `Assets/Plugins/Native`; le legacy de comparaison est isolé sous `Assets/Plugins/Editor/LegacyNative`.
 
 **Pourquoi c’est un problème :**
 Les tests et outils hors Unity dépendent implicitement de DLL natives présentes et correctement configurées. Les builds multi-plateformes et IL2CPP peuvent être fragiles si les appels natifs ne sont pas isolés derrière des services remplaçables.

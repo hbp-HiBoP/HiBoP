@@ -165,28 +165,6 @@ namespace HBP.Dev
             }
 #endif
 
-            if (target == BuildTarget.StandaloneLinux64)
-            {
-                string[] runtimePluginNames =
-                {
-                    "libhbp_core.so",
-                    "libhbp_math.so",
-                    "libEEGFormat.so"
-                };
-                DirectoryInfo sourcePluginsDirectory = new(Application.dataPath + "/Plugins/x86_64/Linux");
-                DirectoryInfo playerPluginsDirectory = Directory.CreateDirectory(dataDirectory + "HiBoP_Data/Plugins");
-                foreach (string pluginName in runtimePluginNames)
-                {
-                    FileInfo sourcePlugin = new(Path.Combine(sourcePluginsDirectory.FullName, pluginName));
-                    if (!sourcePlugin.Exists)
-                    {
-                        throw new BuildFailedException($"Required Linux native plugin is missing: {sourcePlugin.FullName}");
-                    }
-
-                    sourcePlugin.CopyTo(Path.Combine(playerPluginsDirectory.FullName, pluginName), true);
-                }
-            }
-
             FileInfo readme = new(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name, true);
 
