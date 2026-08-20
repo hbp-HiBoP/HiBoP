@@ -31,8 +31,16 @@ namespace HBP.Core.Data
             get => base.Tag;
             set
             {
+                if (base.Tag != null)
+                {
+                    base.Tag.OnNeedToRecalculateValue.RemoveListener(RecalculateValue);
+                }
+
                 base.Tag = value;
-                base.Tag.OnNeedToRecalculateValue.AddListener(() => Value = Value);
+                if (base.Tag != null)
+                {
+                    base.Tag.OnNeedToRecalculateValue.AddListener(RecalculateValue);
+                }
             }
         }
 
@@ -78,6 +86,11 @@ namespace HBP.Core.Data
         #endregion
 
         #region Operators
+
+        private void RecalculateValue()
+        {
+            Value = Value;
+        }
 
         public override object Clone()
         {

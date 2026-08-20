@@ -30,8 +30,16 @@ namespace HBP.Core.Data
             get => base.Tag;
             set
             {
+                if (base.Tag != null)
+                {
+                    base.Tag.OnNeedToRecalculateValue.RemoveListener(RecalculateValue);
+                }
+
                 base.Tag = value;
-                base.Tag.OnNeedToRecalculateValue.AddListener(RecalculateValue);
+                if (base.Tag != null)
+                {
+                    base.Tag.OnNeedToRecalculateValue.AddListener(RecalculateValue);
+                }
             }
         }
 

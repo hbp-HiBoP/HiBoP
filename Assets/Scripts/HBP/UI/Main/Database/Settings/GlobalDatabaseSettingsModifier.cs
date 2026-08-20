@@ -35,6 +35,7 @@ namespace HBP.UI.Database
 
         public override async void OK()
         {
+            Workspace previousWorkspace = Object.SelectedWorkspace;
             bool switchedWorkspace = ObjectTemp.SelectedWorkspace != Object.SelectedWorkspace;
             base.OK();
             DatabaseManager.Database.SaveSettings();
@@ -43,10 +44,17 @@ namespace HBP.UI.Database
             {
                 try
                 {
-                    await DatabaseWorkflow.LoadDatabaseAsync();
+                    bool loaded = await DatabaseWorkflow.LoadDatabaseAsync();
+                    if (!loaded)
+                    {
+                        Object.SelectedWorkspace = previousWorkspace;
+                        DatabaseManager.Database.SaveSettings();
+                    }
                 }
                 catch (System.Exception)
                 {
+                    Object.SelectedWorkspace = previousWorkspace;
+                    DatabaseManager.Database.SaveSettings();
                 }
             }
         }

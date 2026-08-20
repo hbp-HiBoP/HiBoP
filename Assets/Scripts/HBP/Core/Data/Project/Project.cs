@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 using Ionic.Zip;
 using UnityEngine;
 using HBP.Core.Exceptions;
@@ -42,6 +43,16 @@ namespace HBP.Core.Data
         private long m_LoadingGeneration;
         private bool m_ValidationPublished;
         private ValidationRequest m_ValidationRequest = ValidationRequest.Startup;
+        public bool HasUnsavedTagMigration { get; private set; }
+        public DeferredTagMigrationPlan PendingTagMigrationReport { get; private set; }
+        public LoadingRecoveryReport StructuralRecoveryReport { get; private set; } = LoadingRecoveryReport.Empty;
+
+        public DeferredTagMigrationPlan ConsumeTagMigrationReport()
+        {
+            DeferredTagMigrationPlan report = PendingTagMigrationReport;
+            PendingTagMigrationReport = null;
+            return report;
+        }
 
         public SharedLoadingOperation<Project> CurrentLoadingOperation
         {
@@ -550,7 +561,7 @@ namespace HBP.Core.Data
             });
         }
 
-        public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<DeferredTagMigrationPlan, UniTask<DeferredTagMigrationDecision>> migrationDecisionProvider = null)
         {
             await UniTask.SwitchToMainThread();
             SharedLoadingOperation<Project> operation;
@@ -564,7 +575,7 @@ namespace HBP.Core.Data
                     SharedLoadingOperation<Project> createdOperation = null;
                     createdOperation = new SharedLoadingOperation<Project>(generation, async (progress, operationToken) =>
                     {
-                        await LoadCoreAsync(projectInfo, (value, duration, text) => progress(value * READY_PROGRESS_WEIGHT, duration, text), operationToken, () => createdOperation.Priority);
+                        await LoadCoreAsync(projectInfo, (value, duration, text) => progress(value * READY_PROGRESS_WEIGHT, duration, text), operationToken, () => createdOperation.Priority, migrationDecisionProvider);
                         return this;
                     }, (project, progress, operationToken) => ValidateProjectCoreAsync((value, duration, text) => progress(READY_PROGRESS_WEIGHT + value * (1 - READY_PROGRESS_WEIGHT), duration, text), operationToken, generation, ValidationRequest.Startup, () => createdOperation.Priority));
                     m_LoadingOperation = createdOperation;
@@ -612,7 +623,7 @@ namespace HBP.Core.Data
             }
         }
 
-        private async UniTask LoadCoreAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask LoadCoreAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<LoadingWorkPriority> priorityProvider, Func<DeferredTagMigrationPlan, UniTask<DeferredTagMigrationDecision>> migrationDecisionProvider)
         {
             try
             {
@@ -629,6 +640,8 @@ namespace HBP.Core.Data
                 {
                     throw new FileNotFoundException(projectInfo.Path, exception);
                 }
+
+                ConcurrentQueue<LoadingRecoveryItem> archiveRecoveryItems = new();
 
                 // Initialize progress.
                 float progress = 0.0f;
@@ -650,7 +663,7 @@ namespace HBP.Core.Data
 
                 // Load Settings.
                 token.ThrowIfCancellationRequested();
-                ProjectPreferences preferences = LoadSettings(manifest, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
+                ProjectPreferences preferences = LoadSettings(manifest, archiveRecoveryItems, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * settingsProgress, duration, text));
                 token.ThrowIfCancellationRequested();
                 progress += settingsProgress;
 
@@ -665,47 +678,73 @@ namespace HBP.Core.Data
                 {
                     // Load Patients.
                     token.ThrowIfCancellationRequested();
-                    patients = await LoadPatientsAsync(manifest, archiveReader, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token, concurrency, priorityProvider);
+                    patients = await LoadPatientsAsync(manifest, archiveReader, archiveRecoveryItems, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * patientsProgress, duration, text), token, concurrency, priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += patientsProgress;
 
                     // Load Groups.
                     token.ThrowIfCancellationRequested();
-                    groups = await LoadGroupsAsync(manifest, archiveReader, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token, concurrency, priorityProvider);
+                    groups = await LoadGroupsAsync(manifest, archiveReader, archiveRecoveryItems, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * groupsProgress, duration, text), token, concurrency, priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += groupsProgress;
 
                     // Load Datasets.
                     token.ThrowIfCancellationRequested();
-                    datasets = await LoadDatasetsAsync(manifest, archiveReader, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token, concurrency, priorityProvider);
+                    datasets = await LoadDatasetsAsync(manifest, archiveReader, archiveRecoveryItems, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * datasetsProgress, duration, text), token, concurrency, priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += datasetsProgress;
 
                     // Load Visualizations.
                     token.ThrowIfCancellationRequested();
-                    visualizations = await LoadVisualizationsAsync(manifest, archiveReader, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token, concurrency, priorityProvider);
+                    visualizations = await LoadVisualizationsAsync(manifest, archiveReader, archiveRecoveryItems, (localProgress, duration, text) => updateProgress.Invoke(progress + localProgress * visualizationsProgress, duration, text), token, concurrency, priorityProvider);
                     token.ThrowIfCancellationRequested();
                     progress += visualizationsProgress;
                 }
 
-                // Link every serialized ID against the canonical instances before
-                // the new graph becomes visible through this Project.
+                // Plan against the detached serialized graph before references are
+                // rebound, so no migration can happen before the user confirms it.
                 updateProgress.Invoke(progress, 0, new LoadingText("Linking project references"));
-                LoadingContext context = new(PersistentDataManager.Tags.AllTags, DatabaseManager.Database.Protocols, patients, datasets);
-                context.ResolveProject(patients, groups, datasets, visualizations);
+                await UniTask.SwitchToMainThread();
+                List<LoadingRecoveryItem> structuralRecoveryItems = archiveRecoveryItems.ToList();
+                structuralRecoveryItems.AddRange(DatabaseManager.Database.ProtocolLoadingRecoveryReport.Items);
+                patients = LoadingContext.ExcludeDuplicateIds(patients, "patient", structuralRecoveryItems);
+                groups = LoadingContext.ExcludeDuplicateIds(groups, "group", structuralRecoveryItems);
+                datasets = LoadingContext.ExcludeDuplicateIds(datasets, "dataset", structuralRecoveryItems);
+                visualizations = LoadingContext.ExcludeDuplicateIds(visualizations, "visualization", structuralRecoveryItems);
+                List<Protocol> protocols = LoadingContext.ExcludeDuplicateIds(DatabaseManager.Database.Protocols, "protocol", structuralRecoveryItems);
+                protocols = LoadingContext.ExcludeProtocolsWithInvalidBlocIds(protocols, structuralRecoveryItems);
+                DeferredTagMigrationPlan migrationPlan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Project, PersistentDataManager.Tags, patients, null, TagParsingPolicy.Default);
+                bool migrationCommitted = false;
+                try
+                {
+                    if (migrationPlan.RequiresConfirmation)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        migrationPlan.Commit(migrationPlan.Issues.Count > 0 ? DeferredTagMigrationDecision.ApplyWithRecovery : DeferredTagMigrationDecision.Apply);
+                        migrationCommitted = true;
+                    }
 
-                ISet<string> tagIds = new HashSet<string>(context.TagById.Keys, StringComparer.Ordinal);
-                int tagConcurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.Metadata);
-                await LoadingWorkScheduler.Shared.RunAsync(patients.Select(patient => (Func<UniTask>)(() => patient.CheckTagsAsync(tagIds))), LoadingWorkCategory.Metadata, priorityProvider, token, null, tagConcurrency);
-                token.ThrowIfCancellationRequested();
+                    LoadingContext context = new(PersistentDataManager.Tags.AllTags, protocols, patients, datasets);
+                    structuralRecoveryItems.AddRange(context.ResolveProjectRecovering(patients, groups, datasets, visualizations).Items);
+                    StructuralRecoveryReport = new LoadingRecoveryReport(structuralRecoveryItems);
+                    token.ThrowIfCancellationRequested();
+                }
+                catch
+                {
+                    if (migrationCommitted) migrationPlan.Rollback();
+                    throw;
+                }
+
                 progress += linkingProgress;
 
-                await UniTask.SwitchToMainThread();
                 Preferences = preferences;
                 m_Patients = patients;
                 m_Groups = groups;
                 m_Datasets = datasets;
                 m_Visualizations = visualizations;
+                HasUnsavedTagMigration = migrationPlan.RequiresConfirmation;
+                PendingTagMigrationReport = migrationPlan.RequiresConfirmation ? migrationPlan : null;
+                if (migrationPlan.RequiresConfirmation) migrationPlan.MarkPersistenceRequired();
                 lock (m_LoadingOperationLock)
                 {
                     m_ValidationPublished = false;
@@ -905,6 +944,8 @@ namespace HBP.Core.Data
 
         public async UniTask SaveAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            if (PersistentDataManager.TagInitializationException != null) throw new InvalidOperationException("The project is open with an invalid Tags.json file. Repair or restore the global tag definitions before saving it.");
+            if (StructuralRecoveryReport.HasIssues) throw new InvalidOperationException("The project is open in structural recovery mode. Repair or reload the quarantined objects before saving it.");
             if (string.IsNullOrEmpty(path))
             {
                 throw new Exceptions.DirectoryNotFoundException("");
@@ -993,6 +1034,7 @@ namespace HBP.Core.Data
 
                 await UniTask.SwitchToMainThread();
 
+                HasUnsavedTagMigration = false;
                 updateProgress.Invoke(1, 0, new LoadingText("Project saved successfully"));
             }
             catch
@@ -1010,22 +1052,26 @@ namespace HBP.Core.Data
 
         #region Private Methods
 
-        private ProjectPreferences LoadSettings(ProjectManifest manifest, Action<float, float, LoadingText> updateProgress)
+        private ProjectPreferences LoadSettings(ProjectManifest manifest, ConcurrentQueue<LoadingRecoveryItem> recovered, Action<float, float, LoadingText> updateProgress)
         {
             updateProgress.Invoke(0, 0, new LoadingText("Loading settings"));
             if (manifest.SettingsEntries.Count == 0)
             {
-                throw new SettingsFileNotFoundException();
+                recovered.Enqueue(new LoadingRecoveryItem("project settings", "<missing>", new[] { new SettingsFileNotFoundException().Message }));
+                return new ProjectPreferences();
             }
 
             if (manifest.SettingsEntries.Count > 1)
             {
-                throw new MultipleSettingsFilesFoundException();
+                recovered.Enqueue(new LoadingRecoveryItem("project settings", string.Join(", ", manifest.SettingsEntries), new[] { new MultipleSettingsFilesFoundException().Message }));
+                return manifest.Preferences ?? new ProjectPreferences();
             }
 
             if (manifest.PreferencesLoadException != null)
             {
-                throw new CanNotReadSettingsFileException(Path.GetFileName(manifest.SettingsEntries[0]), manifest.PreferencesLoadException);
+                Exception exception = new CanNotReadSettingsFileException(Path.GetFileName(manifest.SettingsEntries[0]), manifest.PreferencesLoadException);
+                recovered.Enqueue(new LoadingRecoveryItem("project settings", manifest.SettingsEntries[0], new[] { exception.Message }));
+                return new ProjectPreferences();
             }
 
             updateProgress.Invoke(1.0f, 0, new LoadingText("Settings loaded successfully"));
@@ -1061,7 +1107,7 @@ namespace HBP.Core.Data
             };
         }
 
-        private async UniTask<List<Patient>> LoadPatientsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<List<Patient>> LoadPatientsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, ConcurrentQueue<LoadingRecoveryItem> recovered, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
         {
             var tasks = manifest.PatientEntries.Select(entryName => (Func<UniTask<Patient>>)(async () =>
             {
@@ -1076,15 +1122,17 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    throw new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    Exception exception = new CanNotReadPatientFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    recovered.Enqueue(new LoadingRecoveryItem("project patient entry", entryName, new[] { exception.Message }));
+                    return null;
                 }
             }));
-            List<Patient> patients = (await RunLoadingTasksAsync(tasks, "Loading patients", updateProgress, token, concurrency, priorityProvider)).ToList();
+            List<Patient> patients = (await RunLoadingTasksAsync(tasks, "Loading patients", updateProgress, token, concurrency, priorityProvider)).Where(patient => patient != null).ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
             return patients;
         }
 
-        private async UniTask<List<Group>> LoadGroupsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<List<Group>> LoadGroupsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, ConcurrentQueue<LoadingRecoveryItem> recovered, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
         {
             var tasks = manifest.GroupEntries.Select(entryName => (Func<UniTask<Group>>)(async () =>
             {
@@ -1098,15 +1146,17 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    Exception exception = new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    recovered.Enqueue(new LoadingRecoveryItem("project group entry", entryName, new[] { exception.Message }));
+                    return null;
                 }
             }));
-            List<Group> groups = (await RunLoadingTasksAsync(tasks, "Loading groups", updateProgress, token, concurrency, priorityProvider)).ToList();
+            List<Group> groups = (await RunLoadingTasksAsync(tasks, "Loading groups", updateProgress, token, concurrency, priorityProvider)).Where(group => group != null).ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Groups loaded successfully"));
             return groups;
         }
 
-        private async UniTask<List<Dataset>> LoadDatasetsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<List<Dataset>> LoadDatasetsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, ConcurrentQueue<LoadingRecoveryItem> recovered, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
         {
             var tasks = manifest.DatasetEntries.Select(entryName => (Func<UniTask<Dataset>>)(async () =>
             {
@@ -1120,15 +1170,17 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    throw new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    Exception exception = new CanNotReadDatasetFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    recovered.Enqueue(new LoadingRecoveryItem("project dataset entry", entryName, new[] { exception.Message }));
+                    return null;
                 }
             }));
-            List<Dataset> datasets = (await RunLoadingTasksAsync(tasks, "Loading datasets", updateProgress, token, concurrency, priorityProvider)).ToList();
+            List<Dataset> datasets = (await RunLoadingTasksAsync(tasks, "Loading datasets", updateProgress, token, concurrency, priorityProvider)).Where(dataset => dataset != null).ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Datasets loaded successfully"));
             return datasets;
         }
 
-        private async UniTask<List<Visualization>> LoadVisualizationsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<List<Visualization>> LoadVisualizationsAsync(ProjectManifest manifest, ProjectArchiveReader archiveReader, ConcurrentQueue<LoadingRecoveryItem> recovered, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
         {
             var tasks = manifest.VisualizationEntries.Select(entryName => (Func<UniTask<Visualization>>)(async () =>
             {
@@ -1142,10 +1194,12 @@ namespace HBP.Core.Data
                 }
                 catch (Exception e)
                 {
-                    throw new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    Exception exception = new CanNotReadVisualizationFileException(Path.GetFileNameWithoutExtension(entryName), e);
+                    recovered.Enqueue(new LoadingRecoveryItem("project visualization entry", entryName, new[] { exception.Message }));
+                    return null;
                 }
             }));
-            List<Visualization> visualizations = (await RunLoadingTasksAsync(tasks, "Loading visualizations", updateProgress, token, concurrency, priorityProvider)).ToList();
+            List<Visualization> visualizations = (await RunLoadingTasksAsync(tasks, "Loading visualizations", updateProgress, token, concurrency, priorityProvider)).Where(visualization => visualization != null).ToList();
             updateProgress.Invoke(1.0f, 0, new LoadingText("Visualizations loaded successfully"));
             return visualizations;
         }

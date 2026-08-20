@@ -60,9 +60,9 @@ namespace HBP.Core.Data
                         return (I)Convert.ChangeType(base.Value, typeof(I));
                     }
                 }
-                catch
+                catch (Exception exception)
                 {
-                    return default;
+                    throw new InvalidCastException($"Tag value '{ID}' cannot be converted from '{base.Value.GetType().Name}' to '{typeof(I).Name}'.", exception);
                 }
             }
             set
@@ -107,6 +107,27 @@ namespace HBP.Core.Data
         #endregion
 
         #region Public Methods
+
+        public override void UpdateValue()
+        {
+            I currentValue = Value;
+            Value = currentValue;
+        }
+
+        internal override bool CanBindTag(BaseTag tag)
+        {
+            return tag is T;
+        }
+
+        internal override void BindTag(BaseTag tag)
+        {
+            if (tag is not T typedTag)
+            {
+                throw new InvalidOperationException($"Tag value '{ID}' cannot be bound to tag type '{tag?.GetType().Name ?? "null"}'.");
+            }
+
+            Tag = typedTag;
+        }
 
         public override void Copy(object copy)
         {

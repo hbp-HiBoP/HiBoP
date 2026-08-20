@@ -28,11 +28,12 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new EmptyTagFilterValue();
+            return new EmptyTagFilterValue { ID = ID };
         }
 
         public override void Copy(object copy)
         {
+            base.Copy(copy);
         }
     }
 
@@ -55,11 +56,12 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new BoolTagFilterValue { Value = Value };
+            return new BoolTagFilterValue { Value = Value, ID = ID };
         }
 
         public override void Copy(object copy)
         {
+            base.Copy(copy);
             if (copy is BoolTagFilterValue boolTagFilterValue)
             {
                 Value = boolTagFilterValue.Value;
@@ -100,11 +102,12 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new StringTagFilterValue { Value = Value, ExactMatch = ExactMatch, CaseSensitive = CaseSensitive };
+            return new StringTagFilterValue { Value = Value, ExactMatch = ExactMatch, CaseSensitive = CaseSensitive, ID = ID };
         }
 
         public override void Copy(object copy)
         {
+            base.Copy(copy);
             if (copy is StringTagFilterValue stringTagFilterValue)
             {
                 Value = stringTagFilterValue.Value;
@@ -242,11 +245,12 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new NumberTagFilterValue { Type = Type, Value = Value, Min = Min, Max = Max };
+            return new NumberTagFilterValue { Type = Type, Value = Value, Min = Min, Max = Max, ID = ID };
         }
 
         public override void Copy(object copy)
         {
+            base.Copy(copy);
             if (copy is NumberTagFilterValue numberTagFilterValue)
             {
                 Type = numberTagFilterValue.Type;
@@ -260,7 +264,21 @@ namespace HBP.Core.Data
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class EnumTagFilterValue : TagFilterValue
     {
-        [JsonProperty("Value")] public int Value { get; set; }
+        private int m_Value;
+
+        [JsonProperty("Value")] public int Value
+        {
+            get => m_Value;
+            set
+            {
+                m_Value = value;
+                StringValue = null;
+            }
+        }
+
+        [JsonProperty("StringValue")] public string StringValue { get; private set; }
+
+        public EnumValueReference Reference => new(Value, StringValue);
 
         public override bool Compare(object value)
         {
@@ -280,14 +298,58 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new EnumTagFilterValue { Value = Value };
+            return new EnumTagFilterValue { Value = Value, StringValue = StringValue, ID = ID };
         }
 
         public override void Copy(object copy)
         {
+            base.Copy(copy);
             if (copy is EnumTagFilterValue enumTagFilterValue)
             {
                 Value = enumTagFilterValue.Value;
+                StringValue = enumTagFilterValue.StringValue;
+            }
+        }
+
+        public void SetValue(EnumTag tag, int value)
+        {
+            if (tag == null)
+            {
+                throw new ArgumentNullException(nameof(tag));
+            }
+
+            Value = tag.Clamp(value);
+            StringValue = tag.Values[Value];
+        }
+
+        public string GetDisplayValue(EnumTag tag)
+        {
+            Resolve(tag, null, false);
+            return StringValue;
+        }
+
+        internal void Resolve(EnumTag tag, LoadingContext context, bool reportLegacy)
+        {
+            if (tag == null)
+            {
+                throw new ArgumentNullException(nameof(tag));
+            }
+
+            if (StringValue != null)
+            {
+                if (!tag.TryGetValueIndex(StringValue, out int repairedIndex))
+                {
+                    throw new InvalidOperationException($"Enum filter value '{StringValue}' does not exist in enum tag '{tag.Name}' ({tag.ID}).");
+                }
+
+                m_Value = repairedIndex;
+                return;
+            }
+
+            SetValue(tag, Value);
+            if (reportLegacy)
+            {
+                context?.ReportLegacyEnumReference(tag, true);
             }
         }
     }

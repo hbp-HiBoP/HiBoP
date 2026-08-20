@@ -105,6 +105,7 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.StringTagValue), "HBP.Core.Data.StringTagValue");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.SubBloc), "HBP.Core.Data.SubBloc");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.TagCollection), "HBP.Core.Data.TagCollection");
+            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.TagValueRecoveryEntry), "HBP.Core.Data.TagValueRecoveryEntry");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.ThresholdTreatment), "HBP.Core.Data.ThresholdTreatment");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.Treatment), "HBP.Core.Data.Treatment");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.ValidationState), "HBP.Core.Data.ValidationState");
@@ -143,6 +144,7 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.ProjectPreferences), "HBP.Core.Preferences.ProjectPreferences", "HBP.Data.Preferences.ProjectPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.ProtocolPreferences), "HBP.Core.Preferences.ProtocolPreferences", "HBP.Data.Preferences.ProtocolPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.SystemPreferences), "HBP.Core.Preferences.SystemPreferences", "HBP.Data.Preferences.SystemPreferences");
+            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.TagImportPreferences), "HBP.Core.Preferences.TagImportPreferences", "HBP.Data.Preferences.TagImportPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.ThemePreferences), "HBP.Core.Preferences.ThemePreferences", "HBP.Data.Preferences.ThemePreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.TrialMatrixPreferences), "HBP.Core.Preferences.TrialMatrixPreferences", "HBP.Data.Preferences.TrialMatrixPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.UserPreferences), "HBP.Core.Preferences.UserPreferences", "HBP.Data.Preferences.UserPreferences");

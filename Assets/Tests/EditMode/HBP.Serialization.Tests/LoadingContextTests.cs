@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Database;
 using HBP.Core.Errors;
 using HBP.Core.Tools;
 using HBP.Tests.Serialization.Helpers;
@@ -59,6 +63,46 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void RecoveryIndex_QuarantinesEveryDuplicateInsteadOfChoosingOneImplicitly()
+        {
+            Patient first = CreatePatient("first", "loading-context-recovery-duplicate");
+            Patient second = CreatePatient("second", "loading-context-recovery-duplicate");
+            Patient valid = CreatePatient("valid", "loading-context-recovery-valid");
+            List<LoadingRecoveryItem> recovered = new();
+
+            List<Patient> active = LoadingContext.ExcludeDuplicateIds(new[] { first, second, valid }, "patient", recovered);
+
+            Assert.That(active, Is.EqualTo(new[] { valid }));
+            Assert.That(recovered, Has.Count.EqualTo(2));
+            Assert.That(recovered[0].QuarantinedObject, Is.SameAs(first));
+            Assert.That(recovered[1].QuarantinedObject, Is.SameAs(second));
+            Assert.That(recovered[0].Reasons.Single(), Does.Contain("none was selected implicitly"));
+        }
+
+        [Test]
+        public async Task ProtocolLoading_QuarantinesOneCorruptFileAndKeepsValidProtocols()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+            string protocolDirectory = Path.Combine(ApplicationState.DatabasePath, "Protocols");
+            Directory.CreateDirectory(protocolDirectory);
+            Protocol valid = new("valid", Array.Empty<Bloc>(), "loading-recovery-valid-protocol");
+            Assert.That(ClassLoaderSaver.SaveToJSon(valid, Path.Combine(protocolDirectory, "valid" + Protocol.EXTENSION), true), Is.True);
+            string corruptPath = Path.Combine(protocolDirectory, "corrupt" + Protocol.EXTENSION);
+            File.WriteAllText(corruptPath, "{ invalid protocol json");
+
+            await DatabaseManager.Database.LoadProtocolsAsync();
+            await Cysharp.Threading.Tasks.UniTask.SwitchToMainThread();
+
+            Assert.That(DatabaseManager.Database.Protocols, Has.Count.EqualTo(1));
+            Assert.That(DatabaseManager.Database.Protocols.Single().ID, Is.EqualTo(valid.ID));
+            Assert.That(DatabaseManager.Database.ProtocolLoadingRecoveryReport.Items, Has.Count.EqualTo(1));
+            Assert.That(DatabaseManager.Database.ProtocolLoadingRecoveryReport.Items[0].ID, Is.EqualTo(corruptPath));
+            Assert.That(File.ReadAllText(corruptPath), Is.EqualTo("{ invalid protocol json"));
+        }
+
+        [Test]
         public void ResolveProject_GroupsMissingReferencesInOneExplicitException()
         {
             Patient missingPatient = CreatePatient("missing", "loading-context-missing-patient");
@@ -76,6 +120,30 @@ namespace HBP.Tests.Serialization
             Assert.That(exception.Message, Does.Contain(missingProtocol.ID));
             Assert.That(exception.Message, Does.Contain(missingPatient.ID));
             Assert.That(exception.Message, Does.Contain(missingDataset.ID));
+        }
+
+        [Test]
+        public void ResolveProjectRecovering_QuarantinesInvalidObjectsAndKeepsTheScopeOpen()
+        {
+            Patient missingPatient = CreatePatient("missing", "loading-recovery-missing-patient");
+            Protocol missingProtocol = new("missing", Array.Empty<Bloc>(), "loading-recovery-missing-protocol");
+            Dataset invalidDataset = new("dataset", missingProtocol, Array.Empty<DataInfo>(), "loading-recovery-invalid-dataset");
+            Dataset missingDataset = new("missing", missingProtocol, Array.Empty<DataInfo>(), "loading-recovery-missing-dataset");
+            Group invalidGroup = new("group", new[] { missingPatient }, "loading-recovery-invalid-group");
+            StaticColumn column = new("column", new BaseConfiguration(), missingDataset, "data", new StaticConfiguration(), "loading-recovery-invalid-column");
+            Visualization invalidVisualization = new("visualization", Array.Empty<Patient>(), new Column[] { column }, new VisualizationConfiguration(), "loading-recovery-invalid-visualization");
+            List<Patient> patients = new();
+            List<Dataset> datasets = new() { invalidDataset };
+            List<Group> groups = new() { invalidGroup };
+            List<Visualization> visualizations = new() { invalidVisualization };
+            LoadingContext context = new(Array.Empty<BaseTag>(), Array.Empty<Protocol>(), patients, datasets);
+
+            LoadingRecoveryReport report = context.ResolveProjectRecovering(patients, groups, datasets, visualizations);
+
+            Assert.That(report.Items, Has.Count.EqualTo(3));
+            Assert.That(datasets, Is.Empty);
+            Assert.That(groups, Is.Empty);
+            Assert.That(visualizations, Is.Empty);
         }
 
         [Test]

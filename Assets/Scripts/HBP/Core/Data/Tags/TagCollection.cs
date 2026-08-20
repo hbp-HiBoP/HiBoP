@@ -13,6 +13,13 @@ using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
 {
+    public enum TagCategory
+    {
+        General,
+        Patient,
+        Site
+    }
+
     [JsonObject(MemberSerialization.OptIn), Preserve]
     public class TagCollection : BaseData
     {
@@ -22,6 +29,7 @@ namespace HBP.Core.Data
         private ReadOnlyCollection<BaseTag> m_AllTagsView;
         private Dictionary<string, BaseTag> m_TagById;
         public ReadOnlyCollection<BaseTag> AllTags => m_AllTagsView;
+        [JsonIgnore] public bool HasUnsavedTagMigration { get; private set; }
 
         [JsonProperty] private List<BaseTag> m_GeneralTags;
         private ReadOnlyCollection<BaseTag> m_GeneralTagsView;
@@ -114,86 +122,18 @@ namespace HBP.Core.Data
             }
         }
 
-        /// <summary>
-        /// Analyzes a collection of values for a given tag name to determine the most appropriate tag type.
-        /// Returns BoolTag if all values are booleans,
-        /// IntTag if all values are integers (and at least one is not 0),
-        /// FloatTag if all values are floats, otherwise StringTag.
-        /// </summary>
-        /// <param name="tagName">The name of the tag</param>
-        /// <param name="values">Collection of string values to analyze</param>
-        /// <returns>The most appropriate tag type</returns>
-        private BaseTag CreateOptimalTag(string tagName, IEnumerable<string> values)
-        {
-            if (values == null || !values.Any())
-                return new StringTag(tagName);
-
-            var nonEmptyValues = values.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
-            if (!nonEmptyValues.Any())
-                return new StringTag(tagName);
-
-            bool allBooleans = true;
-            bool allIntegers = true;
-            bool hasNonZeroInteger = false;
-            bool allFloats = true;
-
-            foreach (var value in nonEmptyValues)
-            {
-                // Check for booleans first
-                if (bool.TryParse(value, out bool boolValue))
-                {
-                    // Boolean values are also integers (in a sense), so don't break the chain yet
-                    allIntegers = false; // But they're not really integers for tag purposes
-                    allFloats = false; // And not floats either
-                }
-                else
-                {
-                    allBooleans = false;
-
-                    // Check for integers
-                    if (int.TryParse(value, out int intValue))
-                    {
-                        if (intValue != 0)
-                            hasNonZeroInteger = true;
-                        // Integer is also a valid float, so don't set allFloats to false yet
-                    }
-                    else
-                    {
-                        allIntegers = false;
-
-                        // Check for floats
-                        if (!NumberExtension.TryParseFloat(value, out float floatValue))
-                        {
-                            allFloats = false;
-                            break; // If it's not a float, it must be a string
-                        }
-                    }
-                }
-            }
-
-            // Decision logic:
-            // 1. If all values are booleans, use BoolTag
-            if (allBooleans)
-                return new BoolTag(tagName);
-
-            // 2. If all values are integers AND at least one is not zero, use IntTag
-            if (allIntegers && hasNonZeroInteger)
-                return new IntTag(tagName);
-
-            // 3. If all values are valid floats (including integers), use FloatTag
-            if (allFloats)
-                return new FloatTag(tagName);
-
-            // 4. Otherwise, use StringTag as fallback
-            return new StringTag(tagName);
-        }
-
         #endregion
 
         #region Public Methods
 
         public static TagCollection Initialize()
         {
+            return Initialize(out _);
+        }
+
+        internal static TagCollection Initialize(out Exception initializationException)
+        {
+            initializationException = null;
             TagCollection tagsCollection = new();
             if (new FileInfo(PATH).Exists)
             {
@@ -208,11 +148,11 @@ namespace HBP.Core.Data
                 catch (System.Exception e)
                 {
                     Debug.LogException(e);
+                    initializationException = e;
                     tagsCollection = new TagCollection();
                 }
             }
 
-            tagsCollection.Save();
             return tagsCollection;
         }
 
@@ -236,7 +176,26 @@ namespace HBP.Core.Data
 
         public void Save()
         {
-            ClassLoaderSaver.SaveToJSon(this, PATH, true);
+            ClassLoaderSaver.SaveToJsonAtomicOrThrow(this, PATH);
+            HasUnsavedTagMigration = false;
+            OnSaveTags.Invoke();
+        }
+
+        public void SaveRecovered()
+        {
+            string backupPath = PATH + ".pre-recovery.bak";
+            if (File.Exists(PATH)) File.Copy(PATH, backupPath, true);
+            Save();
+        }
+
+        internal void MarkTagMigrationUnsaved()
+        {
+            HasUnsavedTagMigration = true;
+        }
+
+        internal void CompleteExternalSave()
+        {
+            HasUnsavedTagMigration = false;
             OnSaveTags.Invoke();
         }
 
@@ -267,6 +226,63 @@ namespace HBP.Core.Data
         public bool ContainsTagId(string id)
         {
             return !string.IsNullOrEmpty(id) && m_TagById.ContainsKey(id);
+        }
+
+        public bool TryGetCategory(string id, out TagCategory category)
+        {
+            if (m_GeneralTags.Any(tag => tag?.ID == id))
+            {
+                category = TagCategory.General;
+                return true;
+            }
+
+            if (m_PatientsTags.Any(tag => tag?.ID == id))
+            {
+                category = TagCategory.Patient;
+                return true;
+            }
+
+            if (m_SitesTags.Any(tag => tag?.ID == id))
+            {
+                category = TagCategory.Site;
+                return true;
+            }
+
+            category = default;
+            return false;
+        }
+
+        public void ReplaceTagDefinition(string id, BaseTag replacement, bool autoSave = true)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentException("A tag ID is required.", nameof(id));
+            if (replacement == null) throw new ArgumentNullException(nameof(replacement));
+            if (!TryGetCategory(id, out TagCategory category)) throw new KeyNotFoundException($"Tag '{id}' was not found.");
+            ReplaceTagDefinition(id, category, replacement, m_TagById[id], autoSave);
+        }
+
+        public void ReplaceTagDefinition(string id, TagCategory expectedCategory, BaseTag replacement, BaseTag expectedCurrent, bool autoSave = true)
+        {
+            if (string.IsNullOrEmpty(id)) throw new ArgumentException("A tag ID is required.", nameof(id));
+            if (replacement == null) throw new ArgumentNullException(nameof(replacement));
+            if (!string.Equals(id, replacement.ID, StringComparison.Ordinal)) throw new InvalidOperationException($"Replacement tag ID '{replacement.ID}' does not match '{id}'.");
+            if (!TryGetCategory(id, out TagCategory category)) throw new KeyNotFoundException($"Tag '{id}' was not found.");
+            if (category != expectedCategory) throw new InvalidOperationException($"Tag '{id}' is in category '{category}', not expected category '{expectedCategory}'.");
+            if (!m_TagById.TryGetValue(id, out BaseTag current) || !ReferenceEquals(current, expectedCurrent)) throw new InvalidOperationException($"Tag '{id}' changed before its replacement could be applied.");
+
+            List<BaseTag> generalTags = new(m_GeneralTags);
+            List<BaseTag> patientTags = new(m_PatientsTags);
+            List<BaseTag> siteTags = new(m_SitesTags);
+            List<BaseTag> categoryTags = category switch
+            {
+                TagCategory.General => generalTags,
+                TagCategory.Patient => patientTags,
+                TagCategory.Site => siteTags,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            int index = categoryTags.FindIndex(tag => tag?.ID == id);
+            categoryTags[index] = replacement;
+            ApplyCollections(generalTags, patientTags, siteTags);
+            if (autoSave) Save();
         }
 
         public void AddGeneralTag(BaseTag tag, bool autoSave = true)
@@ -332,8 +348,14 @@ namespace HBP.Core.Data
             if (autoSave) Save();
         }
 
-        public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromCSV(string csvPath)
+        internal void ApplyImportBatch(IEnumerable<BaseTag> generalTags, IEnumerable<BaseTag> patientTags, IEnumerable<BaseTag> siteTags)
         {
+            ApplyCollections(generalTags.ToList(), patientTags.ToList(), siteTags.ToList());
+        }
+
+        public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromCSV(string csvPath, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
+        {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
             Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
             Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (File.Exists(csvPath))
@@ -345,9 +367,9 @@ namespace HBP.Core.Data
                     BaseTag[] tags = new BaseTag[headers.Length - 1];
                     for (int i = 1; i < headers.Length; i++)
                     {
-                        string tagName = headers[i];
-                        BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
-                        if (tag == null)
+                        string tagName = headers[i].Trim();
+                        BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => string.Equals(t.Name?.Trim(), tagName, StringComparison.OrdinalIgnoreCase));
+                        if (tag == null && createMissingTags)
                         {
                             // Collect all values for this column to determine optimal tag type
                             var columnValues = new List<string>();
@@ -360,8 +382,8 @@ namespace HBP.Core.Data
                                 }
                             }
 
-                            tag = CreateOptimalTag(tagName, columnValues);
-                            PersistentDataManager.Tags.AddPatientTag(tag);
+                            tag = TagInferenceService.Infer(tagName, columnValues, policy);
+                            AddPatientTag(tag, false);
                         }
 
                         tags[i - 1] = tag;
@@ -377,10 +399,10 @@ namespace HBP.Core.Data
                             BaseTag tag = tags[j - 1];
                             if (tag != null)
                             {
-                                var tagValue = tag.CreateValue(values[j]);
-                                if (tagValue != null)
+                                RawTagValueResult creation = importContext?.TryCreate(TagCategory.Patient, tag, values[j], csvPath, name) ?? RawTagValueFactory.TryCreate(tag, values[j], policy);
+                                if (creation.Status == RawTagValueStatus.Success)
                                 {
-                                    tagValues.Add(tagValue);
+                                    tagValues.Add(creation.Value);
                                 }
                             }
                         }
@@ -400,8 +422,9 @@ namespace HBP.Core.Data
             return resultTags;
         }
 
-        public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromCSV(string csvPath)
+        public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromCSV(string csvPath, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
             Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
             Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (File.Exists(csvPath))
@@ -413,9 +436,9 @@ namespace HBP.Core.Data
                     BaseTag[] tags = new BaseTag[headers.Length - 1];
                     for (int i = 1; i < headers.Length; i++)
                     {
-                        string tagName = headers[i];
-                        BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
-                        if (tag == null)
+                        string tagName = headers[i].Trim();
+                        BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => string.Equals(t.Name?.Trim(), tagName, StringComparison.OrdinalIgnoreCase));
+                        if (tag == null && createMissingTags)
                         {
                             // Collect all values for this column to determine optimal tag type
                             var columnValues = new List<string>();
@@ -428,8 +451,8 @@ namespace HBP.Core.Data
                                 }
                             }
 
-                            tag = CreateOptimalTag(tagName, columnValues);
-                            PersistentDataManager.Tags.AddSiteTag(tag);
+                            tag = TagInferenceService.Infer(tagName, columnValues, policy);
+                            AddSiteTag(tag, false);
                         }
 
                         tags[i - 1] = tag;
@@ -445,10 +468,10 @@ namespace HBP.Core.Data
                             BaseTag tag = tags[j - 1];
                             if (tag != null)
                             {
-                                var tagValue = tag.CreateValue(values[j]);
-                                if (tagValue != null)
+                                RawTagValueResult creation = importContext?.TryCreate(TagCategory.Site, tag, values[j], csvPath, name) ?? RawTagValueFactory.TryCreate(tag, values[j], policy);
+                                if (creation.Status == RawTagValueStatus.Success)
                                 {
-                                    tagValues.Add(tagValue);
+                                    tagValues.Add(creation.Value);
                                 }
                             }
                         }
@@ -468,8 +491,9 @@ namespace HBP.Core.Data
             return resultTags;
         }
 
-        public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromExcel(string excelPath)
+        public Dictionary<string, List<BaseTagValue>> GeneratePatientTagsFromExcel(string excelPath, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
             Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (!File.Exists(excelPath))
             {
@@ -502,8 +526,8 @@ namespace HBP.Core.Data
                 // Create or find tags for each header
                 foreach (string tagName in headers)
                 {
-                    BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
-                    if (tag == null)
+                    BaseTag tag = m_PatientsTags.Concat(m_GeneralTags).FirstOrDefault(t => string.Equals(t.Name?.Trim(), tagName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (tag == null && createMissingTags)
                     {
                         // Collect all values for this tag to determine optimal tag type
                         var tagValues = new List<string>();
@@ -515,8 +539,8 @@ namespace HBP.Core.Data
                             }
                         }
 
-                        tag = CreateOptimalTag(tagName, tagValues);
-                        PersistentDataManager.Tags.AddPatientTag(tag);
+                        tag = TagInferenceService.Infer(tagName, tagValues, policy);
+                        AddPatientTag(tag, false);
                     }
 
                     tagsByName[tagName] = tag;
@@ -534,10 +558,10 @@ namespace HBP.Core.Data
                         {
                             if (excelRow.TryGetValue(headerName, out string value))
                             {
-                                var tagValue = tag.CreateValue(value);
-                                if (tagValue != null)
+                                RawTagValueResult creation = importContext?.TryCreate(TagCategory.Patient, tag, value, excelPath, name) ?? RawTagValueFactory.TryCreate(tag, value, policy);
+                                if (creation.Status == RawTagValueStatus.Success)
                                 {
-                                    tagValues.Add(tagValue);
+                                    tagValues.Add(creation.Value);
                                 }
                             }
                         }
@@ -555,14 +579,16 @@ namespace HBP.Core.Data
             }
             catch (Exception ex)
             {
+                if (importContext != null) throw;
                 Debug.LogError($"Error processing Excel file {excelPath}: {ex.Message}");
             }
 
             return resultTags;
         }
 
-        public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromExcel(string excelPath)
+        public Dictionary<string, List<BaseTagValue>> GenerateSiteTagsFromExcel(string excelPath, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
             Dictionary<string, List<BaseTagValue>> resultTags = new();
             if (!File.Exists(excelPath))
             {
@@ -595,8 +621,8 @@ namespace HBP.Core.Data
                 // Create or find tags for each header
                 foreach (string tagName in headers)
                 {
-                    BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => t.Name == tagName);
-                    if (tag == null)
+                    BaseTag tag = m_SitesTags.Concat(m_GeneralTags).FirstOrDefault(t => string.Equals(t.Name?.Trim(), tagName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    if (tag == null && createMissingTags)
                     {
                         // Collect all values for this tag to determine optimal tag type
                         var tagValues = new List<string>();
@@ -608,8 +634,8 @@ namespace HBP.Core.Data
                             }
                         }
 
-                        tag = CreateOptimalTag(tagName, tagValues);
-                        PersistentDataManager.Tags.AddSiteTag(tag);
+                        tag = TagInferenceService.Infer(tagName, tagValues, policy);
+                        AddSiteTag(tag, false);
                     }
 
                     tagsByName[tagName] = tag;
@@ -627,10 +653,10 @@ namespace HBP.Core.Data
                         {
                             if (excelRow.TryGetValue(headerName, out string value))
                             {
-                                var tagValue = tag.CreateValue(value);
-                                if (tagValue != null)
+                                RawTagValueResult creation = importContext?.TryCreate(TagCategory.Site, tag, value, excelPath, name) ?? RawTagValueFactory.TryCreate(tag, value, policy);
+                                if (creation.Status == RawTagValueStatus.Success)
                                 {
-                                    tagValues.Add(tagValue);
+                                    tagValues.Add(creation.Value);
                                 }
                             }
                         }
@@ -648,6 +674,7 @@ namespace HBP.Core.Data
             }
             catch (Exception ex)
             {
+                if (importContext != null) throw;
                 Debug.LogError($"Error processing Excel file {excelPath}: {ex.Message}");
             }
 

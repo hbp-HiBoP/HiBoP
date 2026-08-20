@@ -89,6 +89,8 @@ namespace HBP.Core.Data
         /// </summary>
         [JsonProperty] public List<BaseTagValue> Tags { get; set; }
 
+        [JsonProperty] public List<TagValueRecoveryEntry> QuarantinedTagValues { get; set; } = new();
+
         [JsonProperty] public string CorrespondingDatabaseID { get; set; }
         [JsonProperty("AssetValidationState")] private ValidationState m_AssetValidationState;
         [JsonIgnore] public ValidationState AssetValidationState => m_AssetValidationState?.Clone();
@@ -113,6 +115,7 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
+            QuarantinedTagValues = new();
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
 
@@ -131,6 +134,7 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
+            QuarantinedTagValues = new();
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
 
@@ -214,82 +218,127 @@ namespace HBP.Core.Data
                 throw new ArgumentNullException(nameof(tags));
             }
 
-            HashSet<string> tagIds = new(tags.Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID)).Select(tag => tag.ID), StringComparer.Ordinal);
-            return CheckTagsAsync(tagIds);
+            Dictionary<string, BaseTag> canonicalTagsById = tags.Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID)).ToDictionary(tag => tag.ID, StringComparer.Ordinal);
+            return CheckTagsAsync(canonicalTagsById, new HashSet<string>(canonicalTagsById.Keys, StringComparer.Ordinal));
         }
 
-        public async UniTask CheckTagsAsync(ISet<string> tagIds)
+        public async UniTask CheckTagsAsync(IReadOnlyDictionary<string, BaseTag> canonicalTagsById, ISet<string> modifiedTagIds)
         {
-            if (tagIds == null)
+            if (canonicalTagsById == null)
             {
-                throw new ArgumentNullException(nameof(tagIds));
+                throw new ArgumentNullException(nameof(canonicalTagsById));
+            }
+
+            if (modifiedTagIds == null)
+            {
+                throw new ArgumentNullException(nameof(modifiedTagIds));
             }
 
             await UniTask.SwitchToThreadPool();
-            Tags.RemoveAll(t => t.Tag == null || !tagIds.Contains(t.Tag.ID));
-            foreach (var site in Sites) site.Tags.RemoveAll(t => t.Tag == null || !tagIds.Contains(t.Tag.ID));
-            List<BaseTagValue> tagsToUpdate = Tags.Where(t => t.Tag != null && tagIds.Contains(t.Tag.ID)).ToList();
-            tagsToUpdate.AddRange(Sites.SelectMany(s => s.Tags).Where(t => t.Tag != null && tagIds.Contains(t.Tag.ID)));
-            foreach (var tagValue in tagsToUpdate)
+            PreparedTagCollection patientTags = PrepareTagCollection(Tags, canonicalTagsById, modifiedTagIds);
+            List<PreparedTagCollection> siteTags = Sites.Select(site => PrepareTagCollection(site.Tags, canonicalTagsById, modifiedTagIds)).ToList();
+
+            Tags = patientTags.Apply();
+            for (int index = 0; index < Sites.Count; index++)
             {
-                if (tagValue.Tag is IntTag && tagValue is not IntTagValue)
-                {
-                    Tags.Remove(tagValue);
-                    var newTagValue = new IntTagValue();
-                    newTagValue.Copy(tagValue);
-                    Tags.Add(newTagValue);
-                    newTagValue.UpdateValue();
-                }
-                else if (tagValue.Tag is FloatTag && tagValue is not FloatTagValue)
-                {
-                    Tags.Remove(tagValue);
-                    var newTagValue = new FloatTagValue();
-                    newTagValue.Copy(tagValue);
-                    Tags.Add(newTagValue);
-                    newTagValue.UpdateValue();
-                }
-                else if (tagValue.Tag is BoolTag && tagValue is not BoolTagValue)
-                {
-                    Tags.Remove(tagValue);
-                    var newTagValue = new BoolTagValue();
-                    newTagValue.Copy(tagValue);
-                    Tags.Add(newTagValue);
-                    newTagValue.UpdateValue();
-                }
-                else if (tagValue.Tag is EmptyTag && tagValue is not EmptyTagValue)
-                {
-                    Tags.Remove(tagValue);
-                    var newTagValue = new EmptyTagValue();
-                    newTagValue.Copy(tagValue);
-                    Tags.Add(newTagValue);
-                    newTagValue.UpdateValue();
-                }
-                else if (tagValue.Tag is EnumTag && tagValue is not EnumTagValue)
-                {
-                    Tags.Remove(tagValue);
-                    var newTagValue = new EnumTagValue();
-                    newTagValue.Copy(tagValue);
-                    Tags.Add(newTagValue);
-                    newTagValue.UpdateValue();
-                }
-                else if (tagValue.Tag is StringTag && tagValue is not StringTagValue)
-                {
-                    Tags.Remove(tagValue);
-                    var newTagValue = new StringTagValue();
-                    newTagValue.Copy(tagValue);
-                    Tags.Add(newTagValue);
-                    newTagValue.UpdateValue();
-                }
-                else
-                {
-                    tagValue.UpdateValue();
-                }
+                Sites[index].Tags = siteTags[index].Apply();
             }
         }
 
         #endregion
 
         #region Private Methods
+
+        private static PreparedTagCollection PrepareTagCollection(IEnumerable<BaseTagValue> values, IReadOnlyDictionary<string, BaseTag> canonicalTagsById, ISet<string> modifiedTagIds)
+        {
+            List<BaseTagValue> preparedValues = new();
+            List<PreparedTagBinding> bindings = new();
+            TagValueConversionService converter = new();
+
+            foreach (BaseTagValue source in values ?? Enumerable.Empty<BaseTagValue>())
+            {
+                string tagID = source?.TagReferenceID;
+                if (string.IsNullOrEmpty(tagID) || !canonicalTagsById.TryGetValue(tagID, out BaseTag canonicalTag) || canonicalTag == null)
+                {
+                    continue;
+                }
+
+                if (modifiedTagIds.Contains(tagID) || !source.CanBindTag(canonicalTag))
+                {
+                    TagValueConversionResult conversion = converter.TryConvert(source, canonicalTag, TagParsingPolicy.Default);
+                    if (!conversion.Success)
+                    {
+                        throw new InvalidOperationException(conversion.Error);
+                    }
+
+                    preparedValues.Add(conversion.Value);
+                }
+                else
+                {
+                    preparedValues.Add(source);
+                    bool mustBind = !ReferenceEquals(source.Tag, canonicalTag);
+                    if (mustBind)
+                    {
+                        ValidateTagBinding(source, canonicalTag);
+                        bindings.Add(new PreparedTagBinding(source, canonicalTag));
+                    }
+                }
+            }
+
+            return new PreparedTagCollection(preparedValues, bindings);
+        }
+
+        private static void ValidateTagBinding(BaseTagValue value, BaseTag tag)
+        {
+            switch (value)
+            {
+                case EnumTagValue enumValue when tag is EnumTag enumTag:
+                    if (enumValue.StringValue == null)
+                    {
+                        enumTag.Clamp(enumValue.Value);
+                    }
+                    else if (!enumTag.TryGetValueIndex(enumValue.StringValue, out _))
+                    {
+                        throw new InvalidOperationException($"Enum value '{enumValue.StringValue}' from tag value '{value.ID}' does not exist in enum tag '{enumTag.Name}' ({enumTag.ID}).");
+                    }
+
+                    break;
+            }
+        }
+
+        private readonly struct PreparedTagBinding
+        {
+            public BaseTagValue Value { get; }
+            public BaseTag Tag { get; }
+
+            public PreparedTagBinding(BaseTagValue value, BaseTag tag)
+            {
+                Value = value;
+                Tag = tag;
+            }
+        }
+
+        private sealed class PreparedTagCollection
+        {
+            private readonly List<BaseTagValue> m_Values;
+            private readonly List<PreparedTagBinding> m_Bindings;
+
+            public PreparedTagCollection(List<BaseTagValue> values, List<PreparedTagBinding> bindings)
+            {
+                m_Values = values;
+                m_Bindings = bindings;
+            }
+
+            public List<BaseTagValue> Apply()
+            {
+                foreach (PreparedTagBinding binding in m_Bindings)
+                {
+                    binding.Value.BindTag(binding.Tag);
+                }
+
+                return m_Values;
+            }
+        }
 
         /// <summary>
         /// Checks if a tag value is invalid (n/a, nan, empty, etc.)
@@ -365,8 +414,10 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the patient directory.</param>
         /// <param name="result">The patient in the patient directory.</param>
         /// <returns><see langword="true"/> if the method worked successfully; otherwise, <see langword="false"/></returns>
-        public static bool LoadFromDirectory(string path, out Patient result)
+        public static bool LoadFromDirectory(string path, out Patient result, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
+            TagCollection tagCollection = importContext?.Tags ?? PersistentDataManager.Tags;
             result = null;
             if (IsPatientDirectory(path))
             {
@@ -381,23 +432,32 @@ namespace HBP.Core.Data
                     patientName = directory.Name;
 
                     // Create Date and Place tags
-                    IEnumerable<BaseTag> tags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
-                    IntTag dateTag = tags.OfType<IntTag>().FirstOrDefault(t => t.Name == "Date");
-                    if (dateTag == null)
+                    IEnumerable<BaseTag> tags = tagCollection.PatientsTags.Concat(tagCollection.GeneralTags);
+                    BaseTag dateTag = tags.FirstOrDefault(t => string.Equals(t.Name?.Trim(), "Date", StringComparison.OrdinalIgnoreCase));
+                    if (dateTag == null && createMissingTags)
                     {
-                        dateTag = new IntTag("Date");
-                        PersistentDataManager.Tags.AddPatientTag(dateTag);
+                        dateTag = TagInferenceService.Infer("Date", new[] { date.ToString(System.Globalization.CultureInfo.InvariantCulture) }, policy);
+                        tagCollection.AddPatientTag(dateTag, false);
                     }
 
-                    StringTag placeTag = tags.OfType<StringTag>().FirstOrDefault(t => t.Name == "Place");
-                    if (placeTag == null)
+                    BaseTag placeTag = tags.FirstOrDefault(t => string.Equals(t.Name?.Trim(), "Place", StringComparison.OrdinalIgnoreCase));
+                    if (placeTag == null && createMissingTags)
                     {
-                        placeTag = new StringTag("Place");
-                        PersistentDataManager.Tags.AddPatientTag(placeTag);
+                        placeTag = TagInferenceService.Infer("Place", new[] { place }, policy);
+                        tagCollection.AddPatientTag(placeTag, false);
                     }
 
-                    patientTags.Add(new IntTagValue(dateTag, date));
-                    patientTags.Add(new StringTagValue(placeTag, place));
+                    if (dateTag != null)
+                    {
+                        RawTagValueResult dateCreation = importContext?.TryCreate(TagCategory.Patient, dateTag, date.ToString(System.Globalization.CultureInfo.InvariantCulture), path, patientName) ?? RawTagValueFactory.TryCreate(dateTag, date.ToString(System.Globalization.CultureInfo.InvariantCulture), policy);
+                        if (dateCreation.Status == RawTagValueStatus.Success) patientTags.Add(dateCreation.Value);
+                    }
+
+                    if (placeTag != null)
+                    {
+                        RawTagValueResult placeCreation = importContext?.TryCreate(TagCategory.Patient, placeTag, place, path, patientName) ?? RawTagValueFactory.TryCreate(placeTag, place, policy);
+                        if (placeCreation.Status == RawTagValueStatus.Success) patientTags.Add(placeCreation.Value);
+                    }
                 }
                 else
                 {
@@ -405,7 +465,7 @@ namespace HBP.Core.Data
                     patientName = directory.Name;
                 }
 
-                result = new Patient(patientName, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path), patientTags, "", directory.Name);
+                result = new Patient(patientName, BaseMesh.LoadFromDirectory(path), MRI.LoadFromDirectory(path), Site.LoadFromIntranatDirectory(path, policy, createMissingTags, importContext), patientTags, "", directory.Name);
                 return true;
             }
 
@@ -446,8 +506,9 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the intranat database.</param>
         /// <param name="patients">Patients loaded in the database.</param>
         /// <returns></returns>
-        public static void LoadFromIntranatDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadFromIntranatDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
             updateProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
@@ -462,7 +523,7 @@ namespace HBP.Core.Data
             {
                 token.ThrowIfCancellationRequested();
                 updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
-                if (LoadFromDirectory(dir.FullName, out Patient patient))
+                if (LoadFromDirectory(dir.FullName, out Patient patient, policy, createMissingTags, importContext))
                 {
                     patient.CorrespondingDatabaseID = databaseReference.ID;
                     patientsList.Add(patient);
@@ -479,8 +540,10 @@ namespace HBP.Core.Data
         /// <param name="path">The specified path of the BIDS database.</param>
         /// <param name="patients"></param>
         /// <returns></returns>
-        public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
+            TagCollection tagCollection = importContext?.Tags ?? PersistentDataManager.Tags;
             patients = new Patient[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo databaseDirectoryInfo = new(databaseReference.Path);
@@ -690,7 +753,8 @@ namespace HBP.Core.Data
                 {
                     foreach (var electrodeFile in subjectElectrodesFiles)
                     {
-                        (new Site() as ILoadable<Site>).LoadFromFile(electrodeFile.Path, out Site[] fileSites);
+                        string referenceSystem = electrodeFile.Entities.TryGetValue("space", out string space) && !string.IsNullOrWhiteSpace(space) ? space : "scanner";
+                        Site[] fileSites = Site.LoadImplantationFromBIDSFile(referenceSystem, electrodeFile.Path, true, policy, createMissingTags, importContext).ToArray();
                         foreach (var site in fileSites)
                         {
                             Site existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
@@ -719,27 +783,28 @@ namespace HBP.Core.Data
                 List<BaseTagValue> tags = new();
                 if (tagValuesBySubjectID.TryGetValue(pair.Key, out Dictionary<string, string> subjectTags))
                 {
-                    // Add tags to project.
-                    IEnumerable<BaseTag> projectTags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
-                    foreach (var tagName in subjectTags.Keys)
+                    TagImportObservations observations = new();
+                    foreach (var subject in tagValuesBySubjectID.Values)
                     {
-                        if (!projectTags.Any(t => t.Name == tagName))
+                        foreach (var subjectTag in subject)
                         {
-                            PersistentDataManager.Tags.AddPatientTag(new StringTag(tagName));
+                            observations.AddPatientValue(subjectTag.Key, subjectTag.Value);
                         }
                     }
 
+                    if (createMissingTags) observations.CreateMissingTags(tagCollection, policy);
+
                     // Add tags to patient with the same invalid value filtering as Intranat
-                    projectTags = PersistentDataManager.Tags.PatientsTags.Concat(PersistentDataManager.Tags.GeneralTags);
+                    IEnumerable<BaseTag> projectTags = tagCollection.PatientsTags.Concat(tagCollection.GeneralTags);
                     foreach (var subjectTag in subjectTags)
                     {
-                        BaseTag tag = projectTags.FirstOrDefault(t => t.Name == subjectTag.Key);
-                        if (tag != null && !IsInvalidTagValue(subjectTag.Value))
+                        BaseTag tag = projectTags.FirstOrDefault(t => string.Equals(t.Name?.Trim(), subjectTag.Key.Trim(), StringComparison.OrdinalIgnoreCase));
+                        if (tag != null)
                         {
-                            var tagValue = tag.CreateValue(subjectTag.Value);
-                            if (tagValue != null)
+                            RawTagValueResult creation = importContext?.TryCreate(TagCategory.Patient, tag, subjectTag.Value, participantsFileInfo.FullName, pair.Key) ?? RawTagValueFactory.TryCreate(tag, subjectTag.Value, policy);
+                            if (creation.Status == RawTagValueStatus.Success)
                             {
-                                tags.Add(tagValue);
+                                tags.Add(creation.Value);
                             }
                         }
                     }
@@ -754,8 +819,10 @@ namespace HBP.Core.Data
             updateProgress?.Invoke(1.0f, 0, new LoadingText("Patients loaded successfully"));
         }
 
-        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Patient[] modifiedPatients, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        public static void LoadAdditionalTagsFromTagsDatabase(DatabaseReference databaseReference, List<Patient> patients, out Patient[] modifiedPatients, Action<float, float, LoadingText> updateProgress, CancellationToken token, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
+            TagCollection tagCollection = importContext?.Tags ?? PersistentDataManager.Tags;
             modifiedPatients = new Patient[0];
             Dictionary<string, Patient> modifiedPatientsDict = new();
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
@@ -820,7 +887,7 @@ namespace HBP.Core.Data
             updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from patients.csv"));
             if (patientsFileInfo.Exists)
             {
-                var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromCSV(patientsFileInfo.FullName);
+                var tagValuesByPatient = tagCollection.GeneratePatientTagsFromCSV(patientsFileInfo.FullName, policy, createMissingTags, importContext);
                 foreach (var kv in tagValuesByPatient)
                 {
                     MergePatientTags(kv.Key, kv.Value);
@@ -831,7 +898,7 @@ namespace HBP.Core.Data
             updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from patients.xlsx"));
             if (patientsExcelFileInfo.Exists)
             {
-                var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromExcel(patientsExcelFileInfo.FullName);
+                var tagValuesByPatient = tagCollection.GeneratePatientTagsFromExcel(patientsExcelFileInfo.FullName, policy, createMissingTags, importContext);
                 foreach (var kv in tagValuesByPatient)
                 {
                     MergePatientTags(kv.Key, kv.Value);
@@ -849,7 +916,7 @@ namespace HBP.Core.Data
                 // Process CSV files
                 foreach (var csvFile in patientsCsvFiles)
                 {
-                    var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromCSV(csvFile.FullName);
+                    var tagValuesByPatient = tagCollection.GeneratePatientTagsFromCSV(csvFile.FullName, policy, createMissingTags, importContext);
                     foreach (var kv in tagValuesByPatient)
                     {
                         MergePatientTags(kv.Key, kv.Value);
@@ -859,7 +926,7 @@ namespace HBP.Core.Data
                 // Process Excel files
                 foreach (var excelFile in patientsExcelFilesInDir)
                 {
-                    var tagValuesByPatient = PersistentDataManager.Tags.GeneratePatientTagsFromExcel(excelFile.FullName);
+                    var tagValuesByPatient = tagCollection.GeneratePatientTagsFromExcel(excelFile.FullName, policy, createMissingTags, importContext);
                     foreach (var kv in tagValuesByPatient)
                     {
                         MergePatientTags(kv.Key, kv.Value);
@@ -905,7 +972,7 @@ namespace HBP.Core.Data
                 updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
                 token.ThrowIfCancellationRequested();
                 if (file.Name == "patients.csv") continue;
-                var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(file.FullName);
+                var tagValuesBySite = tagCollection.GenerateSiteTagsFromCSV(file.FullName, policy, createMissingTags, importContext);
                 string patientId = Path.GetFileNameWithoutExtension(file.Name);
                 MergeSiteTags(patientId, tagValuesBySite);
             }
@@ -916,7 +983,7 @@ namespace HBP.Core.Data
                 updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading additional tags from ", file.Name));
                 token.ThrowIfCancellationRequested();
                 if (file.Name == "patients.xlsx") continue;
-                var tagValuesBySite = PersistentDataManager.Tags.GenerateSiteTagsFromExcel(file.FullName);
+                var tagValuesBySite = tagCollection.GenerateSiteTagsFromExcel(file.FullName, policy, createMissingTags, importContext);
                 string patientId = Path.GetFileNameWithoutExtension(file.Name);
                 MergeSiteTags(patientId, tagValuesBySite);
             }
@@ -936,14 +1003,14 @@ namespace HBP.Core.Data
                 // Process CSV files
                 foreach (var csvFile in csvFilesInDirectory)
                 {
-                    var siteTagsFromFile = PersistentDataManager.Tags.GenerateSiteTagsFromCSV(csvFile.FullName);
+                    var siteTagsFromFile = tagCollection.GenerateSiteTagsFromCSV(csvFile.FullName, policy, createMissingTags, importContext);
                     MergeSiteTags(patientId, siteTagsFromFile);
                 }
 
                 // Process Excel files
                 foreach (var excelFile in excelFilesInDirectory)
                 {
-                    var siteTagsFromFile = PersistentDataManager.Tags.GenerateSiteTagsFromExcel(excelFile.FullName);
+                    var siteTagsFromFile = tagCollection.GenerateSiteTagsFromExcel(excelFile.FullName, policy, createMissingTags, importContext);
                     MergeSiteTags(patientId, siteTagsFromFile);
                 }
             }
@@ -1013,6 +1080,7 @@ namespace HBP.Core.Data
         public override object Clone()
         {
             Patient clone = new(Name, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), CorrespondingDatabaseID, ID);
+            clone.QuarantinedTagValues = new List<TagValueRecoveryEntry>(QuarantinedTagValues ?? new());
             clone.m_AssetValidationState = m_AssetValidationState?.Clone();
             return clone;
         }
@@ -1031,6 +1099,7 @@ namespace HBP.Core.Data
                 MRIs = patient.MRIs;
                 Sites = patient.Sites;
                 Tags = patient.Tags;
+                QuarantinedTagValues = new List<TagValueRecoveryEntry>(patient.QuarantinedTagValues ?? new());
                 CorrespondingDatabaseID = patient.CorrespondingDatabaseID;
                 m_AssetValidationState = patient.m_AssetValidationState?.Clone();
             }

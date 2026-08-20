@@ -2,6 +2,7 @@ using HBP.Core.Data;
 using HBP.Core.Tools;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -20,13 +21,53 @@ namespace HBP.Core.Database
         public ReadOnlyCollection<Patient> RemovedPatients { get; }
         public ReadOnlyCollection<Patient> AddedPatients { get; }
         public ReadOnlyCollection<Patient> UpdatedPatients { get; }
-        public bool HasChanges => RemovedPatients.Count > 0 || AddedPatients.Count > 0 || UpdatedPatients.Count > 0;
+        public TagImportDiagnostics TagDiagnostics { get; }
+        public bool HasChanges => RemovedPatients.Count > 0 || AddedPatients.Count > 0 || UpdatedPatients.Count > 0 || TagDiagnostics.CreatedTags.Count > 0 || TagDiagnostics.EnumExtensions.Count > 0 || TagDiagnostics.IgnoredValues.Count > 0 || TagDiagnostics.IncompatibleValues.Count > 0;
 
-        public DatabaseUpdateReport(IEnumerable<Patient> removedPatients, IEnumerable<Patient> addedPatients, IEnumerable<Patient> updatedPatients)
+        public DatabaseUpdateReport(IEnumerable<Patient> removedPatients, IEnumerable<Patient> addedPatients, IEnumerable<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics = null)
         {
             RemovedPatients = new ReadOnlyCollection<Patient>(removedPatients.ToList());
             AddedPatients = new ReadOnlyCollection<Patient>(addedPatients.ToList());
             UpdatedPatients = new ReadOnlyCollection<Patient>(updatedPatients.ToList());
+            TagDiagnostics = tagDiagnostics ?? new TagImportDiagnostics();
+        }
+    }
+
+    public sealed class DatabaseUpdateTransaction
+    {
+        internal GlobalDatabase Database { get; }
+        internal string WorkspaceID { get; }
+        internal string WorkspacePath { get; }
+        internal IReadOnlyList<Patient> OriginalPatients { get; }
+        internal IReadOnlyList<DataInfo> OriginalDataInfos { get; }
+        internal IReadOnlyList<Patient> CommittedPatients { get; }
+        internal IReadOnlyList<DataInfo> CommittedDataInfos { get; }
+        internal IReadOnlyList<DatabaseReference> CommittedReferences { get; }
+        internal IReadOnlyDictionary<DatabaseReference, string> CommittedReferenceSignatures { get; }
+        internal TagCollection CommittedTags { get; }
+        internal string CommittedTagSignature { get; }
+        internal IReadOnlyDictionary<DatabaseReference, DateTime> OriginalUpdateTimes { get; }
+        internal TagImportCommit TagCommit { get; }
+        internal bool IsCompleted { get; set; }
+
+        public DatabaseUpdateReport Report { get; }
+
+        internal DatabaseUpdateTransaction(GlobalDatabase database, string workspaceID, string workspacePath, IEnumerable<Patient> originalPatients, IEnumerable<DataInfo> originalDataInfos, IEnumerable<Patient> committedPatients, IEnumerable<DataInfo> committedDataInfos, IEnumerable<DatabaseReference> committedReferences, IReadOnlyDictionary<DatabaseReference, DateTime> originalUpdateTimes, TagImportCommit tagCommit, DatabaseUpdateReport report)
+        {
+            Database = database;
+            WorkspaceID = workspaceID;
+            WorkspacePath = workspacePath;
+            OriginalPatients = originalPatients.ToArray();
+            OriginalDataInfos = originalDataInfos.ToArray();
+            CommittedPatients = committedPatients.ToArray();
+            CommittedDataInfos = committedDataInfos.ToArray();
+            CommittedReferences = committedReferences.ToArray();
+            CommittedReferenceSignatures = CommittedReferences.ToDictionary(reference => reference, GlobalDatabase.GetDatabaseReferenceSignature);
+            CommittedTags = PersistentDataManager.Tags;
+            CommittedTagSignature = GlobalDatabase.GetTagCollectionSignature(CommittedTags);
+            OriginalUpdateTimes = originalUpdateTimes;
+            TagCommit = tagCommit;
+            Report = report;
         }
     }
 
@@ -36,6 +77,7 @@ namespace HBP.Core.Database
 
         private const float READY_PROGRESS_WEIGHT = 0.7f;
         private readonly object m_LoadingOperationLock = new();
+        private readonly SemaphoreSlim m_SaveSemaphore = new(1, 1);
         private SharedLoadingOperation<GlobalDatabase> m_LoadingOperation;
         private string m_LoadingWorkspaceID;
         private string m_PublishedWorkspaceID;
@@ -43,6 +85,19 @@ namespace HBP.Core.Database
         private bool m_ValidationPublished;
         private Guid? m_PresentedFailureOperationID;
         private ValidationRequest m_ValidationRequest = ValidationRequest.Startup;
+        private readonly HashSet<string> m_WorkspacesWithUnsavedTagMigration = new(StringComparer.Ordinal);
+        private DeferredTagMigrationPlan m_PendingTagMigrationReport;
+        public LoadingRecoveryReport StructuralRecoveryReport { get; private set; } = LoadingRecoveryReport.Empty;
+        public LoadingRecoveryReport ProtocolLoadingRecoveryReport { get; private set; } = LoadingRecoveryReport.Empty;
+
+        public Func<DeferredTagMigrationPlan, UniTask<DeferredTagMigrationDecision>> TagMigrationDecisionProvider { get; set; }
+
+        public DeferredTagMigrationPlan ConsumeTagMigrationReport()
+        {
+            DeferredTagMigrationPlan report = m_PendingTagMigrationReport;
+            m_PendingTagMigrationReport = null;
+            return report;
+        }
 
         public SharedLoadingOperation<GlobalDatabase> CurrentLoadingOperation
         {
@@ -82,6 +137,17 @@ namespace HBP.Core.Database
         }
 
         public bool NeedsReadyWait => !IsLoaded;
+
+        public bool HasUnsavedTagMigration
+        {
+            get
+            {
+                lock (m_LoadingOperationLock)
+                {
+                    return m_PublishedWorkspaceID != null && m_WorkspacesWithUnsavedTagMigration.Contains(m_PublishedWorkspaceID);
+                }
+            }
+        }
 
         public bool NeedsValidationWait
         {
@@ -625,6 +691,7 @@ namespace HBP.Core.Database
             try
             {
                 int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+                ConcurrentQueue<LoadingRecoveryItem> fileRecoveryItems = new();
                 FileInfo[] referenceFiles = GetDatabaseReferenceFiles(workspacePath);
                 FileInfo[] patientFiles = GetPatientFiles(workspacePath);
                 FileInfo[] dataInfoFiles = GetDataInfoFiles(workspacePath);
@@ -640,28 +707,54 @@ namespace HBP.Core.Database
                 float progress = 0;
 
                 token.ThrowIfCancellationRequested();
-                List<DatabaseReference> references = await LoadDatabaseReferencesAsync(referenceFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * referenceProgress, duration, text), token, concurrency, priorityProvider);
+                List<DatabaseReference> references = await LoadDatabaseReferencesAsync(referenceFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * referenceProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
                 progress += referenceProgress;
 
                 token.ThrowIfCancellationRequested();
-                List<Patient> patients = await LoadPatientsAsync(patientFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text), token, concurrency, priorityProvider);
+                List<Patient> patients = await LoadPatientsAsync(patientFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
                 progress += patientProgress;
 
                 token.ThrowIfCancellationRequested();
-                List<DataInfo> dataInfos = await LoadDataInfosAsync(dataInfoFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text), token, concurrency, priorityProvider);
+                List<DataInfo> dataInfos = await LoadDataInfosAsync(dataInfoFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
                 progress += dataInfoProgress;
 
                 token.ThrowIfCancellationRequested();
                 updateProgress(progress, 0, new LoadingText("Linking database references"));
-                LoadingContext context = new(PersistentDataManager.Tags.AllTags, protocols, patients);
-                context.ResolveDatabase(patients, dataInfos);
-                ISet<string> tagIds = new HashSet<string>(context.TagById.Keys, StringComparer.Ordinal);
-                int tagConcurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.Metadata);
-                await LoadingWorkScheduler.Shared.RunAsync(patients.Select(patient => (Func<UniTask>)(() => patient.CheckTagsAsync(tagIds))), LoadingWorkCategory.Metadata, priorityProvider, token, null, tagConcurrency);
+                await UniTask.SwitchToMainThread();
+                EnsureLoadingGenerationIsCurrent(generation, workspaceID, token);
+                List<LoadingRecoveryItem> structuralRecoveryItems = fileRecoveryItems.ToList();
+                structuralRecoveryItems.AddRange(ProtocolLoadingRecoveryReport.Items);
+                references = LoadingContext.ExcludeDuplicateIds(references, "database reference", structuralRecoveryItems);
+                patients = LoadingContext.ExcludeDuplicateIds(patients, "patient", structuralRecoveryItems);
+                dataInfos = LoadingContext.ExcludeDuplicateIds(dataInfos, "data info", structuralRecoveryItems);
+                List<Protocol> uniqueProtocols = LoadingContext.ExcludeDuplicateIds(protocols, "protocol", structuralRecoveryItems);
+                uniqueProtocols = LoadingContext.ExcludeProtocolsWithInvalidBlocIds(uniqueProtocols, structuralRecoveryItems);
+                DeferredTagMigrationPlan migrationPlan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Workspace, PersistentDataManager.Tags, patients, null, TagParsingPolicy.Default);
+                bool migrationCommitted = false;
+                try
+                {
+                    if (migrationPlan.RequiresConfirmation)
+                    {
+                        token.ThrowIfCancellationRequested();
+                        EnsureLoadingGenerationIsCurrent(generation, workspaceID, token);
+                        migrationPlan.Commit(migrationPlan.Issues.Count > 0 ? DeferredTagMigrationDecision.ApplyWithRecovery : DeferredTagMigrationDecision.Apply);
+                        migrationCommitted = true;
+                    }
+
+                    LoadingContext context = new(PersistentDataManager.Tags.AllTags, uniqueProtocols, patients);
+                    structuralRecoveryItems.AddRange(context.ResolveDatabaseRecovering(patients, dataInfos).Items);
+                    StructuralRecoveryReport = new LoadingRecoveryReport(structuralRecoveryItems);
+                    token.ThrowIfCancellationRequested();
+                }
+                catch
+                {
+                    if (migrationCommitted) migrationPlan.Rollback();
+                    throw;
+                }
+
                 progress += linkingProgress;
 
                 token.ThrowIfCancellationRequested();
-                await UniTask.SwitchToMainThread();
                 lock (m_LoadingOperationLock)
                 {
                     if (generation != m_LoadingGeneration || workspaceID != Settings.SelectedWorkspace?.ID)
@@ -674,7 +767,11 @@ namespace HBP.Core.Database
                     m_DataInfos = dataInfos;
                     m_PublishedWorkspaceID = workspaceID;
                     m_ValidationPublished = false;
+                    if (migrationPlan.RequiresConfirmation) m_WorkspacesWithUnsavedTagMigration.Add(workspaceID);
+                    if (migrationPlan.RequiresConfirmation) m_PendingTagMigrationReport = migrationPlan;
                 }
+
+                if (migrationPlan.RequiresConfirmation) migrationPlan.MarkPersistenceRequired();
 
                 updateProgress(1, 0, new LoadingText("Database ready"));
                 OnUpdateDatabases.Invoke();
@@ -755,38 +852,254 @@ namespace HBP.Core.Database
             }
         }
 
-        public async UniTask SaveDatabaseAsync(Action<float, float, LoadingText> updateProgress)
+        public async UniTask SaveDatabaseAsync(Action<float, float, LoadingText> updateProgress, string expectedWorkspaceID = null)
         {
-            float validationWeight = NeedsValidationWait ? 0.2f : 0;
-            if (validationWeight > 0)
+            await UniTask.SwitchToMainThread();
+            if (PersistentDataManager.TagInitializationException != null) throw new InvalidOperationException("The database is open with an invalid Tags.json file. Repair or restore the global tag definitions before saving the workspace.");
+            if (StructuralRecoveryReport.HasIssues) throw new InvalidOperationException("The database is open in structural recovery mode. Repair or reload the quarantined data before saving the workspace.");
+            await m_SaveSemaphore.WaitAsync();
+            try
             {
-                await EnsureDatabaseValidatedAsync((progress, duration, text) => updateProgress(progress * validationWeight, duration, text));
-            }
+                Workspace workspace = Settings.SelectedWorkspace ?? throw new InvalidOperationException("No database workspace is selected.");
+                string workspaceID = workspace.ID;
+                string workspacePath = Path.GetFullPath(workspace.Path);
+                if (expectedWorkspaceID != null && !string.Equals(workspaceID, expectedWorkspaceID, StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException("The selected database workspace changed before it could be saved.");
+                }
 
-            await SaveDatabaseCoreAsync((progress, duration, text) => updateProgress(validationWeight + progress * (1 - validationWeight), duration, text));
+                Patient[] patients = m_Patients.ToArray();
+                DataInfo[] dataInfos = m_DataInfos.ToArray();
+                float validationWeight = NeedsValidationWait ? 0.2f : 0;
+                if (validationWeight > 0)
+                {
+                    await EnsureDatabaseValidatedAsync((progress, duration, text) => updateProgress(progress * validationWeight, duration, text));
+                    EnsureWorkspaceIsCurrent(workspaceID, workspacePath);
+                }
+
+                await SaveDatabaseCoreAsync((progress, duration, text) => updateProgress(validationWeight + progress * (1 - validationWeight), duration, text), workspaceID, workspacePath, patients, dataInfos);
+                lock (m_LoadingOperationLock)
+                {
+                    m_WorkspacesWithUnsavedTagMigration.Remove(workspaceID);
+                }
+            }
+            finally
+            {
+                m_SaveSemaphore.Release();
+            }
         }
 
-        private async UniTask SaveDatabaseCoreAsync(Action<float, float, LoadingText> updateProgress)
+        public async UniTask SaveDatabaseUpdateAsync(DatabaseUpdateTransaction transaction, Action<float, float, LoadingText> updateProgress)
         {
-            if (m_Patients.Count == 0 && m_DataInfos.Count == 0)
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+            if (!ReferenceEquals(transaction.Database, this)) throw new InvalidOperationException("The update transaction belongs to another database.");
+            if (PersistentDataManager.TagInitializationException != null) throw new InvalidOperationException("The database cannot be updated while Tags.json is invalid. Repair or restore the global tag definitions first.");
+            if (StructuralRecoveryReport.HasIssues) throw new InvalidOperationException("The database cannot be updated while the workspace is open in structural recovery mode.");
+
+            await UniTask.SwitchToMainThread();
+            await m_SaveSemaphore.WaitAsync();
+            string transactionID = Guid.NewGuid().ToString("N");
+            string tagsTemporaryPath = TagCollection.PATH + ".update-" + transactionID;
+            DirectoryInfo referencesTemporaryDirectory = null;
+            DirectoryInfo patientsTemporaryDirectory = null;
+            DirectoryInfo dataInfosTemporaryDirectory = null;
+            FileReplacement tagsReplacement = null;
+            DirectoryReplacement referencesReplacement = null;
+            DirectoryReplacement patientsReplacement = null;
+            DirectoryReplacement dataInfosReplacement = null;
+            try
             {
-                await SavePatientsAsync(updateProgress);
-                await SaveDataInfosAsync(updateProgress);
+                ValidateDatabaseUpdateTransaction(transaction);
+                updateProgress(0, 0, new LoadingText("Preparing database update"));
+
+                await ClassLoaderSaver.SaveToJsonOrThrowAsync(PersistentDataManager.Tags, tagsTemporaryPath, true);
+                referencesTemporaryDirectory = await PrepareDatabaseReferencesDirectoryAsync(transaction.WorkspacePath, transactionID, m_DatabaseReferences);
+                patientsTemporaryDirectory = await PreparePatientsDirectoryAsync(transaction.WorkspacePath, transactionID, transaction.CommittedPatients, (progress, duration, text) => updateProgress(0.1f + progress * 0.45f, duration, text));
+                dataInfosTemporaryDirectory = await PrepareDataInfosDirectoryAsync(transaction.WorkspacePath, transactionID, transaction.CommittedDataInfos, (progress, duration, text) => updateProgress(0.55f + progress * 0.4f, duration, text));
+
+                await UniTask.SwitchToMainThread();
+                ValidateDatabaseUpdateTransaction(transaction);
+                tagsReplacement = new FileReplacement(TagCollection.PATH, tagsTemporaryPath);
+                referencesReplacement = new DirectoryReplacement(Path.Combine(transaction.WorkspacePath, "References"), referencesTemporaryDirectory.FullName);
+                patientsReplacement = new DirectoryReplacement(Path.Combine(transaction.WorkspacePath, "Patients"), patientsTemporaryDirectory.FullName);
+                dataInfosReplacement = new DirectoryReplacement(Path.Combine(transaction.WorkspacePath, "DataInfos"), dataInfosTemporaryDirectory.FullName);
+
+                tagsReplacement.Publish();
+                referencesReplacement.Publish();
+                patientsReplacement.Publish();
+                dataInfosReplacement.Publish();
+                tagsTemporaryPath = null;
+                referencesTemporaryDirectory = null;
+                patientsTemporaryDirectory = null;
+                dataInfosTemporaryDirectory = null;
+
+                tagsReplacement.Complete();
+                referencesReplacement.Complete();
+                patientsReplacement.Complete();
+                dataInfosReplacement.Complete();
+                transaction.IsCompleted = true;
+                lock (m_LoadingOperationLock) m_WorkspacesWithUnsavedTagMigration.Remove(transaction.WorkspaceID);
+                TryRollback(PersistentDataManager.Tags.CompleteExternalSave);
+                TryRollback(OnUpdateDatabases.Invoke);
                 updateProgress(1, 0, new LoadingText("Finalizing"));
-                return;
+            }
+            catch (Exception exception)
+            {
+                if (!transaction.IsCompleted)
+                {
+                    TryRollback(() => dataInfosReplacement?.Rollback());
+                    TryRollback(() => patientsReplacement?.Rollback());
+                    TryRollback(() => referencesReplacement?.Rollback());
+                    TryRollback(() => tagsReplacement?.Rollback());
+                    await UniTask.SwitchToMainThread();
+                    TryRollback(() => RollbackDatabaseUpdate(transaction));
+                }
+
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
+                throw;
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(tagsTemporaryPath) && File.Exists(tagsTemporaryPath)) File.Delete(tagsTemporaryPath);
+                DeleteTemporaryDirectory(referencesTemporaryDirectory);
+                DeleteTemporaryDirectory(patientsTemporaryDirectory);
+                DeleteTemporaryDirectory(dataInfosTemporaryDirectory);
+                m_SaveSemaphore.Release();
+            }
+        }
+
+        private async UniTask<DirectoryInfo> PrepareDatabaseReferencesDirectoryAsync(string workspacePath, string transactionID, IEnumerable<DatabaseReference> references)
+        {
+            DirectoryInfo directory = Directory.CreateDirectory(Path.Combine(workspacePath, "ReferencesTemp-" + transactionID));
+            try
+            {
+                foreach (DatabaseReference reference in references)
+                {
+                    await ClassLoaderSaver.SaveToJsonOrThrowAsync(reference, Path.Combine(directory.FullName, reference.ID + DatabaseReference.EXTENSION), true);
+                }
+
+                return directory;
+            }
+            catch
+            {
+                DeleteTemporaryDirectory(directory);
+                throw;
+            }
+        }
+
+        private void ValidateDatabaseUpdateTransaction(DatabaseUpdateTransaction transaction)
+        {
+            if (transaction.IsCompleted) throw new InvalidOperationException("The database update transaction is already complete.");
+            EnsureWorkspaceIsCurrent(transaction.WorkspaceID, transaction.WorkspacePath);
+            if (!m_Patients.SequenceEqual(transaction.CommittedPatients) || !m_DataInfos.SequenceEqual(transaction.CommittedDataInfos) || !m_DatabaseReferences.SequenceEqual(transaction.CommittedReferences) || transaction.CommittedReferences.Any(reference => !string.Equals(transaction.CommittedReferenceSignatures[reference], GetDatabaseReferenceSignature(reference), StringComparison.Ordinal)) || !ReferenceEquals(PersistentDataManager.Tags, transaction.CommittedTags) || !string.Equals(transaction.CommittedTagSignature, GetTagCollectionSignature(PersistentDataManager.Tags), StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("The loaded database changed before its update could be saved.");
+            }
+        }
+
+        private void RollbackDatabaseUpdate(DatabaseUpdateTransaction transaction)
+        {
+            if (transaction.IsCompleted) return;
+            if (m_Patients.SequenceEqual(transaction.CommittedPatients) && m_DataInfos.SequenceEqual(transaction.CommittedDataInfos))
+            {
+                m_Patients = transaction.OriginalPatients.ToList();
+                m_DataInfos = transaction.OriginalDataInfos.ToList();
             }
 
-            float patientProgress = m_Patients.Count;
-            float dataInfoProgress = m_Patients.Count > 0 ? (float)m_DataInfos.Count / m_Patients.Count : m_DataInfos.Count;
-            float steps = patientProgress + dataInfoProgress;
-            patientProgress /= steps;
-            dataInfoProgress /= steps;
-            float progress = 0;
-            await SavePatientsAsync((localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text));
-            progress += patientProgress;
-            await SaveDataInfosAsync((localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text));
-            progress += dataInfoProgress;
-            updateProgress(1, 0, new LoadingText("Finalizing"));
+            try
+            {
+                transaction.TagCommit.Rollback();
+            }
+            finally
+            {
+                foreach (var pair in transaction.OriginalUpdateTimes) pair.Key.LastUpdated = pair.Value;
+                transaction.IsCompleted = true;
+                InvalidateValidation(ValidationRequest.Full);
+            }
+        }
+
+        private static void TryRollback(Action rollback)
+        {
+            if (rollback == null) return;
+            try
+            {
+                rollback();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+        }
+
+        internal static string GetDatabaseReferenceSignature(DatabaseReference reference)
+        {
+            return string.Join("\u001f", reference.ID, reference.Name, reference.Type, reference.Path, reference.Parameters?.GetType().FullName ?? string.Empty, reference.LastUpdated.Ticks);
+        }
+
+        internal static string GetTagCollectionSignature(TagCollection tags)
+        {
+            return string.Join("\u001d", tags.GeneralTags.Select(tag => "G:" + GetTagSignature(tag)).Concat(tags.PatientsTags.Select(tag => "P:" + GetTagSignature(tag))).Concat(tags.SitesTags.Select(tag => "S:" + GetTagSignature(tag))));
+        }
+
+        private static string GetTagSignature(BaseTag tag)
+        {
+            string details = tag switch
+            {
+                IntTag value => $"{value.Clamped}:{value.Min}:{value.Max}",
+                FloatTag value => $"{value.Clamped}:{value.Min.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}:{value.Max.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}",
+                EnumTag value => string.Join("\u001c", value.Values),
+                _ => string.Empty
+            };
+            return string.Join("\u001f", tag.GetType().FullName, tag.ID, tag.Name, details);
+        }
+
+        private void EnsureLoadingGenerationIsCurrent(long generation, string workspaceID, CancellationToken token)
+        {
+            lock (m_LoadingOperationLock)
+            {
+                if (generation != m_LoadingGeneration || !string.Equals(workspaceID, Settings.SelectedWorkspace?.ID, StringComparison.Ordinal))
+                {
+                    throw new OperationCanceledException("The database loading generation is obsolete.", token);
+                }
+            }
+        }
+
+        private async UniTask SaveDatabaseCoreAsync(Action<float, float, LoadingText> updateProgress, string workspaceID, string workspacePath, IReadOnlyCollection<Patient> patients, IReadOnlyCollection<DataInfo> dataInfos)
+        {
+            string transactionID = Guid.NewGuid().ToString("N");
+            DirectoryInfo patientsTempDirectory = null;
+            DirectoryInfo dataInfosTempDirectory = null;
+            try
+            {
+                if (patients.Count == 0 && dataInfos.Count == 0)
+                {
+                    patientsTempDirectory = await PreparePatientsDirectoryAsync(workspacePath, transactionID, patients, updateProgress);
+                    dataInfosTempDirectory = await PrepareDataInfosDirectoryAsync(workspacePath, transactionID, dataInfos, updateProgress);
+                }
+                else
+                {
+                    float patientProgress = patients.Count;
+                    float dataInfoProgress = patients.Count > 0 ? (float)dataInfos.Count / patients.Count : dataInfos.Count;
+                    float steps = patientProgress + dataInfoProgress;
+                    patientProgress /= steps;
+                    dataInfoProgress /= steps;
+                    float progress = 0;
+                    patientsTempDirectory = await PreparePatientsDirectoryAsync(workspacePath, transactionID, patients, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text));
+                    progress += patientProgress;
+                    dataInfosTempDirectory = await PrepareDataInfosDirectoryAsync(workspacePath, transactionID, dataInfos, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text));
+                }
+
+                EnsureWorkspaceIsCurrent(workspaceID, workspacePath);
+                ReplaceDatabaseDirectoriesAtomically(workspacePath, patientsTempDirectory, dataInfosTempDirectory, () => EnsureWorkspaceIsCurrent(workspaceID, workspacePath));
+                patientsTempDirectory = null;
+                dataInfosTempDirectory = null;
+                updateProgress(1, 0, new LoadingText("Finalizing"));
+            }
+            finally
+            {
+                DeleteTemporaryDirectory(patientsTempDirectory);
+                DeleteTemporaryDirectory(dataInfosTempDirectory);
+            }
         }
 
         public async UniTask LoadProtocolsAsync()
@@ -795,7 +1108,21 @@ namespace HBP.Core.Database
             if (!protocolDirectory.Exists) protocolDirectory.Create();
             FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
             int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
-            m_Protocols = (await LoadingWorkScheduler.Shared.RunAsync(protocolFiles.Select(protocolFile => (Func<UniTask<Protocol>>)(() => ClassLoaderSaver.LoadFromJsonAsync<Protocol>(protocolFile.FullName))), LoadingWorkCategory.JsonAndZip, () => LoadingWorkPriority.Foreground, CancellationToken.None, null, concurrency)).ToList();
+            ConcurrentQueue<LoadingRecoveryItem> recovered = new();
+            Func<UniTask<Protocol>>[] tasks = protocolFiles.Select(protocolFile => (Func<UniTask<Protocol>>)(async () =>
+            {
+                try
+                {
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Protocol>(protocolFile.FullName);
+                }
+                catch (Exception exception)
+                {
+                    recovered.Enqueue(new LoadingRecoveryItem("protocol file", protocolFile.FullName, new[] { exception.Message }));
+                    return null;
+                }
+            })).ToArray();
+            m_Protocols = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, () => LoadingWorkPriority.Foreground, CancellationToken.None, null, concurrency)).Where(protocol => protocol != null).ToList();
+            ProtocolLoadingRecoveryReport = new LoadingRecoveryReport(recovered);
         }
 
         public async UniTask SaveProtocolsAsync()
@@ -862,18 +1189,31 @@ namespace HBP.Core.Database
             return referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
         }
 
-        private async UniTask<List<DatabaseReference>> LoadDatabaseReferencesAsync(FileInfo[] referenceFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token = default, int? concurrency = null, Func<LoadingWorkPriority> priorityProvider = null)
+        private async UniTask<List<DatabaseReference>> LoadDatabaseReferencesAsync(FileInfo[] referenceFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token = default, int? concurrency = null, Func<LoadingWorkPriority> priorityProvider = null, ConcurrentQueue<LoadingRecoveryItem> recovered = null)
         {
             int workerCount = concurrency ?? LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
             updateProgress?.Invoke(0, 0, new LoadingText("Loading database references"));
-            Func<UniTask<DatabaseReference>>[] tasks = referenceFiles.Select(referenceFile => (Func<UniTask<DatabaseReference>>)(() => ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(referenceFile.FullName))).ToArray();
-            List<DatabaseReference> references = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, null, workerCount)).ToList();
+            Func<UniTask<DatabaseReference>>[] tasks = referenceFiles.Select(referenceFile => (Func<UniTask<DatabaseReference>>)(async () =>
+            {
+                try
+                {
+                    return await ClassLoaderSaver.LoadFromJsonAsync<DatabaseReference>(referenceFile.FullName);
+                }
+                catch (Exception exception) when (recovered != null)
+                {
+                    recovered.Enqueue(new LoadingRecoveryItem("database reference file", referenceFile.FullName, new[] { exception.Message }));
+                    return null;
+                }
+            })).ToArray();
+            List<DatabaseReference> references = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, null, workerCount)).Where(reference => reference != null).ToList();
             updateProgress?.Invoke(1, 0, new LoadingText("Database references loaded"));
             return references;
         }
 
         public async UniTask SaveDatabaseReferencesAsync()
         {
+            if (PersistentDataManager.TagInitializationException != null) throw new InvalidOperationException("Database references cannot be saved while Tags.json is invalid.");
+            if (StructuralRecoveryReport.HasIssues) throw new InvalidOperationException("Database references cannot be saved while the workspace is open in structural recovery mode.");
             await SaveDatabaseReferencesAsync(true);
         }
 
@@ -913,21 +1253,38 @@ namespace HBP.Core.Database
             return patientsDirectory.GetFiles("*" + Patient.EXTENSION, SearchOption.TopDirectoryOnly);
         }
 
-        private async UniTask<List<Patient>> LoadPatientsAsync(FileInfo[] patientFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<List<Patient>> LoadPatientsAsync(FileInfo[] patientFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider, ConcurrentQueue<LoadingRecoveryItem> recovered = null)
         {
-            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(() => ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName)));
-            List<Patient> patients = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, (completed, total) => UpdateLoadingProgress(updateProgress, "Loading database patients", completed, total), concurrency)).OrderBy(patient => patient.Name).ToList();
+            var tasks = patientFiles.Select(file => (Func<UniTask<Patient>>)(async () =>
+            {
+                try
+                {
+                    return await ClassLoaderSaver.LoadFromJsonAsync<Patient>(file.FullName);
+                }
+                catch (Exception exception) when (recovered != null)
+                {
+                    recovered.Enqueue(new LoadingRecoveryItem("patient file", file.FullName, new[] { exception.Message }));
+                    return null;
+                }
+            }));
+            List<Patient> patients = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, (completed, total) => UpdateLoadingProgress(updateProgress, "Loading database patients", completed, total), concurrency)).Where(patient => patient != null).OrderBy(patient => patient.Name).ToList();
             return patients;
         }
 
-        private async UniTask SavePatientsAsync(Action<float, float, LoadingText> updateProgress)
+        private async UniTask<DirectoryInfo> PreparePatientsDirectoryAsync(string workspacePath, string transactionID, IEnumerable<Patient> patients, Action<float, float, LoadingText> updateProgress)
         {
-            DirectoryInfo patientsDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "Patients"));
-            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "PatientsTemp"));
-            var tasks = m_Patients.Select(p => (Func<UniTask>)(async () => { await ClassLoaderSaver.SaveToJsonAsync(p, Path.Combine(patientsTempDirectory.FullName, p.ID + Patient.EXTENSION), true); }));
-            await RunDatabaseTasksAsync(tasks, "Saving database patients", updateProgress);
-            patientsDirectory.Delete(true);
-            patientsTempDirectory.MoveTo(patientsDirectory.FullName);
+            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "PatientsTemp-" + transactionID));
+            try
+            {
+                var tasks = patients.Select(patient => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonOrThrowAsync(patient, Path.Combine(patientsTempDirectory.FullName, patient.ID + Patient.EXTENSION), true)));
+                await RunDatabaseTasksAsync(tasks, "Saving database patients", updateProgress);
+                return patientsTempDirectory;
+            }
+            catch
+            {
+                DeleteTemporaryDirectory(patientsTempDirectory);
+                throw;
+            }
         }
 
         private FileInfo[] GetDataInfoFiles(string workspacePath)
@@ -937,9 +1294,20 @@ namespace HBP.Core.Database
             return dataInfosDirectory.GetFiles("*" + DataInfo.EXTENSION, SearchOption.TopDirectoryOnly);
         }
 
-        private async UniTask<List<DataInfo>> LoadDataInfosAsync(FileInfo[] dataInfoFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider)
+        private async UniTask<List<DataInfo>> LoadDataInfosAsync(FileInfo[] dataInfoFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token, int concurrency, Func<LoadingWorkPriority> priorityProvider, ConcurrentQueue<LoadingRecoveryItem> recovered = null)
         {
-            var tasks = dataInfoFiles.Select(file => (Func<UniTask<List<DataInfo>>>)(() => ClassLoaderSaver.LoadFromJsonAsync<List<DataInfo>>(file.FullName)));
+            var tasks = dataInfoFiles.Select(file => (Func<UniTask<List<DataInfo>>>)(async () =>
+            {
+                try
+                {
+                    return await ClassLoaderSaver.LoadFromJsonAsync<List<DataInfo>>(file.FullName);
+                }
+                catch (Exception exception) when (recovered != null)
+                {
+                    recovered.Enqueue(new LoadingRecoveryItem("data info file", file.FullName, new[] { exception.Message }));
+                    return new List<DataInfo>();
+                }
+            }));
             return (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, (completed, total) => UpdateLoadingProgress(updateProgress, "Loading database functional data", completed, total), concurrency)).SelectMany(dataInfos => dataInfos).ToList();
         }
 
@@ -954,40 +1322,220 @@ namespace HBP.Core.Database
             await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, () => LoadingWorkPriority.Foreground, CancellationToken.None, (completed, total) => UpdateLoadingProgress(updateProgress, loadingText, completed, total), concurrency);
         }
 
-        private async UniTask SaveDataInfosAsync(Action<float, float, LoadingText> updateProgress)
+        private async UniTask<DirectoryInfo> PrepareDataInfosDirectoryAsync(string workspacePath, string transactionID, IEnumerable<DataInfo> dataInfos, Action<float, float, LoadingText> updateProgress)
         {
-            DirectoryInfo dataInfosDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "DataInfos"));
-            DirectoryInfo dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(Settings.SelectedWorkspace.Path, "DataInfosTemp"));
-            Dictionary<Patient, List<PatientDataInfo>> patientDataInfos = new();
-            foreach (var patient in m_DataInfos.OfType<PatientDataInfo>().Select(d => d.Patient).Distinct())
+            DirectoryInfo dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "DataInfosTemp-" + transactionID));
+            try
             {
-                patientDataInfos.Add(patient, new List<PatientDataInfo>());
-            }
+                Dictionary<Patient, List<PatientDataInfo>> patientDataInfos = new();
+                foreach (var patient in dataInfos.OfType<PatientDataInfo>().Select(d => d.Patient).Distinct())
+                {
+                    patientDataInfos.Add(patient, new List<PatientDataInfo>());
+                }
 
-            List<DataInfo> otherDataInfos = new();
-            foreach (var dataInfo in m_DataInfos)
+                List<DataInfo> otherDataInfos = new();
+                foreach (var dataInfo in dataInfos)
+                {
+                    if (dataInfo is PatientDataInfo patientDataInfo) patientDataInfos[patientDataInfo.Patient].Add(patientDataInfo);
+                    else otherDataInfos.Add(dataInfo);
+                }
+
+                var tasks = patientDataInfos.Select(kvp => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonOrThrowAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + DataInfo.EXTENSION), true)));
+                await RunDatabaseTasksAsync(tasks, "Saving database functional data", updateProgress);
+                await ClassLoaderSaver.SaveToJsonOrThrowAsync(otherDataInfos, Path.Combine(dataInfosTempDirectory.FullName, "None" + DataInfo.EXTENSION), true);
+                return dataInfosTempDirectory;
+            }
+            catch
             {
-                if (dataInfo is PatientDataInfo patientDataInfo) patientDataInfos[patientDataInfo.Patient].Add(patientDataInfo);
-                else otherDataInfos.Add(dataInfo);
+                DeleteTemporaryDirectory(dataInfosTempDirectory);
+                throw;
             }
-
-            var tasks = patientDataInfos.Select(kvp => (Func<UniTask>)(async () => { await ClassLoaderSaver.SaveToJsonAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + DataInfo.EXTENSION), true); }));
-            await RunDatabaseTasksAsync(tasks, "Saving database functional data", updateProgress);
-            await ClassLoaderSaver.SaveToJsonAsync(otherDataInfos, Path.Combine(dataInfosTempDirectory.FullName, "None" + DataInfo.EXTENSION), true);
-            dataInfosDirectory.Delete(true);
-            dataInfosTempDirectory.MoveTo(dataInfosDirectory.FullName);
         }
 
-        public async UniTask<DatabaseUpdateReport> UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private void EnsureWorkspaceIsCurrent(string expectedWorkspaceID, string expectedWorkspacePath)
         {
+            Workspace current = Settings.SelectedWorkspace;
+            string currentPath = current?.Path == null ? null : Path.GetFullPath(current.Path);
+            if (!string.Equals(current?.ID, expectedWorkspaceID, StringComparison.Ordinal) || !string.Equals(currentPath, expectedWorkspacePath, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("The selected database workspace changed while it was being saved.");
+            }
+        }
+
+        internal static void ReplaceDatabaseDirectoriesAtomically(string workspacePath, DirectoryInfo patientsTempDirectory, DirectoryInfo dataInfosTempDirectory, Action validateBeforeCompletion)
+        {
+            DirectoryReplacement patients = new(Path.Combine(workspacePath, "Patients"), patientsTempDirectory.FullName);
+            DirectoryReplacement dataInfos = new(Path.Combine(workspacePath, "DataInfos"), dataInfosTempDirectory.FullName);
+            try
+            {
+                patients.Publish();
+                dataInfos.Publish();
+                validateBeforeCompletion();
+            }
+            catch
+            {
+                dataInfos.Rollback();
+                patients.Rollback();
+                throw;
+            }
+
+            patients.Complete();
+            dataInfos.Complete();
+        }
+
+        private static void DeleteTemporaryDirectory(DirectoryInfo directory)
+        {
+            if (directory == null || !Directory.Exists(directory.FullName)) return;
+            try
+            {
+                Directory.Delete(directory.FullName, true);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"The temporary database directory '{directory.FullName}' could not be removed: {exception.Message}");
+            }
+        }
+
+        private sealed class DirectoryReplacement
+        {
+            private readonly string m_TargetPath;
+            private readonly string m_TemporaryPath;
+            private readonly string m_BackupPath;
+            private bool m_HadOriginal;
+            private bool m_Published;
+
+            public DirectoryReplacement(string targetPath, string temporaryPath)
+            {
+                m_TargetPath = targetPath;
+                m_TemporaryPath = temporaryPath;
+                m_BackupPath = targetPath + "Backup-" + Guid.NewGuid().ToString("N");
+            }
+
+            public void Publish()
+            {
+                if (Directory.Exists(m_TargetPath))
+                {
+                    Directory.Move(m_TargetPath, m_BackupPath);
+                    m_HadOriginal = true;
+                }
+
+                try
+                {
+                    Directory.Move(m_TemporaryPath, m_TargetPath);
+                    m_Published = true;
+                }
+                catch
+                {
+                    if (m_HadOriginal && !Directory.Exists(m_TargetPath) && Directory.Exists(m_BackupPath)) Directory.Move(m_BackupPath, m_TargetPath);
+                    throw;
+                }
+            }
+
+            public void Rollback()
+            {
+                if (m_Published && Directory.Exists(m_TargetPath)) Directory.Delete(m_TargetPath, true);
+                if (m_HadOriginal && Directory.Exists(m_BackupPath)) Directory.Move(m_BackupPath, m_TargetPath);
+                m_Published = false;
+            }
+
+            public void Complete()
+            {
+                if (!m_HadOriginal || !Directory.Exists(m_BackupPath)) return;
+                try
+                {
+                    Directory.Delete(m_BackupPath, true);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning($"The obsolete database backup '{m_BackupPath}' could not be removed: {exception.Message}");
+                }
+            }
+        }
+
+        private sealed class FileReplacement
+        {
+            private readonly string m_TargetPath;
+            private readonly string m_TemporaryPath;
+            private readonly string m_BackupPath;
+            private bool m_HadOriginal;
+            private bool m_Published;
+
+            public FileReplacement(string targetPath, string temporaryPath)
+            {
+                m_TargetPath = Path.GetFullPath(targetPath);
+                m_TemporaryPath = Path.GetFullPath(temporaryPath);
+                m_BackupPath = m_TargetPath + ".backup-" + Guid.NewGuid().ToString("N");
+            }
+
+            public void Publish()
+            {
+                if (File.Exists(m_TargetPath))
+                {
+                    File.Move(m_TargetPath, m_BackupPath);
+                    m_HadOriginal = true;
+                }
+
+                try
+                {
+                    File.Move(m_TemporaryPath, m_TargetPath);
+                    m_Published = true;
+                }
+                catch
+                {
+                    if (m_HadOriginal && !File.Exists(m_TargetPath) && File.Exists(m_BackupPath)) File.Move(m_BackupPath, m_TargetPath);
+                    throw;
+                }
+            }
+
+            public void Rollback()
+            {
+                if (m_Published && File.Exists(m_TargetPath)) File.Delete(m_TargetPath);
+                if (m_HadOriginal && File.Exists(m_BackupPath)) File.Move(m_BackupPath, m_TargetPath);
+                m_Published = false;
+            }
+
+            public void Complete()
+            {
+                if (!m_HadOriginal || !File.Exists(m_BackupPath)) return;
+                try
+                {
+                    File.Delete(m_BackupPath);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning($"The obsolete tag backup '{m_BackupPath}' could not be removed: {exception.Message}");
+                }
+            }
+        }
+
+        public async UniTask<DatabaseUpdateTransaction> UpdateDatabasesAsync(IEnumerable<DatabaseReference> databaseReferences, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
+            if (PersistentDataManager.TagInitializationException != null) throw new InvalidOperationException("The database cannot be updated while Tags.json is invalid. Repair or restore the global tag definitions first.");
+            if (StructuralRecoveryReport.HasIssues) throw new InvalidOperationException("The database cannot be updated while the workspace is open in structural recovery mode.");
             updateProgress(0, 1, new LoadingText("Initialization"));
             await UniTask.SwitchToMainThread();
             string workspaceID = Settings.SelectedWorkspace?.ID;
+            string workspacePath = Path.GetFullPath(Settings.SelectedWorkspace?.Path ?? throw new InvalidOperationException("No database workspace is selected."));
+            Patient[] originalPatients = m_Patients.ToArray();
+            DataInfo[] originalDataInfos = m_DataInfos.ToArray();
             List<Patient> oldPatients = m_Patients.Select(patient => (Patient)patient.Clone()).ToList();
             List<DataInfo> oldDataInfos = m_DataInfos.Select(dataInfo => (DataInfo)dataInfo.Clone()).ToList();
             List<Patient> patientsTemp = new(m_Patients);
             List<DataInfo> dataInfosTemp = new(m_DataInfos);
             DatabaseReference[] referenceSnapshot = databaseReferences.ToArray();
+            DatabaseReference[] configuredReferenceSnapshot = m_DatabaseReferences.Concat(referenceSnapshot).Where(reference => reference != null).GroupBy(reference => string.IsNullOrEmpty(reference.ID) ? $"{reference.Type}:{reference.Path}" : reference.ID).Select(group => group.First()).ToArray();
+            TagParsingPolicy parsingPolicy = PersistentDataManager.UserPreferences?.Data?.TagImport?.CreatePolicy() ?? TagParsingPolicy.Default;
+            await UniTask.SwitchToThreadPool();
+            TagImportObservations observations = TagImportScanner.Scan(configuredReferenceSnapshot, token);
+            token.ThrowIfCancellationRequested();
+            await UniTask.SwitchToMainThread();
+            if (workspaceID != Settings.SelectedWorkspace?.ID)
+            {
+                throw new OperationCanceledException("The database workspace changed while its references were being scanned.", token);
+            }
+
+            TagImportDraft tagDraft = TagImportDraft.Create(PersistentDataManager.Tags, observations, parsingPolicy);
+            TagImportContext importContext = tagDraft.Context;
             await UniTask.SwitchToThreadPool();
             var brainvisaDatabaseReferences = referenceSnapshot.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
             var localizerDatabaseReferences = referenceSnapshot.Where(d => d.Type == DatabaseType.Localizer).ToArray();
@@ -1001,7 +1549,7 @@ namespace HBP.Core.Database
             foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
                 patientsTemp.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
                 patientsTemp.AddRange(patients);
                 updatedPatients.AddRange(patients);
@@ -1011,7 +1559,7 @@ namespace HBP.Core.Database
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadFromBIDSDatabase(bidsDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                Patient.LoadFromBIDSDatabase(bidsDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
                 foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
                 patientsTemp.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
                 patientsTemp.AddRange(patients);
@@ -1023,7 +1571,7 @@ namespace HBP.Core.Database
             foreach (var tagsDatabaseReference in tagsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, patientsTemp, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, patientsTemp, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
                 foreach (var patient in patients)
                 {
                     patientsTemp.Remove(patient);
@@ -1053,15 +1601,8 @@ namespace HBP.Core.Database
                 progress += 1f / numberOfDatabases;
             }
 
-            // Update last updated
-            foreach (var databaseReference in referenceSnapshot)
-            {
-                token.ThrowIfCancellationRequested();
-                databaseReference.LastUpdated = DateTime.Now;
-            }
-
             updateProgress(1, 0, new LoadingText("Finalizing"));
-            var report = FindChanges(oldPatients, patientsTemp, updatedPatients);
+            var report = FindChanges(oldPatients, patientsTemp, updatedPatients, tagDraft.Diagnostics);
 
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
@@ -1070,25 +1611,39 @@ namespace HBP.Core.Database
                 throw new OperationCanceledException("The database workspace changed while its references were updating.", token);
             }
 
-            m_Patients = patientsTemp;
-            m_DataInfos = dataInfosTemp;
-            ValidationRequest validationRequest = ValidationImpactAnalyzer.ForPatients(oldPatients, patientsTemp).Merge(ValidationImpactAnalyzer.ForDataInfos(oldDataInfos, dataInfosTemp));
-            if (validationRequest.Aspects != ValidationAspect.None)
+            TagImportCommit tagCommit = null;
+            Dictionary<DatabaseReference, DateTime> originalUpdateTimes = referenceSnapshot.Distinct().ToDictionary(reference => reference, reference => reference.LastUpdated);
+            try
             {
-                InvalidateValidation(validationRequest);
-            }
+                tagCommit = tagDraft.Commit(PersistentDataManager.Tags);
+                new LoadingContext(PersistentDataManager.Tags.AllTags, m_Protocols, patientsTemp).ResolveDatabase(patientsTemp, dataInfosTemp);
+                DateTime updatedAt = DateTime.Now;
+                foreach (DatabaseReference databaseReference in referenceSnapshot) databaseReference.LastUpdated = updatedAt;
 
-            OnUpdateDatabases.Invoke();
-            await SaveDatabaseReferencesAsync(false);
-            return report;
+                m_Patients = patientsTemp;
+                m_DataInfos = dataInfosTemp;
+                ValidationRequest validationRequest = ValidationImpactAnalyzer.ForPatients(oldPatients, patientsTemp).Merge(ValidationImpactAnalyzer.ForDataInfos(oldDataInfos, dataInfosTemp));
+                if (validationRequest.Aspects != ValidationAspect.None)
+                {
+                    InvalidateValidation(validationRequest);
+                }
+
+                return new DatabaseUpdateTransaction(this, workspaceID, workspacePath, originalPatients, originalDataInfos, patientsTemp, dataInfosTemp, m_DatabaseReferences, originalUpdateTimes, tagCommit, report);
+            }
+            catch
+            {
+                tagCommit?.Rollback();
+                foreach (var pair in originalUpdateTimes) pair.Key.LastUpdated = pair.Value;
+                throw;
+            }
         }
 
-        private DatabaseUpdateReport FindChanges(List<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients)
+        private DatabaseUpdateReport FindChanges(List<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics)
         {
             var removedPatients = oldPatients.Except(newPatients).ToList();
             var addedPatients = newPatients.Except(oldPatients).ToList();
             updatedPatients = updatedPatients.Distinct().Except(addedPatients).Except(removedPatients).ToList();
-            return new DatabaseUpdateReport(removedPatients, addedPatients, updatedPatients);
+            return new DatabaseUpdateReport(removedPatients, addedPatients, updatedPatients, tagDiagnostics);
         }
 
         #endregion

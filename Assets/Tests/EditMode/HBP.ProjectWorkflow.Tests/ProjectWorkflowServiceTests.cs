@@ -14,7 +14,7 @@ namespace HBP.Tests.ProjectWorkflow
     public class ProjectWorkflowServiceTests
     {
         [Test]
-        public async Task LoadProjectAsync_WithSettingsLoadException_LogsAndDoesNotChangeApplicationState()
+        public async Task LoadProjectAsync_WithSettingsLoadException_ContinuesIntoReadOnlyRecoveryLoad()
         {
             FakeRuntime runtime = new();
             Project previousProject = new("previous", new ProjectPreferences("test-version", "previous-id"));
@@ -27,13 +27,12 @@ namespace HBP.Tests.ProjectWorkflow
 
             ProjectWorkflowResult result = await service.LoadProjectAsync(info);
 
-            Assert.That(result.Status, Is.EqualTo(ProjectWorkflowStatus.Failed));
-            Assert.That(runtime.LoggedExceptions, Is.EquivalentTo(new[] { settingsException }));
-            Assert.That(runtime.ShowErrorCalls, Is.EqualTo(1));
-            Assert.That(runtime.ClearDataCalls, Is.Zero);
-            Assert.That(runtime.LoadProjectCalls, Is.Zero);
-            Assert.That(runtime.LoadedProject, Is.SameAs(previousProject));
-            Assert.That(runtime.LoadedProjectLocation, Is.EqualTo("previous-location"));
+            Assert.That(result.Status, Is.EqualTo(ProjectWorkflowStatus.Success));
+            Assert.That(runtime.LoggedExceptions, Is.Empty);
+            Assert.That(runtime.ShowErrorCalls, Is.Zero);
+            Assert.That(runtime.ClearDataCalls, Is.EqualTo(1));
+            Assert.That(runtime.LoadProjectCalls, Is.EqualTo(1));
+            Assert.That(runtime.LoadedProject, Is.SameAs(runtime.LoadProjectArgument));
         }
 
         [Test]
@@ -92,6 +91,7 @@ namespace HBP.Tests.ProjectWorkflow
             Assert.That(runtime.LoadedProject, Is.SameAs(previousProject));
             Assert.That(runtime.LoadedProjectLocation, Is.EqualTo("previous-location"));
             Assert.That(runtime.LoggedExceptions, Is.Empty);
+            Assert.That(runtime.ClearDataCalls, Is.Zero);
         }
 
         [Test]
@@ -227,6 +227,22 @@ namespace HBP.Tests.ProjectWorkflow
             Assert.That(runtime.RemoveAllScenesCalls, Is.EqualTo(1));
             Assert.That(runtime.CloseAllWindowsCalls, Is.EqualTo(1));
             Assert.That(runtime.LoadProjectCalls, Is.EqualTo(1));
+        }
+
+        [Test]
+        public async Task OpenProjectAsync_WhenLoadIsCancelled_PreservesScenesWindowsAndData()
+        {
+            FakeRuntime runtime = CreateRuntimeWithLoadedProject();
+            runtime.HasOpenedScenesForLoadedProject = true;
+            runtime.LoadProjectException = new OperationCanceledException();
+            ProjectWorkflowService service = new(runtime);
+
+            ProjectWorkflowResult result = await service.OpenProjectAsync(CreateProjectInfoWithPath(Path.Combine(CreateTempFolder(), "project.hibop")), true);
+
+            Assert.That(result.Status, Is.EqualTo(ProjectWorkflowStatus.Cancelled));
+            Assert.That(runtime.RemoveAllScenesCalls, Is.Zero);
+            Assert.That(runtime.CloseAllWindowsCalls, Is.Zero);
+            Assert.That(runtime.ClearDataCalls, Is.Zero);
         }
 
         [Test]
