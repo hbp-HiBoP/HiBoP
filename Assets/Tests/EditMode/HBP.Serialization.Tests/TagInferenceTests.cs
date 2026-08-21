@@ -125,6 +125,40 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void TagsDatabaseScannerAndMaterialization_SupportIntranatSiteCsv()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-intranat-tag-csv-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                Directory.CreateDirectory(root);
+                string csvPath = Path.Combine(root, "patient-1.csv");
+                File.WriteAllLines(csvPath, new[]
+                {
+                    "Contacts Positions",
+                    "Use of MNI Template\tMarsAtlas\tFalse",
+                    " contact \tregion\tquality",
+                    "A01\ttemporal\tgood",
+                    "B02\tfrontal\tn/a"
+                });
+                DatabaseReference reference = new("tags", DatabaseType.Tags, root, new TagsDatabaseParameters(), DateTime.MinValue, "intranat-tags-reference");
+
+                TagImportObservations observations = TagImportScanner.Scan(new[] { reference });
+                TagImportDraft draft = TagImportDraft.Create(new TagCollection(), observations, TagParsingPolicy.Default);
+                var tagsBySite = draft.PreparedTags.GenerateSiteTagsFromCSV(csvPath, TagParsingPolicy.Default, false, draft.Context);
+
+                Assert.That(draft.PreparedTags.SitesTags.Select(tag => tag.Name), Is.EquivalentTo(new[] { "region", "quality" }));
+                Assert.That(draft.PreparedTags.SitesTags.Select(tag => tag.Name), Does.Not.Contain("Contacts Positions"));
+                Assert.That(tagsBySite.Keys, Is.EquivalentTo(new[] { "A01", "B02" }));
+                Assert.That(tagsBySite["A01"].Select(tag => tag.Tag.Name), Is.EquivalentTo(new[] { "region", "quality" }));
+                Assert.That(tagsBySite["B02"].Select(tag => tag.Tag.Name), Is.EquivalentTo(new[] { "region" }));
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        [Test]
         public void MaterializationOnlyMode_NeverCreatesMissingTags()
         {
             string path = Path.Combine(Path.GetTempPath(), "hibop-tag-materialization-" + Guid.NewGuid().ToString("N") + ".csv");

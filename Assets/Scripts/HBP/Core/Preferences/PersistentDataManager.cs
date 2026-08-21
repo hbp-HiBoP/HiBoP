@@ -25,7 +25,7 @@ namespace HBP.Core.Preferences
 
         public static Exception TagInitializationException { get; private set; }
 
-        public static FilterPresetRecoveryReport PendingFilterRecoveryReport { get; private set; } = FilterPresetRecoveryReport.Empty;
+        public static FilterPresetRepairReport PendingFilterRepairReport { get; private set; } = FilterPresetRepairReport.Empty;
         public static Exception FilterInitializationException { get; private set; }
         private static bool s_FilterInitializationWarningPresented;
 
@@ -61,10 +61,10 @@ namespace HBP.Core.Preferences
             {
                 try
                 {
-                    PendingFilterRecoveryReport = FilterPresetRecoveryService.Recover(m_Tags, m_FilterConditionsPresets, TagParsingPolicy.Default);
+                    PendingFilterRepairReport = FilterPresetRepairService.Repair(m_Tags, m_FilterConditionsPresets, TagParsingPolicy.Default);
                     new LoadingContext(m_Tags.AllTags, Array.Empty<Protocol>(), logLegacyEnumWarnings: true).ResolveFilterConditions(m_FilterConditionsPresets);
-                    if (m_Tags.HasUnsavedTagMigration) m_Tags.SaveRecovered();
-                    if (PendingFilterRecoveryReport.HasChanges) m_FilterConditionsPresets.SaveRecovered();
+                    if (m_Tags.HasUnsavedTagMigration) m_Tags.Save();
+                    if (PendingFilterRepairReport.HasChanges) m_FilterConditionsPresets.Save();
                 }
                 catch (Exception exception)
                 {
@@ -73,10 +73,10 @@ namespace HBP.Core.Preferences
             }
         }
 
-        public static FilterPresetRecoveryReport ConsumeFilterRecoveryReport()
+        public static FilterPresetRepairReport ConsumeFilterRepairReport()
         {
-            FilterPresetRecoveryReport report = PendingFilterRecoveryReport;
-            PendingFilterRecoveryReport = FilterPresetRecoveryReport.Empty;
+            FilterPresetRepairReport report = PendingFilterRepairReport;
+            PendingFilterRepairReport = FilterPresetRepairReport.Empty;
             return report;
         }
 

@@ -133,12 +133,12 @@ namespace HBP.UI.Tools
         {
             await LoadingManager.LoadAsync<bool>(async (update, token) =>
             {
-                await project.LoadAsync(info, update, token, DeferredTagMigrationDialog.ConfirmAsync);
+                await project.LoadAsync(info, update, token);
                 return true;
             });
             await DeferredTagMigrationDialog.InformAsync(project.ConsumeTagMigrationReport());
             await DeferredTagMigrationDialog.InformStructuralRecoveryAsync(project.StructuralRecoveryReport, "project");
-            await HBP.UI.Database.DatabaseWorkflow.ShowPendingFilterRecoveryAsync();
+            await HBP.UI.Database.DatabaseWorkflow.ShowPendingFilterRepairAsync();
         }
 
         public async UniTask SaveProjectWithProgressAsync(Project project, string path)

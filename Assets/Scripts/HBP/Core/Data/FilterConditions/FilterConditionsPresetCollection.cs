@@ -19,10 +19,8 @@ namespace HBP.Core.Data
 
         [JsonProperty] private Dictionary<Type, List<FilterConditionsPreset>> m_PresetsByType = new();
         [JsonProperty] private Dictionary<Type, FilterConditionsPreset> m_CurrentPresetByType = new();
-        [JsonProperty] private Dictionary<Type, List<FilterConditionsPreset>> m_DisabledPresetsByType = new();
         [JsonIgnore] public bool HasUnsavedTagMigration { get; private set; }
         [JsonIgnore] public Exception InitializationException { get; private set; }
-        [JsonIgnore] public int DisabledPresetCount => (m_DisabledPresetsByType ?? new()).Values.Sum(presets => presets?.Count ?? 0);
 
         #endregion
 
@@ -78,12 +76,6 @@ namespace HBP.Core.Data
             HasUnsavedTagMigration = false;
         }
 
-        public void SaveRecovered()
-        {
-            string backupPath = PATH + ".pre-recovery.bak";
-            if (File.Exists(PATH)) File.Copy(PATH, backupPath, true);
-            Save();
-        }
 
         internal void MarkTagMigrationUnsaved()
         {
@@ -118,11 +110,6 @@ namespace HBP.Core.Data
             return (m_CurrentPresetByType ?? new()).Where(pair => pair.Value != null).Select(pair => (pair.Key, pair.Value));
         }
 
-        internal IEnumerable<(Type Type, FilterConditionsPreset Preset)> GetDisabledPresetEntries()
-        {
-            return (m_DisabledPresetsByType ?? new()).SelectMany(pair => (pair.Value ?? new()).Where(preset => preset != null).Select(preset => (pair.Key, preset)));
-        }
-
         internal void ReplaceNamedPreset(Type type, FilterConditionsPreset source, FilterConditionsPreset replacement)
         {
             if (!m_PresetsByType.TryGetValue(type, out List<FilterConditionsPreset> presets)) return;
@@ -135,30 +122,6 @@ namespace HBP.Core.Data
             m_CurrentPresetByType[type] = replacement;
         }
 
-        internal void QuarantineNamedPreset(Type type, FilterConditionsPreset preset)
-        {
-            if (m_PresetsByType.TryGetValue(type, out List<FilterConditionsPreset> presets)) presets.Remove(preset);
-            AddDisabledPreset(type, preset);
-        }
-
-        internal void QuarantineCurrentPreset(Type type, FilterConditionsPreset preset)
-        {
-            AddDisabledPreset(type, preset);
-            m_CurrentPresetByType[type] = new FilterConditionsPreset();
-        }
-
-        private void AddDisabledPreset(Type type, FilterConditionsPreset preset)
-        {
-            m_DisabledPresetsByType ??= new();
-            if (!m_DisabledPresetsByType.TryGetValue(type, out List<FilterConditionsPreset> presets))
-            {
-                presets = new();
-                m_DisabledPresetsByType[type] = presets;
-            }
-
-            if (preset != null) presets.Add((FilterConditionsPreset)preset.Clone());
-        }
-
         internal string GetMigrationSignature()
         {
             JsonSerializerSettings settings = new() { TypeNameHandling = TypeNameHandling.Auto };
@@ -167,7 +130,7 @@ namespace HBP.Core.Data
 
         internal object CaptureMigrationState()
         {
-            return new MigrationState(m_PresetsByType, m_CurrentPresetByType, m_DisabledPresetsByType);
+            return new MigrationState(m_PresetsByType, m_CurrentPresetByType);
         }
 
         internal void RestoreMigrationState(object state)
@@ -175,7 +138,6 @@ namespace HBP.Core.Data
             if (state is not MigrationState migrationState) throw new ArgumentException("Invalid filter preset migration state.", nameof(state));
             m_PresetsByType = migrationState.PresetsByType;
             m_CurrentPresetByType = migrationState.CurrentPresetByType;
-            m_DisabledPresetsByType = migrationState.DisabledPresetsByType;
         }
 
         public override object Clone()
@@ -183,8 +145,7 @@ namespace HBP.Core.Data
             return new FilterConditionsPresetCollection()
             {
                 m_PresetsByType = m_PresetsByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList()),
-                m_CurrentPresetByType = m_CurrentPresetByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.Clone() as FilterConditionsPreset),
-                m_DisabledPresetsByType = (m_DisabledPresetsByType ?? new()).ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList())
+                m_CurrentPresetByType = m_CurrentPresetByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.Clone() as FilterConditionsPreset)
             };
         }
 
@@ -194,7 +155,6 @@ namespace HBP.Core.Data
             {
                 m_PresetsByType = aliasCollection.m_PresetsByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList());
                 m_CurrentPresetByType = aliasCollection.m_CurrentPresetByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.Clone() as FilterConditionsPreset);
-                m_DisabledPresetsByType = (aliasCollection.m_DisabledPresetsByType ?? new()).ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList());
             }
         }
 
@@ -240,13 +200,11 @@ namespace HBP.Core.Data
         {
             public Dictionary<Type, List<FilterConditionsPreset>> PresetsByType { get; }
             public Dictionary<Type, FilterConditionsPreset> CurrentPresetByType { get; }
-            public Dictionary<Type, List<FilterConditionsPreset>> DisabledPresetsByType { get; }
 
-            public MigrationState(Dictionary<Type, List<FilterConditionsPreset>> presetsByType, Dictionary<Type, FilterConditionsPreset> currentPresetByType, Dictionary<Type, List<FilterConditionsPreset>> disabledPresetsByType)
+            public MigrationState(Dictionary<Type, List<FilterConditionsPreset>> presetsByType, Dictionary<Type, FilterConditionsPreset> currentPresetByType)
             {
                 PresetsByType = presetsByType;
                 CurrentPresetByType = currentPresetByType;
-                DisabledPresetsByType = disabledPresetsByType;
             }
         }
 

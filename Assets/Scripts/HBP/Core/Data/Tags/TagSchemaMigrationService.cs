@@ -70,6 +70,7 @@ namespace HBP.Core.Data
         private bool m_Committed;
 
         public ReadOnlyCollection<TagMigrationIssue> Issues { get; }
+        public ReadOnlyCollection<TagValueRemoval> RemovedValues { get; }
         public ReadOnlyCollection<string> Warnings { get; }
         public ReadOnlyCollection<TagDefinitionChange> DefinitionChanges { get; }
         public bool IsValid => Issues.Count == 0;
@@ -79,9 +80,9 @@ namespace HBP.Core.Data
         public int FilterCount { get; }
         public int LossyConversionCount { get; }
         public int DestructiveConversionCount { get; }
-        public int RecoveredValueCount { get; }
+        public int RemovedValueCount => RemovedValues.Count;
 
-        internal TagSchemaMigrationPlan(TagCollection targetTags, TagCollection preparedTags, FilterConditionsPresetCollection targetFilters, FilterConditionsPresetCollection preparedFilters, List<TagOwnerMutation> ownerMutations, IEnumerable<Patient> patients, IEnumerable<TagMigrationIssue> issues, IEnumerable<string> warnings, IEnumerable<TagDefinitionChange> definitionChanges, int patientValueCount, int siteValueCount, int filterCount, int lossyConversionCount, int destructiveConversionCount, int recoveredValueCount)
+        internal TagSchemaMigrationPlan(TagCollection targetTags, TagCollection preparedTags, FilterConditionsPresetCollection targetFilters, FilterConditionsPresetCollection preparedFilters, List<TagOwnerMutation> ownerMutations, IEnumerable<Patient> patients, IEnumerable<TagMigrationIssue> issues, IEnumerable<TagValueRemoval> removedValues, IEnumerable<string> warnings, IEnumerable<TagDefinitionChange> definitionChanges, int patientValueCount, int siteValueCount, int filterCount, int lossyConversionCount, int destructiveConversionCount)
         {
             m_TargetTags = targetTags;
             m_PreparedTags = preparedTags;
@@ -93,6 +94,7 @@ namespace HBP.Core.Data
             m_ExpectedFilterSignature = targetFilters?.GetMigrationSignature();
             m_ExpectedPatientGraph = CreatePatientGraph(patients);
             Issues = new ReadOnlyCollection<TagMigrationIssue>(issues.ToList());
+            RemovedValues = new ReadOnlyCollection<TagValueRemoval>(removedValues.ToList());
             Warnings = new ReadOnlyCollection<string>(warnings.Distinct(StringComparer.Ordinal).ToList());
             DefinitionChanges = new ReadOnlyCollection<TagDefinitionChange>(definitionChanges.ToList());
             ChangedDefinitionCount = DefinitionChanges.Count;
@@ -101,7 +103,6 @@ namespace HBP.Core.Data
             FilterCount = filterCount;
             LossyConversionCount = lossyConversionCount;
             DestructiveConversionCount = destructiveConversionCount;
-            RecoveredValueCount = recoveredValueCount;
         }
 
         public void CopyPreparedTagsTo(TagCollection destination)
@@ -244,24 +245,17 @@ namespace HBP.Core.Data
     public sealed class TagSchemaMigrationService
     {
         private readonly TagValueConversionService m_ValueConverter;
-        private readonly TagFilterValueConversionService m_FilterConverter;
 
-        public TagSchemaMigrationService() : this(new TagValueConversionService(), new TagFilterValueConversionService())
+        public TagSchemaMigrationService() : this(new TagValueConversionService())
         {
         }
 
-        public TagSchemaMigrationService(TagValueConversionService valueConverter, TagFilterValueConversionService filterConverter)
+        public TagSchemaMigrationService(TagValueConversionService valueConverter)
         {
             m_ValueConverter = valueConverter ?? throw new ArgumentNullException(nameof(valueConverter));
-            m_FilterConverter = filterConverter ?? throw new ArgumentNullException(nameof(filterConverter));
         }
 
         public TagSchemaMigrationPlan Plan(TagCollection currentTags, TagCollection proposedTags, IEnumerable<Patient> patients, FilterConditionsPresetCollection filters, ISet<string> modifiedTagIds, TagParsingPolicy policy)
-        {
-            return Plan(currentTags, proposedTags, patients, filters, modifiedTagIds, policy, false);
-        }
-
-        public TagSchemaMigrationPlan Plan(TagCollection currentTags, TagCollection proposedTags, IEnumerable<Patient> patients, FilterConditionsPresetCollection filters, ISet<string> modifiedTagIds, TagParsingPolicy policy, bool quarantineIncompatibleValues)
         {
             if (currentTags == null) throw new ArgumentNullException(nameof(currentTags));
             if (proposedTags == null) throw new ArgumentNullException(nameof(proposedTags));
@@ -274,6 +268,7 @@ namespace HBP.Core.Data
             Dictionary<string, BaseTag> preparedByID = preparedTags.AllTags.ToDictionary(tag => tag.ID, StringComparer.Ordinal);
             List<TagDefinitionChange> definitionChanges = BuildDefinitionChanges(currentTags, preparedTags, currentByID, preparedByID, modifiedTagIds);
             List<TagMigrationIssue> issues = new();
+            List<TagValueRemoval> removedValues = new();
             List<string> warnings = new();
             List<TagOwnerMutation> mutations = new();
             int patientValueCount = 0;
@@ -281,7 +276,6 @@ namespace HBP.Core.Data
             int filterCount = 0;
             int lossyCount = 0;
             int destructiveCount = 0;
-            int recoveredValueCount = 0;
 
             foreach (string tagID in modifiedTagIds.Where(id => !string.IsNullOrEmpty(id)))
             {
@@ -297,14 +291,14 @@ namespace HBP.Core.Data
                 if (patient == null) continue;
                 if (visitedOwners.Add(patient))
                 {
-                    mutations.Add(PrepareOwner(patient, patient.Tags, TagMigrationIssueScope.PatientValue, preparedByID, modifiedTagIds, policy, issues, warnings, quarantineIncompatibleValues, ref patientValueCount, ref lossyCount, ref destructiveCount, ref recoveredValueCount));
+                    mutations.Add(PrepareOwner(patient, patient, patient.Tags, TagMigrationIssueScope.PatientValue, preparedByID, modifiedTagIds, policy, removedValues, warnings, ref patientValueCount, ref lossyCount, ref destructiveCount));
                 }
 
                 foreach (Site site in patient.Sites ?? Enumerable.Empty<Site>())
                 {
                     if (site != null && visitedOwners.Add(site))
                     {
-                        mutations.Add(PrepareOwner(site, site.Tags, TagMigrationIssueScope.SiteValue, preparedByID, modifiedTagIds, policy, issues, warnings, quarantineIncompatibleValues, ref siteValueCount, ref lossyCount, ref destructiveCount, ref recoveredValueCount));
+                        mutations.Add(PrepareOwner(patient, site, site.Tags, TagMigrationIssueScope.SiteValue, preparedByID, modifiedTagIds, policy, removedValues, warnings, ref siteValueCount, ref lossyCount, ref destructiveCount));
                     }
                 }
             }
@@ -313,18 +307,18 @@ namespace HBP.Core.Data
             if (preparedFilters != null)
             {
                 TagCollection filterPlanningTags = (TagCollection)preparedTags.Clone();
-                FilterPresetRecoveryReport filterRecovery = FilterPresetRecoveryService.Recover(filterPlanningTags, preparedFilters, policy, false);
+                FilterPresetRepairReport filterRepair = FilterPresetRepairService.Repair(filterPlanningTags, preparedFilters, policy, false);
                 new LoadingContext(preparedTags.AllTags, Array.Empty<Protocol>(), logLegacyEnumWarnings: false).ResolveFilterConditions(preparedFilters);
-                filterCount += filterRecovery.AffectedFilterCount;
-                destructiveCount += filterRecovery.ResetCurrentPresetCount + filterRecovery.DisabledNamedPresetCount;
-                foreach (FilterPresetRecoveryIssue filterIssue in filterRecovery.Issues)
+                filterCount += filterRepair.AffectedFilterCount;
+                destructiveCount += filterRepair.RemovedConditionCount;
+                foreach (FilterConditionRepair repair in filterRepair.Repairs)
                 {
-                    string presetName = string.IsNullOrEmpty(filterIssue.PresetName) ? filterIssue.PresetID : filterIssue.PresetName;
-                    warnings.Add($"Filter preset '{presetName}' was disabled and preserved because it is incompatible with the proposed tag definitions.");
+                    string presetName = string.IsNullOrEmpty(repair.PresetName) ? repair.PresetID : repair.PresetName;
+                    warnings.Add($"Filter preset '{presetName}': {repair.Message}");
                 }
             }
 
-            return new TagSchemaMigrationPlan(currentTags, preparedTags, filters, preparedFilters, mutations, patientSnapshot, issues, warnings, definitionChanges, patientValueCount, siteValueCount, filterCount, lossyCount, destructiveCount, recoveredValueCount);
+            return new TagSchemaMigrationPlan(currentTags, preparedTags, filters, preparedFilters, mutations, patientSnapshot, issues, removedValues, warnings, definitionChanges, patientValueCount, siteValueCount, filterCount, lossyCount, destructiveCount);
         }
 
         public bool Validate(TagSchemaMigrationPlan plan)
@@ -339,51 +333,25 @@ namespace HBP.Core.Data
             plan.Commit();
         }
 
-        private TagOwnerMutation PrepareOwner(object owner, IEnumerable<BaseTagValue> sourceValues, TagMigrationIssueScope scope, IReadOnlyDictionary<string, BaseTag> preparedByID, ISet<string> modifiedTagIds, TagParsingPolicy policy, ICollection<TagMigrationIssue> issues, ICollection<string> warnings, bool quarantineIncompatibleValues, ref int convertedCount, ref int lossyCount, ref int destructiveCount, ref int recoveredValueCount)
+        private TagOwnerMutation PrepareOwner(Patient patient, object owner, IEnumerable<BaseTagValue> sourceValues, TagMigrationIssueScope scope, IReadOnlyDictionary<string, BaseTag> preparedByID, ISet<string> modifiedTagIds, TagParsingPolicy policy, ICollection<TagValueRemoval> removedValues, ICollection<string> warnings, ref int convertedCount, ref int lossyCount, ref int destructiveCount)
         {
             List<BaseTagValue> preparedValues = new();
-            List<TagValueRecoveryEntry> recoveryEntries = new();
             foreach (BaseTagValue source in sourceValues ?? Enumerable.Empty<BaseTagValue>())
             {
                 string tagID = source?.TagReferenceID;
                 if (source == null || string.IsNullOrEmpty(tagID))
                 {
                     const string reason = "A tag value has no tag reference.";
-                    if (quarantineIncompatibleValues && source != null)
-                    {
-                        recoveryEntries.Add(new TagValueRecoveryEntry(source, reason));
-                        recoveredValueCount++;
-                    }
-                    else
-                    {
-                        issues.Add(new TagMigrationIssue(scope, tagID, GetOwnerID(owner), reason));
-                    }
-
+                    removedValues.Add(new TagValueRemoval(scope, patient, tagID, GetOwnerID(owner), source, reason));
+                    destructiveCount++;
                     continue;
                 }
 
                 if (!preparedByID.TryGetValue(tagID, out BaseTag target))
                 {
-                    if (modifiedTagIds.Contains(tagID))
-                    {
-                        convertedCount++;
-                        destructiveCount++;
-                        recoveryEntries.Add(new TagValueRecoveryEntry(source, $"Tag definition '{tagID}' was removed."));
-                        recoveredValueCount++;
-                        continue;
-                    }
-
-                    string reason = $"Tag definition '{tagID}' was not found in the proposed collection.";
-                    if (quarantineIncompatibleValues)
-                    {
-                        recoveryEntries.Add(new TagValueRecoveryEntry(source, reason));
-                        recoveredValueCount++;
-                    }
-                    else
-                    {
-                        issues.Add(new TagMigrationIssue(scope, tagID, GetOwnerID(owner), reason));
-                    }
-
+                    string reason = modifiedTagIds.Contains(tagID) ? $"Tag definition '{tagID}' was removed." : $"Tag definition '{tagID}' was not found in the proposed collection.";
+                    removedValues.Add(new TagValueRemoval(scope, patient, tagID, GetOwnerID(owner), source, reason));
+                    destructiveCount++;
                     continue;
                 }
 
@@ -392,17 +360,8 @@ namespace HBP.Core.Data
                     TagValueConversionResult conversion = m_ValueConverter.TryConvert(source, target, policy);
                     if (!conversion.Success)
                     {
-                        if (quarantineIncompatibleValues)
-                        {
-                            recoveryEntries.Add(new TagValueRecoveryEntry(source, conversion.Error));
-                            recoveredValueCount++;
-                            destructiveCount++;
-                        }
-                        else
-                        {
-                            issues.Add(new TagMigrationIssue(scope, tagID, GetOwnerID(owner), conversion.Error));
-                        }
-
+                        removedValues.Add(new TagValueRemoval(scope, patient, tagID, GetOwnerID(owner), source, conversion.Error));
+                        destructiveCount++;
                         continue;
                     }
 
@@ -411,84 +370,19 @@ namespace HBP.Core.Data
                     CountImpact(conversion.Impact, ref lossyCount, ref destructiveCount);
                     if (conversion.Warning != null) warnings.Add(conversion.Warning);
                 }
+                else if (ReferenceEquals(source.Tag, target))
+                {
+                    preparedValues.Add(source);
+                }
                 else
                 {
-                    if (ReferenceEquals(source.Tag, target))
-                    {
-                        preparedValues.Add(source);
-                    }
-                    else
-                    {
-                        BaseTagValue clone = (BaseTagValue)source.Clone();
-                        clone.BindTag(target);
-                        preparedValues.Add(clone);
-                    }
+                    BaseTagValue clone = (BaseTagValue)source.Clone();
+                    clone.BindTag(target);
+                    preparedValues.Add(clone);
                 }
             }
 
-            return new TagOwnerMutation(owner, preparedValues, recoveryEntries);
-        }
-
-        private void PrepareFilterCondition(BaseFilterCondition condition, IReadOnlyDictionary<string, BaseTag> preparedByID, IReadOnlyDictionary<string, BaseTag> currentByID, ISet<string> modifiedTagIds, TagParsingPolicy policy, ICollection<TagMigrationIssue> issues, ICollection<string> warnings, ref int filterCount, ref int lossyCount, ref int destructiveCount)
-        {
-            switch (condition)
-            {
-                case PatientTagFilterCondition patientTag:
-                    PrepareFilter(patientTag.ID, patientTag.TagReferenceID, patientTag.Tag, patientTag.Value, (tag, value) =>
-                    {
-                        patientTag.Tag = tag;
-                        patientTag.Value = value;
-                    }, preparedByID, currentByID, modifiedTagIds, policy, issues, warnings, ref filterCount, ref lossyCount, ref destructiveCount);
-                    break;
-                case SiteTagFilterCondition siteTag:
-                    PrepareFilter(siteTag.ID, siteTag.TagReferenceID, siteTag.Tag, siteTag.Value, (tag, value) =>
-                    {
-                        siteTag.Tag = tag;
-                        siteTag.Value = value;
-                    }, preparedByID, currentByID, modifiedTagIds, policy, issues, warnings, ref filterCount, ref lossyCount, ref destructiveCount);
-                    break;
-                case MultipleSiteTagsFilterCondition multiple:
-                    foreach (SingleTagFilter single in multiple.TagFilters ?? Enumerable.Empty<SingleTagFilter>())
-                    {
-                        PrepareFilter(single.ID, single.TagReferenceID, single.Tag, single.Value, (tag, value) =>
-                        {
-                            single.Tag = tag;
-                            single.Value = value;
-                        }, preparedByID, currentByID, modifiedTagIds, policy, issues, warnings, ref filterCount, ref lossyCount, ref destructiveCount);
-                    }
-
-                    break;
-                case AllFilterCondition all:
-                    foreach (BaseFilterCondition child in all.Conditions ?? Enumerable.Empty<BaseFilterCondition>()) PrepareFilterCondition(child, preparedByID, currentByID, modifiedTagIds, policy, issues, warnings, ref filterCount, ref lossyCount, ref destructiveCount);
-                    break;
-                case AnyFilterCondition any:
-                    foreach (BaseFilterCondition child in any.Conditions ?? Enumerable.Empty<BaseFilterCondition>()) PrepareFilterCondition(child, preparedByID, currentByID, modifiedTagIds, policy, issues, warnings, ref filterCount, ref lossyCount, ref destructiveCount);
-                    break;
-            }
-        }
-
-        private void PrepareFilter(string ownerID, string tagID, BaseTag sourceTag, TagFilterValue sourceValue, Action<BaseTag, TagFilterValue> apply, IReadOnlyDictionary<string, BaseTag> preparedByID, IReadOnlyDictionary<string, BaseTag> currentByID, ISet<string> modifiedTagIds, TagParsingPolicy policy, ICollection<TagMigrationIssue> issues, ICollection<string> warnings, ref int filterCount, ref int lossyCount, ref int destructiveCount)
-        {
-            if (string.IsNullOrEmpty(tagID) || !modifiedTagIds.Contains(tagID)) return;
-            filterCount++;
-            if (!preparedByID.TryGetValue(tagID, out BaseTag targetTag))
-            {
-                apply(null, sourceValue);
-                destructiveCount++;
-                return;
-            }
-
-            currentByID.TryGetValue(tagID, out BaseTag canonicalSourceTag);
-            TagFilterValueConversionResult conversion = m_FilterConverter.TryConvert(sourceValue, canonicalSourceTag ?? sourceTag, targetTag, policy);
-            if (!conversion.Success)
-            {
-                issues.Add(new TagMigrationIssue(TagMigrationIssueScope.Filter, tagID, ownerID, conversion.Error));
-                return;
-            }
-
-            apply(targetTag, conversion.Value);
-            CountImpact(conversion.Impact, ref lossyCount, ref destructiveCount);
-            if (conversion.Warning != null) warnings.Add(conversion.Warning);
+            return new TagOwnerMutation(owner, preparedValues);
         }
 
         private static string GetOwnerID(object owner)
@@ -542,22 +436,15 @@ namespace HBP.Core.Data
         private readonly object m_Owner;
         private readonly List<BaseTagValue> m_ExpectedValues;
         private readonly BaseTagValue[] m_ExpectedEntries;
-        private readonly List<TagValueRecoveryEntry> m_ExpectedRecoveryEntries;
-        private readonly TagValueRecoveryEntry[] m_ExpectedRecoveryEntryItems;
         private List<BaseTagValue> m_OriginalValues;
-        private List<TagValueRecoveryEntry> m_OriginalRecoveryEntries;
         public List<BaseTagValue> PreparedValues { get; }
-        public List<TagValueRecoveryEntry> PreparedRecoveryEntries { get; }
 
-        public TagOwnerMutation(object owner, List<BaseTagValue> preparedValues, List<TagValueRecoveryEntry> recoveryEntries)
+        public TagOwnerMutation(object owner, List<BaseTagValue> preparedValues)
         {
             m_Owner = owner;
             PreparedValues = preparedValues;
-            PreparedRecoveryEntries = recoveryEntries;
             m_ExpectedValues = GetValues();
             m_ExpectedEntries = m_ExpectedValues.ToArray();
-            m_ExpectedRecoveryEntries = GetRecoveryEntries();
-            m_ExpectedRecoveryEntryItems = m_ExpectedRecoveryEntries.ToArray();
         }
 
         public void CaptureOriginal()
@@ -568,26 +455,17 @@ namespace HBP.Core.Data
                 throw new InvalidOperationException("A tag value collection changed after this migration plan was created.");
             }
 
-            List<TagValueRecoveryEntry> currentRecoveryEntries = GetRecoveryEntries();
-            if (!ReferenceEquals(currentRecoveryEntries, m_ExpectedRecoveryEntries) || currentRecoveryEntries.Count != m_ExpectedRecoveryEntryItems.Length || currentRecoveryEntries.Where((entry, index) => !ReferenceEquals(entry, m_ExpectedRecoveryEntryItems[index])).Any())
-            {
-                throw new InvalidOperationException("A tag recovery collection changed after this migration plan was created.");
-            }
-
             m_OriginalValues = currentValues;
-            m_OriginalRecoveryEntries = currentRecoveryEntries;
         }
 
         public void Apply()
         {
             SetValues(PreparedValues);
-            if (PreparedRecoveryEntries.Count > 0) SetRecoveryEntries(m_OriginalRecoveryEntries.Concat(PreparedRecoveryEntries).ToList());
         }
 
         public void Restore()
         {
             if (m_OriginalValues != null) SetValues(m_OriginalValues);
-            if (m_OriginalRecoveryEntries != null) SetRecoveryEntries(m_OriginalRecoveryEntries);
         }
 
         private List<BaseTagValue> GetValues()
@@ -612,29 +490,6 @@ namespace HBP.Core.Data
                     break;
                 default:
                     throw new InvalidOperationException("Unsupported tag value owner.");
-            }
-        }
-
-        private List<TagValueRecoveryEntry> GetRecoveryEntries()
-        {
-            return m_Owner switch
-            {
-                Patient patient => patient.QuarantinedTagValues ??= new(),
-                Site site => site.QuarantinedTagValues ??= new(),
-                _ => throw new InvalidOperationException("Unsupported tag value owner.")
-            };
-        }
-
-        private void SetRecoveryEntries(List<TagValueRecoveryEntry> entries)
-        {
-            switch (m_Owner)
-            {
-                case Patient patient:
-                    patient.QuarantinedTagValues = entries;
-                    break;
-                case Site site:
-                    site.QuarantinedTagValues = entries;
-                    break;
             }
         }
     }

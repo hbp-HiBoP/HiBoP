@@ -8,89 +8,64 @@ namespace HBP.UI.Tools
 {
     public static class DeferredTagMigrationDialog
     {
-        public static async UniTask<DeferredTagMigrationDecision> ConfirmAsync(DeferredTagMigrationPlan plan)
-        {
-            await UniTask.SwitchToMainThread();
-            string scope = GetScopeName(plan.Scope);
-            StringBuilder message = new();
-            message.AppendLine($"This {scope} contains tag values saved with definitions that differ from the current tag definitions.");
-            message.AppendLine();
-            message.AppendLine("The following migration will be applied while opening it:");
-            foreach (DeferredTagMigrationChange change in plan.Changes.Take(20))
-            {
-                string sourceTypes = change.SerializedTypes.Count == 0 ? "unknown" : string.Join(", ", change.SerializedTypes);
-                message.AppendLine($"• {change.Name}: {sourceTypes} → {change.CurrentType} ({change.ValueCount} values, {change.FilterCount} filters)");
-            }
-
-            if (plan.Changes.Count > 20) message.AppendLine($"• … and {plan.Changes.Count - 20} other tags");
-            if (plan.EnumAdditionCount > 0) message.AppendLine($"• {plan.EnumAdditionCount} new enum values will be added to the global tag definitions.");
-            if (plan.Warnings.Count > 0)
-            {
-                message.AppendLine();
-                message.AppendLine("Warnings:");
-                foreach (string warning in plan.Warnings.Take(10)) message.AppendLine($"• {warning}");
-            }
-
-            if (plan.Issues.Count > 0)
-            {
-                message.AppendLine();
-                message.AppendLine("Values that cannot be migrated automatically:");
-                foreach (TagMigrationIssue issue in plan.Issues.Take(15)) message.AppendLine($"• {issue}");
-                if (plan.Issues.Count > 15) message.AppendLine($"• … and {plan.Issues.Count - 15} other issues");
-            }
-
-            message.AppendLine();
-            message.AppendLine($"After opening, save the {scope} to persist the migrated values.");
-
-            if (plan.Issues.Count == 0)
-            {
-                int result = await DialogBoxManager.OpenScrollableAsync(plan.LossyConversionCount > 0 || plan.Warnings.Count > 0 ? DialogBoxType.Warning : DialogBoxType.Informational, "Tag migration required", message.ToString(), "Open and migrate", "Cancel");
-                return result == 0 ? DeferredTagMigrationDecision.Apply : DeferredTagMigrationDecision.Cancel;
-            }
-
-            if (plan.CanRemoveIncompatibleValues)
-            {
-                message.AppendLine();
-                message.AppendLine($"{plan.RecoveryCount} incompatible values will be preserved in recovery storage and excluded from the active tags.");
-                int result = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Tag migration recovery", message.ToString(), "Open and recover", "Cancel");
-                return result == 0 ? DeferredTagMigrationDecision.ApplyWithRecovery : DeferredTagMigrationDecision.Cancel;
-            }
-
-            message.AppendLine();
-            message.AppendLine("The migration includes incompatible filter presets and cannot be completed automatically. Update or remove those presets before reopening.");
-            await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Error, "Tag migration blocked", message.ToString(), "Cancel");
-            return DeferredTagMigrationDecision.Cancel;
-        }
-
         public static async UniTask InformAsync(DeferredTagMigrationPlan plan)
         {
             if (plan == null || !plan.RequiresConfirmation) return;
             await UniTask.SwitchToMainThread();
             string scope = GetScopeName(plan.Scope);
             StringBuilder message = new();
-            message.AppendLine($"The {scope} has been opened with its tag values updated to the current global definitions.");
+            message.AppendLine($"The {scope} was opened after automatically repairing its tag data.");
             message.AppendLine();
             message.AppendLine($"Patient values migrated: {plan.PatientValueCount}");
             message.AppendLine($"Site values migrated: {plan.SiteValueCount}");
+            message.AppendLine($"Values removed: {plan.RemovedValueCount}");
+            message.AppendLine($"Filter conditions repaired: {plan.FilterCount}");
             message.AppendLine($"Enum options added: {plan.EnumAdditionCount}");
-            message.AppendLine($"Values preserved in recovery storage: {plan.RecoveryCount}");
+
+            if (plan.RemovedValues.Count > 0)
+            {
+                message.AppendLine();
+                message.AppendLine("Removed tag values by patient:");
+                var summaries = plan.RemovedValues.GroupBy(removal => new { removal.PatientID, removal.PatientName }).Select(group => new
+                {
+                    Name = string.IsNullOrEmpty(group.Key.PatientName) ? "Unknown patient" : group.Key.PatientName,
+                    PatientValues = group.Count(removal => removal.Scope == TagMigrationIssueScope.PatientValue),
+                    SiteValues = group.Count(removal => removal.Scope == TagMigrationIssueScope.SiteValue)
+                }).OrderBy(summary => summary.Name, System.StringComparer.OrdinalIgnoreCase).ThenBy(summary => summary.Name, System.StringComparer.Ordinal).ToArray();
+                foreach (var summary in summaries.Take(15)) message.AppendLine($"• {summary.Name}: {FormatValueCount(summary.PatientValues, "patient")}, {FormatValueCount(summary.SiteValues, "site")} removed");
+
+                if (summaries.Length > 15) message.AppendLine($"• … and {summaries.Length - 15} other patients");
+            }
+
+            if (plan.FilterRepairs.Count > 0)
+            {
+                message.AppendLine();
+                message.AppendLine("Repaired filters:");
+                foreach (FilterConditionRepair repair in plan.FilterRepairs.Take(15))
+                {
+                    string preset = string.IsNullOrEmpty(repair.PresetName) ? repair.PresetID : repair.PresetName;
+                    message.AppendLine($"• {preset}, condition {repair.ConditionID}: {repair.Message}");
+                }
+
+                if (plan.FilterRepairs.Count > 15) message.AppendLine($"• … and {plan.FilterRepairs.Count - 15} other filter repairs");
+            }
+
             if (plan.Warnings.Count > 0)
             {
                 message.AppendLine();
-                message.AppendLine("Warnings:");
+                message.AppendLine("Conversion warnings:");
                 foreach (string warning in plan.Warnings.Take(10)) message.AppendLine($"• {warning}");
             }
 
-            if (plan.Issues.Count > 0)
-            {
-                message.AppendLine();
-                message.AppendLine("Recovered values:");
-                foreach (TagMigrationIssue issue in plan.Issues.Take(15)) message.AppendLine($"• {issue}");
-            }
-
             message.AppendLine();
-            message.AppendLine($"Save the {scope} to persist the migrated values and recovery records.");
-            await DialogBoxManager.OpenScrollableAsync(plan.Issues.Count > 0 || plan.Warnings.Count > 0 ? DialogBoxType.Warning : DialogBoxType.Informational, "Tag migration completed", message.ToString(), "Continue");
+            message.AppendLine(plan.Scope == DeferredTagMigrationScope.Workspace ? "Synchronize the database again to restore values from a corrected source, or save the workspace to persist these repairs." : $"Save the {scope} to persist these repairs.");
+            DialogBoxType type = plan.RemovedValueCount > 0 || plan.FilterRepairs.Count > 0 || plan.Warnings.Count > 0 ? DialogBoxType.Warning : DialogBoxType.Informational;
+            await DialogBoxManager.OpenScrollableAsync(type, "Tag data repaired", message.ToString(), "Continue");
+        }
+
+        private static string FormatValueCount(int count, string scope)
+        {
+            return $"{count} {scope} tag {(count == 1 ? "value" : "values")}";
         }
 
         public static async UniTask InformStructuralRecoveryAsync(LoadingRecoveryReport report, string scope)

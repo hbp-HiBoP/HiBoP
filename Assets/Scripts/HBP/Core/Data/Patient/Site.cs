@@ -60,7 +60,6 @@ namespace HBP.Core.Data
         /// </summary>
         [JsonProperty] public List<BaseTagValue> Tags { get; set; }
 
-        [JsonProperty] public List<TagValueRecoveryEntry> QuarantinedTagValues { get; set; } = new();
 
         /// <summary>
         /// Do we need to fix site names ?
@@ -82,7 +81,6 @@ namespace HBP.Core.Data
             Name = name;
             Coordinates = coordinates.ToList();
             Tags = tags.ToList();
-            QuarantinedTagValues = new();
         }
 
         /// <summary>
@@ -95,7 +93,6 @@ namespace HBP.Core.Data
             Name = name;
             Coordinates = coordinates.ToList();
             Tags = tags.ToList();
-            QuarantinedTagValues = new();
         }
 
         /// <summary>
@@ -393,7 +390,7 @@ namespace HBP.Core.Data
                 using StreamReader streamReader = new(csvFile);
                 string file = streamReader.ReadToEnd();
                 string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                int titleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
+                int titleLine = Array.FindIndex(lines, line => line.Contains('\t') && string.Equals(line.Split('\t')[0].Trim(), "contact", StringComparison.OrdinalIgnoreCase));
                 if (titleLine > -1)
                 {
                     // Split the lines before handling them
@@ -550,7 +547,6 @@ namespace HBP.Core.Data
         {
             Site clone = new(Name, Coordinates.DeepClone(), Tags.DeepClone(), ID)
             {
-                QuarantinedTagValues = new List<TagValueRecoveryEntry>(QuarantinedTagValues ?? new())
             };
             return clone;
         }
@@ -567,7 +563,6 @@ namespace HBP.Core.Data
                 Name = site.Name;
                 Coordinates = site.Coordinates;
                 Tags = site.Tags;
-                QuarantinedTagValues = new List<TagValueRecoveryEntry>(site.QuarantinedTagValues ?? new());
             }
         }
 

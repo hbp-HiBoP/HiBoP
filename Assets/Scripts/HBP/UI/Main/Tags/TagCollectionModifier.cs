@@ -100,31 +100,8 @@ namespace HBP.UI.Main
                 {
                     string issueDetails = string.Join("\n", plan.Issues.Take(8).Select(issue => "• " + issue));
                     if (plan.Issues.Count > 8) issueDetails += $"\n• ... and {plan.Issues.Count - 8} more issue(s)";
-                    bool canQuarantine = plan.Issues.All(issue => issue.Scope is Core.Data.TagMigrationIssueScope.PatientValue or Core.Data.TagMigrationIssueScope.SiteValue);
-                    string recoveryMessage = "Some values or filters cannot be converted:\n\n" + issueDetails + "\n\nYou can preserve incompatible values in recovery storage, keep the affected tag definitions unchanged while applying independent changes, or cancel.";
-                    int recoveryDecision = canQuarantine ? await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Some tag changes need recovery", recoveryMessage, "Apply with recovery", "Keep affected tags unchanged", "Cancel") : await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Some tag changes need recovery", recoveryMessage, "Keep affected tags unchanged", "Cancel");
-                    if ((canQuarantine && recoveryDecision == 2) || (!canQuarantine && recoveryDecision != 0)) return;
-
-                    if (canQuarantine && recoveryDecision == 0)
-                    {
-                        plan = migrationService.Plan(Object, ObjectTemp, patients, PersistentDataManager.FilterConditionsPresets, modifiedTagIds, Core.Data.TagParsingPolicy.Default, true);
-                    }
-                    else
-                    {
-                        HashSet<string> blockedTagIDs = new(plan.Issues.Where(issue => !string.IsNullOrEmpty(issue.TagID)).Select(issue => issue.TagID), StringComparer.Ordinal);
-                        if (blockedTagIDs.Count == 0) return;
-                        Core.Data.TagCollection partialProposal = BuildPartialProposal(Object, ObjectTemp, blockedTagIDs);
-                        modifiedTagIds.ExceptWith(blockedTagIDs);
-                        if (modifiedTagIds.Count == 0) return;
-                        plan = migrationService.Plan(Object, partialProposal, patients, PersistentDataManager.FilterConditionsPresets, modifiedTagIds, Core.Data.TagParsingPolicy.Default);
-                        if (!migrationService.Validate(plan))
-                        {
-                            await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Remaining tag changes blocked", string.Join("\n", plan.Issues.Take(8).Select(issue => "• " + issue)), "OK");
-                            return;
-                        }
-
-                        ObjectTemp.Copy(partialProposal);
-                    }
+                    await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Tag changes blocked", issueDetails, "OK");
+                    return;
                 }
 
                 string summary = BuildMigrationSummary(plan, loadedProject != null);
@@ -212,7 +189,19 @@ namespace HBP.UI.Main
                 $"Lossy conversions: {plan.LossyConversionCount}",
                 $"Destructive conversions: {plan.DestructiveConversionCount}"
             };
-            if (plan.RecoveredValueCount > 0) lines.Add($"Values preserved in recovery storage: {plan.RecoveredValueCount}");
+            if (plan.RemovedValueCount > 0)
+            {
+                lines.Add($"Values removed: {plan.RemovedValueCount}");
+                var summaries = plan.RemovedValues.GroupBy(removal => new { removal.PatientID, removal.PatientName }).Select(group => new
+                {
+                    Name = string.IsNullOrEmpty(group.Key.PatientName) ? "Unknown patient" : group.Key.PatientName,
+                    PatientValues = group.Count(removal => removal.Scope == Core.Data.TagMigrationIssueScope.PatientValue),
+                    SiteValues = group.Count(removal => removal.Scope == Core.Data.TagMigrationIssueScope.SiteValue)
+                }).OrderBy(summary => summary.Name, StringComparer.OrdinalIgnoreCase).ThenBy(summary => summary.Name, StringComparer.Ordinal).ToArray();
+                lines.AddRange(summaries.Take(8).Select(summary => $"• {summary.Name}: {FormatValueCount(summary.PatientValues, "patient")}, {FormatValueCount(summary.SiteValues, "site")} removed"));
+                if (summaries.Length > 8) lines.Add($"• ... and {summaries.Length - 8} more patient(s)");
+            }
+
             if (plan.Warnings.Count > 0) lines.Add($"Warnings: {plan.Warnings.Count}");
             if (plan.DefinitionChanges.Count > 0)
             {
@@ -222,20 +211,13 @@ namespace HBP.UI.Main
             }
 
             if (hasLoadedProject) lines.Add("\nThe loaded project will be updated in memory. Save the project afterwards to persist these changes.");
-            if (!DatabaseManager.Database.IsLoaded) lines.Add("\nThe selected database workspace is not loaded. Its values will be migrated with recovery when that workspace is next opened.");
+            if (!DatabaseManager.Database.IsLoaded) lines.Add("\nThe selected database workspace is not loaded. Its values will be repaired when that workspace is next opened.");
             return string.Join("\n", lines);
         }
 
-        private static Core.Data.TagCollection BuildPartialProposal(Core.Data.TagCollection current, Core.Data.TagCollection proposed, ISet<string> blockedTagIDs)
+        private static string FormatValueCount(int count, string scope)
         {
-            IEnumerable<Core.Data.BaseTag> Merge(IEnumerable<Core.Data.BaseTag> currentCategory, IEnumerable<Core.Data.BaseTag> proposedCategory)
-            {
-                List<Core.Data.BaseTag> result = proposedCategory.Where(tag => tag != null && !blockedTagIDs.Contains(tag.ID)).ToList();
-                result.AddRange(currentCategory.Where(tag => tag != null && blockedTagIDs.Contains(tag.ID)));
-                return result;
-            }
-
-            return new Core.Data.TagCollection(Merge(current.GeneralTags, proposed.GeneralTags), Merge(current.PatientsTags, proposed.PatientsTags), Merge(current.SitesTags, proposed.SitesTags), proposed.ID);
+            return $"{count} {scope} tag {(count == 1 ? "value" : "values")}";
         }
 
         private static bool IsMigrationContextCurrent(Core.Data.Project loadedProject, bool databaseWasLoaded, string workspaceID)

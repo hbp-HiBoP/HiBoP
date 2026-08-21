@@ -105,7 +105,6 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.StringTagValue), "HBP.Core.Data.StringTagValue");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.SubBloc), "HBP.Core.Data.SubBloc");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.TagCollection), "HBP.Core.Data.TagCollection");
-            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.TagValueRecoveryEntry), "HBP.Core.Data.TagValueRecoveryEntry");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.ThresholdTreatment), "HBP.Core.Data.ThresholdTreatment");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.Treatment), "HBP.Core.Data.Treatment");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.ValidationState), "HBP.Core.Data.ValidationState");

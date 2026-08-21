@@ -89,7 +89,6 @@ namespace HBP.Core.Data
         /// </summary>
         [JsonProperty] public List<BaseTagValue> Tags { get; set; }
 
-        [JsonProperty] public List<TagValueRecoveryEntry> QuarantinedTagValues { get; set; } = new();
 
         [JsonProperty] public string CorrespondingDatabaseID { get; set; }
         [JsonProperty("AssetValidationState")] private ValidationState m_AssetValidationState;
@@ -115,7 +114,6 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
-            QuarantinedTagValues = new();
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
 
@@ -134,7 +132,6 @@ namespace HBP.Core.Data
             this.MRIs = MRIs.ToList();
             Sites = sites.ToList();
             Tags = tags.ToList();
-            QuarantinedTagValues = new();
             CorrespondingDatabaseID = correspondingDatabaseID;
         }
 
@@ -1080,7 +1077,6 @@ namespace HBP.Core.Data
         public override object Clone()
         {
             Patient clone = new(Name, Meshes.DeepClone(), MRIs.DeepClone(), Sites.DeepClone(), Tags.DeepClone(), CorrespondingDatabaseID, ID);
-            clone.QuarantinedTagValues = new List<TagValueRecoveryEntry>(QuarantinedTagValues ?? new());
             clone.m_AssetValidationState = m_AssetValidationState?.Clone();
             return clone;
         }
@@ -1099,7 +1095,6 @@ namespace HBP.Core.Data
                 MRIs = patient.MRIs;
                 Sites = patient.Sites;
                 Tags = patient.Tags;
-                QuarantinedTagValues = new List<TagValueRecoveryEntry>(patient.QuarantinedTagValues ?? new());
                 CorrespondingDatabaseID = patient.CorrespondingDatabaseID;
                 m_AssetValidationState = patient.m_AssetValidationState?.Clone();
             }

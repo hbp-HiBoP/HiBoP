@@ -440,141 +440,141 @@ Pour chaque valeur :
 Cette conversion doit intervenir avant `LoadingContext.ResolvePatientTags`, afin
 d'éviter les casts génériques invalides après le rebinding.
 
-### 8.2 Information et récupération non bloquante
+### 8.2 Information et réparation non bloquante
 
 Le chargement applique automatiquement le type global courant. Si le plan
-contient une migration, le workflow UI affiche après publication :
+contient une migration ou une réparation, le workflow UI affiche après
+publication :
 
 - les tags concernés ;
 - les nombres de valeurs patient/site et de filtres ;
-- les conversions prévues ;
+- les conversions effectuées et leur éventuel caractère lossy ;
+- les valeurs supprimées, agrégées par nom de patient avec les nombres de
+  valeurs patient et site concernées ;
+- les conditions de filtre migrées, supprimées ou simplifiées ;
 - les warnings enum legacy ;
-- les échecs éventuels ;
-- le rappel qu'une sauvegarde sera nécessaire.
+- le rappel qu'une sauvegarde normale sera nécessaire.
 
 Le Core construit et applique le plan ; il ne connaît pas la dialogbox. La
-fenêtre est informative et ne propose aucun changement de type.
+fenêtre est informative et ne propose aucun changement de type ni décision de
+quarantaine.
 
-Si des valeurs sont impossibles à convertir :
+Si une valeur est impossible à convertir, elle est exclue du graphe préparé et
+ajoutée à un rapport runtime TagValueRemoval. Elle n'est ni conservée dans le
+propriétaire ni sérialisée ailleurs. Le projet ou workspace reste utilisable et
+l'utilisateur reçoit le détail de la suppression.
 
-- elles sont exclues du graphe actif et conservées dans une quarantaine
-  sérialisée avec leur owner, TagID, ValueID, type, valeur brute et raison ;
-- l'artefact s'ouvre et la fenêtre détaille la récupération ;
-- aucune modification de type n'est proposée.
+Les presets de filtres ne sont jamais désactivés à cause d'une condition de tag
+invalide. La réparation descend dans les conditions composées, retire seulement
+les feuilles impossibles et normalise les groupes devenus trop petits. Les
+filtres globaux ne bloquent jamais l'ouverture d'un workspace ou d'un projet.
 
-Un filtre courant global invalide est réinitialisé et archivé. Un preset nommé
-invalide est désactivé en bloc afin de ne pas modifier silencieusement sa logique
-`All`/`Any`. Les filtres globaux ne bloquent jamais l'ouverture d'un workspace ou
-d'un projet.
-
-Les références structurelles ou entrées JSON irrécupérables ouvrent le scope en
-mode recovery read-only : les objets concernés sont quarantinés, les objets
-valides restent utilisables, et le fichier source demeure inchangé.
+Les références structurelles ou entrées JSON irrécupérables restent un cas
+distinct. Elles ouvrent le scope en mode recovery read-only : les objets
+concernés sont exclus, les objets valides restent utilisables et le fichier
+source demeure inchangé.
 
 ### 8.3 Persistance
 
 Après migration :
 
-- conserver tous les IDs ;
-- publier le graphe migré ;
-- marquer le projet ou workspace comme modifié ;
-- persister les changements au prochain `Save` normal ;
-- ne plus afficher la migration après sauvegarde et rechargement.
+- conserver les IDs de toutes les entités converties et de tous les presets ;
+- publier le graphe réparé ;
+- marquer les tags ou filtres globaux modifiés ;
+- persister les changements au prochain Save normal ;
+- ne créer aucun fichier .bak spécifique à la réparation des tags ;
+- ne plus afficher la même migration après sauvegarde et rechargement.
 
 Les mappings booléens utilisés sont ceux des préférences présentes au moment du
-chargement. Le dialogue doit afficher le résultat calculé avant confirmation.
+chargement. Les rapports affichent le résultat effectivement calculé.
 
-### 8.4 Dette produit : comportement post-quarantaine à définir
+### 8.4 Politique de réparation implémentée
 
-La quarantaine introduite dans cette passe garantit qu'une incompatibilité ne
-bloque plus l'ouverture et qu'aucune valeur de remplacement n'est inventée. Elle
-ne constitue cependant pas encore un workflow complet de réparation. Le cycle
-de vie post-quarantaine doit faire l'objet d'une décision produit et d'une phase
-d'implémentation dédiée.
-
-Trois catégories d'entités sont actuellement concernées.
+La quarantaine des valeurs et des presets de tags est supprimée. La politique
+est déterministe : aucune incompatibilité de valeur ou de filtre ne bloque
+l'ouverture, aucune valeur de remplacement n'est inventée et chaque action
+destructive est rapportée à l'utilisateur.
 
 #### Valeurs de tags patient et site
 
-Une `BaseTagValue` est mise en quarantaine lorsque sa définition globale est
-absente, lorsque son type n'est plus compatible ou lorsque sa conversion vers le
-type global échoue. Elle est retirée de `Patient.Tags` ou `Site.Tags` et n'est
-donc plus visible, filtrable ni utilisée par les traitements. Une
-`TagValueRecoveryEntry` conserve sur son propriétaire :
+Pour chaque BaseTagValue :
 
-- le `TagID` ;
-- le `ValueID` ;
-- le type CLR sérialisé ;
-- la valeur JSON complète ;
-- la raison de la quarantaine.
+1. si le TagID retrouve une définition compatible, la valeur est rebindée à
+   l'instance canonique ;
+2. si le type diffère mais que la conversion réussit, la valeur convertie
+   remplace l'ancienne en conservant son ValueID ;
+3. si la conversion est lossy ou applique un clamp, elle est acceptée et un
+   warning est ajouté ;
+4. si la définition est absente, le TagID est vide ou la conversion échoue,
+   la valeur est supprimée du graphe préparé et un TagValueRemoval est ajouté
+   au rapport runtime ;
+5. un enum moderne peut étendre la définition canonique en append-only ;
+6. un enum legacy est reconstruit depuis son index uniquement lorsque celui-ci
+   est valide, avec warning ; sinon sa valeur est supprimée.
 
-Si l'utilisateur sauvegarde, ces entrées sont persistées dans l'artefact. Sans
-sauvegarde, le fichier original demeure intact et la même récupération sera
-reproposée à l'ouverture suivante. La réapparition ultérieure de la définition
-du tag ne restaure pas encore automatiquement les valeurs et aucune UI ne permet
-actuellement de les remapper ou de les réinjecter.
+TagValueRemoval ne contient pas la valeur brute sérialisée et n'est jamais
+persisté. Il expose uniquement les identifiants, le type et la raison nécessaires
+à l'information utilisateur. Le rollback transactionnel restaure la collection
+et les bindings d'origine tant que la sauvegarde n'a pas validé l'opération.
+
+Pour une base provenant d'une source externe, la méthode de récupération
+opérationnelle est une nouvelle synchronisation après correction de la source.
+Pour un projet, le fichier original reste intact tant que l'utilisateur ne
+sauvegarde pas.
 
 #### Presets de filtres globaux
 
-Un filtre courant invalide est remplacé par un filtre courant vide et une copie
-du preset complet est ajoutée aux presets désactivés. Un preset nommé invalide
-est retiré de la liste active et conservé intégralement dans cette même
-collection. Le preset entier est archivé afin de ne pas modifier silencieusement
-la logique d'une composition `All` ou `Any`.
+Chaque preset courant ou nommé est cloné puis réparé récursivement. Son nom et
+son ID sont toujours conservés, même si sa liste finale de conditions est vide.
 
-Cette récupération globale est sauvegardée avec une copie
-`.pre-recovery.bak` du fichier original. Les presets désactivés ne participent
-plus au filtrage. Il n'existe pas encore d'écran permettant de les inspecter, de
-remapper leurs tags ou valeurs, puis de les réactiver.
+La normalisation applique les règles suivantes :
 
-#### Objets et fichiers structurels
+- une condition simple sans tag ou non convertible est supprimée ;
+- dans MultipleSiteTagsFilterCondition, seuls les SingleTagFilter invalides
+  sont supprimés ; si la liste devient vide, la condition multiple est
+  supprimée ;
+- dans AllFilterCondition et AnyFilterCondition, les enfants sont réparés
+  récursivement ;
+- avec au moins deux enfants valides, le groupe est conservé ;
+- avec un seul enfant valide, le groupe est remplacé par cet enfant et la
+  négation est combinée avec child.IsNot ^= group.IsNot ;
+- sans enfant valide, le groupe est supprimé ;
+- une conversion qui nécessiterait d'étendre un enum hors du schéma proposé
+  pendant l'édition des définitions supprime la condition au lieu de modifier
+  implicitement ce schéma.
 
-Peuvent être exclus du graphe actif : protocoles, références de base, patients,
-`DataInfo`, datasets, groupes et visualisations. Cela couvre notamment les
-fichiers ou entrées non désérialisables, les IDs absents ou dupliqués, les
-protocoles ayant des IDs de blocs invalides et les références obligatoires non
-résolues.
+Le rapport FilterConditionRepair identifie le preset, la condition, le tag et
+l'action effectuée. La persistance utilise Save() et ne produit pas de
+.pre-recovery.bak.
 
-Un objet correctement désérialisé est conservé en mémoire dans le rapport de
-récupération avec son ID et les raisons de son exclusion. Pour une entrée ou un
-fichier illisible, le rapport conserve son chemin ou son nom et l'erreur, tandis
-que la source reste sur disque. Dès qu'une telle récupération structurelle est
-présente, le projet ou workspace passe en lecture seule : sauvegarde, update et
-publication des références sont bloquées afin de ne pas remplacer la source par
-le seul sous-ensemble actif. Ce rapport est actuellement un état runtime, pas un
-sidecar de réparation persistant.
+#### Échec global et récupération structurelle
 
-Un `Tags.json` ou fichier de presets global entièrement invalide constitue un
-cas voisin mais distinct : le fichier original est préservé, une collection de
-secours permet à l'application de rester disponible, et les écritures qui
-pourraient écraser le fichier invalide sont interdites. Ce cas ne crée pas une
-entrée de quarantaine par objet lorsque la désérialisation globale est
-impossible.
+Un Tags.json ou fichier de presets entièrement invalide reste distinct d'un tag
+individuel absent. Le fichier original est préservé, les écritures qui pourraient
+l'écraser sont interdites et l'application peut ouvrir les données en lecture
+seule. La correction attendue est la restauration du fichier global, puis le
+redémarrage ou la resynchronisation.
 
-Les décisions restantes sont au minimum :
+La récupération structurelle des protocoles, références, patients, DataInfo,
+datasets, groupes et visualisations conserve sa politique read-only. Elle ne
+réutilise pas la politique de suppression des valeurs de tags, car sauvegarder
+un sous-graphe structurel incomplet pourrait détruire des objets indépendants.
 
-- définir les états explicites `quarantined`, `restored`, `remapped` et
-  `discarded`, ainsi que leurs transitions ;
-- fournir un écran central listant les éléments concernés, leur provenance et
-  leur raison ;
-- permettre une restauration automatique lorsque l'identité et le type sont à
-  nouveau compatibles ;
-- permettre un remapping explicite vers une autre définition, avec prévisualisation
-  et conservation des IDs lorsque cela est valide ;
-- définir la suppression définitive, sa confirmation et la durée de rétention
-  des backups ;
-- définir si les rapports structurels doivent être persistés dans un sidecar et
-  comment réintégrer un objet réparé ;
-- clarifier dans l'UI l'effet exact de `Save` : persister la quarantaine pour les
-  valeurs de tags, mais refuser toute sauvegarde en récupération structurelle ;
-- ajouter des tests de round-trip quarantaine -> restauration et de non-perte
-  après plusieurs ouvertures et sauvegardes.
+#### Couverture de tests
 
-Le cas réel `ebrains.hibop` illustre l'importance de cette dette : 26 664 valeurs
-de tags sont récupérables mais actuellement exclues du graphe actif parce que
-leurs définitions globales sont absentes. Tant que la stratégie de restauration
-ou de reconstruction de ces définitions n'est pas arrêtée, cet artefact ne doit
-pas être sauvegardé après migration.
+Les tests EditMode couvrent :
+
+- conversion, suppression rapportée, absence de mutation pendant le plan et
+  rollback des valeurs ;
+- rebinding d'une valeur compatible vers la définition canonique ;
+- reconstruction des enums legacy et extension append-only des enums modernes ;
+- conservation des presets courants et nommés, y compris lorsqu'ils partagent
+  un ID ;
+- suppression ciblée dans MultipleSiteTagsFilterCondition ;
+- suppression récursive et réduction des groupes All/Any avec combinaison de
+  la négation ;
+- persistance par Save() et absence de répétition de la réparation au
+  rechargement.
 
 ## 9. Flux transactionnel d'une mise à jour de base
 
@@ -639,7 +639,7 @@ la même matrice de conversion.
 - adapter le chargement pour convertir avant le rebinding ;
 - produire un plan de migration sans publier le graphe ;
 - intégrer une notification non bloquante dans les workflows UI de chargement ;
-- mettre en quarantaine les valeurs incompatibles sans inventer ni supprimer leur donnée brute ;
+- supprimer du graphe préparé les valeurs incompatibles et les détailler dans le rapport runtime ;
 - marquer les artefacts migrés comme devant être sauvegardés ;
 - appliquer la même logique aux presets de filtres.
 

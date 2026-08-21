@@ -28,7 +28,7 @@ namespace HBP.Tests.Serialization
             Assert.That(patient.Tags.Single(), Is.SameAs(patientValue));
             Assert.That(site.Tags.Single(), Is.SameAs(siteValue));
 
-            plan.Commit(DeferredTagMigrationDecision.Apply);
+            plan.Commit();
 
             Assert.That(patient.Tags.Single(), Is.TypeOf<IntTagValue>());
             Assert.That(((IntTagValue)patient.Tags.Single()).Value, Is.EqualTo(42));
@@ -43,8 +43,28 @@ namespace HBP.Tests.Serialization
             Assert.That(site.Tags.Single(), Is.SameAs(siteValue));
         }
 
+
         [Test]
-        public void MissingTag_RequiresExplicitDestructiveDecisionAndRemovesOnlyIncompatibleValue()
+        public void CompatibleDetachedValue_IsNotReportedAsMigrationAndLoadingContextRebindsIt()
+        {
+            StringTag canonical = new("status", "deferred-value-rebind-tag");
+            StringTag detached = new("status", canonical.ID);
+            StringTagValue value = new(detached, "ready", "deferred-value-rebind-value");
+            Patient patient = CreatePatient(new BaseTagValue[] { value });
+            TagCollection tags = new(Array.Empty<BaseTag>(), new BaseTag[] { canonical }, Array.Empty<BaseTag>());
+
+            DeferredTagMigrationPlan plan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Project, tags, new[] { patient }, null, TagParsingPolicy.Default);
+
+            Assert.That(plan.RequiresConfirmation, Is.False);
+            Assert.That(plan.PatientValueCount, Is.Zero);
+            Assert.That(value.Tag, Is.SameAs(detached));
+            new LoadingContext(tags.AllTags, Array.Empty<Protocol>(), new[] { patient }).ResolveDatabase(new[] { patient }, Array.Empty<DataInfo>());
+            Assert.That(patient.Tags.Single(), Is.SameAs(value));
+            Assert.That(value.Tag, Is.SameAs(canonical));
+        }
+
+        [Test]
+        public void MissingTag_IsRemovedAndReportedAndRollbackRestoresIt()
         {
             StringTag valid = new("valid", "deferred-valid-tag");
             TagCollection tags = new(Array.Empty<BaseTag>(), new BaseTag[] { valid }, Array.Empty<BaseTag>());
@@ -54,45 +74,46 @@ namespace HBP.Tests.Serialization
 
             DeferredTagMigrationPlan plan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Workspace, tags, new[] { patient }, null, TagParsingPolicy.Default);
 
-            Assert.That(plan.Issues.Count, Is.EqualTo(1));
-            Assert.That(plan.CanRemoveIncompatibleValues, Is.True);
-            Assert.That(plan.DestructiveRemovalCount, Is.EqualTo(1));
-            Assert.Throws<OperationCanceledException>(() => plan.Commit(DeferredTagMigrationDecision.Cancel));
-            Assert.Throws<InvalidOperationException>(() => plan.Commit(DeferredTagMigrationDecision.Apply));
+            Assert.That(plan.Issues, Is.Empty);
+            Assert.That(plan.RemovedValues, Has.Count.EqualTo(1));
+            Assert.That(plan.RemovedValues[0].TagID, Is.EqualTo("deferred-missing-tag"));
+            Assert.That(plan.RemovedValues[0].ValueID, Is.EqualTo(missingValue.ID));
+            Assert.That(plan.RemovedValues[0].SerializedType, Is.EqualTo(nameof(StringTagValue)));
+            Assert.That(plan.RemovedValues[0].PatientID, Is.EqualTo(patient.ID));
+            Assert.That(plan.RemovedValues[0].PatientName, Is.EqualTo(patient.Name));
             Assert.That(patient.Tags, Is.EqualTo(new BaseTagValue[] { validValue, missingValue }));
 
-            plan.Commit(DeferredTagMigrationDecision.ApplyAndRemoveIncompatibleValues);
+            plan.Commit();
 
             Assert.That(patient.Tags, Is.EqualTo(new BaseTagValue[] { validValue }));
             Assert.That(patient.Tags.Single().Tag, Is.SameAs(valid));
-        }
-
-        [Test]
-        public void MissingTag_RecoveryDecisionPreservesRawValueOutsideActiveTagsAndRollbackRestoresIt()
-        {
-            StringTag valid = new("valid", "deferred-recovery-valid-tag");
-            TagCollection tags = new(Array.Empty<BaseTag>(), new BaseTag[] { valid }, Array.Empty<BaseTag>());
-            StringTagValue validValue = new(valid, "kept", "deferred-recovery-valid-value");
-            StringTagValue missingValue = new(new StringTag("missing", "deferred-recovery-missing-tag"), "preserved", "deferred-recovery-missing-value");
-            Patient patient = CreatePatient(new BaseTagValue[] { validValue, missingValue });
-
-            DeferredTagMigrationPlan plan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Workspace, tags, new[] { patient }, null, TagParsingPolicy.Default);
-            plan.Commit(DeferredTagMigrationDecision.ApplyWithRecovery);
-
-            Assert.That(patient.Tags, Is.EqualTo(new BaseTagValue[] { validValue }));
-            Assert.That(patient.QuarantinedTagValues, Has.Count.EqualTo(1));
-            Assert.That(patient.QuarantinedTagValues[0].TagID, Is.EqualTo("deferred-recovery-missing-tag"));
-            Assert.That(patient.QuarantinedTagValues[0].ValueID, Is.EqualTo(missingValue.ID));
-            Assert.That(patient.QuarantinedTagValues[0].SerializedValue, Does.Contain("preserved"));
 
             plan.Rollback();
 
             Assert.That(patient.Tags, Is.EqualTo(new BaseTagValue[] { validValue, missingValue }));
-            Assert.That(patient.QuarantinedTagValues, Is.Empty);
         }
 
         [Test]
-        public void FilterRecovery_MissingCurrentTagResetsCurrentPresetWithoutBlockingOtherData()
+        public void MissingSiteTag_ReportsItsParentPatient()
+        {
+            StringTagValue missingValue = new(new StringTag("missing", "deferred-missing-site-tag"), "removed", "deferred-missing-site-value");
+            Site site = new("site", Array.Empty<Coordinate>(), new BaseTagValue[] { missingValue }, "deferred-missing-site");
+            Patient patient = CreatePatient(Array.Empty<BaseTagValue>(), new[] { site });
+
+            DeferredTagMigrationPlan plan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Workspace, new TagCollection(), new[] { patient }, null, TagParsingPolicy.Default);
+
+            Assert.That(plan.RemovedValues, Has.Count.EqualTo(1));
+            Assert.That(plan.RemovedValues[0].Scope, Is.EqualTo(TagMigrationIssueScope.SiteValue));
+            Assert.That(plan.RemovedValues[0].OwnerID, Is.EqualTo(site.ID));
+            Assert.That(plan.RemovedValues[0].PatientID, Is.EqualTo(patient.ID));
+            Assert.That(plan.RemovedValues[0].PatientName, Is.EqualTo(patient.Name));
+
+            plan.Commit();
+            Assert.That(site.Tags, Is.Empty);
+        }
+
+        [Test]
+        public void FilterRepair_MissingCurrentTagKeepsPresetAndRemovesCondition()
         {
             TagCollection tags = new();
             StringTag missing = new("missing", "deferred-current-filter-missing-tag");
@@ -101,35 +122,60 @@ namespace HBP.Tests.Serialization
             FilterConditionsPresetCollection filters = new();
             filters.SetCurrentPreset(current, typeof(Site), false);
 
-            FilterPresetRecoveryReport report = FilterPresetRecoveryService.Recover(tags, filters);
+            FilterPresetRepairReport report = FilterPresetRepairService.Repair(tags, filters);
 
-            Assert.That(report.ResetCurrentPresetCount, Is.EqualTo(1));
+            Assert.That(report.RemovedConditionCount, Is.EqualTo(1));
+            Assert.That(filters.GetCurrentPreset(typeof(Site)).ID, Is.EqualTo(current.ID));
             Assert.That(filters.GetCurrentPreset(typeof(Site)).Conditions, Is.Empty);
-            Assert.That(filters.DisabledPresetCount, Is.EqualTo(1));
         }
 
         [Test]
-        public void FilterRecovery_MissingNamedTagDisablesWholePresetAndPreservesNestedConditions()
+        public void FilterRepair_NestedGroupWithOneValidChildIsCollapsedAndPresetIsPreserved()
         {
-            TagCollection tags = new();
+            StringTag canonical = new("valid", "deferred-valid-filter-tag");
+            TagCollection tags = new(Array.Empty<BaseTag>(), new BaseTag[] { canonical }, Array.Empty<BaseTag>());
+            PatientTagFilterCondition valid = new(PatientTagFilterCondition.TargetType.Patient, canonical, new StringTagFilterValue { Value = "ok" }, false, "deferred-valid-condition");
             StringTag missing = new("missing", "deferred-named-filter-missing-tag");
-            PatientTagFilterCondition condition = new(PatientTagFilterCondition.TargetType.Patient, missing, new StringTagFilterValue { Value = "x" }, false);
-            AllFilterCondition nested = new(new BaseFilterCondition[] { condition }, false, "deferred-disabled-nested");
-            FilterConditionsPreset preset = new("named", new BaseFilterCondition[] { nested }, "deferred-disabled-preset");
+            PatientTagFilterCondition invalid = new(PatientTagFilterCondition.TargetType.Patient, missing, new StringTagFilterValue { Value = "x" }, false);
+            AllFilterCondition nested = new(new BaseFilterCondition[] { valid, invalid }, true, "deferred-repaired-nested");
+            FilterConditionsPreset preset = new("named", new BaseFilterCondition[] { nested }, "deferred-repaired-preset");
             FilterConditionsPresetCollection filters = new();
             filters.AddPreset(preset, typeof(Patient), false);
 
-            FilterPresetRecoveryReport report = FilterPresetRecoveryService.Recover(tags, filters);
+            FilterPresetRepairReport report = FilterPresetRepairService.Repair(tags, filters);
 
-            Assert.That(report.DisabledNamedPresetCount, Is.EqualTo(1));
-            Assert.That(filters.GetPresets(typeof(Patient)), Is.Empty);
-            Assert.That(filters.DisabledPresetCount, Is.EqualTo(1));
+            FilterConditionsPreset repairedPreset = filters.GetPresets(typeof(Patient)).Single();
+            PatientTagFilterCondition repairedCondition = (PatientTagFilterCondition)repairedPreset.Conditions.Single();
+            Assert.That(report.RemovedConditionCount, Is.EqualTo(1));
+            Assert.That(repairedPreset.ID, Is.EqualTo(preset.ID));
+            Assert.That(repairedCondition.ID, Is.EqualTo(valid.ID));
+            Assert.That(repairedCondition.IsNot, Is.True);
+            Assert.That(repairedCondition.Tag, Is.SameAs(canonical));
         }
 
         [Test]
-        public void FilterRecovery_CompatibleDeserializedFilterIsBoundToCanonicalTag()
+        public void FilterRepair_MultipleSiteTagsRemovesOnlyInvalidSingleFilter()
         {
-            StringTag canonical = new("status", "filter-recovery-bind-tag");
+            StringTag canonical = new("valid", "deferred-multiple-valid-tag");
+            TagCollection tags = new(Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), new BaseTag[] { canonical });
+            SingleTagFilter valid = new(canonical, new StringTagFilterValue { Value = "ok" }, "deferred-multiple-valid");
+            SingleTagFilter invalid = new(new StringTag("missing", "deferred-multiple-missing-tag"), new StringTagFilterValue { Value = "bad" }, "deferred-multiple-invalid");
+            MultipleSiteTagsFilterCondition multiple = new(new[] { valid, invalid }, false, "deferred-multiple-condition");
+            FilterConditionsPresetCollection filters = new();
+            filters.AddPreset(new FilterConditionsPreset("multiple", new BaseFilterCondition[] { multiple }), typeof(Patient), false);
+
+            FilterPresetRepairReport report = FilterPresetRepairService.Repair(tags, filters);
+
+            MultipleSiteTagsFilterCondition repaired = (MultipleSiteTagsFilterCondition)filters.GetPresets(typeof(Patient)).Single().Conditions.Single();
+            Assert.That(report.RemovedConditionCount, Is.EqualTo(1));
+            Assert.That(repaired.TagFilters.Select(filter => filter.ID), Is.EqualTo(new[] { valid.ID }));
+            Assert.That(repaired.TagFilters.Single().Tag, Is.SameAs(canonical));
+        }
+
+        [Test]
+        public void FilterRepair_CompatibleDeserializedFilterIsBoundToCanonicalTag()
+        {
+            StringTag canonical = new("status", "filter-repair-bind-tag");
             TagCollection tags = new(Array.Empty<BaseTag>(), new BaseTag[] { canonical }, Array.Empty<BaseTag>());
             PatientTagFilterCondition source = new(PatientTagFilterCondition.TargetType.Patient, canonical, new StringTagFilterValue { Value = "ready" }, false);
             FilterConditionsPresetCollection filters = new();
@@ -137,38 +183,41 @@ namespace HBP.Tests.Serialization
             typeof(PatientTagFilterCondition).GetField("m_TagID", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(source, canonical.ID);
             source.Tag = null;
 
-            FilterPresetRecoveryReport report = FilterPresetRecoveryService.Recover(tags, filters);
+            FilterPresetRepairReport report = FilterPresetRepairService.Repair(tags, filters);
 
-            Assert.That(report.Issues, Is.Empty);
+            Assert.That(report.HasChanges, Is.False);
+            PatientTagFilterCondition unresolved = (PatientTagFilterCondition)filters.GetPresets(typeof(Patient)).Single().Conditions.Single();
+            Assert.That(unresolved.Tag, Is.Null);
+            new LoadingContext(tags.AllTags, Array.Empty<Protocol>()).ResolveFilterConditions(filters);
             PatientTagFilterCondition rebound = (PatientTagFilterCondition)filters.GetPresets(typeof(Patient)).Single().Conditions.Single();
             Assert.That(rebound.Tag, Is.SameAs(canonical));
         }
 
         [Test]
-        public void FilterRecovery_PreservesCurrentAndNamedPayloadsThatShareAnId()
+        public void FilterRepair_PreservesCurrentAndNamedPresetsThatShareAnId()
         {
             TagCollection tags = new();
-            StringTag firstMissing = new("first", "filter-recovery-same-id-first-tag");
-            StringTag secondMissing = new("second", "filter-recovery-same-id-second-tag");
-            FilterConditionsPreset current = new("current", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, firstMissing, new StringTagFilterValue { Value = "a" }, false) }, "filter-recovery-shared-preset-id");
-            FilterConditionsPreset named = new("named", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, secondMissing, new StringTagFilterValue { Value = "b" }, false) }, current.ID);
+            FilterConditionsPreset current = new("current", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, new StringTag("first", "filter-repair-first"), new StringTagFilterValue { Value = "a" }, false) }, "filter-repair-shared-id");
+            FilterConditionsPreset named = new("named", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, new StringTag("second", "filter-repair-second"), new StringTagFilterValue { Value = "b" }, false) }, current.ID);
             FilterConditionsPresetCollection filters = new();
             filters.SetCurrentPreset(current, typeof(Patient), false);
             filters.AddPreset(named, typeof(Patient), false);
 
-            FilterPresetRecoveryReport report = FilterPresetRecoveryService.Recover(tags, filters);
+            FilterPresetRepairReport report = FilterPresetRepairService.Repair(tags, filters);
 
-            Assert.That(report.Issues, Has.Count.EqualTo(2));
-            Assert.That(filters.DisabledPresetCount, Is.EqualTo(2));
-            Assert.That(filters.GetDisabledPresetEntries().Select(entry => entry.Preset.Name), Is.EquivalentTo(new[] { "current", "named" }));
+            Assert.That(report.RemovedConditionCount, Is.EqualTo(2));
+            Assert.That(filters.GetCurrentPreset(typeof(Patient)).Name, Is.EqualTo("current"));
+            Assert.That(filters.GetCurrentPreset(typeof(Patient)).Conditions, Is.Empty);
+            Assert.That(filters.GetPresets(typeof(Patient)).Single().Name, Is.EqualTo("named"));
+            Assert.That(filters.GetPresets(typeof(Patient)).Single().Conditions, Is.Empty);
         }
 
         [Test]
-        public void FilterRecovery_EnumExtensionIsPersistedAndDoesNotRepeatAfterRestart()
+        public void FilterRepair_EnumExtensionIsPersistedAndDoesNotRepeatAfterRestart()
         {
             using TempDirectoryScope temp = new();
             using PersistentDataTestScope persistentData = new(temp.Path);
-            EnumTag canonical = new("status", new[] { "old" }, "filter-recovery-persist-enum");
+            EnumTag canonical = new("status", new[] { "old" }, "filter-repair-persist-enum");
             TagCollection tags = new(Array.Empty<BaseTag>(), new BaseTag[] { canonical }, Array.Empty<BaseTag>());
             EnumTag serializedDefinition = new("status", new[] { "new" }, canonical.ID);
             EnumTagFilterValue value = new();
@@ -180,22 +229,21 @@ namespace HBP.Tests.Serialization
 
             TagCollection loadedTags = TagCollection.Initialize();
             FilterConditionsPresetCollection loadedFilters = FilterConditionsPresetCollection.Initialize();
-            FilterPresetRecoveryReport first = FilterPresetRecoveryService.Recover(loadedTags, loadedFilters);
+            FilterPresetRepairReport first = FilterPresetRepairService.Repair(loadedTags, loadedFilters);
             Assert.That(first.MigratedPresetCount, Is.EqualTo(1));
             Assert.That(((EnumTag)loadedTags.AllTags.Single()).Values, Is.EqualTo(new[] { "old", "new" }));
             Assert.That(loadedTags.HasUnsavedTagMigration, Is.True);
-            loadedTags.SaveRecovered();
-            loadedFilters.SaveRecovered();
+            loadedTags.Save();
+            loadedFilters.Save();
 
             TagCollection restartedTags = TagCollection.Initialize();
             FilterConditionsPresetCollection restartedFilters = FilterConditionsPresetCollection.Initialize();
-            FilterPresetRecoveryReport second = FilterPresetRecoveryService.Recover(restartedTags, restartedFilters);
+            FilterPresetRepairReport second = FilterPresetRepairService.Repair(restartedTags, restartedFilters);
             Assert.That(second.HasChanges, Is.False);
             Assert.That(((EnumTag)restartedTags.AllTags.Single()).Values, Is.EqualTo(new[] { "old", "new" }));
             Assert.That(((PatientTagFilterCondition)restartedFilters.GetPresets(typeof(Patient)).Single().Conditions.Single()).Tag, Is.SameAs(restartedTags.AllTags.Single()));
         }
 
-        [Test]
         public void LegacyEnum_ReconstructsCurrentLabelAndWarns()
         {
             EnumTag canonical = new("status", new[] { "ready" }, "deferred-legacy-enum-tag");
@@ -208,7 +256,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(plan.Warnings.Any(warning => warning.Contains("current index")), Is.True);
             Assert.That(legacy.StringValue, Is.Null);
-            plan.Commit(DeferredTagMigrationDecision.Apply);
+            plan.Commit();
             Assert.That(((EnumTagValue)patient.Tags.Single()).StringValue, Is.EqualTo("ready"));
             Assert.That(patient.Tags.Single().Tag, Is.SameAs(canonical));
         }
@@ -226,7 +274,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(plan.EnumAdditionCount, Is.EqualTo(1));
             Assert.That(canonical.Values, Is.EqualTo(new[] { "old" }));
-            plan.Commit(DeferredTagMigrationDecision.Apply);
+            plan.Commit();
             Assert.That(canonical.Values, Is.EqualTo(new[] { "old", "new" }));
             Assert.That(((EnumTagValue)patient.Tags.Single()).StringValue, Is.EqualTo("new"));
             Assert.That(((EnumTagValue)patient.Tags.Single()).Value, Is.EqualTo(1));
@@ -254,7 +302,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(plan.FilterCount, Is.EqualTo(2));
             Assert.That(patientCondition.Value, Is.SameAs(patientValue));
-            plan.Commit(DeferredTagMigrationDecision.Apply);
+            plan.Commit();
 
             AllFilterCondition migrated = (AllFilterCondition)filters.GetPresets(typeof(Patient)).Single().Conditions.Single();
             PatientTagFilterCondition migratedPatient = (PatientTagFilterCondition)migrated.Conditions[0];
@@ -273,7 +321,7 @@ namespace HBP.Tests.Serialization
             Assert.That(restored.Conditions[0], Is.SameAs(patientCondition));
             Assert.That(((MultipleSiteTagsFilterCondition)restored.Conditions[1]).TagFilters.Single(), Is.SameAs(single));
 
-            plan.Commit(DeferredTagMigrationDecision.Apply);
+            plan.Commit();
             plan.MarkPersistenceRequired();
             Assert.That(filters.HasUnsavedTagMigration, Is.True);
         }
@@ -287,7 +335,7 @@ namespace HBP.Tests.Serialization
             DeferredTagMigrationPlan plan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Project, tags, new[] { patient }, null, TagParsingPolicy.Default);
             canonical.Name = "changed";
 
-            Assert.Throws<InvalidOperationException>(() => plan.Commit(DeferredTagMigrationDecision.Apply));
+            Assert.Throws<InvalidOperationException>(() => plan.Commit());
             Assert.That(patient.Tags.Single(), Is.TypeOf<StringTagValue>());
         }
 

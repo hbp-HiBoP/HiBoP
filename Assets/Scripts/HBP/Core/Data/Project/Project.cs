@@ -561,7 +561,7 @@ namespace HBP.Core.Data
             });
         }
 
-        public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<DeferredTagMigrationPlan, UniTask<DeferredTagMigrationDecision>> migrationDecisionProvider = null)
+        public async UniTask LoadAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToMainThread();
             SharedLoadingOperation<Project> operation;
@@ -575,7 +575,7 @@ namespace HBP.Core.Data
                     SharedLoadingOperation<Project> createdOperation = null;
                     createdOperation = new SharedLoadingOperation<Project>(generation, async (progress, operationToken) =>
                     {
-                        await LoadCoreAsync(projectInfo, (value, duration, text) => progress(value * READY_PROGRESS_WEIGHT, duration, text), operationToken, () => createdOperation.Priority, migrationDecisionProvider);
+                        await LoadCoreAsync(projectInfo, (value, duration, text) => progress(value * READY_PROGRESS_WEIGHT, duration, text), operationToken, () => createdOperation.Priority);
                         return this;
                     }, (project, progress, operationToken) => ValidateProjectCoreAsync((value, duration, text) => progress(READY_PROGRESS_WEIGHT + value * (1 - READY_PROGRESS_WEIGHT), duration, text), operationToken, generation, ValidationRequest.Startup, () => createdOperation.Priority));
                     m_LoadingOperation = createdOperation;
@@ -623,7 +623,7 @@ namespace HBP.Core.Data
             }
         }
 
-        private async UniTask LoadCoreAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<LoadingWorkPriority> priorityProvider, Func<DeferredTagMigrationPlan, UniTask<DeferredTagMigrationDecision>> migrationDecisionProvider)
+        private async UniTask LoadCoreAsync(ProjectInfo projectInfo, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<LoadingWorkPriority> priorityProvider)
         {
             try
             {
@@ -720,7 +720,7 @@ namespace HBP.Core.Data
                     if (migrationPlan.RequiresConfirmation)
                     {
                         token.ThrowIfCancellationRequested();
-                        migrationPlan.Commit(migrationPlan.Issues.Count > 0 ? DeferredTagMigrationDecision.ApplyWithRecovery : DeferredTagMigrationDecision.Apply);
+                        migrationPlan.Commit();
                         migrationCommitted = true;
                     }
 

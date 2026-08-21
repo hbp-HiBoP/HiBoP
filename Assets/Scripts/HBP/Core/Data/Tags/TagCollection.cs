@@ -181,12 +181,6 @@ namespace HBP.Core.Data
             OnSaveTags.Invoke();
         }
 
-        public void SaveRecovered()
-        {
-            string backupPath = PATH + ".pre-recovery.bak";
-            if (File.Exists(PATH)) File.Copy(PATH, backupPath, true);
-            Save();
-        }
 
         internal void MarkTagMigrationUnsaved()
         {
@@ -432,6 +426,17 @@ namespace HBP.Core.Data
                 string[] lines = File.ReadAllLines(csvPath);
                 if (lines.Length > 0)
                 {
+                    bool isIntranat = lines.Any(line => line.Contains('\t') && string.Equals(line.Split('\t')[0].Trim(), "contact", StringComparison.OrdinalIgnoreCase));
+                    if (isIntranat)
+                    {
+                        foreach (Site site in Site.LoadSitesFromCSVFile(csvPath, policy, createMissingTags, importContext))
+                        {
+                            resultTags[site.Name] = site.Tags.ToList();
+                        }
+
+                        return resultTags;
+                    }
+
                     string[] headers = csvParser.Split(lines[0]);
                     BaseTag[] tags = new BaseTag[headers.Length - 1];
                     for (int i = 1; i < headers.Length; i++)

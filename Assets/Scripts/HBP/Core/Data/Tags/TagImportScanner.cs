@@ -117,7 +117,7 @@ namespace HBP.Core.Data
             foreach (FileInfo file in root.GetFiles("*.csv", SearchOption.TopDirectoryOnly).Where(file => !file.Name.Equals("patients.csv", StringComparison.OrdinalIgnoreCase)))
             {
                 token.ThrowIfCancellationRequested();
-                ScanDelimitedFile(file.FullName, ',', false, observations);
+                ScanTagsSiteFile(file.FullName, observations);
             }
 
             foreach (FileInfo file in root.GetFiles("*.xlsx", SearchOption.TopDirectoryOnly).Where(file => !file.Name.Equals("patients.xlsx", StringComparison.OrdinalIgnoreCase)))
@@ -131,7 +131,7 @@ namespace HBP.Core.Data
                 foreach (FileInfo file in directory.GetFiles("*.csv", SearchOption.AllDirectories))
                 {
                     token.ThrowIfCancellationRequested();
-                    ScanDelimitedFile(file.FullName, ',', false, observations);
+                    ScanTagsSiteFile(file.FullName, observations);
                 }
 
                 foreach (FileInfo file in directory.GetFiles("*.xlsx", SearchOption.AllDirectories))
@@ -178,7 +178,7 @@ namespace HBP.Core.Data
         {
             if (!File.Exists(path)) return;
             string[] lines = File.ReadAllLines(path).Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
-            int headerIndex = Array.FindIndex(lines, line => line.StartsWith("contact", StringComparison.OrdinalIgnoreCase));
+            int headerIndex = FindIntranatHeaderIndex(lines);
             if (headerIndex < 0) return;
             string[] tableLines = lines.Skip(headerIndex).ToArray();
             ScanSiteTable(tableLines, '\t', new[] { "contact", "mni", "t1pre scanner based" }, observations);
@@ -194,6 +194,30 @@ namespace HBP.Core.Data
                 int label = TryGetMarsAtlasLabel(values, marsAtlasIndex, intranatMarsAtlasIndex, mniMarsAtlasIndex);
                 AddMarsAtlasValues(observations, label, true);
             }
+        }
+
+        private static void ScanTagsSiteFile(string path, TagImportObservations observations)
+        {
+            string[] lines = File.Exists(path) ? File.ReadAllLines(path).Where(line => !string.IsNullOrWhiteSpace(line)).ToArray() : Array.Empty<string>();
+            if (FindIntranatHeaderIndex(lines) >= 0)
+            {
+                ScanIntranatSiteFile(path, observations);
+            }
+            else
+            {
+                ScanDelimitedFile(path, ',', false, observations);
+            }
+        }
+
+        private static int FindIntranatHeaderIndex(IReadOnlyList<string> lines)
+        {
+            for (int index = 0; index < lines.Count; index++)
+            {
+                string[] values = lines[index].Split('\t');
+                if (values.Length > 1 && string.Equals(values[0].Trim(), "contact", StringComparison.OrdinalIgnoreCase)) return index;
+            }
+
+            return -1;
         }
 
         private static int TryGetMarsAtlasLabel(IReadOnlyList<string> values, params int[] indices)
@@ -238,7 +262,7 @@ namespace HBP.Core.Data
         {
             if (lines.Length == 0) return;
             HashSet<string> excluded = new(excludedHeaders, StringComparer.OrdinalIgnoreCase);
-            string[] headers = Split(lines[0], separator);
+            string[] headers = Split(lines[0], separator).Select(header => header.Trim()).ToArray();
             for (int row = 1; row < lines.Length; row++)
             {
                 string[] values = Split(lines[row], separator);

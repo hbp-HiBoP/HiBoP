@@ -22,7 +22,6 @@ namespace HBP.UI.Database
             var database = DatabaseManager.Database;
             await database.InitializeAsync();
             await UniTask.SwitchToMainThread();
-            database.TagMigrationDecisionProvider = DeferredTagMigrationDialog.ConfirmAsync;
 
             if (PersistentDataManager.TagInitializationException != null)
             {
@@ -63,7 +62,7 @@ namespace HBP.UI.Database
         {
             if (PersistentDataManager.TagInitializationException != null)
             {
-                int decision = await DialogBoxManager.OpenScrollableAsync(Core.Enums.DialogBoxType.Error, "Tag definitions recovery required", "The global tag definitions could not be loaded. The original Tags.json file was preserved. You can open the database read-only: tag values will be kept in a recovery quarantine and saving will remain disabled. To leave recovery mode, repair or restore Tags.json and restart HiBoP.\n\n" + PersistentDataManager.TagInitializationException, "Open read-only recovery", "Continue without database");
+                int decision = await DialogBoxManager.OpenScrollableAsync(Core.Enums.DialogBoxType.Error, "Tag definitions recovery required", "The global tag definitions could not be loaded. The original Tags.json file was preserved. You can open the database read-only: unresolved tag values will be omitted from the in-memory view and saving will remain disabled. Restore Tags.json and restart HiBoP, or resynchronize the database after restoring access to its source.\n\n" + PersistentDataManager.TagInitializationException, "Open read-only recovery", "Continue without database");
                 if (decision != 0) return false;
             }
 
@@ -110,10 +109,10 @@ namespace HBP.UI.Database
                 await DeferredTagMigrationDialog.InformStructuralRecoveryAsync(database.StructuralRecoveryReport, "database workspace");
             }
 
-            await ShowPendingFilterRecoveryAsync();
+            await ShowPendingFilterRepairAsync();
         }
 
-        public static async UniTask ShowPendingFilterRecoveryAsync()
+        public static async UniTask ShowPendingFilterRepairAsync()
         {
             Exception initializationException = PersistentDataManager.ConsumeFilterInitializationWarning();
             if (initializationException != null)
@@ -122,21 +121,22 @@ namespace HBP.UI.Database
                 return;
             }
 
-            FilterPresetRecoveryReport report = PersistentDataManager.ConsumeFilterRecoveryReport();
+            FilterPresetRepairReport report = PersistentDataManager.ConsumeFilterRepairReport();
             if (report == null || !report.HasChanges) return;
             StringBuilder message = new();
-            message.AppendLine("Invalid global tag filters were recovered without blocking your data:");
+            message.AppendLine("Invalid global tag filters were repaired without disabling their presets:");
             message.AppendLine();
-            message.AppendLine($"Current filters reset: {report.ResetCurrentPresetCount}");
-            message.AppendLine($"Named presets disabled and preserved: {report.DisabledNamedPresetCount}");
             message.AppendLine($"Presets migrated: {report.MigratedPresetCount}");
-            foreach (FilterPresetRecoveryIssue issue in report.Issues.Take(10))
+            message.AppendLine($"Filter conditions affected: {report.AffectedFilterCount}");
+            message.AppendLine($"Filter conditions removed: {report.RemovedConditionCount}");
+            foreach (FilterConditionRepair repair in report.Repairs.Take(15))
             {
-                string name = string.IsNullOrEmpty(issue.PresetName) ? issue.PresetID : issue.PresetName;
-                message.AppendLine($"• {name}: {string.Join("; ", issue.Reasons)}");
+                string name = string.IsNullOrEmpty(repair.PresetName) ? repair.PresetID : repair.PresetName;
+                message.AppendLine($"• {name}, condition {repair.ConditionID}: {repair.Message}");
             }
 
-            await DialogBoxManager.OpenScrollableAsync(Core.Enums.DialogBoxType.Warning, "Tag filters recovered", message.ToString(), "Continue");
+            if (report.Repairs.Count > 15) message.AppendLine($"• … and {report.Repairs.Count - 15} other repairs");
+            await DialogBoxManager.OpenScrollableAsync(Core.Enums.DialogBoxType.Warning, "Tag filters repaired", message.ToString(), "Continue");
         }
 
         public static async UniTask SaveDatabaseAsync(string expectedWorkspaceID = null)
@@ -211,8 +211,8 @@ namespace HBP.UI.Database
             AppendPatients(stringBuilder, "Updated patients", report.UpdatedPatients);
             AppendCreatedTags(stringBuilder, report.TagDiagnostics.CreatedTags);
             AppendEnumExtensions(stringBuilder, report.TagDiagnostics.EnumExtensions);
-            AppendValueDiagnostics(stringBuilder, "Ignored tag values", report.TagDiagnostics.IgnoredValues, false);
-            AppendValueDiagnostics(stringBuilder, "Incompatible tag values", report.TagDiagnostics.IncompatibleValues, true);
+            AppendValueDiagnostics(stringBuilder, "Ignored tag values", report.TagDiagnostics.IgnoredValues);
+            AppendValueDiagnostics(stringBuilder, "Incompatible tag values", report.TagDiagnostics.IncompatibleValues);
             return stringBuilder.ToString();
         }
 
@@ -236,19 +236,22 @@ namespace HBP.UI.Database
             stringBuilder.AppendLine();
         }
 
-        private static void AppendValueDiagnostics(StringBuilder stringBuilder, string title, IEnumerable<TagImportValueDiagnostic> diagnostics, bool includeReason)
+        private static void AppendValueDiagnostics(StringBuilder stringBuilder, string title, IEnumerable<TagImportValueDiagnostic> diagnostics)
         {
-            TagImportValueDiagnostic[] orderedDiagnostics = diagnostics.OrderBy(diagnostic => diagnostic.TagName, StringComparer.OrdinalIgnoreCase).ThenBy(diagnostic => diagnostic.Source, StringComparer.Ordinal).ThenBy(diagnostic => diagnostic.Owner, StringComparer.Ordinal).ThenBy(diagnostic => diagnostic.RawValue, StringComparer.Ordinal).ToArray();
-            if (orderedDiagnostics.Length == 0) return;
+            Dictionary<(TagCategory Category, string TagID, string TagName), int> countByTag = new();
+            foreach (TagImportValueDiagnostic diagnostic in diagnostics)
+            {
+                var key = (diagnostic.Category, diagnostic.TagID, diagnostic.TagName);
+                countByTag[key] = countByTag.TryGetValue(key, out int count) ? count + diagnostic.Count : diagnostic.Count;
+            }
+
+            if (countByTag.Count == 0) return;
 
             stringBuilder.AppendLine($"<b>{title}:</b>");
-            foreach (TagImportValueDiagnostic diagnostic in orderedDiagnostics)
+            foreach (var summary in countByTag.OrderBy(pair => pair.Key.Category).ThenBy(pair => pair.Key.TagName, StringComparer.OrdinalIgnoreCase).ThenBy(pair => pair.Key.TagName, StringComparer.Ordinal))
             {
-                string count = diagnostic.Count > 1 ? $" x{diagnostic.Count}" : string.Empty;
-                string owner = string.IsNullOrEmpty(diagnostic.Owner) ? string.Empty : $" [{diagnostic.Owner}]";
-                string source = string.IsNullOrEmpty(diagnostic.Source) ? string.Empty : $" — {diagnostic.Source}";
-                string reason = includeReason && !string.IsNullOrEmpty(diagnostic.Reason) ? $" — {diagnostic.Reason}" : string.Empty;
-                stringBuilder.AppendLine($"{diagnostic.Category}: {diagnostic.TagName}{owner} = '{diagnostic.RawValue}'{count}{source}{reason}");
+                string valueLabel = summary.Value == 1 ? "value" : "values";
+                stringBuilder.AppendLine($"{summary.Key.Category}: {summary.Key.TagName} ({summary.Value} {valueLabel})");
             }
 
             stringBuilder.AppendLine();

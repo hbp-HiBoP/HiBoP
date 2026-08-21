@@ -90,7 +90,6 @@ namespace HBP.Core.Database
         public LoadingRecoveryReport StructuralRecoveryReport { get; private set; } = LoadingRecoveryReport.Empty;
         public LoadingRecoveryReport ProtocolLoadingRecoveryReport { get; private set; } = LoadingRecoveryReport.Empty;
 
-        public Func<DeferredTagMigrationPlan, UniTask<DeferredTagMigrationDecision>> TagMigrationDecisionProvider { get; set; }
 
         public DeferredTagMigrationPlan ConsumeTagMigrationReport()
         {
@@ -737,7 +736,7 @@ namespace HBP.Core.Database
                     {
                         token.ThrowIfCancellationRequested();
                         EnsureLoadingGenerationIsCurrent(generation, workspaceID, token);
-                        migrationPlan.Commit(migrationPlan.Issues.Count > 0 ? DeferredTagMigrationDecision.ApplyWithRecovery : DeferredTagMigrationDecision.Apply);
+                        migrationPlan.Commit();
                         migrationCommitted = true;
                     }
 

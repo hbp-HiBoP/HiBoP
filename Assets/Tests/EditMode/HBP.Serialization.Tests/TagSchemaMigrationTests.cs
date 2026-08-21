@@ -196,7 +196,8 @@ namespace HBP.Tests.Serialization
             Assert.That(current.TryGetTag(untouchedEnum.ID, out BaseTag canonical), Is.True);
             Assert.That(canonical, Is.SameAs(untouchedEnum));
             Assert.That(((EnumTag)canonical).Values, Is.EqualTo(new[] { "old" }));
-            Assert.That(filters.DisabledPresetCount, Is.EqualTo(1));
+            Assert.That(filters.GetPresets(typeof(Patient)).Single().ID, Is.EqualTo("migration-filter-preset"));
+            Assert.That(filters.GetPresets(typeof(Patient)).Single().Conditions, Is.Empty);
         }
 
         [Test]
@@ -276,26 +277,26 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
-        public void ContainsTextFilter_DisablesWholeNamedPresetWithoutBlockingTagMigration()
+        public void ContainsTextFilter_RemovesOnlyInvalidConditionWithoutBlockingTagMigration()
         {
-            StringTag currentTag = new("text", "migration-filter-block-tag");
+            StringTag currentTag = new("text", "migration-filter-repair-tag");
             TagCollection current = new(Array.Empty<BaseTag>(), new BaseTag[] { currentTag }, Array.Empty<BaseTag>());
             TagCollection proposed = new(Array.Empty<BaseTag>(), new BaseTag[] { new IntTag("text", currentTag.ID) }, Array.Empty<BaseTag>());
-            StringTagValue value = new(currentTag, "12", "migration-filter-block-value");
+            StringTagValue value = new(currentTag, "12", "migration-filter-repair-value");
             Patient patient = CreatePatient(value);
-            StringTagFilterValue filterValue = new() { Value = "1", ExactMatch = false, ID = "migration-filter-block-filter-value" };
-            PatientTagFilterCondition condition = new(PatientTagFilterCondition.TargetType.Patient, currentTag, filterValue, false, "migration-filter-block-condition");
+            StringTagFilterValue filterValue = new() { Value = "1", ExactMatch = false, ID = "migration-filter-repair-filter-value" };
+            PatientTagFilterCondition condition = new(PatientTagFilterCondition.TargetType.Patient, currentTag, filterValue, false, "migration-filter-repair-condition");
             FilterConditionsPresetCollection filters = CreateFilters(condition);
             TagSchemaMigrationService service = new();
 
             TagSchemaMigrationPlan plan = service.Plan(current, proposed, new[] { patient }, filters, new HashSet<string> { currentTag.ID }, TagParsingPolicy.Default);
 
             Assert.That(plan.IsValid, Is.True);
-            Assert.That(plan.Warnings.Any(warning => warning.Contains("disabled")), Is.True);
+            Assert.That(plan.Warnings.Any(warning => warning.Contains("Removed condition")), Is.True);
             service.Commit(plan);
             Assert.That(patient.Tags.Single(), Is.TypeOf<IntTagValue>());
-            Assert.That(filters.GetPresets(typeof(Patient)), Is.Empty);
-            Assert.That(filters.GetDisabledPresetEntries().Single().Preset.ID, Is.EqualTo("migration-filter-preset"));
+            Assert.That(filters.GetPresets(typeof(Patient)).Single().ID, Is.EqualTo("migration-filter-preset"));
+            Assert.That(filters.GetPresets(typeof(Patient)).Single().Conditions, Is.Empty);
             Assert.That(current.TryGetTag(currentTag.ID, out BaseTag canonical), Is.True);
             Assert.That(canonical, Is.TypeOf<IntTag>());
 
@@ -304,56 +305,54 @@ namespace HBP.Tests.Serialization
             Assert.That(patient.Tags.Single(), Is.SameAs(value));
             Assert.That(GetPatientCondition(filters).ID, Is.EqualTo(condition.ID));
             Assert.That(GetPatientCondition(filters).Tag, Is.SameAs(currentTag));
-            Assert.That(filters.DisabledPresetCount, Is.Zero);
             Assert.That(current.TryGetTag(currentTag.ID, out BaseTag restored), Is.True);
             Assert.That(restored, Is.SameAs(currentTag));
         }
 
         [Test]
-        public void IncompatibleValue_CanBeQuarantinedWithoutLosingIdentityAndRollbackRestoresIt()
+        public void IncompatibleValue_IsRemovedAndReportedAndRollbackRestoresIt()
         {
-            StringTag currentTag = new("number", "migration-recovery-tag");
+            StringTag currentTag = new("number", "migration-removal-tag");
             TagCollection current = new(Array.Empty<BaseTag>(), new BaseTag[] { currentTag }, Array.Empty<BaseTag>());
             TagCollection proposed = new(Array.Empty<BaseTag>(), new BaseTag[] { new IntTag("number", currentTag.ID) }, Array.Empty<BaseTag>());
-            StringTagValue source = new(currentTag, "not a number", "migration-recovery-value");
-            Patient patient = CreatePatient(source);
-            TagSchemaMigrationService service = new();
-
-            TagSchemaMigrationPlan blocked = service.Plan(current, proposed, new[] { patient }, null, new HashSet<string> { currentTag.ID }, TagParsingPolicy.Default);
-            TagSchemaMigrationPlan recoverable = service.Plan(current, proposed, new[] { patient }, null, new HashSet<string> { currentTag.ID }, TagParsingPolicy.Default, true);
-
-            Assert.That(blocked.IsValid, Is.False);
-            Assert.That(recoverable.IsValid, Is.True);
-            Assert.That(recoverable.RecoveredValueCount, Is.EqualTo(1));
-            service.Commit(recoverable);
-            Assert.That(patient.Tags, Is.Empty);
-            Assert.That(patient.QuarantinedTagValues, Has.Count.EqualTo(1));
-            Assert.That(patient.QuarantinedTagValues[0].TagID, Is.EqualTo(currentTag.ID));
-            Assert.That(patient.QuarantinedTagValues[0].ValueID, Is.EqualTo(source.ID));
-            Assert.That(patient.QuarantinedTagValues[0].SerializedValue, Does.Contain("not a number"));
-
-            recoverable.Rollback();
-            Assert.That(patient.Tags.Single(), Is.SameAs(source));
-            Assert.That(patient.QuarantinedTagValues, Is.Empty);
-        }
-
-        [Test]
-        public void DeletedTag_ArchivesItsValuesBeforeRemovingThem()
-        {
-            StringTag currentTag = new("obsolete", "migration-delete-recovery-tag");
-            TagCollection current = new(Array.Empty<BaseTag>(), new BaseTag[] { currentTag }, Array.Empty<BaseTag>());
-            TagCollection proposed = new(Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), Array.Empty<BaseTag>());
-            StringTagValue source = new(currentTag, "preserve me", "migration-delete-recovery-value");
+            StringTagValue source = new(currentTag, "not a number", "migration-removal-value");
             Patient patient = CreatePatient(source);
             TagSchemaMigrationService service = new();
 
             TagSchemaMigrationPlan plan = service.Plan(current, proposed, new[] { patient }, null, new HashSet<string> { currentTag.ID }, TagParsingPolicy.Default);
 
             Assert.That(plan.IsValid, Is.True);
-            Assert.That(plan.RecoveredValueCount, Is.EqualTo(1));
+            Assert.That(plan.RemovedValueCount, Is.EqualTo(1));
+            Assert.That(plan.RemovedValues[0].TagID, Is.EqualTo(currentTag.ID));
+            Assert.That(plan.RemovedValues[0].ValueID, Is.EqualTo(source.ID));
+            Assert.That(plan.RemovedValues[0].PatientID, Is.EqualTo(patient.ID));
+            Assert.That(plan.RemovedValues[0].PatientName, Is.EqualTo(patient.Name));
+            Assert.That(plan.RemovedValues[0].Reason, Does.Contain("cannot"));
             service.Commit(plan);
             Assert.That(patient.Tags, Is.Empty);
-            Assert.That(patient.QuarantinedTagValues.Single().ValueID, Is.EqualTo(source.ID));
+
+            plan.Rollback();
+            Assert.That(patient.Tags.Single(), Is.SameAs(source));
+        }
+
+        [Test]
+        public void DeletedTag_RemovesAndReportsItsValues()
+        {
+            StringTag currentTag = new("obsolete", "migration-delete-tag");
+            TagCollection current = new(Array.Empty<BaseTag>(), new BaseTag[] { currentTag }, Array.Empty<BaseTag>());
+            TagCollection proposed = new(Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), Array.Empty<BaseTag>());
+            StringTagValue source = new(currentTag, "remove me", "migration-delete-value");
+            Patient patient = CreatePatient(source);
+            TagSchemaMigrationService service = new();
+
+            TagSchemaMigrationPlan plan = service.Plan(current, proposed, new[] { patient }, null, new HashSet<string> { currentTag.ID }, TagParsingPolicy.Default);
+
+            Assert.That(plan.IsValid, Is.True);
+            Assert.That(plan.RemovedValueCount, Is.EqualTo(1));
+            Assert.That(plan.RemovedValues.Single().ValueID, Is.EqualTo(source.ID));
+            Assert.That(plan.RemovedValues.Single().Reason, Does.Contain("removed"));
+            service.Commit(plan);
+            Assert.That(patient.Tags, Is.Empty);
         }
 
         [Test]
