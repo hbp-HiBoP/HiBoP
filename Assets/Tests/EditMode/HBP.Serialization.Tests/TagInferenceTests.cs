@@ -1,10 +1,10 @@
+using System;
+using System.IO;
+using System.Linq;
 using HBP.Core.Data;
 using HBP.Core.Database;
 using HBP.Core.Preferences;
 using NUnit.Framework;
-using System;
-using System.IO;
-using System.Linq;
 
 namespace HBP.Tests.Serialization
 {
@@ -26,7 +26,7 @@ namespace HBP.Tests.Serialization
         public void Infer_IsIndependentOfObservationOrder()
         {
             string[] values = { "2", "1.5", "n/a", "3" };
-            Type expected = TagInferenceService.Infer("tag", values, TagParsingPolicy.Default).GetType();
+            var expected = TagInferenceService.Infer("tag", values, TagParsingPolicy.Default).GetType();
 
             Assert.That(TagInferenceService.Infer("tag", values.Reverse(), TagParsingPolicy.Default).GetType(), Is.EqualTo(expected));
         }
@@ -35,11 +35,11 @@ namespace HBP.Tests.Serialization
         public void RawFactory_UsesTheSameCustomBooleanPolicyAsInference()
         {
             TagParsingPolicy policy = new(new[] { "oui" }, new[] { "non" }, new[] { "inconnu" });
-            BaseTag tag = TagInferenceService.Infer("consent", new[] { "oui", "non", "inconnu" }, policy);
+            var tag = TagInferenceService.Infer("consent", new[] { "oui", "non", "inconnu" }, policy);
 
-            RawTagValueResult trueResult = RawTagValueFactory.TryCreate(tag, "oui", policy);
-            RawTagValueResult falseResult = RawTagValueFactory.TryCreate(tag, "non", policy);
-            RawTagValueResult ignoredResult = RawTagValueFactory.TryCreate(tag, "inconnu", policy);
+            var trueResult = RawTagValueFactory.TryCreate(tag, "oui", policy);
+            var falseResult = RawTagValueFactory.TryCreate(tag, "non", policy);
+            var ignoredResult = RawTagValueFactory.TryCreate(tag, "inconnu", policy);
 
             Assert.That(tag, Is.TypeOf<BoolTag>());
             Assert.That(trueResult.Status, Is.EqualTo(RawTagValueStatus.Success));
@@ -52,7 +52,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void RawFactory_PreservesNonIgnoredStringText()
         {
-            RawTagValueResult result = RawTagValueFactory.TryCreate(new StringTag("label"), "  original text  ", TagParsingPolicy.Default);
+            var result = RawTagValueFactory.TryCreate(new StringTag("label"), "  original text  ", TagParsingPolicy.Default);
 
             Assert.That(result.Status, Is.EqualTo(RawTagValueStatus.Success));
             Assert.That(result.Value.Value, Is.EqualTo("  original text  "));
@@ -66,7 +66,7 @@ namespace HBP.Tests.Serialization
             observations.AddPatientValue("score", "unknown");
             observations.AddSiteValue("score", "1");
             TagCollection tags = new(Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), new BaseTag[] { new IntTag("existing", "existing-tag") });
-            BaseTag existing = tags.SitesTags.Single();
+            var existing = tags.SitesTags.Single();
             observations.AddSiteValue("existing", "not-an-int");
 
             observations.CreateMissingTags(tags, TagParsingPolicy.Default);
@@ -80,7 +80,7 @@ namespace HBP.Tests.Serialization
         public void Preferences_NormalizeAndRejectOverlappingTokens()
         {
             TagImportPreferences preferences = new(new[] { " yes ", "YES" }, new[] { " no " }, new[] { " n/a " });
-            TagParsingPolicy policy = preferences.CreatePolicy();
+            var policy = preferences.CreatePolicy();
 
             Assert.That(policy.TrueValues, Is.EqualTo(new[] { "yes" }));
             Assert.Throws<ArgumentException>(() => new TagImportPreferences(new[] { "yes" }, new[] { "no" }, new[] { "YES" }));
@@ -90,7 +90,7 @@ namespace HBP.Tests.Serialization
         public void Preferences_CloneDoesNotShareTokenLists()
         {
             TagImportPreferences source = new();
-            TagImportPreferences clone = (TagImportPreferences)source.Clone();
+            var clone = (TagImportPreferences)source.Clone();
 
             clone.TrueValues.Add("custom");
 
@@ -100,9 +100,9 @@ namespace HBP.Tests.Serialization
         [Test]
         public void Scanner_AggregatesAllReferencesBeforeCreatingTags()
         {
-            string root = Path.Combine(Path.GetTempPath(), "hibop-tag-inference-" + Guid.NewGuid().ToString("N"));
-            string firstPath = Path.Combine(root, "first");
-            string secondPath = Path.Combine(root, "second");
+            var root = Path.Combine(Path.GetTempPath(), "hibop-tag-inference-" + Guid.NewGuid().ToString("N"));
+            var firstPath = Path.Combine(root, "first");
+            var secondPath = Path.Combine(root, "second");
             try
             {
                 Directory.CreateDirectory(firstPath);
@@ -112,7 +112,7 @@ namespace HBP.Tests.Serialization
                 DatabaseReference first = new("first", DatabaseType.Tags, firstPath, new TagsDatabaseParameters(), DateTime.MinValue, "first-reference");
                 DatabaseReference second = new("second", DatabaseType.Tags, secondPath, new TagsDatabaseParameters(), DateTime.MinValue, "second-reference");
 
-                TagImportObservations observations = TagImportScanner.Scan(new[] { second, first });
+                var observations = TagImportScanner.Scan(new[] { second, first });
                 TagCollection tags = new();
                 observations.CreateMissingTags(tags, TagParsingPolicy.Default);
 
@@ -127,11 +127,11 @@ namespace HBP.Tests.Serialization
         [Test]
         public void TagsDatabaseScannerAndMaterialization_SupportIntranatSiteCsv()
         {
-            string root = Path.Combine(Path.GetTempPath(), "hibop-intranat-tag-csv-" + Guid.NewGuid().ToString("N"));
+            var root = Path.Combine(Path.GetTempPath(), "hibop-intranat-tag-csv-" + Guid.NewGuid().ToString("N"));
             try
             {
                 Directory.CreateDirectory(root);
-                string csvPath = Path.Combine(root, "patient-1.csv");
+                var csvPath = Path.Combine(root, "patient-1.csv");
                 File.WriteAllLines(csvPath, new[]
                 {
                     "Contacts Positions",
@@ -142,8 +142,8 @@ namespace HBP.Tests.Serialization
                 });
                 DatabaseReference reference = new("tags", DatabaseType.Tags, root, new TagsDatabaseParameters(), DateTime.MinValue, "intranat-tags-reference");
 
-                TagImportObservations observations = TagImportScanner.Scan(new[] { reference });
-                TagImportDraft draft = TagImportDraft.Create(new TagCollection(), observations, TagParsingPolicy.Default);
+                var observations = TagImportScanner.Scan(new[] { reference });
+                var draft = TagImportDraft.Create(new TagCollection(), observations, TagParsingPolicy.Default);
                 var tagsBySite = draft.PreparedTags.GenerateSiteTagsFromCSV(csvPath, TagParsingPolicy.Default, false, draft.Context);
 
                 Assert.That(draft.PreparedTags.SitesTags.Select(tag => tag.Name), Is.EquivalentTo(new[] { "region", "quality" }));
@@ -161,7 +161,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void MaterializationOnlyMode_NeverCreatesMissingTags()
         {
-            string path = Path.Combine(Path.GetTempPath(), "hibop-tag-materialization-" + Guid.NewGuid().ToString("N") + ".csv");
+            var path = Path.Combine(Path.GetTempPath(), "hibop-tag-materialization-" + Guid.NewGuid().ToString("N") + ".csv");
             try
             {
                 File.WriteAllText(path, "patient,new-tag\np1,42\n");
@@ -188,7 +188,7 @@ namespace HBP.Tests.Serialization
             observations.AddPatientValue("status", "zeta");
             observations.AddPatientValue("score", "42");
 
-            TagImportDraft draft = TagImportDraft.Create(canonical, observations, TagParsingPolicy.Default);
+            var draft = TagImportDraft.Create(canonical, observations, TagParsingPolicy.Default);
 
             Assert.That(canonicalEnum.Values, Is.EqualTo(new[] { "existing" }));
             Assert.That(canonical.PatientsTags.Count, Is.EqualTo(1));
@@ -205,12 +205,12 @@ namespace HBP.Tests.Serialization
             TagCollection canonical = new(Array.Empty<BaseTag>(), new BaseTag[] { canonicalEnum }, Array.Empty<BaseTag>());
             TagImportObservations observations = new();
             observations.AddPatientValue("status", "new-value");
-            TagImportDraft draft = TagImportDraft.Create(canonical, observations, TagParsingPolicy.Default);
-            EnumTag preparedEnum = (EnumTag)draft.PreparedTags.PatientsTags.Single();
-            BaseTagValue preparedValue = draft.Context.TryCreate(TagCategory.Patient, preparedEnum, "new-value", "source.tsv", "patient-1").Value;
+            var draft = TagImportDraft.Create(canonical, observations, TagParsingPolicy.Default);
+            var preparedEnum = (EnumTag)draft.PreparedTags.PatientsTags.Single();
+            var preparedValue = draft.Context.TryCreate(TagCategory.Patient, preparedEnum, "new-value", "source.tsv", "patient-1").Value;
             Patient patient = new("patient-1", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), new[] { preparedValue }, string.Empty);
 
-            TagImportCommit commit = draft.Commit(canonical);
+            var commit = draft.Commit(canonical);
             new LoadingContext(canonical.AllTags, Array.Empty<Protocol>(), new[] { patient }).ResolveDatabase(new[] { patient }, Array.Empty<DataInfo>());
 
             Assert.That(canonicalEnum.Values, Is.EqualTo(new[] { "existing", "new-value" }));
@@ -226,17 +226,21 @@ namespace HBP.Tests.Serialization
         {
             IntTag bounded = new("score", true, 0, 10, "score-id");
             TagCollection canonical = new(Array.Empty<BaseTag>(), new BaseTag[] { bounded }, Array.Empty<BaseTag>());
-            TagImportDraft draft = TagImportDraft.Create(canonical, new TagImportObservations(), TagParsingPolicy.Default);
+            var draft = TagImportDraft.Create(canonical, new TagImportObservations(), TagParsingPolicy.Default);
 
-            RawTagValueResult incompatible = draft.Context.TryCreate(TagCategory.Patient, bounded, "42", "participants.tsv", "sub-01");
-            RawTagValueResult ignored = draft.Context.TryCreate(TagCategory.Patient, bounded, "n/a", "participants.tsv", "sub-01");
+            var incompatible = draft.Context.TryCreate(TagCategory.Patient, bounded, "42", "participants.tsv", "sub-01");
+            draft.Context.TryCreate(TagCategory.Patient, bounded, "43", "other.tsv", "sub-02");
+            var ignored = draft.Context.TryCreate(TagCategory.Patient, bounded, "n/a", "participants.tsv", "sub-01");
 
             Assert.That(incompatible.Status, Is.EqualTo(RawTagValueStatus.Incompatible));
             Assert.That(ignored.Status, Is.EqualTo(RawTagValueStatus.Ignored));
-            Assert.That(draft.Diagnostics.IncompatibleValues.Single().TagID, Is.EqualTo("score-id"));
-            Assert.That(draft.Diagnostics.IncompatibleValues.Single().Source, Is.EqualTo("participants.tsv"));
-            Assert.That(draft.Diagnostics.IncompatibleValues.Single().Owner, Is.EqualTo("sub-01"));
+            Assert.That(draft.Diagnostics.IncompatibleValues, Has.Count.EqualTo(2));
+            Assert.That(draft.Diagnostics.IncompatibleValues.Single(value => value.RawValue == "42").Source, Is.EqualTo("participants.tsv"));
+            Assert.That(draft.Diagnostics.IncompatibleValues.Single(value => value.RawValue == "42").Owner, Is.EqualTo("sub-01"));
+            Assert.That(draft.Diagnostics.IncompatibleValueSummaries.Single().TagID, Is.EqualTo("score-id"));
+            Assert.That(draft.Diagnostics.IncompatibleValueSummaries.Single().Count, Is.EqualTo(2));
             Assert.That(draft.Diagnostics.IgnoredValues.Single().RawValue, Is.EqualTo("n/a"));
+            Assert.That(draft.Diagnostics.IgnoredValueSummaries.Single().Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -244,7 +248,7 @@ namespace HBP.Tests.Serialization
         {
             IntTag canonicalTag = new("score", true, 0, 10, "score-id");
             TagCollection canonical = new(Array.Empty<BaseTag>(), new BaseTag[] { canonicalTag }, Array.Empty<BaseTag>());
-            TagImportDraft draft = TagImportDraft.Create(canonical, new TagImportObservations(), TagParsingPolicy.Default);
+            var draft = TagImportDraft.Create(canonical, new TagImportObservations(), TagParsingPolicy.Default);
 
             canonicalTag.Max = 20;
 
@@ -258,7 +262,7 @@ namespace HBP.Tests.Serialization
             observations.AddPatientValue("score", "1");
             observations.AddPatientValue("Score", "2");
 
-            TagImportDraft draft = TagImportDraft.Create(new TagCollection(), observations, TagParsingPolicy.Default);
+            var draft = TagImportDraft.Create(new TagCollection(), observations, TagParsingPolicy.Default);
 
             Assert.That(draft.PreparedTags.PatientsTags.Single().Name, Is.EqualTo("Score"));
         }

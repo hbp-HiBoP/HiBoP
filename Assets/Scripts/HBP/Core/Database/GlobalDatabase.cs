@@ -1,29 +1,23 @@
-using HBP.Core.Data;
-using HBP.Core.Tools;
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using HBP.Core.Data;
+using HBP.Core.Preferences;
+using HBP.Core.Tools;
 using UnityEngine;
 using UnityEngine.Events;
-using Cysharp.Threading.Tasks;
-using System.Threading;
-using System.Threading.Tasks;
-using HBP.Core.Preferences;
-using HBP.Core.Errors;
 
 namespace HBP.Core.Database
 {
     public class DatabaseUpdateReport
     {
-        public ReadOnlyCollection<Patient> RemovedPatients { get; }
-        public ReadOnlyCollection<Patient> AddedPatients { get; }
-        public ReadOnlyCollection<Patient> UpdatedPatients { get; }
-        public TagImportDiagnostics TagDiagnostics { get; }
-        public bool HasChanges => RemovedPatients.Count > 0 || AddedPatients.Count > 0 || UpdatedPatients.Count > 0 || TagDiagnostics.CreatedTags.Count > 0 || TagDiagnostics.EnumExtensions.Count > 0 || TagDiagnostics.IgnoredValues.Count > 0 || TagDiagnostics.IncompatibleValues.Count > 0;
-
         public DatabaseUpdateReport(IEnumerable<Patient> removedPatients, IEnumerable<Patient> addedPatients, IEnumerable<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics = null)
         {
             RemovedPatients = new ReadOnlyCollection<Patient>(removedPatients.ToList());
@@ -31,27 +25,16 @@ namespace HBP.Core.Database
             UpdatedPatients = new ReadOnlyCollection<Patient>(updatedPatients.ToList());
             TagDiagnostics = tagDiagnostics ?? new TagImportDiagnostics();
         }
+
+        public ReadOnlyCollection<Patient> RemovedPatients { get; }
+        public ReadOnlyCollection<Patient> AddedPatients { get; }
+        public ReadOnlyCollection<Patient> UpdatedPatients { get; }
+        public TagImportDiagnostics TagDiagnostics { get; }
+        public bool HasChanges => RemovedPatients.Count > 0 || AddedPatients.Count > 0 || UpdatedPatients.Count > 0 || TagDiagnostics.HasChanges;
     }
 
     public sealed class DatabaseUpdateTransaction
     {
-        internal GlobalDatabase Database { get; }
-        internal string WorkspaceID { get; }
-        internal string WorkspacePath { get; }
-        internal IReadOnlyList<Patient> OriginalPatients { get; }
-        internal IReadOnlyList<DataInfo> OriginalDataInfos { get; }
-        internal IReadOnlyList<Patient> CommittedPatients { get; }
-        internal IReadOnlyList<DataInfo> CommittedDataInfos { get; }
-        internal IReadOnlyList<DatabaseReference> CommittedReferences { get; }
-        internal IReadOnlyDictionary<DatabaseReference, string> CommittedReferenceSignatures { get; }
-        internal TagCollection CommittedTags { get; }
-        internal string CommittedTagSignature { get; }
-        internal IReadOnlyDictionary<DatabaseReference, DateTime> OriginalUpdateTimes { get; }
-        internal TagImportCommit TagCommit { get; }
-        internal bool IsCompleted { get; set; }
-
-        public DatabaseUpdateReport Report { get; }
-
         internal DatabaseUpdateTransaction(GlobalDatabase database, string workspaceID, string workspacePath, IEnumerable<Patient> originalPatients, IEnumerable<DataInfo> originalDataInfos, IEnumerable<Patient> committedPatients, IEnumerable<DataInfo> committedDataInfos, IEnumerable<DatabaseReference> committedReferences, IReadOnlyDictionary<DatabaseReference, DateTime> originalUpdateTimes, TagImportCommit tagCommit, DatabaseUpdateReport report)
         {
             Database = database;
@@ -69,6 +52,23 @@ namespace HBP.Core.Database
             TagCommit = tagCommit;
             Report = report;
         }
+
+        internal GlobalDatabase Database { get; }
+        internal string WorkspaceID { get; }
+        internal string WorkspacePath { get; }
+        internal IReadOnlyList<Patient> OriginalPatients { get; }
+        internal IReadOnlyList<DataInfo> OriginalDataInfos { get; }
+        internal IReadOnlyList<Patient> CommittedPatients { get; }
+        internal IReadOnlyList<DataInfo> CommittedDataInfos { get; }
+        internal IReadOnlyList<DatabaseReference> CommittedReferences { get; }
+        internal IReadOnlyDictionary<DatabaseReference, string> CommittedReferenceSignatures { get; }
+        internal TagCollection CommittedTags { get; }
+        internal string CommittedTagSignature { get; }
+        internal IReadOnlyDictionary<DatabaseReference, DateTime> OriginalUpdateTimes { get; }
+        internal TagImportCommit TagCommit { get; }
+        internal bool IsCompleted { get; set; }
+
+        public DatabaseUpdateReport Report { get; }
     }
 
     public class GlobalDatabase
@@ -93,7 +93,7 @@ namespace HBP.Core.Database
 
         public DeferredTagMigrationPlan ConsumeTagMigrationReport()
         {
-            DeferredTagMigrationPlan report = m_PendingTagMigrationReport;
+            var report = m_PendingTagMigrationReport;
             m_PendingTagMigrationReport = null;
             return report;
         }
@@ -109,8 +109,7 @@ namespace HBP.Core.Database
             }
         }
 
-        private GlobalDatabaseSettings m_Settings = new();
-        public GlobalDatabaseSettings Settings => m_Settings;
+        public GlobalDatabaseSettings Settings { get; private set; } = new();
 
         private List<Protocol> m_Protocols = new();
         public ReadOnlyCollection<Protocol> Protocols => new(m_Protocols);
@@ -161,20 +160,14 @@ namespace HBP.Core.Database
 
         public bool RequiresValidation(ValidationRequest request)
         {
-            if (request == null || request.Aspects == ValidationAspect.None)
-            {
-                return false;
-            }
+            if (request == null || request.Aspects == ValidationAspect.None) return false;
 
             lock (m_LoadingOperationLock)
             {
-                if (!m_ValidationPublished || !IsLoaded)
-                {
-                    return true;
-                }
+                if (!m_ValidationPublished || !IsLoaded) return true;
             }
 
-            ValidationAspect dataInfoAspects = request.Aspects & ValidationAspect.DataInfoAll;
+            var dataInfoAspects = request.Aspects & ValidationAspect.DataInfoAll;
             return request.Force || (request.Includes(ValidationAspect.PatientAssets) && m_Patients.Where(request.Matches).Any(patient => !patient.IsAssetValidationCurrent)) || (dataInfoAspects != ValidationAspect.None && m_DataInfos.Where(request.Matches).Any(dataInfo => !dataInfo.IsValidationCurrent(dataInfoAspects, request)));
         }
 
@@ -182,7 +175,7 @@ namespace HBP.Core.Database
 
         #region Events
 
-        public UnityEvent OnUpdateDatabases { get; } = new UnityEvent();
+        public UnityEvent OnUpdateDatabases { get; } = new();
         public event Action OnValidationStateChanged;
 
         #endregion
@@ -192,10 +185,7 @@ namespace HBP.Core.Database
         public void SetProtocols(IEnumerable<Protocol> protocols, ValidationRequest validationRequest = null)
         {
             m_Protocols = protocols.ToList();
-            if (validationRequest?.Aspects != ValidationAspect.None)
-            {
-                RefreshAfterProtocolChangeAsync(validationRequest).Forget();
-            }
+            if (validationRequest?.Aspects != ValidationAspect.None) RefreshAfterProtocolChangeAsync(validationRequest).Forget();
         }
 
         public void SetDatabaseReferences(IEnumerable<DatabaseReference> databaseReferences)
@@ -216,7 +206,7 @@ namespace HBP.Core.Database
 
         public void SaveSettings()
         {
-            ClassLoaderSaver.SaveToJSon(m_Settings, GlobalDatabaseSettings.PATH, true);
+            ClassLoaderSaver.SaveToJSon(Settings, GlobalDatabaseSettings.PATH, true);
         }
 
         public async UniTask CheckIntegrityAsync(string path, Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -228,14 +218,14 @@ namespace HBP.Core.Database
             // Gather useful information
 
             // Anatomical
-            List<Patient> missingMeshesPatients = m_Patients.Where(p => p.Meshes.Count == 0).OrderBy(p => p.Name).ToList();
-            List<Patient> missingMRIsPatients = m_Patients.Where(p => p.MRIs.Count == 0).OrderBy(p => p.Name).ToList();
-            List<Patient> missingSitesPatients = m_Patients.Where(p => p.Sites.Count == 0).OrderBy(p => p.Name).ToList();
+            var missingMeshesPatients = m_Patients.Where(p => p.Meshes.Count == 0).OrderBy(p => p.Name).ToList();
+            var missingMRIsPatients = m_Patients.Where(p => p.MRIs.Count == 0).OrderBy(p => p.Name).ToList();
+            var missingSitesPatients = m_Patients.Where(p => p.Sites.Count == 0).OrderBy(p => p.Name).ToList();
 
             // Functional
             Dictionary<string, Dictionary<Type, List<IEEGDataInfo>>> dataInfosByErrorTypeByDataName = new();
             var ieegDataInfos = m_DataInfos.OfType<IEEGDataInfo>();
-            List<string> dataNames = ieegDataInfos.Select(d => d.Name).Distinct().ToList();
+            var dataNames = ieegDataInfos.Select(d => d.Name).Distinct().ToList();
             foreach (var name in dataNames)
             {
                 Dictionary<Type, List<IEEGDataInfo>> dataInfosByErrorType = new();
@@ -302,10 +292,10 @@ namespace HBP.Core.Database
 
                     foreach (var patientGroup in groupedByPatient)
                     {
-                        string patientId = patientGroup.Key.ID;
+                        var patientId = patientGroup.Key.ID;
                         var protocolNames = patientGroup.Select(d => d.Protocol?.Name).Where(name => !string.IsNullOrEmpty(name)).Distinct().OrderBy(name => name);
 
-                        string protocolsJoined = string.Join(", ", protocolNames);
+                        var protocolsJoined = string.Join(", ", protocolNames);
 
                         await writer.WriteLineAsync($"    - {patientId}: {protocolsJoined}");
                     }
@@ -332,52 +322,41 @@ namespace HBP.Core.Database
         private void LoadSettings()
         {
             if (new FileInfo(GlobalDatabaseSettings.PATH).Exists)
-            {
                 try
                 {
-                    m_Settings = ClassLoaderSaver.LoadFromJson<GlobalDatabaseSettings>(GlobalDatabaseSettings.PATH);
+                    Settings = ClassLoaderSaver.LoadFromJson<GlobalDatabaseSettings>(GlobalDatabaseSettings.PATH);
                     // Remove unused workspaces
                     var workspaceDirectories = new DirectoryInfo(Path.Combine(ApplicationState.DatabasePath, "Workspaces")).GetDirectories();
                     foreach (var workspaceDirectory in workspaceDirectories)
-                    {
-                        if (!m_Settings.Workspaces.Any(w => w.ID == workspaceDirectory.Name))
-                        {
+                        if (!Settings.Workspaces.Any(w => w.ID == workspaceDirectory.Name))
                             workspaceDirectory.Delete(true);
-                        }
-                    }
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogException(e);
+                    Debug.LogException(e);
                     throw e;
                 }
-            }
             else
-            {
-                m_Settings.SetDefaultWorkspace();
-            }
+                Settings.SetDefaultWorkspace();
         }
 
         public async UniTask StartLoadingSilentlyAsync()
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
+            var operation = GetOrCreateLoadingOperation(false, out var obsolete, out var created);
             obsolete?.Cancel();
-            if (created)
-            {
-                ObserveBackgroundOperationAsync(operation).Forget();
-            }
+            if (created) ObserveBackgroundOperationAsync(operation).Forget();
         }
 
         public async UniTask ReloadSelectedWorkspaceAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
+            var operation = GetOrCreateLoadingOperation(true, out var obsolete, out _);
             obsolete?.Cancel();
             ObserveBackgroundOperationAsync(operation).Forget();
             try
             {
-                using IDisposable foreground = operation.AttachForeground();
+                using var foreground = operation.AttachForeground();
                 await WaitForReadyAsync(operation, updateProgress, token);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
@@ -390,7 +369,7 @@ namespace HBP.Core.Database
         public async UniTask ReloadSelectedWorkspaceSilentlyAsync()
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
+            var operation = GetOrCreateLoadingOperation(true, out var obsolete, out _);
             obsolete?.Cancel();
             ObserveBackgroundOperationAsync(operation).Forget();
         }
@@ -398,16 +377,13 @@ namespace HBP.Core.Database
         public async UniTask EnsureDatabaseReadyAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
+            var operation = GetOrCreateLoadingOperation(false, out var obsolete, out var created);
             obsolete?.Cancel();
-            if (created)
-            {
-                ObserveBackgroundOperationAsync(operation).Forget();
-            }
+            if (created) ObserveBackgroundOperationAsync(operation).Forget();
 
             try
             {
-                using IDisposable foreground = operation.AttachForeground();
+                using var foreground = operation.AttachForeground();
                 await WaitForReadyAsync(operation, updateProgress, token);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
@@ -420,22 +396,19 @@ namespace HBP.Core.Database
         public async UniTask EnsureDatabaseValidatedAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
             await UniTask.SwitchToMainThread();
-            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(false, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created);
+            var operation = GetOrCreateLoadingOperation(false, out var obsolete, out var created);
             obsolete?.Cancel();
-            if (created)
-            {
-                ObserveBackgroundOperationAsync(operation).Forget();
-            }
+            if (created) ObserveBackgroundOperationAsync(operation).Forget();
 
             if (operation.State == LoadingOperationState.Validated || operation.State == LoadingOperationState.ValidatedWithIssues)
             {
-                using IDisposable foreground = operation.AttachForeground();
+                using var foreground = operation.AttachForeground();
                 await operation.EnsureValidatedAsync(token);
                 return;
             }
 
-            using IDisposable foregroundLease = operation.AttachForeground();
-            using IDisposable progressSubscription = operation.SubscribeProgress(progress => updateProgress?.Invoke(progress.Value, progress.Duration, progress.Text));
+            using var foregroundLease = operation.AttachForeground();
+            using var progressSubscription = operation.SubscribeProgress(progress => updateProgress?.Invoke(progress.Value, progress.Duration, progress.Text));
             try
             {
                 await operation.EnsureValidatedAsync(token);
@@ -449,35 +422,20 @@ namespace HBP.Core.Database
 
         public async UniTask EnsureDatabaseValidatedAsync(ValidationRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
-            if (!IsLoaded)
-            {
-                await EnsureDatabaseReadyAsync(updateProgress, token);
-            }
+            if (!IsLoaded) await EnsureDatabaseReadyAsync(updateProgress, token);
 
-            if (RequiresValidation(request))
-            {
-                InvalidateValidation(request);
-            }
+            if (RequiresValidation(request)) InvalidateValidation(request);
 
             await EnsureDatabaseValidatedAsync(updateProgress, token);
         }
 
         public async UniTask EnsureDatabaseValidatedForImmediateLoadAsync(ValidationRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token = default)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            if (request == null) throw new ArgumentNullException(nameof(request));
 
-            if (request.Aspects == ValidationAspect.None)
-            {
-                return;
-            }
+            if (request.Aspects == ValidationAspect.None) return;
 
-            if (!IsLoaded)
-            {
-                await EnsureDatabaseReadyAsync(updateProgress, token);
-            }
+            if (!IsLoaded) await EnsureDatabaseReadyAsync(updateProgress, token);
 
             await UniTask.SwitchToMainThread();
             long generation;
@@ -504,14 +462,11 @@ namespace HBP.Core.Database
             SharedLoadingOperation<GlobalDatabase> replacement;
             lock (m_LoadingOperationLock)
             {
-                string workspaceID = Settings.SelectedWorkspace?.ID;
-                if (m_LoadingOperation == null || workspaceID == null || workspaceID != m_PublishedWorkspaceID)
-                {
-                    return;
-                }
+                var workspaceID = Settings.SelectedWorkspace?.ID;
+                if (m_LoadingOperation == null || workspaceID == null || workspaceID != m_PublishedWorkspaceID) return;
 
                 operation = m_LoadingOperation;
-                long generation = ++m_LoadingGeneration;
+                var generation = ++m_LoadingGeneration;
                 m_LoadingWorkspaceID = workspaceID;
                 m_ValidationRequest = m_ValidationPublished ? request : m_ValidationRequest.Merge(request);
                 m_ValidationPublished = false;
@@ -535,33 +490,20 @@ namespace HBP.Core.Database
                 ValidationAspect.Epoching,
                 ValidationAspect.ChannelMapping
             };
-            foreach (DataInfo dataInfo in m_DataInfos)
-            {
-                foreach (ValidationAspect aspect in aspects)
-                {
-                    if (request.Matches(dataInfo, aspect))
-                    {
-                        dataInfo.MarkValidationStale(aspect);
-                    }
-                }
-            }
+            foreach (var dataInfo in m_DataInfos)
+            foreach (var aspect in aspects)
+                if (request.Matches(dataInfo, aspect))
+                    dataInfo.MarkValidationStale(aspect);
 
-            foreach (Patient patient in m_Patients)
-            {
+            foreach (var patient in m_Patients)
                 if (request.Matches(patient))
-                {
                     patient.MarkAssetValidationStale();
-                }
-            }
         }
 
         private async UniTaskVoid RefreshAfterProtocolChangeAsync(ValidationRequest request)
         {
             await UniTask.SwitchToMainThread();
-            if (CurrentLoadingOperation == null)
-            {
-                return;
-            }
+            if (CurrentLoadingOperation == null) return;
 
             if (IsLoaded)
             {
@@ -569,7 +511,7 @@ namespace HBP.Core.Database
                 return;
             }
 
-            SharedLoadingOperation<GlobalDatabase> operation = GetOrCreateLoadingOperation(true, out SharedLoadingOperation<GlobalDatabase> obsolete, out _);
+            var operation = GetOrCreateLoadingOperation(true, out var obsolete, out _);
             obsolete?.Cancel();
             ObserveBackgroundOperationAsync(operation).Forget();
         }
@@ -583,23 +525,19 @@ namespace HBP.Core.Database
 
         private async UniTask WaitForReadyAsync(SharedLoadingOperation<GlobalDatabase> operation, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            bool backgroundValidation = LoadingConcurrencyPolicy.BackgroundValidationEnabled;
-            Task<GlobalDatabase> barrier = backgroundValidation ? operation.Ready : operation.Validated;
+            var backgroundValidation = LoadingConcurrencyPolicy.BackgroundValidationEnabled;
+            var barrier = backgroundValidation ? operation.Ready : operation.Validated;
             if (barrier.IsCompleted)
             {
                 if (backgroundValidation)
-                {
                     await operation.EnsureReadyAsync(token);
-                }
                 else
-                {
                     await operation.EnsureValidatedAsync(token);
-                }
 
                 return;
             }
 
-            using IDisposable progressSubscription = operation.SubscribeProgress(progress =>
+            using var progressSubscription = operation.SubscribeProgress(progress =>
             {
                 if (!backgroundValidation)
                 {
@@ -607,29 +545,22 @@ namespace HBP.Core.Database
                     return;
                 }
 
-                if (progress.State != LoadingOperationState.Loading || progress.Value > READY_PROGRESS_WEIGHT)
-                {
-                    return;
-                }
+                if (progress.State != LoadingOperationState.Loading || progress.Value > READY_PROGRESS_WEIGHT) return;
 
                 updateProgress?.Invoke(Math.Min(1, progress.Value / READY_PROGRESS_WEIGHT), progress.Duration, progress.Text);
             });
             if (backgroundValidation)
-            {
                 await operation.EnsureReadyAsync(token);
-            }
             else
-            {
                 await operation.EnsureValidatedAsync(token);
-            }
         }
 
         private SharedLoadingOperation<GlobalDatabase> GetOrCreateLoadingOperation(bool forceReload, out SharedLoadingOperation<GlobalDatabase> obsolete, out bool created)
         {
             lock (m_LoadingOperationLock)
             {
-                Workspace workspace = Settings.SelectedWorkspace ?? throw new InvalidOperationException("No database workspace is selected.");
-                bool retryFailedOperation = m_LoadingOperation?.State == LoadingOperationState.Cancelled || (m_LoadingOperation?.State == LoadingOperationState.ValidationFailed && m_PresentedFailureOperationID == m_LoadingOperation.ID);
+                var workspace = Settings.SelectedWorkspace ?? throw new InvalidOperationException("No database workspace is selected.");
+                var retryFailedOperation = m_LoadingOperation?.State == LoadingOperationState.Cancelled || (m_LoadingOperation?.State == LoadingOperationState.ValidationFailed && m_PresentedFailureOperationID == m_LoadingOperation.ID);
                 if (!forceReload && !retryFailedOperation && m_LoadingOperation != null && m_LoadingWorkspaceID == workspace.ID)
                 {
                     obsolete = null;
@@ -638,10 +569,10 @@ namespace HBP.Core.Database
                 }
 
                 obsolete = m_LoadingOperation;
-                long generation = ++m_LoadingGeneration;
-                string workspaceID = workspace.ID;
-                string workspacePath = workspace.Path;
-                Protocol[] protocols = m_Protocols.ToArray();
+                var generation = ++m_LoadingGeneration;
+                var workspaceID = workspace.ID;
+                var workspacePath = workspace.Path;
+                var protocols = m_Protocols.ToArray();
                 m_LoadingWorkspaceID = workspaceID;
                 m_ValidationPublished = false;
                 m_ValidationRequest = ValidationRequest.Startup;
@@ -662,10 +593,7 @@ namespace HBP.Core.Database
         {
             lock (m_LoadingOperationLock)
             {
-                if (m_LoadingOperation == operation && operation.State == LoadingOperationState.ValidationFailed)
-                {
-                    m_PresentedFailureOperationID = operation.ID;
-                }
+                if (m_LoadingOperation == operation && operation.State == LoadingOperationState.ValidationFailed) m_PresentedFailureOperationID = operation.ID;
             }
         }
 
@@ -689,16 +617,16 @@ namespace HBP.Core.Database
         {
             try
             {
-                int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+                var concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
                 ConcurrentQueue<LoadingRecoveryItem> fileRecoveryItems = new();
-                FileInfo[] referenceFiles = GetDatabaseReferenceFiles(workspacePath);
-                FileInfo[] patientFiles = GetPatientFiles(workspacePath);
-                FileInfo[] dataInfoFiles = GetDataInfoFiles(workspacePath);
+                var referenceFiles = GetDatabaseReferenceFiles(workspacePath);
+                var patientFiles = GetPatientFiles(workspacePath);
+                var dataInfoFiles = GetDataInfoFiles(workspacePath);
                 float referenceProgress = referenceFiles.Length;
                 float patientProgress = patientFiles.Length;
                 float dataInfoProgress = dataInfoFiles.Length;
                 float linkingProgress = 1;
-                float steps = referenceProgress + patientProgress + dataInfoProgress + linkingProgress;
+                var steps = referenceProgress + patientProgress + dataInfoProgress + linkingProgress;
                 referenceProgress /= steps;
                 patientProgress /= steps;
                 dataInfoProgress /= steps;
@@ -706,30 +634,30 @@ namespace HBP.Core.Database
                 float progress = 0;
 
                 token.ThrowIfCancellationRequested();
-                List<DatabaseReference> references = await LoadDatabaseReferencesAsync(referenceFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * referenceProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
+                var references = await LoadDatabaseReferencesAsync(referenceFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * referenceProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
                 progress += referenceProgress;
 
                 token.ThrowIfCancellationRequested();
-                List<Patient> patients = await LoadPatientsAsync(patientFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
+                var patients = await LoadPatientsAsync(patientFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * patientProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
                 progress += patientProgress;
 
                 token.ThrowIfCancellationRequested();
-                List<DataInfo> dataInfos = await LoadDataInfosAsync(dataInfoFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
+                var dataInfos = await LoadDataInfosAsync(dataInfoFiles, (localProgress, duration, text) => updateProgress(progress + localProgress * dataInfoProgress, duration, text), token, concurrency, priorityProvider, fileRecoveryItems);
                 progress += dataInfoProgress;
 
                 token.ThrowIfCancellationRequested();
                 updateProgress(progress, 0, new LoadingText("Linking database references"));
                 await UniTask.SwitchToMainThread();
                 EnsureLoadingGenerationIsCurrent(generation, workspaceID, token);
-                List<LoadingRecoveryItem> structuralRecoveryItems = fileRecoveryItems.ToList();
+                var structuralRecoveryItems = fileRecoveryItems.ToList();
                 structuralRecoveryItems.AddRange(ProtocolLoadingRecoveryReport.Items);
                 references = LoadingContext.ExcludeDuplicateIds(references, "database reference", structuralRecoveryItems);
                 patients = LoadingContext.ExcludeDuplicateIds(patients, "patient", structuralRecoveryItems);
                 dataInfos = LoadingContext.ExcludeDuplicateIds(dataInfos, "data info", structuralRecoveryItems);
-                List<Protocol> uniqueProtocols = LoadingContext.ExcludeDuplicateIds(protocols, "protocol", structuralRecoveryItems);
+                var uniqueProtocols = LoadingContext.ExcludeDuplicateIds(protocols, "protocol", structuralRecoveryItems);
                 uniqueProtocols = LoadingContext.ExcludeProtocolsWithInvalidBlocIds(uniqueProtocols, structuralRecoveryItems);
-                DeferredTagMigrationPlan migrationPlan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Workspace, PersistentDataManager.Tags, patients, null, TagParsingPolicy.Default);
-                bool migrationCommitted = false;
+                var migrationPlan = new DeferredTagMigrationService().Plan(DeferredTagMigrationScope.Workspace, PersistentDataManager.Tags, patients, null, TagParsingPolicy.Default);
+                var migrationCommitted = false;
                 try
                 {
                     if (migrationPlan.RequiresConfirmation)
@@ -756,10 +684,7 @@ namespace HBP.Core.Database
                 token.ThrowIfCancellationRequested();
                 lock (m_LoadingOperationLock)
                 {
-                    if (generation != m_LoadingGeneration || workspaceID != Settings.SelectedWorkspace?.ID)
-                    {
-                        throw new OperationCanceledException("The database loading generation is obsolete.", token);
-                    }
+                    if (generation != m_LoadingGeneration || workspaceID != Settings.SelectedWorkspace?.ID) throw new OperationCanceledException("The database loading generation is obsolete.", token);
 
                     m_DatabaseReferences = references;
                     m_Patients = patients;
@@ -799,37 +724,28 @@ namespace HBP.Core.Database
                 DataInfo[] dataInfos;
                 lock (m_LoadingOperationLock)
                 {
-                    if (generation != m_LoadingGeneration || workspaceID != m_PublishedWorkspaceID || workspaceID != Settings.SelectedWorkspace?.ID)
-                    {
-                        throw new OperationCanceledException("The database validation generation is obsolete.", token);
-                    }
+                    if (generation != m_LoadingGeneration || workspaceID != m_PublishedWorkspaceID || workspaceID != Settings.SelectedWorkspace?.ID) throw new OperationCanceledException("The database validation generation is obsolete.", token);
 
                     patients = request.Includes(ValidationAspect.PatientAssets) ? m_Patients.Where(request.Matches).ToArray() : Array.Empty<Patient>();
                     dataInfos = m_DataInfos.Where(request.Matches).ToArray();
                 }
 
-                float pathWeight = patients.Length == 0 ? 0 : dataInfos.Length == 0 ? 1 : (float)patients.Length / (patients.Length + dataInfos.Length);
-                LoadingConcurrencyPolicy concurrencyPolicy = LoadingConcurrencyPolicy.Current;
-                int pathConcurrency = concurrencyPolicy.GetLimit(LoadingWorkCategory.FileSystem);
-                int dataInfoConcurrency = concurrencyPolicy.GetLimit(DataInfoValidator.GetWorkCategory(request));
+                var pathWeight = patients.Length == 0 ? 0 : dataInfos.Length == 0 ? 1 : (float)patients.Length / (patients.Length + dataInfos.Length);
+                var concurrencyPolicy = LoadingConcurrencyPolicy.Current;
+                var pathConcurrency = concurrencyPolicy.GetLimit(LoadingWorkCategory.FileSystem);
+                var dataInfoConcurrency = concurrencyPolicy.GetLimit(DataInfoValidator.GetWorkCategory(request));
 
-                PatientAssetValidationResult assetResult = await new AssetReferenceValidator().ValidatePatientsAsync(patients, pathConcurrency, token, (completed, total) => updateProgress((total == 0 ? 1 : (float)completed / total) * pathWeight, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database file references") : new LoadingText("Validating database file references", " ", completed + "/" + total)), generation, priorityProvider);
+                var assetResult = await new AssetReferenceValidator().ValidatePatientsAsync(patients, pathConcurrency, token, (completed, total) => updateProgress((total == 0 ? 1 : (float)completed / total) * pathWeight, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database file references") : new LoadingText("Validating database file references", " ", completed + "/" + total)), generation, priorityProvider);
 
-                DataInfoValidationResult dataInfoResult = await new DataInfoValidator(metadataReader).ValidateAsync(dataInfos, request, dataInfoConcurrency, token, (completed, total) => updateProgress(pathWeight + (total == 0 ? 1 : (float)completed / total) * (1 - pathWeight), completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database data") : new LoadingText("Validating database data", " ", completed + "/" + total)), generation, priorityProvider);
+                var dataInfoResult = await new DataInfoValidator(metadataReader).ValidateAsync(dataInfos, request, dataInfoConcurrency, token, (completed, total) => updateProgress(pathWeight + (total == 0 ? 1 : (float)completed / total) * (1 - pathWeight), completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Validating database data") : new LoadingText("Validating database data", " ", completed + "/" + total)), generation, priorityProvider);
 
                 token.ThrowIfCancellationRequested();
                 await UniTask.SwitchToMainThread();
                 lock (m_LoadingOperationLock)
                 {
-                    if (generation != m_LoadingGeneration || workspaceID != m_PublishedWorkspaceID || workspaceID != Settings.SelectedWorkspace?.ID || !assetResult.TryApply(m_LoadingGeneration) || !dataInfoResult.TryApply(m_LoadingGeneration))
-                    {
-                        throw new OperationCanceledException("The database validation generation is obsolete.", token);
-                    }
+                    if (generation != m_LoadingGeneration || workspaceID != m_PublishedWorkspaceID || workspaceID != Settings.SelectedWorkspace?.ID || !assetResult.TryApply(m_LoadingGeneration) || !dataInfoResult.TryApply(m_LoadingGeneration)) throw new OperationCanceledException("The database validation generation is obsolete.", token);
 
-                    if (publishValidation)
-                    {
-                        m_ValidationPublished = true;
-                    }
+                    if (publishValidation) m_ValidationPublished = true;
                 }
 
                 OnValidationStateChanged?.Invoke();
@@ -859,17 +775,14 @@ namespace HBP.Core.Database
             await m_SaveSemaphore.WaitAsync();
             try
             {
-                Workspace workspace = Settings.SelectedWorkspace ?? throw new InvalidOperationException("No database workspace is selected.");
-                string workspaceID = workspace.ID;
-                string workspacePath = Path.GetFullPath(workspace.Path);
-                if (expectedWorkspaceID != null && !string.Equals(workspaceID, expectedWorkspaceID, StringComparison.Ordinal))
-                {
-                    throw new InvalidOperationException("The selected database workspace changed before it could be saved.");
-                }
+                var workspace = Settings.SelectedWorkspace ?? throw new InvalidOperationException("No database workspace is selected.");
+                var workspaceID = workspace.ID;
+                var workspacePath = Path.GetFullPath(workspace.Path);
+                if (expectedWorkspaceID != null && !string.Equals(workspaceID, expectedWorkspaceID, StringComparison.Ordinal)) throw new InvalidOperationException("The selected database workspace changed before it could be saved.");
 
-                Patient[] patients = m_Patients.ToArray();
-                DataInfo[] dataInfos = m_DataInfos.ToArray();
-                float validationWeight = NeedsValidationWait ? 0.2f : 0;
+                var patients = m_Patients.ToArray();
+                var dataInfos = m_DataInfos.ToArray();
+                var validationWeight = NeedsValidationWait ? 0.2f : 0;
                 if (validationWeight > 0)
                 {
                     await EnsureDatabaseValidatedAsync((progress, duration, text) => updateProgress(progress * validationWeight, duration, text));
@@ -897,8 +810,8 @@ namespace HBP.Core.Database
 
             await UniTask.SwitchToMainThread();
             await m_SaveSemaphore.WaitAsync();
-            string transactionID = Guid.NewGuid().ToString("N");
-            string tagsTemporaryPath = TagCollection.PATH + ".update-" + transactionID;
+            var transactionID = Guid.NewGuid().ToString("N");
+            var tagsTemporaryPath = TagCollection.PATH + ".update-" + transactionID;
             DirectoryInfo referencesTemporaryDirectory = null;
             DirectoryInfo patientsTemporaryDirectory = null;
             DirectoryInfo dataInfosTemporaryDirectory = null;
@@ -927,6 +840,7 @@ namespace HBP.Core.Database
                 referencesReplacement.Publish();
                 patientsReplacement.Publish();
                 dataInfosReplacement.Publish();
+
                 tagsTemporaryPath = null;
                 referencesTemporaryDirectory = null;
                 patientsTemporaryDirectory = null;
@@ -936,10 +850,16 @@ namespace HBP.Core.Database
                 referencesReplacement.Complete();
                 patientsReplacement.Complete();
                 dataInfosReplacement.Complete();
+
                 transaction.IsCompleted = true;
-                lock (m_LoadingOperationLock) m_WorkspacesWithUnsavedTagMigration.Remove(transaction.WorkspaceID);
+                lock (m_LoadingOperationLock)
+                {
+                    m_WorkspacesWithUnsavedTagMigration.Remove(transaction.WorkspaceID);
+                }
+
                 TryRollback(PersistentDataManager.Tags.CompleteExternalSave);
                 TryRollback(OnUpdateDatabases.Invoke);
+
                 updateProgress(1, 0, new LoadingText("Finalizing"));
             }
             catch (Exception exception)
@@ -954,7 +874,7 @@ namespace HBP.Core.Database
                     TryRollback(() => RollbackDatabaseUpdate(transaction));
                 }
 
-                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
+                ExceptionDispatchInfo.Capture(exception).Throw();
                 throw;
             }
             finally
@@ -969,13 +889,10 @@ namespace HBP.Core.Database
 
         private async UniTask<DirectoryInfo> PrepareDatabaseReferencesDirectoryAsync(string workspacePath, string transactionID, IEnumerable<DatabaseReference> references)
         {
-            DirectoryInfo directory = Directory.CreateDirectory(Path.Combine(workspacePath, "ReferencesTemp-" + transactionID));
+            var directory = Directory.CreateDirectory(Path.Combine(workspacePath, "ReferencesTemp-" + transactionID));
             try
             {
-                foreach (DatabaseReference reference in references)
-                {
-                    await ClassLoaderSaver.SaveToJsonOrThrowAsync(reference, Path.Combine(directory.FullName, reference.ID + DatabaseReference.EXTENSION), true);
-                }
+                foreach (var reference in references) await ClassLoaderSaver.SaveToJsonOrThrowAsync(reference, Path.Combine(directory.FullName, reference.ID + DatabaseReference.EXTENSION), true);
 
                 return directory;
             }
@@ -990,10 +907,7 @@ namespace HBP.Core.Database
         {
             if (transaction.IsCompleted) throw new InvalidOperationException("The database update transaction is already complete.");
             EnsureWorkspaceIsCurrent(transaction.WorkspaceID, transaction.WorkspacePath);
-            if (!m_Patients.SequenceEqual(transaction.CommittedPatients) || !m_DataInfos.SequenceEqual(transaction.CommittedDataInfos) || !m_DatabaseReferences.SequenceEqual(transaction.CommittedReferences) || transaction.CommittedReferences.Any(reference => !string.Equals(transaction.CommittedReferenceSignatures[reference], GetDatabaseReferenceSignature(reference), StringComparison.Ordinal)) || !ReferenceEquals(PersistentDataManager.Tags, transaction.CommittedTags) || !string.Equals(transaction.CommittedTagSignature, GetTagCollectionSignature(PersistentDataManager.Tags), StringComparison.Ordinal))
-            {
-                throw new InvalidOperationException("The loaded database changed before its update could be saved.");
-            }
+            if (!m_Patients.SequenceEqual(transaction.CommittedPatients) || !m_DataInfos.SequenceEqual(transaction.CommittedDataInfos) || !m_DatabaseReferences.SequenceEqual(transaction.CommittedReferences) || transaction.CommittedReferences.Any(reference => !string.Equals(transaction.CommittedReferenceSignatures[reference], GetDatabaseReferenceSignature(reference), StringComparison.Ordinal)) || !ReferenceEquals(PersistentDataManager.Tags, transaction.CommittedTags) || !string.Equals(transaction.CommittedTagSignature, GetTagCollectionSignature(PersistentDataManager.Tags), StringComparison.Ordinal)) throw new InvalidOperationException("The loaded database changed before its update could be saved.");
         }
 
         private void RollbackDatabaseUpdate(DatabaseUpdateTransaction transaction)
@@ -1042,10 +956,10 @@ namespace HBP.Core.Database
 
         private static string GetTagSignature(BaseTag tag)
         {
-            string details = tag switch
+            var details = tag switch
             {
                 IntTag value => $"{value.Clamped}:{value.Min}:{value.Max}",
-                FloatTag value => $"{value.Clamped}:{value.Min.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}:{value.Max.ToString("R", System.Globalization.CultureInfo.InvariantCulture)}",
+                FloatTag value => $"{value.Clamped}:{value.Min.ToString("R", CultureInfo.InvariantCulture)}:{value.Max.ToString("R", CultureInfo.InvariantCulture)}",
                 EnumTag value => string.Join("\u001c", value.Values),
                 _ => string.Empty
             };
@@ -1056,16 +970,13 @@ namespace HBP.Core.Database
         {
             lock (m_LoadingOperationLock)
             {
-                if (generation != m_LoadingGeneration || !string.Equals(workspaceID, Settings.SelectedWorkspace?.ID, StringComparison.Ordinal))
-                {
-                    throw new OperationCanceledException("The database loading generation is obsolete.", token);
-                }
+                if (generation != m_LoadingGeneration || !string.Equals(workspaceID, Settings.SelectedWorkspace?.ID, StringComparison.Ordinal)) throw new OperationCanceledException("The database loading generation is obsolete.", token);
             }
         }
 
         private async UniTask SaveDatabaseCoreAsync(Action<float, float, LoadingText> updateProgress, string workspaceID, string workspacePath, IReadOnlyCollection<Patient> patients, IReadOnlyCollection<DataInfo> dataInfos)
         {
-            string transactionID = Guid.NewGuid().ToString("N");
+            var transactionID = Guid.NewGuid().ToString("N");
             DirectoryInfo patientsTempDirectory = null;
             DirectoryInfo dataInfosTempDirectory = null;
             try
@@ -1078,8 +989,8 @@ namespace HBP.Core.Database
                 else
                 {
                     float patientProgress = patients.Count;
-                    float dataInfoProgress = patients.Count > 0 ? (float)dataInfos.Count / patients.Count : dataInfos.Count;
-                    float steps = patientProgress + dataInfoProgress;
+                    var dataInfoProgress = patients.Count > 0 ? (float)dataInfos.Count / patients.Count : dataInfos.Count;
+                    var steps = patientProgress + dataInfoProgress;
                     patientProgress /= steps;
                     dataInfoProgress /= steps;
                     float progress = 0;
@@ -1105,10 +1016,10 @@ namespace HBP.Core.Database
         {
             DirectoryInfo protocolDirectory = new(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
             if (!protocolDirectory.Exists) protocolDirectory.Create();
-            FileInfo[] protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
-            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+            var protocolFiles = protocolDirectory.GetFiles("*" + Protocol.EXTENSION, SearchOption.TopDirectoryOnly);
+            var concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
             ConcurrentQueue<LoadingRecoveryItem> recovered = new();
-            Func<UniTask<Protocol>>[] tasks = protocolFiles.Select(protocolFile => (Func<UniTask<Protocol>>)(async () =>
+            var tasks = protocolFiles.Select(protocolFile => (Func<UniTask<Protocol>>)(async () =>
             {
                 try
                 {
@@ -1127,8 +1038,8 @@ namespace HBP.Core.Database
         public async UniTask SaveProtocolsAsync()
         {
             CopyProtocolsImages();
-            DirectoryInfo protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
-            DirectoryInfo protocolTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ProtocolsTemp"));
+            var protocolDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Protocols"));
+            var protocolTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ProtocolsTemp"));
             await RunDatabaseTasksAsync(m_Protocols.Select(protocol => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonAsync(protocol, Path.Combine(protocolTempDirectory.FullName, protocol.Name + Protocol.EXTENSION), true))), "Saving database protocols", null);
             protocolDirectory.Delete(true);
             protocolTempDirectory.MoveTo(protocolDirectory.FullName);
@@ -1136,38 +1047,32 @@ namespace HBP.Core.Database
 
         private void CopyProtocolsImages()
         {
-            DirectoryInfo imagesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Images"));
-            DirectoryInfo imagesTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ImagesTemp"));
+            var imagesDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "Images"));
+            var imagesTempDirectory = Directory.CreateDirectory(Path.Combine(ApplicationState.DatabasePath, "ImagesTemp"));
             foreach (var protocol in m_Protocols)
+            foreach (var bloc in protocol.Blocs)
             {
-                foreach (var bloc in protocol.Blocs)
+                if (!string.IsNullOrEmpty(bloc.IllustrationPath))
                 {
-                    if (!string.IsNullOrEmpty(bloc.IllustrationPath))
+                    var blocImage = new FileInfo(bloc.IllustrationPath);
+                    if (blocImage.Exists)
                     {
-                        var blocImage = new FileInfo(bloc.IllustrationPath);
-                        if (blocImage.Exists)
-                        {
-                            blocImage.CopyTo(Path.Join(imagesTempDirectory.FullName, blocImage.Name));
-                            bloc.IllustrationPath = Path.Join(imagesDirectory.FullName, blocImage.Name);
-                        }
-                    }
-
-                    foreach (var subBloc in bloc.SubBlocs)
-                    {
-                        foreach (var icon in subBloc.Icons)
-                        {
-                            if (!string.IsNullOrEmpty(icon.ImagePath))
-                            {
-                                var iconImage = new FileInfo(icon.ImagePath);
-                                if (iconImage.Exists)
-                                {
-                                    iconImage.CopyTo(Path.Join(imagesTempDirectory.FullName, iconImage.Name));
-                                    icon.ImagePath = Path.Join(imagesDirectory.FullName, iconImage.Name);
-                                }
-                            }
-                        }
+                        blocImage.CopyTo(Path.Join(imagesTempDirectory.FullName, blocImage.Name));
+                        bloc.IllustrationPath = Path.Join(imagesDirectory.FullName, blocImage.Name);
                     }
                 }
+
+                foreach (var subBloc in bloc.SubBlocs)
+                foreach (var icon in subBloc.Icons)
+                    if (!string.IsNullOrEmpty(icon.ImagePath))
+                    {
+                        var iconImage = new FileInfo(icon.ImagePath);
+                        if (iconImage.Exists)
+                        {
+                            iconImage.CopyTo(Path.Join(imagesTempDirectory.FullName, iconImage.Name));
+                            icon.ImagePath = Path.Join(imagesDirectory.FullName, iconImage.Name);
+                        }
+                    }
             }
 
             imagesDirectory.Delete(true);
@@ -1176,23 +1081,23 @@ namespace HBP.Core.Database
 
         public async UniTask LoadDatabaseReferencesAsync()
         {
-            FileInfo[] referenceFiles = GetDatabaseReferenceFiles(Settings.SelectedWorkspace.Path);
-            List<DatabaseReference> references = await LoadDatabaseReferencesAsync(referenceFiles, null);
+            var referenceFiles = GetDatabaseReferenceFiles(Settings.SelectedWorkspace.Path);
+            var references = await LoadDatabaseReferencesAsync(referenceFiles, null);
             await UniTask.SwitchToMainThread();
             m_DatabaseReferences = references;
         }
 
         private FileInfo[] GetDatabaseReferenceFiles(string workspacePath)
         {
-            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "References"));
+            var referencesDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "References"));
             return referencesDirectory.GetFiles("*" + DatabaseReference.EXTENSION, SearchOption.TopDirectoryOnly);
         }
 
         private async UniTask<List<DatabaseReference>> LoadDatabaseReferencesAsync(FileInfo[] referenceFiles, Action<float, float, LoadingText> updateProgress, CancellationToken token = default, int? concurrency = null, Func<LoadingWorkPriority> priorityProvider = null, ConcurrentQueue<LoadingRecoveryItem> recovered = null)
         {
-            int workerCount = concurrency ?? LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+            var workerCount = concurrency ?? LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
             updateProgress?.Invoke(0, 0, new LoadingText("Loading database references"));
-            Func<UniTask<DatabaseReference>>[] tasks = referenceFiles.Select(referenceFile => (Func<UniTask<DatabaseReference>>)(async () =>
+            var tasks = referenceFiles.Select(referenceFile => (Func<UniTask<DatabaseReference>>)(async () =>
             {
                 try
                 {
@@ -1204,7 +1109,7 @@ namespace HBP.Core.Database
                     return null;
                 }
             })).ToArray();
-            List<DatabaseReference> references = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, null, workerCount)).Where(reference => reference != null).ToList();
+            var references = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, null, workerCount)).Where(reference => reference != null).ToList();
             updateProgress?.Invoke(1, 0, new LoadingText("Database references loaded"));
             return references;
         }
@@ -1219,28 +1124,22 @@ namespace HBP.Core.Database
         private async UniTask SaveDatabaseReferencesAsync(bool invalidateValidation)
         {
             await UniTask.SwitchToMainThread();
-            string workspaceID = Settings.SelectedWorkspace?.ID;
-            string workspacePath = Settings.SelectedWorkspace?.Path ?? throw new InvalidOperationException("No database workspace is selected.");
-            DatabaseReference[] references = m_DatabaseReferences.ToArray();
+            var workspaceID = Settings.SelectedWorkspace?.ID;
+            var workspacePath = Settings.SelectedWorkspace?.Path ?? throw new InvalidOperationException("No database workspace is selected.");
+            var references = m_DatabaseReferences.ToArray();
 
-            DirectoryInfo referencesDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "References"));
-            DirectoryInfo referencesTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "ReferencesTemp"));
+            var referencesDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "References"));
+            var referencesTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "ReferencesTemp"));
             await RunDatabaseTasksAsync(references.Select(reference => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonAsync(reference, Path.Combine(referencesTempDirectory.FullName, reference.ID + DatabaseReference.EXTENSION), true))), "Saving database references", null);
             referencesDirectory.Delete(true);
             referencesTempDirectory.MoveTo(referencesDirectory.FullName);
 
             await UniTask.SwitchToMainThread();
-            if (workspaceID != Settings.SelectedWorkspace?.ID)
-            {
-                return;
-            }
+            if (workspaceID != Settings.SelectedWorkspace?.ID) return;
 
             m_Patients.RemoveAll(p => !references.Any(r => r.ID == p.CorrespondingDatabaseID));
             m_DataInfos.RemoveAll(d => references.All(r => r.ID != d.CorrespondingDatabaseID) || (d is PatientDataInfo pd && !m_Patients.Contains(pd.Patient)));
-            if (invalidateValidation)
-            {
-                InvalidateValidation(new ValidationRequest(ValidationAspect.None));
-            }
+            if (invalidateValidation) InvalidateValidation(new ValidationRequest(ValidationAspect.None));
 
             OnUpdateDatabases.Invoke();
         }
@@ -1266,13 +1165,13 @@ namespace HBP.Core.Database
                     return null;
                 }
             }));
-            List<Patient> patients = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, (completed, total) => UpdateLoadingProgress(updateProgress, "Loading database patients", completed, total), concurrency)).Where(patient => patient != null).OrderBy(patient => patient.Name).ToList();
+            var patients = (await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, priorityProvider, token, (completed, total) => UpdateLoadingProgress(updateProgress, "Loading database patients", completed, total), concurrency)).Where(patient => patient != null).OrderBy(patient => patient.Name).ToList();
             return patients;
         }
 
         private async UniTask<DirectoryInfo> PreparePatientsDirectoryAsync(string workspacePath, string transactionID, IEnumerable<Patient> patients, Action<float, float, LoadingText> updateProgress)
         {
-            DirectoryInfo patientsTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "PatientsTemp-" + transactionID));
+            var patientsTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "PatientsTemp-" + transactionID));
             try
             {
                 var tasks = patients.Select(patient => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonOrThrowAsync(patient, Path.Combine(patientsTempDirectory.FullName, patient.ID + Patient.EXTENSION), true)));
@@ -1317,27 +1216,22 @@ namespace HBP.Core.Database
 
         private static async UniTask RunDatabaseTasksAsync(IEnumerable<Func<UniTask>> tasks, string loadingText, Action<float, float, LoadingText> updateProgress)
         {
-            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
+            var concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.JsonAndZip);
             await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.JsonAndZip, () => LoadingWorkPriority.Foreground, CancellationToken.None, (completed, total) => UpdateLoadingProgress(updateProgress, loadingText, completed, total), concurrency);
         }
 
         private async UniTask<DirectoryInfo> PrepareDataInfosDirectoryAsync(string workspacePath, string transactionID, IEnumerable<DataInfo> dataInfos, Action<float, float, LoadingText> updateProgress)
         {
-            DirectoryInfo dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "DataInfosTemp-" + transactionID));
+            var dataInfosTempDirectory = Directory.CreateDirectory(Path.Combine(workspacePath, "DataInfosTemp-" + transactionID));
             try
             {
                 Dictionary<Patient, List<PatientDataInfo>> patientDataInfos = new();
-                foreach (var patient in dataInfos.OfType<PatientDataInfo>().Select(d => d.Patient).Distinct())
-                {
-                    patientDataInfos.Add(patient, new List<PatientDataInfo>());
-                }
+                foreach (var patient in dataInfos.OfType<PatientDataInfo>().Select(d => d.Patient).Distinct()) patientDataInfos.Add(patient, new List<PatientDataInfo>());
 
                 List<DataInfo> otherDataInfos = new();
                 foreach (var dataInfo in dataInfos)
-                {
                     if (dataInfo is PatientDataInfo patientDataInfo) patientDataInfos[patientDataInfo.Patient].Add(patientDataInfo);
                     else otherDataInfos.Add(dataInfo);
-                }
 
                 var tasks = patientDataInfos.Select(kvp => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonOrThrowAsync(kvp.Value, Path.Combine(dataInfosTempDirectory.FullName, kvp.Key.ID + DataInfo.EXTENSION), true)));
                 await RunDatabaseTasksAsync(tasks, "Saving database functional data", updateProgress);
@@ -1353,12 +1247,9 @@ namespace HBP.Core.Database
 
         private void EnsureWorkspaceIsCurrent(string expectedWorkspaceID, string expectedWorkspacePath)
         {
-            Workspace current = Settings.SelectedWorkspace;
-            string currentPath = current?.Path == null ? null : Path.GetFullPath(current.Path);
-            if (!string.Equals(current?.ID, expectedWorkspaceID, StringComparison.Ordinal) || !string.Equals(currentPath, expectedWorkspacePath, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException("The selected database workspace changed while it was being saved.");
-            }
+            var current = Settings.SelectedWorkspace;
+            var currentPath = current?.Path == null ? null : Path.GetFullPath(current.Path);
+            if (!string.Equals(current?.ID, expectedWorkspaceID, StringComparison.Ordinal) || !string.Equals(currentPath, expectedWorkspacePath, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("The selected database workspace changed while it was being saved.");
         }
 
         internal static void ReplaceDatabaseDirectoriesAtomically(string workspacePath, DirectoryInfo patientsTempDirectory, DirectoryInfo dataInfosTempDirectory, Action validateBeforeCompletion)
@@ -1397,9 +1288,9 @@ namespace HBP.Core.Database
 
         private sealed class DirectoryReplacement
         {
+            private readonly string m_BackupPath;
             private readonly string m_TargetPath;
             private readonly string m_TemporaryPath;
-            private readonly string m_BackupPath;
             private bool m_HadOriginal;
             private bool m_Published;
 
@@ -1453,9 +1344,9 @@ namespace HBP.Core.Database
 
         private sealed class FileReplacement
         {
+            private readonly string m_BackupPath;
             private readonly string m_TargetPath;
             private readonly string m_TemporaryPath;
-            private readonly string m_BackupPath;
             private bool m_HadOriginal;
             private bool m_Published;
 
@@ -1513,34 +1404,42 @@ namespace HBP.Core.Database
             if (StructuralRecoveryReport.HasIssues) throw new InvalidOperationException("The database cannot be updated while the workspace is open in structural recovery mode.");
             updateProgress(0, 1, new LoadingText("Initialization"));
             await UniTask.SwitchToMainThread();
-            string workspaceID = Settings.SelectedWorkspace?.ID;
-            string workspacePath = Path.GetFullPath(Settings.SelectedWorkspace?.Path ?? throw new InvalidOperationException("No database workspace is selected."));
-            Patient[] originalPatients = m_Patients.ToArray();
-            DataInfo[] originalDataInfos = m_DataInfos.ToArray();
-            List<Patient> oldPatients = m_Patients.Select(patient => (Patient)patient.Clone()).ToList();
-            List<DataInfo> oldDataInfos = m_DataInfos.Select(dataInfo => (DataInfo)dataInfo.Clone()).ToList();
-            List<Patient> patientsTemp = new(m_Patients);
-            List<DataInfo> dataInfosTemp = new(m_DataInfos);
-            DatabaseReference[] referenceSnapshot = databaseReferences.ToArray();
-            DatabaseReference[] configuredReferenceSnapshot = m_DatabaseReferences.Concat(referenceSnapshot).Where(reference => reference != null).GroupBy(reference => string.IsNullOrEmpty(reference.ID) ? $"{reference.Type}:{reference.Path}" : reference.ID).Select(group => group.First()).ToArray();
-            TagParsingPolicy parsingPolicy = PersistentDataManager.UserPreferences?.Data?.TagImport?.CreatePolicy() ?? TagParsingPolicy.Default;
+            string workspaceID;
+            string workspacePath;
+            Patient[] originalPatients;
+            DataInfo[] originalDataInfos;
+            List<Patient> patientsTemp;
+            List<DataInfo> dataInfosTemp;
+            ValidationImpactAnalyzer.DatabaseSnapshot validationSnapshot;
+            DatabaseReference[] referenceSnapshot;
+            DatabaseReference[] configuredReferenceSnapshot;
+            TagParsingPolicy parsingPolicy;
+            workspaceID = Settings.SelectedWorkspace?.ID;
+            workspacePath = Path.GetFullPath(Settings.SelectedWorkspace?.Path ?? throw new InvalidOperationException("No database workspace is selected."));
+            originalPatients = m_Patients.ToArray();
+            originalDataInfos = m_DataInfos.ToArray();
+            referenceSnapshot = databaseReferences.ToArray();
+            configuredReferenceSnapshot = m_DatabaseReferences.Concat(referenceSnapshot).Where(reference => reference != null).GroupBy(reference => string.IsNullOrEmpty(reference.ID) ? $"{reference.Type}:{reference.Path}" : reference.ID).Select(group => group.First()).ToArray();
+            parsingPolicy = PersistentDataManager.UserPreferences?.Data?.TagImport?.CreatePolicy() ?? TagParsingPolicy.Default;
+
             await UniTask.SwitchToThreadPool();
-            TagImportObservations observations = TagImportScanner.Scan(configuredReferenceSnapshot, token);
+            validationSnapshot = ValidationImpactAnalyzer.CaptureDatabase(originalPatients, originalDataInfos);
+            patientsTemp = originalPatients.Select(patient => (Patient)patient.Clone()).ToList();
+            dataInfosTemp = originalDataInfos.Select(CloneDataInfoForUpdate).ToList();
+
+            var observations = TagImportScanner.Scan(configuredReferenceSnapshot, token);
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
-            if (workspaceID != Settings.SelectedWorkspace?.ID)
-            {
-                throw new OperationCanceledException("The database workspace changed while its references were being scanned.", token);
-            }
+            if (workspaceID != Settings.SelectedWorkspace?.ID) throw new OperationCanceledException("The database workspace changed while its references were being scanned.", token);
 
-            TagImportDraft tagDraft = TagImportDraft.Create(PersistentDataManager.Tags, observations, parsingPolicy);
-            TagImportContext importContext = tagDraft.Context;
+            var tagDraft = TagImportDraft.Create(PersistentDataManager.Tags, observations, parsingPolicy);
+            var importContext = tagDraft.Context;
             await UniTask.SwitchToThreadPool();
             var brainvisaDatabaseReferences = referenceSnapshot.Where(d => d.Type == DatabaseType.Brainvisa).ToArray();
             var localizerDatabaseReferences = referenceSnapshot.Where(d => d.Type == DatabaseType.Localizer).ToArray();
             var bidsDatabaseReferences = referenceSnapshot.Where(d => d.Type == DatabaseType.BIDS).ToArray();
             var tagsDatabaseReferences = referenceSnapshot.Where(d => d.Type == DatabaseType.Tags).ToArray();
-            int numberOfDatabases = brainvisaDatabaseReferences.Length + localizerDatabaseReferences.Length + 2 * bidsDatabaseReferences.Length + tagsDatabaseReferences.Length;
+            var numberOfDatabases = brainvisaDatabaseReferences.Length + localizerDatabaseReferences.Length + 2 * bidsDatabaseReferences.Length + tagsDatabaseReferences.Length;
             float progress = 0;
             // Load databases
             List<Patient> updatedPatients = new();
@@ -1548,7 +1447,7 @@ namespace HBP.Core.Database
             foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
+                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out var patients, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
                 patientsTemp.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
                 patientsTemp.AddRange(patients);
                 updatedPatients.AddRange(patients);
@@ -1558,7 +1457,7 @@ namespace HBP.Core.Database
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadFromBIDSDatabase(bidsDatabaseReference, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
+                Patient.LoadFromBIDSDatabase(bidsDatabaseReference, out var patients, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
                 foreach (var patient in patients) patient.CorrespondingDatabaseID = bidsDatabaseReference.ID;
                 patientsTemp.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == bidsDatabaseReference.ID);
                 patientsTemp.AddRange(patients);
@@ -1570,7 +1469,7 @@ namespace HBP.Core.Database
             foreach (var tagsDatabaseReference in tagsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, patientsTemp, out Patient[] patients, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
+                Patient.LoadAdditionalTagsFromTagsDatabase(tagsDatabaseReference, patientsTemp, out var patients, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
                 foreach (var patient in patients)
                 {
                     patientsTemp.Remove(patient);
@@ -1585,7 +1484,7 @@ namespace HBP.Core.Database
             foreach (var localizerDatabaseReference in localizerDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference, patientsTemp, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference, patientsTemp, out var dataInfos, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token);
                 dataInfosTemp.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
                 dataInfosTemp.AddRange(dataInfos);
                 progress += 1f / numberOfDatabases;
@@ -1594,50 +1493,60 @@ namespace HBP.Core.Database
             foreach (var bidsDatabaseReference in bidsDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                DataInfo.LoadFromBIDSDatabase(bidsDatabaseReference, patientsTemp, out DataInfo[] dataInfos, (localProgress, duration, text) => updateProgress(progress + (float)localProgress / numberOfDatabases, duration, text), token);
+                DataInfo.LoadFromBIDSDatabase(bidsDatabaseReference, patientsTemp, out var dataInfos, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token);
                 dataInfosTemp.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == bidsDatabaseReference.ID);
                 dataInfosTemp.AddRange(dataInfos);
                 progress += 1f / numberOfDatabases;
             }
 
             updateProgress(1, 0, new LoadingText("Finalizing"));
-            var report = FindChanges(oldPatients, patientsTemp, updatedPatients, tagDraft.Diagnostics);
+            var report = FindChanges(originalPatients, patientsTemp, updatedPatients, tagDraft.Diagnostics);
 
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
-            if (workspaceID != Settings.SelectedWorkspace?.ID)
-            {
-                throw new OperationCanceledException("The database workspace changed while its references were updating.", token);
-            }
+            if (workspaceID != Settings.SelectedWorkspace?.ID) throw new OperationCanceledException("The database workspace changed while its references were updating.", token);
 
             TagImportCommit tagCommit = null;
-            Dictionary<DatabaseReference, DateTime> originalUpdateTimes = referenceSnapshot.Distinct().ToDictionary(reference => reference, reference => reference.LastUpdated);
+            var originalUpdateTimes = referenceSnapshot.Distinct().ToDictionary(reference => reference, reference => reference.LastUpdated);
             try
             {
                 tagCommit = tagDraft.Commit(PersistentDataManager.Tags);
+                await UniTask.SwitchToThreadPool();
+                token.ThrowIfCancellationRequested();
                 new LoadingContext(PersistentDataManager.Tags.AllTags, m_Protocols, patientsTemp).ResolveDatabase(patientsTemp, dataInfosTemp);
-                DateTime updatedAt = DateTime.Now;
-                foreach (DatabaseReference databaseReference in referenceSnapshot) databaseReference.LastUpdated = updatedAt;
+                var validationRequest = validationSnapshot.Compare(patientsTemp, dataInfosTemp);
+
+                token.ThrowIfCancellationRequested();
+                await UniTask.SwitchToMainThread();
+                if (workspaceID != Settings.SelectedWorkspace?.ID) throw new OperationCanceledException("The database workspace changed while its update was being finalized.", token);
+
+                var updatedAt = DateTime.Now;
+                foreach (var databaseReference in referenceSnapshot) databaseReference.LastUpdated = updatedAt;
 
                 m_Patients = patientsTemp;
                 m_DataInfos = dataInfosTemp;
-                ValidationRequest validationRequest = ValidationImpactAnalyzer.ForPatients(oldPatients, patientsTemp).Merge(ValidationImpactAnalyzer.ForDataInfos(oldDataInfos, dataInfosTemp));
-                if (validationRequest.Aspects != ValidationAspect.None)
-                {
-                    InvalidateValidation(validationRequest);
-                }
+                if (validationRequest.Aspects != ValidationAspect.None) InvalidateValidation(validationRequest);
 
-                return new DatabaseUpdateTransaction(this, workspaceID, workspacePath, originalPatients, originalDataInfos, patientsTemp, dataInfosTemp, m_DatabaseReferences, originalUpdateTimes, tagCommit, report);
+                var transaction = new DatabaseUpdateTransaction(this, workspaceID, workspacePath, originalPatients, originalDataInfos, patientsTemp, dataInfosTemp, m_DatabaseReferences, originalUpdateTimes, tagCommit, report);
+                return transaction;
             }
             catch
             {
+                await UniTask.SwitchToMainThread();
                 tagCommit?.Rollback();
                 foreach (var pair in originalUpdateTimes) pair.Key.LastUpdated = pair.Value;
                 throw;
             }
         }
 
-        private DatabaseUpdateReport FindChanges(List<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics)
+        private static DataInfo CloneDataInfoForUpdate(DataInfo dataInfo)
+        {
+            var clone = (DataInfo)dataInfo.Clone();
+            clone.Copy(dataInfo);
+            return clone;
+        }
+
+        private DatabaseUpdateReport FindChanges(IEnumerable<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics)
         {
             var removedPatients = oldPatients.Except(newPatients).ToList();
             var addedPatients = newPatients.Except(oldPatients).ToList();
