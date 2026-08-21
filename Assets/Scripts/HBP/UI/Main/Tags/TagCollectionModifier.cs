@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System;
-using System.Threading;
-using Cysharp.Threading.Tasks;
 using UnityEngine;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
@@ -20,6 +18,7 @@ namespace HBP.UI.Main
         [SerializeField] GeneralTagsSubModifiers m_GeneralSubModifiers;
         [SerializeField] PatientsTagsSubModifiers m_PatientsSubModifiers;
         [SerializeField] SitesTagsSubModifiers m_SitesSubModifiers;
+        int m_ReplanAttempts;
 
         public override bool Interactable
         {
@@ -51,20 +50,103 @@ namespace HBP.UI.Main
 
         public override async void OK()
         {
+            if (PersistentDataManager.TagInitializationException != null)
+            {
+                await DialogBoxManager.OpenScrollableAsync(Core.Enums.DialogBoxType.Error, "Tag definitions recovery required", "Tags.json is invalid and was preserved. Tag definitions cannot be edited or saved until that file is repaired or restored and HiBoP is restarted.", "Continue");
+                return;
+            }
+
+            if (PersistentDataManager.FilterInitializationException != null)
+            {
+                await DialogBoxManager.OpenScrollableAsync(Core.Enums.DialogBoxType.Error, "Filter presets recovery required", "FilterConditionsPresets.json is invalid and was preserved. Tag definitions cannot be changed safely until that file is repaired or restored and HiBoP is restarted.", "Continue");
+                return;
+            }
+
+            WindowsReferencer.SaveAll();
             if (m_GeneralSubModifiers.TagListGestion.HasBeenModified || m_PatientsSubModifiers.TagListGestion.HasBeenModified || m_SitesSubModifiers.TagListGestion.HasBeenModified)
             {
-                int result = await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Informational, "Tags Modified", "Some tags have been added, deleted or modified. Patients and sites will be checked if you proceed.", "OK", "Cancel");
-                if (result == 0)
+                m_GeneralSubModifiers.Save();
+                m_PatientsSubModifiers.Save();
+                m_SitesSubModifiers.Save();
+
+                HashSet<string> modifiedTagIds = new(ModifiedTags.Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID)).Select(tag => tag.ID), StringComparer.Ordinal);
+                foreach (Core.Data.BaseTag removedTag in Object.AllTags.Where(tag => !ObjectTemp.ContainsTagId(tag.ID))) modifiedTagIds.Add(removedTag.ID);
+
+                List<Core.Data.Patient> patients = GetPatientsToCheck();
+                Core.Data.Project loadedProject = ApplicationState.LoadedProject;
+                bool databaseWasLoaded = DatabaseManager.Database.IsLoaded;
+                string workspaceID = DatabaseManager.Database.Settings.SelectedWorkspace?.ID;
+                Core.Data.TagSchemaMigrationService migrationService = new();
+                Core.Data.TagSchemaMigrationPlan plan = null;
+                try
                 {
-                    m_GeneralSubModifiers.Save();
-                    m_PatientsSubModifiers.Save();
-                    m_SitesSubModifiers.Save();
-                    base.OK();
+                    await LoadingManager.LoadAsync<bool>(async update =>
+                    {
+                        await Cysharp.Threading.Tasks.UniTask.SwitchToMainThread();
+                        update(0, 0, new LoadingText("Planning tag migration"));
+                        plan = migrationService.Plan(Object, ObjectTemp, patients, PersistentDataManager.FilterConditionsPresets, modifiedTagIds, Core.Data.TagParsingPolicy.Default);
+                        update(1, 0, new LoadingText("Tag migration planned"));
+                        return true;
+                    });
+                    await Cysharp.Threading.Tasks.UniTask.SwitchToMainThread();
+                }
+                catch
+                {
+                    await Cysharp.Threading.Tasks.UniTask.SwitchToMainThread();
+                    return;
+                }
+
+                if (!migrationService.Validate(plan))
+                {
+                    string issueDetails = string.Join("\n", plan.Issues.Take(8).Select(issue => "• " + issue));
+                    if (plan.Issues.Count > 8) issueDetails += $"\n• ... and {plan.Issues.Count - 8} more issue(s)";
+                    await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Tag changes blocked", issueDetails, "OK");
+                    return;
+                }
+
+                string summary = BuildMigrationSummary(plan, loadedProject != null);
+                int result = await DialogBoxManager.OpenAsync(plan.LossyConversionCount > 0 || plan.DestructiveConversionCount > 0 ? Core.Enums.DialogBoxType.Warning : Core.Enums.DialogBoxType.Informational, "Confirm tag migration", summary, "Apply", "Cancel");
+                if (result != 0) return;
+
+                if (!IsMigrationContextCurrent(loadedProject, databaseWasLoaded, workspaceID) || !plan.MatchesOwnerGraph(GetPatientsToCheck()))
+                {
+                    if (m_ReplanAttempts++ == 0)
+                    {
+                        OK();
+                        return;
+                    }
+
+                    m_ReplanAttempts = 0;
+                    await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Warning, "Tag migration changed again", "The loaded project or database workspace changed repeatedly while the migration was being reviewed. Retry when background changes have completed.", "OK");
+                    return;
+                }
+
+                try
+                {
+                    migrationService.Commit(plan);
+                    plan.CopyPreparedTagsTo(ObjectTemp);
                     PersistentDataManager.Tags.Save();
-                    var patients = GetPatientsToCheck();
-                    var checkTagsTasks = CreateCheckPatientsTagsTasks(patients, ModifiedTags);
-                    await LoadingManager.LoadAsync(update => RunCheckPatientsTagsTasksAsync(checkTagsTasks, update));
-                    if (DatabaseManager.Database.IsLoaded) await DatabaseWorkflow.SaveDatabaseAsync();
+                    PersistentDataManager.FilterConditionsPresets.Save();
+                    if (databaseWasLoaded) await DatabaseWorkflow.SaveDatabaseAsync(workspaceID);
+                    await Cysharp.Threading.Tasks.UniTask.SwitchToMainThread();
+                    if (!IsMigrationContextCurrent(loadedProject, databaseWasLoaded, workspaceID) || !plan.MatchesOwnerGraph(GetPatientsToCheck()))
+                    {
+                        throw new InvalidOperationException("The loaded project or database workspace changed while the migration was being saved.");
+                    }
+
+                    base.OK();
+                    m_ReplanAttempts = 0;
+                }
+                catch (Exception exception)
+                {
+                    await Cysharp.Threading.Tasks.UniTask.SwitchToMainThread();
+                    plan.Rollback();
+                    bool persistenceRestored = await TryRestorePersistentState(databaseWasLoaded, workspaceID);
+                    await Cysharp.Threading.Tasks.UniTask.SwitchToMainThread();
+                    Debug.LogException(exception);
+                    string recoveryMessage = persistenceRestored ? "In-memory and persisted changes were rolled back." : "In-memory changes were rolled back, but restoring the persisted files also failed. See the logs before closing HiBoP.";
+                    await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Tag migration failed", $"The migration could not be saved. {recoveryMessage}", "OK");
+                    return;
                 }
             }
             else
@@ -80,21 +162,88 @@ namespace HBP.UI.Main
         private List<Core.Data.Patient> GetPatientsToCheck()
         {
             List<Core.Data.Patient> patients = new();
-            if (ApplicationState.LoadedProject != null) patients.AddRange(ApplicationState.LoadedProject.Patients);
-            if (DatabaseManager.Database.IsLoaded) patients.AddRange(DatabaseManager.Database.Patients);
+            if (ApplicationState.LoadedProject != null) AddPatientsByReference(patients, ApplicationState.LoadedProject.Patients);
+            if (DatabaseManager.Database.IsLoaded) AddPatientsByReference(patients, DatabaseManager.Database.Patients);
             return patients;
         }
 
-        private List<Func<UniTask>> CreateCheckPatientsTagsTasks(IEnumerable<Core.Data.Patient> patients, IEnumerable<Core.Data.BaseTag> tags)
+        private static void AddPatientsByReference(List<Core.Data.Patient> destination, IEnumerable<Core.Data.Patient> patients)
         {
-            ISet<string> tagIds = new HashSet<string>(tags.Where(tag => tag != null && !string.IsNullOrEmpty(tag.ID)).Select(tag => tag.ID), StringComparer.Ordinal);
-            return patients.Select(patient => (Func<UniTask>)(async () => { await patient.CheckTagsAsync(tagIds); })).ToList();
+            foreach (Core.Data.Patient patient in patients.Where(patient => patient != null))
+            {
+                if (!destination.Any(existing => ReferenceEquals(existing, patient)))
+                {
+                    destination.Add(patient);
+                }
+            }
         }
 
-        private async UniTask RunCheckPatientsTagsTasksAsync(IEnumerable<Func<UniTask>> tasks, Action<float, float, LoadingText> update)
+        private static string BuildMigrationSummary(Core.Data.TagSchemaMigrationPlan plan, bool hasLoadedProject)
         {
-            int concurrency = LoadingConcurrencyPolicy.Current.GetLimit(LoadingWorkCategory.Metadata);
-            await LoadingWorkScheduler.Shared.RunAsync(tasks, LoadingWorkCategory.Metadata, () => LoadingWorkPriority.Foreground, CancellationToken.None, (completed, total) => update(total == 0 ? 1 : (float)completed / total, completed == 0 ? 0 : 0.2f, total == 0 ? new LoadingText("Checking patients") : new LoadingText("Checking patients", " ", completed + "/" + total)), concurrency);
+            List<string> lines = new()
+            {
+                $"Tag definitions changed: {plan.ChangedDefinitionCount}",
+                $"Patient values migrated: {plan.PatientValueCount}",
+                $"Site values migrated: {plan.SiteValueCount}",
+                $"Filters migrated: {plan.FilterCount}",
+                $"Lossy conversions: {plan.LossyConversionCount}",
+                $"Destructive conversions: {plan.DestructiveConversionCount}"
+            };
+            if (plan.RemovedValueCount > 0)
+            {
+                lines.Add($"Values removed: {plan.RemovedValueCount}");
+                var summaries = plan.RemovedValues.GroupBy(removal => new { removal.PatientID, removal.PatientName }).Select(group => new
+                {
+                    Name = string.IsNullOrEmpty(group.Key.PatientName) ? "Unknown patient" : group.Key.PatientName,
+                    PatientValues = group.Count(removal => removal.Scope == Core.Data.TagMigrationIssueScope.PatientValue),
+                    SiteValues = group.Count(removal => removal.Scope == Core.Data.TagMigrationIssueScope.SiteValue)
+                }).OrderBy(summary => summary.Name, StringComparer.OrdinalIgnoreCase).ThenBy(summary => summary.Name, StringComparer.Ordinal).ToArray();
+                lines.AddRange(summaries.Take(8).Select(summary => $"• {summary.Name}: {FormatValueCount(summary.PatientValues, "patient")}, {FormatValueCount(summary.SiteValues, "site")} removed"));
+                if (summaries.Length > 8) lines.Add($"• ... and {summaries.Length - 8} more patient(s)");
+            }
+
+            if (plan.Warnings.Count > 0) lines.Add($"Warnings: {plan.Warnings.Count}");
+            if (plan.DefinitionChanges.Count > 0)
+            {
+                lines.Add("\nChanges:");
+                lines.AddRange(plan.DefinitionChanges.Take(8).Select(change => $"• {change.Name} ({change.Category}): {change.PreviousType} → {change.NewType}"));
+                if (plan.DefinitionChanges.Count > 8) lines.Add($"• ... and {plan.DefinitionChanges.Count - 8} more change(s)");
+            }
+
+            if (hasLoadedProject) lines.Add("\nThe loaded project will be updated in memory. Save the project afterwards to persist these changes.");
+            if (!DatabaseManager.Database.IsLoaded) lines.Add("\nThe selected database workspace is not loaded. Its values will be repaired when that workspace is next opened.");
+            return string.Join("\n", lines);
+        }
+
+        private static string FormatValueCount(int count, string scope)
+        {
+            return $"{count} {scope} tag {(count == 1 ? "value" : "values")}";
+        }
+
+        private static bool IsMigrationContextCurrent(Core.Data.Project loadedProject, bool databaseWasLoaded, string workspaceID)
+        {
+            return ReferenceEquals(ApplicationState.LoadedProject, loadedProject) && DatabaseManager.Database.IsLoaded == databaseWasLoaded && DatabaseManager.Database.Settings.SelectedWorkspace?.ID == workspaceID;
+        }
+
+        private static async Cysharp.Threading.Tasks.UniTask<bool> TryRestorePersistentState(bool databaseWasLoaded, string workspaceID)
+        {
+            try
+            {
+                PersistentDataManager.Tags.Save();
+                PersistentDataManager.FilterConditionsPresets.Save();
+                if (databaseWasLoaded)
+                {
+                    if (DatabaseManager.Database.Settings.SelectedWorkspace?.ID != workspaceID) return false;
+                    await DatabaseWorkflow.SaveDatabaseAsync(workspaceID);
+                }
+
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                return false;
+            }
         }
 
         #endregion

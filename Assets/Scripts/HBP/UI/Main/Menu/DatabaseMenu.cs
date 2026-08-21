@@ -1,4 +1,5 @@
 using HBP.Core.Database;
+using HBP.UI.Database;
 using HBP.UI.Tools;
 using UnityEngine;
 
@@ -73,36 +74,14 @@ namespace HBP.UI.Main
 
         public async void OpenDatabaseBrowser()
         {
-            GlobalDatabase database = DatabaseManager.Database;
-            if (database.NeedsReadyWait)
-            {
-                try
-                {
-                    await LoadingManager.LoadAsync((update, token) => database.EnsureDatabaseReadyAsync(update, token));
-                }
-                catch (System.Exception)
-                {
-                    return;
-                }
-            }
+            if (!await DatabaseWorkflow.EnsureDatabaseReadyAndInformAsync()) return;
 
             WindowsManager.Open("Database browser window", null);
         }
 
         public async void OpenTrialMatrixExplorer()
         {
-            GlobalDatabase database = DatabaseManager.Database;
-            if (database.NeedsReadyWait)
-            {
-                try
-                {
-                    await LoadingManager.LoadAsync((update, token) => database.EnsureDatabaseReadyAsync(update, token));
-                }
-                catch (System.Exception)
-                {
-                    return;
-                }
-            }
+            if (!await DatabaseWorkflow.EnsureDatabaseReadyAndInformAsync()) return;
 
             WindowsManager.Open("Trial matrix explorer window", null);
         }

@@ -1,9 +1,7 @@
 using HBP.Core.Database;
-using HBP.Data.Module3D;
 using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,12 +11,12 @@ namespace HBP.UI.Database
     {
         #region Properties
 
-        [SerializeField] DatabasePatientList m_PatientList;
-        [SerializeField] DatabasePatientExplorer m_PatientExplorer;
+        [SerializeField] private DatabasePatientList m_PatientList;
+        [SerializeField] private DatabasePatientExplorer m_PatientExplorer;
 
-        [SerializeField] Button m_OpenDatabaseReferencesWindowButton;
-        [SerializeField] Button m_OpenExportLocalizerAtlasWindowButton;
-        [SerializeField] Button m_OpenExportBIDSWindowButton;
+        [SerializeField] private Button m_OpenDatabaseReferencesWindowButton;
+        [SerializeField] private Button m_OpenExportLocalizerAtlasWindowButton;
+        [SerializeField] private Button m_OpenExportBIDSWindowButton;
 
         #endregion
 

@@ -72,6 +72,26 @@ try
         throw "Unable to restore the repository's formatting tool."
     }
 
+    # The jb dispatcher from this package misparses its own DLL as a solution when it runs on .NET 10.
+    # Invoke CleanupCode directly while still resolving the version pinned by the local tool manifest.
+    $toolManifest = Get-Content -Raw (Join-Path $repositoryRoot ".config\dotnet-tools.json") | ConvertFrom-Json
+    $toolVersion = $toolManifest.tools."jetbrains.resharper.globaltools".version
+    $globalPackagesOutput = & dotnet nuget locals global-packages --list
+    $globalPackagesLine = $globalPackagesOutput | Select-Object -First 1
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "Unable to locate the NuGet global packages folder."
+    }
+
+    $globalPackagesRoot = ($globalPackagesLine -replace "^[^:]+:\s*", "").Trim()
+    $toolPackageRoot = Join-Path $globalPackagesRoot "jetbrains.resharper.globaltools\$toolVersion"
+    $cleanupCode = Get-ChildItem -Path (Join-Path $toolPackageRoot "tools\*\any\cleanupcode.exe") -File |
+        Select-Object -ExpandProperty FullName -First 1
+    if (!$cleanupCode)
+    {
+        throw "Unable to find CleanupCode in the restored JetBrains tool package."
+    }
+
     $solution = @(
         Join-Path $repositoryRoot "HiBoP.slnx"
         Join-Path $repositoryRoot "HiBoP.sln"
@@ -83,7 +103,7 @@ try
 
     $include = if ($All) { "Assets/**/*.cs" } else { $files -join ";" }
     Write-Host "Formatting $($files.Count) C# file(s)..."
-    & dotnet tool run jb -- cleanupcode --profile="Built-in: Reformat Code" --no-updates --no-build --verbosity=ERROR --include=$include $solution
+    & $cleanupCode --profile="Built-in: Reformat Code" --no-updates --no-build --verbosity=ERROR --include=$include $solution
     if ($LASTEXITCODE -ne 0)
     {
         throw "ReSharper CleanupCode failed."

@@ -33,7 +33,7 @@ namespace HBP.Dev
                 BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
                 ScriptingImplementation scriptingBackend = GetCommandLineScriptingBackend(target);
                 WriteBuildInfo();
-                BuildProjectAndZipIt(buildsDirectory, false, target, scriptingBackend);
+                BuildProjectAndZipIt(buildsDirectory, true, target, scriptingBackend);
             }
             catch (System.Exception exception)
             {
@@ -64,14 +64,18 @@ namespace HBP.Dev
             switch (target)
             {
                 case BuildTarget.StandaloneWindows64:
+#if UNITY_EDITOR_WIN
                     UnityEditor.WindowsStandalone.UserBuildSettings.architecture = OSArchitecture.x64;
+#endif
                     os = "win64";
                     break;
                 case BuildTarget.StandaloneLinux64:
                     os = "linux64";
                     break;
                 case BuildTarget.StandaloneOSX:
+#if UNITY_EDITOR_OSX
                     UnityEditor.OSXStandalone.UserBuildSettings.architecture = OSArchitecture.ARM64;
+#endif
                     os = "macos64";
                     break;
             }
@@ -116,7 +120,8 @@ namespace HBP.Dev
             string projectPath = Application.dataPath;
             projectPath = projectPath.Remove(projectPath.Length - 6);
 
-            DirectoryInfo dataDirectoryInfo = new(dataDirectory + m_DataBuild);
+            string dataBuildDirectory = target == BuildTarget.StandaloneOSX ? Path.Combine(dataDirectory, "Contents", "Resources", m_DataBuild) : Path.Combine(dataDirectory, m_DataBuild);
+            DirectoryInfo dataDirectoryInfo = new(dataBuildDirectory);
             new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(dataDirectoryInfo);
             foreach (var file in dataDirectoryInfo.GetFiles("*.meta", SearchOption.AllDirectories))
             {
@@ -128,20 +133,29 @@ namespace HBP.Dev
                 file.Delete();
             }
 
-            DirectoryInfo doNotShipDirectory = new(Path.Join(dataDirectory, "HiBoP_BackUpThisFolder_ButDontShipItWithYourGame"));
-            if (doNotShipDirectory.Exists)
+            string[] doNotShipDirectoryNames =
             {
-                doNotShipDirectory.Delete(true);
+                $"{Application.productName}_BackUpThisFolder_ButDontShipItWithYourGame",
+                $"{Application.productName}_BurstDebugInformation_DoNotShip"
+            };
+            foreach (string doNotShipDirectoryName in doNotShipDirectoryNames)
+            {
+                DirectoryInfo doNotShipDirectory = new(Path.Combine(buildDirectory, doNotShipDirectoryName));
+                if (doNotShipDirectory.Exists)
+                {
+                    doNotShipDirectory.Delete(true);
+                }
             }
 
             // Remove Localizer atlas if it exists (we do not ship it with the build)
-            DirectoryInfo localizerDirectory = new(Path.Combine(dataDirectory, m_DataBuild, "Atlases", "Localizers"));
+            DirectoryInfo localizerDirectory = new(Path.Combine(dataBuildDirectory, "Atlases", "Localizers"));
             if (localizerDirectory.Exists)
             {
                 localizerDirectory.Delete(true);
             }
 
-            if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == UnityEditor.Build.OSArchitecture.ARM64)
+#if UNITY_EDITOR_OSX
+            if (target == BuildTarget.StandaloneOSX && UnityEditor.OSXStandalone.UserBuildSettings.architecture == OSArchitecture.ARM64)
             {
                 string pluginsPath = Path.Join(dataDirectory, "Contents", "PlugIns");
                 DirectoryInfo pluginsDirectory = new(pluginsPath);
@@ -149,17 +163,7 @@ namespace HBP.Dev
                 arm64PluginsDirectory.CopyFilesRecursively(pluginsDirectory);
                 arm64PluginsDirectory.Delete(true);
             }
-
-            if (target == BuildTarget.StandaloneLinux64)
-            {
-                DirectoryInfo pluginsDirectory = new(Application.dataPath + "/Plugins/x86_64/Linux");
-                DirectoryInfo newPluginsDirectory = new(dataDirectory + "HiBoP_Data/Plugins");
-                pluginsDirectory.CopyFilesRecursively(newPluginsDirectory);
-                foreach (var metaFile in newPluginsDirectory.GetFiles("*.meta"))
-                {
-                    metaFile.Delete();
-                }
-            }
+#endif
 
             FileInfo readme = new(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name, true);
@@ -235,8 +239,7 @@ namespace HBP.Dev
                 return ScriptingImplementation.IL2CPP;
             }
 
-            if (string.Equals(value, "Mono", System.StringComparison.OrdinalIgnoreCase)
-                || string.Equals(value, "Mono2x", System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(value, "Mono", System.StringComparison.OrdinalIgnoreCase) || string.Equals(value, "Mono2x", System.StringComparison.OrdinalIgnoreCase))
             {
                 return ScriptingImplementation.Mono2x;
             }
@@ -246,9 +249,7 @@ namespace HBP.Dev
 
         private static ScriptingImplementation GetDefaultScriptingBackend(BuildTarget target)
         {
-            return target == BuildTarget.StandaloneOSX
-                ? ScriptingImplementation.Mono2x
-                : ScriptingImplementation.IL2CPP;
+            return target == BuildTarget.StandaloneOSX ? ScriptingImplementation.Mono2x : ScriptingImplementation.IL2CPP;
         }
 
         internal static void WriteBuildInfo()
@@ -345,6 +346,5 @@ namespace HBP.Dev
         {
             return il2cpp ? ScriptingImplementation.IL2CPP : ScriptingImplementation.Mono2x;
         }
-
     }
 }

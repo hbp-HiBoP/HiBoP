@@ -15,14 +15,12 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Materials used for the ROI spheres
         /// </summary>
-        [field: SerializeField]
-        public ROIMaterials ROI { get; private set; } = new ROIMaterials();
+        [field: SerializeField] public ROIMaterials ROI { get; private set; } = new ROIMaterials();
 
         /// <summary>
         /// Materials used for the sites
         /// </summary>
-        [field: SerializeField]
-        public SiteMaterials Site { get; private set; } = new SiteMaterials();
+        [field: SerializeField] public SiteMaterials Site { get; private set; } = new SiteMaterials();
 
         #endregion
     }
@@ -38,14 +36,12 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Material used for a ROI sphere in a regular state
         /// </summary>
-        [field: SerializeField]
-        public Material Normal { get; private set; }
+        [field: SerializeField] public Material Normal { get; private set; }
 
         /// <summary>
         /// Material used for a ROI sphere when it is selected
         /// </summary>
-        [field: SerializeField]
-        public Material Selected { get; private set; }
+        [field: SerializeField] public Material Selected { get; private set; }
 
         #endregion
     }
@@ -66,38 +62,32 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Default material for a site
         /// </summary>
-        [field: SerializeField]
-        public Material Basic { get; private set; }
+        [field: SerializeField] public Material Basic { get; private set; }
 
         /// <summary>
         /// Material used when the activity of the site is negative
         /// </summary>
-        [field: SerializeField]
-        public SiteMaterial Negative { get; private set; }
+        [field: SerializeField] public SiteMaterial Negative { get; private set; }
 
         /// <summary>
         /// Material used when the activity of the site is positive
         /// </summary>
-        [field: SerializeField]
-        public SiteMaterial Positive { get; private set; }
+        [field: SerializeField] public SiteMaterial Positive { get; private set; }
 
         /// <summary>
         /// Material used when the site is blacklisted
         /// </summary>
-        [field: SerializeField]
-        public SiteMaterial Blacklisted { get; private set; }
+        [field: SerializeField] public SiteMaterial Blacklisted { get; private set; }
 
         /// <summary>
         /// Material used if the site is a source for CCEP
         /// </summary>
-        [field: SerializeField]
-        public SiteMaterial Source { get; private set; }
+        [field: SerializeField] public SiteMaterial Source { get; private set; }
 
         /// <summary>
         /// Material used if the site is not a source for CCEP
         /// </summary>
-        [field: SerializeField]
-        public SiteMaterial NotASource { get; private set; }
+        [field: SerializeField] public SiteMaterial NotASource { get; private set; }
 
         #endregion
 
@@ -112,11 +102,11 @@ namespace HBP.Core.Object3D
         private Material GetMaterial(Color baseColor, bool highlighted)
         {
             Color color = new(baseColor.r, baseColor.g, baseColor.b, highlighted ? 1 : 0.5f);
-            if (!m_MaterialByColor.TryGetValue(color, out Material material))
+            if (!m_MaterialByColor.TryGetValue(color, out Material material) || material == null)
             {
                 material = Object.Instantiate(Basic);
                 material.color = color;
-                m_MaterialByColor.Add(color, material);
+                m_MaterialByColor[color] = material;
             }
 
             return material;

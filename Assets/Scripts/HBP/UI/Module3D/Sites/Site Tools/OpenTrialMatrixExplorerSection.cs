@@ -54,17 +54,7 @@ namespace HBP.UI.Module3D
         private async UniTaskVoid UpdateDatabaseDataNamesAsync(int generation)
         {
             GlobalDatabase database = DatabaseManager.Database;
-            if (database.NeedsReadyWait)
-            {
-                try
-                {
-                    await LoadingManager.LoadAsync((update, token) => database.EnsureDatabaseReadyAsync(update, token));
-                }
-                catch (System.Exception)
-                {
-                    return;
-                }
-            }
+            if (!await HBP.UI.Database.DatabaseWorkflow.EnsureDatabaseReadyAndInformAsync()) return;
 
             await UniTask.SwitchToMainThread();
             if (generation != m_DataNameRefreshGeneration || (DataSource)m_DataSourceDropdown.value != DataSource.Database)

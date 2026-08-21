@@ -824,6 +824,29 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        [Category("MeshScene.ConfigurationRegression")]
+        public async Task Base3DScene_InitializeAsync_WithoutPatientsLoadsAnatomicScene()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DSceneWithoutPatients");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, patientCount: 0);
+
+            Assert.That(initialized.Visualization.Patients, Is.Empty);
+            Assert.That(initialized.Visualization.IsVisualizable, Is.True);
+            Assert.That(initialized.BaseScene.Type, Is.EqualTo(SceneType.MultiPatients));
+            Assert.That(initialized.BaseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
+            Assert.That(initialized.BaseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
+            Assert.That(initialized.BaseScene.ColumnsAnatomy, Has.Count.EqualTo(1));
+            Assert.That(initialized.BaseScene.SelectedColumn, Is.SameAs(initialized.BaseScene.Columns[0]));
+            Assert.That(initialized.BaseScene.SelectedColumn.Sites, Is.Empty);
+            Assert.That(initialized.BaseScene.SelectedColumn.BrainMesh, Is.Not.Null);
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
         [Category("NativeDll")]
         [Category("PreviewSurface.Increment4")]
         public async Task Base3DScene_InitializeAsync_WithoutPatientMeshGeneratesOnePreviewPerMRIAndSelectsConfiguredMRI()
@@ -1800,7 +1823,7 @@ namespace HBP.Tests.PlayMode.Module3D
         {
             HBP.Core.Data.Site site = new($"module3d-scene-site-{patientSuffix}", new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"module3d-scene-coordinate-{patientSuffix}") }, Array.Empty<BaseTagValue>(), $"module3d-scene-site-{patientSuffix}");
             Patient patient = new($"module3d-scene-patient-{patientSuffix}", patientMeshes ?? Array.Empty<BaseMesh>(), patientMRIs ?? Array.Empty<MRI>(), new[] { site }, Array.Empty<BaseTagValue>(), string.Empty, $"module3d-scene-patient-{patientSuffix}");
-            List<Patient> patients = new() { patient };
+            List<Patient> patients = patientCount > 0 ? new() { patient } : new();
             for (int index = 1; index < patientCount; ++index)
             {
                 patients.Add(new Patient($"module3d-scene-patient-{patientSuffix}-{index}", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, $"module3d-scene-patient-{patientSuffix}-{index}"));

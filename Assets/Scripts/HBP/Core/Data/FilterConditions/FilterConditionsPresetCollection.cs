@@ -19,6 +19,8 @@ namespace HBP.Core.Data
 
         [JsonProperty] private Dictionary<Type, List<FilterConditionsPreset>> m_PresetsByType = new();
         [JsonProperty] private Dictionary<Type, FilterConditionsPreset> m_CurrentPresetByType = new();
+        [JsonIgnore] public bool HasUnsavedTagMigration { get; private set; }
+        [JsonIgnore] public Exception InitializationException { get; private set; }
 
         #endregion
 
@@ -26,6 +28,12 @@ namespace HBP.Core.Data
 
         public static FilterConditionsPresetCollection Initialize()
         {
+            return Initialize(out _);
+        }
+
+        internal static FilterConditionsPresetCollection Initialize(out Exception initializationException)
+        {
+            initializationException = null;
             FilterConditionsPresetCollection presetsCollection = new();
             if (new FileInfo(PATH).Exists)
             {
@@ -40,7 +48,8 @@ namespace HBP.Core.Data
                 catch (Exception e)
                 {
                     Debug.LogException(e);
-                    presetsCollection = new FilterConditionsPresetCollection();
+                    initializationException = e;
+                    presetsCollection = new FilterConditionsPresetCollection { InitializationException = e };
                 }
             }
 
@@ -62,7 +71,15 @@ namespace HBP.Core.Data
 
         public void Save()
         {
-            ClassLoaderSaver.SaveToJSon(this, PATH, true);
+            if (InitializationException != null) throw new InvalidOperationException("The original filter preset file is invalid and was preserved. Restore it and restart HiBoP before saving filters.", InitializationException);
+            ClassLoaderSaver.SaveToJsonAtomicOrThrow(this, PATH);
+            HasUnsavedTagMigration = false;
+        }
+
+
+        internal void MarkTagMigrationUnsaved()
+        {
+            HasUnsavedTagMigration = true;
         }
 
         internal void ResolveReferences(LoadingContext context)
@@ -78,11 +95,57 @@ namespace HBP.Core.Data
             }
         }
 
+        internal IEnumerable<BaseFilterCondition> EnumerateConditions()
+        {
+            return m_PresetsByType.Values.SelectMany(value => value).Concat(m_CurrentPresetByType.Values).Where(preset => preset != null).Distinct().SelectMany(preset => preset.Conditions ?? Enumerable.Empty<BaseFilterCondition>());
+        }
+
+        internal IEnumerable<(Type Type, FilterConditionsPreset Preset)> GetNamedPresetEntries()
+        {
+            return (m_PresetsByType ?? new()).SelectMany(pair => (pair.Value ?? new()).Where(preset => preset != null).Select(preset => (pair.Key, preset)));
+        }
+
+        internal IEnumerable<(Type Type, FilterConditionsPreset Preset)> GetCurrentPresetEntries()
+        {
+            return (m_CurrentPresetByType ?? new()).Where(pair => pair.Value != null).Select(pair => (pair.Key, pair.Value));
+        }
+
+        internal void ReplaceNamedPreset(Type type, FilterConditionsPreset source, FilterConditionsPreset replacement)
+        {
+            if (!m_PresetsByType.TryGetValue(type, out List<FilterConditionsPreset> presets)) return;
+            int index = presets.IndexOf(source);
+            if (index >= 0) presets[index] = replacement;
+        }
+
+        internal void ReplaceCurrentPreset(Type type, FilterConditionsPreset replacement)
+        {
+            m_CurrentPresetByType[type] = replacement;
+        }
+
+        internal string GetMigrationSignature()
+        {
+            JsonSerializerSettings settings = new() { TypeNameHandling = TypeNameHandling.Auto };
+            return JsonConvert.SerializeObject(this, Formatting.None, settings);
+        }
+
+        internal object CaptureMigrationState()
+        {
+            return new MigrationState(m_PresetsByType, m_CurrentPresetByType);
+        }
+
+        internal void RestoreMigrationState(object state)
+        {
+            if (state is not MigrationState migrationState) throw new ArgumentException("Invalid filter preset migration state.", nameof(state));
+            m_PresetsByType = migrationState.PresetsByType;
+            m_CurrentPresetByType = migrationState.CurrentPresetByType;
+        }
+
         public override object Clone()
         {
             return new FilterConditionsPresetCollection()
             {
-                m_PresetsByType = m_PresetsByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList())
+                m_PresetsByType = m_PresetsByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList()),
+                m_CurrentPresetByType = m_CurrentPresetByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.Clone() as FilterConditionsPreset)
             };
         }
 
@@ -91,6 +154,7 @@ namespace HBP.Core.Data
             if (copy is FilterConditionsPresetCollection aliasCollection)
             {
                 m_PresetsByType = aliasCollection.m_PresetsByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.DeepClone().ToList());
+                m_CurrentPresetByType = aliasCollection.m_CurrentPresetByType.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.Clone() as FilterConditionsPreset);
             }
         }
 
@@ -130,6 +194,18 @@ namespace HBP.Core.Data
         {
             m_CurrentPresetByType[type] = preset;
             if (autoSave) Save();
+        }
+
+        private sealed class MigrationState
+        {
+            public Dictionary<Type, List<FilterConditionsPreset>> PresetsByType { get; }
+            public Dictionary<Type, FilterConditionsPreset> CurrentPresetByType { get; }
+
+            public MigrationState(Dictionary<Type, List<FilterConditionsPreset>> presetsByType, Dictionary<Type, FilterConditionsPreset> currentPresetByType)
+            {
+                PresetsByType = presetsByType;
+                CurrentPresetByType = currentPresetByType;
+            }
         }
 
         #endregion

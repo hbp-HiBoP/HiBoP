@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using NUnit.Framework;
@@ -197,6 +198,41 @@ namespace HBP.Tests.Rendering
             Assert.That(prefab.GetComponent<SphereCollider>(), Is.Not.Null);
             Assert.That(prefab.GetComponent<MeshRenderer>().motionVectorGenerationMode, Is.EqualTo(MotionVectorGenerationMode.ForceNoMotion));
             Assert.That(prefab.GetComponent<MeshRenderer>().shadowCastingMode, Is.EqualTo(ShadowCastingMode.Off));
+        }
+
+        [Test]
+        public void SiteMaterialCache_RecreatesDestroyedRuntimeMaterial()
+        {
+            Shader shader = Shader.Find("HBP/Site");
+            Material basic = new(shader);
+            SiteMaterials materials = new();
+            Material cached = null;
+            Material replacement = null;
+
+            try
+            {
+                FieldInfo basicField = typeof(SiteMaterials).GetField("<Basic>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(basicField, Is.Not.Null);
+                basicField.SetValue(materials, basic);
+
+                Color color = new(0.53f, 0.15f, 0.15f);
+                cached = materials.GetSharedMaterial(false, SiteType.Normal, color);
+                Object.DestroyImmediate(cached);
+                Assert.That(cached == null, Is.True, "The test setup must leave a destroyed Unity object in the cache.");
+
+                replacement = materials.GetSharedMaterial(false, SiteType.Normal, color);
+
+                Assert.That(replacement == null, Is.False, "A destroyed cached material must be recreated.");
+                Assert.That(ReferenceEquals(replacement, cached), Is.False);
+                Assert.That(replacement.shader, Is.SameAs(shader));
+                Assert.That(Vector4.Distance(replacement.color, new Color(color.r, color.g, color.b, 0.5f)), Is.LessThan(0.0001f));
+            }
+            finally
+            {
+                if (replacement != null)
+                    Object.DestroyImmediate(replacement);
+                Object.DestroyImmediate(basic);
+            }
         }
 
         private static void AssertStateMaterials(SiteMaterials materials, SiteType siteType)

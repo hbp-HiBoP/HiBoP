@@ -26,7 +26,7 @@ namespace HBP.Core.Data
                         // Handle EnumTag special case like in PatientTagFilterCondition
                         if (tf.Tag is EnumTag enumTag && tf.Value is EnumTagFilterValue enumValue)
                         {
-                            tagDescription += $" {enumTag.Values[enumValue.Value]}";
+                            tagDescription += $" {enumValue.GetDisplayValue(enumTag)}";
                         }
 
                         return tagDescription;
@@ -173,6 +173,7 @@ namespace HBP.Core.Data
         #region Properties
 
         [JsonProperty("Tag")] private string m_TagID = "";
+        internal string TagReferenceID => string.IsNullOrEmpty(m_TagID) ? Tag?.ID : m_TagID;
         public BaseTag Tag { get; set; }
 
         [JsonProperty("Value")] public TagFilterValue Value { get; set; }
@@ -202,12 +203,14 @@ namespace HBP.Core.Data
         {
             Tag = tag;
             Value = value;
+            ResolveEnumFilterValue(null, false);
         }
 
         public SingleTagFilter(BaseTag tag, TagFilterValue value, string ID) : base(ID)
         {
             Tag = tag;
             Value = value;
+            ResolveEnumFilterValue(null, false);
         }
 
         #endregion
@@ -216,7 +219,8 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new SingleTagFilter(Tag, Value.Clone() as TagFilterValue, ID);
+            SingleTagFilter clone = new(Tag, Value.Clone() as TagFilterValue, ID) { m_TagID = m_TagID };
+            return clone;
         }
 
         public override void Copy(object copy)
@@ -225,6 +229,7 @@ namespace HBP.Core.Data
             if (copy is SingleTagFilter singleTagFilter)
             {
                 Tag = singleTagFilter.Tag;
+                m_TagID = singleTagFilter.m_TagID;
                 Value = singleTagFilter.Value;
             }
         }
@@ -235,12 +240,22 @@ namespace HBP.Core.Data
 
         internal void ResolveReferences(LoadingContext context)
         {
-            Tag = context.ResolveOptional(context.TagById, m_TagID ?? Tag?.ID);
+            Tag = context.ResolveOptional(context.TagById, string.IsNullOrEmpty(m_TagID) ? Tag?.ID : m_TagID);
+            ResolveEnumFilterValue(context, true);
         }
 
         public void PrepareForSerialization()
         {
-            m_TagID = Tag?.ID ?? "";
+            ResolveEnumFilterValue(null, false);
+            m_TagID = Tag?.ID ?? m_TagID;
+        }
+
+        private void ResolveEnumFilterValue(LoadingContext context, bool reportLegacy)
+        {
+            if (Tag is EnumTag enumTag && Value is EnumTagFilterValue enumValue)
+            {
+                enumValue.Resolve(enumTag, context, reportLegacy);
+            }
         }
 
         #endregion

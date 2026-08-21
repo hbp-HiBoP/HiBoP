@@ -60,6 +60,7 @@ namespace HBP.Core.Data
         /// </summary>
         [JsonProperty] public List<BaseTagValue> Tags { get; set; }
 
+
         /// <summary>
         /// Do we need to fix site names ?
         /// </summary>
@@ -119,8 +120,9 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="path">Path to intranat directory</param>
         /// <returns>Sites in the directory</returns>
-        public static List<Site> LoadFromIntranatDirectory(string path)
+        public static List<Site> LoadFromIntranatDirectory(string path, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
             var sites = new List<Site>();
             var parent = new DirectoryInfo(path);
             var implantationDirection = new DirectoryInfo(Path.Combine(path, "implantation"));
@@ -155,7 +157,7 @@ namespace HBP.Core.Data
 
                 foreach (var file in csvFiles)
                 {
-                    var csvSites = LoadSitesFromCSVFile(file.FullName);
+                    var csvSites = LoadSitesFromCSVFile(file.FullName, policy, createMissingTags, importContext);
                     foreach (var site in csvSites)
                     {
                         var existingSite = sites.FirstOrDefault(s => s.Name == site.Name);
@@ -174,8 +176,10 @@ namespace HBP.Core.Data
         /// <param name="tsvFile">tvs file</param>
         /// <param name="loadTags">True to load tags, False otherwise</param>
         /// <returns>Sites in the directory</returns>
-        public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile, bool loadTags = true)
+        public static List<Site> LoadImplantationFromBIDSFile(string referenceSystem, string tsvFile, bool loadTags = true, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
+            TagCollection tagCollection = importContext?.Tags ?? PersistentDataManager.Tags;
             List<Site> sites = new();
             if (!string.IsNullOrEmpty(tsvFile))
             {
@@ -222,39 +226,47 @@ namespace HBP.Core.Data
                     List<string> columns = splittedLines[0];
                     if (loadTags)
                     {
-                        IEnumerable<BaseTag> tags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags);
-                        foreach (var column in columns)
+                        TagImportObservations observations = new();
+                        for (int row = 1; row < splittedLines.Count; row++)
                         {
-                            if (column != "name" && column != "x" && column != "y" && column != "z" && !tags.Any(t => t.Name == column))
+                            for (int column = 0; column < columns.Count && column < splittedLines[row].Count; column++)
                             {
-                                PersistentDataManager.Tags.AddSiteTag(new StringTag(column));
+                                string tagName = columns[column];
+                                if (!tagName.Equals("name", StringComparison.OrdinalIgnoreCase) && !tagName.Equals("x", StringComparison.OrdinalIgnoreCase) && !tagName.Equals("y", StringComparison.OrdinalIgnoreCase) && !tagName.Equals("z", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    observations.AddSiteValue(tagName, splittedLines[row][column]);
+                                }
                             }
                         }
+
+                        if (createMissingTags) observations.CreateMissingTags(tagCollection, policy);
                     }
 
                     // Create sites.
-                    IEnumerable<BaseTag> projectTags = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags);
+                    IEnumerable<BaseTag> projectTags = tagCollection.SitesTags.Concat(tagCollection.GeneralTags);
+                    int nameColumnIndex = columns.FindIndex(column => column.Equals("name", StringComparison.OrdinalIgnoreCase));
                     for (int l = 1; l < splittedLines.Count; l++)
                     {
-                        Site site = new("", new Coordinate[] { new(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
                         List<string> values = splittedLines[l];
+                        string siteName = nameColumnIndex >= 0 && nameColumnIndex < values.Count ? values[nameColumnIndex] : string.Empty;
+                        Site site = new(siteName, new Coordinate[] { new(referenceSystem, new UnityEngine.Vector3()) }, new BaseTagValue[0]);
                         for (int v = 0; v < values.Count && v < columns.Count; v++)
                         {
                             string column = columns[v];
                             string value = values[v];
-                            if (column == "name") site.Name = value;
-                            else if (column == "x" && NumberExtension.TryParseFloat(value, out float x)) site.Coordinates[0].Position = new SerializableVector3(x, site.Coordinates[0].Position.y, site.Coordinates[0].Position.z);
-                            else if (column == "y" && NumberExtension.TryParseFloat(value, out float y)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, y, site.Coordinates[0].Position.z);
-                            else if (column == "z" && NumberExtension.TryParseFloat(value, out float z)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, site.Coordinates[0].Position.y, z);
+                            if (column.Equals("name", StringComparison.OrdinalIgnoreCase)) site.Name = value;
+                            else if (column.Equals("x", StringComparison.OrdinalIgnoreCase) && NumberExtension.TryParseFloat(value, out float x)) site.Coordinates[0].Position = new SerializableVector3(x, site.Coordinates[0].Position.y, site.Coordinates[0].Position.z);
+                            else if (column.Equals("y", StringComparison.OrdinalIgnoreCase) && NumberExtension.TryParseFloat(value, out float y)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, y, site.Coordinates[0].Position.z);
+                            else if (column.Equals("z", StringComparison.OrdinalIgnoreCase) && NumberExtension.TryParseFloat(value, out float z)) site.Coordinates[0].Position = new SerializableVector3(site.Coordinates[0].Position.x, site.Coordinates[0].Position.y, z);
                             else if (loadTags)
                             {
-                                BaseTag tag = projectTags.FirstOrDefault(t => t.Name == column);
-                                if (tag != null && !IsInvalidTagValue(value))
+                                BaseTag tag = projectTags.FirstOrDefault(t => string.Equals(t.Name?.Trim(), column.Trim(), StringComparison.OrdinalIgnoreCase));
+                                if (tag != null)
                                 {
-                                    var tagValue = tag.CreateValue(value);
-                                    if (tagValue != null)
+                                    RawTagValueResult creation = importContext?.TryCreate(TagCategory.Site, tag, value, tsvFile, site.Name) ?? RawTagValueFactory.TryCreate(tag, value, policy);
+                                    if (creation.Status == RawTagValueStatus.Success)
                                     {
-                                        site.Tags.Add(tagValue);
+                                        site.Tags.Add(creation.Value);
                                     }
                                 }
                             }
@@ -368,15 +380,17 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="csvFile">CSV file path</param>
         /// <returns>All sites in the csv file</returns>
-        public static List<Site> LoadSitesFromCSVFile(string csvFile)
+        public static List<Site> LoadSitesFromCSVFile(string csvFile, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
+            TagCollection tagCollection = importContext?.Tags ?? PersistentDataManager.Tags;
             var sites = new List<Site>();
             if (!string.IsNullOrEmpty(csvFile))
             {
                 using StreamReader streamReader = new(csvFile);
                 string file = streamReader.ReadToEnd();
                 string[] lines = file.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                int titleLine = Array.FindIndex(lines, l => l.StartsWith("contact"));
+                int titleLine = Array.FindIndex(lines, line => line.Contains('\t') && string.Equals(line.Split('\t')[0].Trim(), "contact", StringComparison.OrdinalIgnoreCase));
                 if (titleLine > -1)
                 {
                     // Split the lines before handling them
@@ -449,19 +463,28 @@ namespace HBP.Core.Data
 
                     // Create tags and tagValues
                     List<string> tagNames = splittedLines[0];
+                    TagImportObservations observations = new();
+                    for (int row = 1; row < splittedLines.Count; row++)
+                    {
+                        for (int column = 0; column < tagNames.Count && column < splittedLines[row].Count; column++)
+                        {
+                            string normalizedName = tagNames[column].Trim();
+                            if (!normalizedName.Equals("mni", StringComparison.OrdinalIgnoreCase) && !normalizedName.Equals("contact", StringComparison.OrdinalIgnoreCase) && !normalizedName.Equals("t1pre scanner based", StringComparison.OrdinalIgnoreCase))
+                            {
+                                observations.AddSiteValue(normalizedName, splittedLines[row][column]);
+                            }
+                        }
+                    }
+
+                    if (createMissingTags) observations.CreateMissingTags(tagCollection, policy);
                     BaseTag[] tags = new BaseTag[tagNames.Count];
                     for (int i = 0; i < tagNames.Count; i++)
                     {
-                        string tagName = tagNames[i];
+                        string tagName = tagNames[i].Trim();
                         BaseTag tag = null;
-                        if (tagName.ToLower() != "mni" && tagName.ToLower() != "contact" && tagName.ToLower() != "t1pre scanner based")
+                        if (!tagName.Equals("mni", StringComparison.OrdinalIgnoreCase) && !tagName.Equals("contact", StringComparison.OrdinalIgnoreCase) && !tagName.Equals("t1pre scanner based", StringComparison.OrdinalIgnoreCase))
                         {
-                            tag = PersistentDataManager.Tags.SitesTags.Concat(PersistentDataManager.Tags.GeneralTags).FirstOrDefault(t => t.Name == tagName);
-                            if (tag == null)
-                            {
-                                tag = new StringTag(tagNames[i]);
-                                PersistentDataManager.Tags.AddSiteTag(tag);
-                            }
+                            tag = tagCollection.SitesTags.Concat(tagCollection.GeneralTags).FirstOrDefault(t => string.Equals(t.Name?.Trim(), tagName, StringComparison.OrdinalIgnoreCase));
                         }
 
                         tags[i] = tag;
@@ -476,12 +499,12 @@ namespace HBP.Core.Data
                         {
                             BaseTag tag = tags[i];
                             string value = values[i];
-                            if (tag != null && !IsInvalidTagValue(value))
+                            if (tag != null)
                             {
-                                var tagValue = tag.CreateValue(value);
-                                if (tagValue != null)
+                                RawTagValueResult creation = importContext?.TryCreate(TagCategory.Site, tag, value, csvFile, name) ?? RawTagValueFactory.TryCreate(tag, value, policy);
+                                if (creation.Status == RawTagValueStatus.Success)
                                 {
-                                    tagValues.Add(tagValue);
+                                    tagValues.Add(creation.Value);
                                 }
                             }
                         }
@@ -522,7 +545,10 @@ namespace HBP.Core.Data
         /// <returns>object cloned.</returns>
         public override object Clone()
         {
-            return new Site(Name, Coordinates.DeepClone(), Tags.DeepClone(), ID);
+            Site clone = new(Name, Coordinates.DeepClone(), Tags.DeepClone(), ID)
+            {
+            };
+            return clone;
         }
 
         /// <summary>

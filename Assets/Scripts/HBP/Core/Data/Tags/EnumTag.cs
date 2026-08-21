@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -13,7 +12,31 @@ namespace HBP.Core.Data
     {
         #region Properties
 
-        [JsonProperty] public string[] Values { get; set; } = new string[0];
+        private string[] m_Values = Array.Empty<string>();
+        private readonly object m_ValuesLock = new();
+
+        [JsonProperty] public string[] Values
+        {
+            get => m_Values;
+            set
+            {
+                lock (m_ValuesLock)
+                {
+                    string[] values = value ?? Array.Empty<string>();
+                    if (values.Any(item => item == null))
+                    {
+                        throw new ArgumentException("Enum values cannot contain null.", nameof(value));
+                    }
+
+                    if (values.Distinct(StringComparer.Ordinal).Count() != values.Length)
+                    {
+                        throw new ArgumentException("Enum values must be unique.", nameof(value));
+                    }
+
+                    m_Values = values.ToArray();
+                }
+            }
+        }
 
         #endregion
 
@@ -47,7 +70,37 @@ namespace HBP.Core.Data
 
         public int Clamp(int value)
         {
-            return Mathf.Clamp(value, 0, Values.Length);
+            if (value < 0 || value >= Values.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), value, $"Enum tag '{Name}' contains {Values.Length} values.");
+            }
+
+            return value;
+        }
+
+        public bool TryGetValueIndex(string value, out int index)
+        {
+            index = Array.IndexOf(Values, value);
+            return index >= 0;
+        }
+
+        public int GetOrAddValue(string value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            lock (m_ValuesLock)
+            {
+                if (TryGetValueIndex(value, out int index))
+                {
+                    return index;
+                }
+
+                Values = Values.Append(value).ToArray();
+                return Values.Length - 1;
+            }
         }
 
         public string Convert(object value)
@@ -80,13 +133,13 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if (copy is EnumTag enumTag)
             {
-                Values = enumTag.Values;
+                Values = enumTag.Values.ToArray();
             }
         }
 
         public override BaseTagValue CreateValue(string value)
         {
-            return new EnumTagValue(this, value);
+            return string.IsNullOrEmpty(value) ? null : new EnumTagValue(this, GetOrAddValue(value));
         }
 
         #endregion

@@ -2169,10 +2169,11 @@ namespace HBP.Data.Module3D
             bool reusePreloadedPatientData = PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization;
             bool reusePreloadedMeshes = reusePreloadedPatientData && Visualization.Configuration.PreloadedMeshes.Count > 0;
             bool reusePreloadedMRIs = reusePreloadedPatientData && Visualization.Configuration.PreloadedMRIs.Count > 0;
-            bool persistentPatientMeshPlanned = reusePreloadedMeshes ? Visualization.Configuration.PreloadedMeshes.Any(mesh => mesh != null && mesh.Type == MeshType.Patient && mesh is not RuntimeSingleMesh3D && mesh.IsLoaded) : Visualization.Patients[0].Meshes.Any(mesh => mesh.IsUsable);
-            int patientMRICountPlanned = reusePreloadedMRIs ? Visualization.Configuration.PreloadedMRIs.Count(mri => mri != null && !mri.HasBeenLoadedOutside && mri.IsLoaded) : Visualization.Patients[0].MRIs.Count(mri => mri.IsUsable);
-            int previewMeshCountPlanned = Type == SceneType.SinglePatient && !persistentPatientMeshPlanned ? patientMRICountPlanned : 0;
-            if (Type == SceneType.SinglePatient)
+            bool isSinglePatient = Type == SceneType.SinglePatient;
+            bool persistentPatientMeshPlanned = isSinglePatient && (reusePreloadedMeshes ? Visualization.Configuration.PreloadedMeshes.Any(mesh => mesh != null && mesh.Type == MeshType.Patient && mesh is not RuntimeSingleMesh3D && mesh.IsLoaded) : Visualization.Patients[0].Meshes.Any(mesh => mesh.IsUsable));
+            int patientMRICountPlanned = isSinglePatient ? (reusePreloadedMRIs ? Visualization.Configuration.PreloadedMRIs.Count(mri => mri != null && !mri.HasBeenLoadedOutside && mri.IsLoaded) : Visualization.Patients[0].MRIs.Count(mri => mri.IsUsable)) : 0;
+            int previewMeshCountPlanned = isSinglePatient && !persistentPatientMeshPlanned ? patientMRICountPlanned : 0;
+            if (isSinglePatient)
             {
                 totalProgress = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT + previewMeshCountPlanned * LOADING_PREVIEW_MESH_WEIGHT;
                 loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;

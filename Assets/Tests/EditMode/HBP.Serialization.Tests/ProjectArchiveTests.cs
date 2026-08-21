@@ -376,7 +376,7 @@ namespace HBP.Tests.Serialization
         }
 
         [Test, Timeout(5000)]
-        public async Task LoadAsync_CorruptedSettingsJson_ThrowsControlledException()
+        public async Task LoadAsync_CorruptedSettingsJson_OpensReadOnlyRecovery()
         {
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope appState = new(temp.Path);
@@ -398,8 +398,9 @@ namespace HBP.Tests.Serialization
 
             Exception exception = await CaptureExceptionAsync(async () => await loaded.LoadAsync(info, NoProgress, CancellationToken.None));
 
-            Assert.That(exception, Is.TypeOf<CanNotReadSettingsFileException>());
-            Assert.That(exception.InnerException, Is.Not.Null);
+            Assert.That(exception, Is.Null);
+            Assert.That(loaded.StructuralRecoveryReport.Items.Any(item => item.Kind == "project settings"), Is.True);
+            Assert.That(await CaptureExceptionAsync(async () => await loaded.SaveAsync(temp.Path, NoProgress, CancellationToken.None)), Is.TypeOf<InvalidOperationException>());
             Assert.That(Directory.Exists(ApplicationState.ExtractProjectFolder), Is.False);
         }
 
@@ -442,27 +443,27 @@ namespace HBP.Tests.Serialization
         }
 
         [Test, Timeout(5000)]
-        public async Task LoadAsync_CorruptedPatientJson_ThrowsControlledException()
+        public async Task LoadAsync_CorruptedPatientJson_OpensReadOnlyRecovery()
         {
-            await AssertCorruptedProjectEntryThrows($"Patients/{SyntheticProjectFactory.PatientId}{Patient.EXTENSION}", typeof(CanNotReadPatientFileException));
+            await AssertCorruptedProjectEntryRecovers($"Patients/{SyntheticProjectFactory.PatientId}{Patient.EXTENSION}", "project patient entry");
         }
 
         [Test, Timeout(5000)]
-        public async Task LoadAsync_CorruptedGroupJson_ThrowsControlledException()
+        public async Task LoadAsync_CorruptedGroupJson_OpensReadOnlyRecovery()
         {
-            await AssertCorruptedProjectEntryThrows("Groups/synthetic-group-alpha" + Core.Data.Group.EXTENSION, typeof(CanNotReadGroupFileException));
+            await AssertCorruptedProjectEntryRecovers("Groups/synthetic-group-alpha" + Core.Data.Group.EXTENSION, "project group entry");
         }
 
         [Test, Timeout(5000)]
-        public async Task LoadAsync_CorruptedDatasetJson_ThrowsControlledException()
+        public async Task LoadAsync_CorruptedDatasetJson_OpensReadOnlyRecovery()
         {
-            await AssertCorruptedProjectEntryThrows("Datasets/dataset-alpha" + Dataset.EXTENSION, typeof(CanNotReadDatasetFileException));
+            await AssertCorruptedProjectEntryRecovers("Datasets/dataset-alpha" + Dataset.EXTENSION, "project dataset entry");
         }
 
         [Test, Timeout(5000)]
-        public async Task LoadAsync_CorruptedVisualizationJson_ThrowsControlledException()
+        public async Task LoadAsync_CorruptedVisualizationJson_OpensReadOnlyRecovery()
         {
-            await AssertCorruptedProjectEntryThrows("Visualizations/visualization-alpha" + Visualization.EXTENSION, typeof(CanNotReadVisualizationFileException));
+            await AssertCorruptedProjectEntryRecovers("Visualizations/visualization-alpha" + Visualization.EXTENSION, "project visualization entry");
         }
 
         [Test]
@@ -531,7 +532,7 @@ namespace HBP.Tests.Serialization
         }
 
         [Test, Timeout(5000)]
-        public async Task LoadAsync_MultipleSettingsFiles_ThrowsControlledExceptionAndCleansExtraction()
+        public async Task LoadAsync_MultipleSettingsFiles_OpensReadOnlyRecoveryAndCleansExtraction()
         {
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope appState = new(temp.Path);
@@ -544,7 +545,9 @@ namespace HBP.Tests.Serialization
 
             Exception exception = await CaptureExceptionAsync(async () => await loaded.LoadAsync(CreateProjectInfo(source, archivePath), NoProgress, CancellationToken.None));
 
-            Assert.That(exception, Is.TypeOf<MultipleSettingsFilesFoundException>());
+            Assert.That(exception, Is.Null);
+            Assert.That(loaded.StructuralRecoveryReport.Items.Any(item => item.Kind == "project settings"), Is.True);
+            Assert.That(await CaptureExceptionAsync(async () => await loaded.SaveAsync(temp.Path, NoProgress, CancellationToken.None)), Is.TypeOf<InvalidOperationException>());
             Assert.That(Directory.Exists(ApplicationState.ExtractProjectFolder), Is.False);
         }
 
@@ -975,7 +978,7 @@ namespace HBP.Tests.Serialization
             }
         }
 
-        private static async Task AssertCorruptedProjectEntryThrows(string entryName, Type expectedExceptionType)
+        private static async Task AssertCorruptedProjectEntryRecovers(string entryName, string expectedKind)
         {
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope appState = new(temp.Path);
@@ -991,8 +994,9 @@ namespace HBP.Tests.Serialization
 
             Exception exception = await CaptureExceptionAsync(async () => await loaded.LoadAsync(info, NoProgress, CancellationToken.None));
 
-            Assert.That(exception, Is.TypeOf(expectedExceptionType));
-            Assert.That(exception.InnerException, Is.Not.Null);
+            Assert.That(exception, Is.Null);
+            Assert.That(loaded.StructuralRecoveryReport.Items.Any(item => item.Kind == expectedKind && item.ID == entryName), Is.True);
+            Assert.That(await CaptureExceptionAsync(async () => await loaded.SaveAsync(temp.Path, NoProgress, CancellationToken.None)), Is.TypeOf<InvalidOperationException>());
             Assert.That(Directory.Exists(ApplicationState.ExtractProjectFolder), Is.False);
             AssertArchiveIsUnlocked(archivePath);
         }

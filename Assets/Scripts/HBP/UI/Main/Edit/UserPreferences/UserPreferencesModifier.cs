@@ -25,6 +25,7 @@ namespace HBP.UI.Main
         [SerializeField] ProtocolPreferencesSubModifier m_ProtocolPreferencesSubModifier;
         [SerializeField] AnatomyPreferencesSubModifier m_AnatomyPreferencesModifier;
         [SerializeField] AtlasesPreferencesSubModifier m_AtlasesPreferencesSubModifier;
+        [SerializeField] TagImportPreferencesSubModifier m_TagImportPreferencesSubModifier;
         [SerializeField] _3DPreferencesSubModifier m_3DPreferencesSubModifier;
         [SerializeField] TrialMatrixPreferencesSubModifier m_TrialMatrixPreferencesSubModifier;
         [SerializeField] GraphPreferencesSubModifier m_GraphPreferencesSubModifier;
@@ -62,6 +63,7 @@ namespace HBP.UI.Main
                 m_ProtocolPreferencesSubModifier.Interactable = value;
                 m_AnatomyPreferencesModifier.Interactable = value;
                 m_AtlasesPreferencesSubModifier.Interactable = value;
+                m_TagImportPreferencesSubModifier.Interactable = value;
                 m_3DPreferencesSubModifier.Interactable = value;
                 m_TrialMatrixPreferencesSubModifier.Interactable = value;
                 m_GraphPreferencesSubModifier.Interactable = value;
@@ -78,6 +80,16 @@ namespace HBP.UI.Main
         /// </summary>
         public override async void OK()
         {
+            try
+            {
+                m_ObjectTemp.Data.TagImport.CreatePolicy();
+            }
+            catch (System.ArgumentException exception)
+            {
+                await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Invalid tag import preferences", exception.Message, "OK");
+                return;
+            }
+
             NormalizationType requestedNormalization = m_ObjectTemp.Data.EEG.Normalization;
             bool normalizationChanged = requestedNormalization != m_InitialNormalization;
             bool memoryLimitChanged = m_ObjectTemp.General.System.MemoryCacheLimit != m_InitialMemoryCacheLimit;
@@ -151,6 +163,7 @@ namespace HBP.UI.Main
             m_ProtocolPreferencesSubModifier.Object = objectToDisplay.Data.Protocol;
             m_AnatomyPreferencesModifier.Object = objectToDisplay.Data.Anatomic;
             m_AtlasesPreferencesSubModifier.Object = objectToDisplay.Data.Atlases;
+            m_TagImportPreferencesSubModifier.Object = objectToDisplay.Data.TagImport;
 
             // Visualization
             m_3DPreferencesSubModifier.Object = objectToDisplay.Visualization._3D;

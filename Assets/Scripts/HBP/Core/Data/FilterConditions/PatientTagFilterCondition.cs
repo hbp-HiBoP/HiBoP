@@ -29,7 +29,7 @@ namespace HBP.Core.Data
 
                     if (Tag is EnumTag enumTag)
                     {
-                        result += $"{enumTag.Values[Value is EnumTagFilterValue enumValue ? enumValue.Value : 0]}";
+                        result += Value is EnumTagFilterValue enumValue ? enumValue.GetDisplayValue(enumTag) : "Invalid enum filter value";
                     }
 
                     return result;
@@ -48,6 +48,7 @@ namespace HBP.Core.Data
         [JsonProperty("Target")] public TargetType Target { get; set; }
 
         [JsonProperty("Tag")] private string m_TagID = "";
+        internal string TagReferenceID => string.IsNullOrEmpty(m_TagID) ? Tag?.ID : m_TagID;
         public BaseTag Tag { get; set; }
 
         [JsonProperty("Value")] public TagFilterValue Value { get; set; }
@@ -65,6 +66,7 @@ namespace HBP.Core.Data
             Target = target;
             Tag = tag;
             Value = value;
+            ResolveEnumFilterValue(null, false);
         }
 
         public PatientTagFilterCondition(TargetType target, BaseTag tag, TagFilterValue value, bool isNot, string ID) : base(isNot, ID)
@@ -72,6 +74,7 @@ namespace HBP.Core.Data
             Target = target;
             Tag = tag;
             Value = value;
+            ResolveEnumFilterValue(null, false);
         }
 
         #endregion
@@ -80,7 +83,8 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new PatientTagFilterCondition(Target, Tag, Value.Clone() as TagFilterValue, IsNot, ID);
+            PatientTagFilterCondition clone = new(Target, Tag, Value.Clone() as TagFilterValue, IsNot, ID) { m_TagID = m_TagID };
+            return clone;
         }
 
         public override void Copy(object copy)
@@ -89,6 +93,7 @@ namespace HBP.Core.Data
             if (copy is PatientTagFilterCondition tagFilterCondition)
             {
                 Target = tagFilterCondition.Target;
+                m_TagID = tagFilterCondition.m_TagID;
                 Tag = tagFilterCondition.Tag;
                 Value = tagFilterCondition.Value;
             }
@@ -137,7 +142,8 @@ namespace HBP.Core.Data
 
         internal void ResolveReferences(LoadingContext context)
         {
-            Tag = context.ResolveOptional(context.TagById, m_TagID ?? Tag?.ID);
+            Tag = context.ResolveOptional(context.TagById, string.IsNullOrEmpty(m_TagID) ? Tag?.ID : m_TagID);
+            ResolveEnumFilterValue(context, true);
         }
 
         protected override void OnDeserialized()
@@ -148,7 +154,16 @@ namespace HBP.Core.Data
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_TagID = Tag?.ID ?? "";
+            ResolveEnumFilterValue(null, false);
+            m_TagID = Tag?.ID ?? m_TagID;
+        }
+
+        private void ResolveEnumFilterValue(LoadingContext context, bool reportLegacy)
+        {
+            if (Tag is EnumTag enumTag && Value is EnumTagFilterValue enumValue)
+            {
+                enumValue.Resolve(enumTag, context, reportLegacy);
+            }
         }
 
         #endregion

@@ -63,6 +63,67 @@ namespace HBP.Core.Tools
             return SaveToJsonStream(instance, path, overwrite);
         }
 
+        public static void SaveToJsonAtomicOrThrow<T>(T instance, string path)
+        {
+            string fullPath = Path.GetFullPath(path);
+            string directoryPath = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directoryPath)) Directory.CreateDirectory(directoryPath);
+            string temporaryPath = fullPath + ".tmp-" + Guid.NewGuid().ToString("N");
+            string backupPath = fullPath + ".bak-" + Guid.NewGuid().ToString("N");
+            bool published = false;
+
+            try
+            {
+                if (!SaveToJsonStream(instance, temporaryPath, true))
+                {
+                    throw new IOException($"Unable to serialize '{fullPath}'.");
+                }
+
+                if (File.Exists(fullPath))
+                {
+                    File.Replace(temporaryPath, fullPath, backupPath);
+                }
+                else
+                {
+                    File.Move(temporaryPath, fullPath);
+                }
+
+                published = true;
+            }
+            catch
+            {
+                if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
+                if (File.Exists(backupPath) && !File.Exists(fullPath)) File.Move(backupPath, fullPath);
+                throw;
+            }
+            finally
+            {
+                if (published) TryDeleteObsoleteFile(backupPath);
+            }
+        }
+
+        private static void TryDeleteObsoleteFile(string path)
+        {
+            if (!File.Exists(path)) return;
+            try
+            {
+                File.Delete(path);
+            }
+            catch
+            {
+                // The replacement is already committed. Leaving an obsolete backup is safer than
+                // reporting a failed save after the target file has changed.
+            }
+        }
+
+        public static async UniTask SaveToJsonOrThrowAsync<T>(T instance, string path, bool overwrite = false)
+        {
+            if (!await SaveToJsonAsync(instance, path, overwrite))
+            {
+                throw new IOException($"Unable to serialize '{Path.GetFullPath(path)}'.");
+            }
+        }
+
         public static T LoadFromJsonString<T>(string jsonString)
         {
             using StringReader stringReader = new(jsonString);

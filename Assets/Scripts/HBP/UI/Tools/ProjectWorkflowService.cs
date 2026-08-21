@@ -131,12 +131,28 @@ namespace HBP.UI.Tools
 
         public async UniTask LoadProjectWithProgressAsync(Project project, ProjectInfo info)
         {
-            await LoadingManager.LoadAsync((update, token) => project.LoadAsync(info, update, token));
+            await LoadingManager.LoadAsync<bool>(async (update, token) =>
+            {
+                await project.LoadAsync(info, update, token);
+                return true;
+            });
+            await DeferredTagMigrationDialog.InformAsync(project.ConsumeTagMigrationReport());
+            await DeferredTagMigrationDialog.InformStructuralRecoveryAsync(project.StructuralRecoveryReport, "project");
+            await HBP.UI.Database.DatabaseWorkflow.ShowPendingFilterRepairAsync();
         }
 
         public async UniTask SaveProjectWithProgressAsync(Project project, string path)
         {
-            await LoadingManager.LoadAsync((update, token) => project.SaveAsync(path, update, token));
+            if (project.StructuralRecoveryReport.HasIssues) throw new InvalidOperationException("The project is open in read-only structural recovery mode and cannot be saved.");
+            await LoadingManager.LoadAsync<bool>(async (update, token) =>
+            {
+                await UniTask.SwitchToMainThread();
+                if (HBP.Core.Preferences.PersistentDataManager.TagInitializationException != null) throw new InvalidOperationException("The project is open with an invalid Tags.json file. Repair or restore the tag definitions before saving.");
+                if (HBP.Core.Preferences.PersistentDataManager.Tags.HasUnsavedTagMigration) HBP.Core.Preferences.PersistentDataManager.Tags.Save();
+                if (HBP.Core.Preferences.PersistentDataManager.FilterInitializationException == null && HBP.Core.Preferences.PersistentDataManager.FilterConditionsPresets.HasUnsavedTagMigration) HBP.Core.Preferences.PersistentDataManager.FilterConditionsPresets.Save();
+                await project.SaveAsync(path, update, token);
+                return true;
+            });
         }
 
         public UniTask LoadVisualizationsWithProgressAsync(IEnumerable<Visualization> visualizations)
@@ -159,22 +175,15 @@ namespace HBP.UI.Tools
 
         public async UniTask<ProjectWorkflowResult> LoadProjectAsync(ProjectInfo info)
         {
-            if (info.SettingsLoadException != null)
-            {
-                m_Runtime.LogException(info.SettingsLoadException);
-                m_Runtime.ShowError("Can not load project settings", info.SettingsLoadException.ToString());
-                return ProjectWorkflowResult.Failed(info.SettingsLoadException);
-            }
-
             Project previousProject = m_Runtime.LoadedProject;
             string previousLocation = m_Runtime.LoadedProjectLocation;
             Project projectToLoad = new(info.Name, new ProjectPreferences());
 
             try
             {
-                m_Runtime.ClearData();
                 await m_Runtime.LoadProjectWithProgressAsync(projectToLoad, info);
                 await UniTask.SwitchToMainThread();
+                m_Runtime.ClearData();
                 m_Runtime.LoadedProject = projectToLoad;
                 m_Runtime.LoadedProjectLocation = Directory.GetParent(info.Path).FullName;
                 m_Runtime.SetInteractables();
@@ -299,13 +308,13 @@ namespace HBP.UI.Tools
                 return ProjectWorkflowResult.Cancelled();
             }
 
-            if (m_Runtime.HasOpenedScenesForLoadedProject)
-            {
-                m_Runtime.RemoveAllScenes();
-            }
+            bool removeOpenedScenes = m_Runtime.HasOpenedScenesForLoadedProject;
+            ProjectWorkflowResult result = await LoadProjectAsync(info);
+            if (!result.Success) return result;
 
+            if (removeOpenedScenes) m_Runtime.RemoveAllScenes();
             m_Runtime.CloseAllWindows();
-            return await LoadProjectAsync(info);
+            return result;
         }
 
         public ProjectWorkflowSnapshot QuickStartBegin(string temporaryLocation)

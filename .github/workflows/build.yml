@@ -4,6 +4,17 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform to build
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - linux
+          - windows
+          - macos
 
 permissions:
   contents: write
@@ -17,35 +28,69 @@ defaults:
     shell: bash
 
 jobs:
+  prepare_matrix:
+    name: Select build platforms
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+    steps:
+      - id: select
+        env:
+          SELECTED_PLATFORM: ${{ inputs.platform || 'all' }}
+        run: |
+          case "$SELECTED_PLATFORM" in
+            all)
+              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
+              ;;
+            linux)
+              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"}]}'
+              ;;
+            windows)
+              matrix='{"include":[{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"}]}'
+              ;;
+            macos)
+              matrix='{"include":[{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
+              ;;
+            *)
+              echo "Unsupported platform: $SELECTED_PLATFORM" >&2
+              exit 1
+              ;;
+          esac
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build ${{ matrix.name }}
+    needs: prepare_matrix
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: Linux
-            os: ubuntu-latest
-            module: StandaloneLinux64
-            modules: ""
-            cli_target: Linux64
-            artifact: HiBoP-Linux
-          - name: Windows
-            os: windows-latest
-            module: StandaloneWindows64
-            modules: ""
-            cli_target: Win64
-            artifact: HiBoP-Windows
-          - name: macOS (ARM64)
-            os: macos-latest
-            module: StandaloneOSX
-            modules: mac-il2cpp
-            cli_target: OSXUniversal
-            artifact: HiBoP-macOS-arm64
+      matrix: ${{ fromJSON(needs.prepare_matrix.outputs.matrix) }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+
+      - name: Prepare macOS native bundles
+        if: matrix.platform == 'macos'
+        run: |
+          set -euo pipefail
+          for bundle_name in hbp_core hbp_math EEGFormat; do
+            bundle="Assets/Plugins/Native/macOS/arm64/$bundle_name.bundle"
+            test -d "$bundle"
+            plist="$bundle/Contents/Info.plist"
+            plutil -lint "$plist"
+            executable_name=$(plutil -extract CFBundleExecutable raw "$plist")
+            plugin="$bundle/Contents/MacOS/$executable_name"
+            test -f "$plugin"
+
+            # The bundle may have transited through a Git checkout on Windows.
+            # Restore its executable mode and ad-hoc signature before Unity loads it.
+            chmod 755 "$plugin"
+            lipo "$plugin" -verify_arch arm64
+            xattr -cr "$bundle"
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --strict --verbose=2 "$bundle"
+          done
 
       - name: Cache Library
         uses: actions/cache@v5
@@ -56,12 +101,33 @@ jobs:
             Library-${{ matrix.module }}-
             Library-
 
+      - name: Install Unity Hub (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo install -d /etc/apt/keyrings
+          curl -fsSL https://hub.unity3d.com/linux/keys/public |
+            sudo gpg --dearmor --yes -o /etc/apt/keyrings/unityhub.gpg
+          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/unityhub.gpg] https://hub.unity3d.com/linux/repos/deb stable main" |
+            sudo tee /etc/apt/sources.list.d/unityhub.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install --yes desktop-file-utils unityhub xvfb
+          unity_hub_path="$(readlink -f "$(command -v unityhub)")"
+          test -x "$unity_hub_path"
+          test -r "$(dirname "$unity_hub_path")/resources/app.asar"
+          echo "UNITY_HUB_PATH=$unity_hub_path" >> "$GITHUB_ENV"
+          sudo tee /usr/local/bin/unity-hub > /dev/null <<'EOF'
+          #!/usr/bin/env bash
+          exec xvfb-run --auto-servernum "$UNITY_HUB_PATH" "$@"
+          EOF
+          sudo chmod +x /usr/local/bin/unity-hub
+
       - name: Install Unity
         uses: RageAgainstThePixel/unity-setup@v2
         with:
           unity-version: 6000.5.2f1
           build-targets: ${{ matrix.module }}
           modules: ${{ matrix.modules }}
+          auto-update-hub: false
 
       - name: Activate Unity licence
         uses: RageAgainstThePixel/activate-unity-license@v2
@@ -81,6 +147,123 @@ jobs:
             -buildOutput "$GITHUB_WORKSPACE/build" \
             -scriptingBackend IL2CPP \
             -logFile -
+
+      - name: Validate Windows native plugins
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $buildFolder = Get-ChildItem -LiteralPath build -Directory | Select-Object -First 1
+          if (-not $buildFolder) {
+            throw "The Unity build directory was not created."
+          }
+
+          $dataFolder = Get-ChildItem -LiteralPath $buildFolder.FullName -Directory -Filter "*_Data" | Select-Object -First 1
+          if (-not $dataFolder) {
+            throw "The Unity data directory was not created."
+          }
+          $pluginsDirectory = Join-Path $dataFolder.FullName "Plugins\x86_64"
+          if (-not (Test-Path -LiteralPath $pluginsDirectory -PathType Container)) {
+            throw "The expected native plugin directory is missing: $pluginsDirectory"
+          }
+
+          foreach ($pluginName in @("hbp_core.dll", "hbp_math.dll", "EEGFormat.dll")) {
+            $plugins = @(Get-ChildItem -LiteralPath $buildFolder.FullName -Recurse -File -Filter $pluginName)
+            if ($plugins.Count -ne 1) {
+              throw "Expected exactly one packaged $pluginName, found $($plugins.Count)."
+            }
+
+            $expectedPlugin = Join-Path $pluginsDirectory $pluginName
+            if ($plugins[0].FullName -ne $expectedPlugin) {
+              throw "Packaged plugin is in an unexpected directory: $($plugins[0].FullName)"
+            }
+
+            $bytes = [System.IO.File]::ReadAllBytes($plugins[0].FullName)
+            if ($bytes.Length -lt 2 -or $bytes[0] -ne 0x4d -or $bytes[1] -ne 0x5a) {
+              throw "Packaged plugin is not a PE binary: $($plugins[0].FullName)"
+            }
+            Write-Host "Validated native plugin: $($plugins[0].FullName)"
+          }
+
+          foreach ($legacyPattern in @("hbp_export.dll", "opencv*.dll", "boost*.dll", "concrt*.dll", "msvcp*.dll", "ucrtbase.dll", "vccorlib*.dll", "vcomp*.dll", "vcruntime*.dll")) {
+            $legacyPlugins = @(Get-ChildItem -LiteralPath $dataFolder.FullName -Recurse -File -Filter $legacyPattern)
+            if ($legacyPlugins.Count -ne 0) {
+              throw "Editor-only legacy dependency was packaged: $($legacyPlugins[0].FullName)"
+            }
+          }
+
+      - name: Validate Linux native plugins
+        if: matrix.platform == 'linux'
+        run: |
+          set -euo pipefail
+          folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
+          data_folder=$(find "$folder" -mindepth 1 -maxdepth 1 -type d -name '*_Data' -print -quit)
+          test -n "$data_folder"
+          plugins_directory="$data_folder/Plugins/x86_64"
+          test -d "$plugins_directory"
+          for plugin_name in libhbp_core.so libhbp_math.so libEEGFormat.so; do
+            mapfile -t plugins < <(find "$folder" -type f -name "$plugin_name" -print)
+            if [[ ${#plugins[@]} -ne 1 ]]; then
+              echo "Expected exactly one packaged $plugin_name, found ${#plugins[@]}." >&2
+              printf '%s\n' "${plugins[@]}" >&2
+              exit 1
+            fi
+            plugin="${plugins[0]}"
+            test "$plugin" = "$plugins_directory/$plugin_name"
+            file "$plugin" | grep -q 'ELF 64-bit.*x86-64'
+            if ldd "$plugin" | grep -q 'not found'; then
+              ldd "$plugin"
+              exit 1
+            fi
+            echo "Validated native plugin: $plugin"
+          done
+          legacy_plugin=$(find "$folder" -type f \( -name 'libhbp_export.so' -o -name 'libopencv*' -o -name 'libboost*' \) -print -quit)
+          if [[ -n "$legacy_plugin" ]]; then
+            echo "Editor-only legacy dependency was packaged: $legacy_plugin" >&2
+            exit 1
+          fi
+
+      - name: Validate and sign macOS application
+        if: matrix.platform == 'macos'
+        run: |
+          set -euo pipefail
+          folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
+          app=$(find "$folder" -mindepth 1 -maxdepth 1 -type d -name '*.app' -print -quit)
+          test -n "$app"
+          for bundle_name in hbp_core hbp_math EEGFormat; do
+            bundle="$app/Contents/PlugIns/$bundle_name.bundle"
+            test -d "$bundle"
+            bundle_count=$(find "$app" -type d -name "$bundle_name.bundle" | wc -l | tr -d ' ')
+            test "$bundle_count" = 1
+            executable_name=$(plutil -extract CFBundleExecutable raw "$bundle/Contents/Info.plist")
+            plugin="$bundle/Contents/MacOS/$executable_name"
+            test -f "$plugin"
+            lipo "$plugin" -verify_arch arm64
+            otool -L "$plugin"
+            xattr -cr "$bundle"
+            codesign --force --deep --sign - "$bundle"
+            codesign --verify --deep --strict --verbose=2 "$bundle"
+          done
+
+          legacy_bundle=$(find "$app" -type d -name 'hbp_export.bundle' -print -quit)
+          test -z "$legacy_bundle"
+          legacy_dependency=$(find "$app" -type f \( -name 'libopencv*' -o -name 'libboost*' \) -print -quit)
+          test -z "$legacy_dependency"
+
+          test -d "$app/Contents/Resources/Data"
+          unexpected_root_entries=$(find "$app" -mindepth 1 -maxdepth 1 ! -name Contents -print)
+          if [[ -n "$unexpected_root_entries" ]]; then
+            echo "Unexpected entries at the macOS application bundle root:" >&2
+            echo "$unexpected_root_entries" >&2
+            exit 1
+          fi
+
+          # HBPBuilder moves ARM64 plugins after BuildPipeline.BuildPlayer. Sign
+          # the completed bundle so those post-build changes and resources are
+          # sealed too.
+          codesign --force --deep --sign - "$app"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          echo "Validated and signed application: $app"
 
       - name: Package build
         id: package

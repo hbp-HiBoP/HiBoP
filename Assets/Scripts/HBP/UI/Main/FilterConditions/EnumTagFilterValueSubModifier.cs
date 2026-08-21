@@ -22,7 +22,7 @@ namespace HBP.UI.Main
         {
             base.Initialize();
 
-            m_ValueDropdown.onValueChanged.AddListener(value => Object.Value = value);
+            m_ValueDropdown.onValueChanged.AddListener(value => Object.SetValue(Tag, value));
         }
 
         #endregion

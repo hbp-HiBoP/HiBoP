@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Data.Container;
 using HBP.Core.Database;
@@ -103,6 +104,8 @@ namespace HBP.Tests.Serialization
             await loaded.LoadAsync(info, NoProgress, CancellationToken.None);
             await loaded.CurrentLoadingOperation.Validated;
 
+            DeferredTagMigrationPlan migrationReport = loaded.ConsumeTagMigrationReport();
+            Assert.That(migrationReport, Is.Not.Null);
             Dataset dataset = loaded.Datasets.Single();
             Assert.That(loaded.Patients, Has.Count.EqualTo(1));
             Assert.That(loaded.Groups, Has.Count.EqualTo(1));

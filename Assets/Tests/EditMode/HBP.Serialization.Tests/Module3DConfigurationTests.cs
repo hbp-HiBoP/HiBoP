@@ -95,6 +95,31 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void Visualization_IsVisualizableWithoutPatients_OnlyAllowsAnatomicAndSharedFMRIColumns()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+
+            Project project = SyntheticProjectFactory.CreateCompleteProject();
+            Visualization source = project.Visualizations.Single();
+            AnatomicColumn anatomicColumn = source.AnatomicColumns.Single();
+            FMRIColumn sharedFMRIColumn = source.FMRIColumns.Single();
+            Dataset patientOnlyDataset = new("patient-only-dataset", project.Datasets[0].Protocol, project.Datasets[0].Data.Where(dataInfo => dataInfo is not SharedFMRIDataInfo));
+            FMRIColumn patientOnlyFMRIColumn = new("patient-only-fmri", new BaseConfiguration(), patientOnlyDataset, new FMRIConfiguration());
+
+            Assert.That(new Visualization("anatomic", Array.Empty<Patient>(), new Column[] { anatomicColumn }).IsVisualizable, Is.True);
+            Assert.That(new Visualization("shared-fmri", Array.Empty<Patient>(), new Column[] { sharedFMRIColumn }).IsVisualizable, Is.True);
+            Assert.That(new Visualization("anatomic-and-shared-fmri", Array.Empty<Patient>(), new Column[] { anatomicColumn, sharedFMRIColumn }).IsVisualizable, Is.True);
+            Assert.That(new Visualization("patient-only-fmri", Array.Empty<Patient>(), new Column[] { patientOnlyFMRIColumn }).IsVisualizable, Is.False);
+
+            foreach (Column patientDependentColumn in source.Columns.Where(column => column is IEEGColumn || column is CCEPColumn || column is MEGColumn || column is StaticColumn))
+            {
+                Assert.That(new Visualization(patientDependentColumn.Name, Array.Empty<Patient>(), new[] { patientDependentColumn }).IsVisualizable, Is.False, patientDependentColumn.GetType().Name);
+            }
+        }
+
+        [Test]
         public void AnatomyAndDynamicDataParameters_ClampValuesAndRaiseChangeEvents()
         {
             AnatomyDataParameters anatomy = new();

@@ -131,7 +131,7 @@ namespace HBP.Core.Data
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             StaticDataInfo[] staticDataInfos = Dataset?.GetStaticDataInfos();
-            return Dataset != null && Dataset.Protocol != null && patients.All((patient) => staticDataInfos.Any((data) => data.Patient == patient && data.IsOk));
+            return Dataset != null && Dataset.Protocol != null && patients.Any() && patients.All((patient) => staticDataInfos.Any((data) => data.Patient == patient && data.IsOk));
         }
 
         public override void Unload()

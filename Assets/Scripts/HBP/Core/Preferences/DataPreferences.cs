@@ -2,6 +2,8 @@ using HBP.Core.Data;
 using HBP.Core.Enums;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Preferences
@@ -15,21 +17,33 @@ namespace HBP.Core.Preferences
         [JsonProperty] public ProtocolPreferences Protocol { get; set; }
         [JsonProperty] public AnatomicPreferences Anatomic { get; set; }
         [JsonProperty] public AtlasesPreferences Atlases { get; set; }
+        private TagImportPreferences m_TagImport;
+
+        [JsonProperty] public TagImportPreferences TagImport
+        {
+            get => m_TagImport ??= new TagImportPreferences();
+            set => m_TagImport = value ?? new TagImportPreferences();
+        }
 
         #endregion
 
         #region Constructors
 
-        public DataPreferences() : this(new EEGPreferences(), new ProtocolPreferences(), new AnatomicPreferences(), new AtlasesPreferences())
+        public DataPreferences() : this(new EEGPreferences(), new ProtocolPreferences(), new AnatomicPreferences(), new AtlasesPreferences(), new TagImportPreferences())
         {
         }
 
-        public DataPreferences(EEGPreferences EEGPreferences, ProtocolPreferences protocolPreferences, AnatomicPreferences anatomicPreferences, AtlasesPreferences atlasesPreferences)
+        public DataPreferences(EEGPreferences EEGPreferences, ProtocolPreferences protocolPreferences, AnatomicPreferences anatomicPreferences, AtlasesPreferences atlasesPreferences) : this(EEGPreferences, protocolPreferences, anatomicPreferences, atlasesPreferences, new TagImportPreferences())
+        {
+        }
+
+        public DataPreferences(EEGPreferences EEGPreferences, ProtocolPreferences protocolPreferences, AnatomicPreferences anatomicPreferences, AtlasesPreferences atlasesPreferences, TagImportPreferences tagImportPreferences)
         {
             EEG = EEGPreferences;
             Protocol = protocolPreferences;
             Anatomic = anatomicPreferences;
             Atlases = atlasesPreferences;
+            TagImport = tagImportPreferences ?? new TagImportPreferences();
         }
 
         #endregion
@@ -38,10 +52,40 @@ namespace HBP.Core.Preferences
 
         public object Clone()
         {
-            return new DataPreferences(EEG.Clone() as EEGPreferences, Protocol.Clone() as ProtocolPreferences, Anatomic.Clone() as AnatomicPreferences, Atlases.Clone() as AtlasesPreferences);
+            return new DataPreferences(EEG.Clone() as EEGPreferences, Protocol.Clone() as ProtocolPreferences, Anatomic.Clone() as AnatomicPreferences, Atlases.Clone() as AtlasesPreferences, (TagImport ?? new TagImportPreferences()).Clone() as TagImportPreferences);
         }
 
         #endregion
+    }
+
+    [JsonObject(MemberSerialization.OptIn), Preserve]
+    public class TagImportPreferences : ICloneable
+    {
+        [JsonProperty] public List<string> TrueValues { get; set; }
+        [JsonProperty] public List<string> FalseValues { get; set; }
+        [JsonProperty] public List<string> IgnoredValues { get; set; }
+
+        public TagImportPreferences() : this(TagParsingPolicy.Default.TrueValues, TagParsingPolicy.Default.FalseValues, TagParsingPolicy.Default.IgnoredValues)
+        {
+        }
+
+        public TagImportPreferences(IEnumerable<string> trueValues, IEnumerable<string> falseValues, IEnumerable<string> ignoredValues)
+        {
+            TagParsingPolicy policy = new(trueValues, falseValues, ignoredValues);
+            TrueValues = policy.TrueValues.ToList();
+            FalseValues = policy.FalseValues.ToList();
+            IgnoredValues = policy.IgnoredValues.ToList();
+        }
+
+        public TagParsingPolicy CreatePolicy()
+        {
+            return new TagParsingPolicy(TrueValues, FalseValues, IgnoredValues);
+        }
+
+        public object Clone()
+        {
+            return new TagImportPreferences(TrueValues, FalseValues, IgnoredValues);
+        }
     }
 
     [JsonObject(MemberSerialization.OptIn), Preserve]

@@ -1,8 +1,21 @@
 ﻿using System;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace HBP.Core.Data
 {
+    public readonly struct EnumValueReference
+    {
+        public int Index { get; }
+        public string Value { get; }
+
+        public EnumValueReference(int index, string value)
+        {
+            Index = index;
+            Value = value;
+        }
+    }
+
     /// <summary>
     /// Class which contains all the data about a enum value and its associated EnumTag.
     /// </summary>
@@ -26,25 +39,63 @@ namespace HBP.Core.Data
     {
         #region Properties
 
+        public override EnumTag Tag
+        {
+            get => base.Tag;
+            set
+            {
+                if (value == null)
+                {
+                    base.Tag = null;
+                }
+                else
+                {
+                    BindTag(value);
+                }
+            }
+        }
+
         public override int Value
         {
             get { return base.Value; }
             set
             {
-                if (Tag != null) base.Value = Tag.Clamp(value);
+                if (Tag != null)
+                {
+                    int index = Tag.Clamp(value);
+                    base.Value = index;
+                    m_StringValue = Tag.Values[index];
+                }
             }
         }
+
+        [JsonProperty("StringValue")] private string m_StringValue;
 
         /// <summary>
         /// String value associated with the tag.
         /// </summary>
         public string StringValue
         {
+            get => m_StringValue;
             set
             {
-                if (Tag != null) Value = Array.IndexOf(Tag.Values, value);
+                if (Tag == null)
+                {
+                    m_StringValue = value;
+                    return;
+                }
+
+                int index = Array.IndexOf(Tag.Values, value);
+                if (index < 0)
+                {
+                    throw new ArgumentException($"'{value}' is not a value of enum tag '{Tag.Name}'.", nameof(value));
+                }
+
+                Value = index;
             }
         }
+
+        public EnumValueReference Reference => new(Value, StringValue);
 
         public override string DisplayableValue
         {
@@ -52,7 +103,7 @@ namespace HBP.Core.Data
             {
                 if (Tag == null || Value < 0 || Value >= Tag.Values.Length)
                 {
-                    return "None";
+                    return $"Invalid enum value ({Value})";
                 }
                 else
                 {
@@ -77,8 +128,12 @@ namespace HBP.Core.Data
         /// </summary>
         /// <param name="tag">Tag associated with the value</param>
         /// <param name="value">Integer value associated with the tag</param>
-        public EnumTagValue(EnumTag tag, int value) : base(tag, value)
+        public EnumTagValue(EnumTag tag, int value) : base(tag, default)
         {
+            if (tag != null)
+            {
+                Value = value;
+            }
         }
 
         /// <summary>
@@ -97,8 +152,12 @@ namespace HBP.Core.Data
         /// <param name="tag">Tag associated with the value</param>
         /// <param name="value">Value associated with the tag</param>
         /// <param name="ID">Unique identifier</param>
-        public EnumTagValue(EnumTag tag, int value, string ID) : base(tag, value, ID)
+        public EnumTagValue(EnumTag tag, int value, string ID) : base(tag, default, ID)
         {
+            if (tag != null)
+            {
+                Value = value;
+            }
         }
 
         #endregion
@@ -107,12 +166,29 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new EnumTagValue(Tag, Value, ID);
+            EnumTagValue clone = new(Tag, Value, ID);
+            if (Tag == null)
+            {
+                clone.m_Value = Value;
+                clone.m_TagID = m_TagID;
+            }
+
+            clone.m_StringValue = m_StringValue;
+            return clone;
         }
 
         public override void Copy(object copy)
         {
             base.Copy(copy);
+            if (copy is EnumTagValue enumTagValue)
+            {
+                m_StringValue = enumTagValue.m_StringValue;
+                if (Tag != null && m_StringValue != null)
+                {
+                    StringValue = m_StringValue;
+                }
+            }
+
             if (copy is FloatTagValue floatTagValue)
             {
                 Value = Mathf.RoundToInt(floatTagValue.Value);
@@ -122,6 +198,50 @@ namespace HBP.Core.Data
             {
                 Value = Array.FindIndex(Tag.Values, t => t == stringTagValue.Value);
             }
+        }
+
+        internal override void BindTag(BaseTag tag)
+        {
+            if (tag is not EnumTag enumTag)
+            {
+                throw new InvalidOperationException($"Enum tag value '{ID}' cannot be bound to tag type '{tag?.GetType().Name ?? "null"}'.");
+            }
+
+            int index;
+            if (m_StringValue != null)
+            {
+                if (!enumTag.TryGetValueIndex(m_StringValue, out index))
+                {
+                    throw new InvalidOperationException($"Enum value '{m_StringValue}' from tag value '{ID}' does not exist in enum tag '{enumTag.Name}' ({enumTag.ID}).");
+                }
+            }
+            else
+            {
+                index = enumTag.Clamp(Value);
+            }
+
+            base.Tag = enumTag;
+            Value = index;
+        }
+
+        internal override void ResolveReferences(LoadingContext context)
+        {
+            bool isLegacy = m_StringValue == null;
+            base.ResolveReferences(context);
+            if (isLegacy && Tag != null)
+            {
+                context.ReportLegacyEnumReference(Tag, false);
+            }
+        }
+
+        protected override void OnSerializing()
+        {
+            if (Tag != null && m_StringValue == null)
+            {
+                Value = Value;
+            }
+
+            base.OnSerializing();
         }
 
         #endregion

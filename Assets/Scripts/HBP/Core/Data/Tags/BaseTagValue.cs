@@ -29,6 +29,8 @@ namespace HBP.Core.Data
 
         [JsonProperty("Tag")] protected string m_TagID;
 
+        internal string TagReferenceID => m_TagID ?? Tag?.ID;
+
         /// <summary>
         /// Tag associated with the value.
         /// </summary>
@@ -102,17 +104,38 @@ namespace HBP.Core.Data
         /// <summary>
         /// Update the value - ensures the value is properly set when Tag changes.
         /// </summary>
-        public void UpdateValue()
+        public virtual void UpdateValue()
         {
             var currentValue = m_Value;
             m_Value = null;
             Value = currentValue;
         }
 
-        internal void ResolveReferences(LoadingContext context)
+        internal virtual bool CanBindTag(BaseTag tag)
         {
-            string tagID = m_TagID ?? Tag?.ID;
-            Tag = context.ResolveOptional(context.TagById, tagID);
+            return tag != null && tag.GetType() == typeof(BaseTag);
+        }
+
+        internal virtual void BindTag(BaseTag tag)
+        {
+            Tag = tag;
+        }
+
+        internal virtual void ResolveReferences(LoadingContext context)
+        {
+            BaseTag tag = context.ResolveOptional(context.TagById, TagReferenceID);
+            if (tag == null)
+            {
+                Tag = null;
+            }
+            else if (CanBindTag(tag))
+            {
+                BindTag(tag);
+            }
+            else
+            {
+                Tag = null;
+            }
         }
 
         /// <summary>
@@ -136,7 +159,7 @@ namespace HBP.Core.Data
         protected override void OnSerializing()
         {
             base.OnSerializing();
-            m_TagID = Tag?.ID;
+            m_TagID = Tag?.ID ?? m_TagID;
         }
 
         #endregion

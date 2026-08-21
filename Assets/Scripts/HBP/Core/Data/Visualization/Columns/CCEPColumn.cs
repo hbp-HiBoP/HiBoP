@@ -157,7 +157,7 @@ namespace HBP.Core.Data
         public override bool IsCompatible(IEnumerable<Patient> patients)
         {
             CCEPDataInfo[] ccepDataInfos = Dataset?.GetCCEPDataInfos();
-            return Dataset != null && Dataset.Protocol != null && Dataset.Protocol.IsVisualizable && patients.All((patient) => ccepDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
+            return Dataset != null && Dataset.Protocol != null && Dataset.Protocol.IsVisualizable && patients.Any() && patients.All((patient) => ccepDataInfos.Any((data) => data.Name == DataName && data.Patient == patient && data.IsOk));
         }
 
         public override void Unload()
