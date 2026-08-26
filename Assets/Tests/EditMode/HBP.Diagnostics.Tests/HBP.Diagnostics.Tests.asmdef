@@ -1,0 +1,21 @@
+{
+    "name": "HBP.Diagnostics.Tests",
+    "rootNamespace": "HBP.Tests.Diagnostics",
+    "references": [
+        "HBP.UI.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

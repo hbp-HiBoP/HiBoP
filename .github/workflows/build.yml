@@ -146,6 +146,7 @@ jobs:
             -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine \
             -buildOutput "$GITHUB_WORKSPACE/build" \
             -scriptingBackend IL2CPP \
+            -buildCommit "$GITHUB_SHA" \
             -logFile -
 
       - name: Validate Windows native plugins

@@ -46,11 +46,14 @@ verifies the completed `.app` after all plugin post-processing. This signature
 makes CI artifacts internally consistent; public macOS releases still require
 a Developer ID signature and notarization.
 
-CI explicitly builds all desktop players with IL2CPP and Development enabled,
-without connecting the profiler. The macOS job also installs Unity's
-`mac-il2cpp` module. The local build window keeps its historic defaults
+CI explicitly builds all desktop players as IL2CPP release builds. HBPBuilder
+keeps the Player log enabled, records managed stack traces for errors and
+exceptions, removes stack traces from routine release logs, and includes the
+GitHub commit in `BuildInfo.json`. The macOS job also installs Unity's
+`mac-il2cpp` module. The local build window keeps its historic backend defaults
 (Windows/Linux IL2CPP, macOS Mono) and provides an IL2CPP toggle for each
-selected platform.
+selected platform. Command-line builds are release builds by default; pass
+`-developmentBuild` explicitly when a diagnostic development player is needed.
 
 The Linux runner installs Unity Hub from Unity's Debian repository and creates
 the headless wrapper expected by `unity-setup`. It resolves the actual package
