@@ -1010,7 +1010,7 @@ namespace HBP.Data.Module3D
         private bool TryValidateSurfaceProjection(out Core.DLL.SurfaceProjectionCoverage coverage)
         {
             coverage = default;
-            if (Columns.Count == 0 || m_ActivityProjectionGrid == null || m_MeshManager.BrainSurface == null)
+            if (Columns.Count == 0 || m_ActivityProjectionGrid == null || m_MeshManager.ReferenceSurface == null)
                 return false;
 
             if (m_ValidatedProjectionGridVersion != ProjectionGridVersion || m_ValidatedSurfaceProjectionVersion != SurfaceProjectionVersion)
@@ -1074,7 +1074,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         private void ComputeMeshesCut()
         {
-            if (MeshManager.BrainSurface == null) return;
+            if (MeshManager.ReferenceSurface == null) return;
 
             // Create the cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Create cut");
@@ -1082,16 +1082,16 @@ namespace HBP.Data.Module3D
             if (Cuts.Count > 0)
             {
                 if (PersistentDataManager.UserPreferences.Visualization._3D.RawCuts)
-                    generatedCutMeshes = MeshManager.BrainSurface.GenerateRawCutSurfaces(Cuts, false, StrongCuts);
+                    generatedCutMeshes = MeshManager.ReferenceSurface.GenerateRawCutSurfaces(Cuts, false, StrongCuts);
                 else
-                    generatedCutMeshes = MeshManager.BrainSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
+                    generatedCutMeshes = MeshManager.ReferenceSurface.GenerateCutSurfaces(Cuts, false, StrongCuts);
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Fill parameters in shader
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Fill shader");
-            BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity);
+            BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, MeshManager.CanClipBrainSurface);
             UnityEngine.Profiling.Profiler.EndSample();
 
             // Update cut generators
@@ -1130,12 +1130,30 @@ namespace HBP.Data.Module3D
         /// </summary>
         private void UpdateGeometry()
         {
+            Core.DLL.Surface previousBrainSurface = m_MeshManager.BrainSurface;
+            Core.DLL.Surface previousReferenceSurface = m_MeshManager.ReferenceSurface;
+            int[] previousVisibilityMask = previousBrainSurface?.VisibilityMask;
+
             m_MeshManager.UpdateMeshesInformation();
             UpdateProjectionResources();
-            m_MeshManager.UpdateMeshesFromDLL();
-            m_TriangleEraser.ResetEraser();
-            m_AtlasManager.UpdateAtlasIndices();
-            m_FMRIManager.UpdateSurfaceFMRIValues();
+            bool representationChanged = previousBrainSurface != null && !ReferenceEquals(previousBrainSurface, m_MeshManager.BrainSurface) && ReferenceEquals(previousReferenceSurface, m_MeshManager.ReferenceSurface);
+            if (representationChanged)
+            {
+                m_TriangleEraser.ResetForRepresentationChange(previousVisibilityMask);
+                m_MeshManager.UpdateMeshesFromDLL();
+                InvalidateSurfaceMesh();
+                m_AtlasManager.UpdateAtlasColors();
+                m_FMRIManager.UpdateSurfaceFMRIColors();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            }
+            else
+            {
+                m_MeshManager.UpdateMeshesFromDLL();
+                m_TriangleEraser.ResetEraser();
+                m_AtlasManager.UpdateAtlasIndices();
+                m_FMRIManager.UpdateSurfaceFMRIValues();
+            }
+
             Resources.UnloadUnusedAssets();
 
             SceneInformation.GeometryNeedsUpdate = false;
@@ -1180,7 +1198,7 @@ namespace HBP.Data.Module3D
 
             foreach (Column3D column in Columns)
             {
-                column.SurfaceGenerator.Initialize(column.ActivityGenerator, m_MeshManager.BrainSurface);
+                column.SurfaceGenerator.Initialize(column.ActivityGenerator, m_MeshManager.ReferenceSurface);
                 column.SurfaceGenerator.ComputeMainUV(m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
                 column.SurfaceGenerator.ComputeNullUV();
                 column.SurfaceNeedsUpdate = true;
@@ -1628,11 +1646,11 @@ namespace HBP.Data.Module3D
             // Cuts base on the mesh
             Core.DLL.BBox bbox = new();
             float offset;
-            if (MeshManager.BrainSurface != null)
+            if (MeshManager.ReferenceSurface != null)
             {
                 using Core.DLL.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
-                bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
+                bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.ReferenceSurface.BoundingBox);
                 offset = bbox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
                 //offset = MeshManager.BrainSurface.BoundingBox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
                 //offset *= 1.05f; // upsize a little bit the bbox for planes
@@ -1676,7 +1694,7 @@ namespace HBP.Data.Module3D
 
             Vector3 sitePosition = site.transform.localPosition;
 
-            Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.BrainSurface.BoundingBox);
+            Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.ReferenceSurface.BoundingBox);
             Vector3 center = bbox.Center;
 
             Core.Object3D.Cut axialCut = AddCutPlane();

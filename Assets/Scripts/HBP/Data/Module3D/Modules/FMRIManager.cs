@@ -446,9 +446,9 @@ namespace HBP.Data.Module3D
         {
             m_Scene.BrainMaterials.SetDisplayFMRI(DisplayFMRI);
             if (CurrentVolume != null)
-                m_FMRIValues = CurrentVolume.GetVerticesValues(m_Scene.MeshManager.BrainSurface);
+                m_FMRIValues = CurrentVolume.GetVerticesValues(m_Scene.MeshManager.ReferenceSurface);
             if (CurrentLocalizersMask != null)
-                m_FMRIMask = CurrentLocalizersMask.GetVerticesValues(m_Scene.MeshManager.BrainSurface).Select(v => v > 0 ? 1 : 0).ToArray();
+                m_FMRIMask = CurrentLocalizersMask.GetVerticesValues(m_Scene.MeshManager.ReferenceSurface).Select(v => v > 0 ? 1 : 0).ToArray();
 
             UpdateSurfaceFMRIColors();
         }

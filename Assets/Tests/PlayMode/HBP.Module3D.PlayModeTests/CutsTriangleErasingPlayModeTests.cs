@@ -491,6 +491,7 @@ namespace HBP.Tests.PlayMode.Module3D
             {
                 HBP.Core.DLL.Surface surface = CreateTetraSurface(temp.GetPath($"cuts-triangle-erasing-surface-{suffix}.obj"));
                 SetAutoProperty(baseScene.MeshManager, "BrainSurface", surface);
+                SetAutoProperty(baseScene.MeshManager, "ReferenceSurface", surface);
                 SetAutoProperty(baseScene.MeshManager, "SimplifiedMeshToUse", (HBP.Core.DLL.Surface)surface.Clone());
             }
 
@@ -984,6 +985,7 @@ namespace HBP.Tests.PlayMode.Module3D
         {
             Mesh3D selectedMesh = baseScene.MeshManager.SelectedMesh;
             SetAutoProperty(baseScene.MeshManager, "BrainSurface", selectedMesh.Both);
+            SetAutoProperty(baseScene.MeshManager, "ReferenceSurface", selectedMesh.Both);
             SetAutoProperty(baseScene.MeshManager, "SimplifiedMeshToUse", selectedMesh.SimplifiedBoth ?? selectedMesh.Both);
         }
 

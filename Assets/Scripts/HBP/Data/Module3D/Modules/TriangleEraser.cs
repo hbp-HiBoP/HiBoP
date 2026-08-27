@@ -190,6 +190,29 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
+        /// Transfers a compatible complete-mesh mask to a new representation while resetting
+        /// simplified-topology and temporary undo state.
+        /// </summary>
+        public void ResetForRepresentationChange(int[] completeMeshMask)
+        {
+            m_DisplayedObjects.InstantiateInvisibleMesh(m_IsEnabled);
+
+            int triangleCount = m_Scene.MeshManager.BrainSurface.NumberOfTriangles;
+            int[] mask = completeMeshMask != null && completeMeshMask.Length == triangleCount ? completeMeshMask : ArrayExtensions.Create(triangleCount, 1);
+            m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(mask).Dispose();
+
+            if (!ReferenceEquals(m_Scene.MeshManager.BrainSurface, m_Scene.MeshManager.SimplifiedMeshToUse))
+            {
+                int[] simplifiedMask = ArrayExtensions.Create(m_Scene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles, 1);
+                m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(simplifiedMask).Dispose();
+            }
+
+            MeshHasInvisibleTriangles = mask.Contains(0);
+            m_MasksStack.Clear();
+            m_SimplifiedMasksStack.Clear();
+        }
+
+        /// <summary>
         /// Erase triangles and update the invisible mesh
         /// </summary>
         /// <param name="rayDirection">Direction of the raycast triggered from a mouse click</param>
