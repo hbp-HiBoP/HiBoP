@@ -168,6 +168,16 @@ namespace HBP.Core.Object3D
         }
 
         /// <summary>
+        /// Set the visual interpolation between anatomical and inflated vertex streams.
+        /// </summary>
+        public void SetInflationBlend(float blend)
+        {
+            blend = Mathf.Clamp01(blend);
+            m_Brain.SetFloat("_InflationBlend", blend);
+            m_TransparentBrain.SetFloat("_InflationBlend", blend);
+        }
+
+        /// <summary>
         /// Set the display atlas parameter
         /// </summary>
         /// <param name="displayAtlas">True if atlas is displayed</param>

@@ -3,6 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
+using Cysharp.Threading.Tasks;
+using HBP.Data.Module3D;
+using System;
 
 namespace HBP.UI.Toolbar
 {
@@ -47,8 +50,14 @@ namespace HBP.UI.Toolbar
 
                 ToolbarExternalActions.SelectVisualization(ApplicationState.LoadedProject.Visualizations, visualization =>
                 {
-                    SelectedScene.Visualization.Configuration = visualization.Configuration.Clone() as VisualizationConfiguration;
-                    SelectedScene.LoadConfiguration();
+                    Base3DScene scene = SelectedScene;
+                    scene.Visualization.Configuration = visualization.Configuration.Clone() as VisualizationConfiguration;
+                    scene.LoadConfiguration();
+                    LoadingManager.Load(async (update, token) =>
+                    {
+                        IProgress<float> progress = new Progress<float>(value => update(value, 0.0f, new LoadingText("Inflating surface")));
+                        await scene.RestoreConfiguredSurfaceRepresentationAsync(progress, token, animate: false);
+                    });
                 });
             });
             m_Reset.onClick.AddListener(() =>

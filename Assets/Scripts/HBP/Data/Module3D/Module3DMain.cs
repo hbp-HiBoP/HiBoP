@@ -423,6 +423,8 @@ namespace HBP.Data.Module3D
             scene.FinalizeInitialization();
             OnAddScene.Invoke(scene);
             scene.LoadConfiguration();
+            IProgress<float> inflationProgress = new Progress<float>(value => onChangeProgress(value, 0.0f, new LoadingText("Inflating surface")));
+            await scene.RestoreConfiguredSurfaceRepresentationAsync(inflationProgress, token, animate: false);
         }
 
         private static void Preload3D()

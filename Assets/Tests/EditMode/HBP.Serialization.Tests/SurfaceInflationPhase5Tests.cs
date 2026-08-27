@@ -40,15 +40,16 @@ namespace HBP.Tests.Serialization
                 Assert.That(scene.SceneInformation.FunctionalSurfaceNeedsUpdate, Is.True);
                 Assert.That(manager.CanClipBrainSurface, Is.False);
 
-                AssertPart(manager, MeshPart.Left, mesh.Left, inflated.Left, mesh.SimplifiedLeft);
-                AssertPart(manager, MeshPart.Right, mesh.Right, inflated.Right, mesh.SimplifiedRight);
-                AssertPart(manager, MeshPart.Both, mesh.Both, inflated.Both, mesh.SimplifiedBoth);
+                AssertPart(manager, MeshPart.Left, mesh.Left, inflated.Left, mesh.SimplifiedLeft, inflated.SimplifiedLeft);
+                AssertPart(manager, MeshPart.Right, mesh.Right, inflated.Right, mesh.SimplifiedRight, inflated.SimplifiedRight);
+                AssertPart(manager, MeshPart.Both, mesh.Both, inflated.Both, mesh.SimplifiedBoth, inflated.SimplifiedBoth);
 
                 manager.SelectRepresentation(SurfaceRepresentation.Anatomical);
                 manager.UpdateMeshesInformation();
 
                 Assert.That(manager.BrainSurface, Is.SameAs(mesh.Both));
                 Assert.That(manager.ReferenceSurface, Is.SameAs(mesh.Both));
+                Assert.That(manager.SimplifiedBrainSurface, Is.SameAs(mesh.SimplifiedBoth));
                 Assert.That(manager.CanClipBrainSurface, Is.True);
             }
             finally
@@ -78,7 +79,7 @@ namespace HBP.Tests.Serialization
             Assert.That(materials.BrainMaterial.GetInt("_CutCount"), Is.EqualTo(1));
         }
 
-        private static void AssertPart(MeshManager manager, MeshPart part, Surface expectedReference, Surface expectedDisplayed, Surface expectedSimplifiedReference)
+        private static void AssertPart(MeshManager manager, MeshPart part, Surface expectedReference, Surface expectedDisplayed, Surface expectedSimplifiedReference, Surface expectedSimplifiedDisplayed)
         {
             manager.SelectMeshPart(part);
             manager.UpdateMeshesInformation();
@@ -86,6 +87,7 @@ namespace HBP.Tests.Serialization
             Assert.That(manager.ReferenceSurface, Is.SameAs(expectedReference));
             Assert.That(manager.BrainSurface, Is.SameAs(expectedDisplayed));
             Assert.That(manager.SimplifiedMeshToUse, Is.SameAs(expectedSimplifiedReference));
+            Assert.That(manager.SimplifiedBrainSurface, Is.SameAs(expectedSimplifiedDisplayed));
             Assert.That(manager.MeshCenter, Is.EqualTo(expectedDisplayed.Center));
             Assert.That(manager.BrainSurface.NumberOfVertices, Is.EqualTo(manager.ReferenceSurface.NumberOfVertices));
             Assert.That(manager.BrainSurface.NumberOfTriangles, Is.EqualTo(manager.ReferenceSurface.NumberOfTriangles));

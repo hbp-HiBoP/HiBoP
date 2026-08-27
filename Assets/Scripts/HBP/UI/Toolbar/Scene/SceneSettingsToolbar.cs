@@ -17,6 +17,11 @@ namespace HBP.UI.Toolbar
         [SerializeField] private BrainSelector m_BrainSelector;
 
         /// <summary>
+        /// Switch between anatomical and inflated representations of the selected mesh.
+        /// </summary>
+        [SerializeField] private SurfaceRepresentationToggle m_SurfaceRepresentationToggle;
+
+        /// <summary>
         /// Change brain type (grey, white, inflated)
         /// </summary>
         [SerializeField] private MRISelector m_MRISelector;
@@ -72,6 +77,7 @@ namespace HBP.UI.Toolbar
         {
             m_Tools.Add(m_BrainMeshes);
             m_Tools.Add(m_BrainSelector);
+            m_Tools.Add(m_SurfaceRepresentationToggle);
             m_Tools.Add(m_MRISelector);
             m_Tools.Add(m_ImplantationSelector);
             m_Tools.Add(m_Colormap);

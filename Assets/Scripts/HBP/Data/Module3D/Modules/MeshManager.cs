@@ -94,6 +94,11 @@ namespace HBP.Data.Module3D
         public Core.DLL.Surface SimplifiedMeshToUse { get; private set; }
 
         /// <summary>
+        /// Simplified representation matching the displayed brain, used by its final collider.
+        /// </summary>
+        public Core.DLL.Surface SimplifiedBrainSurface { get; private set; }
+
+        /// <summary>
         /// Center of the loaded mesh
         /// </summary>
         public Vector3 MeshCenter { get; private set; }
@@ -101,7 +106,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Whether anatomical cut planes may clip the currently displayed brain surface.
         /// </summary>
-        public bool CanClipBrainSurface => Meshes.Count > 0 && SelectedMesh.Representation == Core.Object3D.SurfaceRepresentation.Anatomical;
+        public bool CanClipBrainSurface => Meshes.Count > 0 && (m_Scene == null || !m_Scene.IsSurfaceRepresentationTransitioning) && SelectedMesh.Representation == Core.Object3D.SurfaceRepresentation.Anatomical;
 
         #endregion
 
@@ -345,9 +350,46 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateMeshesFromDLL()
         {
-            BrainSurface.UpdateMeshFromDLL(m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh);
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            BrainSurface.UpdateMeshFromDLL(brainMesh);
+            brainMesh.SetUVs(3, Array.Empty<Vector3>());
+            brainMesh.SetUVs(4, Array.Empty<Vector3>());
+            m_Scene.BrainMaterials.SetInflationBlend(0.0f);
             foreach (Column3D column in m_Scene.Columns)
                 column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
+        }
+
+        /// <summary>
+        /// Uploads the anatomical geometry and inflated target streams used by the GPU transition.
+        /// </summary>
+        public void PrepareRepresentationTransition()
+        {
+            MeshPart selectedPart = SelectedMesh.SupportsHemispheres ? MeshPartToDisplay : MeshPart.Both;
+            Core.DLL.Surface anatomical = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart);
+            Core.DLL.Surface inflated = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Inflated, selectedPart);
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            Mesh inflatedMesh = new();
+            try
+            {
+                anatomical.UpdateMeshFromDLL(brainMesh);
+                inflated.UpdateMeshFromDLL(inflatedMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+                brainMesh.SetUVs(3, new List<Vector3>(inflatedMesh.vertices));
+                brainMesh.SetUVs(4, new List<Vector3>(inflatedMesh.normals));
+                Bounds transitionBounds = brainMesh.bounds;
+                transitionBounds.Encapsulate(inflatedMesh.bounds.min);
+                transitionBounds.Encapsulate(inflatedMesh.bounds.max);
+                brainMesh.bounds = transitionBounds;
+
+                foreach (Column3D column in m_Scene.Columns)
+                    column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
+            }
+            finally
+            {
+                if (Application.isPlaying)
+                    Destroy(inflatedMesh);
+                else
+                    DestroyImmediate(inflatedMesh);
+            }
         }
 
         /// <summary>
@@ -359,6 +401,7 @@ namespace HBP.Data.Module3D
             ReferenceSurface = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart);
             BrainSurface = SelectedMesh.GetSurface(SelectedMesh.Representation, selectedPart);
             SimplifiedMeshToUse = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart, simplified: true);
+            SimplifiedBrainSurface = SelectedMesh.GetSurface(SelectedMesh.Representation, selectedPart, simplified: true);
 
             if (BrainSurface.NumberOfVertices != ReferenceSurface.NumberOfVertices || BrainSurface.NumberOfTriangles != ReferenceSurface.NumberOfTriangles)
             {

@@ -243,6 +243,7 @@ namespace HBP.Core.Object3D
 
         public bool HasInflatedRepresentation => TryGetActiveInflatedRepresentation(out _);
         public bool IsInflationInProgress { get; private set; }
+        public string KnownInflationInadmissibility { get; private set; }
 
         public int InflatedRepresentationCacheCount
         {
@@ -284,6 +285,7 @@ namespace HBP.Core.Object3D
         private CancellationTokenSource m_InflationLifetime = new();
         private Mesh3DInflatedRepresentation m_ActiveInflatedRepresentation;
         private int m_InflationGeneration;
+        private string m_InflationInadmissibilitySourceIdentity;
 
         #endregion
 
@@ -337,6 +339,41 @@ namespace HBP.Core.Object3D
         public UniTask<Mesh3DInflatedRepresentation> GenerateInflatedRepresentationAsync(IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
             return GenerateInflatedRepresentationAsync(Mesh3DInflationSettings.Inflated, progress, cancellationToken);
+        }
+
+        /// <summary>
+        /// Reports whether inflation can currently be requested and explains known failures.
+        /// Full geometric validation remains native and is learned after the first rejected request.
+        /// </summary>
+        public bool TryGetInflationAvailability(out string reason)
+        {
+            reason = null;
+            if (IsInflationInProgress)
+            {
+                reason = "Surface inflation is already in progress.";
+                return false;
+            }
+
+            if (!IsLoaded)
+            {
+                reason = "The selected mesh is not loaded.";
+                return false;
+            }
+
+            string sourceIdentity = CreateSourceGeometryIdentity();
+            if (!string.IsNullOrWhiteSpace(KnownInflationInadmissibility) && m_InflationInadmissibilitySourceIdentity == sourceIdentity)
+            {
+                reason = KnownInflationInadmissibility;
+                return false;
+            }
+
+            if (m_Both.NumberOfVertices < 3 || m_Both.NumberOfTriangles < 1)
+            {
+                reason = "The selected mesh does not contain enough vertices and triangles to be inflated.";
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -431,6 +468,16 @@ namespace HBP.Core.Object3D
                     candidate?.Dispose();
                 }
             }
+            catch (SurfaceInflationException exception)
+            {
+                lock (m_InflatedRepresentations)
+                {
+                    KnownInflationInadmissibility = exception.Message;
+                    m_InflationInadmissibilitySourceIdentity = CreateSourceGeometryIdentity();
+                }
+
+                throw;
+            }
             finally
             {
                 IsInflationInProgress = false;
@@ -475,6 +522,8 @@ namespace HBP.Core.Object3D
                 m_InflationLifetime = new CancellationTokenSource();
                 Representation = SurfaceRepresentation.Anatomical;
                 m_ActiveInflatedRepresentation = null;
+                KnownInflationInadmissibility = null;
+                m_InflationInadmissibilitySourceIdentity = null;
                 representations = new Mesh3DInflatedRepresentation[m_InflatedRepresentations.Count];
                 m_InflatedRepresentations.Values.CopyTo(representations, 0);
                 m_InflatedRepresentations.Clear();

@@ -18,6 +18,7 @@ Shader "HBP/Brain"
         [HideInInspector] _StrongCuts("Strong Cuts", Int) = 0
         [HideInInspector] _CutCount("Cut Count", Int) = 0
         [HideInInspector] _Center("Brain Center", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _InflationBlend("Inflation Blend", Range(0, 1)) = 0
     }
 
     SubShader

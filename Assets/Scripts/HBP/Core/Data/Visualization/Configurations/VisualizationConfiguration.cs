@@ -1,5 +1,6 @@
 ﻿using HBP.Core.Enums;
 using HBP.Core.Tools;
+using HBP.Core.Object3D;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,11 @@ namespace HBP.Core.Data
         /// Mesh to display
         /// </summary>
         [JsonProperty("Mesh")] public string MeshName { get; set; }
+
+        /// <summary>
+        /// Surface representation to display. Missing values in legacy projects remain anatomical.
+        /// </summary>
+        [JsonProperty("Surface Representation")] public SurfaceRepresentation SurfaceRepresentation { get; set; } = SurfaceRepresentation.Anatomical;
 
         /// <summary>
         /// MRI to display
@@ -126,7 +132,7 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois) : base()
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, SurfaceRepresentation surfaceRepresentation = SurfaceRepresentation.Anatomical) : base()
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -149,9 +155,10 @@ namespace HBP.Core.Data
             Cuts = cuts.ToList();
             Views = views.ToList();
             RegionsOfInterest = rois.ToList();
+            SurfaceRepresentation = surfaceRepresentation;
         }
 
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID) : base(ID)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID, SurfaceRepresentation surfaceRepresentation = SurfaceRepresentation.Anatomical) : base(ID)
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -174,6 +181,7 @@ namespace HBP.Core.Data
             Cuts = cuts.ToList();
             Views = views.ToList();
             RegionsOfInterest = rois.ToList();
+            SurfaceRepresentation = surfaceRepresentation;
         }
 
         public VisualizationConfiguration() : base()
@@ -186,7 +194,10 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap, MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts, HideBlacklistedSites, ShowAllSites, AutomaticCutAroundSelectedSite, SiteGain, MRICalMinFactor, MRICalMaxFactor, CameraType, Cuts.ToList(), Views.ToList(), RegionsOfInterest.DeepClone().ToList(), ID);
+            return new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap, MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts, HideBlacklistedSites, ShowAllSites, AutomaticCutAroundSelectedSite, SiteGain, MRICalMinFactor, MRICalMaxFactor, CameraType, Cuts.ToList(), Views.ToList(), RegionsOfInterest.DeepClone().ToList(), ID)
+            {
+                SurfaceRepresentation = SurfaceRepresentation
+            };
         }
 
         public override void Copy(object copy)
@@ -199,6 +210,7 @@ namespace HBP.Core.Data
                 Colormap = visualizationConfiguration.Colormap;
                 MeshPart = visualizationConfiguration.MeshPart;
                 MeshName = visualizationConfiguration.MeshName;
+                SurfaceRepresentation = visualizationConfiguration.SurfaceRepresentation;
                 MRIName = visualizationConfiguration.MRIName;
                 ImplantationName = visualizationConfiguration.ImplantationName;
                 ShowEdges = visualizationConfiguration.ShowEdges;

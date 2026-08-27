@@ -617,6 +617,18 @@ namespace HBP.Data.Module3D
         /// </summary>
         private bool m_DestroyRequested = false;
 
+        private const float SURFACE_REPRESENTATION_TRANSITION_DURATION = 0.6f;
+
+        private readonly SemaphoreSlim m_SurfaceRepresentationGate = new(1, 1);
+        private readonly CancellationTokenSource m_SurfaceRepresentationLifetime = new();
+        private bool m_HasShownInflatedCutsInformation;
+
+        /// <summary>
+        /// Whether the brain is currently interpolating between anatomical and inflated geometry.
+        /// Geometry-dependent interactions are suspended while this is true.
+        /// </summary>
+        public bool IsSurfaceRepresentationTransitioning { get; private set; }
+
         /// <summary>
         /// Weight of the mesh loading step
         /// </summary>
@@ -797,6 +809,11 @@ namespace HBP.Data.Module3D
         [HideInInspector] public GenericEvent<bool> OnChangeAutomaticCutAroundSelectedSite = new();
 
         /// <summary>
+        /// Event called after a surface representation has been published to the scene.
+        /// </summary>
+        [HideInInspector] public GenericEvent<SurfaceRepresentation> OnSurfaceRepresentationChanged = new();
+
+        /// <summary>
         /// Event called when finished loading the scene completely
         /// </summary>
         [HideInInspector] public UnityEvent OnSceneCompletelyLoaded = new();
@@ -868,6 +885,8 @@ namespace HBP.Data.Module3D
 
         private void OnDestroy()
         {
+            m_SurfaceRepresentationLifetime.Cancel();
+            m_SurfaceRepresentationLifetime.Dispose();
             Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
             foreach (var dllMRIGeometryCutGenerator in CutGeometryGenerators) dllMRIGeometryCutGenerator.Dispose();
             m_ActivityProjectionGrid?.Dispose();
@@ -1599,6 +1618,16 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
+        /// Deduplicates the informational dialog about anatomical cuts for this scene instance.
+        /// </summary>
+        public bool TryMarkInflatedCutsInformationShown()
+        {
+            if (m_HasShownInflatedCutsInformation) return false;
+            m_HasShownInflatedCutsInformation = true;
+            return true;
+        }
+
+        /// <summary>
         /// Remove a cut plane
         /// </summary>
         /// <param name="cut">Cut to be removed</param>
@@ -1774,6 +1803,7 @@ namespace HBP.Data.Module3D
         /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
         {
+            SurfaceRepresentation configuredRepresentation = Visualization.Configuration.SurfaceRepresentation;
             if (firstCall) ResetConfiguration();
             BrainColor = Visualization.Configuration.BrainColor;
             CutColor = Visualization.Configuration.BrainCutColor;
@@ -1801,6 +1831,11 @@ namespace HBP.Data.Module3D
 
             if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) m_MRIManager.Select(Visualization.Configuration.MRIName);
             if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) m_ImplantationManager.Select(Visualization.Configuration.ImplantationName);
+
+            if (configuredRepresentation == SurfaceRepresentation.Inflated && m_MeshManager.SelectedMesh.HasInflatedRepresentation)
+            {
+                m_MeshManager.SelectRepresentation(configuredRepresentation);
+            }
 
             foreach (Core.Data.Cut cut in Visualization.Configuration.Cuts)
             {
@@ -1890,6 +1925,7 @@ namespace HBP.Data.Module3D
             Visualization.Configuration.BrainCutColor = CutColor;
             Visualization.Configuration.Colormap = Colormap;
             Visualization.Configuration.MeshPart = MeshManager.MeshPartToDisplay;
+            Visualization.Configuration.SurfaceRepresentation = MeshManager.SelectedMesh.Representation;
             if (m_MeshManager.SelectedMesh is not RuntimeSingleMesh3D)
             {
                 Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
@@ -1951,6 +1987,11 @@ namespace HBP.Data.Module3D
             CutColor = ColorType.Default;
             Colormap = ColorType.MatLab;
             m_MeshManager.SelectMeshPart(MeshPart.Both);
+            if (m_MeshManager.Meshes.Count > 0 && m_MeshManager.SelectedMesh.Representation != SurfaceRepresentation.Anatomical)
+            {
+                m_MeshManager.SelectRepresentation(SurfaceRepresentation.Anatomical);
+            }
+
             EdgeMode = false;
             IsBrainTransparent = false;
             BrainMaterials.SetAlpha(0.2f);
@@ -2097,12 +2138,113 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
+        /// Restores the representation serialized in the visualization configuration.
+        /// </summary>
+        public UniTask RestoreConfiguredSurfaceRepresentationAsync(IProgress<float> progress = null, CancellationToken cancellationToken = default, bool animate = false)
+        {
+            return SetSurfaceRepresentationAsync(Visualization.Configuration.SurfaceRepresentation, progress, cancellationToken, animate);
+        }
+
+        /// <summary>
+        /// Generates, transitions and transactionally publishes a surface representation.
+        /// </summary>
+        public async UniTask SetSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default, bool animate = true)
+        {
+            using CancellationTokenSource linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
+            CancellationToken token = linkedCancellation.Token;
+            await m_SurfaceRepresentationGate.WaitAsync(token);
+            try
+            {
+                token.ThrowIfCancellationRequested();
+                if (m_DestroyRequested || m_MeshManager.Meshes.Count == 0)
+                    throw new OperationCanceledException("The source scene is no longer available.", token);
+
+                Mesh3D sourceMesh = m_MeshManager.SelectedMesh;
+                if (representation == SurfaceRepresentation.Inflated)
+                {
+                    await sourceMesh.GenerateInflatedRepresentationAsync(progress, token);
+                }
+
+                await UniTask.SwitchToMainThread();
+                token.ThrowIfCancellationRequested();
+                if (this == null || m_DestroyRequested || m_MeshManager.Meshes.Count == 0 || !ReferenceEquals(sourceMesh, m_MeshManager.SelectedMesh))
+                    throw new OperationCanceledException("The source mesh or scene changed before the representation could be published.", token);
+
+                SurfaceRepresentation previousRepresentation = sourceMesh.Representation;
+                if (previousRepresentation == representation)
+                {
+                    progress?.Report(1.0f);
+                    return;
+                }
+
+                bool completed = false;
+                IsSurfaceRepresentationTransitioning = true;
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, clipBrain: false);
+                try
+                {
+                    m_MeshManager.PrepareRepresentationTransition();
+                    float startBlend = previousRepresentation == SurfaceRepresentation.Inflated ? 1.0f : 0.0f;
+                    float endBlend = representation == SurfaceRepresentation.Inflated ? 1.0f : 0.0f;
+                    BrainMaterials.SetInflationBlend(startBlend);
+
+                    if (animate && Application.isPlaying)
+                    {
+                        MeshPart selectedPart = sourceMesh.SupportsHemispheres ? m_MeshManager.MeshPartToDisplay : MeshPart.Both;
+                        Vector3 previousCenter = sourceMesh.GetSurface(previousRepresentation, selectedPart).Center;
+                        Vector3 targetCenter = sourceMesh.GetSurface(representation, selectedPart).Center;
+                        float elapsed = 0.0f;
+                        while (elapsed < SURFACE_REPRESENTATION_TRANSITION_DURATION)
+                        {
+                            token.ThrowIfCancellationRequested();
+                            elapsed += Time.unscaledDeltaTime;
+                            float normalizedTime = Mathf.Clamp01(elapsed / SURFACE_REPRESENTATION_TRANSITION_DURATION);
+                            float easedTime = normalizedTime * normalizedTime * (3.0f - 2.0f * normalizedTime);
+                            BrainMaterials.SetInflationBlend(Mathf.Lerp(startBlend, endBlend, easedTime));
+                            OnUpdateCameraTarget.Invoke(Vector3.Lerp(previousCenter, targetCenter, easedTime));
+                            await UniTask.Yield(PlayerLoopTiming.Update, token);
+                        }
+                    }
+
+                    token.ThrowIfCancellationRequested();
+                    BrainMaterials.SetInflationBlend(endBlend);
+                    m_MeshManager.SelectRepresentation(representation);
+                    UpdateGeometry();
+                    SceneInformation.CollidersNeedUpdate = true;
+                    completed = true;
+                    progress?.Report(1.0f);
+                    OnSurfaceRepresentationChanged.Invoke(representation);
+                }
+                finally
+                {
+                    if (!completed && this != null && !m_DestroyRequested)
+                    {
+                        BrainMaterials.SetInflationBlend(0.0f);
+                        SceneInformation.GeometryNeedsUpdate = true;
+                    }
+
+                    IsSurfaceRepresentationTransitioning = false;
+                    if (this != null && !m_DestroyRequested)
+                    {
+                        BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, m_MeshManager.CanClipBrainSurface);
+                        Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                    }
+                }
+            }
+            finally
+            {
+                m_SurfaceRepresentationGate.Release();
+            }
+        }
+
+        /// <summary>
         /// Passive raycast on the scene (to hover sites for instance)
         /// </summary>
         /// <param name="ray">Ray of the raycast</param>
         /// <param name="column">Column on which the raycast in performed</param>
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
+            if (IsSurfaceRepresentationTransitioning) return;
             if (SceneInformation.CollidersNeedUpdate) UpdateMeshesColliders().Forget();
 
             int layerMask = 0;
@@ -2122,6 +2264,7 @@ namespace HBP.Data.Module3D
         /// <param name="ray">Ray of the raycast</param>
         public void ClickOnScene(Ray ray)
         {
+            if (IsSurfaceRepresentationTransitioning) return;
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
@@ -2525,7 +2668,6 @@ namespace HBP.Data.Module3D
             await UniTask.SwitchToThreadPool();
             m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.GreyMatter.Clone()));
             m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.WhiteMatter.Clone()));
-            m_MeshManager.Meshes.Add((LeftRightMesh3D)(Object3DManager.MNI.InflatedWhiteMatter.Clone()));
             m_MRIManager.MRIs.Add(Object3DManager.MNI.MRI);
         }
 
@@ -2696,8 +2838,12 @@ namespace HBP.Data.Module3D
 
             await UniTask.SwitchToThreadPool();
             List<Core.DLL.Surface> cuts = new();
-            if (Cuts.Count > 0) cuts = new List<Core.DLL.Surface>(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
-            else cuts = new List<Core.DLL.Surface>() { (Core.DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone() };
+            if (MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated)
+                cuts.Add((Core.DLL.Surface)MeshManager.SimplifiedBrainSurface.Clone());
+            else if (Cuts.Count > 0)
+                cuts.AddRange(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
+            else
+                cuts.Add((Core.DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone());
 
             await UniTask.SwitchToMainThread();
             cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
@@ -2735,6 +2881,7 @@ namespace HBP.Data.Module3D
         {
             SceneInformation.GeneratorNeedsUpdate = true;
             m_DestroyRequested = true;
+            m_SurfaceRepresentationLifetime.Cancel();
             await new WaitUntil(() => !m_UpdatingGenerators);
             Visualization.Unload();
             Destroy(gameObject);
