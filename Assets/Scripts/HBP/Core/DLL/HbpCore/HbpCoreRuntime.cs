@@ -9,7 +9,8 @@ namespace HBP.Core.DLL.HbpCore
         Error = 1,
         InvalidArgument = 2,
         InvalidHandle = 3,
-        BufferTooSmall = 4
+        BufferTooSmall = 4,
+        Cancelled = 5
     }
 
     public enum HbpCoreLogType
