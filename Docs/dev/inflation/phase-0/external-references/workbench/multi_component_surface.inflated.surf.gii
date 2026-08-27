@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GIFTI xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd"
+       Version="1"
+       NumberOfDataArrays="2">
+   <MetaData>
+      <MD>
+         <Name><![CDATA[ProgramProvenance]]></Name>
+         <Value><![CDATA[Connectome Workbench
+Type: Command Line Application
+Version: 2.2.1
+Qt Compiled Version: 5.7.0
+Qt Runtime Version: 5.7.0
+Commit: 01164ffa47f2778088bd6ff472ec9cd9a57f5b42
+Commit Date: 2026-07-13 18:19:49 -0500
+Compiler: cl.exe (C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/amd64)
+Compiler Version: 19.0.24215.1
+Compiled Debug: NO
+Operating System: Windows
+Compiled with OpenMP: YES
+]]></Value>
+      </MD>
+      <MD>
+         <Name><![CDATA[Provenance]]></Name>
+         <Value><![CDATA[C:\HBP\Utility\workbench\bin_windows64\wb_command.exe -surface-generate-inflated Docs/dev/inflation/phase-0/fixtures/multi-component.gii Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.inflated.surf.gii Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.very-inflated.surf.gii -iterations-scale 1.0]]></Value>
+      </MD>
+      <MD>
+         <Name><![CDATA[WorkingDirectory]]></Name>
+         <Value><![CDATA[C:/HBP/Software/HiBoP]]></Value>
+      </MD>
+   </MetaData>
+   <LabelTable>
+      <Label Key="0" Red="0" Green="0" Blue="0" Alpha="0"><![CDATA[???]]></Label>
+   </LabelTable>
+<DataArray Intent="NIFTI_INTENT_POINTSET"
+           DataType="NIFTI_TYPE_FLOAT32"
+           ArrayIndexingOrder="RowMajorOrder"
+           Dimensionality="2"
+           Dim0="84"
+           Dim1="3"
+           Encoding="GZipBase64Binary"
+           Endian="LittleEndian"
+           ExternalFileName=""
+           ExternalFileOffset="0">
+   <MetaData>
+      <MD>
+         <Name><![CDATA[GeometricType]]></Name>
+         <Value><![CDATA[Inflated]]></Value>
+      </MD>
+      <MD>
+         <Name><![CDATA[Name]]></Name>
+         <Value><![CDATA[#1]]></Value>
+      </MD>
+   </MetaData>
+   <CoordinateSystemTransformMatrix>
+      <DataSpace><![CDATA[NIFTI_XFORM_TALAIRACH]]></DataSpace>
+      <TransformedSpace><![CDATA[NIFTI_XFORM_TALAIRACH]]></TransformedSpace>
+      <MatrixData>
+         1 0 0 0 
+         0 1 0 0 
+         0 0 1 0 
+         0 0 0 1 
+      </MatrixData>
+   </CoordinateSystemTransformMatrix>
+   <Data>eJwlkH9MVWUYxy9Ya/fWsi3JlAwzGcKC3D0b97R1n3MuqVsNzy1nTF1wyBJrOTOxXCs9pHK1CDq0QIxzzopIr3o3W6T3oDvPa0BOZ+SsjaLdg4aSssQg+aGFvr3vuf999t3zfn+8RTc10rxAlcpnbrfJkEaezFWlf3rzi4uYPvGISr4d3S2eYHr7QpUEGkbEiesaWZwTID9VqxLnf2cHpIytqjTG+Eh2gPirVcL1uQsCUmiLSmZd1MiVLFO8L+b3OHarJpn5sV/qv62RxGVfMq/eTzi/+ME6OxTzSyenNbJsOYXSD03YPqWR6CILNl9SJBjXyCd3FOmzcQpHhjUymRGVRkYp3GJZd6gm1Ty+w04wvemeqHTiMkV+/zpVpMnbFLnPe8UWzHYV0sP810YpVLaa6PPVkMGBFfbA8pbkhj81cn++BecuKFLBHxrpDFPI3Jvu8H6RhbUXFW/vpsQ+kbI83vPZEoqr60zk3P48xQfqTeA3p/4utLk3fxvPsZDncs82mUKgyUSe1TfPgsO/p/WDpRS3fGHCa0yvLLCwpl+R+JaVM6JEHKHAt0xMK2Snz+d14N47Lv0c8v7EFyWLb1KMs/u6zCiZvkGR+xzNtTAxmPZ/ZgnF0piJY65GWvoWir3bfg3NfbVM7sszYPfUDfHYujL50TkGdMVJkuvvlBg4kjHm6UsEA7e1DoeGmb6yIoJn3jTgKuOzSgRyNqS55d0Iqi8byHnP0gicrjKwuKpMbrh21hZissfn13xqr2iWwXilTH7iwbs7y2tl5HyyeZf92EcyfMf4/NEgrO9OhfOZz1OmGz7Qq8NmxuJvOvSVCKCyPs6ADv8tEoD36c/rgEY4JFYyvfEXHc48JOBbTLcu6DA6R0Du8/YLbjjepSP3vysehI1bU84bjOfvOW5L9avEA+xt1nw33PqjDvNYz++bg7C0Ld1hKuE6n5/WvY3VkZ12ltDh9Vz7TRAb9qUczoOngljbkwpfYTfjX/cn8wo7vNzcOtcpP64j92z/KghVbSlnP8vyCW64tCutX+sOYtP+VJh36G51nedYB77xpSEdHy4UgG/58rqORnZ678anO1Bb1pjkf5IzpePQvQJWsPuZf+lYkS0g9y/Y5TrQk/a/ikHcZKac9Yx/6Jm0O8/NCv0PBmADNA==</Data>
+</DataArray>
+<DataArray Intent="NIFTI_INTENT_TRIANGLE"
+           DataType="NIFTI_TYPE_INT32"
+           ArrayIndexingOrder="RowMajorOrder"
+           Dimensionality="2"
+           Dim0="160"
+           Dim1="3"
+           Encoding="GZipBase64Binary"
+           Endian="LittleEndian"
+           ExternalFileName=""
+           ExternalFileOffset="0">
+   <MetaData>
+      <MD>
+         <Name><![CDATA[Name]]></Name>
+         <Value><![CDATA[#2]]></Value>
+      </MD>
+   </MetaData>
+   <Data>eJxN0W0zG2EUBuCVaIhQVRUREUJV5UURL1VVRERIVdX//y/dnbnOzH545sx1z/1k92STJEnm0/M+PZX0LPA7WXiBE/ODziJPycKLnJgfdZZ4RhZe4sT8pLPMc7LwMifmvM4KV2ThFZ7ybqvev8plWbia62S7r/nNGk/LwrVcJ3vWuvepc0EWruc62S4b9m1wSRZu5DrZf7VplybPysJNLqZnKz3bdmzxtCzc4qL5WWeHC7LwDhfNLzq7XJKFd7loftXZ41lZeI+L5pbOPpdl4f3cXi3fouw7tnzHtZyrXLDLurs1rsjCNS7ZZcPdOs/JwnWetcumuw2ekYUbXLbLqrtNnpKFm9xOz1l6vqfnND3n/E0WPue2+UPngjuy8AW3zZ86l3wkC19y2/ylc8UnsvAVt80znWs+lYWvuePdbr3/Dfdl4ZtcJ9v9zm8O+EAWHuQ62bPuvc+Qu7LwMNfJdnmw74gPZeFRrpP9V492GfOxLDzmXnqe0vPbjhM+kIUn3DP/6DxzVxZ+5p75V+eFD2XhF+6Z/3Re+VgWfuWe+aTzxn1Z+C2318S36PuOE9/xLucb7trl3t0Bn8rCAz60y4O7Qz6RhYd8bJdHd0d8JAuPuG+XW3fH3JGFx/wfpdtPOQ==</Data>
+</DataArray>
+</GIFTI>
