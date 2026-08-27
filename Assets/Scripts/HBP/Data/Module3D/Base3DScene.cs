@@ -2724,17 +2724,19 @@ namespace HBP.Data.Module3D
             // Clean Meshes
             foreach (var mesh in m_MeshManager.Meshes)
             {
-                if (mesh.HasBeenLoadedOutside) continue;
                 if (Module3DMain.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
                 if (Module3DMain.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                mesh.ClearInflatedRepresentations();
+                if (mesh.HasBeenLoadedOutside) continue;
                 mesh.Clean();
             }
 
             foreach (var mesh in m_MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm))
             {
-                if (mesh.HasBeenLoadedOutside) continue;
                 if (Module3DMain.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
                 if (Module3DMain.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
+                mesh.ClearInflatedRepresentations();
+                if (mesh.HasBeenLoadedOutside) continue;
                 mesh.Clean();
             }
 

@@ -213,6 +213,7 @@ namespace HBP.Core.DLL
 
         public bool IsLoaded { get; private set; }
         public bool IsMarsAtlasLoaded { get; private set; }
+        public long GeometryVersion { get; private set; }
 
         public Vector3 Center
         {
@@ -290,11 +291,13 @@ namespace HBP.Core.DLL
             m_Colors = (Color[])other.m_Colors.Clone();
             IsLoaded = other.IsLoaded;
             IsMarsAtlasLoaded = other.IsMarsAtlasLoaded;
+            GeometryVersion = other.GeometryVersion;
         }
 
         public bool LoadOBJFile(string obj)
         {
             IsLoaded = hbp_surface_load_obj(_handle.Handle, obj) == HbpCoreStatus.Ok;
+            if (IsLoaded) ++GeometryVersion;
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadObjFile -> can't load obj file to surface : " + obj);
             return IsLoaded;
         }
@@ -307,6 +310,8 @@ namespace HBP.Core.DLL
                 using Transformation3 transform = Transformation3.FromFile(transformation);
                 ApplyTransformation(transform);
             }
+
+            if (IsLoaded) ++GeometryVersion;
 
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + gii + " " + transformation);
             return IsLoaded;
@@ -363,6 +368,8 @@ namespace HBP.Core.DLL
                 ThrowIfFailed(hbp_surface_transform(_handle.Handle, transform.getHandle().Handle));
             }
 
+            if (IsLoaded) ++GeometryVersion;
+
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + tri + " " + transformation);
             return IsLoaded;
         }
@@ -390,11 +397,13 @@ namespace HBP.Core.DLL
         {
             if (transformation == null) throw new ArgumentNullException(nameof(transformation));
             ThrowIfFailed(hbp_surface_transform(_handle.Handle, transformation.getHandle().Handle));
+            ++GeometryVersion;
         }
 
         public void FlipTriangles()
         {
             ThrowIfFailed(hbp_surface_flip(_handle.Handle));
+            ++GeometryVersion;
         }
 
         public Surface UpdateVisibilityMask(int[] visibilityMask)
@@ -468,6 +477,7 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_surface_merge(_handle.Handle, surfaceToAdd.getHandle().Handle));
             IsLoaded &= surfaceToAdd.IsLoaded;
             IsMarsAtlasLoaded &= surfaceToAdd.IsMarsAtlasLoaded;
+            ++GeometryVersion;
         }
 
         public void UpdateMeshFromDLL(Mesh mesh, bool all = true, bool vertices = true, bool normals = true, bool uv = true, bool triangles = true, bool colors = true)
@@ -488,6 +498,7 @@ namespace HBP.Core.DLL
             HandleRef buffer = surface.getHandle();
             surface._handle = _handle;
             _handle = buffer;
+            (surface.GeometryVersion, GeometryVersion) = (GeometryVersion, surface.GeometryVersion);
         }
 
         public Surface Simplify(int numberOfTriangles = 10000, int agressiveness = 7)
@@ -529,6 +540,9 @@ namespace HBP.Core.DLL
                 Color4[] nativeColors = colors.Select(Color4.FromColor).ToArray();
                 ThrowIfFailed(hbp_surface_set_colors(_handle.Handle, nativeColors, nativeColors.Length));
             }
+
+            IsLoaded = true;
+            ++GeometryVersion;
         }
 
         public object Clone()
@@ -593,7 +607,9 @@ namespace HBP.Core.DLL
                 throw new SurfaceInflationException(execution.Error, report);
             }
 
-            return new SurfaceInflationResult(operation.TakeResult(), report, coordinateSpace);
+            Surface result = operation.TakeResult();
+            result.IsMarsAtlasLoaded = source.IsMarsAtlasLoaded;
+            return new SurfaceInflationResult(result, report, coordinateSpace);
         }
 
         private static void TryReportProgress(IProgress<float> progress, float value, ref Exception progressException)
