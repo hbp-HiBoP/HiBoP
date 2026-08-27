@@ -13,8 +13,7 @@ namespace HBP.UI.Toolbar
 {
     public class SurfaceRepresentationToggle : Tool
     {
-        private const string TOOLTIP = "Switch between the anatomical and inflated representations. Inflation is designed for cortical surfaces but is available to any geometrically admissible mesh. Sites and electrodes remain in anatomical coordinates, and their influence is computed from the anatomical reference surface. Cuts also remain anatomical and do not visually clip the inflated surface.";
-        private const string CUTS_INFORMATION = "En mode inflated, les coupes restent définies dans le repère anatomique. Elles continuent d'alimenter les vues et l'exploration volumique, mais ne découpent pas visuellement la surface inflated.";
+        private const string CUTS_INFORMATION = "In inflated mode, cuts remain defined in anatomical coordinates. They continue to support cut views and volumetric exploration, but do not visually clip the inflated surface.";
 
         [SerializeField] private Toggle m_Toggle;
         [SerializeField] private Image m_Icon;
@@ -36,7 +35,6 @@ namespace HBP.UI.Toolbar
             ChangeSceneSubscription(null);
             m_Toggle.SetIsOnWithoutNotify(false);
             m_Toggle.interactable = false;
-            if (m_Tooltip != null) m_Tooltip.Text = TOOLTIP;
         }
 
         public override void UpdateInteractable()
@@ -49,12 +47,8 @@ namespace HBP.UI.Toolbar
             }
 
             SurfaceRepresentation current = SelectedScene.MeshManager.SelectedMesh.Representation;
-            bool available = SelectedScene.MeshManager.SelectedMesh.TryGetInflationAvailability(out string reason);
+            bool available = SelectedScene.MeshManager.SelectedMesh.TryGetInflationAvailability(out _);
             m_Toggle.interactable = !SelectedScene.IsSurfaceRepresentationTransitioning && (current == SurfaceRepresentation.Inflated || available);
-            if (m_Tooltip != null)
-            {
-                m_Tooltip.Text = m_Toggle.interactable || string.IsNullOrWhiteSpace(reason) ? TOOLTIP : $"{TOOLTIP}\n\nUnavailable: {reason}";
-            }
         }
 
         public override void UpdateStatus()
@@ -72,18 +66,25 @@ namespace HBP.UI.Toolbar
             m_Toggle.interactable = false;
             try
             {
-                await LoadingManager.LoadAsync(async (update, token) =>
+                if (RequiresLoadingManager(scene, representation))
                 {
-                    IProgress<float> progress = new Progress<float>(value => update(value, 0.0f, new LoadingText("Inflating surface")));
-                    try
+                    await LoadingManager.LoadAsync(async (update, token) =>
                     {
-                        await scene.SetSurfaceRepresentationAsync(representation, progress, token, animate: true);
-                    }
-                    catch (SurfaceInflationException exception)
-                    {
-                        throw new HBPException("Surface inflation failed", BuildInflationError(exception));
-                    }
-                });
+                        IProgress<float> progress = new Progress<float>(value => update(value, 0.0f, new LoadingText("Inflating surface")));
+                        try
+                        {
+                            await scene.PrepareSurfaceRepresentationAsync(representation, progress, token);
+                        }
+                        catch (SurfaceInflationException exception)
+                        {
+                            throw new HBPException("Surface inflation failed", BuildInflationError(exception));
+                        }
+
+                        return true;
+                    });
+                }
+
+                await scene.SetSurfaceRepresentationAsync(representation, animate: true);
             }
             catch (OperationCanceledException)
             {
@@ -100,6 +101,11 @@ namespace HBP.UI.Toolbar
                     UpdateInteractable();
                 }
             }
+        }
+
+        private static bool RequiresLoadingManager(Base3DScene scene, SurfaceRepresentation representation)
+        {
+            return representation == SurfaceRepresentation.Inflated && !scene.MeshManager.SelectedMesh.HasInflatedRepresentation;
         }
 
         private void ChangeSceneSubscription(Base3DScene scene)
@@ -138,7 +144,7 @@ namespace HBP.UI.Toolbar
         private static void ShowCutsInformationIfNeeded(Base3DScene scene)
         {
             if (!scene.TryMarkInflatedCutsInformationShown()) return;
-            DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Coupes en mode inflated", CUTS_INFORMATION, "OK").Forget();
+            DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Cuts in inflated mode", CUTS_INFORMATION, "OK").Forget();
         }
 
         private static string BuildInflationError(SurfaceInflationException exception)

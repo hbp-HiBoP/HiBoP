@@ -1131,8 +1131,7 @@ namespace HBP.Data.Module3D
 
             // Display cuts
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Misc");
-            for (int ii = 0; ii < Cuts.Count; ++ii)
-                m_DisplayedObjects.BrainCutMeshes[ii].SetActive(true);
+            UpdateBrainCutMeshesVisibility();
 
             SceneInformation.CollidersNeedUpdate = true;
 
@@ -1159,7 +1158,7 @@ namespace HBP.Data.Module3D
             if (representationChanged)
             {
                 m_TriangleEraser.ResetForRepresentationChange(previousVisibilityMask);
-                m_MeshManager.UpdateMeshesFromDLL();
+                m_MeshManager.UpdateMeshesFromDLL(preserveScientificData: true);
                 InvalidateSurfaceMesh();
                 m_AtlasManager.UpdateAtlasColors();
                 m_FMRIManager.UpdateSurfaceFMRIColors();
@@ -1189,6 +1188,23 @@ namespace HBP.Data.Module3D
             SceneInformation.CutsNeedUpdate = false;
             OnUpdateCuts.Invoke();
             UnityEngine.Profiling.Profiler.EndSample();
+        }
+
+        private void UpdateBrainCutMeshesVisibility()
+        {
+            bool visible = m_MeshManager.CanClipBrainSurface;
+            foreach (GameObject cutMesh in m_DisplayedObjects.BrainCutMeshes)
+            {
+                cutMesh.SetActive(visible);
+            }
+
+            foreach (Column3D column in Columns)
+            {
+                foreach (GameObject cutMesh in column.BrainCutMeshes)
+                {
+                    cutMesh.SetActive(visible);
+                }
+            }
         }
 
         /// <summary>
@@ -1608,6 +1624,7 @@ namespace HBP.Data.Module3D
             m_DisplayedObjects.InstantiateCut();
 
             UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
+            UpdateBrainCutMeshesVisibility();
 
             SceneInformation.CutsNeedUpdate = true;
 
@@ -2146,6 +2163,25 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
+        /// Generates and caches a surface representation without publishing it.
+        /// </summary>
+        public async UniTask PrepareSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+        {
+            using CancellationTokenSource linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
+            CancellationToken token = linkedCancellation.Token;
+            await m_SurfaceRepresentationGate.WaitAsync(token);
+            try
+            {
+                await PrepareSurfaceRepresentationLockedAsync(representation, progress, token);
+                progress?.Report(1.0f);
+            }
+            finally
+            {
+                m_SurfaceRepresentationGate.Release();
+            }
+        }
+
+        /// <summary>
         /// Generates, transitions and transactionally publishes a surface representation.
         /// </summary>
         public async UniTask SetSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default, bool animate = true)
@@ -2155,20 +2191,7 @@ namespace HBP.Data.Module3D
             await m_SurfaceRepresentationGate.WaitAsync(token);
             try
             {
-                token.ThrowIfCancellationRequested();
-                if (m_DestroyRequested || m_MeshManager.Meshes.Count == 0)
-                    throw new OperationCanceledException("The source scene is no longer available.", token);
-
-                Mesh3D sourceMesh = m_MeshManager.SelectedMesh;
-                if (representation == SurfaceRepresentation.Inflated)
-                {
-                    await sourceMesh.GenerateInflatedRepresentationAsync(progress, token);
-                }
-
-                await UniTask.SwitchToMainThread();
-                token.ThrowIfCancellationRequested();
-                if (this == null || m_DestroyRequested || m_MeshManager.Meshes.Count == 0 || !ReferenceEquals(sourceMesh, m_MeshManager.SelectedMesh))
-                    throw new OperationCanceledException("The source mesh or scene changed before the representation could be published.", token);
+                Mesh3D sourceMesh = await PrepareSurfaceRepresentationLockedAsync(representation, progress, token);
 
                 SurfaceRepresentation previousRepresentation = sourceMesh.Representation;
                 if (previousRepresentation == representation)
@@ -2181,6 +2204,7 @@ namespace HBP.Data.Module3D
                 IsSurfaceRepresentationTransitioning = true;
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, clipBrain: false);
+                UpdateBrainCutMeshesVisibility();
                 try
                 {
                     m_MeshManager.PrepareRepresentationTransition();
@@ -2227,6 +2251,7 @@ namespace HBP.Data.Module3D
                     if (this != null && !m_DestroyRequested)
                     {
                         BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, m_MeshManager.CanClipBrainSurface);
+                        UpdateBrainCutMeshesVisibility();
                         Module3DMain.OnRequestUpdateInToolbar.Invoke();
                     }
                 }
@@ -2235,6 +2260,26 @@ namespace HBP.Data.Module3D
             {
                 m_SurfaceRepresentationGate.Release();
             }
+        }
+
+        private async UniTask<Mesh3D> PrepareSurfaceRepresentationLockedAsync(SurfaceRepresentation representation, IProgress<float> progress, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            if (m_DestroyRequested || m_MeshManager.Meshes.Count == 0)
+                throw new OperationCanceledException("The source scene is no longer available.", token);
+
+            Mesh3D sourceMesh = m_MeshManager.SelectedMesh;
+            if (representation == SurfaceRepresentation.Inflated)
+            {
+                await sourceMesh.GenerateInflatedRepresentationAsync(progress, token);
+            }
+
+            await UniTask.SwitchToMainThread();
+            token.ThrowIfCancellationRequested();
+            if (this == null || m_DestroyRequested || m_MeshManager.Meshes.Count == 0 || !ReferenceEquals(sourceMesh, m_MeshManager.SelectedMesh))
+                throw new OperationCanceledException("The source mesh or scene changed before the representation could be published.", token);
+
+            return sourceMesh;
         }
 
         /// <summary>

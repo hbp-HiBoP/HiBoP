@@ -457,6 +457,102 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
         }
 
+        [Test]
+        [Category("NativeDll")]
+        [Category("PlayMode.Inflation")]
+        public async Task SurfaceRepresentationTransition_PreservesColumnActivityAndHidesThreeDimensionalCutMeshes()
+        {
+            if (!HBP.Core.DLL.HbpCore.HbpCoreRuntime.TryGetVersion(out _, out string error))
+                Assert.Ignore($"hbp_core is unavailable: {error}");
+
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("SurfaceRepresentationTransitionStabilization");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "inflation-transition", includeSurface: true, includeColumn: false);
+            MeshManager manager = baseScene.MeshManager;
+            DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
+            TestSingleMesh3D mesh = new(manager.BrainSurface, manager.SimplifiedMeshToUse);
+            manager.Meshes.Add(mesh);
+            GameObject columnObject = new("Inflation transition column");
+            SceneManager.MoveGameObjectToScene(columnObject, scene.Scene);
+            columnObject.transform.SetParent(baseScene.transform, false);
+            Column3DAnatomy column = columnObject.AddComponent<Column3DAnatomy>();
+            GameObject columnBrain = Object.Instantiate(displayedObjects.Brain, columnObject.transform);
+            columnBrain.GetComponent<MeshFilter>().mesh = Object.Instantiate(displayedObjects.Brain.GetComponent<MeshFilter>().mesh);
+            columnBrain.SetActive(true);
+            SetAutoProperty(column, "BrainMesh", columnBrain);
+            baseScene.Columns.Add(column);
+
+            try
+            {
+                manager.UpdateMeshesInformation();
+                manager.UpdateMeshesFromDLL();
+                Mesh columnMesh = baseScene.Columns.Single().BrainMesh.GetComponent<MeshFilter>().sharedMesh;
+                Vector2[] alphaUvs = Enumerable.Range(0, columnMesh.vertexCount).Select(index => new Vector2(index + 0.25f, index + 0.5f)).ToArray();
+                Vector2[] activityUvs = Enumerable.Range(0, columnMesh.vertexCount).Select(index => new Vector2(index + 0.75f, index + 1.0f)).ToArray();
+                Color[] colors = Enumerable.Range(0, columnMesh.vertexCount).Select(index => new Color(index / 10.0f, 0.25f, 0.75f, 1.0f)).ToArray();
+                columnMesh.uv2 = alphaUvs;
+                columnMesh.uv3 = activityUvs;
+                columnMesh.colors = colors;
+
+                GameObject mainCutMesh = new("Main anatomical cut mesh");
+                mainCutMesh.transform.SetParent(baseScene.transform, false);
+                displayedObjects.BrainCutMeshes.Add(mainCutMesh);
+                GameObject columnCutMesh = new("Column anatomical cut mesh");
+                columnCutMesh.transform.SetParent(columnObject.transform, false);
+                column.BrainCutMeshes.Add(columnCutMesh);
+
+                await mesh.GenerateInflatedRepresentationAsync(FastInflationSettings());
+                baseScene.SceneInformation.ProjectionGridNeedsUpdate = false;
+                baseScene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                baseScene.SceneInformation.GeneratorNeedsUpdate = false;
+
+                UniTask inflateTransition = baseScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, animate: true);
+                await UniTask.WaitUntil(() => baseScene.IsSurfaceRepresentationTransitioning);
+
+                Assert.That(mainCutMesh.activeSelf, Is.False);
+                Assert.That(columnCutMesh.activeSelf, Is.False);
+                Assert.That(columnMesh.uv2, Is.EqualTo(alphaUvs));
+                Assert.That(columnMesh.uv3, Is.EqualTo(activityUvs));
+                Assert.That(columnMesh.colors, Is.EqualTo(colors));
+
+                await inflateTransition;
+
+                Assert.That(mesh.Representation, Is.EqualTo(SurfaceRepresentation.Inflated));
+                Assert.That(mainCutMesh.activeSelf, Is.False);
+                Assert.That(columnCutMesh.activeSelf, Is.False);
+                Assert.That(columnMesh.uv2, Is.EqualTo(alphaUvs));
+                Assert.That(columnMesh.uv3, Is.EqualTo(activityUvs));
+
+                UniTask anatomicalTransition = baseScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, animate: true);
+                await UniTask.WaitUntil(() => baseScene.IsSurfaceRepresentationTransitioning);
+                Assert.That(mainCutMesh.activeSelf, Is.False);
+                Assert.That(columnCutMesh.activeSelf, Is.False);
+
+                await anatomicalTransition;
+
+                Assert.That(mesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical));
+                Assert.That(mainCutMesh.activeSelf, Is.True);
+                Assert.That(columnCutMesh.activeSelf, Is.True);
+                Assert.That(columnMesh.uv2, Is.EqualTo(alphaUvs));
+                Assert.That(columnMesh.uv3, Is.EqualTo(activityUvs));
+            }
+            finally
+            {
+                manager.Meshes.Clear();
+                mesh.Clean();
+            }
+        }
+
+        private static Mesh3DInflationSettings FastInflationSettings()
+        {
+            HBP.Core.DLL.SurfaceInflationOptions options = HBP.Core.DLL.SurfaceInflationOptions.Inflated;
+            options.IterationCount = 4;
+            options.ConvergenceTolerance = 1e-8;
+            return Mesh3DInflationSettings.Custom(options);
+        }
+
         private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization)> InitializeSyntheticAnatomicSceneAsync(PlayModeSceneScope scene, string suffix = "alpha", int anatomyColumnCount = 1)
         {
             Project project = CreateMinimalAnatomicProject(suffix, anatomyColumnCount);
@@ -1085,6 +1181,16 @@ namespace HBP.Tests.PlayMode.Module3D
                 CustomX = customX;
                 CustomY = customY;
                 CustomZ = customZ;
+            }
+        }
+
+        private sealed class TestSingleMesh3D : SingleMesh3D
+        {
+            public TestSingleMesh3D(HBP.Core.DLL.Surface surface, HBP.Core.DLL.Surface simplifiedSurface)
+            {
+                Name = "Synthetic PlayMode inflation mesh";
+                m_Both = surface;
+                m_SimplifiedBoth = simplifiedSurface;
             }
         }
 

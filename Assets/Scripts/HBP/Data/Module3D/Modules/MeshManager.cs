@@ -348,15 +348,29 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Update the surface meshes from the DLL
         /// </summary>
-        public void UpdateMeshesFromDLL()
+        public void UpdateMeshesFromDLL(bool preserveScientificData = false)
         {
             Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
-            BrainSurface.UpdateMeshFromDLL(brainMesh);
-            brainMesh.SetUVs(3, Array.Empty<Vector3>());
-            brainMesh.SetUVs(4, Array.Empty<Vector3>());
+            if (preserveScientificData)
+            {
+                BrainSurface.UpdateMeshFromDLL(brainMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+                ClearRepresentationTransitionStreams(brainMesh);
+                foreach (Column3D column in m_Scene.Columns)
+                {
+                    Mesh columnMesh = column.BrainMesh.GetComponent<MeshFilter>().sharedMesh;
+                    BrainSurface.UpdateMeshFromDLL(columnMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+                    ClearRepresentationTransitionStreams(columnMesh);
+                }
+            }
+            else
+            {
+                BrainSurface.UpdateMeshFromDLL(brainMesh);
+                ClearRepresentationTransitionStreams(brainMesh);
+                foreach (Column3D column in m_Scene.Columns)
+                    column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
+            }
+
             m_Scene.BrainMaterials.SetInflationBlend(0.0f);
-            foreach (Column3D column in m_Scene.Columns)
-                column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
         }
 
         /// <summary>
@@ -371,17 +385,16 @@ namespace HBP.Data.Module3D
             Mesh inflatedMesh = new();
             try
             {
-                anatomical.UpdateMeshFromDLL(brainMesh);
                 inflated.UpdateMeshFromDLL(inflatedMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
-                brainMesh.SetUVs(3, new List<Vector3>(inflatedMesh.vertices));
-                brainMesh.SetUVs(4, new List<Vector3>(inflatedMesh.normals));
-                Bounds transitionBounds = brainMesh.bounds;
-                transitionBounds.Encapsulate(inflatedMesh.bounds.min);
-                transitionBounds.Encapsulate(inflatedMesh.bounds.max);
-                brainMesh.bounds = transitionBounds;
+                List<Vector3> inflatedVertices = new(inflatedMesh.vertices);
+                List<Vector3> inflatedNormals = new(inflatedMesh.normals);
+                PrepareRepresentationTransitionMesh(brainMesh, anatomical, inflatedVertices, inflatedNormals, inflatedMesh.bounds);
 
                 foreach (Column3D column in m_Scene.Columns)
-                    column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
+                {
+                    Mesh columnMesh = column.BrainMesh.GetComponent<MeshFilter>().sharedMesh;
+                    PrepareRepresentationTransitionMesh(columnMesh, anatomical, inflatedVertices, inflatedNormals, inflatedMesh.bounds);
+                }
             }
             finally
             {
@@ -390,6 +403,23 @@ namespace HBP.Data.Module3D
                 else
                     DestroyImmediate(inflatedMesh);
             }
+        }
+
+        private static void PrepareRepresentationTransitionMesh(Mesh mesh, Core.DLL.Surface anatomical, List<Vector3> inflatedVertices, List<Vector3> inflatedNormals, Bounds inflatedBounds)
+        {
+            anatomical.UpdateMeshFromDLL(mesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+            mesh.SetUVs(3, inflatedVertices);
+            mesh.SetUVs(4, inflatedNormals);
+            Bounds transitionBounds = mesh.bounds;
+            transitionBounds.Encapsulate(inflatedBounds.min);
+            transitionBounds.Encapsulate(inflatedBounds.max);
+            mesh.bounds = transitionBounds;
+        }
+
+        private static void ClearRepresentationTransitionStreams(Mesh mesh)
+        {
+            mesh.SetUVs(3, Array.Empty<Vector3>());
+            mesh.SetUVs(4, Array.Empty<Vector3>());
         }
 
         /// <summary>
