@@ -128,8 +128,10 @@ namespace HBP.Tests.Serialization
         public void TagsDatabaseScannerAndMaterialization_SupportIntranatSiteCsv()
         {
             var root = Path.Combine(Path.GetTempPath(), "hibop-intranat-tag-csv-" + Guid.NewGuid().ToString("N"));
+            bool previousCorrection = Site.SiteNameCorrection;
             try
             {
+                Site.SiteNameCorrection = false;
                 Directory.CreateDirectory(root);
                 var csvPath = Path.Combine(root, "patient-1.csv");
                 File.WriteAllLines(csvPath, new[]
@@ -154,6 +156,7 @@ namespace HBP.Tests.Serialization
             }
             finally
             {
+                Site.SiteNameCorrection = previousCorrection;
                 if (Directory.Exists(root)) Directory.Delete(root, true);
             }
         }

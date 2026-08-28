@@ -807,7 +807,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Base3DScene baseScene = initialized.BaseScene;
 
             Assert.That(baseScene.SceneInformation.Initialized, Is.True);
-            Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
+            Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(2));
             Assert.That(baseScene.MRIManager.MRIs, Has.Count.EqualTo(1));
             Assert.That(baseScene.ImplantationManager.Implantations, Has.Count.EqualTo(1));
             Assert.That(baseScene.Columns, Has.Count.EqualTo(1));
@@ -837,7 +837,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(initialized.Visualization.Patients, Is.Empty);
             Assert.That(initialized.Visualization.IsVisualizable, Is.True);
             Assert.That(initialized.BaseScene.Type, Is.EqualTo(SceneType.MultiPatients));
-            Assert.That(initialized.BaseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
+            Assert.That(initialized.BaseScene.MeshManager.Meshes, Has.Count.EqualTo(2));
             Assert.That(initialized.BaseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
             Assert.That(initialized.BaseScene.ColumnsAnatomy, Has.Count.EqualTo(1));
             Assert.That(initialized.BaseScene.SelectedColumn, Is.SameAs(initialized.BaseScene.Columns[0]));
@@ -873,7 +873,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 Assert.That(previews.Select(mesh => mesh.SourceMRI), Is.EqualTo(baseScene.MRIManager.PatientMRIs));
                 Assert.That(previews.Select(mesh => mesh.Name), Is.EqualTo(new[] { "MRI preview – Preimplantation", "MRI preview – Postimplantation" }));
                 Assert.That(preview.IsLoaded, Is.True);
-                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(5));
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(4));
                 Assert.That(baseScene.MeshManager.SelectedMesh, Is.SameAs(preview));
                 Assert.That(baseScene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Both));
                 Assert.That(baseScene.Visualization.Patients.Single().Meshes, Is.Empty);
@@ -911,7 +911,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
                 Assert.That(baseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
                 Assert.That(baseScene.MeshManager.HasPersistentPatientMesh, Is.True);
-                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(4));
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
                 Assert.That(baseScene.MeshManager.SelectedMesh.Type, Is.EqualTo(MeshType.Patient));
                 Assert.That(baseScene.MeshManager.SelectedMesh.Name, Is.EqualTo(patientMesh.Name));
                 Assert.That(initialized.LoadingMessages.Any(message => message.StartsWith("Generating MRI preview")), Is.False);
@@ -946,7 +946,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 baseScene = initialized.BaseScene;
 
                 Assert.That(baseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
-                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(2));
                 Assert.That(baseScene.MeshManager.SelectedMesh.Type, Is.EqualTo(MeshType.MNI));
                 Assert.That(initialized.LoadingMessages.Any(message => message.StartsWith("Generating MRI preview")), Is.True);
                 Assert.That(baseScene.Visualization.Patients.Single().Meshes, Is.Empty);
@@ -983,7 +983,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 RuntimeSingleMesh3D preview = baseScene.MeshManager.RuntimePreviewMeshes.Single();
                 Assert.That(preview.SourceMRIName, Is.EqualTo(validMRI.Name));
                 Assert.That(baseScene.MeshManager.SelectedMesh, Is.SameAs(preview));
-                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(4));
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
                 Assert.That(initialized.LoadingMessages.Count(message => message.StartsWith("Generating MRI preview")), Is.EqualTo(2));
                 Assert.That(baseScene.Visualization.Patients.Single().Meshes, Is.Empty);
             }
@@ -1014,7 +1014,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
                 Assert.That(baseScene.Type, Is.EqualTo(SceneType.MultiPatients));
                 Assert.That(baseScene.MeshManager.RuntimePreviewMeshes, Is.Empty);
-                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(3));
+                Assert.That(baseScene.MeshManager.Meshes, Has.Count.EqualTo(2));
                 Assert.That(baseScene.MRIManager.MRIs, Has.Count.EqualTo(1));
                 Assert.That(initialized.LoadingMessages.Any(message => message.StartsWith("Generating MRI preview")), Is.False);
             }
@@ -2009,7 +2009,6 @@ namespace HBP.Tests.PlayMode.Module3D
                 MNIObjects mni = new();
                 SetAutoProperty(mni, "GreyMatter", new LeftRightMesh3D("MNI Grey matter", left, right, both, MeshType.MNI));
                 SetAutoProperty(mni, "WhiteMatter", new LeftRightMesh3D("MNI White matter", (HBP.Core.DLL.Surface)left.Clone(), (HBP.Core.DLL.Surface)right.Clone(), (HBP.Core.DLL.Surface)both.Clone(), MeshType.MNI));
-                SetAutoProperty(mni, "InflatedWhiteMatter", new LeftRightMesh3D("MNI Inflated", (HBP.Core.DLL.Surface)left.Clone(), (HBP.Core.DLL.Surface)right.Clone(), (HBP.Core.DLL.Surface)both.Clone(), MeshType.MNI));
                 SetAutoProperty(mni, "MRI", new MRI3D("MNI", volume));
                 SetAutoProperty(mni, "IsLoaded", true);
                 return mni;

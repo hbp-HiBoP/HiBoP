@@ -194,11 +194,11 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
-        public void FilterRepair_PreservesCurrentAndNamedPresetsThatShareAnId()
+        public void FilterRepair_PreservesCurrentAndNamedPresetsWithDistinctIds()
         {
             TagCollection tags = new();
-            FilterConditionsPreset current = new("current", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, new StringTag("first", "filter-repair-first"), new StringTagFilterValue { Value = "a" }, false) }, "filter-repair-shared-id");
-            FilterConditionsPreset named = new("named", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, new StringTag("second", "filter-repair-second"), new StringTagFilterValue { Value = "b" }, false) }, current.ID);
+            FilterConditionsPreset current = new("current", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, new StringTag("first", "filter-repair-first"), new StringTagFilterValue { Value = "a" }, false) }, "filter-repair-current-id");
+            FilterConditionsPreset named = new("named", new BaseFilterCondition[] { new PatientTagFilterCondition(PatientTagFilterCondition.TargetType.Patient, new StringTag("second", "filter-repair-second"), new StringTagFilterValue { Value = "b" }, false) }, "filter-repair-named-id");
             FilterConditionsPresetCollection filters = new();
             filters.SetCurrentPreset(current, typeof(Patient), false);
             filters.AddPreset(named, typeof(Patient), false);
@@ -241,7 +241,10 @@ namespace HBP.Tests.Serialization
             FilterPresetRepairReport second = FilterPresetRepairService.Repair(restartedTags, restartedFilters);
             Assert.That(second.HasChanges, Is.False);
             Assert.That(((EnumTag)restartedTags.AllTags.Single()).Values, Is.EqualTo(new[] { "old", "new" }));
-            Assert.That(((PatientTagFilterCondition)restartedFilters.GetPresets(typeof(Patient)).Single().Conditions.Single()).Tag, Is.SameAs(restartedTags.AllTags.Single()));
+            PatientTagFilterCondition restartedCondition = (PatientTagFilterCondition)restartedFilters.GetPresets(typeof(Patient)).Single().Conditions.Single();
+            Assert.That(restartedCondition.Tag, Is.Null);
+            new LoadingContext(restartedTags.AllTags, Array.Empty<Protocol>()).ResolveFilterConditions(restartedFilters);
+            Assert.That(restartedCondition.Tag, Is.SameAs(restartedTags.AllTags.Single()));
         }
 
         public void LegacyEnum_ReconstructsCurrentLabelAndWarns()

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
@@ -21,11 +21,6 @@ namespace HBP.Core.Object3D
         /// Mesh of the White Matter
         /// </summary>
         public LeftRightMesh3D WhiteMatter { get; private set; }
-
-        /// <summary>
-        /// Mesh of the Inflated White Matter
-        /// </summary>
-        public LeftRightMesh3D InflatedWhiteMatter { get; private set; }
 
         /// <summary>
         /// MRI of the MNI
@@ -80,20 +75,6 @@ namespace HBP.Core.Object3D
             rightWhite.ComputeNormals();
             bothWhite.ComputeNormals();
             WhiteMatter = new LeftRightMesh3D("MNI White matter", leftWhite, rightWhite, bothWhite, MeshType.MNI);
-
-            DLL.Surface leftWhiteInflated = new();
-            DLL.Surface rightWhiteInflated = new();
-            DLL.Surface bothWhiteInflated;
-            leftWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
-            leftWhiteInflated.FlipTriangles();
-            rightWhiteInflated.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite_inflated.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
-            rightWhiteInflated.FlipTriangles();
-            bothWhiteInflated = (DLL.Surface)leftWhiteInflated.Clone();
-            bothWhiteInflated.Append(rightWhiteInflated);
-            leftWhiteInflated.ComputeNormals();
-            rightWhiteInflated.ComputeNormals();
-            bothWhiteInflated.ComputeNormals();
-            InflatedWhiteMatter = new LeftRightMesh3D("MNI Inflated", leftWhiteInflated, rightWhiteInflated, bothWhiteInflated, MeshType.MNI);
         }
 
         #endregion
@@ -111,7 +92,6 @@ namespace HBP.Core.Object3D
         {
             GreyMatter?.Clean();
             WhiteMatter?.Clean();
-            InflatedWhiteMatter?.Clean();
             MRI?.Clean();
         }
 

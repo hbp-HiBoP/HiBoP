@@ -1234,7 +1234,6 @@ namespace HBP.Tests.PlayMode.Module3D
                 MNIObjects mni = new();
                 SetAutoProperty(mni, "GreyMatter", new LeftRightMesh3D("MNI Grey matter", left, right, both, MeshType.MNI));
                 SetAutoProperty(mni, "WhiteMatter", new LeftRightMesh3D("MNI White matter", (HBP.Core.DLL.Surface)left.Clone(), (HBP.Core.DLL.Surface)right.Clone(), (HBP.Core.DLL.Surface)both.Clone(), MeshType.MNI));
-                SetAutoProperty(mni, "InflatedWhiteMatter", new LeftRightMesh3D("MNI Inflated", (HBP.Core.DLL.Surface)left.Clone(), (HBP.Core.DLL.Surface)right.Clone(), (HBP.Core.DLL.Surface)both.Clone(), MeshType.MNI));
                 SetAutoProperty(mni, "MRI", new MRI3D("MNI", volume));
                 SetAutoProperty(mni, "IsLoaded", true);
                 return mni;

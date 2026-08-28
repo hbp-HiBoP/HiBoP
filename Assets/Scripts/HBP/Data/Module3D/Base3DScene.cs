@@ -1172,8 +1172,6 @@ namespace HBP.Data.Module3D
                 m_FMRIManager.UpdateSurfaceFMRIValues();
             }
 
-            Resources.UnloadUnusedAssets();
-
             SceneInformation.GeometryNeedsUpdate = false;
         }
 
