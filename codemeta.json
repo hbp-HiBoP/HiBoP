@@ -28,10 +28,10 @@
   "license": [
     "https://spdx.org/licenses/BSD-3-Clause"
   ],
-  "version": "6.0.0",
+  "version": "6.1.0",
   "dateModified": "2026-06-10",
   "codeRepository": "https://github.com/hbp-HiBoP/HiBoP",
-  "downloadUrl": "https://github.com/hbp-HiBoP/HiBoP/releases/tag/6.0.0",
+  "downloadUrl": "https://github.com/hbp-HiBoP/HiBoP/releases/tag/6.1.0",
   "relatedLink": [
     "https://github.com/hbp-HiBoP/HiBoP/blob/master/Docs/LaTeX/HiBoP_user_manual.pdf"
   ],

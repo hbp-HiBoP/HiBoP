@@ -36,20 +36,20 @@ namespace HBP.UI.Main
                 var operation = request.SendWebRequest();
                 await UniTask.WaitUntil(() => operation.isDone);
 
-                if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError || request.result == UnityWebRequest.Result.DataProcessingError)
+                if (request.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogError(new Exception($"Error getting latest release: {request.error}"));
+                    LogVersionCheckFailure(request.error);
+                    return;
                 }
-                else
-                {
-                    string jsonString = request.downloadHandler.text;
-                    var versionInfo = ClassLoaderSaver.LoadFromJsonString<GithubVersionInfo>(jsonString);
-                    version = versionInfo.VersionNumber;
-                }
+
+                string jsonString = request.downloadHandler.text;
+                var versionInfo = ClassLoaderSaver.LoadFromJsonString<GithubVersionInfo>(jsonString);
+                version = versionInfo.VersionNumber;
             }
             catch (Exception e)
             {
-                Debug.LogError(e.ToString());
+                LogVersionCheckFailure(e.ToString());
+                return;
             }
 
             if (string.Compare(version, Application.version) > 0)
@@ -59,6 +59,13 @@ namespace HBP.UI.Main
                 if (result == 0)
                     WindowsManager.Open("Version Window", null);
             }
+        }
+
+        private static void LogVersionCheckFailure(string message)
+        {
+#if UNITY_EDITOR
+            Debug.LogWarning($"Latest version check failed: {message}");
+#endif
         }
 
         #endregion

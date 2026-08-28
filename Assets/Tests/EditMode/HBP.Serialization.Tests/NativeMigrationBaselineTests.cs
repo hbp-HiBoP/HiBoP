@@ -69,13 +69,13 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(254));
+            Assert.That(imports, Has.Count.EqualTo(262));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_export"), Is.Zero);
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports.Where(imported => imported.Dll == "hbp_core").Select(imported => imported.RelativeFile).Distinct().ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/ActivityProjectionGrid.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(200));
+            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(208));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
             Assert.That(imports.Any(imported => imported.Entry.Contains("PatientElectrodesList")), Is.False);
             Assert.That(imports.Any(imported => imported.RelativeFile == "ROI.cs"), Is.False);

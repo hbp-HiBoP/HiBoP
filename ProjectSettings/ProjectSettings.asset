@@ -150,7 +150,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 6.0.0
+  bundleVersion: 6.1.0
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -312,7 +312,10 @@ PlayerSettings:
       m_Height: 128
       m_Kind: 0
   m_BuildTargetPlatformIcons: []
-  m_BuildTargetBatching: []
+  m_BuildTargetBatching:
+  - m_BuildTarget: Standalone
+    m_StaticBatching: 1
+    m_DynamicBatching: 0
   m_BuildTargetShaderSettings: []
   m_BuildTargetGraphicsJobs:
   - m_BuildTarget: MacStandaloneSupport
@@ -681,7 +684,8 @@ PlayerSettings:
     iPhone: 0
   il2cppCompilerConfiguration:
     Standalone: 1
-  il2cppCodeGeneration: {}
+  il2cppCodeGeneration:
+    Standalone: 0
   il2cppLTOMode: {}
   il2cppStacktraceInformation:
     Standalone: 1

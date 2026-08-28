@@ -39,7 +39,7 @@ namespace HBP.UI.Main
         {
             base.SetFields(objectToDisplay);
 
-            m_TypeDropdown.Set(typeof(NumberComparisonType), 0);
+            m_TypeDropdown.Set(typeof(NumberComparisonType), (int)objectToDisplay.Type);
             m_ValueInputField.text = objectToDisplay.Value.ToString();
             m_MinInputField.text = objectToDisplay.Min.ToString();
             m_MaxInputField.text = objectToDisplay.Max.ToString();

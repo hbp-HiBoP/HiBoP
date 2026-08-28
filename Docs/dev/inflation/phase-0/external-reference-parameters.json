@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "connectome_workbench": {
+    "role": "Référence visuelle et métrique externe ; aucune égalité sommet par sommet n'est exigée.",
+    "command_template": [
+      "wb_command",
+      "-surface-generate-inflated",
+      "{anatomical_surface}",
+      "{inflated_surface}",
+      "{very_inflated_surface}",
+      "-iterations-scale",
+      "1.0"
+    ],
+    "parameters": "iterations-scale est fixé explicitement à 1.0 ; les autres valeurs sont les valeurs par défaut de la version archivée dans le rapport d'exécution.",
+    "eligible_entries": [
+      "mni_left_anatomical",
+      "mni_right_anatomical",
+      "patient_proxy_low_density",
+      "patient_proxy_medium_density",
+      "patient_proxy_high_density",
+      "open_surface",
+      "multi_component_surface"
+    ],
+    "automation": "Tools/InflationBaseline/phase0_baseline.py --generate-workbench-references --workbench-executable <chemin-vers-wb_command>"
+  },
+  "freesurfer": {
+    "role": "Seconde référence externe lorsqu'un environnement FreeSurfer validé est disponible.",
+    "status": "manual_until_mris_convert_and_freesurfer_environment_are_validated",
+    "required_tools": [
+      "mris_convert",
+      "mris_inflate"
+    ],
+    "parameters_to_archive": [
+      "FreeSurferVersion",
+      "FREESURFER_HOME",
+      "commandes de conversion exactes",
+      "commande mris_inflate exacte",
+      "stdout/stderr et codes de sortie",
+      "SHA-256 des entrées et sorties"
+    ]
+  },
+  "comparison_metrics": [
+    "invariants topologiques",
+    "ratios de longueurs d'arêtes aux percentiles 50, 90, 95, 99 et maximum",
+    "ratios d'aires de triangles aux percentiles 50, 90, 95, 99 et maximum",
+    "variation d'aire totale",
+    "variation de bounding box",
+    "variation du rayon RMS",
+    "inspection visuelle de la visibilité des sillons"
+  ]
+}

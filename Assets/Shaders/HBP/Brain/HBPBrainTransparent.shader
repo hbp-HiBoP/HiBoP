@@ -18,6 +18,7 @@ Shader "HBP/Brain/Transparent"
         [HideInInspector] _StrongCuts("Strong Cuts", Int) = 0
         [HideInInspector] _CutCount("Cut Count", Int) = 0
         [HideInInspector] _Center("Brain Center", Vector) = (0, 0, 0, 0)
+        [HideInInspector] _InflationBlend("Inflation Blend", Range(0, 1)) = 0
     }
 
     SubShader
@@ -31,12 +32,11 @@ Shader "HBP/Brain/Transparent"
 
         Pass
         {
-            Name "UniversalForward"
-            Tags { "LightMode" = "UniversalForward" }
+            Name "HBPTransparentBrainSurface"
+            Tags { "LightMode" = "HBPTransparentBrainSurface" }
 
-            Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
             Cull Back
-            ZWrite Off
+            ZWrite On
 
             HLSLPROGRAM
             #pragma target 3.5

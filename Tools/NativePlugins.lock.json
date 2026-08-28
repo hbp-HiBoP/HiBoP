@@ -1,0 +1,173 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-28T10:48:22.1027862+00:00",
+  "requestId": "hibop-native-20260828-103443-a9024414",
+  "branch": "master",
+  "libraries": [
+    {
+      "name": "EEGFormat",
+      "repository": "hbp-HiBoP/EEGFormat",
+      "commit": "99b54e9faf607973451233c069315978d3c6bffd",
+      "runId": 33163913020,
+      "runUrl": "https://github.com/hbp-HiBoP/EEGFormat/actions/runs/33163913020",
+      "artifacts": [
+        {
+          "platform": "Linux",
+          "architecture": "x86_64",
+          "destination": "Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 921304,
+              "sha256": "a81e7d3ac1ab6bef5921e2d4656d08fb9ac4f84c962f0f0505ab3aff157d5074"
+            }
+          ]
+        },
+        {
+          "platform": "Windows",
+          "architecture": "x86_64",
+          "destination": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 1005056,
+              "sha256": "3b886cf1a31c67e7b8ddb2b38e93a634b56f8694f80deb3d9312839e2b69d448"
+            }
+          ]
+        },
+        {
+          "platform": "MacOS",
+          "architecture": "arm64",
+          "destination": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle",
+          "files": [
+            {
+              "relativePath": "Contents/_CodeSignature/CodeResources",
+              "sizeBytes": 2200,
+              "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b"
+            },
+            {
+              "relativePath": "Contents/Info.plist",
+              "sizeBytes": 688,
+              "sha256": "0da4164ae2156275b6b9b8a9f7589b5ba53f2283cf0a907cdedd11bcbcdcf3d9"
+            },
+            {
+              "relativePath": "Contents/MacOS/libEEGFormat",
+              "sizeBytes": 604288,
+              "sha256": "598aa66cedbc2e2e93e194a0b4838d6881e03d143064d5816bc0d9808eff2e2d"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hbp_core",
+      "repository": "hbp-HiBoP/hbp_core",
+      "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c",
+      "runId": 33163920791,
+      "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/33163920791",
+      "artifacts": [
+        {
+          "platform": "Linux",
+          "architecture": "x86_64",
+          "destination": "Assets/Plugins/Native/Linux/x86_64/libhbp_core.so",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 1535512,
+              "sha256": "31c2cbb93fc49503492179dabe942d5a062fb5e852ed38d5583a45e5a600cd4c"
+            }
+          ]
+        },
+        {
+          "platform": "Windows",
+          "architecture": "x86_64",
+          "destination": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 1378816,
+              "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b"
+            }
+          ]
+        },
+        {
+          "platform": "MacOS",
+          "architecture": "arm64",
+          "destination": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle",
+          "files": [
+            {
+              "relativePath": "Contents/_CodeSignature/CodeResources",
+              "sizeBytes": 2200,
+              "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b"
+            },
+            {
+              "relativePath": "Contents/Info.plist",
+              "sizeBytes": 770,
+              "sha256": "8bc6c425689af281a6403a8f54612fc7cef98c67e539fbeaf9af7a6c73d706ac"
+            },
+            {
+              "relativePath": "Contents/MacOS/libhbp_core",
+              "sizeBytes": 1262832,
+              "sha256": "e6add1dc25d6b2e29b5d4a5c8cb4059c17a8243e0f250e29843506259593fc3e"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hbp_math",
+      "repository": "hbp-HiBoP/hbp_math",
+      "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7",
+      "runId": 33163929695,
+      "runUrl": "https://github.com/hbp-HiBoP/hbp_math/actions/runs/33163929695",
+      "artifacts": [
+        {
+          "platform": "Linux",
+          "architecture": "x86_64",
+          "destination": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 50400,
+              "sha256": "95192df09d373343b28f20ecbef32bce04c0b29cc3a758c3a1241ba30725c34b"
+            }
+          ]
+        },
+        {
+          "platform": "Windows",
+          "architecture": "x86_64",
+          "destination": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 246784,
+              "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b"
+            }
+          ]
+        },
+        {
+          "platform": "MacOS",
+          "architecture": "arm64",
+          "destination": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle",
+          "files": [
+            {
+              "relativePath": "Contents/_CodeSignature/CodeResources",
+              "sizeBytes": 2200,
+              "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b"
+            },
+            {
+              "relativePath": "Contents/Info.plist",
+              "sizeBytes": 685,
+              "sha256": "c859897d9c2aaa61a2288f61ab843b660617306a09b8a0bd0bd8c6d753b336c9"
+            },
+            {
+              "relativePath": "Contents/MacOS/libhbp_math",
+              "sizeBytes": 77088,
+              "sha256": "a78fe04c5163c50343da555e592f7ddf0431af89b95026428ebc1c74e1b38d20"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

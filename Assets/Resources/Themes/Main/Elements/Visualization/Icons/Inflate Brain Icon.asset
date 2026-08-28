@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7aee1c7f64cf0e40b3daa2a1630f1f6, type: 3}
+  m_Name: Inflate Brain Icon
+  m_EditorClassIdentifier: 
+  DefaultState: {fileID: 0}
+  SettingsByState:
+  - State: {fileID: 11400000, guid: ad5ea888063cb2f4a9d64293beb6e0a3, type: 2}
+    Settings:
+    - {fileID: 11400000, guid: 37f2d6c9a5f60c44fb1394c231e4a5ea, type: 2}
+    - {fileID: 11400000, guid: a2555ec3f80b5d141a437d2beaef1b43, type: 2}
+  - State: {fileID: 11400000, guid: ebe1ef93eaeb60841a81b461ab569f97, type: 2}
+    Settings:
+    - {fileID: 11400000, guid: 37f2d6c9a5f60c44fb1394c231e4a5ea, type: 2}
+    - {fileID: 11400000, guid: 110558dfe4d6c2a48b6574caeed71a2b, type: 2}

@@ -84,6 +84,21 @@ namespace HBP.Tests.Rendering
         }
 
         [Test]
+        public void TransparentBrain_UsesNearestSurfaceCompositeBeforeOtherTransparentObjects()
+        {
+            string feature = File.ReadAllText("Assets/Scripts/HBP/Rendering/HBPEdgeRendererFeature.cs");
+            string brain = File.ReadAllText(BrainTransparentShaderPath);
+            string composite = File.ReadAllText(EdgeShaderPath);
+
+            StringAssert.Contains("TransparentBrainSurfaceTag", feature);
+            StringAssert.Contains("RenderPassEvent.BeforeRenderingTransparents", feature);
+            StringAssert.Contains("LightMode\" = \"HBPTransparentBrainSurface", brain);
+            StringAssert.Contains("ZWrite On", brain);
+            StringAssert.Contains("_HBPTransparentBrainSurface", composite);
+            StringAssert.Contains("_HBPTransparentBrainDepth", composite);
+        }
+
+        [Test]
         public void EdgeShader_ImportsForMetalAndUsesOpaqueAndTransparentSilhouettes()
         {
             Shader shader = Shader.Find("Hidden/HBP/Edges");
@@ -190,6 +205,175 @@ namespace HBP.Tests.Rendering
                 Object.DestroyImmediate(siteMaterial);
                 Object.DestroyImmediate(gizmoMaterial);
                 Object.DestroyImmediate(sphere);
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [Test]
+        public void TransparentBrain_DoesNotAccumulateNestedSurfaceOpacity()
+        {
+            GameObject cameraObject = new("transparent brain layer camera", typeof(Camera), typeof(HBPEdgeCameraSettings));
+            GameObject outerSurface = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject innerSurface = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Camera camera = cameraObject.GetComponent<Camera>();
+            HBPEdgeCameraSettings edgeSettings = cameraObject.GetComponent<HBPEdgeCameraSettings>();
+            RenderTexture target = new(HBPRenderTextureDescriptorFactory.CreateViewDescriptor(256, 256));
+            Material brainMaterial = new(Shader.Find("HBP/Brain/Transparent"));
+            Texture2D readback = new(256, 256, TextureFormat.RGBA32, false, false);
+            RenderTexture previousActive = RenderTexture.active;
+
+            try
+            {
+                target.Create();
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0.3f, 0.3f, 0.3f, 1.0f);
+                camera.orthographic = true;
+                camera.orthographicSize = 1.25f;
+                camera.transform.position = new Vector3(0.0f, 0.0f, -3.0f);
+                camera.targetTexture = target;
+                edgeSettings.EdgesEnabled = false;
+
+                brainMaterial.SetColor("_Color", new Color(0.8f, 0.7f, 0.6f, 0.25f));
+                outerSurface.transform.localScale = Vector3.one * 1.5f;
+                innerSurface.transform.localScale = Vector3.one * 1.2f;
+                outerSurface.GetComponent<MeshRenderer>().sharedMaterial = brainMaterial;
+                innerSurface.GetComponent<MeshRenderer>().sharedMaterial = brainMaterial;
+
+                outerSurface.SetActive(false);
+                innerSurface.SetActive(false);
+                Color32[] backgroundPixels = RenderPixels(camera, target, readback);
+                outerSurface.SetActive(true);
+                innerSurface.SetActive(false);
+                Color32[] outerPixels = RenderPixels(camera, target, readback);
+                innerSurface.SetActive(true);
+                Color32[] nestedPixels = RenderPixels(camera, target, readback);
+
+                Assert.That(CountChangedPixels(backgroundPixels, outerPixels, 4), Is.GreaterThan(100), "the transparent brain surface must remain visible");
+                Assert.That(CountChangedPixels(outerPixels, nestedPixels, 2, 80, 80, 176, 176, 256), Is.Zero, "a hidden brain surface must not add another alpha layer");
+            }
+            finally
+            {
+                RenderTexture.active = previousActive;
+                camera.targetTexture = null;
+                target.Release();
+                Object.DestroyImmediate(readback);
+                Object.DestroyImmediate(target);
+                Object.DestroyImmediate(brainMaterial);
+                Object.DestroyImmediate(outerSurface);
+                Object.DestroyImmediate(innerSurface);
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [Test]
+        public void TransparentBrain_DoesNotDimSitesRenderedInsideIt()
+        {
+            GameObject cameraObject = new("transparent brain site camera", typeof(Camera), typeof(HBPEdgeCameraSettings));
+            GameObject brain = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject site = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Camera camera = cameraObject.GetComponent<Camera>();
+            HBPEdgeCameraSettings edgeSettings = cameraObject.GetComponent<HBPEdgeCameraSettings>();
+            RenderTexture target = new(HBPRenderTextureDescriptorFactory.CreateViewDescriptor(256, 256));
+            Material brainMaterial = new(Shader.Find("HBP/Brain/Transparent"));
+            Material siteMaterial = new(Shader.Find("HBP/Site"));
+            Texture2D readback = new(256, 256, TextureFormat.RGBA32, false, false);
+            RenderTexture previousActive = RenderTexture.active;
+
+            try
+            {
+                target.Create();
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0.3f, 0.3f, 0.3f, 1.0f);
+                camera.orthographic = true;
+                camera.orthographicSize = 1.25f;
+                camera.transform.position = new Vector3(0.0f, 0.0f, -3.0f);
+                camera.targetTexture = target;
+                edgeSettings.EdgesEnabled = false;
+
+                brainMaterial.SetColor("_Color", new Color(0.8f, 0.7f, 0.6f, 0.25f));
+                siteMaterial.SetColor("_Color", Color.red);
+                brain.transform.localScale = Vector3.one * 1.5f;
+                site.transform.localScale = Vector3.one * 0.25f;
+                brain.GetComponent<MeshRenderer>().sharedMaterial = brainMaterial;
+                site.GetComponent<MeshRenderer>().sharedMaterial = siteMaterial;
+
+                brain.SetActive(false);
+                Color32 siteOnly = RenderPixels(camera, target, readback)[128 * 256 + 128];
+                brain.SetActive(true);
+                Color32 siteThroughBrain = RenderPixels(camera, target, readback)[128 * 256 + 128];
+
+                Assert.That(siteThroughBrain.r, Is.EqualTo(siteOnly.r).Within(2));
+                Assert.That(siteThroughBrain.g, Is.EqualTo(siteOnly.g).Within(2));
+                Assert.That(siteThroughBrain.b, Is.EqualTo(siteOnly.b).Within(2));
+            }
+            finally
+            {
+                RenderTexture.active = previousActive;
+                camera.targetTexture = null;
+                target.Release();
+                Object.DestroyImmediate(readback);
+                Object.DestroyImmediate(target);
+                Object.DestroyImmediate(brainMaterial);
+                Object.DestroyImmediate(siteMaterial);
+                Object.DestroyImmediate(brain);
+                Object.DestroyImmediate(site);
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [Test]
+        public void TransparentBrain_DoesNotCoverOpaqueObjectsInFrontOfIt()
+        {
+            GameObject cameraObject = new("transparent brain opaque camera", typeof(Camera), typeof(HBPEdgeCameraSettings));
+            GameObject brain = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject opaqueObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            Camera camera = cameraObject.GetComponent<Camera>();
+            HBPEdgeCameraSettings edgeSettings = cameraObject.GetComponent<HBPEdgeCameraSettings>();
+            RenderTexture target = new(HBPRenderTextureDescriptorFactory.CreateViewDescriptor(256, 256));
+            Material brainMaterial = new(Shader.Find("HBP/Brain/Transparent"));
+            Material cutMaterial = new(Shader.Find("HBP/Cut"));
+            Texture2D readback = new(256, 256, TextureFormat.RGBA32, false, false);
+            RenderTexture previousActive = RenderTexture.active;
+
+            try
+            {
+                target.Create();
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0.3f, 0.3f, 0.3f, 1.0f);
+                camera.orthographic = true;
+                camera.orthographicSize = 1.25f;
+                camera.transform.position = new Vector3(0.0f, 0.0f, -3.0f);
+                camera.targetTexture = target;
+                edgeSettings.EdgesEnabled = false;
+
+                brainMaterial.SetColor("_Color", new Color(0.8f, 0.7f, 0.6f, 0.25f));
+                cutMaterial.SetColor("_Color", Color.green);
+                brain.transform.localScale = Vector3.one * 1.5f;
+                opaqueObject.transform.position = new Vector3(0.0f, 0.0f, -1.0f);
+                opaqueObject.transform.localScale = Vector3.one * 0.25f;
+                brain.GetComponent<MeshRenderer>().sharedMaterial = brainMaterial;
+                opaqueObject.GetComponent<MeshRenderer>().sharedMaterial = cutMaterial;
+
+                brain.SetActive(false);
+                Color32 opaqueOnly = RenderPixels(camera, target, readback)[128 * 256 + 128];
+                brain.SetActive(true);
+                Color32 opaqueInFront = RenderPixels(camera, target, readback)[128 * 256 + 128];
+
+                Assert.That(opaqueInFront.r, Is.EqualTo(opaqueOnly.r).Within(2));
+                Assert.That(opaqueInFront.g, Is.EqualTo(opaqueOnly.g).Within(2));
+                Assert.That(opaqueInFront.b, Is.EqualTo(opaqueOnly.b).Within(2));
+            }
+            finally
+            {
+                RenderTexture.active = previousActive;
+                camera.targetTexture = null;
+                target.Release();
+                Object.DestroyImmediate(readback);
+                Object.DestroyImmediate(target);
+                Object.DestroyImmediate(brainMaterial);
+                Object.DestroyImmediate(cutMaterial);
+                Object.DestroyImmediate(brain);
+                Object.DestroyImmediate(opaqueObject);
                 Object.DestroyImmediate(cameraObject);
             }
         }

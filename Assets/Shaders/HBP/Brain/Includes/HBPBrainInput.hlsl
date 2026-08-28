@@ -23,6 +23,7 @@ CBUFFER_START(UnityPerMaterial)
     float _MaxRadius;
     float _AmbientStrength;
     float _DiffuseStrength;
+    float _InflationBlend;
 CBUFFER_END
 
 #endif

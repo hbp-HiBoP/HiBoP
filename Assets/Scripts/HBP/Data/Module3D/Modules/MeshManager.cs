@@ -83,14 +83,30 @@ namespace HBP.Data.Module3D
         public Core.DLL.Surface BrainSurface { get; private set; }
 
         /// <summary>
-        /// Simplified mesh to be used in the scene
+        /// Anatomical surface corresponding vertex-for-vertex to <see cref="BrainSurface"/>.
+        /// Scientific projections and spatial associations must use this surface.
+        /// </summary>
+        public Core.DLL.Surface ReferenceSurface { get; private set; }
+
+        /// <summary>
+        /// Simplified anatomical mesh used by cut colliders in the scene.
         /// </summary>
         public Core.DLL.Surface SimplifiedMeshToUse { get; private set; }
+
+        /// <summary>
+        /// Simplified representation matching the displayed brain, used by its final collider.
+        /// </summary>
+        public Core.DLL.Surface SimplifiedBrainSurface { get; private set; }
 
         /// <summary>
         /// Center of the loaded mesh
         /// </summary>
         public Vector3 MeshCenter { get; private set; }
+
+        /// <summary>
+        /// Whether anatomical cut planes may clip the currently displayed brain surface.
+        /// </summary>
+        public bool CanClipBrainSurface => Meshes.Count > 0 && (m_Scene == null || !m_Scene.IsSurfaceRepresentationTransitioning) && SelectedMesh.Representation == Core.Object3D.SurfaceRepresentation.Anatomical;
 
         #endregion
 
@@ -248,7 +264,8 @@ namespace HBP.Data.Module3D
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceProjection();
 
-            m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.Both.Center);
+            MeshPart selectedPart = SelectedMesh.SupportsHemispheres ? MeshPartToDisplay : MeshPart.Both;
+            m_Scene.OnUpdateCameraTarget.Invoke(SelectedMesh.GetSurface(SelectedMesh.Representation, selectedPart).Center);
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
@@ -305,6 +322,19 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
+        /// Selects the representation displayed for the current anatomical mesh.
+        /// This does not invalidate activity projection resources because vertex indices remain identical.
+        /// </summary>
+        public void SelectRepresentation(Core.Object3D.SurfaceRepresentation representation)
+        {
+            if (SelectedMesh.Representation == representation) return;
+
+            SelectedMesh.SelectRepresentation(representation);
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
+            m_Scene.InvalidateSurfaceMesh();
+        }
+
+        /// <summary>
         /// Load every mesh that has not been loaded yet
         /// </summary>
         public void LoadMissing()
@@ -318,11 +348,78 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Update the surface meshes from the DLL
         /// </summary>
-        public void UpdateMeshesFromDLL()
+        public void UpdateMeshesFromDLL(bool preserveScientificData = false)
         {
-            BrainSurface.UpdateMeshFromDLL(m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh);
-            foreach (Column3D column in m_Scene.Columns)
-                column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            if (preserveScientificData)
+            {
+                BrainSurface.UpdateMeshFromDLL(brainMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+                ClearRepresentationTransitionStreams(brainMesh);
+                foreach (Column3D column in m_Scene.Columns)
+                {
+                    Mesh columnMesh = column.BrainMesh.GetComponent<MeshFilter>().sharedMesh;
+                    BrainSurface.UpdateMeshFromDLL(columnMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+                    ClearRepresentationTransitionStreams(columnMesh);
+                }
+            }
+            else
+            {
+                BrainSurface.UpdateMeshFromDLL(brainMesh);
+                ClearRepresentationTransitionStreams(brainMesh);
+                foreach (Column3D column in m_Scene.Columns)
+                    column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);
+            }
+
+            m_Scene.BrainMaterials.SetInflationBlend(0.0f);
+        }
+
+        /// <summary>
+        /// Uploads the anatomical geometry and inflated target streams used by the GPU transition.
+        /// </summary>
+        public void PrepareRepresentationTransition()
+        {
+            MeshPart selectedPart = SelectedMesh.SupportsHemispheres ? MeshPartToDisplay : MeshPart.Both;
+            Core.DLL.Surface anatomical = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart);
+            Core.DLL.Surface inflated = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Inflated, selectedPart);
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            Mesh inflatedMesh = new();
+            try
+            {
+                inflated.UpdateMeshFromDLL(inflatedMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+                List<Vector3> inflatedVertices = new(inflatedMesh.vertices);
+                List<Vector3> inflatedNormals = new(inflatedMesh.normals);
+                PrepareRepresentationTransitionMesh(brainMesh, anatomical, inflatedVertices, inflatedNormals, inflatedMesh.bounds);
+
+                foreach (Column3D column in m_Scene.Columns)
+                {
+                    Mesh columnMesh = column.BrainMesh.GetComponent<MeshFilter>().sharedMesh;
+                    PrepareRepresentationTransitionMesh(columnMesh, anatomical, inflatedVertices, inflatedNormals, inflatedMesh.bounds);
+                }
+            }
+            finally
+            {
+                if (Application.isPlaying)
+                    Destroy(inflatedMesh);
+                else
+                    DestroyImmediate(inflatedMesh);
+            }
+        }
+
+        private static void PrepareRepresentationTransitionMesh(Mesh mesh, Core.DLL.Surface anatomical, List<Vector3> inflatedVertices, List<Vector3> inflatedNormals, Bounds inflatedBounds)
+        {
+            anatomical.UpdateMeshFromDLL(mesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
+            mesh.SetUVs(3, inflatedVertices);
+            mesh.SetUVs(4, inflatedNormals);
+            Bounds transitionBounds = mesh.bounds;
+            transitionBounds.Encapsulate(inflatedBounds.min);
+            transitionBounds.Encapsulate(inflatedBounds.max);
+            mesh.bounds = transitionBounds;
+        }
+
+        private static void ClearRepresentationTransitionStreams(Mesh mesh)
+        {
+            mesh.SetUVs(3, Array.Empty<Vector3>());
+            mesh.SetUVs(4, Array.Empty<Vector3>());
         }
 
         /// <summary>
@@ -330,37 +427,21 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateMeshesInformation()
         {
-            if (SelectedMesh is Core.Object3D.LeftRightMesh3D selectedMesh)
+            MeshPart selectedPart = SelectedMesh.SupportsHemispheres ? MeshPartToDisplay : MeshPart.Both;
+            ReferenceSurface = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart);
+            BrainSurface = SelectedMesh.GetSurface(SelectedMesh.Representation, selectedPart);
+            SimplifiedMeshToUse = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart, simplified: true);
+            SimplifiedBrainSurface = SelectedMesh.GetSurface(SelectedMesh.Representation, selectedPart, simplified: true);
+
+            if (BrainSurface.NumberOfVertices != ReferenceSurface.NumberOfVertices || BrainSurface.NumberOfTriangles != ReferenceSurface.NumberOfTriangles)
             {
-                switch (MeshPartToDisplay)
-                {
-                    case MeshPart.Left:
-                        SimplifiedMeshToUse = selectedMesh.SimplifiedLeft;
-                        BrainSurface = selectedMesh.Left;
-                        break;
-                    case MeshPart.Right:
-                        SimplifiedMeshToUse = selectedMesh.SimplifiedRight;
-                        BrainSurface = selectedMesh.Right;
-                        break;
-                    case MeshPart.Both:
-                        SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        BrainSurface = selectedMesh.Both;
-                        break;
-                    default:
-                        SimplifiedMeshToUse = selectedMesh.SimplifiedBoth;
-                        BrainSurface = selectedMesh.Both;
-                        break;
-                }
-            }
-            else
-            {
-                SimplifiedMeshToUse = SelectedMesh.SimplifiedBoth;
-                BrainSurface = SelectedMesh.Both;
+                throw new InvalidOperationException("The displayed representation must preserve the anatomical surface topology.");
             }
 
             // get the middle
             MeshCenter = BrainSurface.Center;
             m_Scene.BrainMaterials.SetBrainCenter(MeshCenter);
+            m_Scene.OnUpdateCameraTarget.Invoke(MeshCenter);
 
             m_Scene.UpdateAllCutPlanes();
         }

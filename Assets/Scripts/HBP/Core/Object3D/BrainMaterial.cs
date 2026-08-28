@@ -113,10 +113,11 @@ namespace HBP.Core.Object3D
         /// Set the cuts to the materials (to clip the vertices depending on the cuts)
         /// </summary>
         /// <param name="cuts">Cuts to be considered in Unity space.</param>
-        public void SetCuts(List<Cut> cuts, float scale, Quaternion rotation)
+        public void SetCuts(List<Cut> cuts, float scale, Quaternion rotation, bool clipBrain = true)
         {
-            m_Brain.SetInt("_CutCount", cuts.Count);
-            m_TransparentBrain.SetInt("_CutCount", cuts.Count);
+            int cutCount = clipBrain ? cuts.Count : 0;
+            m_Brain.SetInt("_CutCount", cutCount);
+            m_TransparentBrain.SetInt("_CutCount", cutCount);
             if (cuts.Count > 0)
             {
                 List<Vector4> cutPoints = new(20);
@@ -164,6 +165,16 @@ namespace HBP.Core.Object3D
         {
             m_Brain.SetVector("_Center", center);
             m_TransparentBrain.SetVector("_Center", center);
+        }
+
+        /// <summary>
+        /// Set the visual interpolation between anatomical and inflated vertex streams.
+        /// </summary>
+        public void SetInflationBlend(float blend)
+        {
+            blend = Mathf.Clamp01(blend);
+            m_Brain.SetFloat("_InflationBlend", blend);
+            m_TransparentBrain.SetFloat("_InflationBlend", blend);
         }
 
         /// <summary>

@@ -22,6 +22,7 @@ HBPBrainDepthVaryings HBP_BrainDepthVertex(HBPBrainAttributes input)
 
     float3 positionOS = input.positionOS.xyz;
     float3 normalOS = input.normalOS;
+    HBP_ApplyInflationBlend(input, positionOS, normalOS);
     HBP_ExtrudeBrainVertex(positionOS, normalOS);
     output.positionOS = positionOS;
     output.positionCS = TransformObjectToHClip(positionOS);

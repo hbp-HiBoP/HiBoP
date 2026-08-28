@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
+using Microsoft.Win32.SafeHandles;
 using UnityEngine;
 
 namespace HBP.Core.DLL
@@ -16,6 +20,182 @@ namespace HBP.Core.DLL
         public int uvCount;
         public int triangleIndexCount;
         public int colorCount;
+    }
+
+    public enum SurfaceInflationMethod
+    {
+        NonShrinkingSmoothing = 0,
+        MetricRegularized = 1
+    }
+
+    public enum SurfaceInflationRescale
+    {
+        None = 0,
+        PreserveRmsRadius = 1,
+        PreserveArea = 2
+    }
+
+    public enum SurfaceInflationCoordinateSpace
+    {
+        CurrentSurfaceCoordinates,
+        NativeGifti,
+        NativeGiftiThenTransformed
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SurfaceInflationOptions
+    {
+        private uint m_StructSize;
+
+        public SurfaceInflationMethod Method;
+        public SurfaceInflationRescale Rescale;
+        public int IterationCount;
+        public double SmoothingStrength;
+        public double MetricStrength;
+        public double MaximumStepFraction;
+        public double ConvergenceTolerance;
+        public int MaximumBacktrackingSteps;
+        internal int FixBoundaryVerticesValue;
+
+        public uint StructSize => m_StructSize;
+
+        public bool FixBoundaryVertices
+        {
+            get => FixBoundaryVerticesValue != 0;
+            set => FixBoundaryVerticesValue = value ? 1 : 0;
+        }
+
+        public static SurfaceInflationOptions Baseline => Create(SurfaceInflationMethod.NonShrinkingSmoothing, 0.0);
+        public static SurfaceInflationOptions Inflated => Create(SurfaceInflationMethod.MetricRegularized, 0.12);
+
+        internal SurfaceInflationOptions PrepareForInterop()
+        {
+            m_StructSize = (uint)Marshal.SizeOf<SurfaceInflationOptions>();
+            return this;
+        }
+
+        private static SurfaceInflationOptions Create(SurfaceInflationMethod method, double metricStrength)
+        {
+            return new SurfaceInflationOptions
+            {
+                m_StructSize = (uint)Marshal.SizeOf<SurfaceInflationOptions>(),
+                Method = method,
+                Rescale = SurfaceInflationRescale.PreserveRmsRadius,
+                IterationCount = 160,
+                SmoothingStrength = 0.35,
+                MetricStrength = metricStrength,
+                MaximumStepFraction = 0.20,
+                ConvergenceTolerance = 1e-5,
+                MaximumBacktrackingSteps = 8,
+                FixBoundaryVertices = true
+            };
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SurfaceInflationDistribution
+    {
+        public double Percentile50;
+        public double Percentile90;
+        public double Percentile95;
+        public double Percentile99;
+        public double Maximum;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SurfaceInflationVector3
+    {
+        public double X;
+        public double Y;
+        public double Z;
+
+        public Vector3 ToVector3() => new((float)X, (float)Y, (float)Z);
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SurfaceInflationReport
+    {
+        private uint m_StructSize;
+
+        public int VertexCount;
+        public int TriangleCount;
+        public int EdgeCount;
+        public int ComponentCount;
+        public int SmallComponentCount;
+        public int BoundaryEdgeCount;
+        public int NonManifoldEdgeCount;
+        public int NonManifoldVertexCount;
+        public int IterationCount;
+        public int BacktrackingStepCount;
+        public int PreventedInversionCount;
+        public int FinalInvertedTriangleCount;
+        internal int ConvergedValue;
+        public double InitialArea;
+        public double FinalArea;
+        public double AreaRatio;
+        public double InitialRmsRadius;
+        public double FinalRmsRadius;
+        public double RmsRadiusRatio;
+        public SurfaceInflationVector3 InitialBoundingBoxSize;
+        public SurfaceInflationVector3 FinalBoundingBoxSize;
+        public SurfaceInflationVector3 BoundingBoxSizeRatio;
+        public SurfaceInflationDistribution EdgeLengthRatio;
+        public SurfaceInflationDistribution TriangleAreaRatio;
+        public SurfaceInflationDistribution VertexDisplacement;
+        public SurfaceInflationDistribution EdgeLengthDistortion;
+        public SurfaceInflationDistribution TriangleAreaDistortion;
+        public double MaximumVertexDisplacement;
+        public double ValidationMilliseconds;
+        public double PreparationMilliseconds;
+        public double InflationMilliseconds;
+        public double FinalizationMilliseconds;
+
+        public uint StructSize => m_StructSize;
+        public bool Converged => ConvergedValue != 0;
+
+        internal static SurfaceInflationReport CreateForInterop()
+        {
+            return new SurfaceInflationReport { m_StructSize = (uint)Marshal.SizeOf<SurfaceInflationReport>() };
+        }
+    }
+
+    public sealed class SurfaceInflationResult
+    {
+        public Surface Surface { get; }
+        public SurfaceInflationReport Report { get; }
+
+        /// <summary>
+        /// Identifies whether inflation used the surface's current coordinates or native GIFTI coordinates.
+        /// The caller owns <see cref="Surface"/> and must dispose it.
+        /// </summary>
+        public SurfaceInflationCoordinateSpace CoordinateSpace { get; }
+
+        internal SurfaceInflationResult(Surface surface, SurfaceInflationReport report, SurfaceInflationCoordinateSpace coordinateSpace)
+        {
+            Surface = surface;
+            Report = report;
+            CoordinateSpace = coordinateSpace;
+        }
+    }
+
+    public sealed class SurfaceInflationException : InvalidOperationException
+    {
+        public SurfaceInflationReport Report { get; }
+
+        internal SurfaceInflationException(string message, SurfaceInflationReport report) : base(message)
+        {
+            Report = report;
+        }
+    }
+
+    public sealed class SurfaceInflationCanceledException : OperationCanceledException
+    {
+        public SurfaceInflationReport Report { get; }
+
+        internal SurfaceInflationCanceledException(string message, SurfaceInflationReport report, CancellationToken cancellationToken) : base(message, cancellationToken)
+        {
+            Report = report;
+        }
     }
 
     public class Surface : CppDLLImportBase, ICloneable
@@ -33,6 +213,7 @@ namespace HBP.Core.DLL
 
         public bool IsLoaded { get; private set; }
         public bool IsMarsAtlasLoaded { get; private set; }
+        public long GeometryVersion { get; private set; }
 
         public Vector3 Center
         {
@@ -110,11 +291,13 @@ namespace HBP.Core.DLL
             m_Colors = (Color[])other.m_Colors.Clone();
             IsLoaded = other.IsLoaded;
             IsMarsAtlasLoaded = other.IsMarsAtlasLoaded;
+            GeometryVersion = other.GeometryVersion;
         }
 
         public bool LoadOBJFile(string obj)
         {
             IsLoaded = hbp_surface_load_obj(_handle.Handle, obj) == HbpCoreStatus.Ok;
+            if (IsLoaded) ++GeometryVersion;
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadObjFile -> can't load obj file to surface : " + obj);
             return IsLoaded;
         }
@@ -125,11 +308,55 @@ namespace HBP.Core.DLL
             if (IsLoaded && !string.IsNullOrEmpty(transformation))
             {
                 using Transformation3 transform = Transformation3.FromFile(transformation);
-                ThrowIfFailed(hbp_surface_transform(_handle.Handle, transform.getHandle().Handle));
+                ApplyTransformation(transform);
             }
+
+            if (IsLoaded) ++GeometryVersion;
 
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadGIIFile -> can't load GII file to surface : " + gii + " " + transformation);
             return IsLoaded;
+        }
+
+        /// <summary>
+        /// Inflates this surface in its current coordinate system. This is the appropriate path for
+        /// surfaces that have no persistent GIFTI source.
+        /// </summary>
+        public UniTask<SurfaceInflationResult> InflateAsync(SurfaceInflationOptions? options = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+        {
+            return InflateCoreAsync(this, options, progress, cancellationToken, SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates);
+        }
+
+        /// <summary>
+        /// Loads and inflates a GIFTI surface in native coordinates, then applies the requested
+        /// transformation to the completed inflated surface.
+        /// </summary>
+        public static async UniTask<SurfaceInflationResult> InflateGIIFileAsync(string gii, string transformation = "", SurfaceInflationOptions? options = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(gii)) throw new ArgumentException("Expected a GIFTI file path.", nameof(gii));
+
+            using Surface nativeSurface = new();
+            if (!nativeSurface.LoadGIIFile(gii))
+            {
+                throw new InvalidOperationException($"Could not load GIFTI surface '{gii}': {HbpCoreRuntime.LastError}");
+            }
+
+            SurfaceInflationCoordinateSpace coordinateSpace = string.IsNullOrWhiteSpace(transformation) ? SurfaceInflationCoordinateSpace.NativeGifti : SurfaceInflationCoordinateSpace.NativeGiftiThenTransformed;
+            SurfaceInflationResult result = await InflateCoreAsync(nativeSurface, options, progress, cancellationToken, coordinateSpace);
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(transformation))
+                {
+                    using Transformation3 transform = Transformation3.FromFile(transformation);
+                    result.Surface.ApplyTransformation(transform);
+                }
+
+                return result;
+            }
+            catch
+            {
+                result.Surface.Dispose();
+                throw;
+            }
         }
 
         public bool LoadTRIFile(string tri, string transformation = "")
@@ -140,6 +367,8 @@ namespace HBP.Core.DLL
                 using Transformation3 transform = Transformation3.FromFile(transformation);
                 ThrowIfFailed(hbp_surface_transform(_handle.Handle, transform.getHandle().Handle));
             }
+
+            if (IsLoaded) ++GeometryVersion;
 
             if (!IsLoaded) Debug.LogError("-ERROR : Surface::loadTriFile -> can't load tri file to surface : " + tri + " " + transformation);
             return IsLoaded;
@@ -164,9 +393,17 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_surface_compute_normals(_handle.Handle));
         }
 
+        public void ApplyTransformation(Transformation3 transformation)
+        {
+            if (transformation == null) throw new ArgumentNullException(nameof(transformation));
+            ThrowIfFailed(hbp_surface_transform(_handle.Handle, transformation.getHandle().Handle));
+            ++GeometryVersion;
+        }
+
         public void FlipTriangles()
         {
             ThrowIfFailed(hbp_surface_flip(_handle.Handle));
+            ++GeometryVersion;
         }
 
         public Surface UpdateVisibilityMask(int[] visibilityMask)
@@ -240,6 +477,7 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_surface_merge(_handle.Handle, surfaceToAdd.getHandle().Handle));
             IsLoaded &= surfaceToAdd.IsLoaded;
             IsMarsAtlasLoaded &= surfaceToAdd.IsMarsAtlasLoaded;
+            ++GeometryVersion;
         }
 
         public void UpdateMeshFromDLL(Mesh mesh, bool all = true, bool vertices = true, bool normals = true, bool uv = true, bool triangles = true, bool colors = true)
@@ -260,6 +498,7 @@ namespace HBP.Core.DLL
             HandleRef buffer = surface.getHandle();
             surface._handle = _handle;
             _handle = buffer;
+            (surface.GeometryVersion, GeometryVersion) = (GeometryVersion, surface.GeometryVersion);
         }
 
         public Surface Simplify(int numberOfTriangles = 10000, int agressiveness = 7)
@@ -301,6 +540,9 @@ namespace HBP.Core.DLL
                 Color4[] nativeColors = colors.Select(Color4.FromColor).ToArray();
                 ThrowIfFailed(hbp_surface_set_colors(_handle.Handle, nativeColors, nativeColors.Length));
             }
+
+            IsLoaded = true;
+            ++GeometryVersion;
         }
 
         public object Clone()
@@ -335,6 +577,52 @@ namespace HBP.Core.DLL
             if (other == null) throw new ArgumentNullException(nameof(other));
             ThrowIfFailed(hbp_surface_clone(other.getHandle().Handle, out IntPtr clonedSurface));
             return clonedSurface;
+        }
+
+        private static async UniTask<SurfaceInflationResult> InflateCoreAsync(Surface source, SurfaceInflationOptions? options, IProgress<float> progress, CancellationToken cancellationToken, SurfaceInflationCoordinateSpace coordinateSpace)
+        {
+            using SurfaceInflationOperation operation = new(source, options);
+            using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(operation.RequestCancellation);
+            Task<SurfaceInflationExecution> executionTask = Task.Run(operation.Execute);
+            Exception progressException = null;
+
+            while (!executionTask.IsCompleted)
+            {
+                TryReportProgress(progress, operation.Progress, ref progressException);
+                await Task.Delay(15);
+            }
+
+            SurfaceInflationExecution execution = await executionTask;
+            TryReportProgress(progress, operation.Progress, ref progressException);
+            if (progressException != null) throw progressException;
+
+            SurfaceInflationReport report = operation.GetReport();
+            if (execution.Status == HbpCoreStatus.Cancelled)
+            {
+                throw new SurfaceInflationCanceledException(execution.Error, report, cancellationToken);
+            }
+
+            if (execution.Status != HbpCoreStatus.Ok)
+            {
+                throw new SurfaceInflationException(execution.Error, report);
+            }
+
+            Surface result = operation.TakeResult();
+            result.IsMarsAtlasLoaded = source.IsMarsAtlasLoaded;
+            return new SurfaceInflationResult(result, report, coordinateSpace);
+        }
+
+        private static void TryReportProgress(IProgress<float> progress, float value, ref Exception progressException)
+        {
+            if (progress == null || progressException != null) return;
+            try
+            {
+                progress.Report(value);
+            }
+            catch (Exception exception)
+            {
+                progressException = exception;
+            }
         }
 
         private SurfaceSizes GetSizes()
@@ -482,5 +770,128 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generate_raw_cuts", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generate_raw_cuts(IntPtr surface, [In] IntPtr[] planes, int planeCount, out IntPtr surfaces);
+    }
+
+    internal readonly struct SurfaceInflationExecution
+    {
+        public HbpCoreStatus Status { get; }
+        public string Error { get; }
+
+        public SurfaceInflationExecution(HbpCoreStatus status, string error)
+        {
+            Status = status;
+            Error = error;
+        }
+    }
+
+    internal sealed class SurfaceInflationOperation : IDisposable
+    {
+        private readonly SurfaceInflationJobHandle m_Handle;
+
+        public float Progress
+        {
+            get
+            {
+                ThrowIfFailed(hbp_surface_inflation_get_progress(m_Handle, out float progress));
+                return progress;
+            }
+        }
+
+        public SurfaceInflationOperation(Surface source, SurfaceInflationOptions? options)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+
+            HbpCoreStatus status;
+            if (options.HasValue)
+            {
+                SurfaceInflationOptions nativeOptions = options.Value.PrepareForInterop();
+                status = hbp_surface_inflation_create(source.getHandle().Handle, ref nativeOptions, out m_Handle);
+            }
+            else
+            {
+                status = hbp_surface_inflation_create(source.getHandle().Handle, IntPtr.Zero, out m_Handle);
+            }
+
+            if (status != HbpCoreStatus.Ok)
+            {
+                m_Handle?.Dispose();
+                ThrowIfFailed(status);
+            }
+        }
+
+        public SurfaceInflationExecution Execute()
+        {
+            HbpCoreStatus status = hbp_surface_inflation_execute(m_Handle);
+            string error = status == HbpCoreStatus.Ok ? string.Empty : HbpCoreRuntime.LastError;
+            return new SurfaceInflationExecution(status, error);
+        }
+
+        public void RequestCancellation()
+        {
+            if (m_Handle == null || m_Handle.IsClosed || m_Handle.IsInvalid) return;
+            ThrowIfFailed(hbp_surface_inflation_request_cancel(m_Handle));
+        }
+
+        public SurfaceInflationReport GetReport()
+        {
+            SurfaceInflationReport report = SurfaceInflationReport.CreateForInterop();
+            ThrowIfFailed(hbp_surface_inflation_get_report(m_Handle, ref report));
+            return report;
+        }
+
+        public Surface TakeResult()
+        {
+            ThrowIfFailed(hbp_surface_inflation_take_result(m_Handle, out IntPtr surface));
+            return Surface.FromOwnedLoadedHandle(surface);
+        }
+
+        public void Dispose()
+        {
+            m_Handle?.Dispose();
+        }
+
+        private static void ThrowIfFailed(HbpCoreStatus status)
+        {
+            if (status != HbpCoreStatus.Ok)
+            {
+                throw new InvalidOperationException($"hbp_core Surface inflation call failed with status {status}: {HbpCoreRuntime.LastError}");
+            }
+        }
+
+        private sealed class SurfaceInflationJobHandle : SafeHandleZeroOrMinusOneIsInvalid
+        {
+            public SurfaceInflationJobHandle() : base(true)
+            {
+            }
+
+            protected override bool ReleaseHandle()
+            {
+                return hbp_surface_inflation_destroy(handle) == HbpCoreStatus.Ok;
+            }
+        }
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_create", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_create(IntPtr source, IntPtr options, out SurfaceInflationJobHandle job);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_create", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_create(IntPtr source, ref SurfaceInflationOptions options, out SurfaceInflationJobHandle job);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_execute", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_execute(SurfaceInflationJobHandle job);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_get_progress", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_get_progress(SurfaceInflationJobHandle job, out float progress);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_request_cancel", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_request_cancel(SurfaceInflationJobHandle job);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_take_result", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_take_result(SurfaceInflationJobHandle job, out IntPtr surface);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_get_report", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_get_report(SurfaceInflationJobHandle job, ref SurfaceInflationReport report);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_inflation_destroy", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_inflation_destroy(IntPtr job);
     }
 }

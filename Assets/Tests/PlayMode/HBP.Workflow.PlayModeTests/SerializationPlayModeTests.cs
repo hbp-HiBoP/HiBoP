@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HBP.Core.Data;
-using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Tests.PlayMode.Utilities;
 using NUnit.Framework;
@@ -41,12 +40,12 @@ namespace HBP.Tests.PlayMode.Workflow
             Assert.That(scene.Scene.isLoaded, Is.True);
         }
 
-        [TestCase("Patients/playmode-patient-001.patient", typeof(CanNotReadPatientFileException))]
-        [TestCase("Groups/playmode-group-alpha.group", typeof(CanNotReadGroupFileException))]
-        [TestCase("Datasets/playmode-dataset-alpha.dataset", typeof(CanNotReadDatasetFileException))]
-        [TestCase("Visualizations/playmode-visualization-alpha.visualization", typeof(CanNotReadVisualizationFileException))]
+        [TestCase("Patients/playmode-patient-001.patient", "project patient entry")]
+        [TestCase("Groups/playmode-group-alpha.group", "project group entry")]
+        [TestCase("Datasets/playmode-dataset-alpha.dataset", "project dataset entry")]
+        [TestCase("Visualizations/playmode-visualization-alpha.visualization", "project visualization entry")]
         [Category("PlayMode.Serialization")]
-        public async Task ProjectLoadAsync_WithCorruptedSerializedEntryInPlayMode_ThrowsControlledExceptionAndCleansExtraction(string entryName, Type expectedExceptionType)
+        public async Task ProjectLoadAsync_WithCorruptedSerializedEntryInPlayMode_RecoversAndCleansExtraction(string entryName, string expectedKind)
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
@@ -63,8 +62,8 @@ namespace HBP.Tests.PlayMode.Workflow
 
             Exception exception = await AsyncPlayModeTestUtilities.CaptureExceptionAsync(async () => await loaded.LoadAsync(info, NoProgress, CancellationToken.None));
 
-            Assert.That(exception, Is.TypeOf(expectedExceptionType));
-            Assert.That(exception.InnerException, Is.Not.Null);
+            Assert.That(exception, Is.Null);
+            Assert.That(loaded.StructuralRecoveryReport.Items.Any(item => item.Kind == expectedKind && item.ID == entryName), Is.True);
             Assert.That(Directory.Exists(ApplicationState.ExtractProjectFolder), Is.False);
             Assert.That(scene.Scene.isLoaded, Is.True);
         }

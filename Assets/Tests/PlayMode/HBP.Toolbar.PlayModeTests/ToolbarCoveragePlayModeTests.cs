@@ -1232,7 +1232,9 @@ namespace HBP.Tests.PlayMode.Toolbar
                 m_MeshManager = meshManagerObject.AddComponent<MeshManager>();
                 SetPrivateField(m_MeshManager, "m_Scene", Scene);
                 SetPrivateField(m_MeshManager, "m_DisplayedObjects", m_DisplayedObjects);
-                m_MeshManager.Meshes.Add(new LeftRightMesh3D { Name = "Synthetic LeftRight" });
+                LeftRightMesh3D primaryMesh = new() { Name = "Synthetic LeftRight" };
+                SetAutoProperty(primaryMesh, "Type", MeshType.MNI);
+                m_MeshManager.Meshes.Add(primaryMesh);
                 m_MeshManager.Meshes.Add(new LeftRightMesh3D { Name = "Synthetic Alternate" });
 
                 GameObject roiManagerObject = new("ROIManager_Toolbar");

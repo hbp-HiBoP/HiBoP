@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "description": "Corpus reproductible et non clinique pour la baseline d'inflation corticale.",
+  "surfaces": [
+    {
+      "id": "mni_left_anatomical",
+      "category": "mni",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Lwhite.gii",
+      "local_reference": "mni_left_inflated_legacy",
+      "expected_admissibility": "accepted",
+      "external_reference_eligible": true
+    },
+    {
+      "id": "mni_left_inflated_legacy",
+      "category": "legacy_reference",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Lwhite_inflated.gii",
+      "expected_admissibility": "accepted",
+      "external_reference_eligible": false
+    },
+    {
+      "id": "mni_right_anatomical",
+      "category": "mni",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Rwhite.gii",
+      "local_reference": "mni_right_inflated_legacy",
+      "expected_admissibility": "accepted",
+      "external_reference_eligible": true
+    },
+    {
+      "id": "mni_right_inflated_legacy",
+      "category": "legacy_reference",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Rwhite_inflated.gii",
+      "expected_admissibility": "accepted",
+      "external_reference_eligible": false
+    },
+    {
+      "id": "patient_proxy_low_density",
+      "category": "synthetic_patient_proxy",
+      "source_kind": "deterministic_generator",
+      "generator": "patient_proxy_low",
+      "path": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-low.gii",
+      "expected_admissibility": "accepted",
+      "external_reference_eligible": true
+    },
+    {
+      "id": "patient_proxy_medium_density",
+      "category": "synthetic_patient_proxy",
+      "source_kind": "deterministic_generator",
+      "generator": "patient_proxy_medium",
+      "path": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-medium.gii",
+      "expected_admissibility": "accepted",
+      "external_reference_eligible": true
+    },
+    {
+      "id": "patient_proxy_high_density",
+      "category": "synthetic_patient_proxy",
+      "source_kind": "deterministic_generator",
+      "generator": "patient_proxy_high",
+      "path": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-high.gii",
+      "expected_admissibility": "accepted",
+      "external_reference_eligible": true
+    },
+    {
+      "id": "open_surface",
+      "category": "synthetic_boundary",
+      "source_kind": "deterministic_generator",
+      "generator": "open_surface",
+      "path": "Docs/dev/inflation/phase-0/fixtures/open-surface.gii",
+      "expected_admissibility": "accepted_with_fixed_boundary",
+      "external_reference_eligible": true
+    },
+    {
+      "id": "degenerate_surface",
+      "category": "synthetic_invalid",
+      "source_kind": "deterministic_generator",
+      "generator": "degenerate_surface",
+      "path": "Docs/dev/inflation/phase-0/fixtures/degenerate.gii",
+      "expected_admissibility": "rejected_degenerate",
+      "external_reference_eligible": false
+    },
+    {
+      "id": "non_manifold_surface",
+      "category": "synthetic_invalid",
+      "source_kind": "deterministic_generator",
+      "generator": "non_manifold_surface",
+      "path": "Docs/dev/inflation/phase-0/fixtures/non-manifold.gii",
+      "expected_admissibility": "rejected_non_manifold",
+      "external_reference_eligible": false
+    },
+    {
+      "id": "multi_component_surface",
+      "category": "synthetic_components",
+      "source_kind": "deterministic_generator",
+      "generator": "multi_component_surface",
+      "path": "Docs/dev/inflation/phase-0/fixtures/multi-component.gii",
+      "expected_admissibility": "accepted_components_independently",
+      "external_reference_eligible": true
+    }
+  ],
+  "transforms": [
+    {
+      "id": "mni_display_transform",
+      "path": "Assets/Data/Meshes/MNI.trm"
+    },
+    {
+      "id": "synthetic_rigid",
+      "path": "Docs/dev/inflation/phase-0/transforms/rigid.trm"
+    },
+    {
+      "id": "synthetic_uniform",
+      "path": "Docs/dev/inflation/phase-0/transforms/uniform.trm"
+    },
+    {
+      "id": "synthetic_anisotropic",
+      "path": "Docs/dev/inflation/phase-0/transforms/anisotropic.trm"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ namespace HBP.Rendering
         [SerializeField] private Settings m_Settings = new();
 
         private Material m_Material;
+        private HBPTransparentBrainRenderPass m_TransparentBrainPass;
         private HBPEdgeRenderPass m_Pass;
 
         public Settings EdgeSettings => m_Settings;
@@ -29,6 +30,7 @@ namespace HBP.Rendering
             CoreUtils.Destroy(m_Material);
             Shader shader = Shader.Find("Hidden/HBP/Edges");
             m_Material = shader == null ? null : CoreUtils.CreateEngineMaterial(shader);
+            m_TransparentBrainPass = new HBPTransparentBrainRenderPass();
             m_Pass = new HBPEdgeRenderPass();
         }
 
@@ -36,6 +38,9 @@ namespace HBP.Rendering
         {
             if (m_Material == null || renderingData.cameraData.cameraType != CameraType.Game)
                 return;
+
+            m_TransparentBrainPass.Setup(m_Material);
+            renderer.EnqueuePass(m_TransparentBrainPass);
 
             HBPEdgeCameraSettings cameraSettings = renderingData.cameraData.camera.GetComponent<HBPEdgeCameraSettings>();
             if (cameraSettings == null || !cameraSettings.EdgesEnabled)
@@ -49,6 +54,128 @@ namespace HBP.Rendering
         {
             CoreUtils.Destroy(m_Material);
             m_Material = null;
+        }
+
+        private sealed class HBPTransparentBrainRenderPass : ScriptableRenderPass
+        {
+            private static readonly ShaderTagId TransparentBrainSurfaceTag = new("HBPTransparentBrainSurface");
+            private static readonly int BlitTextureId = Shader.PropertyToID("_BlitTexture");
+            private static readonly int TransparentBrainSurfaceId = Shader.PropertyToID("_HBPTransparentBrainSurface");
+            private static readonly int TransparentBrainDepthId = Shader.PropertyToID("_HBPTransparentBrainDepth");
+            private static readonly int SceneDepthId = Shader.PropertyToID("_HBPSceneDepth");
+            private static readonly MaterialPropertyBlock CompositeProperties = new();
+            private const int CompositePassIndex = 1;
+
+            private Material m_Material;
+
+            public HBPTransparentBrainRenderPass()
+            {
+                renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
+                requiresIntermediateTexture = true;
+            }
+
+            public void Setup(Material material)
+            {
+                m_Material = material;
+            }
+
+            public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
+            {
+                UniversalResourceData resourceData = frameData.Get<UniversalResourceData>();
+                if (resourceData.isActiveTargetBackBuffer || !resourceData.activeColorTexture.IsValid() || !resourceData.activeDepthTexture.IsValid())
+                {
+                    return;
+                }
+
+                UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
+                UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
+                UniversalLightData lightData = frameData.Get<UniversalLightData>();
+                DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(TransparentBrainSurfaceTag, renderingData, cameraData, lightData, SortingCriteria.CommonTransparent);
+                FilteringSettings filteringSettings = new(RenderQueueRange.transparent, cameraData.camera.cullingMask);
+                RendererListParams rendererListParams = new(renderingData.cullResults, drawingSettings, filteringSettings);
+                RendererListHandle rendererList = renderGraph.CreateRendererList(rendererListParams);
+                if (!rendererList.IsValid())
+                    return;
+
+                TextureDesc surfaceDescriptor = renderGraph.GetTextureDesc(resourceData.activeColorTexture);
+                surfaceDescriptor.name = "HBP Transparent Brain Surface";
+                surfaceDescriptor.depthBufferBits = DepthBits.None;
+                surfaceDescriptor.msaaSamples = MSAASamples.None;
+                surfaceDescriptor.clearBuffer = true;
+                surfaceDescriptor.clearColor = Color.clear;
+                TextureHandle surface = renderGraph.CreateTexture(surfaceDescriptor);
+
+                TextureDesc depthDescriptor = renderGraph.GetTextureDesc(resourceData.activeColorTexture);
+                depthDescriptor.name = "HBP Transparent Brain Depth";
+                depthDescriptor.format = GraphicsFormat.None;
+                depthDescriptor.depthBufferBits = DepthBits.Depth24;
+                depthDescriptor.msaaSamples = MSAASamples.None;
+                depthDescriptor.clearBuffer = true;
+                TextureHandle depth = renderGraph.CreateTexture(depthDescriptor);
+
+                using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<SurfacePassData>("HBP Transparent Brain Surface", out SurfacePassData passData))
+                {
+                    passData.RendererList = rendererList;
+                    builder.UseRendererList(rendererList);
+                    builder.SetRenderAttachment(surface, 0, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(depth, AccessFlags.Write);
+                    builder.SetRenderFunc(static (SurfacePassData data, RasterGraphContext context) =>
+                    {
+                        context.cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1.0f, 0);
+                        context.cmd.DrawRendererList(data.RendererList);
+                    });
+                }
+
+                TextureHandle source = resourceData.activeColorTexture;
+                TextureHandle sceneDepth = resourceData.activeDepthTexture;
+                TextureDesc destinationDescriptor = renderGraph.GetTextureDesc(source);
+                destinationDescriptor.name = "HBP Transparent Brain Camera Color";
+                destinationDescriptor.clearBuffer = false;
+                TextureHandle destination = renderGraph.CreateTexture(destinationDescriptor);
+
+                using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<CompositePassData>("HBP Transparent Brain Composite", out CompositePassData passData))
+                {
+                    passData.Material = m_Material;
+                    passData.Source = source;
+                    passData.Surface = surface;
+                    passData.BrainDepth = depth;
+                    passData.SceneDepth = sceneDepth;
+
+                    builder.UseTexture(source, AccessFlags.Read);
+                    builder.UseTexture(surface, AccessFlags.Read);
+                    builder.UseTexture(depth, AccessFlags.Read);
+                    builder.UseTexture(sceneDepth, AccessFlags.Read);
+                    builder.SetRenderAttachment(destination, 0, AccessFlags.Write);
+                    builder.SetRenderFunc(static (CompositePassData data, RasterGraphContext context) => ExecuteComposite(data, context));
+                }
+
+                resourceData.cameraColor = destination;
+            }
+
+            private static void ExecuteComposite(CompositePassData data, RasterGraphContext context)
+            {
+                MaterialPropertyBlock properties = CompositeProperties;
+                properties.Clear();
+                properties.SetTexture(BlitTextureId, data.Source);
+                properties.SetTexture(TransparentBrainSurfaceId, data.Surface);
+                properties.SetTexture(TransparentBrainDepthId, data.BrainDepth);
+                properties.SetTexture(SceneDepthId, data.SceneDepth);
+                context.cmd.DrawProcedural(Matrix4x4.identity, data.Material, CompositePassIndex, MeshTopology.Triangles, 3, 1, properties);
+            }
+
+            private sealed class SurfacePassData
+            {
+                public RendererListHandle RendererList;
+            }
+
+            private sealed class CompositePassData
+            {
+                public Material Material;
+                public TextureHandle Source;
+                public TextureHandle Surface;
+                public TextureHandle BrainDepth;
+                public TextureHandle SceneDepth;
+            }
         }
 
         private sealed class HBPEdgeRenderPass : ScriptableRenderPass

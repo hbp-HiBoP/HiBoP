@@ -1,0 +1,2345 @@
+{
+  "schema_version": 1,
+  "generator_version": "1.0.0",
+  "baseline_date": "2026-08-27",
+  "source_manifest": "Docs/dev/inflation/phase-0/corpus.json",
+  "python": {
+    "minimum_version": "3.10",
+    "numpy_version": "2.3.3",
+    "nibabel_version": "5.4.2"
+  },
+  "surfaces": {
+    "mni_left_anatomical": {
+      "category": "mni",
+      "expected_admissibility": "accepted",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Lwhite.gii",
+      "sha256": "67288f09ccd760eac9626e4ed5a1a48405d40e0613dad62a85742eee3233a224",
+      "vertex_count": 33036,
+      "triangle_count": 66068,
+      "topology_sha256": "284423fd4fb04a8eb2014c3dddf96baeaa779a3aae9fae938f717d1959929ea6",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          72.38314056396484,
+          9.058000564575195,
+          7.0436272621154785
+        ],
+        "max": [
+          143.40638732910156,
+          180.86883544921875,
+          129.5916290283203
+        ],
+        "extent": [
+          71.02324676513672,
+          171.81083488464355,
+          122.54800176620483
+        ]
+      },
+      "centroid": [
+        103.73764951368527,
+        98.16380057832579,
+        70.49075718019269
+      ],
+      "surface_area": 99234.3257838357,
+      "rms_radius": 52.59546444140614,
+      "edge_length": {
+        "p50": 1.9302846535973315,
+        "p90": 2.9027542427162003,
+        "p95": 3.2417959979320057,
+        "p99": 3.966931285487708,
+        "max": 7.058705576886349
+      },
+      "triangle_area": {
+        "p50": 1.3910599653482536,
+        "p90": 2.3195107618702355,
+        "p95": 2.682157871327175,
+        "p99": 3.5322020095978104,
+        "max": 7.833867132468878
+      }
+    },
+    "mni_left_inflated_legacy": {
+      "category": "legacy_reference",
+      "expected_admissibility": "accepted",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Lwhite_inflated.gii",
+      "sha256": "05fd152d02aacfd466240246967bdc9db39c9a579fb862a0f99c9f21cbf905b8",
+      "vertex_count": 33036,
+      "triangle_count": 66068,
+      "topology_sha256": "284423fd4fb04a8eb2014c3dddf96baeaa779a3aae9fae938f717d1959929ea6",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          75.82412719726562,
+          12.80155086517334,
+          11.294877052307129
+        ],
+        "max": [
+          139.84776306152344,
+          178.0004119873047,
+          125.39627838134766
+        ],
+        "extent": [
+          64.02363586425781,
+          165.19886112213135,
+          114.10140132904053
+        ]
+      },
+      "centroid": [
+        103.73685319436089,
+        98.1639641841628,
+        70.4898814169485
+      ],
+      "surface_area": 50726.77982687527,
+      "rms_radius": 51.906314352481886,
+      "edge_length": {
+        "p50": 1.3161499966311436,
+        "p90": 2.090216682722215,
+        "p95": 2.369113700275479,
+        "p99": 2.967262696533391,
+        "max": 5.042708010497301
+      },
+      "triangle_area": {
+        "p50": 0.6628782990260065,
+        "p90": 1.3689998736882623,
+        "p95": 1.6642024910345687,
+        "p99": 2.3790190243728038,
+        "max": 6.514308480278993
+      }
+    },
+    "mni_right_anatomical": {
+      "category": "mni",
+      "expected_admissibility": "accepted",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Rwhite.gii",
+      "sha256": "7fa5c371eb4dbbe6f7104b77bf105a8f80453b02e0b509d03a61adffc86d0beb",
+      "vertex_count": 33263,
+      "triangle_count": 66522,
+      "topology_sha256": "ca10cd68f67ed781792bb752b9c9889438f901db15aa7d6628be69876e6a439e",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          7.409074783325195,
+          8.104819297790527,
+          5.3061418533325195
+        ],
+        "max": [
+          77.02474975585938,
+          179.90823364257812,
+          134.41744995117188
+        ],
+        "extent": [
+          69.61567497253418,
+          171.8034143447876,
+          129.11130809783936
+        ]
+      },
+      "centroid": [
+        44.69155328606282,
+        97.31765748076656,
+        70.62109008527929
+      ],
+      "surface_area": 98929.84097235129,
+      "rms_radius": 52.1252423932782,
+      "edge_length": {
+        "p50": 1.921119289394743,
+        "p90": 2.8738666165148032,
+        "p95": 3.2086358038964993,
+        "p99": 3.8996900972924617,
+        "max": 6.284400059412424
+      },
+      "triangle_area": {
+        "p50": 1.3802480527187573,
+        "p90": 2.28415076087271,
+        "p95": 2.6385989829686536,
+        "p99": 3.4470271818448133,
+        "max": 8.535857763335759
+      }
+    },
+    "mni_right_inflated_legacy": {
+      "category": "legacy_reference",
+      "expected_admissibility": "accepted",
+      "source_kind": "versioned_product_asset",
+      "path": "Assets/Data/Meshes/MNI_Rwhite_inflated.gii",
+      "sha256": "49a9405935b484582b9b141e0c22270808b68adfea900627218d62c86d6c29dc",
+      "vertex_count": 33263,
+      "triangle_count": 66522,
+      "topology_sha256": "ca10cd68f67ed781792bb752b9c9889438f901db15aa7d6628be69876e6a439e",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          10.840718269348145,
+          12.334063529968262,
+          9.81697940826416
+        ],
+        "max": [
+          72.72449493408203,
+          176.2586212158203,
+          129.69842529296875
+        ],
+        "extent": [
+          61.88377666473389,
+          163.92455768585205,
+          119.88144588470459
+        ]
+      },
+      "centroid": [
+        44.69211370595266,
+        97.31778073466391,
+        70.62037052572217
+      ],
+      "surface_area": 50687.91728017425,
+      "rms_radius": 51.4375156587101,
+      "edge_length": {
+        "p50": 1.3086690687652853,
+        "p90": 2.085817640062621,
+        "p95": 2.369946022225679,
+        "p99": 2.9729171031497374,
+        "max": 5.549614816814397
+      },
+      "triangle_area": {
+        "p50": 0.6586016897773521,
+        "p90": 1.3637238017358813,
+        "p95": 1.6545335365126066,
+        "p99": 2.4000316646738877,
+        "max": 5.7006101563903755
+      }
+    },
+    "patient_proxy_low_density": {
+      "category": "synthetic_patient_proxy",
+      "expected_admissibility": "accepted",
+      "source_kind": "deterministic_generator",
+      "path": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-low.gii",
+      "sha256": "9cbd1c88eaaed3ddb542af9142b693fb1085ef213e52e69af65f8bb71ec5958b",
+      "vertex_count": 2562,
+      "triangle_count": 5120,
+      "topology_sha256": "1d19353ebb1a280dd705a884e8db6ef144348417dd5324e62326249995dddb35",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          -110.5186996459961,
+          -50.63999938964844,
+          -62.5369758605957
+        ],
+        "max": [
+          38.518699645996094,
+          47.08358383178711,
+          62.5369758605957
+        ],
+        "extent": [
+          149.0373992919922,
+          97.72358322143555,
+          125.0739517211914
+        ]
+      },
+      "centroid": [
+        -35.999999901243456,
+        -0.010280705540558028,
+        0.0
+      ],
+      "surface_area": 48012.20637901785,
+      "rms_radius": 61.148655162440036,
+      "edge_length": {
+        "p50": 4.658003303420362,
+        "p90": 5.4950379143346995,
+        "p95": 5.835829725747165,
+        "p99": 6.483613720642699,
+        "max": 7.594559524100042
+      },
+      "triangle_area": {
+        "p50": 9.238056069468234,
+        "p90": 11.519713936221805,
+        "p95": 12.405904331533836,
+        "p99": 14.776599872393385,
+        "max": 18.03350377347825
+      }
+    },
+    "patient_proxy_medium_density": {
+      "category": "synthetic_patient_proxy",
+      "expected_admissibility": "accepted",
+      "source_kind": "deterministic_generator",
+      "path": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-medium.gii",
+      "sha256": "323861e1e6e96d6063b0175a00a0838c0caabf697b56d693fabf84688bc8b894",
+      "vertex_count": 10242,
+      "triangle_count": 20480,
+      "topology_sha256": "6bf33a7fc9429eef8639fd65852d853d10c4399075ba2e6a3789cf2ac7743fd9",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          -109.10868072509766,
+          -50.45782470703125,
+          -62.60456466674805
+        ],
+        "max": [
+          39.485252380371094,
+          48.48092269897461,
+          62.60456466674805
+        ],
+        "extent": [
+          148.59393310546875,
+          98.93874740600586,
+          125.2091293334961
+        ]
+      },
+      "centroid": [
+        -35.98341063625079,
+        -0.007366961914681522,
+        0.0
+      ],
+      "surface_area": 48424.69633445096,
+      "rms_radius": 61.148600783069604,
+      "edge_length": {
+        "p50": 2.332821674827579,
+        "p90": 2.7594449064427335,
+        "p95": 2.93993617374622,
+        "p99": 3.4078523568075703,
+        "max": 4.296106139953015
+      },
+      "triangle_area": {
+        "p50": 2.3117202133943002,
+        "p90": 2.9215499104259846,
+        "p95": 3.1803197376583268,
+        "p99": 3.863939509961747,
+        "max": 5.205037612338498
+      }
+    },
+    "patient_proxy_high_density": {
+      "category": "synthetic_patient_proxy",
+      "expected_admissibility": "accepted",
+      "source_kind": "deterministic_generator",
+      "path": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-high.gii",
+      "sha256": "f051f77fd933898188ad1b36a04a05fa2c72b9ab05170f5471804814f601656c",
+      "vertex_count": 40962,
+      "triangle_count": 81920,
+      "topology_sha256": "f1fe5dd3aa14ecb18bf1a52f1ef643afff5b90f9688e1c603e127179164e67ae",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          -107.22130584716797,
+          -49.91643524169922,
+          -62.60232925415039
+        ],
+        "max": [
+          39.934349060058594,
+          49.526519775390625,
+          62.60232925415039
+        ],
+        "extent": [
+          147.15565490722656,
+          99.44295501708984,
+          125.20465850830078
+        ]
+      },
+      "centroid": [
+        -35.97482280422328,
+        -0.0016146968857547418,
+        0.0
+      ],
+      "surface_area": 48568.195627147405,
+      "rms_radius": 61.148627297674274,
+      "edge_length": {
+        "p50": 1.1682822948606681,
+        "p90": 1.3820649627204304,
+        "p95": 1.4770526047835153,
+        "p99": 1.7273592915559153,
+        "max": 2.314267758114911
+      },
+      "triangle_area": {
+        "p50": 0.5773356618537024,
+        "p90": 0.7388813897325077,
+        "p95": 0.795724033950753,
+        "p99": 0.9938586965684886,
+        "max": 1.4433433218932747
+      }
+    },
+    "open_surface": {
+      "category": "synthetic_boundary",
+      "expected_admissibility": "accepted_with_fixed_boundary",
+      "source_kind": "deterministic_generator",
+      "path": "Docs/dev/inflation/phase-0/fixtures/open-surface.gii",
+      "sha256": "7179561b50fa19812ae7feb712feda1f70cf74e1b3e465bc36857cef4aae4cb7",
+      "vertex_count": 642,
+      "triangle_count": 1112,
+      "topology_sha256": "da5612a7f818cda9b965d9c6de0270dae6eed22e89a431d8afb7254dac8dd014",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 69,
+      "boundary_edges": 32,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          -109.38818359375,
+          -50.55792999267578,
+          -62.47106170654297
+        ],
+        "max": [
+          38.4378776550293,
+          47.641788482666016,
+          62.47106170654297
+        ],
+        "extent": [
+          147.8260612487793,
+          98.1997184753418,
+          124.94212341308594
+        ]
+      },
+      "centroid": [
+        -35.992716841979934,
+        -0.014065739521727755,
+        0.0
+      ],
+      "surface_area": 40958.59528696559,
+      "rms_radius": 61.14887453869389,
+      "edge_length": {
+        "p50": 9.243355558372151,
+        "p90": 10.803059086603403,
+        "p95": 11.391254162838932,
+        "p99": 12.036326433820735,
+        "max": 12.859371635925724
+      },
+      "triangle_area": {
+        "p50": 36.64505029018258,
+        "p90": 44.42292631901792,
+        "p95": 47.611223703243,
+        "p99": 51.42909901974219,
+        "max": 54.36244425641432
+      }
+    },
+    "degenerate_surface": {
+      "category": "synthetic_invalid",
+      "expected_admissibility": "rejected_degenerate",
+      "source_kind": "deterministic_generator",
+      "path": "Docs/dev/inflation/phase-0/fixtures/degenerate.gii",
+      "sha256": "c146602c22c4cb68de9e89fe343bf9e824f492abd6b7e3ab85782fe4e90d1f30",
+      "vertex_count": 5,
+      "triangle_count": 2,
+      "topology_sha256": "2415754049a88e5cbfb3ee11b0497755cb434cc79fdd62fe54523e54127fca7c",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 2,
+      "isolated_vertices": 0,
+      "boundary_edges": 4,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 1,
+      "zero_length_edges": 1,
+      "bounding_box": {
+        "min": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "max": [
+          3.0,
+          1.0,
+          0.0
+        ],
+        "extent": [
+          3.0,
+          1.0,
+          0.0
+        ]
+      },
+      "centroid": [
+        1.2,
+        0.2,
+        0.0
+      ],
+      "surface_area": 0.5,
+      "rms_radius": 1.2328828005937953,
+      "edge_length": {
+        "p50": 1.0,
+        "p90": 1.248528137423857,
+        "p95": 1.331370849898476,
+        "p99": 1.3976450198781714,
+        "max": 1.4142135623730951
+      },
+      "triangle_area": {
+        "p50": 0.25,
+        "p90": 0.45,
+        "p95": 0.475,
+        "p99": 0.495,
+        "max": 0.5
+      }
+    },
+    "non_manifold_surface": {
+      "category": "synthetic_invalid",
+      "expected_admissibility": "rejected_non_manifold",
+      "source_kind": "deterministic_generator",
+      "path": "Docs/dev/inflation/phase-0/fixtures/non-manifold.gii",
+      "sha256": "d9940c75abc3427e505c91b2db80c269dc05c0b93aef9da6303805162cafe778",
+      "vertex_count": 5,
+      "triangle_count": 3,
+      "topology_sha256": "c1a928933244854a32607af185c1bff431cabe7279b7e3430cc2a96e2c7d9860",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 1,
+      "isolated_vertices": 0,
+      "boundary_edges": 6,
+      "non_manifold_edges": 1,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        "max": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "extent": [
+          1.0,
+          2.0,
+          1.0
+        ]
+      },
+      "centroid": [
+        0.2,
+        0.0,
+        0.2
+      ],
+      "surface_area": 1.5,
+      "rms_radius": 0.8485281374238571,
+      "edge_length": {
+        "p50": 1.0,
+        "p90": 1.4142135623730951,
+        "p95": 1.4142135623730951,
+        "p99": 1.4142135623730951,
+        "max": 1.4142135623730951
+      },
+      "triangle_area": {
+        "p50": 0.5,
+        "p90": 0.5,
+        "p95": 0.5,
+        "p99": 0.5,
+        "max": 0.5
+      }
+    },
+    "multi_component_surface": {
+      "category": "synthetic_components",
+      "expected_admissibility": "accepted_components_independently",
+      "source_kind": "deterministic_generator",
+      "path": "Docs/dev/inflation/phase-0/fixtures/multi-component.gii",
+      "sha256": "decb2386f52bcc59cfe9dbdbf8f691a3d1f081573b3b007d084150edfa46ef9e",
+      "vertex_count": 84,
+      "triangle_count": 160,
+      "topology_sha256": "975fb2529309dd802a10761c40112e21903863829d570882bc6c00a52b10394d",
+      "positions_finite": true,
+      "indices_valid": true,
+      "connected_components": 2,
+      "isolated_vertices": 0,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_triangles": 0,
+      "zero_length_edges": 0,
+      "bounding_box": {
+        "min": [
+          -1.0,
+          -1.0,
+          -1.0
+        ],
+        "max": [
+          3.3499999046325684,
+          1.0,
+          1.0
+        ],
+        "extent": [
+          4.349999904632568,
+          2.0,
+          2.0
+        ]
+      },
+      "centroid": [
+        1.5,
+        0.0,
+        0.0
+      ],
+      "surface_area": 13.095007875982255,
+      "rms_radius": 1.6766782621492955,
+      "edge_length": {
+        "p50": 0.38142248537589224,
+        "p90": 0.6180339903174076,
+        "p95": 0.6180339910597922,
+        "p99": 0.6180340051651001,
+        "max": 0.6180340051651001
+      },
+      "triangle_area": {
+        "p50": 0.07978058403470492,
+        "p90": 0.16539613540138662,
+        "p95": 0.16539613805037892,
+        "p99": 0.16539613805037892,
+        "max": 0.16539613805037892
+      }
+    }
+  },
+  "transforms": {
+    "mni_display_transform": {
+      "path": "Assets/Data/Meshes/MNI.trm",
+      "sha256": "1a99d0241b7809d1e3d0410687f001e84f2dc19e60381f1547da1e2fc464c3ee",
+      "classification": "uniform",
+      "translation": [
+        74.04,
+        76.599,
+        87.459
+      ],
+      "linear": [
+        [
+          -0.999,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          -0.999,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -0.999
+        ]
+      ],
+      "singular_values": [
+        0.999,
+        0.999,
+        0.999
+      ],
+      "determinant": -0.997002999,
+      "orientation_reversing": true
+    },
+    "synthetic_rigid": {
+      "path": "Docs/dev/inflation/phase-0/transforms/rigid.trm",
+      "sha256": "d622508f994418896104fe30864b5b5c12f1f3c41ab2b7b616428fd9674506dc",
+      "classification": "rigid",
+      "translation": [
+        10.0,
+        -20.0,
+        30.0
+      ],
+      "linear": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "singular_values": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "determinant": 1.0,
+      "orientation_reversing": false
+    },
+    "synthetic_uniform": {
+      "path": "Docs/dev/inflation/phase-0/transforms/uniform.trm",
+      "sha256": "b88e2eedde80a5d5e82138ce80a6978ae0caee5039363c40fe5937343f854829",
+      "classification": "uniform",
+      "translation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "linear": [
+        [
+          1.25,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.25,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.25
+        ]
+      ],
+      "singular_values": [
+        1.25,
+        1.25,
+        1.25
+      ],
+      "determinant": 1.9531250000000002,
+      "orientation_reversing": false
+    },
+    "synthetic_anisotropic": {
+      "path": "Docs/dev/inflation/phase-0/transforms/anisotropic.trm",
+      "sha256": "b87da1081c14c1f4e1a0ca7a05cea677c0cfa4ce7d4c73b7a5dce5faab6675d7",
+      "classification": "anisotropic",
+      "translation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "linear": [
+        [
+          1.5,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.75,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          2.0
+        ]
+      ],
+      "singular_values": [
+        2.0,
+        1.5,
+        0.75
+      ],
+      "determinant": 2.25,
+      "orientation_reversing": false
+    }
+  },
+  "local_reference_comparisons": {
+    "mni_left_anatomical": {
+      "reference_id": "mni_left_inflated_legacy",
+      "same_vertex_count": true,
+      "same_triangle_count": true,
+      "strictly_identical_topology": true,
+      "surface_area_ratio": 0.5111817853972679,
+      "bounding_box_extent_ratio": [
+        0.9014461993827799,
+        0.9615159674478528,
+        0.9310751679714974
+      ],
+      "rms_radius_ratio": 0.9868971574594231
+    },
+    "mni_right_anatomical": {
+      "reference_id": "mni_right_inflated_legacy",
+      "same_vertex_count": true,
+      "same_triangle_count": true,
+      "strictly_identical_topology": true,
+      "surface_area_ratio": 0.5123622638223022,
+      "bounding_box_extent_ratio": [
+        0.8889345206973746,
+        0.9541402789404192,
+        0.9285123638733451
+      ],
+      "rms_radius_ratio": 0.9868062630888257
+    }
+  },
+  "external_tools": {
+    "connectome_workbench": {
+      "available": true,
+      "path": "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+      "sha256": "7a44bbad77609e1ba195833c3e7bee9db45c8e4c6d6814721fbc772ad8a2321d",
+      "version_exit_code": 0,
+      "version_stdout": "Connectome Workbench\nType: Command Line Application\nVersion: 2.2.1\nQt Compiled Version: 5.7.0\nQt Runtime Version: 5.7.0\nCommit: 01164ffa47f2778088bd6ff472ec9cd9a57f5b42\nCommit Date: 2026-07-13 18:19:49 -0500\nCompiler: cl.exe (C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/amd64)\nCompiler Version: 19.0.24215.1\nCompiled Debug: NO\nOperating System: Windows\nCompiled with OpenMP: YES\n",
+      "version_stderr": ""
+    },
+    "freesurfer_mris_inflate": {
+      "available": false,
+      "path": null
+    }
+  },
+  "external_reference_runs": {
+    "execution_manifest": "Docs/dev/inflation/phase-0/external-references/workbench/execution-manifest.json",
+    "tool": {
+      "available": true,
+      "path": "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+      "sha256": "7a44bbad77609e1ba195833c3e7bee9db45c8e4c6d6814721fbc772ad8a2321d",
+      "version_exit_code": 0,
+      "version_stdout": "Connectome Workbench\nType: Command Line Application\nVersion: 2.2.1\nQt Compiled Version: 5.7.0\nQt Runtime Version: 5.7.0\nCommit: 01164ffa47f2778088bd6ff472ec9cd9a57f5b42\nCommit Date: 2026-07-13 18:19:49 -0500\nCompiler: cl.exe (C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/amd64)\nCompiler Version: 19.0.24215.1\nCompiled Debug: NO\nOperating System: Windows\nCompiled with OpenMP: YES\n",
+      "version_stderr": ""
+    },
+    "iterations_scale": 1.0,
+    "runs": {
+      "mni_left_anatomical": {
+        "source": "Assets/Data/Meshes/MNI_Lwhite.gii",
+        "source_sha256": "67288f09ccd760eac9626e4ed5a1a48405d40e0613dad62a85742eee3233a224",
+        "command": [
+          "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+          "-surface-generate-inflated",
+          "Assets/Data/Meshes/MNI_Lwhite.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/mni_left_anatomical.inflated.surf.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/mni_left_anatomical.very-inflated.surf.gii",
+          "-iterations-scale",
+          "1.0"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_left_anatomical.inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_left_anatomical.inflated.surf.gii",
+              "sha256": "fc7d493e16d696b410b304e8a74718846d337700fc7029831b5b57a80c58d381",
+              "vertex_count": 33036,
+              "triangle_count": 66068,
+              "topology_sha256": "284423fd4fb04a8eb2014c3dddf96baeaa779a3aae9fae938f717d1959929ea6",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  72.38314056396484,
+                  9.058000564575195,
+                  7.0436272621154785
+                ],
+                "max": [
+                  143.40638732910156,
+                  180.86883544921875,
+                  129.5916290283203
+                ],
+                "extent": [
+                  71.02324676513672,
+                  171.81083488464355,
+                  122.54800176620483
+                ]
+              },
+              "centroid": [
+                104.40185967766499,
+                97.57640200859844,
+                69.11766900597942
+              ],
+              "surface_area": 50722.20616718418,
+              "rms_radius": 58.92325630636641,
+              "edge_length": {
+                "p50": 1.3436083235084637,
+                "p90": 2.1176444116174236,
+                "p95": 2.4261617046978405,
+                "p99": 3.134821724449814,
+                "max": 5.083352551612899
+              },
+              "triangle_area": {
+                "p50": 0.6813982492391925,
+                "p90": 1.256706841588547,
+                "p95": 1.5302288269230635,
+                "p99": 2.1622831637669275,
+                "max": 4.621079689705336
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.5111356959049984,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0,
+                1.0
+              ],
+              "rms_radius_ratio": 1.1203105996337333,
+              "edge_length_ratio": {
+                "p50": 0.7077128049811383,
+                "p90": 1.079421560391346,
+                "p95": 1.2111376454362606,
+                "p99": 1.50187044230613,
+                "max": 2.8977190756059867
+              },
+              "triangle_area_ratio": {
+                "p50": 0.49333298050305496,
+                "p90": 0.9111807539298796,
+                "p95": 1.0927767950562226,
+                "p99": 1.5387817282076852,
+                "max": 3.829245077781199
+              },
+              "vertex_displacement": {
+                "p50": 7.9209562169831775,
+                "p90": 13.188749874961315,
+                "p95": 14.76131172011626,
+                "p99": 17.38412078982988,
+                "max": 20.485791939006965
+              }
+            },
+            "comparison_to_local_reference": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.9999098373737364,
+              "bounding_box_extent_ratio": [
+                1.1093285441601506,
+                1.0400243301775791,
+                1.074027140234732
+              ],
+              "rms_radius_ratio": 1.1351847466232017,
+              "edge_length_ratio": {
+                "p50": 1.0436218018573822,
+                "p90": 1.3542774651342948,
+                "p95": 1.4613012622594346,
+                "p99": 1.7072834714764675,
+                "max": 2.92741767467602
+              },
+              "triangle_area_ratio": {
+                "p50": 1.0572270999387023,
+                "p90": 1.6106008437000552,
+                "p95": 1.826057804416792,
+                "p99": 2.3527827798209913,
+                "max": 5.178044189954784
+              },
+              "vertex_displacement": {
+                "p50": 7.788956912699765,
+                "p90": 10.98607952822783,
+                "p95": 11.844889502188874,
+                "p99": 13.166985965960546,
+                "max": 14.460256279361118
+              }
+            }
+          },
+          "very_inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_left_anatomical.very-inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_left_anatomical.very-inflated.surf.gii",
+              "sha256": "0d4c259b71c332785d746e11b30e80b03279a67edda79b7fc0c4ca0171033f53",
+              "vertex_count": 33036,
+              "triangle_count": 66068,
+              "topology_sha256": "284423fd4fb04a8eb2014c3dddf96baeaa779a3aae9fae938f717d1959929ea6",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  72.38314056396484,
+                  9.058000564575195,
+                  7.0436272621154785
+                ],
+                "max": [
+                  143.40638732910156,
+                  180.86883544921875,
+                  129.5916290283203
+                ],
+                "extent": [
+                  71.02324676513672,
+                  171.81083488464355,
+                  122.54800176620483
+                ]
+              },
+              "centroid": [
+                105.22649893787816,
+                97.24170501253221,
+                68.92120772488312
+              ],
+              "surface_area": 45465.31962396092,
+              "rms_radius": 61.50540317402289,
+              "edge_length": {
+                "p50": 1.2709539911532635,
+                "p90": 2.0221511497134363,
+                "p95": 2.327950791210113,
+                "p99": 3.0228983961127778,
+                "max": 5.186328230719119
+              },
+              "triangle_area": {
+                "p50": 0.6180982330014542,
+                "p90": 1.1308636858996761,
+                "p95": 1.359124829112321,
+                "p99": 1.9360993211135145,
+                "max": 4.301572616029843
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.4581612185585764,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0,
+                1.0
+              ],
+              "rms_radius_ratio": 1.1694050775527012,
+              "edge_length_ratio": {
+                "p50": 0.6681938790840749,
+                "p90": 1.0571149716450434,
+                "p95": 1.1955382071310645,
+                "p99": 1.5144398021853838,
+                "max": 3.017755409836261
+              },
+              "triangle_area_ratio": {
+                "p50": 0.44128353743382015,
+                "p90": 0.8456086275286893,
+                "p95": 1.0243086211248746,
+                "p99": 1.5079528781455163,
+                "max": 3.6392348430952253
+              },
+              "vertex_displacement": {
+                "p50": 11.394729616423724,
+                "p90": 19.040767915041112,
+                "p95": 21.275832986133405,
+                "p99": 25.0769786376645,
+                "max": 29.508803306064685
+              }
+            },
+            "comparison_to_local_reference": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.8962784505369528,
+              "bounding_box_extent_ratio": [
+                1.1093285441601506,
+                1.0400243301775791,
+                1.074027140234732
+              ],
+              "rms_radius_ratio": 1.1849310424230115,
+              "edge_length_ratio": {
+                "p50": 0.9919878920042893,
+                "p90": 1.374115648619413,
+                "p95": 1.516512938394403,
+                "p99": 1.8278915946648517,
+                "max": 2.9300285487331794
+              },
+              "triangle_area_ratio": {
+                "p50": 0.9465336028187017,
+                "p90": 1.5926244742270543,
+                "p95": 1.849734435237739,
+                "p99": 2.453054891180029,
+                "max": 5.364347691246141
+              },
+              "vertex_displacement": {
+                "p50": 11.158391299620906,
+                "p90": 16.73132428953739,
+                "p95": 18.189641828422136,
+                "p99": 20.930670937098565,
+                "max": 24.25703067684381
+              }
+            }
+          }
+        }
+      },
+      "mni_right_anatomical": {
+        "source": "Assets/Data/Meshes/MNI_Rwhite.gii",
+        "source_sha256": "7fa5c371eb4dbbe6f7104b77bf105a8f80453b02e0b509d03a61adffc86d0beb",
+        "command": [
+          "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+          "-surface-generate-inflated",
+          "Assets/Data/Meshes/MNI_Rwhite.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/mni_right_anatomical.inflated.surf.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/mni_right_anatomical.very-inflated.surf.gii",
+          "-iterations-scale",
+          "1.0"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_right_anatomical.inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_right_anatomical.inflated.surf.gii",
+              "sha256": "15768637dcaf8c150593eb85ae7e52c900e5e4b71ea837430ce0c17c3df91427",
+              "vertex_count": 33263,
+              "triangle_count": 66522,
+              "topology_sha256": "ca10cd68f67ed781792bb752b9c9889438f901db15aa7d6628be69876e6a439e",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  7.409074783325195,
+                  8.104819297790527,
+                  5.3061418533325195
+                ],
+                "max": [
+                  77.02474975585938,
+                  179.9082489013672,
+                  134.41744995117188
+                ],
+                "extent": [
+                  69.61567497253418,
+                  171.80342960357666,
+                  129.11130809783936
+                ]
+              },
+              "centroid": [
+                44.62000138449324,
+                96.4842657237977,
+                69.56323194162603
+              ],
+              "surface_area": 52818.18959116798,
+              "rms_radius": 59.329879550939985,
+              "edge_length": {
+                "p50": 1.366040201820572,
+                "p90": 2.150805059648925,
+                "p95": 2.457699676970949,
+                "p99": 3.1512933589248,
+                "max": 5.604896929141235
+              },
+              "triangle_area": {
+                "p50": 0.70814482224156,
+                "p90": 1.301976885982712,
+                "p95": 1.5882380607839997,
+                "p99": 2.2471803660457277,
+                "max": 4.341457814644339
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.5338954260113438,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0000000888154006,
+                1.0
+              ],
+              "rms_radius_ratio": 1.1382178159154395,
+              "edge_length_ratio": {
+                "p50": 0.7239970239634531,
+                "p90": 1.092857560134075,
+                "p95": 1.222827162081656,
+                "p99": 1.5189586873550645,
+                "max": 2.8277761426536943
+              },
+              "triangle_area_ratio": {
+                "p50": 0.5171339452156016,
+                "p90": 0.9351145900694697,
+                "p95": 1.1192361008160905,
+                "p99": 1.588917596145598,
+                "max": 4.3813183876951625
+              },
+              "vertex_displacement": {
+                "p50": 8.674615304873543,
+                "p90": 13.66707279136111,
+                "p95": 15.225233066683739,
+                "p99": 17.507483652599408,
+                "max": 20.224481742682144
+              }
+            },
+            "comparison_to_local_reference": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 1.0420272211860429,
+              "bounding_box_extent_ratio": [
+                1.1249422502070163,
+                1.0480640120611082,
+                1.076991582350546
+              ],
+              "rms_radius_ratio": 1.1534359463352784,
+              "edge_length_ratio": {
+                "p50": 1.065921817487603,
+                "p90": 1.3754807795567257,
+                "p95": 1.4865731988379047,
+                "p99": 1.7494636086283955,
+                "max": 3.898659942098292
+              },
+              "triangle_area_ratio": {
+                "p50": 1.1039357618546632,
+                "p90": 1.666935886402736,
+                "p95": 1.893130431715209,
+                "p99": 2.5238025782966296,
+                "max": 9.441606523375684
+              },
+              "vertex_displacement": {
+                "p50": 8.417680569021584,
+                "p90": 11.633333436320275,
+                "p95": 12.426647750286548,
+                "p99": 13.741333913175358,
+                "max": 14.898712592728147
+              }
+            }
+          },
+          "very_inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_right_anatomical.very-inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni_right_anatomical.very-inflated.surf.gii",
+              "sha256": "9a71d36f386d7b3b71017fa9b10ba4622feef2ded1a73edba38fbf619c445c1f",
+              "vertex_count": 33263,
+              "triangle_count": 66522,
+              "topology_sha256": "ca10cd68f67ed781792bb752b9c9889438f901db15aa7d6628be69876e6a439e",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  7.409074783325195,
+                  8.104819297790527,
+                  5.3061418533325195
+                ],
+                "max": [
+                  77.02474975585938,
+                  179.90823364257812,
+                  134.41744995117188
+                ],
+                "extent": [
+                  69.61567497253418,
+                  171.8034143447876,
+                  129.11130809783936
+                ]
+              },
+              "centroid": [
+                43.763807779940656,
+                95.82928675892471,
+                69.82666384469573
+              ],
+              "surface_area": 47054.499234071714,
+              "rms_radius": 61.87688169374873,
+              "edge_length": {
+                "p50": 1.2900379065540286,
+                "p90": 2.039353720404237,
+                "p95": 2.347697705000367,
+                "p99": 3.025373783755531,
+                "max": 6.3718087787002355
+              },
+              "triangle_area": {
+                "p50": 0.6376735595101498,
+                "p90": 1.159629774206036,
+                "p95": 1.4080848508952009,
+                "p99": 1.9753710701616767,
+                "max": 5.2442474161973225
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.4756350436995285,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0,
+                1.0
+              ],
+              "rms_radius_ratio": 1.1870809391521995,
+              "edge_length_ratio": {
+                "p50": 0.6822407286618151,
+                "p90": 1.0681507428597978,
+                "p95": 1.209647807178312,
+                "p99": 1.5283011908040023,
+                "max": 2.7929596995080774
+              },
+              "triangle_area_ratio": {
+                "p50": 0.46009302857026757,
+                "p90": 0.8638728491166031,
+                "p95": 1.0406346516497933,
+                "p99": 1.5094240607341687,
+                "max": 4.377968960377698
+              },
+              "vertex_displacement": {
+                "p50": 11.939809289546822,
+                "p90": 19.706733337282845,
+                "p95": 21.871339317100603,
+                "p99": 25.37420939683904,
+                "max": 29.625024574264952
+              }
+            },
+            "comparison_to_local_reference": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.9283178666422799,
+              "bounding_box_extent_ratio": [
+                1.1249422502070163,
+                1.0480639189768914,
+                1.076991582350546
+              ],
+              "rms_radius_ratio": 1.2029523763220649,
+              "edge_length_ratio": {
+                "p50": 1.010094607915606,
+                "p90": 1.3937622517806714,
+                "p95": 1.5408815358617651,
+                "p99": 1.867969153673976,
+                "max": 3.617356108186903
+              },
+              "triangle_area_ratio": {
+                "p50": 0.9887522171531806,
+                "p90": 1.6127274630307147,
+                "p95": 1.8760027524066007,
+                "p99": 2.612357015301804,
+                "max": 6.815312780807269
+              },
+              "vertex_displacement": {
+                "p50": 11.478584005484672,
+                "p90": 17.498417541654167,
+                "p95": 18.926217449702506,
+                "p99": 21.56379352704957,
+                "max": 24.448271367536112
+              }
+            }
+          }
+        }
+      },
+      "patient_proxy_low_density": {
+        "source": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-low.gii",
+        "source_sha256": "9cbd1c88eaaed3ddb542af9142b693fb1085ef213e52e69af65f8bb71ec5958b",
+        "command": [
+          "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+          "-surface-generate-inflated",
+          "Docs/dev/inflation/phase-0/fixtures/patient-proxy-low.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_low_density.inflated.surf.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_low_density.very-inflated.surf.gii",
+          "-iterations-scale",
+          "1.0"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_low_density.inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_low_density.inflated.surf.gii",
+              "sha256": "f74bbcd0946ffbd4792f57787eb7ac21f8a9f51ab1c315d8939b38537d368178",
+              "vertex_count": 2562,
+              "triangle_count": 5120,
+              "topology_sha256": "1d19353ebb1a280dd705a884e8db6ef144348417dd5324e62326249995dddb35",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -110.5186996459961,
+                  -50.63999938964844,
+                  -62.5369758605957
+                ],
+                "max": [
+                  38.518699645996094,
+                  47.08359146118164,
+                  62.536964416503906
+                ],
+                "extent": [
+                  149.0373992919922,
+                  97.72359085083008,
+                  125.07394027709961
+                ]
+              },
+              "centroid": [
+                -35.99999940723899,
+                -1.7475841031965977,
+                -8.062870233817895e-06
+              ],
+              "surface_area": 48168.61849575928,
+              "rms_radius": 62.81469937440666,
+              "edge_length": {
+                "p50": 4.7753038409693485,
+                "p90": 5.303844145302359,
+                "p95": 5.4314039714790665,
+                "p99": 5.636349447524248,
+                "max": 5.695758819582633
+              },
+              "triangle_area": {
+                "p50": 9.423751134721206,
+                "p90": 10.791977358097828,
+                "p95": 11.124908780926322,
+                "p99": 11.37866176003704,
+                "max": 11.460980984230831
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 1.003257757319184,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0000000780711706,
+                0.9999999085013974
+              ],
+              "rms_radius_ratio": 1.027245802995026,
+              "edge_length_ratio": {
+                "p50": 1.0123579000965626,
+                "p90": 1.1102119363984504,
+                "p95": 1.1277907808792318,
+                "p99": 1.15685962319475,
+                "max": 1.18259279094063
+              },
+              "triangle_area_ratio": {
+                "p50": 1.0329609674734281,
+                "p90": 1.1820748760002975,
+                "p95": 1.2099225376147142,
+                "p99": 1.2621238994073853,
+                "max": 1.304098840133504
+              },
+              "vertex_displacement": {
+                "p50": 2.532722104364133,
+                "p90": 4.695518904030134,
+                "p95": 5.334729500600122,
+                "p99": 6.025340681887579,
+                "max": 6.728683183306831
+              }
+            }
+          },
+          "very_inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_low_density.very-inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_low_density.very-inflated.surf.gii",
+              "sha256": "b03f5f310ce68d34a8084d86d386a0800431ba70ea770b1c6ba5595c9f7617bd",
+              "vertex_count": 2562,
+              "triangle_count": 5120,
+              "topology_sha256": "1d19353ebb1a280dd705a884e8db6ef144348417dd5324e62326249995dddb35",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -110.5186996459961,
+                  -50.63999938964844,
+                  -62.5369758605957
+                ],
+                "max": [
+                  38.518707275390625,
+                  47.08359146118164,
+                  62.5369758605957
+                ],
+                "extent": [
+                  149.03740692138672,
+                  97.72359085083008,
+                  125.0739517211914
+                ]
+              },
+              "centroid": [
+                -35.99999318124725,
+                -1.7778681136121004,
+                1.707506972310717e-07
+              ],
+              "surface_area": 48283.51575677612,
+              "rms_radius": 62.82630412515736,
+              "edge_length": {
+                "p50": 4.776294963116696,
+                "p90": 5.291735870681282,
+                "p95": 5.403848879449353,
+                "p99": 5.591544933235806,
+                "max": 5.647773742682222
+              },
+              "triangle_area": {
+                "p50": 9.480110811711711,
+                "p90": 10.685092662576436,
+                "p95": 10.969751423647056,
+                "p99": 11.185856717940386,
+                "max": 11.266369856328746
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 1.005650841696724,
+              "bounding_box_extent_ratio": [
+                1.000000051191141,
+                1.0000000780711706,
+                1.0
+              ],
+              "rms_radius_ratio": 1.0274355823241033,
+              "edge_length_ratio": {
+                "p50": 1.0128365609402277,
+                "p90": 1.112455578836432,
+                "p95": 1.1317277484834984,
+                "p99": 1.1619984790889717,
+                "max": 1.1812910250055642
+              },
+              "triangle_area_ratio": {
+                "p50": 1.0333515117928367,
+                "p90": 1.1908297292313252,
+                "p95": 1.2210112216577784,
+                "p99": 1.2614530706727882,
+                "max": 1.3233864117122174
+              },
+              "vertex_displacement": {
+                "p50": 2.5896518321205617,
+                "p90": 4.811534577346065,
+                "p95": 5.461654009118465,
+                "p99": 6.1463762439777145,
+                "max": 6.804026156553573
+              }
+            }
+          }
+        }
+      },
+      "patient_proxy_medium_density": {
+        "source": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-medium.gii",
+        "source_sha256": "323861e1e6e96d6063b0175a00a0838c0caabf697b56d693fabf84688bc8b894",
+        "command": [
+          "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+          "-surface-generate-inflated",
+          "Docs/dev/inflation/phase-0/fixtures/patient-proxy-medium.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_medium_density.inflated.surf.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_medium_density.very-inflated.surf.gii",
+          "-iterations-scale",
+          "1.0"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_medium_density.inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_medium_density.inflated.surf.gii",
+              "sha256": "980449b5fb26843767c520320ef36dc88f5bc1e4ebc37ed15f5aa7f690476a7a",
+              "vertex_count": 10242,
+              "triangle_count": 20480,
+              "topology_sha256": "6bf33a7fc9429eef8639fd65852d853d10c4399075ba2e6a3789cf2ac7743fd9",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -109.10868072509766,
+                  -50.45782470703125,
+                  -62.60456466674805
+                ],
+                "max": [
+                  39.485252380371094,
+                  48.48092269897461,
+                  62.60456085205078
+                ],
+                "extent": [
+                  148.59393310546875,
+                  98.93874740600586,
+                  125.20912551879883
+                ]
+              },
+              "centroid": [
+                -35.300373819900095,
+                -0.5730144640162014,
+                -1.8785962269027177e-06
+              ],
+              "surface_area": 48249.83335623311,
+              "rms_radius": 62.879360835757886,
+              "edge_length": {
+                "p50": 2.396707236182052,
+                "p90": 2.667390612779169,
+                "p95": 2.744055126227402,
+                "p99": 2.858621848155761,
+                "max": 2.9390194824753517
+              },
+              "triangle_area": {
+                "p50": 2.34095307226863,
+                "p90": 2.7496947645488743,
+                "p95": 2.8502772391619273,
+                "p99": 2.9266215189423663,
+                "max": 2.9766862787019854
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.9963889710942091,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0,
+                0.9999999695333935
+              ],
+              "rms_radius_ratio": 1.028304164453874,
+              "edge_length_ratio": {
+                "p50": 1.011308175617172,
+                "p90": 1.1073714595185697,
+                "p95": 1.1296561667181066,
+                "p99": 1.1638134642327238,
+                "max": 1.212484385360709
+              },
+              "triangle_area_ratio": {
+                "p50": 1.0319760717516333,
+                "p90": 1.1791106039998684,
+                "p95": 1.2212619363977055,
+                "p99": 1.2923819995221704,
+                "max": 1.353483104246306
+              },
+              "vertex_displacement": {
+                "p50": 1.9609326498500028,
+                "p90": 3.9982052550769587,
+                "p95": 4.478816398148293,
+                "p99": 5.347739480775603,
+                "max": 6.165944824704031
+              }
+            }
+          },
+          "very_inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_medium_density.very-inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_medium_density.very-inflated.surf.gii",
+              "sha256": "b91d96c94380906982dfd2df3ffd9a8a7ed91246ed41fbc68198d0d5e1541664",
+              "vertex_count": 10242,
+              "triangle_count": 20480,
+              "topology_sha256": "6bf33a7fc9429eef8639fd65852d853d10c4399075ba2e6a3789cf2ac7743fd9",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -109.10868072509766,
+                  -50.45782470703125,
+                  -62.60456466674805
+                ],
+                "max": [
+                  39.48524475097656,
+                  48.480926513671875,
+                  62.60456466674805
+                ],
+                "extent": [
+                  148.59392547607422,
+                  98.93875122070312,
+                  125.2091293334961
+                ]
+              },
+              "centroid": [
+                -34.89171875927204,
+                -0.9294488525663347,
+                8.501117804138359e-07
+              ],
+              "surface_area": 48423.932865061746,
+              "rms_radius": 62.94438317099066,
+              "edge_length": {
+                "p50": 2.396046783413029,
+                "p90": 2.6596580354816832,
+                "p95": 2.7255884723832997,
+                "p99": 2.8332085442360517,
+                "max": 2.8663732261584944
+              },
+              "triangle_area": {
+                "p50": 2.3637987941213434,
+                "p90": 2.7267201612559497,
+                "p95": 2.8171875378381857,
+                "p99": 2.886285004280419,
+                "max": 2.904621728780777
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.9999842338838031,
+              "bounding_box_extent_ratio": [
+                0.9999999486560832,
+                1.0000000385561507,
+                1.0
+              ],
+              "rms_radius_ratio": 1.029367513972916,
+              "edge_length_ratio": {
+                "p50": 1.0117084241092595,
+                "p90": 1.1099186681578603,
+                "p95": 1.132767248162942,
+                "p99": 1.163799262980742,
+                "max": 1.2185320491359373
+              },
+              "triangle_area_ratio": {
+                "p50": 1.0349665553709329,
+                "p90": 1.1853657561103308,
+                "p95": 1.22466380818267,
+                "p99": 1.2837342994546495,
+                "max": 1.3575029161161025
+              },
+              "vertex_displacement": {
+                "p50": 2.343511488965074,
+                "p90": 4.541875288462401,
+                "p95": 5.1136659273420415,
+                "p99": 6.329973783771806,
+                "max": 7.377321226341506
+              }
+            }
+          }
+        }
+      },
+      "patient_proxy_high_density": {
+        "source": "Docs/dev/inflation/phase-0/fixtures/patient-proxy-high.gii",
+        "source_sha256": "f051f77fd933898188ad1b36a04a05fa2c72b9ab05170f5471804814f601656c",
+        "command": [
+          "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+          "-surface-generate-inflated",
+          "Docs/dev/inflation/phase-0/fixtures/patient-proxy-high.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_high_density.inflated.surf.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_high_density.very-inflated.surf.gii",
+          "-iterations-scale",
+          "1.0"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_high_density.inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_high_density.inflated.surf.gii",
+              "sha256": "907a08a26588c61066f48dfeb8fd177f085173d9fc78f682a5e8da132defaefc",
+              "vertex_count": 40962,
+              "triangle_count": 81920,
+              "topology_sha256": "f1fe5dd3aa14ecb18bf1a52f1ef643afff5b90f9688e1c603e127179164e67ae",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -107.22130584716797,
+                  -49.91643524169922,
+                  -62.60232925415039
+                ],
+                "max": [
+                  39.93435287475586,
+                  49.526527404785156,
+                  62.602333068847656
+                ],
+                "extent": [
+                  147.15565872192383,
+                  99.44296264648438,
+                  125.20466232299805
+                ]
+              },
+              "centroid": [
+                -35.347678136064786,
+                -0.04491256063444832,
+                6.9982606722758965e-06
+              ],
+              "surface_area": 47890.21498521226,
+              "rms_radius": 62.50260064714171,
+              "edge_length": {
+                "p50": 1.1903517210736767,
+                "p90": 1.3294322655642443,
+                "p95": 1.3644168812126298,
+                "p99": 1.4515640780360348,
+                "max": 1.4816245207258958
+              },
+              "triangle_area": {
+                "p50": 0.5771641587105341,
+                "p90": 0.677621595599481,
+                "p95": 0.7156720735502149,
+                "p99": 0.7552123757360487,
+                "max": 0.7712854753437837
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.9860406458757511,
+              "bounding_box_extent_ratio": [
+                1.0000000259228723,
+                1.0000000767213175,
+                1.0000000304676944
+              ],
+              "rms_radius_ratio": 1.022142334330356,
+              "edge_length_ratio": {
+                "p50": 1.0060078953677483,
+                "p90": 1.0865841963486396,
+                "p95": 1.1054657627841944,
+                "p99": 1.1378481324882828,
+                "max": 1.1885738801579564
+              },
+              "triangle_area_ratio": {
+                "p50": 1.0189886545281475,
+                "p90": 1.1377669565354522,
+                "p95": 1.1790993860370247,
+                "p99": 1.2493377672674184,
+                "max": 1.3234161288636772
+              },
+              "vertex_displacement": {
+                "p50": 1.4999976406977789,
+                "p90": 2.8733844087877327,
+                "p95": 3.390671813377224,
+                "p99": 4.1928021419067765,
+                "max": 5.070170358584131
+              }
+            }
+          },
+          "very_inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_high_density.very-inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/patient_proxy_high_density.very-inflated.surf.gii",
+              "sha256": "893c83a44336e122a0632d77885ff8bed83f86e5d5af83f9d5264dc26b35f7e5",
+              "vertex_count": 40962,
+              "triangle_count": 81920,
+              "topology_sha256": "f1fe5dd3aa14ecb18bf1a52f1ef643afff5b90f9688e1c603e127179164e67ae",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -107.22130584716797,
+                  -49.91643524169922,
+                  -62.60232925415039
+                ],
+                "max": [
+                  39.93434143066406,
+                  49.52652359008789,
+                  62.602333068847656
+                ],
+                "extent": [
+                  147.15564727783203,
+                  99.44295883178711,
+                  125.20466232299805
+                ]
+              },
+              "centroid": [
+                -34.50478270734474,
+                -0.10140089176663966,
+                4.899411309241374e-06
+              ],
+              "surface_area": 48023.00090778638,
+              "rms_radius": 62.707813040696664,
+              "edge_length": {
+                "p50": 1.1958882698292297,
+                "p90": 1.3299497376612124,
+                "p95": 1.367552331095823,
+                "p99": 1.43357705440527,
+                "max": 1.4652206760535669
+              },
+              "triangle_area": {
+                "p50": 0.5806527926367919,
+                "p90": 0.6869759918376891,
+                "p95": 0.7154941525832516,
+                "p99": 0.7347925015982399,
+                "max": 0.7398196645610464
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.988774655670834,
+              "bounding_box_extent_ratio": [
+                0.9999999481542552,
+                1.0000000383606589,
+                1.0000000304676944
+              ],
+              "rms_radius_ratio": 1.0254982950873484,
+              "edge_length_ratio": {
+                "p50": 1.0067456318749137,
+                "p90": 1.1024488661606662,
+                "p95": 1.1248875890393766,
+                "p99": 1.1620814137150668,
+                "max": 1.216274256999285
+              },
+              "triangle_area_ratio": {
+                "p50": 1.0226161407596837,
+                "p90": 1.165363358202937,
+                "p95": 1.2168411480829837,
+                "p99": 1.2944697104534777,
+                "max": 1.3630581785789055
+              },
+              "vertex_displacement": {
+                "p50": 2.1712779425760016,
+                "p90": 4.027517368698753,
+                "p95": 4.664234023893322,
+                "p99": 5.555199982600963,
+                "max": 6.254505675609151
+              }
+            }
+          }
+        }
+      },
+      "open_surface": {
+        "source": "Docs/dev/inflation/phase-0/fixtures/open-surface.gii",
+        "source_sha256": "7179561b50fa19812ae7feb712feda1f70cf74e1b3e465bc36857cef4aae4cb7",
+        "command": [
+          "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+          "-surface-generate-inflated",
+          "Docs/dev/inflation/phase-0/fixtures/open-surface.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/open_surface.inflated.surf.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/open_surface.very-inflated.surf.gii",
+          "-iterations-scale",
+          "1.0"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/open_surface.inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/open_surface.inflated.surf.gii",
+              "sha256": "b3fd476b50c1702e76ce6d70bfcfb0cb3e7f27ae570b97ae5258c89bba8b81ce",
+              "vertex_count": 642,
+              "triangle_count": 1112,
+              "topology_sha256": "da5612a7f818cda9b965d9c6de0270dae6eed22e89a431d8afb7254dac8dd014",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 69,
+              "boundary_edges": 32,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -109.38818359375,
+                  -50.55792999267578,
+                  -62.47106170654297
+                ],
+                "max": [
+                  38.4378776550293,
+                  47.64179229736328,
+                  80.6408920288086
+                ],
+                "extent": [
+                  147.8260612487793,
+                  98.19972229003906,
+                  143.11195373535156
+                ]
+              },
+              "centroid": [
+                -36.391090440812285,
+                -1.2602120242197634,
+                7.753929846267277
+              ],
+              "surface_area": 37579.97491614928,
+              "rms_radius": 65.21084103493129,
+              "edge_length": {
+                "p50": 9.37284250690939,
+                "p90": 10.716708926970588,
+                "p95": 11.240365912873145,
+                "p99": 12.985782859694837,
+                "max": 15.08574986742867
+              },
+              "triangle_area": {
+                "p50": 35.283477838223675,
+                "p90": 43.881721482943455,
+                "p95": 45.69453351614007,
+                "p99": 47.12697670553888,
+                "max": 47.66180379294046
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.9175113221743838,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0000000388463157,
+                1.1454259766515429
+              ],
+              "rms_radius_ratio": 1.066427493995283,
+              "edge_length_ratio": {
+                "p50": 1.010437411728483,
+                "p90": 1.1568906853486052,
+                "p95": 1.1919496191703545,
+                "p99": 1.3568590799416356,
+                "max": 1.6211015969964742
+              },
+              "triangle_area_ratio": {
+                "p50": 0.9668443889015121,
+                "p90": 1.199547100172949,
+                "p95": 1.2529227027445078,
+                "p99": 1.3296153606590178,
+                "max": 1.3567879135464005
+              },
+              "vertex_displacement": {
+                "p50": 10.409684616158044,
+                "p90": 20.82840025004759,
+                "p95": 21.431571894366677,
+                "p99": 22.453639672742213,
+                "max": 25.542701131273954
+              }
+            }
+          },
+          "very_inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/open_surface.very-inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/open_surface.very-inflated.surf.gii",
+              "sha256": "bf3c85a59d85534d8a9392881e81bd948db4a51d641004c3306c9533040101a1",
+              "vertex_count": 642,
+              "triangle_count": 1112,
+              "topology_sha256": "da5612a7f818cda9b965d9c6de0270dae6eed22e89a431d8afb7254dac8dd014",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 1,
+              "isolated_vertices": 69,
+              "boundary_edges": 32,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -109.38818359375,
+                  -50.55792999267578,
+                  -62.47106170654297
+                ],
+                "max": [
+                  38.4378776550293,
+                  47.64179229736328,
+                  87.78948211669922
+                ],
+                "extent": [
+                  147.8260612487793,
+                  98.19972229003906,
+                  150.2605438232422
+                ]
+              },
+              "centroid": [
+                -36.90139556311744,
+                -1.1168764739114547,
+                6.259027993904189
+              ],
+              "surface_area": 34962.39245306309,
+              "rms_radius": 64.67707559476113,
+              "edge_length": {
+                "p50": 8.961838056254855,
+                "p90": 10.488131129284467,
+                "p95": 11.112597409792022,
+                "p99": 13.602169622662116,
+                "max": 15.280399920646527
+              },
+              "triangle_area": {
+                "p50": 32.46977279551294,
+                "p90": 40.130776523847395,
+                "p95": 41.638735796593956,
+                "p99": 43.12925296627127,
+                "max": 43.61230432819022
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.8536033086122293,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0000000388463157,
+                1.2026411887242225
+              ],
+              "rms_radius_ratio": 1.0576985444570148,
+              "edge_length_ratio": {
+                "p50": 0.9679785371784312,
+                "p90": 1.1327533176612323,
+                "p95": 1.1825205756084411,
+                "p99": 1.3738433639268894,
+                "max": 1.6270325305843505
+              },
+              "triangle_area_ratio": {
+                "p50": 0.8984379196099466,
+                "p90": 1.0789859430127413,
+                "p95": 1.1325640914905926,
+                "p99": 1.1847744340278097,
+                "max": 1.2445316452992947
+              },
+              "vertex_displacement": {
+                "p50": 8.714492398992412,
+                "p90": 26.91393699766029,
+                "p95": 28.694136306108263,
+                "p99": 30.494978385457962,
+                "max": 31.122421209778402
+              }
+            }
+          }
+        }
+      },
+      "multi_component_surface": {
+        "source": "Docs/dev/inflation/phase-0/fixtures/multi-component.gii",
+        "source_sha256": "decb2386f52bcc59cfe9dbdbf8f691a3d1f081573b3b007d084150edfa46ef9e",
+        "command": [
+          "C:\\HBP\\Utility\\workbench\\bin_windows64\\wb_command.exe",
+          "-surface-generate-inflated",
+          "Docs/dev/inflation/phase-0/fixtures/multi-component.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.inflated.surf.gii",
+          "Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.very-inflated.surf.gii",
+          "-iterations-scale",
+          "1.0"
+        ],
+        "exit_code": 0,
+        "stdout": "",
+        "stderr": "",
+        "outputs": {
+          "inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.inflated.surf.gii",
+              "sha256": "4c6d6f413c567a9c88d53c074d99ef4e83cf07679750954e3ae9797472960ab6",
+              "vertex_count": 84,
+              "triangle_count": 160,
+              "topology_sha256": "975fb2529309dd802a10761c40112e21903863829d570882bc6c00a52b10394d",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 2,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -1.0,
+                  -1.0,
+                  -1.0
+                ],
+                "max": [
+                  3.3500001430511475,
+                  0.9999998807907104,
+                  0.9999999403953552
+                ],
+                "extent": [
+                  4.3500001430511475,
+                  1.9999998807907104,
+                  1.9999999403953552
+                ]
+              },
+              "centroid": [
+                1.1750844688642592,
+                -3.335273734029172e-05,
+                2.274579136545591e-05
+              ],
+              "surface_area": 6.6254104171874735,
+              "rms_radius": 2.260299915373465,
+              "edge_length": {
+                "p50": 0.2104948442886178,
+                "p90": 0.5575393803425575,
+                "p95": 0.587100217562378,
+                "p99": 0.6177767569271383,
+                "max": 0.6178496794140454
+              },
+              "triangle_area": {
+                "p50": 0.016407631903422572,
+                "p90": 0.10419008147286946,
+                "p95": 0.1339323363836993,
+                "p99": 0.1534424473704467,
+                "max": 0.153476839186641
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.5059493266391413,
+              "bounding_box_extent_ratio": [
+                1.0000000548088699,
+                0.9999999403953552,
+                0.9999999701976776
+              ],
+              "rms_radius_ratio": 1.3480820777601292,
+              "edge_length_ratio": {
+                "p50": 0.8661524471336666,
+                "p90": 1.0009335722845034,
+                "p95": 1.0043899880407228,
+                "p99": 1.0143168307794457,
+                "max": 1.0146568402174405
+              },
+              "triangle_area_ratio": {
+                "p50": 0.578938393160622,
+                "p90": 0.9314890574002012,
+                "p95": 0.9614979895453234,
+                "p99": 0.9616947990830197,
+                "max": 0.9619966736481028
+              },
+              "vertex_displacement": {
+                "p50": 0.5123672411097163,
+                "p90": 1.5177153960663232,
+                "p95": 1.8085475041104349,
+                "p99": 1.8755775040256843,
+                "max": 1.9994803076534549
+              }
+            }
+          },
+          "very_inflated": {
+            "path": "Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.very-inflated.surf.gii",
+            "exists": true,
+            "metrics": {
+              "path": "Docs/dev/inflation/phase-0/external-references/workbench/multi_component_surface.very-inflated.surf.gii",
+              "sha256": "3c31479259c9dbcd51a7ab2d5356f27d652622770ae64f680d222c1f55151bae",
+              "vertex_count": 84,
+              "triangle_count": 160,
+              "topology_sha256": "975fb2529309dd802a10761c40112e21903863829d570882bc6c00a52b10394d",
+              "positions_finite": true,
+              "indices_valid": true,
+              "connected_components": 2,
+              "isolated_vertices": 0,
+              "boundary_edges": 0,
+              "non_manifold_edges": 0,
+              "degenerate_triangles": 0,
+              "zero_length_edges": 0,
+              "bounding_box": {
+                "min": [
+                  -1.0,
+                  -1.0,
+                  -1.0
+                ],
+                "max": [
+                  3.3499999046325684,
+                  1.0,
+                  0.9999999403953552
+                ],
+                "extent": [
+                  4.349999904632568,
+                  2.0,
+                  1.9999999403953552
+                ]
+              },
+              "centroid": [
+                1.2008928195351647,
+                0.002636903098651341,
+                0.008035501908688318
+              ],
+              "surface_area": 0.013930615060671916,
+              "rms_radius": 2.5792542730046333,
+              "edge_length": {
+                "p50": 0.0007666925003838743,
+                "p90": 0.002866930309940646,
+                "p95": 0.0038426077416879073,
+                "p99": 2.253889556447489,
+                "max": 2.254278270981417
+              },
+              "triangle_area": {
+                "p50": 1.2576034347233644e-07,
+                "p90": 1.768934241397346e-06,
+                "p95": 2.9955648654577384e-06,
+                "p99": 0.002814769468275103,
+                "max": 0.003036230598917625
+              }
+            },
+            "comparison_to_source": {
+              "same_vertex_count": true,
+              "same_triangle_count": true,
+              "strictly_identical_topology": true,
+              "surface_area_ratio": 0.0010638111250182798,
+              "bounding_box_extent_ratio": [
+                1.0,
+                1.0,
+                0.9999999701976776
+              ],
+              "rms_radius_ratio": 1.5383119893845025,
+              "edge_length_ratio": {
+                "p50": 0.0023361160676652008,
+                "p90": 0.005684243842695915,
+                "p95": 0.00663161796123799,
+                "p99": 3.6472749557765325,
+                "max": 4.124508373914191
+              },
+              "triangle_area_ratio": {
+                "p50": 3.3207285454466734e-06,
+                "p90": 1.3351661729698706e-05,
+                "p95": 2.085905461107972e-05,
+                "p99": 0.020206507973802555,
+                "max": 0.02179631963712849
+              },
+              "vertex_displacement": {
+                "p50": 1.6092920413475005,
+                "p90": 2.4438908334551286,
+                "p95": 2.5912216990642745,
+                "p99": 2.68361709056871,
+                "max": 2.683720554928422
+              }
+            }
+          }
+        }
+      }
+    },
+    "visual_comparison": {
+      "path": "Docs/dev/inflation/phase-0/external-references/workbench/mni-comparison.png",
+      "sha256": "0f9706e8472bd9b94cdfc9ee13d7b3994616fad085444aa211e88219e9e477b1"
+    }
+  }
+}

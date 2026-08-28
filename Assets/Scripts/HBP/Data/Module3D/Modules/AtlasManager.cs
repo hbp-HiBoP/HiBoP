@@ -12,50 +12,44 @@ namespace HBP.Data.Module3D
     public class AtlasManager : MonoBehaviour
     {
         #region Properties
+
         /// <summary>
         /// Parent scene of the manager
         /// </summary>
         [SerializeField] private Base3DScene m_Scene;
+
         /// <summary>
         /// Component containing references to GameObjects of the 3D scene
         /// </summary>
         [SerializeField] private DisplayedObjects m_DisplayedObjects;
 
         private bool m_DisplayMarsAtlas;
+
         /// <summary>
         /// Do we display the Mars Atlas on the brain mesh ?
         /// </summary>
         public bool DisplayMarsAtlas
         {
-            get
-            {
-                return m_DisplayMarsAtlas;
-            }
+            get { return m_DisplayMarsAtlas; }
             set
             {
-                m_DisplayMarsAtlas = value
-                    && Object3DManager.MarsAtlas.Loaded
-                    && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas;
+                m_DisplayMarsAtlas = value && Object3DManager.MarsAtlas.Loaded && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas;
                 m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
                 UpdateAtlasIndices();
             }
         }
 
         private bool m_DisplayJuBrainAtlas;
+
         /// <summary>
         /// Do we display the JuBrain Atlas on the brain and on the cuts ?
         /// </summary>
         public bool DisplayJuBrainAtlas
         {
-            get
-            {
-                return m_DisplayJuBrainAtlas;
-            }
+            get { return m_DisplayJuBrainAtlas; }
             set
             {
-                m_DisplayJuBrainAtlas = value
-                    && Object3DManager.JuBrain.Loaded
-                    && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
+                m_DisplayJuBrainAtlas = value && Object3DManager.JuBrain.Loaded && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
                 UpdateAtlasIndices();
             }
@@ -66,11 +60,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         public bool DisplayAtlas
         {
-            get
-            {
-                return m_DisplayJuBrainAtlas || m_DisplayMarsAtlas;
-            }
+            get { return m_DisplayJuBrainAtlas || m_DisplayMarsAtlas; }
         }
+
         /// <summary>
         /// Currently selected atlas
         /// </summary>
@@ -97,6 +89,7 @@ namespace HBP.Data.Module3D
         /// JuBrain Atlas indices for the mesh
         /// </summary>
         private int[] m_JuBrainAtlasIndices;
+
         /// <summary>
         /// MarsAtlas indices for the mesh
         /// </summary>
@@ -108,15 +101,13 @@ namespace HBP.Data.Module3D
         public float AtlasAlpha { get; set; } = 1.0f;
 
         private int m_HoveredArea = -1;
+
         /// <summary>
         /// Area of the atlas hovered by the mouse
         /// </summary>
         public int HoveredArea
         {
-            get
-            {
-                return m_HoveredArea;
-            }
+            get { return m_HoveredArea; }
             set
             {
                 if (m_HoveredArea != value)
@@ -126,9 +117,11 @@ namespace HBP.Data.Module3D
                 }
             }
         }
+
         #endregion
 
         #region Public Methods
+
         /// <summary>
         /// Update the indices of all the JuBrain Atlas areas for all vertices
         /// </summary>
@@ -136,20 +129,19 @@ namespace HBP.Data.Module3D
         {
             m_JuBrainAtlasIndices = null;
             m_MarsAtlasIndices = null;
-            if (m_DisplayJuBrainAtlas
-                && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources
-                && Object3DManager.JuBrain.Loaded)
+            if (m_DisplayJuBrainAtlas && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources && Object3DManager.JuBrain.Loaded)
             {
-                m_JuBrainAtlasIndices = Object3DManager.JuBrain.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+                m_JuBrainAtlasIndices = Object3DManager.JuBrain.GetSurfaceAreaLabels(m_Scene.MeshManager.ReferenceSurface);
             }
-            if (m_DisplayMarsAtlas
-                && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas
-                && Object3DManager.MarsAtlas.Loaded)
+
+            if (m_DisplayMarsAtlas && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas && Object3DManager.MarsAtlas.Loaded)
             {
-                m_MarsAtlasIndices = Object3DManager.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.BrainSurface);
+                m_MarsAtlasIndices = Object3DManager.MarsAtlas.GetSurfaceAreaLabels(m_Scene.MeshManager.ReferenceSurface);
             }
+
             UpdateAtlasColors();
         }
+
         /// <summary>
         /// Update all colors for the atlas for all vertices
         /// </summary>
@@ -166,8 +158,10 @@ namespace HBP.Data.Module3D
                         column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
                 }
             }
+
             m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
         }
+
         /// <summary>
         /// Display the information about the atlas area under the mouse
         /// </summary>
@@ -198,10 +192,12 @@ namespace HBP.Data.Module3D
                 Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
             }
         }
+
         public void ColorCuts(Column3D column)
         {
             column.CutTextures.ColorCutsTexturesWithBrainAtlas(SelectedAtlas, AtlasAlpha, HoveredArea);
         }
+
         #endregion
     }
 }

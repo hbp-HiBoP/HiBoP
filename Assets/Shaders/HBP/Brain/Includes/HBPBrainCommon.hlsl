@@ -14,6 +14,8 @@ struct HBPBrainAttributes
     float2 uv : TEXCOORD0;
     float2 alphaUv : TEXCOORD1;
     float2 scientificUv : TEXCOORD2;
+    float3 inflatedPositionOS : TEXCOORD3;
+    float3 inflatedNormalOS : TEXCOORD4;
     float4 color : COLOR;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -41,6 +43,13 @@ void HBP_ExtrudeBrainVertex(inout float3 positionOS, inout float3 normalOS)
     normalOS = normalize(lerp(normalOS, radialNormal, saturate(_Amount)));
 }
 
+void HBP_ApplyInflationBlend(HBPBrainAttributes input, inout float3 positionOS, inout float3 normalOS)
+{
+    float blend = saturate(_InflationBlend);
+    positionOS = lerp(positionOS, input.inflatedPositionOS, blend);
+    normalOS = normalize(lerp(normalOS, input.inflatedNormalOS, blend));
+}
+
 HBPBrainVaryings HBP_BrainVertex(HBPBrainAttributes input)
 {
     HBPBrainVaryings output = (HBPBrainVaryings)0;
@@ -50,6 +59,7 @@ HBPBrainVaryings HBP_BrainVertex(HBPBrainAttributes input)
 
     float3 positionOS = input.positionOS.xyz;
     float3 normalOS = input.normalOS;
+    HBP_ApplyInflationBlend(input, positionOS, normalOS);
     HBP_ExtrudeBrainVertex(positionOS, normalOS);
 
     output.positionOS = positionOS;

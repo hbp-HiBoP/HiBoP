@@ -770,7 +770,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1154829955879146, guid: c83d8bf6e4642534dbb22e2603a2f98c,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1242482128}
   m_SourcePrefab: {fileID: 100100000, guid: c83d8bf6e4642534dbb22e2603a2f98c, type: 3}
 --- !u!1001 &546627137
 PrefabInstance:
@@ -1370,6 +1374,41 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bc381b3a3c8b24d458371b2fab0e56c6, type: 3}
+--- !u!1 &1242482127 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1154829955879146, guid: c83d8bf6e4642534dbb22e2603a2f98c,
+    type: 3}
+  m_PrefabInstance: {fileID: 454821345}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1242482128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1242482127}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!224 &1307877724 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9050812587648180888, guid: 79c66cee3a362ac46b0e302e0489c50e,
@@ -1954,11 +1993,6 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 224572634629950532, guid: 800cf8226ba670f4abd35299f48abc8e,
-        type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 224621198335497128, guid: 800cf8226ba670f4abd35299f48abc8e,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -2207,11 +2241,6 @@ PrefabInstance:
     - target: {fileID: 1831018045764268117, guid: 800cf8226ba670f4abd35299f48abc8e,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1831018045764268117, guid: 800cf8226ba670f4abd35299f48abc8e,
-        type: 3}
-      propertyPath: m_AnchorMin.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3599385686924036698, guid: 800cf8226ba670f4abd35299f48abc8e,

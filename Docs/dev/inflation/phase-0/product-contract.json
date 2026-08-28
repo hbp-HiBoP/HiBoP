@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "representation": {
+    "values": [
+      "anatomical",
+      "inflated"
+    ],
+    "default": "anatomical"
+  },
+  "orthogonal_state": {
+    "cuts_present": "Le nombre de coupes anatomiques actives est indépendant de la représentation affichée.",
+    "cuts_affect_displayed_brain": "true si et seulement si l'état est anatomique stable et qu'au moins une coupe existe",
+    "transition_context": "Une transition mémorise sa représentation source ; son état final est choisi d'après le nombre de coupes courant, pas d'après celui du début de transition."
+  },
+  "states": [
+    {
+      "id": "anatomical_no_cuts",
+      "stable_representation": "anatomical",
+      "cuts": "none",
+      "cuts_affect_displayed_brain": false
+    },
+    {
+      "id": "anatomical_with_cuts",
+      "stable_representation": "anatomical",
+      "cuts": "one_or_more",
+      "cuts_affect_displayed_brain": true
+    },
+    {
+      "id": "inflated_no_cuts",
+      "stable_representation": "inflated",
+      "cuts": "none",
+      "cuts_affect_displayed_brain": false
+    },
+    {
+      "id": "inflated_with_anatomical_cuts",
+      "stable_representation": "inflated",
+      "cuts": "one_or_more",
+      "cuts_affect_displayed_brain": false
+    },
+    {
+      "id": "transition_to_inflated",
+      "stable_representation": null,
+      "cuts": "any",
+      "cuts_affect_displayed_brain": false
+    },
+    {
+      "id": "transition_to_anatomical",
+      "stable_representation": null,
+      "cuts": "any",
+      "cuts_affect_displayed_brain": false,
+      "note": "Le clipping est réactivé uniquement à l'entrée dans l'état anatomique final et utilise les coupes alors courantes."
+    }
+  ],
+  "invariants": [
+    "Créer, modifier ou supprimer une coupe est autorisé dans tous les états.",
+    "Les coupes, leurs vues, textures et calculs utilisent toujours la surface anatomique de référence.",
+    "Les coupes ne clippent jamais l'enveloppe inflated ni une géométrie en transition.",
+    "Les sites et électrodes restent visibles et sélectionnables dans le repère anatomique.",
+    "L'influence des sites et les projections scientifiques utilisent toujours la surface anatomique de référence.",
+    "Une transition interpole uniquement deux géométries déjà calculées et ne change aucune donnée scientifique."
+  ],
+  "transitions": [
+    {
+      "from": "anatomical_no_cuts",
+      "event": "first_cut_created",
+      "to": "anatomical_with_cuts"
+    },
+    {
+      "from": "anatomical_with_cuts",
+      "event": "last_cut_removed",
+      "to": "anatomical_no_cuts"
+    },
+    {
+      "from": "anatomical_no_cuts",
+      "event": "inflated_requested",
+      "to": "transition_to_inflated"
+    },
+    {
+      "from": "anatomical_with_cuts",
+      "event": "inflated_requested",
+      "to": "transition_to_inflated",
+      "informational_message": "once_per_visualization"
+    },
+    {
+      "from": "inflated_no_cuts",
+      "event": "first_cut_created",
+      "to": "inflated_with_anatomical_cuts",
+      "informational_message": "once_per_visualization"
+    },
+    {
+      "from": "inflated_with_anatomical_cuts",
+      "event": "last_cut_removed",
+      "to": "inflated_no_cuts"
+    },
+    {
+      "from": "inflated_no_cuts",
+      "event": "anatomical_requested",
+      "to": "transition_to_anatomical"
+    },
+    {
+      "from": "inflated_with_anatomical_cuts",
+      "event": "anatomical_requested",
+      "to": "transition_to_anatomical"
+    },
+    {
+      "from": "transition_to_inflated",
+      "event": "cut_changed",
+      "to": "transition_to_inflated"
+    },
+    {
+      "from": "transition_to_anatomical",
+      "event": "cut_changed",
+      "to": "transition_to_anatomical"
+    },
+    {
+      "from": "transition_to_inflated",
+      "event": "transition_succeeded",
+      "to_by_current_cuts": {
+        "none": "inflated_no_cuts",
+        "one_or_more": "inflated_with_anatomical_cuts"
+      }
+    },
+    {
+      "from": "transition_to_inflated",
+      "event": "transition_failed_or_cancelled",
+      "to_by_current_cuts": {
+        "none": "anatomical_no_cuts",
+        "one_or_more": "anatomical_with_cuts"
+      }
+    },
+    {
+      "from": "transition_to_anatomical",
+      "event": "transition_succeeded",
+      "to_by_current_cuts": {
+        "none": "anatomical_no_cuts",
+        "one_or_more": "anatomical_with_cuts"
+      },
+      "effect": "Réactiver le clipping à l'entrée dans anatomical_with_cuts."
+    },
+    {
+      "from": "transition_to_anatomical",
+      "event": "transition_failed_or_cancelled",
+      "to_by_current_cuts": {
+        "none": "inflated_no_cuts",
+        "one_or_more": "inflated_with_anatomical_cuts"
+      }
+    }
+  ],
+  "interface_texts_fr": {
+    "inflation_tooltip": "Génère une représentation gonflée du mesh sélectionné. Cette transformation est conçue pour une surface corticale. Sur un autre type de mesh, le résultat reste une déformation géométrique sans signification anatomique garantie.",
+    "sites_tooltip": "Les sites et électrodes restent dans le repère anatomique. Leur influence et les données projetées sont calculées par rapport au mesh anatomique de référence ; ils ne suivent pas la déformation inflated.",
+    "cuts_tooltip": "Les coupes restent définies dans le repère anatomique et continuent d'alimenter les vues et l'exploration volumique. Elles ne découpent pas visuellement la surface inflated.",
+    "cuts_inflated_information": "En mode inflated, les coupes restent définies dans le repère anatomique. Elles continuent d'alimenter les vues et l'exploration volumique, mais ne découpent pas visuellement la surface inflated."
+  },
+  "message_policy": {
+    "kind": "informational",
+    "buttons": [
+      "OK"
+    ],
+    "deduplication_scope": "visualization_instance_lifetime",
+    "serialized": false,
+    "triggers": [
+      "entering_inflated_while_one_or_more_cuts_exist",
+      "creating_the_first_cut_while_inflated_is_displayed"
+    ]
+  }
+}

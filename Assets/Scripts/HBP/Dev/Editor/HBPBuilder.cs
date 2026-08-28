@@ -1,6 +1,7 @@
 ﻿using HBP.Core.Data;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
@@ -32,8 +33,9 @@ namespace HBP.Dev
 
                 BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
                 ScriptingImplementation scriptingBackend = GetCommandLineScriptingBackend(target);
+                bool development = HasCommandLineArgument("-developmentBuild");
                 WriteBuildInfo();
-                BuildProjectAndZipIt(buildsDirectory, true, target, scriptingBackend);
+                BuildProjectAndZipIt(buildsDirectory, development, target, scriptingBackend);
             }
             catch (System.Exception exception)
             {
@@ -98,6 +100,11 @@ namespace HBP.Dev
                     break;
             }
 
+            if (connectProfiler && !development)
+            {
+                throw new BuildFailedException("The profiler can only be connected to a development build.");
+            }
+
             BuildOptions buildOptions = development ? BuildOptions.Development : BuildOptions.None;
             if (connectProfiler)
             {
@@ -111,6 +118,7 @@ namespace HBP.Dev
                 scenes = new string[] { "Assets/_Scenes/HiBoP.unity" },
                 options = buildOptions
             };
+            using DiagnosticBuildSettingsScope diagnosticSettings = new(development, scriptingBackend);
             BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
             if (report.summary.result != BuildResult.Succeeded)
             {
@@ -226,6 +234,20 @@ namespace HBP.Dev
             return null;
         }
 
+        private static bool HasCommandLineArgument(string argumentName)
+        {
+            string[] arguments = Environment.GetCommandLineArgs();
+            foreach (string argument in arguments)
+            {
+                if (string.Equals(argument, argumentName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static ScriptingImplementation GetCommandLineScriptingBackend(BuildTarget target)
         {
             string value = GetCommandLineArgument("-scriptingBackend");
@@ -258,10 +280,125 @@ namespace HBP.Dev
             {
                 UnityVersion = Application.unityVersion,
                 Version = Application.version,
-                BuildDate = System.DateTime.Now
+                BuildDate = DateTime.Now,
+                Commit = GetBuildCommit()
             };
             File.WriteAllText("Assets/Resources/BuildInfo.json", JsonConvert.SerializeObject(buildInfo));
             AssetDatabase.Refresh();
+        }
+
+        private static string GetBuildCommit()
+        {
+            string commit = GetCommandLineArgument("-buildCommit");
+            if (string.IsNullOrWhiteSpace(commit))
+            {
+                commit = Environment.GetEnvironmentVariable("GITHUB_SHA");
+            }
+
+            if (string.IsNullOrWhiteSpace(commit))
+            {
+                commit = GetLocalGitCommit();
+            }
+
+            commit = commit?.Trim() ?? string.Empty;
+            return commit.Length > 12 ? commit[..12] : commit;
+        }
+
+        private static string GetLocalGitCommit()
+        {
+            try
+            {
+                System.Diagnostics.ProcessStartInfo startInfo = new()
+                {
+                    FileName = "git",
+                    Arguments = "rev-parse HEAD",
+                    WorkingDirectory = Path.GetDirectoryName(Application.dataPath),
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+                using System.Diagnostics.Process process = System.Diagnostics.Process.Start(startInfo);
+                if (process == null)
+                {
+                    return string.Empty;
+                }
+
+                if (!process.WaitForExit(2000))
+                {
+                    process.Kill();
+                    return string.Empty;
+                }
+
+                return process.ExitCode == 0 ? process.StandardOutput.ReadToEnd() : string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private sealed class DiagnosticBuildSettingsScope : IDisposable
+        {
+            private readonly bool m_UsePlayerLog;
+            private readonly StackTraceLogType m_ErrorStackTrace;
+            private readonly StackTraceLogType m_AssertStackTrace;
+            private readonly StackTraceLogType m_WarningStackTrace;
+            private readonly StackTraceLogType m_LogStackTrace;
+            private readonly StackTraceLogType m_ExceptionStackTrace;
+            private readonly bool m_UsesIl2Cpp;
+            private readonly Il2CppStacktraceInformation m_Il2CppStacktraceInformation;
+            private readonly Il2CppCompilerConfiguration m_Il2CppCompilerConfiguration;
+            private readonly Il2CppCodeGeneration m_Il2CppCodeGeneration;
+
+            public DiagnosticBuildSettingsScope(bool development, ScriptingImplementation scriptingBackend)
+            {
+                m_UsePlayerLog = PlayerSettings.usePlayerLog;
+                m_ErrorStackTrace = PlayerSettings.GetStackTraceLogType(LogType.Error);
+                m_AssertStackTrace = PlayerSettings.GetStackTraceLogType(LogType.Assert);
+                m_WarningStackTrace = PlayerSettings.GetStackTraceLogType(LogType.Warning);
+                m_LogStackTrace = PlayerSettings.GetStackTraceLogType(LogType.Log);
+                m_ExceptionStackTrace = PlayerSettings.GetStackTraceLogType(LogType.Exception);
+                m_UsesIl2Cpp = scriptingBackend == ScriptingImplementation.IL2CPP;
+
+                PlayerSettings.usePlayerLog = true;
+                PlayerSettings.SetStackTraceLogType(LogType.Error, StackTraceLogType.ScriptOnly);
+                PlayerSettings.SetStackTraceLogType(LogType.Assert, StackTraceLogType.ScriptOnly);
+                PlayerSettings.SetStackTraceLogType(LogType.Warning, development ? StackTraceLogType.ScriptOnly : StackTraceLogType.None);
+                PlayerSettings.SetStackTraceLogType(LogType.Log, development ? StackTraceLogType.ScriptOnly : StackTraceLogType.None);
+                PlayerSettings.SetStackTraceLogType(LogType.Exception, StackTraceLogType.ScriptOnly);
+
+                if (!m_UsesIl2Cpp)
+                {
+                    return;
+                }
+
+                m_Il2CppStacktraceInformation = PlayerSettings.GetIl2CppStacktraceInformation(NamedBuildTarget.Standalone);
+                m_Il2CppCompilerConfiguration = PlayerSettings.GetIl2CppCompilerConfiguration(NamedBuildTarget.Standalone);
+                m_Il2CppCodeGeneration = PlayerSettings.GetIl2CppCodeGeneration(NamedBuildTarget.Standalone);
+                PlayerSettings.SetIl2CppStacktraceInformation(NamedBuildTarget.Standalone, Il2CppStacktraceInformation.MethodFileLineNumber);
+                if (!development)
+                {
+                    PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Standalone, Il2CppCompilerConfiguration.Release);
+                    PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, Il2CppCodeGeneration.OptimizeSpeed);
+                }
+            }
+
+            public void Dispose()
+            {
+                PlayerSettings.usePlayerLog = m_UsePlayerLog;
+                PlayerSettings.SetStackTraceLogType(LogType.Error, m_ErrorStackTrace);
+                PlayerSettings.SetStackTraceLogType(LogType.Assert, m_AssertStackTrace);
+                PlayerSettings.SetStackTraceLogType(LogType.Warning, m_WarningStackTrace);
+                PlayerSettings.SetStackTraceLogType(LogType.Log, m_LogStackTrace);
+                PlayerSettings.SetStackTraceLogType(LogType.Exception, m_ExceptionStackTrace);
+
+                if (m_UsesIl2Cpp)
+                {
+                    PlayerSettings.SetIl2CppStacktraceInformation(NamedBuildTarget.Standalone, m_Il2CppStacktraceInformation);
+                    PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Standalone, m_Il2CppCompilerConfiguration);
+                    PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, m_Il2CppCodeGeneration);
+                }
+            }
         }
     }
 

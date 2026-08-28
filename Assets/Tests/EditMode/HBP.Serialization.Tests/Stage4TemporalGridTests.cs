@@ -109,26 +109,33 @@ namespace HBP.Tests.Serialization
         {
             Bloc bloc = CreateBloc(new TimeWindow(0, 1500), out SubBloc subBloc);
             ProcessedIEEGData data = new();
-            GetFrequencies(data).Add(new Frequency(64));
-            const string channel = "patient_A1";
-            float[] nativeValues = new float[97];
-            for (int i = 0; i < nativeValues.Length; ++i)
-                nativeValues[i] = i;
-            BlocChannelStatistics statistics = (BlocChannelStatistics)FormatterServices.GetUninitializedObject(typeof(BlocChannelStatistics));
-            statistics.Trial = new ChannelTrialStat(new Dictionary<SubBloc, ChannelSubTrialStat>
+            try
             {
-                { subBloc, new ChannelSubTrialStat(nativeValues, new float[nativeValues.Length]) }
-            }, 1, 1);
-            data.DataByChannelID.Add(channel, null);
-            data.StatisticsByChannelID.Add(channel, statistics);
-            GetFrequencyByChannel(data).Add(channel, new Frequency(64));
+                GetFrequencies(data).Add(new Frequency(64));
+                const string channel = "patient_A1";
+                float[] nativeValues = new float[97];
+                for (int i = 0; i < nativeValues.Length; ++i)
+                    nativeValues[i] = i;
+                BlocChannelStatistics statistics = (BlocChannelStatistics)FormatterServices.GetUninitializedObject(typeof(BlocChannelStatistics));
+                statistics.Trial = new ChannelTrialStat(new Dictionary<SubBloc, ChannelSubTrialStat>
+                {
+                    { subBloc, new ChannelSubTrialStat(nativeValues, new float[nativeValues.Length]) }
+                }, 1, 1);
+                data.DataByChannelID.Add(channel, null);
+                data.StatisticsByChannelID.Add(channel, statistics);
+                GetFrequencyByChannel(data).Add(channel, new Frequency(64));
 
-            data.SetTimeline(new Frequency(2048), bloc, new[] { bloc });
+                data.SetTimeline(new Frequency(2048), bloc, new[] { bloc });
 
-            Assert.That(data.Timeline.Length, Is.EqualTo(3073));
-            Assert.That(data.ProjectionTimeline.Length, Is.EqualTo(97));
-            Assert.That(data.ProcessedValuesByChannel[channel], Has.Length.EqualTo(97));
-            Assert.That(data.ProcessedValuesByChannel[channel], Is.EqualTo(nativeValues).Within(0.000001f));
+                Assert.That(data.Timeline.Length, Is.EqualTo(3073));
+                Assert.That(data.ProjectionTimeline.Length, Is.EqualTo(97));
+                Assert.That(data.ProcessedValuesByChannel[channel], Has.Length.EqualTo(97));
+                Assert.That(data.ProcessedValuesByChannel[channel], Is.EqualTo(nativeValues).Within(0.000001f));
+            }
+            finally
+            {
+                data.Unload();
+            }
         }
 
         [Test]
@@ -136,12 +143,19 @@ namespace HBP.Tests.Serialization
         {
             Bloc bloc = CreateBloc(new TimeWindow(0, 1500), out _);
             ProcessedIEEGData data = new();
-            GetFrequencies(data).Add(new Frequency(64));
-            GetFrequencies(data).Add(new Frequency(2048));
+            try
+            {
+                GetFrequencies(data).Add(new Frequency(64));
+                GetFrequencies(data).Add(new Frequency(2048));
 
-            data.SetTimeline(new Frequency(2048), bloc, new[] { bloc });
+                data.SetTimeline(new Frequency(2048), bloc, new[] { bloc });
 
-            Assert.That(data.ProjectionTimeline.Length, Is.EqualTo(3073));
+                Assert.That(data.ProjectionTimeline.Length, Is.EqualTo(3073));
+            }
+            finally
+            {
+                data.Unload();
+            }
         }
 
         [Test]

@@ -13,18 +13,22 @@ namespace HBP.Core.Data
 
         [JsonProperty("BuildDate")] public DateTime BuildDate { get; set; }
 
+        [JsonProperty("Commit")] public string Commit { get; set; }
+
         public BuildInfo()
         {
             Version = string.Empty;
             UnityVersion = string.Empty;
             BuildDate = DateTime.MinValue;
+            Commit = string.Empty;
         }
 
-        public BuildInfo(string version, string unityVersion, DateTime buildDate)
+        public BuildInfo(string version, string unityVersion, DateTime buildDate, string commit = "")
         {
             Version = version;
             UnityVersion = unityVersion;
             BuildDate = buildDate;
+            Commit = commit;
         }
     }
 }

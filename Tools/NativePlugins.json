@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "branch": "master",
+  "workflow": "native.yml",
+  "libraries": [
+    {
+      "name": "EEGFormat",
+      "repository": "hbp-HiBoP/EEGFormat",
+      "manifestRepository": "EEGFormat",
+      "targets": [
+        {
+          "platform": "Windows",
+          "architecture": "x86_64",
+          "payload": "EEGFormat.dll",
+          "destination": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll"
+        },
+        {
+          "platform": "Linux",
+          "architecture": "x86_64",
+          "payload": "libEEGFormat.so",
+          "destination": "Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so"
+        },
+        {
+          "platform": "MacOS",
+          "architecture": "arm64",
+          "payload": "EEGFormat.bundle",
+          "destination": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle"
+        }
+      ]
+    },
+    {
+      "name": "hbp_core",
+      "repository": "hbp-HiBoP/hbp_core",
+      "manifestRepository": "hbp_core",
+      "targets": [
+        {
+          "platform": "Windows",
+          "architecture": "x86_64",
+          "payload": "hbp_core.dll",
+          "destination": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll"
+        },
+        {
+          "platform": "Linux",
+          "architecture": "x86_64",
+          "payload": "libhbp_core.so",
+          "destination": "Assets/Plugins/Native/Linux/x86_64/libhbp_core.so"
+        },
+        {
+          "platform": "MacOS",
+          "architecture": "arm64",
+          "payload": "hbp_core.bundle",
+          "destination": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle"
+        }
+      ]
+    },
+    {
+      "name": "hbp_math",
+      "repository": "hbp-HiBoP/hbp_math",
+      "manifestRepository": "hbp_math",
+      "targets": [
+        {
+          "platform": "Windows",
+          "architecture": "x86_64",
+          "payload": "hbp_math.dll",
+          "destination": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll"
+        },
+        {
+          "platform": "Linux",
+          "architecture": "x86_64",
+          "payload": "libhbp_math.so",
+          "destination": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so"
+        },
+        {
+          "platform": "MacOS",
+          "architecture": "arm64",
+          "payload": "hbp_math.bundle",
+          "destination": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle"
+        }
+      ]
+    }
+  ]
+}

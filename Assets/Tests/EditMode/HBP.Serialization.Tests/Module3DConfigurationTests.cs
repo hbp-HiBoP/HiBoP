@@ -12,6 +12,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using DataSphere = HBP.Core.Data.Sphere;
+using SurfaceRepresentation = HBP.Core.Object3D.SurfaceRepresentation;
 
 namespace HBP.Tests.Serialization
 {
@@ -20,7 +21,7 @@ namespace HBP.Tests.Serialization
         [Test]
         public void VisualizationConfiguration_CloneAndCopy_PreserveSceneViewCameraAndColumnState()
         {
-            VisualizationConfiguration source = new(ColorType.Surface, ColorType.Default, ColorType.MatLab, MeshPart.Left, "mesh-alpha", "mri-alpha", "implantation-alpha", true, true, 0.35f, true, true, true, true, 2.25f, 0.15f, 0.85f, CameraControl.Orbital, new[] { new Cut(Vector3.right, CutOrientation.Sagittal, true, 12.5f) }, new[] { new View(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30), new Vector3(4, 5, 6)) }, new[] { new RegionOfInterest("roi-alpha", new List<DataSphere> { new(new Vector3(7, 8, 9), 3.5f) }) }, "module3d-configuration-visualization-config-001");
+            VisualizationConfiguration source = new(ColorType.Surface, ColorType.Default, ColorType.MatLab, MeshPart.Left, "mesh-alpha", "mri-alpha", "implantation-alpha", true, true, 0.35f, true, true, true, true, 2.25f, 0.15f, 0.85f, CameraControl.Orbital, new[] { new Cut(Vector3.right, CutOrientation.Sagittal, true, 12.5f) }, new[] { new View(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30), new Vector3(4, 5, 6)) }, new[] { new RegionOfInterest("roi-alpha", new List<DataSphere> { new(new Vector3(7, 8, 9), 3.5f) }) }, "module3d-configuration-visualization-config-001", SurfaceRepresentation.Inflated);
 
             VisualizationConfiguration clone = (VisualizationConfiguration)source.Clone();
             VisualizationConfiguration copy = new();
@@ -389,6 +390,7 @@ namespace HBP.Tests.Serialization
             Assert.That(actual.Colormap, Is.EqualTo(expected.Colormap));
             Assert.That(actual.MeshPart, Is.EqualTo(expected.MeshPart));
             Assert.That(actual.MeshName, Is.EqualTo(expected.MeshName));
+            Assert.That(actual.SurfaceRepresentation, Is.EqualTo(expected.SurfaceRepresentation));
             Assert.That(actual.MRIName, Is.EqualTo(expected.MRIName));
             Assert.That(actual.ImplantationName, Is.EqualTo(expected.ImplantationName));
             Assert.That(actual.ShowEdges, Is.EqualTo(expected.ShowEdges));

@@ -173,6 +173,7 @@ namespace HBP.Tests.Serialization
 
             Assert.That(configuration.ID, Is.EqualTo("legacy-visualization-config-minimal"));
             Assert.That(configuration.MeshName, Is.EqualTo("legacy-mesh-alpha"));
+            Assert.That(configuration.SurfaceRepresentation, Is.EqualTo(Core.Object3D.SurfaceRepresentation.Anatomical));
             Assert.That(configuration.BrainAlpha, Is.EqualTo(0.2f).Within(0.0001f));
             Assert.That(configuration.CameraType, Is.EqualTo(CameraControl.Trackball));
             Assert.That(configuration.Cuts, Is.Not.Null.And.Empty);

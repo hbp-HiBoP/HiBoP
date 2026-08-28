@@ -11,7 +11,9 @@
 /[Mm]emoryCaptures/
 /[Uu]ser[Ss]ettings/
 /.test-results/
+/.native-plugin-update/
 /LoadingBenchmarks/
+/Tools/InflationBaseline/__pycache__/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
