@@ -103,5 +103,63 @@ Shader "Hidden/HBP/Edges"
             }
             ENDHLSL
         }
+
+        Pass
+        {
+            Name "HBPTransparentBrainComposite"
+            ZTest Always
+            ZWrite Off
+            Cull Off
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex Vert
+            #pragma fragment Frag
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            TEXTURE2D_X(_BlitTexture);
+            TEXTURE2D_X(_HBPTransparentBrainSurface);
+            TEXTURE2D_X_FLOAT(_HBPTransparentBrainDepth);
+            TEXTURE2D_X_FLOAT(_HBPSceneDepth);
+
+            struct Attributes
+            {
+                uint vertexID : SV_VertexID;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS : SV_POSITION;
+                float2 uv : TEXCOORD0;
+            };
+
+            Varyings Vert(Attributes input)
+            {
+                Varyings output;
+                output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
+                output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
+                return output;
+            }
+
+            half4 Frag(Varyings input) : SV_Target
+            {
+                half4 source = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.uv);
+                half4 surface = SAMPLE_TEXTURE2D_X(_HBPTransparentBrainSurface, sampler_LinearClamp, input.uv);
+                float brainDepth = SAMPLE_TEXTURE2D_X(_HBPTransparentBrainDepth, sampler_PointClamp, input.uv).r;
+                float sceneDepth = SAMPLE_TEXTURE2D_X(_HBPSceneDepth, sampler_PointClamp, input.uv).r;
+
+            #if UNITY_REVERSED_Z
+                float brainIsVisible = step(sceneDepth - 0.00001, brainDepth);
+            #else
+                float brainIsVisible = step(brainDepth, sceneDepth + 0.00001);
+            #endif
+
+                half alpha = surface.a * brainIsVisible;
+                half3 color = surface.rgb * alpha + source.rgb * (1.0h - alpha);
+                half outputAlpha = alpha + source.a * (1.0h - alpha);
+                return half4(color, outputAlpha);
+            }
+            ENDHLSL
+        }
     }
 }

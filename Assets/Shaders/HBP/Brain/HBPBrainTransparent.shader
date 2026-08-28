@@ -32,12 +32,11 @@ Shader "HBP/Brain/Transparent"
 
         Pass
         {
-            Name "UniversalForward"
-            Tags { "LightMode" = "UniversalForward" }
+            Name "HBPTransparentBrainSurface"
+            Tags { "LightMode" = "HBPTransparentBrainSurface" }
 
-            Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
             Cull Back
-            ZWrite Off
+            ZWrite On
 
             HLSLPROGRAM
             #pragma target 3.5
