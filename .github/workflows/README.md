@@ -13,29 +13,47 @@ processes the macOS/Linux plugins.
 
 ## Native plugin update from a Windows workstation
 
-No macOS or Linux workstation is required to update `hbp_core`:
+No macOS or Linux workstation is required to update the native plugins. Install
+[GitHub CLI](https://cli.github.com/) once, authenticate with `gh auth login`,
+then run from the HiBoP checkout:
 
-1. In the `hbp_core` repository, run the `native` workflow once. Its matrix
-   produces the Windows x64, Linux x64 and macOS ARM64 packages.
-2. Download the three artifacts on Windows and replace only these items in the
-   HiBoP checkout:
+```powershell
+.\Tools\update-native-plugins.cmd
+```
 
-   | Artifact item | HiBoP destination |
-   | --- | --- |
-   | `hbp_core.dll` | `Assets/Plugins/Native/Windows/x86_64/hbp_core.dll` |
-   | `libhbp_core.so` | `Assets/Plugins/Native/Linux/x86_64/libhbp_core.so` |
-   | `hbp_core.bundle` | `Assets/Plugins/Native/macOS/arm64/hbp_core.bundle` |
+The script resolves and pins the latest commit on GitHub `master` for
+`EEGFormat`, `hbp_core` and `hbp_math`. It dispatches the three native workflows,
+waits for all nine Windows x64, Linux x64 and macOS ARM64 artifacts, validates
+their manifests and SHA-256 hashes, and only then replaces the Unity payloads.
+The existing Unity `.meta` files are never replaced.
 
-   Keep the existing Unity `.meta` files next to those items.
-3. Commit and push the three replacements.
-4. Run **Build HiBoP** with `platform: all`. The matrix builds all three players
-   on native GitHub runners.
+Unity may remain open while GitHub builds and the script downloads artifacts.
+It must be closed for the final installation. If Unity is still open, the
+validated request is preserved and the script prints its identifier. Close
+Unity and resume without rebuilding:
+
+```powershell
+.\Tools\update-native-plugins.cmd -Resume <request-id>
+```
+
+The operation stops before installation when any workflow or artifact
+validation fails. Before replacing files it saves all current payloads under
+`.native-plugin-update/<request-id>`, and restores them if installation fails.
+On success it writes `Tools/NativePlugins.lock.json` with the source commits,
+GitHub run URLs and installed hashes. Commit that lock file together with the
+nine native payloads, then run **Build HiBoP** with `platform: all`.
+
+The local validation suite does not use GitHub or modify the real plugins:
+
+```powershell
+pwsh .\Tools\Test-NativePluginUpdater.ps1
+```
 
 The macOS runner validates the ARM64 binaries and recreates ad-hoc signatures
 before Unity imports the bundles. Consequently, copying the bundle through a
 Windows checkout does not require `chmod`, `codesign`, a Mac, or any additional
-local preparation. `hbp_core` CI never modifies the HiBoP repository, and the
-HiBoP workflow never rebuilds `hbp_core`.
+local preparation. Native library CI never modifies the HiBoP repository, and
+the HiBoP workflow never rebuilds these libraries.
 
 Before packaging, each job verifies that exactly one platform-specific copy of
 `hbp_core`, `hbp_math` and `EEGFormat` is present in the final player, in Unity's

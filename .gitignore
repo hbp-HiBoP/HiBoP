@@ -11,6 +11,7 @@
 /[Mm]emoryCaptures/
 /[Uu]ser[Ss]ettings/
 /.test-results/
+/.native-plugin-update/
 /LoadingBenchmarks/
 /Tools/InflationBaseline/__pycache__/
 
