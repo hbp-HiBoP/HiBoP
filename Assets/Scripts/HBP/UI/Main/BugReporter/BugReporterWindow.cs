@@ -17,7 +17,8 @@ namespace HBP.UI.Main
     {
         #region Properties
 
-        private const string DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1445005361508647075/DwuGjWbEQPHAAqTOWEx_tist_ZcntvmLLdJSUPTnz8wJQpehSI2-naappwKV-IUlwbnG";
+        private const string BUG_REPORT_RELAY_URL = "https://hibop-bug-report-relay.hibop-bug-report-relay.workers.dev/report";
+        private const string INSTALLATION_ID_KEY = "HBP.BugReporter.InstallationId";
         private const int MAX_DIAGNOSTIC_LENGTH = 3200;
         private const int MAX_EMBED_TEXT_LENGTH = 5800;
 
@@ -35,7 +36,7 @@ namespace HBP.UI.Main
         {
             try
             {
-                await LoadingManager.LoadAsync(SendBugReportToDiscord);
+                await LoadingManager.LoadAsync(SendBugReport);
                 m_ReportSent = true;
                 GlobalExceptionManager.CloseCurrentIncident();
                 base.OK();
@@ -67,7 +68,7 @@ namespace HBP.UI.Main
             transform.SetAsLastSibling();
         }
 
-        private async UniTask SendBugReportToDiscord(Action<float, float, LoadingText> updateProgress)
+        private async UniTask SendBugReport(Action<float, float, LoadingText> updateProgress)
         {
             await UniTask.SwitchToMainThread();
             string title = $"[Bug Report] {DateTime.Now:yyyy-MM-dd HH:mm:ss}";
@@ -96,10 +97,12 @@ namespace HBP.UI.Main
             };
 
             string jsonPayload = JsonConvert.SerializeObject(webhookData);
-            using UnityWebRequest request = new(DISCORD_WEBHOOK_URL, "POST");
+            using UnityWebRequest request = new(BUG_REPORT_RELAY_URL, "POST");
             request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(jsonPayload));
             request.downloadHandler = new DownloadHandlerBuffer();
+            request.timeout = 20;
             request.SetRequestHeader("Content-Type", "application/json");
+            request.SetRequestHeader("X-HiBoP-Installation", GetOrCreateInstallationId());
 
             updateProgress?.Invoke(0.5f, 0, new LoadingText("Sending report"));
             await request.SendWebRequest();
@@ -107,7 +110,12 @@ namespace HBP.UI.Main
             updateProgress?.Invoke(1f, 0, new LoadingText("Finalization"));
             if (request.result != UnityWebRequest.Result.Success)
             {
-                throw new Exception($"Discord webhook error: {request.responseCode} - {request.downloadHandler.text}");
+                if (request.responseCode == 429)
+                {
+                    throw new Exception("A bug report was already sent recently. Please wait one minute and try again.");
+                }
+
+                throw new Exception($"Bug report relay error: {request.responseCode}");
             }
 
             DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Bug report successfully sent", "Thank you for your report! The issue will be addressed as soon as possible. If you've entered your contact information, we may reach out for further details.").Forget();
@@ -213,6 +221,20 @@ namespace HBP.UI.Main
             {
                 return Application.version;
             }
+        }
+
+        private static string GetOrCreateInstallationId()
+        {
+            string installationId = PlayerPrefs.GetString(INSTALLATION_ID_KEY);
+            if (Guid.TryParseExact(installationId, "N", out _))
+            {
+                return installationId;
+            }
+
+            installationId = Guid.NewGuid().ToString("N");
+            PlayerPrefs.SetString(INSTALLATION_ID_KEY, installationId);
+            PlayerPrefs.Save();
+            return installationId;
         }
 
         #endregion

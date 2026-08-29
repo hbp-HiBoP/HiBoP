@@ -1,0 +1,47 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hibop-bug-report-relay",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-29",
+  "workers_dev": true,
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "STRICT_RATE_LIMITERS",
+        "class_name": "StrictRateLimiter"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["StrictRateLimiter"]
+    }
+  ],
+  "ratelimits": [
+    {
+      "name": "INSTALLATION_RATE_LIMITER",
+      "namespace_id": "872941001",
+      "simple": {
+        "limit": 1,
+        "period": 60
+      }
+    },
+    {
+      "name": "IP_RATE_LIMITER",
+      "namespace_id": "872941002",
+      "simple": {
+        "limit": 3,
+        "period": 60
+      }
+    },
+    {
+      "name": "GLOBAL_RATE_LIMITER",
+      "namespace_id": "872941003",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    }
+  ]
+}
