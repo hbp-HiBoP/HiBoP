@@ -14,6 +14,7 @@
 /.native-plugin-update/
 /LoadingBenchmarks/
 /Tools/InflationBaseline/__pycache__/
+/.codex-temp/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
