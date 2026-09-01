@@ -36,8 +36,15 @@
 | P02-B | Huit scopes V1, propriétaire unique et catalogue normatif | RESOLVED |
 | P02-C | Champs requis par défaut, `Optional<T>` explicite, évolution additive par capability | RESOLVED |
 | P02-D | Duplicate-first, conflit rejeté sans mutation ni rebase implicite | RESOLVED |
+| P03-A | Sites linéaires ; surfaces/coupes sample-and-hold ; alpha temporel distinct de l'opacité | RESOLVED |
+| P03-B | Assets normalisés en espace Unity XYZ left-handed, millimètres, mapping versionné | RESOLVED |
+| P03-C | D0/D5/D6 synthétiques : structure/octets exacts, calcul D5 `maxAbs <= 1e-6` | RESOLVED |
+| P03-D | Copie ou transfert explicite, buffers read-only possédés, GC sans pooling V1 | RESOLVED |
+| P03-E | Surfaces, sites, coupes et bundles atomiques via primitives génériques | RESOLVED |
 
 Les motivations, règles complètes et conditions de réouverture sont enregistrées dans [ADR P02](adr/P02-contracts.md) et le [catalogue des scopes V1](contracts/P02-scope-catalog.md).
+
+Les décisions de rendu, leurs frontières d'assemblage et les tolérances synthétiques sont enregistrées dans [ADR P03](adr/P03-render-model.md). Les hashes reproductibles sont consignés dans la [preuve de parité P03](evidence/P03/render-model-parity.md).
 
 ## D01 — topologie Unity
 

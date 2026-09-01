@@ -1,8 +1,11 @@
 {
-    "name": "CRNL.HiBoP.RenderModel",
-    "rootNamespace": "CRNL.HiBoP.RenderModel",
+    "name": "HBP.RenderModelAdapters.Runtime",
+    "rootNamespace": "HBP.RenderModelAdapters",
     "references": [
-        "CRNL.HiBoP.Contracts"
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "CRNL.HiBoP.Contracts",
+        "CRNL.HiBoP.RenderModel"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -12,5 +15,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true
+    "noEngineReferences": false
 }

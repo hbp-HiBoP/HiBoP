@@ -2,7 +2,8 @@
     "name": "CRNL.HiBoP.RenderModel.Tests",
     "rootNamespace": "CRNL.HiBoP.RenderModel.Tests",
     "references": [
-        "CRNL.HiBoP.RenderModel"
+        "CRNL.HiBoP.RenderModel",
+        "CRNL.HiBoP.Contracts"
     ],
     "includePlatforms": [
         "Editor"

@@ -33,7 +33,9 @@
       "version": "file:../Shared/Packages/com.crnl.hibop.render-model",
       "depth": 0,
       "source": "local",
-      "dependencies": {}
+      "dependencies": {
+        "com.crnl.hibop.contracts": "0.2.0"
+      }
     },
     "com.crnl.hibop_utilities": {
       "version": "https://github.com/hbp-HiBoP/HiBoP_Utilities.git",
