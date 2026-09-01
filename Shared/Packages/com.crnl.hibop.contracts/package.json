@@ -1,8 +1,8 @@
 {
   "name": "com.crnl.hibop.contracts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "HiBoP Contracts",
-  "description": "Shared contract assembly skeleton for HiBoP Desktop and HiBoPXR.",
+  "description": "Pure AOT-safe identities, scopes, revisions, commands, outcomes, errors, snapshots and deltas shared by HiBoP Desktop and HiBoPXR.",
   "unity": "6000.5",
   "author": {
     "name": "CRNL"

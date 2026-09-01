@@ -28,6 +28,17 @@
 | D19 | Canal de distribution pilote Meta | REQUIRES_SPIKE |
 | D20 | Enveloppes de performance V1 | REQUIRES_SPIKE |
 
+## Décisions d'implémentation acceptées
+
+| ID | Décision | Statut |
+| --- | --- | --- |
+| P02-A | IDs opaques 128 bits, pseudonymes propres à l'epoch, aucun nom/index | RESOLVED |
+| P02-B | Huit scopes V1, propriétaire unique et catalogue normatif | RESOLVED |
+| P02-C | Champs requis par défaut, `Optional<T>` explicite, évolution additive par capability | RESOLVED |
+| P02-D | Duplicate-first, conflit rejeté sans mutation ni rebase implicite | RESOLVED |
+
+Les motivations, règles complètes et conditions de réouverture sont enregistrées dans [ADR P02](adr/P02-contracts.md) et le [catalogue des scopes V1](contracts/P02-scope-catalog.md).
+
 ## D01 — topologie Unity
 
 **Statut : RESOLVED.** Deux projets Unity : un shell Desktop et un shell Android/OpenXR. Ils peuvent employer la même version Unity, mais leurs packages, scènes, settings et profils de build restent isolés.

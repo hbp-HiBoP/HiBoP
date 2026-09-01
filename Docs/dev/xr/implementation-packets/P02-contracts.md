@@ -69,12 +69,12 @@ L'inventaire peut être réalisé en lecture seule. Aucun type public ne doit ê
 
 ## Critères de sortie binaires
 
-- [ ] P02-A–D enregistrées ;
-- [ ] package ne dépend d'aucune assembly Unity/UI/IO/native ;
-- [ ] catalogue des scopes V1 complet ou toute absence déclarée bloquante ;
-- [ ] tests IDs/révisions/commandes/erreurs passent ;
-- [ ] compilation dans Desktop et XR ;
-- [ ] aucune donnée humaine dans ToString/log helpers.
+- [x] P02-A–D enregistrées ;
+- [x] package ne dépend d'aucune assembly Unity/UI/IO/native ;
+- [x] catalogue des scopes V1 complet ou toute absence déclarée bloquante ;
+- [x] tests IDs/révisions/commandes/erreurs passent ;
+- [x] compilation dans Desktop et XR ;
+- [x] aucune donnée humaine dans ToString/log helpers.
 
 ## Artefacts à remettre
 
