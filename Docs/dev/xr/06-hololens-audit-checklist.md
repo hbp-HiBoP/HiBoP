@@ -96,7 +96,7 @@ Le thread Unity principal possède et applique la majorité des objets. Les APIs
 | logique scientifique | réutiliser depuis HiBoP actuel, Desktop |
 | concepts multi-cerveaux/ROI | adapter |
 | interactions MRTK | réécrire via XRI |
-| renderer surface | extraire depuis actuel et valider Android |
+| renderer surface | réimplémenter sous `XR/Assets/` à partir du comportement et des goldens actuels, sans déplacer ni copier le code |
 | renderer sites | réécrire |
 | protocole | créer |
 | client casque | créer |

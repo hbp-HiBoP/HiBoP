@@ -20,7 +20,7 @@ Si une de ces décisions manque, statut `DECISION_ONLY` : produire le catalogue 
 ## Périmètre autorisé
 
 - documentation, scripts de mesure/tests et petites fixtures synthétiques ;
-- capture des counts, hashes, buffers et images redacted ;
+- capture hors Git des counts, hashes, buffers et images redacted ;
 - définition de tolérances, sans les inventer pour les données scientifiques.
 
 ## Hors périmètre
@@ -47,7 +47,7 @@ Si une de ces décisions manque, statut `DECISION_ONLY` : produire le catalogue 
 - `Docs/dev/xr/07-validation-plan.md` ;
 - nouveau manifeste de fixtures sous un emplacement décidé par P00-C ;
 - tests/outils existants de projection et Module3D ;
-- dossier local ignoré pour captures sensibles.
+- `.artifacts/xr/` pour toutes les captures, buffers, images et goldens générés ; seules de petites fixtures synthétiques sources explicitement autorisées peuvent être versionnées.
 
 ## Étapes
 
@@ -79,7 +79,7 @@ Les commandes exactes sont consignées avec la version Unity et le commit.
 
 ## Artefacts à remettre
 
-Manifeste, fixtures synthétiques autorisées, hashes/captures, rapport de baseline, commandes et ADR P00.
+Manifeste, fixtures synthétiques autorisées, hashes et rapport textuel de baseline versionnables, commandes et ADR P00. Les captures/buffers/images/goldens générés restent sous `.artifacts/xr/`.
 
 ## Conditions d'arrêt
 

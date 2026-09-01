@@ -43,6 +43,7 @@ Revalider les règles Meta officielles au moment de la phase. Sans organisation,
 - pilote limité ;
 - sideload réservé au développement ;
 - aucun secret fourni dans un prompt/document.
+- les workflows sont lancés uniquement par `workflow_dispatch` ou par `release: published` pour une release créée manuellement ; aucun trigger `push`, `pull_request` ou planifié.
 
 ## Dépendances et état initial
 
@@ -92,7 +93,7 @@ Revalider les règles Meta officielles au moment de la phase. Sans organisation,
 
 ## Artefacts à remettre
 
-CI, artefacts/checksums/symbols, SBOM/notices, version matrix, runbooks, rapport pilote et ADR/release record.
+CI, checksums, SBOM/notices, version matrix, runbooks, rapport pilote et ADR/release record. Les builds et symboles restent des artefacts de workflow ou de release, jamais des fichiers du dépôt.
 
 ## Conditions d'arrêt
 

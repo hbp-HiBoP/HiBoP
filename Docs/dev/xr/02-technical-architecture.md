@@ -1,6 +1,6 @@
 # HiBoP XR — architecture technique
 
-**Version :** 0.2  
+**Version :** 0.3
 **Décision :** deux projets Unity, monorepo applicatif, calcul Desktop et rendu Quest local
 
 ## 1. Architecture logique
@@ -35,20 +35,24 @@ Le Desktop ne rend pas pour le Quest. Il publie l'état et les résultats minima
 ## 2. Déploiement
 
 ```text
-Monorepo applicatif — vue logique
-  [projet Desktop]           emplacement physique à décider en P01-A
-  /XR/                       projet Unity Android/OpenXR proposé
-  /Packages/                 emplacement exact à décider en P01-C
-    HBP.Visualization.Contracts/
-    HBP.Visualization.RenderModel/
-    HBP.Visualization.Rendering/
-    HBP.XR.Protocol/
+Monorepo applicatif HiBoP
+  /Assets/                    code et assets Desktop
+  /Packages/                  manifest/lock Desktop
+  /ProjectSettings/           settings Desktop
+  /Shared/Packages/
+    com.crnl.hibop.contracts/
+    com.crnl.hibop.render-model/
+    com.crnl.hibop.protocol/
+  /XR/                        second projet Unity
+    /Assets/                  code, scènes et assets XR
+    /Packages/                manifest/lock XR
+    /ProjectSettings/         settings XR
 
 Repo hbp_core
   bibliothèque native, releases et tests propres
 ```
 
-Cette vue ne décide pas de déplacer le projet Desktop actuel sous `Desktop/`. Le layout physique, les chemins de packages et la stratégie de migration doivent être explicitement acceptés dans le gate P01 avant toute opération. Les packages locaux sont ensuite consommés par chemin relatif et verrouillés dans les manifests. Les scènes, prefabs de rig, settings et UI spécifiques restent dans leur projet. Les shaders/materials génériques ne sont partagés qu'après validation Android.
+P01 conserve le projet Desktop à la racine et ajoute le second projet sous `XR/`, sans déplacer ni copier le code HiBoP existant. Les trois packages locaux sont consommés par chemins `file:` relatifs et verrouillés séparément dans chaque projet. Les scènes, prefabs de rig, settings et UI spécifiques restent dans leur projet. Un shader, matériau ou renderer ne devient partagé qu'après avoir démontré qu'il est réellement consommé et testé par les deux projets.
 
 ## 3. Matrice de topologie
 
@@ -71,31 +75,29 @@ Le prototype HoloLens correspondait à la dernière colonne sans packages versio
 
 ### 4.1 Packages partagés
 
-`HBP.Visualization.Contracts`
+`com.crnl.hibop.contracts` — assembly `CRNL.HiBoP.Contracts`
 
 - IDs opaques et stables ;
 - scopes, commandes, erreurs, snapshots et révisions ;
 - types C# purs, AOT-safe, sans Unity, IO, UI ni native.
 
-`HBP.Visualization.RenderModel`
+`com.crnl.hibop.render-model` — assembly `CRNL.HiBoP.RenderModel`
 
 - descripteurs de surfaces, sites, coupes, matériaux et panels ;
 - buffers typés et unités/repères ;
 - résultats complets et dépendances d'assets.
 
-`HBP.XR.Protocol`
+`com.crnl.hibop.protocol` — assembly `CRNL.HiBoP.Protocol`
 
 - handshake, enveloppes, framing, compatibilité, codecs ;
 - aucune dépendance au SDK Meta ;
 - tests de round-trip et fuzz/property tests.
 
-`HBP.Visualization.Rendering`
-
-- application des meshes, buffers, textures et matériaux ;
-- backend sites bufferisé ;
-- compatible Desktop et Android après preuves shader/GPU.
+La baseline ne contient aucun package `Rendering` partagé : P05 place son renderer sous `XR/Assets/`. Toute extension future de `Shared/Packages/` au-delà des trois packages décidés exige une réouverture explicite de D03 et un ADR distinct.
 
 ### 4.2 Adaptateurs Desktop
+
+Ils restent sous `Assets/` et ne modifient pas les modèles HiBoP pour leur ajouter des méthodes DTO.
 
 - projection des modèles `HBP.Core/Data` vers les contrats ;
 - validation et exécution des commandes ;
@@ -104,6 +106,8 @@ Le prototype HoloLens correspondait à la dernière colonne sans packages versio
 - gestion de session, journal de deltas et cache d'assets.
 
 ### 4.3 Client Quest
+
+Il reste sous `XR/Assets/`.
 
 - transport, appairage et reconnexion ;
 - miroir d'état strictement révisionné ;

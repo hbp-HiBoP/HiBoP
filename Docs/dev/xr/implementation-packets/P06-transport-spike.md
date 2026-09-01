@@ -50,7 +50,7 @@ Le code de spike est autorisé après P06-A–E. Aucun candidat ne devient dépe
 ## Fichiers/modules pressentis
 
 - dossier spike isolé/jetable ;
-- package Protocol expérimental ;
+- expérimentation autour de `com.crnl.hibop.protocol`, sans dépendance de production avant l'ADR P06 ;
 - rapports sous Docs/dev/xr ;
 - aucun branchement au module 3D production.
 

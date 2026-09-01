@@ -50,14 +50,13 @@ Le prototype prouve que ces concepts ont une valeur XR, mais son code copié est
 ## Frontière de package recommandée
 
 ```text
-HBP.Visualization.Contracts     C# pur, AOT-safe
-HBP.Visualization.RenderModel   types de buffers/assets/résultats
-HBP.XR.Protocol                 enveloppes, schéma, compatibilité
-HBP.Visualization.Rendering     Unity portable, après preuves Android
-HBP.XR.DesktopHost              adaptateur vers HiBoP/Core/Data
-HBP.XR.Client                   miroir, cache mémoire, commandes
-HBP.XR.OpenXR                   interactions génériques
-HBP.XR.Meta                     passthrough/capacités Meta
+Shared/Packages/
+  com.crnl.hibop.contracts      C# pur, AOT-safe
+  com.crnl.hibop.render-model   types de buffers/assets/résultats
+  com.crnl.hibop.protocol       enveloppes, schéma, compatibilité
+
+Assets/                         Desktop uniquement : bridge HiBoP/Core/Data
+XR/Assets/                      XR uniquement : client, rendu, OpenXR et Meta
 ```
 
-Une classe n'entre dans un package partagé que si elle compile et se teste dans les deux projets sans dépendance transitive Desktop ou Meta non déclarée.
+Une classe n'entre dans un package partagé que si elle compile et se teste dans les deux projets sans dépendance transitive Desktop ou Meta non déclarée. La baseline limite `Shared/Packages/` aux trois packages ci-dessus et place le renderer P05 sous `XR/Assets/`. Toute extension exige une réouverture explicite de D03 et un ADR distinct ; aucun code HiBoP existant n'est déplacé.

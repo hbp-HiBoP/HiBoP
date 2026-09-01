@@ -49,8 +49,7 @@ Ces décisions sont vérifiées depuis les sources officielles actuelles et cons
 ## Fichiers/modules pressentis
 
 - projet XR Packages/ProjectSettings/Assets ;
-- package ou assembly `HBP.XR.OpenXR` ;
-- adaptateur `HBP.XR.Meta` ;
+- assemblies XR sous `XR/Assets/` pour OpenXR et l'adaptateur Meta ;
 - build/CI smoke et documentation device.
 
 ## Étapes

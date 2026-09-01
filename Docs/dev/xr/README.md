@@ -3,7 +3,7 @@
 **Version :** 0.2  
 **Date de consolidation :** 31 août 2026  
 **Périmètre :** extension mixed reality autonome sur Meta Quest 3, connectée à HiBoP Desktop  
-**Statut :** spécification consolidée après audit du prototype HoloLens ; revue humaine requise avant implémentation
+**Statut :** architecture consolidée ; topologie P01 acceptée et implémentée
 
 ## Résumé exécutable
 
@@ -12,7 +12,8 @@ HiBoP XR est une application Android autonome qui rend localement sur Quest 3 le
 La baseline V1 est :
 
 - deux projets Unity isolés, dans un même monorepo applicatif ;
-- packages UPM partagés pour contrats, modèle de rendu, protocole et code réellement portable ;
+- projet Desktop conservé à la racine, projet Quest sous `XR/` ;
+- trois packages UPM partagés sous `Shared/Packages/` pour Contracts, RenderModel et Protocol ; le code spécifique reste respectivement sous `Assets/` et `XR/Assets/` ;
 - `hbp_core` et les calculs canoniques sur le desktop ;
 - rendu Quest local à partir d'assets immuables et de résultats post-projection ;
 - HTTPS pour les gros assets et WebSocket sécurisé pour contrôle, état et résultats dynamiques, sous réserve d'un spike IL2CPP/3 OS pour la bibliothèque ;

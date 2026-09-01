@@ -1,0 +1,10 @@
+{
+  "name": "com.crnl.hibop.contracts",
+  "version": "0.1.0",
+  "displayName": "HiBoP Contracts",
+  "description": "Shared contract assembly skeleton for HiBoP Desktop and HiBoPXR.",
+  "unity": "6000.5",
+  "author": {
+    "name": "CRNL"
+  }
+}

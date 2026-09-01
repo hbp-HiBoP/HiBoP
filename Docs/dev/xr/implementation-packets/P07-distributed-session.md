@@ -49,7 +49,7 @@ Si l'ADR P06 n'est pas accepté ou si P07-A–E manquent, aucun host/client prod
 
 ## Fichiers/modules pressentis
 
-- `HBP.XR.Protocol`, `HBP.XR.DesktopHost`, `HBP.XR.Client` ;
+- Protocol sous `Shared/Packages/com.crnl.hibop.protocol`, DesktopHost sous `Assets/` et client sous `XR/Assets/` ;
 - tests host/client sans Unity lorsque possible ;
 - UI diagnostic minimale Desktop/XR.
 

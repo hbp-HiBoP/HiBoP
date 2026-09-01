@@ -1,6 +1,6 @@
 # HiBoP XR — roadmap d'implémentation
 
-**Version :** 0.2  
+**Version :** 0.3
 **Principe :** chaque tranche conserve un HiBoP Desktop fonctionnel et produit un gate vérifiable.
 
 Les phases sont détaillées en paquets autonomes dans [implementation-packets/README.md](implementation-packets/README.md). Chaque paquet possède un prompt de démarrage, un périmètre et un `Decision gate` obligatoire.
@@ -10,7 +10,7 @@ Les phases sont détaillées en paquets autonomes dans [implementation-packets/R
 La roadmap peut démarrer, mais les points suivants ne doivent pas être inférés pendant l'implémentation :
 
 - P00 : datasets autorisés et propriétaire scientifique ;
-- P01 : layout physique du monorepo et versions Unity ;
+- P01 : **fermé et implémenté** — Desktop à la racine, XR sous `XR/`, trois packages sous `Shared/Packages/`, Unity `6000.5.2f1` ;
 - P02 : représentation des IDs et catalogue des scopes ;
 - P03 : interpolation temporelle de surface, repères et tolérances ;
 - P04 : matrice exacte des packages/paramètres Quest ;
@@ -50,18 +50,19 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 
 ### XR-010 — créer le second projet Unity XR minimal
 
-- Android ARM64/IL2CPP, OpenXR, Input System ;
-- scène bootstrap, passthrough/VR, logging redacted ;
+- projet séparé sous `XR/`, Unity `6000.5.2f1`, Android ARM64/IL2CPP ;
+- topologie et Player Android structurels, sans OpenXR, XRI, Meta, scène produit ou fonctionnalité ;
 - aucune référence vers Core/Data.
 
 ### XR-011 — créer les packages embarqués
 
-- Contracts, RenderModel, Protocol ;
+- compléter les squelettes `com.crnl.hibop.contracts`, `com.crnl.hibop.render-model` et `com.crnl.hibop.protocol` créés par P01 ;
 - tests C# purs et IL2CPP ;
 - IDs, scopes, révisions et unités.
 
 ### XR-012 — ajouter les adaptateurs Desktop sans changer le renderer
 
+- code exclusivement sous `Assets/`, sans méthode DTO ajoutée aux modèles HiBoP ;
 - IDs stables ;
 - inventaire des propriétés/scopes/invalidations ;
 - capture des sorties actuelles.
@@ -208,6 +209,7 @@ Il peut démarrer tôt, mais ne bloque que l'intégration finale des commandes c
 ## Phase 10 — industrialisation
 
 - CI packages, Desktop 3 OS, APK et tests protocole ;
+- déclenchements limités à `workflow_dispatch` ou à `release: published` pour une release créée manuellement ; aucun déclenchement sur `push`, `pull_request` ou planification ;
 - signature et gestion des secrets ;
 - SBOM/licences tierces ;
 - diagnostics réseau utilisateur ;

@@ -19,7 +19,7 @@ L'inventaire peut être réalisé en lecture seule. Aucun type public ne doit ê
 
 ## Périmètre autorisé
 
-- package `HBP.Visualization.Contracts` ;
+- package `com.crnl.hibop.contracts`, assembly `CRNL.HiBoP.Contracts` ;
 - types immuables/purs, validations et tests ;
 - adaptateurs de test, pas adaptateur Desktop production.
 

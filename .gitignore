@@ -10,11 +10,25 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 /[Uu]ser[Ss]ettings/
+/[Pp]rofilerCaptures/
 /.test-results/
+/.artifacts/xr/
 /.native-plugin-update/
 /LoadingBenchmarks/
 /Tools/InflationBaseline/__pycache__/
 /.codex-temp/
+
+# Generated files for the nested Unity XR project
+/XR/.utmp/
+/XR/[Ll]ibrary/
+/XR/[Tt]emp/
+/XR/[Oo]bj/
+/XR/[Bb]uild/
+/XR/[Bb]uilds/
+/XR/[Ll]ogs/
+/XR/[Mm]emoryCaptures/
+/XR/[Uu]ser[Ss]ettings/
+/XR/[Pp]rofilerCaptures/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta

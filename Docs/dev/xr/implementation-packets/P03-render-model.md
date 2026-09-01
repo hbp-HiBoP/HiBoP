@@ -2,7 +2,7 @@
 
 ## Objectif et résultat observable
 
-Extraire le plus petit modèle de rendu capable de reproduire hors de `HBP.Core/Data` les surfaces, sites, coupes et frames dynamiques du Desktop. Une scène indépendante reconstruit les golden outputs P00.
+Définir le plus petit ensemble de nouveaux DTO de rendu capable de reproduire hors de `HBP.Core/Data` les surfaces, sites, coupes et frames dynamiques du Desktop. Des adaptateurs externes projettent les modèles HiBoP vers ces DTO sans déplacer, copier ou modifier leurs classes. Une scène indépendante reconstruit les golden outputs P00.
 
 ## Decision gate
 
@@ -20,10 +20,10 @@ P03-A et P03-C sont des décisions scientifiques. Sans validation explicite, seu
 
 ## Périmètre autorisé
 
-- package `HBP.Visualization.RenderModel` ;
-- adaptateur de capture Desktop minimal ;
+- package `com.crnl.hibop.render-model`, assembly `CRNL.HiBoP.RenderModel` ;
+- adaptateur de capture Desktop minimal sous `Assets/` ;
 - scène/test renderer indépendant ;
-- golden comparisons.
+- golden comparisons dont les sorties générées restent sous `.artifacts/xr/`.
 
 ## Hors périmètre
 
@@ -82,7 +82,7 @@ P03-A et P03-C sont des décisions scientifiques. Sans validation explicite, seu
 
 ## Artefacts à remettre
 
-Package RenderModel, adaptateurs de capture, tests/goldens, ADR P03 et rapport de parité.
+Package RenderModel, adaptateurs de capture, tests, ADR P03 et rapport textuel de parité avec hashes. Les captures, images, buffers et goldens générés restent sous `.artifacts/xr/`.
 
 ## Conditions d'arrêt
 
@@ -90,4 +90,4 @@ Arrêter si la baseline Desktop paraît incorrecte sans décision scientifique, 
 
 ## Prompt de démarrage
 
-> Exécute P03 depuis `Docs/dev/xr/implementation-packets/P03-render-model.md`. Commence par prouver/résoudre P03-A–E ; ne fige aucune API publique avant validation scientifique de l'interpolation et des tolérances. Extrais un RenderModel indépendant de Core/Data, reconstruis les golden outputs P00 et livre les preuves de parité.
+> Exécute P03 depuis `Docs/dev/xr/implementation-packets/P03-render-model.md`. Commence par prouver/résoudre P03-A–E ; ne fige aucune API publique avant validation scientifique de l'interpolation et des tolérances. Définis un RenderModel indépendant de Core/Data et projette les modèles HiBoP par des adaptateurs externes, sans modifier leurs classes. Reconstruis les golden outputs P00 et livre les preuves de parité.

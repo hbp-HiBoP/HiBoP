@@ -197,4 +197,4 @@ Go seulement si :
 - revue sécurité/vie privée/licences terminée ;
 - defects restants classés sans contournement par plafond.
 
-Un no-go conserve les artefacts et déclenche une décision/spike ; il ne réduit pas silencieusement le nombre de sites, colonnes ou visualisations.
+Un no-go conserve les artefacts hors Git sous `.artifacts/xr/` et déclenche une décision/spike ; il ne réduit pas silencieusement le nombre de sites, colonnes ou visualisations.

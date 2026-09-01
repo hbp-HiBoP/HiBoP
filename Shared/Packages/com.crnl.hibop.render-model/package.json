@@ -1,0 +1,10 @@
+{
+  "name": "com.crnl.hibop.render-model",
+  "version": "0.1.0",
+  "displayName": "HiBoP Render Model",
+  "description": "Shared render-model assembly skeleton for HiBoP Desktop and HiBoPXR.",
+  "unity": "6000.5",
+  "author": {
+    "name": "CRNL"
+  }
+}

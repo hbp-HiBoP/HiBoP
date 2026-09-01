@@ -1,0 +1,10 @@
+{
+  "name": "com.crnl.hibop.protocol",
+  "version": "0.1.0",
+  "displayName": "HiBoP Protocol",
+  "description": "Shared protocol assembly skeleton for HiBoP Desktop and HiBoPXR.",
+  "unity": "6000.5",
+  "author": {
+    "name": "CRNL"
+  }
+}

@@ -66,7 +66,7 @@ P12 FAIL distant ───────> décision explicite ──> PX2 hbp_core
 | Paquet | Livrable principal | Décision préalable notable |
 | --- | --- | --- |
 | [P00](P00-baselines.md) | fixtures et baselines | datasets autorisés |
-| [P01](P01-topology.md) | monorepo + projet XR | layout physique |
+| [P01](P01-topology.md) | **COMPLETE** — monorepo + projet XR | ADR P01 accepté |
 | [P02](P02-contracts.md) | package Contracts | représentation des IDs |
 | [P03](P03-render-model.md) | RenderModel fidèle | sémantique d'interpolation |
 | [P04](P04-xr-bootstrap.md) | APK OpenXR minimal | matrice packages |

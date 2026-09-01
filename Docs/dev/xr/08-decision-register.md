@@ -46,7 +46,7 @@
 
 ## D03 — partage de code et d'assets
 
-**Statut : RESOLVED.** Packages embarqués : `Contracts`, `RenderModel`, `Protocol` et, après portabilité, `Rendering`. Les shells conservent UI, rig, scènes et réglages. Les assets génériques portables vivent dans les packages ; aucun dossier n'est copié.
+**Statut : RESOLVED.** P01 matérialise uniquement `com.crnl.hibop.contracts`, `com.crnl.hibop.render-model` et `com.crnl.hibop.protocol` sous `Shared/Packages/`. Le code exclusivement Desktop reste sous `Assets/` et le code exclusivement XR — notamment le renderer, le client, OpenXR et Meta — sous `XR/Assets/`. Aucun fichier HiBoP existant n'est déplacé ou copié et les modèles HiBoP ne reçoivent pas de méthodes DTO. Toute extension future de `Shared/Packages/` exige une réouverture explicite de D03 et un ADR distinct.
 
 **Gate.** Une modification commune doit être testée dans les deux projets depuis un seul fichier source.
 
@@ -56,7 +56,7 @@
 
 **Preuves.** Ces assemblies entraînent TMPro, UI, accès fichiers/base de données, wrappers natifs, globals et renderer Desktop. Elles ne constituent pas un contrat AOT/Android propre.
 
-**Extraction minimale.** IDs et scopes, DTOs, révisions, valeurs mathématiques, sérialisation générée, modèle de rendu et interfaces. Les loaders, DB, préférences, calculs scientifiques et adaptateurs restent Desktop.
+**Projection minimale.** De nouveaux DTO portent IDs et scopes, révisions, valeurs mathématiques, sérialisation, modèle de rendu et interfaces. Des adaptateurs Desktop externes les construisent à partir des modèles HiBoP ; aucun fichier ou type HiBoP existant n'est déplacé, copié ou enrichi de méthodes DTO. Les loaders, DB, préférences, calculs scientifiques et adaptateurs restent Desktop.
 
 ## D05 — `hbp_core` Android ARM64
 
