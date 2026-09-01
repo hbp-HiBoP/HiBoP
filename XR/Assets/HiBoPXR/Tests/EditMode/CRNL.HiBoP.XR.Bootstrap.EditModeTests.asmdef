@@ -1,0 +1,20 @@
+{
+  "name": "CRNL.HiBoP.XR.Bootstrap.EditModeTests",
+  "rootNamespace": "CRNL.HiBoP.XR.Bootstrap.Tests",
+    "references": [
+        "CRNL.HiBoP.XR.Bootstrap",
+        "CRNL.HiBoP.XR.Bootstrap.Editor",
+        "CRNL.HiBoP.XR.Bootstrap.Meta",
+        "Unity.InputSystem",
+        "Unity.XR.ARFoundation",
+    "Unity.XR.ARSubsystems",
+    "Unity.XR.CoreUtils"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}

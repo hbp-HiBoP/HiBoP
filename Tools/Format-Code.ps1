@@ -92,21 +92,46 @@ try
         throw "Unable to find CleanupCode in the restored JetBrains tool package."
     }
 
-    $solution = @(
-        Join-Path $repositoryRoot "HiBoP.slnx"
-        Join-Path $repositoryRoot "HiBoP.sln"
-    ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
-    if (!$solution)
+    $xrFiles = @($files | Where-Object { $_.StartsWith("XR/", [System.StringComparison]::OrdinalIgnoreCase) })
+    $solutionFiles = @($files | Where-Object { !$_.StartsWith("XR/", [System.StringComparison]::OrdinalIgnoreCase) })
+
+    if ($solutionFiles.Count -gt 0)
     {
-        throw "HiBoP.slnx or HiBoP.sln is required. Generate the solution files from Unity first."
+        $solution = @(
+            Join-Path $repositoryRoot "HiBoP.slnx"
+            Join-Path $repositoryRoot "HiBoP.sln"
+        ) | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+        if (!$solution)
+        {
+            throw "HiBoP.slnx or HiBoP.sln is required. Generate the solution files from Unity first."
+        }
+
+        $include = if ($All) { "Assets/**/*.cs" } else { $solutionFiles -join ";" }
+        Write-Host "Formatting $($solutionFiles.Count) C# file(s) from the HiBoP solution..."
+        & $cleanupCode --profile="Built-in: Reformat Code" --no-updates --no-build --verbosity=ERROR --include=$include $solution
+        if ($LASTEXITCODE -ne 0)
+        {
+            throw "ReSharper CleanupCode failed for the HiBoP solution."
+        }
     }
 
-    $include = if ($All) { "Assets/**/*.cs" } else { $files -join ";" }
-    Write-Host "Formatting $($files.Count) C# file(s)..."
-    & $cleanupCode --profile="Built-in: Reformat Code" --no-updates --no-build --verbosity=ERROR --include=$include $solution
-    if ($LASTEXITCODE -ne 0)
+    if ($xrFiles.Count -gt 0)
     {
-        throw "ReSharper CleanupCode failed."
+        $targets = if ($All)
+        {
+            @(Join-Path $repositoryRoot "XR\Assets\**\*.cs")
+        }
+        else
+        {
+            @($xrFiles | ForEach-Object { Join-Path $repositoryRoot $_ })
+        }
+        Write-Host "Formatting $($xrFiles.Count) standalone XR C# file(s)..."
+        # Standalone Unity files trigger noisy, non-fatal package-discovery diagnostics in CleanupCode.
+        & $cleanupCode --profile="Built-in: Reformat Code" --no-updates --no-build --verbosity=OFF @targets
+        if ($LASTEXITCODE -ne 0)
+        {
+            throw "ReSharper CleanupCode failed for the XR files."
+        }
     }
 }
 finally

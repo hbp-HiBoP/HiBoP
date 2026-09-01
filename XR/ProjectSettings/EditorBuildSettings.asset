@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
-  m_configObjects: {}
+  m_Scenes:
+  - enabled: 1
+    path: Assets/HiBoPXR/Scenes/P04Diagnostic.unity
+    guid: ecad37994e63a334baa0610ae6bbd887
+  m_configObjects:
+    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: f3b8adca5e38da643a2854af28091226, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: f8c4fc92ddcc17b49a09849b3ae66e98, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 424a2b5544a360442a8fa922c063e5e7, type: 2}

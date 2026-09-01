@@ -72,13 +72,13 @@ Ces décisions sont vérifiées depuis les sources officielles actuelles et cons
 
 ## Critères de sortie binaires
 
-- [ ] P04-A–E et package lock enregistrés ;
-- [ ] APK installable/démarrable sur Quest 3 ;
-- [ ] passthrough par défaut et VR de repli fonctionnent conformément à P04-E ;
-- [ ] tête, mains et deux contrôleurs détectés ;
-- [ ] Input Manager legacy absent du projet XR ;
-- [ ] logs exempts de données sensibles ;
-- [ ] réglages et commande de build reproductibles.
+- [x] P04-A–E et package lock enregistrés ;
+- [x] APK installable/démarrable sur Quest 3 ;
+- [x] passthrough par défaut et VR de repli fonctionnent conformément à P04-E ;
+- [x] tête, mains et deux contrôleurs détectés ;
+- [x] Input Manager legacy absent du projet XR ;
+- [x] logs exempts de données sensibles ;
+- [x] réglages et commande de build reproductibles.
 
 ## Artefacts à remettre
 
