@@ -1,7 +1,7 @@
 # HiBoP XR — protocole et contrat de rendu
 
 **Version :** 0.2  
-**Statut :** contrat logique normatif ; transport/bibliothèque et codec à fermer par spikes D10/D11
+**Statut :** contrat logique normatif ; D10/D11 acceptées provisoirement pour Windows/Quest, qualification macOS/Linux différée
 
 ## 1. Principes
 

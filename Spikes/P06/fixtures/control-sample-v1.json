@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "headerVersion": 1,
+  "sample": {
+    "kind": 1,
+    "messageId": 72623859790382856,
+    "correlationId": 1230066625199609624,
+    "sequence": 42,
+    "timestampTicks": 638923456789012345,
+    "payload": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "values": [
+      -16,
+      -15,
+      -14,
+      -13,
+      -12,
+      -11,
+      -10,
+      -9,
+      -8,
+      -7,
+      -6,
+      -5,
+      -4,
+      -3,
+      -2,
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16
+    ]
+  },
+  "vectors": [
+    {
+      "codec": "Protobuf",
+      "codecName": "Google.Protobuf 3.36.1",
+      "payloadBytes": 328,
+      "frameBase64": "SEJQWAEAAQEAAAAASAEAAAgHBgUEAwIBowI5cp7wNkYIARCIjpiowOCAgQEYmK7YqMHihIkRICoo\u002Bb7LhPuv\u002Bu4IMoACeHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eDohHx0bGRcVExEPDQsJBwUDAQACBAYICgwOEBIUFhgaHB4g",
+      "frameSha256": "5eea415f5b350eca305a1684c8b5235139b08ef189835a8d1ce4942d4c223db8"
+    },
+    {
+      "codec": "MessagePack",
+      "codecName": "MessagePack 3.1.8",
+      "payloadBytes": 325,
+      "frameBase64": "SEJQWAEAAgEAAAAARQEAAAgHBgUEAwIBUz\u002Bdj536cwmXAc8BAgMEBQYHCM8REhMUFRYXGCrPCN3pf7CS33naAQB4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh43AAh8PHy8/T19vf4\u002Bfr7/P3\u002B/wABAgMEBQYHCAkKCwwNDg8Q",
+      "frameSha256": "7dc75b5d0bc6f0558ff7cbf9c9c1e06b8faa2de65eb3dd2ffabb0254a696d12b"
+    },
+    {
+      "codec": "MemoryPack",
+      "codecName": "MemoryPack 1.21.4",
+      "payloadBytes": 444,
+      "frameBase64": "SEJQWAEAAwEAAAAAvAEAAAgHBgUEAwIBkH\u002BLORgviIoHBAgIBAiECAGEiAABAAAACAcGBQQDAgEYFxYVFBMSESoAAAB535Kwf\u002BndCP/\u002B//8AAQAAeHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eCEAAADw////8f////L////z////9P////X////2////9/////j////5////\u002Bv////v////8/////f////7/////////AAAAAAEAAAACAAAAAwAAAAQAAAAFAAAABgAAAAcAAAAIAAAACQAAAAoAAAALAAAADAAAAA0AAAAOAAAADwAAABAAAAA=",
+      "frameSha256": "13d13f3919452733e77733a04bcd95b26ad03037aa2c5fda885b3189dac9bfd3"
+    }
+  ]
+}

@@ -16,8 +16,8 @@
 | D07 | `DynamicFrameBundle` atomique | RESOLVED |
 | D08 | Coupes canoniques distantes, latest-wins | RESOLVED |
 | D09 | `CutRenderResult` atomique et révisionné | RESOLVED |
-| D10 | HTTPS + WSS ; bibliothèque à valider | REQUIRES_SPIKE |
-| D11 | Enveloppe binaire + buffers typés | REQUIRES_SPIKE |
+| D10 | Kestrel sidecar + HTTPS/WSS appairés | PROVISIONAL |
+| D11 | Protobuf + buffers float32 little-endian | PROVISIONAL |
 | D12 | Révisions par scope, snapshot et resync | RESOLVED |
 | D13 | Sites bufferisés + index spatial | RESOLVED |
 | D14 | Assets immuables partagés entre cerveaux | RESOLVED |
@@ -112,17 +112,21 @@ Les décisions de rendu, leurs frontières d'assemblage et les tolérances synth
 
 ## D10 — transport physique
 
-**Statut : REQUIRES_SPIKE. Baseline proposée : HTTPS + WSS sur un endpoint appairé.** WSS transporte contrôle, état et petits résultats dynamiques ; HTTPS transporte assets immuables découpés, hashés, reprenables et annulables. L'IP manuelle est obligatoire, la découverte locale facultative.
+**Statut : PROVISIONAL — WINDOWS/QUEST VALIDATED.** Kestrel/.NET self-contained sert HTTPS + WSS sur un endpoint, un port et un certificat communs. `websocket-sharp` est retenu provisoirement pour WSS Quest et `UnityWebRequest` pour HTTPS. WSS transporte contrôle, état et petits résultats dynamiques ; HTTPS transporte assets immuables découpés, hashés, reprenables et annulables. L'IP manuelle est obligatoire, la découverte locale facultative.
 
 **Sécurité.** TLS via une bibliothèque maintenue ; première confiance par code court liant l'identité cryptographique du poste, puis pinning. Aucun protocole cryptographique maison.
 
-**Gate.** Même bibliothèque serveur/client validée sur Windows, macOS, Linux et Quest IL2CPP, avec priorité du contrôle pendant un gros transfert, reconnexion et firewall documentés.
+**Preuve et limites.** P06-W/P06-WQ passent sur Windows et Quest IL2CPP, y compris pin SPKI, charge nominale, golden vectors et rejets identité/corruption. macOS/Linux natifs restent non qualifiés. Le sidecar ajoute environ 50,6 Mio compressés, soit environ 25 % d'une archive HiBoP de 200 Mio; ce dépassement est accepté pour poursuivre.
+
+**Réouverture.** Qualification macOS/Linux, échec de packaging ou démonstration d'une solution embarquée sensiblement plus petite conservant transparence, TLS/pinning, limites et performances équivalentes. Une édition XR séparée reste le fallback de distribution.
 
 ## D11 — sérialisation et compression
 
-**Statut : REQUIRES_SPIKE.** Contrôle schématisé/AOT-safe ; gros tableaux en blocs contigus little-endian typés avec type, dimensions, longueur, checksum, compression et calibration. Pas de JSON ni base64 pour les buffers lourds.
+**Statut : PROVISIONAL — WINDOWS/QUEST VALIDATED.** Protobuf 3.36.1 est retenu pour le contrôle avec framing borné et versionné. Les gros tableaux utilisent des blocs contigus `float32` IEEE-754 little-endian avec type, dimensions, longueur et SHA-256. Pas de JSON ni base64 pour les buffers lourds et aucune compression par défaut.
 
 **Baseline qualité.** `float32` exact. `float16`, 8 bits et compression ne sont activés que représentation par représentation après mesure d'erreur, d'image, CPU, copies et GC.
+
+**Réouverture.** Divergence de golden vector sur une plateforme native, allocations Protobuf problématiques sous charge réelle, ou dataset démontrant un gain net et reproductible pour une compression/quantification compatible avec les tolérances scientifiques.
 
 ## D12 — état, snapshot et reconnexion
 

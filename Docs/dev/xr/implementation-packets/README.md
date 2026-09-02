@@ -71,7 +71,7 @@ P12 FAIL distant ───────> décision explicite ──> PX2 hbp_core
 | [P03](P03-render-model.md) | RenderModel fidèle | sémantique d'interpolation |
 | [P04](P04-xr-bootstrap.md) | APK OpenXR minimal | matrice packages |
 | [P05](P05-static-renderer.md) | surface statique Quest | baseline shader |
-| [P06](P06-transport-spike.md) | décision transport/codec | phase décisionnelle |
+| [P06](P06-transport-spike.md) | **ACCEPTED PROVISIONAL** — transport/codec Windows+Quest | macOS/Linux différés |
 | [P07](P07-distributed-session.md) | handshake/snapshot/resume | résultats P06 |
 | [P08](P08-remote-assets.md) | assets par hash/cache mémoire | politique de pression |
 | [P09](P09-multi-brain.md) | instances dédupliquées | bindings V1 |

@@ -16,7 +16,7 @@ La baseline V1 est :
 - trois packages UPM partagés sous `Shared/Packages/` pour Contracts, RenderModel et Protocol ; le code spécifique reste respectivement sous `Assets/` et `XR/Assets/` ;
 - `hbp_core` et les calculs canoniques sur le desktop ;
 - rendu Quest local à partir d'assets immuables et de résultats post-projection ;
-- HTTPS pour les gros assets et WebSocket sécurisé pour contrôle, état et résultats dynamiques, sous réserve d'un spike IL2CPP/3 OS pour la bibliothèque ;
+- Kestrel sidecar avec HTTPS pour les gros assets et WebSocket sécurisé pour contrôle, état et résultats dynamiques, baseline provisoire validée sur Windows/Quest ; macOS/Linux natifs restent à qualifier et une alternative embarquée plus petite reste ouverte ;
 - OpenXR, XR Interaction Toolkit et Input System dans le projet Quest ; extensions Meta isolées pour le passthrough et seulement lorsque nécessaires ;
 - aucun cache persistant de données patient sur le Quest ;
 - aucun plafond logiciel arbitraire sur le nombre de sites, colonnes ou cerveaux.
