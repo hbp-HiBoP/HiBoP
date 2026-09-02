@@ -29,6 +29,8 @@
 /XR/[Mm]emoryCaptures/
 /XR/[Uu]ser[Ss]ettings/
 /XR/[Pp]rofilerCaptures/
+/XR/Assets/HiBoPXR/StaticRendering/Data/P05D1Anatomical.bytes
+/XR/Assets/HiBoPXR/StaticRendering/Data/P05D1Inflated.bytes
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta

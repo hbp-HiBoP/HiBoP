@@ -71,13 +71,13 @@ Si les shaders Desktop ne compilent pas Android, produire une comparaison et une
 
 ## Critères de sortie binaires
 
-- [ ] P05-A–D enregistrées ;
-- [ ] anatomical/inflated fidèles dans tolérances ;
-- [ ] aucun accès Core/Data/native ;
-- [ ] aucun clone de topologie requis pour une instance ;
-- [ ] shader Android sans erreur/fallback caché ;
-- [ ] ressources libérées après fermeture ;
-- [ ] métriques de référence archivées.
+- [x] P05-A–D enregistrées ;
+- [x] anatomical/inflated fidèles dans tolérances ;
+- [x] aucun accès Core/Data/native ;
+- [x] aucun clone de topologie requis pour une instance ;
+- [x] shader Android sans erreur/fallback caché ;
+- [x] ressources libérées après fermeture ;
+- [x] métriques de référence archivées.
 
 ## Artefacts à remettre
 

@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/HiBoPXR/Scenes/P04Diagnostic.unity
-    guid: ecad37994e63a334baa0610ae6bbd887
+    path: Assets/HiBoPXR/StaticRendering/Scenes/P05StaticSurface.unity
+    guid: bf6d048c60a14d346a7dc8a2cb924f83
   m_configObjects:
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: f3b8adca5e38da643a2854af28091226, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: f8c4fc92ddcc17b49a09849b3ae66e98, type: 2}

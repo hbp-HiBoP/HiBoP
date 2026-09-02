@@ -1,0 +1,16 @@
+{
+  "name": "CRNL.HiBoP.XR.StaticRendering.Editor",
+  "rootNamespace": "CRNL.HiBoP.XR.StaticRendering.Editor",
+  "references": [
+    "CRNL.HiBoP.XR.Bootstrap.Editor",
+    "CRNL.HiBoP.XR.StaticRendering",
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.Contracts",
+    "Unity.RenderPipelines.Core.Runtime",
+    "Unity.RenderPipelines.Universal.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}

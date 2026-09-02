@@ -4,6 +4,7 @@
     "com.crnl.hibop.protocol": "file:../../Shared/Packages/com.crnl.hibop.protocol",
     "com.crnl.hibop.render-model": "file:../../Shared/Packages/com.crnl.hibop.render-model",
     "com.unity.inputsystem": "1.20.0",
+    "com.unity.render-pipelines.universal": "17.5.0",
     "com.unity.test-framework": "1.7.0",
     "com.unity.xr.arfoundation": "6.4.3",
     "com.unity.xr.compositionlayers": "2.4.0",

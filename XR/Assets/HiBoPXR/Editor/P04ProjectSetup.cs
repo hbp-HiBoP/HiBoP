@@ -368,11 +368,21 @@ namespace CRNL.HiBoP.XR.Bootstrap.Editor
 
         private static Material LoadOrCreateMaterial(string path, Color color)
         {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            if (shader == null)
+            {
+                throw new InvalidOperationException("Neither the URP Lit shader nor the Standard shader is available.");
+            }
+
             Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material == null)
             {
-                material = new Material(Shader.Find("Standard"));
+                material = new Material(shader);
                 AssetDatabase.CreateAsset(material, path);
+            }
+            else if (material.shader != shader)
+            {
+                material.shader = shader;
             }
 
             material.color = color;
