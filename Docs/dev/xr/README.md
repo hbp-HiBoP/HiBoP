@@ -1,9 +1,9 @@
 # HiBoP XR — dossier de spécification
 
-**Version :** 0.2  
-**Date de consolidation :** 31 août 2026  
+**Version :** 0.3
+**Date de consolidation :** 3 septembre 2026
 **Périmètre :** extension mixed reality autonome sur Meta Quest 3, connectée à HiBoP Desktop  
-**Statut :** architecture consolidée ; topologie P01 acceptée et implémentée
+**Statut :** briques P01–P10 implémentées ; intégration produit P15, normalisation P16, cleanup P17 et industrialisation P18 planifiés
 
 ## Résumé exécutable
 
@@ -48,7 +48,7 @@ Le prototype HoloLens ne validait pas cette architecture. Il exécutait une copi
 | [06-hololens-audit-checklist.md](06-hololens-audit-checklist.md) | résultat et contrôles de l'audit historique |
 | [07-validation-plan.md](07-validation-plan.md) | validation fonctionnelle, scientifique et performance |
 | [08-decision-register.md](08-decision-register.md) | décisions D01–D20 et statut de preuve |
-| [implementation-packets/README.md](implementation-packets/README.md) | paquets P00–P15/PX1/PX2 prêts pour des chats distincts |
+| [implementation-packets/README.md](implementation-packets/README.md) | paquets P00–P18/PX1/PX2 prêts pour des chats distincts |
 | [SOURCES.md](SOURCES.md) | sources locales et officielles |
 
 Les constats publiables du prototype sont sous [hololens](hololens/architecture.md). Les notes détaillées, commandes et preuves sensibles restent volontairement non suivies dans `.codex-temp/hibop-xr-hololens-audit/`.

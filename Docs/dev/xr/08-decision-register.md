@@ -141,6 +141,8 @@ Le backend bufferisé, le BVH, les règles de classement, les unités/seuils et 
 
 **Réouverture.** Qualification macOS/Linux, échec de packaging ou démonstration d'une solution embarquée sensiblement plus petite conservant transparence, TLS/pinning, limites et performances équivalentes. Une édition XR séparée reste le fallback de distribution.
 
+**Intégration et distribution.** P15 possède le raccordement et la supervision du sidecar dans le parcours produit ; P18 possède son packaging dans les artefacts distribués et la qualification des OS déclarés.
+
 ## D11 — sérialisation et compression
 
 **Statut : PROVISIONAL — WINDOWS/QUEST VALIDATED.** Protobuf 3.36.1 est retenu pour le contrôle avec framing borné et versionné. Les gros tableaux utilisent des blocs contigus `float32` IEEE-754 little-endian avec type, dimensions, longueur et SHA-256. Pas de JSON ni base64 pour les buffers lourds et aucune compression par défaut.
@@ -192,6 +194,8 @@ Le backend bufferisé, le BVH, les règles de classement, les unités/seuils et 
 **Statut : REQUIRES_SPIKE.** Pilote recommandé via canal Meta privé Alpha/Beta, après vérification de l'organisation et conformité packaging. Le sideload reste réservé au développement et ne fournit pas les mises à jour de plateforme.
 
 **Gate.** Vérifier au moment du pilote les règles Meta, le nombre d'utilisateurs, la signature, les permissions, la politique de données et le parcours d'installation réel.
+
+Ce gate appartient à P18 après intégration P15, normalisation P16 et cleanup P17.
 
 ## D20 — enveloppes et gates de performance
 

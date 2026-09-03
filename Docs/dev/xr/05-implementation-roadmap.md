@@ -1,6 +1,6 @@
 # HiBoP XR — roadmap d'implémentation
 
-**Version :** 0.3
+**Version :** 0.4
 **Principe :** chaque tranche conserve un HiBoP Desktop fonctionnel et produit un gate vérifiable.
 
 Les phases sont détaillées en paquets autonomes dans [implementation-packets/README.md](implementation-packets/README.md). Chaque paquet possède un prompt de démarrage, un périmètre et un `Decision gate` obligatoire.
@@ -21,7 +21,10 @@ La roadmap peut démarrer, mais les points suivants ne doivent pas être infér�
 - P11/P12 : politiques d'échec/atomicité et ownership ;
 - P13 : inventaire fonctionnel et interactions V1 signés ;
 - P14 : matrice exacte de purge et propriétaire sécurité ;
-- P15 : organisation, canal, signature et go/no-go Meta.
+- P15 : parcours d'activation, contenu envoyé, lifecycle du sidecar et scénario vertical signé ;
+- P16 : namespaces, assemblies, package IDs, APIs et stratégie de migration ;
+- P17 : classification production/test/dev/preuve, suppressions et dette résiduelle ;
+- P18 : organisation, canal, signature et go/no-go Meta.
 
 Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne commence pas le code de production concerné tant que la décision n'est pas explicitement acceptée.
 
@@ -192,7 +195,7 @@ Exécuter S07 uniquement si S03 échoue après optimisation. Ne porter que la fo
 - perte tracking, background, reconnexion ;
 - passthrough/VR et accessibilité.
 
-**Gate :** scénarios end-to-end de `07-validation-plan.md` sur mains et contrôleurs.
+**Gate :** scénarios fonctionnels P13 sur mains et contrôleurs. Le raccordement interprocess à une vraie visualisation HiBoP reste le gate E11 de P15.
 
 ## Phase 9 — migration Input Desktop
 
@@ -206,7 +209,41 @@ Workstream indépendant :
 
 Il peut démarrer tôt, mais ne bloque que l'intégration finale des commandes communes — pas le projet XR minimal.
 
-## Phase 10 — industrialisation
+## Phase 10 — intégration produit end-to-end
+
+- point d'entrée Desktop/Quest décidé, sans déduire l'UX d'un exemple ;
+- host et sidecar démarrés, supervisés et arrêtés par le chemin produit ;
+- transport HTTPS/WSS P06 raccordé au cœur de session P07 ;
+- snapshot réel construit depuis une visualisation HiBoP ;
+- surfaces, sites, timeline et coupes retenus traversent le réseau réel ;
+- au moins une commande Quest est validée par le Desktop puis republiée au Quest ;
+- déconnexion, reprise, erreur et fermeture suivent P14.
+
+**Gate :** E11 PASS sur un Quest physique, sans scène, host ou injection synthétique dans le chemin produit.
+
+## Phase 11 — architecture de production et normalisation
+
+- cartographier le chemin réellement exercé par P15 ;
+- décider séparément namespaces C#, assemblies et identifiants UPM ;
+- normaliser classes, fichiers, APIs, scènes et prefabs de production ;
+- migrer les références Unity en préservant GUID et sérialisation ;
+- conserver les noms historiques des ADR et preuves ;
+- rejouer P15 avant/après sans changement fonctionnel.
+
+**Gate :** mapping accepté, aucune référence cassée et parité P15 démontrée.
+
+## Phase 12 — cleanup et durcissement
+
+- classifier chaque spike, demo, probe, fixture, outil et dépendance ;
+- isoler Editor/Test/Development de ce qui peut rester utile ;
+- retirer des Players les données et composants non produit ;
+- supprimer par lots seulement les éléments classés obsolètes ;
+- consolider composition roots et scripts de build/test/lancement ;
+- mesurer taille, dépendances et dette résiduelle.
+
+**Gate :** Players sans échafaudage non autorisé, preuves conservées au niveau décidé et E11 toujours PASS sur Quest.
+
+## Phase 13 — industrialisation
 
 - CI packages, Desktop 3 OS, APK et tests protocole ;
 - déclenchements limités à `workflow_dispatch` ou à `release: published` pour une release créée manuellement ; aucun déclenchement sur `push`, `pull_request` ou planification ;
@@ -214,10 +251,11 @@ Il peut démarrer tôt, mais ne bloque que l'intégration finale des commandes c
 - SBOM/licences tierces ;
 - diagnostics réseau utilisateur ;
 - redaction/purge auditée ;
+- parcours P15 rejoué sur les artefacts release-like issus de P17 ;
 - tests thermique/mémoire 30 min ;
 - canal Meta pilote et procédure update/rollback.
 
-**Gate :** S09/S10 PASS, D20 mesuré, revue sécurité/licences et installation par un pilote non développeur.
+**Gate :** S09/S10 et E11 PASS, D20 mesuré, revue sécurité/licences et installation par un pilote non développeur.
 
 ## Définition de terminé
 
@@ -225,4 +263,4 @@ Une tâche est terminée lorsque code et contrats compilent sur leurs plateforme
 
 ## Paquets dispatchables
 
-P00–P15 et les voies parallèles PX1/PX2 sont indexés dans [le dossier des paquets](implementation-packets/README.md). Un chat ne doit recevoir qu'un paquet principal ; tout besoin hors scope devient une dépendance ou un nouveau paquet, pas une extension implicite.
+P00–P18 et les voies parallèles PX1/PX2 sont indexés dans [le dossier des paquets](implementation-packets/README.md). Un chat ne doit recevoir qu'un paquet principal ; tout besoin hors scope devient une dépendance ou un nouveau paquet, pas une extension implicite.

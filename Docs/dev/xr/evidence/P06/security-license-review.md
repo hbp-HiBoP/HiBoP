@@ -31,7 +31,7 @@
 
 `Grpc.Tools 2.76.0` (Apache-2.0) et les générateurs MemoryPack/MessagePack sont build-only. L’inventaire machine-lisible est `Spikes/P06/sbom/p06-sbom.cdx.json`. Les NuSpec locaux ont été lus pour les identifiants de licence ; le package NativeWebSocket verrouillé déclare MIT. L’ADR initial indiquait Apache-2.0 pour NativeWebSocket : cette erreur factuelle est corrigée.
 
-Le scan NuGet en ligne du 2 septembre 2026 n’a remonté aucun package vulnérable pour Host, Client ou Tests. Cela ne couvre pas les CVE futures, Unity, Android ni les commits Git ; P15 devra reproduire SBOM, avis et notices au build distribué.
+Le scan NuGet en ligne du 2 septembre 2026 n’a remonté aucun package vulnérable pour Host, Client ou Tests. Cela ne couvre pas les CVE futures, Unity, Android ni les commits Git ; P18 devra reproduire SBOM, avis et notices au build distribué.
 
 ## Menaces et contrôles
 
@@ -43,11 +43,11 @@ Le scan NuGet en ligne du 2 septembre 2026 n’a remonté aucun package vulnéra
 | allocation bomb | envelope 64 Kio et validation du header avant codec | fuzz natif/AOT et limites internes des trois codecs encore requis |
 | flood WSS/HTTP | 16 connexions, deux upgrades, 100 frames/s | quotas par pair/IP et backpressure bulk à généraliser |
 | corruption/rejeu | hash chunk/final, messageId/correlationId dans framing | idempotence/reprise D12 à implémenter dans P07/P08 |
-| fuite logs | niveau Warning, pas de headers/tokens/payloads journalisés | politique de redaction et rotation P14/P15 |
-| supply chain | commits/versions fixes, SBOM, scan NuGet | provenance/signatures et mise à jour continue P15 |
+| fuite logs | niveau Warning, pas de headers/tokens/payloads journalisés | politique de redaction et rotation P14/P18 |
+| supply chain | commits/versions fixes, SBOM, scan NuGet | provenance/signatures et mise à jour continue P18 |
 
 Le client WSS utilise `X-P06-Access-Token` plutôt que `Authorization`, que l’API `SetUserHeader` de websocket-sharp classe comme header restreint. Le token reste opaque, aléatoire, en mémoire et protégé par le même canal TLS; le host accepte ce header uniquement comme seconde représentation du bearer et ne le journalise pas. Cette différence de protocole doit être confirmée pendant la revue sécurité.
 
 ## Acceptation et suivi
 
-Le propriétaire du dépôt accepte le 2 septembre 2026 de poursuivre sans revue d’un référent sécurité externe, sur la base des contrôles P06 réussis. Il accepte les risques résiduels concernant le modèle de menace LAN, l’UX de réassociation, la persistance de clé, la portée firewall, les limites par client, le parseur DER SPKI, le header WSS, le fuzz IL2CPP et les logs/SBOM. Ces sujets restent à traiter de manière proportionnée dans P14/P15 avant publication; ils ne bloquent plus P07+ et cette acceptation n’est ni une certification ni un pentest.
+Le propriétaire du dépôt accepte le 2 septembre 2026 de poursuivre sans revue d’un référent sécurité externe, sur la base des contrôles P06 réussis. Il accepte les risques résiduels concernant le modèle de menace LAN, l’UX de réassociation, la persistance de clé, la portée firewall, les limites par client, le parseur DER SPKI, le header WSS, le fuzz IL2CPP et les logs/SBOM. Ces sujets restent à traiter de manière proportionnée dans P14/P15/P18 avant publication; ils ne bloquent plus P07+ et cette acceptation n’est ni une certification ni un pentest.

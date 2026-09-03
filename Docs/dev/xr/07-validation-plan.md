@@ -1,6 +1,6 @@
 # HiBoP XR — plan de validation
 
-**Version :** 0.2  
+**Version :** 0.3
 **But :** démontrer fidélité, cohérence distribuée, performance, sécurité et utilisabilité sur Quest 3.
 
 ## 1. Niveaux de preuve
@@ -100,6 +100,12 @@ D6, background, kill, reboot, export logs. Attendu : aucune sentinelle patient d
 
 D3/D4, passthrough puis VR, 30 minutes, cycles ouverture/fermeture. Attendu : pas de fuite, crash, dérive thermique non maîtrisée ou éviction silencieuse.
 
+### E11 — tranche verticale produit Desktop/Quest
+
+Depuis une vraie visualisation ouverte dans HiBoP, activer la session par le parcours P15 décidé, appairer un Quest physique puis synchroniser le snapshot sans injection synthétique. Transférer une surface et ses sites par HTTPS, maintenir contrôle/état par WSS, créer l'instance selon P15-B et exécuter les fonctions dynamiques retenues par P15-G. Effectuer au moins une interaction Quest dont le Desktop valide l'intention avant de republier l'état ou le résultat canonique. Tester ensuite déconnexion/reprise, fermeture de la visualisation et arrêt complet.
+
+Attendu : le même chemin de production supervise le sidecar, transporte les données réelles autorisées, conserve les révisions, affiche les états P15-F et ne laisse ni donnée persistée ni processus orphelin. Une scène de démonstration, un host en mémoire ou un adaptateur synthétique ne peut pas remplacer ce scénario.
+
 ## 6. Performance
 
 ### Rendu XR
@@ -192,7 +198,7 @@ Go seulement si :
 - D01–D18 résolues ou provisional avec gate passée ;
 - D19 canal réel validé ;
 - D20 mesuré et accepté ;
-- E01–E10 passent ;
+- E01–E11 passent ;
 - fidélité propriétaire scientifique signée ;
 - revue sécurité/vie privée/licences terminée ;
 - defects restants classés sans contournement par plafond.

@@ -1,6 +1,6 @@
 # HiBoP XR — paquets d'implémentation
 
-**Version :** 0.2  
+**Version :** 0.3
 **Usage :** un paquet par chat Codex, avec état de départ contrôlé et résultat intégrable indépendamment.
 
 ## Règle absolue de décision
@@ -57,7 +57,10 @@ P00 Baselines
  └─ PX1 Input System Desktop (voie parallèle)
 
 P09 + P10 + P11 + P12 ──> P13 Interactions V1
-P13 + P14 ──────────────> P15 Industrialisation
+P13 + P14 ──────────────> P15 Intégration produit end-to-end
+P15 ────────────────────> P16 Architecture de production
+P16 ────────────────────> P17 Cleanup et durcissement
+P17 ────────────────────> P18 Industrialisation
 P12 FAIL distant ───────> décision explicite ──> PX2 hbp_core Quest
 ```
 
@@ -80,7 +83,10 @@ P12 FAIL distant ───────> décision explicite ──> PX2 hbp_core
 | [P12](P12-cuts.md) | coupes canoniques distantes | seuils D20 |
 | [P13](P13-v1-interactions.md) | UX V1 complète | inventaire fonctionnel signé |
 | [P14](P14-security.md) | sécurité/purge/redaction | matrice de cycle de vie |
-| [P15](P15-industrialization.md) | CI/distribution pilote | organisation/canal Meta |
+| [P15](P15-end-to-end-integration.md) | vraie tranche Desktop/Quest | parcours produit signé |
+| [P16](P16-production-architecture.md) | architecture et nomenclature finales | mapping de migration accepté |
+| [P17](P17-cleanup-hardening.md) | cleanup et Players consolidés | inventaire de suppression accepté |
+| [P18](P18-industrialization.md) | CI/distribution pilote | organisation/canal Meta |
 | [PX1](PX1-desktop-input-system.md) | migration Input Desktop | carte de parité |
 | [PX2](PX2-hbp-core-quest.md) | backend natif ciblé | autorisation après échec P12 |
 

@@ -82,7 +82,7 @@ Utiliser le provider `Camera (Passthrough)` de Unity OpenXR: Meta, exposé par A
 - Application ID de développement : `fr.crnl.hibop.xr.dev`.
 - P04 utilise la signature debug générée par l'outillage Android/Unity pour le sideload local ; aucun keystore ou mot de passe n'est créé, copié ou versionné dans le dépôt.
 - Le propriétaire des futurs secrets de signature est le propriétaire de release HiBoP/CRNL, via le coffre de secrets de release et la CI autorisée.
-- Le keystore de publication, son alias et ses mots de passe sont hors P04. Leur création exige le gate D19/P15 et une procédure de sauvegarde/restauration validée.
+- Le keystore de publication, son alias et ses mots de passe sont hors P04. Leur création exige le gate D19/P18 et une procédure de sauvegarde/restauration validée.
 
 ## P04-E — déclaration du passthrough
 
