@@ -8,7 +8,8 @@
     "CRNL.HiBoP.XR.BrainInstances",
     "CRNL.HiBoP.XR.BrainInstances.Editor",
     "CRNL.HiBoP.XR.RemoteAssets",
-    "CRNL.HiBoP.XR.StaticRendering"
+    "CRNL.HiBoP.XR.StaticRendering",
+    "CRNL.HiBoP.XR.Sites"
   ],
   "includePlatforms": [
     "Editor"

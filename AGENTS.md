@@ -259,5 +259,8 @@ Important CLI details:
 
 ## XR Development
 
-For Quest deployment/debugging, use Tools/Connect-QuestAdbWifi.ps1 to establish ADB connectivity. Do not manually configure ADB unless the script reports an error.
-If the Quest is not detected, first assume it may simply be asleep or locked. Ask the user to put on the headset, wake it, and unlock it, then retry the connection script before suggesting USB reconnection, Wireless Debugging changes, or any manual ADB reconfiguration.
+Use the `adb` command available in PowerShell without hard-coding its executable path; run Quest ADB commands outside the sandbox.
+Before any Quest operation, check whether an authorized headset is immediately visible with `adb devices`.
+If none is visible, promptly ask the user to connect it by USB and run `Tools/Connect-QuestAdbWifi.ps1`.
+Use that script to configure or restore ADB over Wi-Fi; it also enables off-head testing by default.
+Tests and scripts may otherwise manage ADB and the proximity sensor as required by their own workflow.

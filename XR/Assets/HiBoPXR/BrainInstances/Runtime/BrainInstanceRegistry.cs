@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using CRNL.HiBoP.Contracts;
 using CRNL.HiBoP.Protocol;
+using CRNL.HiBoP.RenderModel;
 using CRNL.HiBoP.XR.RemoteAssets;
 using CRNL.HiBoP.XR.StaticRendering;
+using CRNL.HiBoP.XR.Sites;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -14,6 +16,7 @@ namespace CRNL.HiBoP.XR.BrainInstances
     {
         private readonly InMemoryRemoteAssetCache m_Cache;
         private readonly Dictionary<ContractId, BrainInstance> m_Instances = new();
+        private readonly Dictionary<ContractId, Action<Command>> m_SiteSelectionHandlers = new();
         private readonly BrainInstanceView m_Prefab;
         private readonly RemoteSurfaceAssetStore m_SurfaceStore;
         private readonly Transform m_ViewParent;
@@ -29,6 +32,8 @@ namespace CRNL.HiBoP.XR.BrainInstances
         }
 
         public int Count => m_Instances.Count;
+
+        public event Action<ContractId, Command> SiteSelectionRequested;
 
         public IReadOnlyCollection<BrainInstance> Instances => new ReadOnlyCollection<BrainInstance>(new List<BrainInstance>(m_Instances.Values));
 
@@ -57,7 +62,7 @@ namespace CRNL.HiBoP.XR.BrainInstances
                     continue;
                 }
 
-                bool renderingChanged = instance.SurfaceHash != resolved.SurfaceHash || instance.Representation != resolved.Representation || instance.View.ExpectedDrawCalls != ExpectedDrawCalls(resolved);
+                bool renderingChanged = instance.SurfaceHash != resolved.SurfaceHash || instance.Representation != resolved.Representation || instance.View.ExpectedSurfaceDrawCalls != ExpectedDrawCalls(resolved);
                 if (renderingChanged && !instance.View.TryActivate(resolved))
                 {
                     awaitingAssets.Add(instance.InstanceId);
@@ -65,6 +70,7 @@ namespace CRNL.HiBoP.XR.BrainInstances
                 }
 
                 instance.ApplyCanonical(resolved);
+                BindSiteSelectionContext(instance.View, resolved);
                 instance.View.ApplyLayout(instance.Layout);
             }
 
@@ -99,8 +105,10 @@ namespace CRNL.HiBoP.XR.BrainInstances
                 }
 
                 view.ApplyLayout(layout);
+                BindSiteSelectionContext(view, resolved);
                 instance = new BrainInstance(instanceId, binding, layout, view, resolved);
                 m_Instances.Add(instanceId, instance);
+                SubscribeSiteSelection(instance);
                 return true;
             }
             catch
@@ -119,6 +127,7 @@ namespace CRNL.HiBoP.XR.BrainInstances
                 return false;
             if (!instance.View.TryActivate(resolved))
                 return false;
+            BindSiteSelectionContext(instance.View, resolved);
             instance.ApplyBinding(binding, resolved);
             return true;
         }
@@ -130,6 +139,63 @@ namespace CRNL.HiBoP.XR.BrainInstances
                 return false;
             instance.ApplyLayout(layout);
             return true;
+        }
+
+        public bool TryApplySiteFrame(ContractId instanceId, SiteAsset asset, SiteRenderFrame frame, IReadOnlyList<SiteDirtyRange> dirtyRanges = null)
+        {
+            EnsureOpen();
+            if (!m_Instances.TryGetValue(instanceId, out BrainInstance instance))
+                return false;
+            if (!m_CanonicalState.TryGetSiteSelectionContext(instance.ActiveColumnId, out SiteSelectionContext context))
+                return false;
+            instance.View.ApplySites(asset, frame, context, dirtyRanges);
+            return true;
+        }
+
+        public bool TryUpdateSiteRayHover(ContractId instanceId, Ray ray, float maximumWorldDistanceMeters, out SitePickResult result)
+        {
+            EnsureOpen();
+            if (!m_Instances.TryGetValue(instanceId, out BrainInstance instance) || instance.View.SiteSelection == null)
+            {
+                result = SitePickResult.None;
+                return false;
+            }
+
+            instance.View.SiteSelection.UpdateRayHover(ray, maximumWorldDistanceMeters);
+            result = instance.View.SiteSelection.Hover;
+            return result.Hit;
+        }
+
+        public bool TryUpdateSiteProximityHover(ContractId instanceId, Vector3 worldPoint, out SitePickResult result)
+        {
+            EnsureOpen();
+            if (!m_Instances.TryGetValue(instanceId, out BrainInstance instance) || instance.View.SiteSelection == null)
+            {
+                result = SitePickResult.None;
+                return false;
+            }
+
+            instance.View.SiteSelection.UpdateProximityHover(worldPoint);
+            result = instance.View.SiteSelection.Hover;
+            return result.Hit;
+        }
+
+        public bool TryConfirmSiteHover(ContractId instanceId, ContractId commandId, ContractId correlationId)
+        {
+            EnsureOpen();
+            return m_Instances.TryGetValue(instanceId, out BrainInstance instance) && instance.View.SiteSelection != null && instance.View.ConfirmSiteHover(commandId, correlationId);
+        }
+
+        public bool TryApplySiteSelectionOutcome(ContractId instanceId, CommandOutcome outcome, SiteSelectionMetadata metadata = null)
+        {
+            EnsureOpen();
+            if (!m_Instances.TryGetValue(instanceId, out BrainInstance instance) || instance.View.SiteSelection == null)
+            {
+                metadata?.Dispose();
+                return false;
+            }
+
+            return instance.View.ApplySiteSelectionOutcome(outcome, metadata);
         }
 
         public bool TrySetPose(ContractId instanceId, Vector3 localPosition, Quaternion localRotation)
@@ -202,6 +268,7 @@ namespace CRNL.HiBoP.XR.BrainInstances
             CloseAll(BrainInstanceCloseReason.SessionClosed, closed);
             m_CanonicalState = null;
             m_Closed = true;
+            SiteSelectionRequested = null;
             return new ReadOnlyCollection<ClosedBrainInstance>(closed);
         }
 
@@ -215,6 +282,32 @@ namespace CRNL.HiBoP.XR.BrainInstances
             return resolved.Transparency == SurfaceTransparency.Transparent ? 2 : 1;
         }
 
+        private void BindSiteSelectionContext(BrainInstanceView view, ResolvedBrainBinding resolved)
+        {
+            if (view.SiteSelection == null)
+                return;
+            if (m_CanonicalState.TryGetSiteSelectionContext(resolved.ActiveColumnId, out SiteSelectionContext context))
+                view.BindSiteSelectionContext(context);
+            else
+                view.ClearSites();
+        }
+
+        private void SubscribeSiteSelection(BrainInstance instance)
+        {
+            if (instance.View.SiteSelection == null)
+                return;
+            Action<Command> handler = command => SiteSelectionRequested?.Invoke(instance.InstanceId, command);
+            m_SiteSelectionHandlers.Add(instance.InstanceId, handler);
+            instance.View.SiteSelectionRequested += handler;
+        }
+
+        private void UnsubscribeSiteSelection(BrainInstance instance)
+        {
+            if (!m_SiteSelectionHandlers.Remove(instance.InstanceId, out Action<Command> handler))
+                return;
+            instance.View.SiteSelectionRequested -= handler;
+        }
+
         private void CloseAll(BrainInstanceCloseReason reason, ICollection<ClosedBrainInstance> closed)
         {
             foreach (ContractId instanceId in new List<ContractId>(m_Instances.Keys))
@@ -225,6 +318,7 @@ namespace CRNL.HiBoP.XR.BrainInstances
         {
             BrainInstance instance = m_Instances[instanceId];
             m_Instances.Remove(instanceId);
+            UnsubscribeSiteSelection(instance);
             instance.DisposeView();
             closed.Add(new ClosedBrainInstance(instanceId, reason));
         }

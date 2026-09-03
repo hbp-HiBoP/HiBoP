@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using CRNL.HiBoP.Contracts;
 using CRNL.HiBoP.RenderModel;
 using CRNL.HiBoP.XR.StaticRendering;
+using CRNL.HiBoP.XR.Sites;
 
 namespace CRNL.HiBoP.XR.BrainInstances
 {
     internal sealed class BrainCanonicalState
     {
         private readonly Dictionary<ContractId, VisualizationState> m_Visualizations;
+        private readonly Dictionary<ContractId, ColumnState> m_Columns;
 
-        private BrainCanonicalState(SessionEpoch session, Dictionary<ContractId, VisualizationState> visualizations)
+        private BrainCanonicalState(SessionEpoch session, StateRevision stateRevision, Dictionary<ContractId, VisualizationState> visualizations, Dictionary<ContractId, ColumnState> columns)
         {
             Session = session;
+            StateRevision = stateRevision;
             m_Visualizations = visualizations;
+            m_Columns = columns;
         }
 
         public SessionEpoch Session { get; }
+
+        public StateRevision StateRevision { get; }
 
         public static BrainCanonicalState FromSnapshot(SessionSnapshot snapshot)
         {
@@ -27,7 +33,19 @@ namespace CRNL.HiBoP.XR.BrainInstances
             Dictionary<ContractId, ColumnState> columns = IndexColumns(snapshot.Scopes);
             Dictionary<ContractId, VisualizationState> visualizations = IndexVisualizations(snapshot.Scopes, assetsById, columns);
             ValidateProjectMembership(snapshot.Scopes, visualizations);
-            return new BrainCanonicalState(snapshot.Session, visualizations);
+            return new BrainCanonicalState(snapshot.Session, snapshot.StateRevision, visualizations, columns);
+        }
+
+        public bool TryGetSiteSelectionContext(ContractId columnId, out SiteSelectionContext context)
+        {
+            if (columnId.IsValid && m_Columns.TryGetValue(columnId, out ColumnState column))
+            {
+                context = new SiteSelectionContext(Session, columnId, column.Scope, StateRevision, column.ScopeRevision);
+                return true;
+            }
+
+            context = default;
+            return false;
         }
 
         public bool TryResolve(BrainInstanceBinding binding, out ResolvedBrainBinding resolved)
@@ -97,7 +115,7 @@ namespace CRNL.HiBoP.XR.BrainInstances
                 ContractId columnId = RequiredProperty(scope, V1PropertyKeys.ColumnEntity, ContractValueKind.Id).Id;
                 ContractId visualizationId = RequiredProperty(scope, V1PropertyKeys.ColumnVisualization, ContractValueKind.Id).Id;
                 bool selected = RequiredProperty(scope, V1PropertyKeys.ColumnSelected, ContractValueKind.Boolean).Boolean;
-                if (!result.TryAdd(columnId, new ColumnState(visualizationId, selected)))
+                if (!result.TryAdd(columnId, new ColumnState(visualizationId, selected, scope.Scope, scope.Revision)))
                     throw new InvalidOperationException("A column entity occurs in multiple scopes.");
             }
 
@@ -190,15 +208,21 @@ namespace CRNL.HiBoP.XR.BrainInstances
 
         private readonly struct ColumnState
         {
-            public ColumnState(ContractId visualizationId, bool selected)
+            public ColumnState(ContractId visualizationId, bool selected, ScopeKey scope, ScopeRevision scopeRevision)
             {
                 VisualizationId = visualizationId;
                 Selected = selected;
+                Scope = scope;
+                ScopeRevision = scopeRevision;
             }
 
             public ContractId VisualizationId { get; }
 
             public bool Selected { get; }
+
+            public ScopeKey Scope { get; }
+
+            public ScopeRevision ScopeRevision { get; }
         }
 
         private sealed class VisualizationState

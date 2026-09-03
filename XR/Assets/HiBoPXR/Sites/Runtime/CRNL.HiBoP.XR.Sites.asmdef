@@ -1,0 +1,9 @@
+{
+  "name": "CRNL.HiBoP.XR.Sites",
+  "rootNamespace": "CRNL.HiBoP.XR.Sites",
+  "references": [
+    "CRNL.HiBoP.Contracts",
+    "CRNL.HiBoP.RenderModel"
+  ],
+  "autoReferenced": true
+}

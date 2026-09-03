@@ -6,7 +6,8 @@
     "CRNL.HiBoP.Protocol",
     "CRNL.HiBoP.RenderModel",
     "CRNL.HiBoP.XR.RemoteAssets",
-    "CRNL.HiBoP.XR.StaticRendering"
+    "CRNL.HiBoP.XR.StaticRendering",
+    "CRNL.HiBoP.XR.Sites"
   ],
   "autoReferenced": true
 }

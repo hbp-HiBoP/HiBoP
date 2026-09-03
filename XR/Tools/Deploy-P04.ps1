@@ -1,6 +1,5 @@
 [CmdletBinding()]
 param(
-    [string]$UnityPath = "C:\Program Files\Unity\Hub\Editor\6000.5.2f1\Editor\Unity.exe",
     [string]$ApkPath
 )
 
@@ -14,14 +13,16 @@ if ([string]::IsNullOrWhiteSpace($ApkPath))
 }
 
 $ApkPath = (Resolve-Path $ApkPath).Path
-$adb = Join-Path (Split-Path -Parent $UnityPath) "Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe"
-$devices = @(& $adb devices | Select-String "\tdevice$")
-if ($devices.Count -ne 1)
+$adb = (Get-Command adb.exe -CommandType Application -ErrorAction Stop).Source
+$connector = Join-Path $repositoryPath "Tools\Connect-QuestAdbWifi.ps1"
+& $connector -AdbPath $adb -UsbWaitSeconds 3 -Quiet
+if ($LASTEXITCODE -ne 0)
 {
-    throw "Exactly one authorized Quest must be connected; found $($devices.Count)."
+    throw "Quest ADB Wi-Fi setup failed."
 }
 
-$serial = ($devices[0].Line -split "\s+")[0]
+$connectionState = Get-Content -Raw (Join-Path $repositoryPath ".codex-temp\quest-adb-wifi.json") | ConvertFrom-Json
+$serial = [string]$connectionState.Endpoint
 & $adb -s $serial install -r $ApkPath
 if ($LASTEXITCODE -ne 0)
 {

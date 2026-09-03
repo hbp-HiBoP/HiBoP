@@ -6,19 +6,26 @@
     This script tries, in order, to:
       1. reuse an existing ADB Wi-Fi connection;
       2. connect directly to -IpAddress, if provided;
-      3. discover an ADB target via mDNS;
-      4. if requested with -ScanSubnet, look for a Quest listening on the ADB port
-         on local IPv4 /24 subnets;
-      5. otherwise, use a Quest connected over USB to:
+      3. reconnect to the last verified Quest endpoint saved locally;
+      4. discover an ADB target via mDNS;
+      5. use a Quest connected over USB to:
            - detect its Wi-Fi IPv4 address;
            - run "adb tcpip <port>";
            - establish "adb connect <ip>:<port>";
            - verify the connection with a shell command.
+      6. if requested with -ScanSubnet, look for a Quest listening on the ADB port
+         on local IPv4 /24 subnets.
 
-    No IP address cache is created.
+    The last verified endpoint is cached under .codex-temp so a stopped or
+    restarted local ADB server can reconnect without MQDH or a USB cable.
 
-    The script prefers a standalone ADB installation (PATH / Android SDK) and can use
-    the ADB bundled with Unity as a last resort.
+    The script uses the standalone adb.exe exposed in PATH by default. A specific
+    standalone executable can be selected with -AdbPath. It never falls back to
+    Unity's bundled ADB because mixing ADB versions can restart the local server.
+
+    By default, Meta's off-head automation mode is enabled so the proximity sensor
+    does not suspend the headset during automated tests. This lasts until reboot or
+    until another tool explicitly disables the override.
 
     Compatible with Windows PowerShell 5.1+ and PowerShell 7+.
 
@@ -44,7 +51,12 @@
     Restarts the local ADB server before starting.
 
 .EXAMPLE
-    .\Connect-QuestAdbWifi.ps1 -AdbPath "C:\Android\Sdk\platform-tools\adb.exe"
+    .\Connect-QuestAdbWifi.ps1 -NoProximityOverride
+
+    Connects ADB without changing the Quest proximity-sensor behavior.
+
+.EXAMPLE
+    .\Connect-QuestAdbWifi.ps1 -AdbPath "C:\path\to\platform-tools\adb.exe"
 
     Forces the use of a specific adb.exe.
 
@@ -89,11 +101,11 @@ param(
     # Disabled by default to avoid an unnecessary network scan.
     [switch]$ScanSubnet,
 
-    # Does not use the ADB bundled with Unity as a fallback.
-    [switch]$NoUnityFallback,
-
     # Does not attempt discovery with "adb mdns services".
     [switch]$NoMdns,
+
+    # Does not keep the Quest awake by overriding its proximity sensor.
+    [switch]$NoProximityOverride,
 
     # Displays less output.
     [switch]$Quiet
@@ -101,6 +113,7 @@ param(
 
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = "Stop"
+$script:StatePath = Join-Path (Split-Path -Parent $PSScriptRoot) ".codex-temp\quest-adb-wifi.json"
 
 # ---------------------------------------------------------------------------
 # Display / output helpers
@@ -128,8 +141,63 @@ function Stop-Script {
         [string]$Message,
         [int]$Code = 1
     )
-    Write-Error "[Quest ADB] $Message"
+    Write-Error "[Quest ADB] $Message" -ErrorAction Continue
     exit $Code
+}
+
+# ---------------------------------------------------------------------------
+# Persistent local connection state
+# ---------------------------------------------------------------------------
+
+function Get-ConnectionState {
+    if (-not (Test-Path -LiteralPath $script:StatePath -PathType Leaf)) {
+        return $null
+    }
+
+    try {
+        $state = Get-Content -LiteralPath $script:StatePath -Raw | ConvertFrom-Json
+        if (-not $state.PSObject.Properties["Endpoint"]) {
+            return $null
+        }
+
+        foreach ($propertyName in @("AdbPath", "DeviceSerial")) {
+            if (-not $state.PSObject.Properties[$propertyName]) {
+                $state | Add-Member -NotePropertyName $propertyName -NotePropertyValue $null
+            }
+        }
+
+        return $state
+    }
+    catch {
+        Write-Warn "Ignoring unreadable connection state: $script:StatePath"
+        return $null
+    }
+}
+
+function Save-ConnectionState {
+    param($Connection)
+
+    try {
+        $stateDirectory = Split-Path -Parent $script:StatePath
+        if (-not (Test-Path -LiteralPath $stateDirectory -PathType Container)) {
+            [void](New-Item -ItemType Directory -Path $stateDirectory -Force)
+        }
+
+        $state = [ordered]@{
+            Version      = 1
+            Endpoint     = $Connection.Endpoint
+            DeviceSerial = $Connection.Properties.SerialNumber
+            AdbPath      = $script:Adb
+            UpdatedAtUtc = [DateTime]::UtcNow.ToString("o")
+        }
+
+        $temporaryPath = "$script:StatePath.tmp"
+        $state | ConvertTo-Json | Set-Content -LiteralPath $temporaryPath -Encoding UTF8
+        Move-Item -LiteralPath $temporaryPath -Destination $script:StatePath -Force
+    }
+    catch {
+        Write-Warn "ADB is connected, but its local connection state could not be saved: $($_.Exception.Message)"
+    }
 }
 
 # ---------------------------------------------------------------------------
@@ -146,8 +214,18 @@ function Invoke-Adb {
         [switch]$AllowFailure
     )
 
-    $output = @(& $script:Adb @Arguments 2>&1)
-    $code = $LASTEXITCODE
+    $previousErrorActionPreference = $ErrorActionPreference
+    try {
+        # Windows PowerShell can promote native stderr to a terminating
+        # NativeCommandError when the script-wide preference is Stop. ADB writes
+        # normal daemon lifecycle messages to stderr, so capture them as output.
+        $ErrorActionPreference = "Continue"
+        $output = @(& $script:Adb @Arguments 2>&1)
+        $code = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
 
     if (($code -ne 0) -and (-not $AllowFailure)) {
         $text = ($output -join [Environment]::NewLine).Trim()
@@ -184,34 +262,6 @@ function Resolve-AdbExecutable {
             $candidates.Add($cmd.Source)
         }
     } catch {}
-
-    foreach ($root in @($env:ANDROID_SDK_ROOT, $env:ANDROID_HOME)) {
-        if ($root) {
-            $candidates.Add((Join-Path $root "platform-tools\adb.exe"))
-        }
-    }
-
-    $candidates.Add("C:\Android\Sdk\platform-tools\adb.exe")
-
-    if ($env:LOCALAPPDATA) {
-        $candidates.Add((Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"))
-    }
-
-    if (-not $NoUnityFallback) {
-        $unityEditors = "C:\Program Files\Unity\Hub\Editor"
-        if (Test-Path -LiteralPath $unityEditors -PathType Container) {
-            $unityAdbs = Get-ChildItem -LiteralPath $unityEditors -Directory -ErrorAction SilentlyContinue |
-                ForEach-Object {
-                    Join-Path $_.FullName "Editor\Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe"
-                } |
-                Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
-                Sort-Object -Descending
-
-            foreach ($candidate in $unityAdbs) {
-                $candidates.Add($candidate)
-            }
-        }
-    }
 
     $seen = @{}
     foreach ($candidate in $candidates) {
@@ -280,6 +330,7 @@ function Get-DeviceProperties {
     $manufacturer = ""
     $model = ""
     $product = ""
+    $serialNumber = ""
 
     $r = Invoke-Adb -Arguments @("-s", $DeviceSerial, "shell", "getprop", "ro.product.manufacturer") -AllowFailure
     if ($r.ExitCode -eq 0) { $manufacturer = $r.Text.Trim() }
@@ -290,10 +341,14 @@ function Get-DeviceProperties {
     $r = Invoke-Adb -Arguments @("-s", $DeviceSerial, "shell", "getprop", "ro.product.name") -AllowFailure
     if ($r.ExitCode -eq 0) { $product = $r.Text.Trim() }
 
+    $r = Invoke-Adb -Arguments @("-s", $DeviceSerial, "shell", "getprop", "ro.serialno") -AllowFailure
+    if ($r.ExitCode -eq 0) { $serialNumber = $r.Text.Trim() }
+
     [pscustomobject]@{
         Manufacturer = $manufacturer
         Model        = $model
         Product      = $product
+        SerialNumber = $serialNumber
     }
 }
 
@@ -335,7 +390,9 @@ function Test-AdbTcpEndpoint {
         [Parameter(Mandatory=$true)]
         [string]$Endpoint,
 
-        [switch]$RequireQuest
+        [switch]$RequireQuest,
+
+        [string]$ExpectedDeviceSerial
     )
 
     $devices = Get-AdbDevices
@@ -358,6 +415,10 @@ function Test-AdbTcpEndpoint {
         return $null
     }
 
+    if ($ExpectedDeviceSerial -and $questInfo.Properties.SerialNumber -ne $ExpectedDeviceSerial) {
+        return $null
+    }
+
     return [pscustomobject]@{
         Endpoint   = $Endpoint
         IsQuest    = $questInfo.IsQuest
@@ -370,8 +431,19 @@ function Connect-AdbEndpoint {
         [Parameter(Mandatory=$true)]
         [string]$Endpoint,
 
-        [switch]$RequireQuest
+        [switch]$RequireQuest,
+
+        [string]$ExpectedDeviceSerial
     )
+
+    $staleDevice = Get-AdbDevices | Where-Object {
+        $_.Serial -eq $Endpoint -and $_.State -ne "device"
+    } | Select-Object -First 1
+
+    if ($staleDevice) {
+        Write-Step "Removing stale ADB entry for $Endpoint ($($staleDevice.State))..."
+        [void](Invoke-Adb -Arguments @("disconnect", $Endpoint) -AllowFailure)
+    }
 
     for ($attempt = 1; $attempt -le $ConnectRetries; $attempt++) {
         Write-Step "Connecting to $Endpoint (attempt $attempt/$ConnectRetries)..."
@@ -384,13 +456,52 @@ function Connect-AdbEndpoint {
 
         Start-Sleep -Milliseconds $RetryDelayMs
 
-        $verified = Test-AdbTcpEndpoint -Endpoint $Endpoint -RequireQuest:$RequireQuest
+        $verified = Test-AdbTcpEndpoint `
+            -Endpoint $Endpoint `
+            -RequireQuest:$RequireQuest `
+            -ExpectedDeviceSerial $ExpectedDeviceSerial
         if ($verified) {
             return $verified
         }
     }
 
     return $null
+}
+
+function Enable-QuestOffHeadMode {
+    param([string]$DeviceSerial)
+
+    if (-not $NoProximityOverride) {
+        Write-Step "Enabling off-head mode (proximity sensor override)..."
+        $proximity = Invoke-Adb -Arguments @(
+            "-s", $DeviceSerial, "shell", "am", "broadcast", "-a",
+            "com.oculus.vrpowermanager.prox_close"
+        ) -AllowFailure
+
+        if ($proximity.ExitCode -ne 0) {
+            throw (
+                "ADB is connected, but the Quest proximity override failed.`n" +
+                "ADB output:`n$($proximity.Text)"
+            )
+        }
+
+        Write-Step "Off-head mode is active until reboot or an explicit automation_disable command."
+    }
+}
+
+function Complete-QuestConnection {
+    param(
+        [Parameter(Mandatory=$true)]
+        $Connection,
+
+        [Parameter(Mandatory=$true)]
+        [string]$Message
+    )
+
+    Save-ConnectionState -Connection $Connection
+    Enable-QuestOffHeadMode -DeviceSerial $Connection.Endpoint
+
+    Write-Ok $Message
 }
 
 # ---------------------------------------------------------------------------
@@ -675,6 +786,8 @@ function Try-SubnetScan {
 try {
     Write-Step "Resolving ADB..."
 
+    $cachedState = Get-ConnectionState
+
     $script:Adb = Resolve-AdbExecutable -RequestedPath $AdbPath
 
     if (-not $script:Adb) {
@@ -700,13 +813,6 @@ or run again with:
         }
     }
 
-    if ($script:Adb -match '(?i)\\Unity\\Hub\\Editor\\') {
-        Write-Warn (
-            "The script is using the ADB bundled with Unity. This works, " +
-            "but a standalone Android Platform-Tools installation in PATH is preferable for a stable Codex environment."
-        )
-    }
-
     if ($RestartAdbServer) {
         Write-Step "Restarting the ADB server..."
         [void](Invoke-Adb -Arguments @("kill-server") -AllowFailure)
@@ -723,7 +829,9 @@ or run again with:
         $verified = Test-AdbTcpEndpoint -Endpoint $tcpDevice.Serial -RequireQuest
         if ($verified) {
             $name = Format-DeviceName -DeviceSerial $verified.Endpoint -Properties $verified.Properties
-            Write-Ok "Quest is already connected over Wi-Fi: $name"
+            Complete-QuestConnection `
+                -Connection $verified `
+                -Message "Quest is already connected over Wi-Fi: $name"
             exit 0
         }
     }
@@ -740,22 +848,50 @@ or run again with:
         $direct = Connect-AdbEndpoint -Endpoint $endpoint -RequireQuest
         if ($direct) {
             $name = Format-DeviceName -DeviceSerial $direct.Endpoint -Properties $direct.Properties
-            Write-Ok "Quest connected over Wi-Fi: $name"
+            Complete-QuestConnection `
+                -Connection $direct `
+                -Message "Quest connected over Wi-Fi: $name"
             exit 0
         }
 
         Write-Warn "The direct connection to $endpoint failed."
     }
 
-    # 3) mDNS.
+    # 3) Last verified endpoint. This survives local ADB server restarts/disconnects.
+    if ($cachedState -and $cachedState.Endpoint) {
+        $cachedEndpoint = [string]$cachedState.Endpoint
+        $explicitEndpoint = if ($IpAddress) { "${IpAddress}:$Port" } else { "" }
+
+        if ($cachedEndpoint -ne $explicitEndpoint) {
+            Write-Step "Attempting the last verified Quest endpoint: $cachedEndpoint..."
+            $cached = Connect-AdbEndpoint `
+                -Endpoint $cachedEndpoint `
+                -RequireQuest `
+                -ExpectedDeviceSerial ([string]$cachedState.DeviceSerial)
+
+            if ($cached) {
+                $name = Format-DeviceName -DeviceSerial $cached.Endpoint -Properties $cached.Properties
+                Complete-QuestConnection `
+                    -Connection $cached `
+                    -Message "Quest reconnected from local state: $name"
+                exit 0
+            }
+
+            Write-Warn "The last verified Quest endpoint is not currently reachable: $cachedEndpoint"
+        }
+    }
+
+    # 4) mDNS.
     $mdnsResult = Try-MdnsDiscovery
     if ($mdnsResult) {
         $name = Format-DeviceName -DeviceSerial $mdnsResult.Endpoint -Properties $mdnsResult.Properties
-        Write-Ok "Quest discovered and connected via mDNS: $name"
+        Complete-QuestConnection `
+            -Connection $mdnsResult `
+            -Message "Quest discovered and connected via mDNS: $name"
         exit 0
     }
 
-    # 4) Look for an authorized USB Quest.
+    # 5) Look for an authorized USB Quest.
     Write-Step "Looking for a Quest connected over USB..."
     $usbDevice = Wait-ForUsbQuest -RequestedSerial $Serial -TimeoutSeconds $UsbWaitSeconds
 
@@ -765,7 +901,9 @@ or run again with:
         $scanResult = Try-SubnetScan
         if ($scanResult) {
             $name = Format-DeviceName -DeviceSerial $scanResult.Endpoint -Properties $scanResult.Properties
-            Write-Ok "Quest found on the network and connected: $name"
+            Complete-QuestConnection `
+                -Connection $scanResult `
+                -Message "Quest found on the network and connected: $name"
             exit 0
         }
 
@@ -825,6 +963,9 @@ Make sure the headset is connected to Wi-Fi, then run the script again.
     Write-Step "Quest Wi-Fi address: $questIp"
     $endpoint = "${questIp}:$Port"
 
+    # Apply the off-head override while the reliable USB transport is still active.
+    Enable-QuestOffHeadMode -DeviceSerial $usbDevice.Serial
+
     # Enable TCP/IP.
     Write-Step "Enabling ADB TCP/IP on port $Port..."
     $tcpip = Invoke-Adb -Arguments @("-s", $usbDevice.Serial, "tcpip", "$Port") -AllowFailure
@@ -853,10 +994,8 @@ Make sure the headset is connected to Wi-Fi, then run the script again.
             $networkHint = @"
 
 TCP port $Port responds from this PC, but ADB cannot establish a session.
-Try the following troubleshooting steps:
-  adb kill-server
-  adb start-server
-then run this script again.
+Run this script again with -RestartAdbServer. The cached endpoint will be used
+to restore the Quest connection after the local ADB server restarts.
 "@
         } elseif ($portTest) {
             $networkHint = @"
@@ -875,8 +1014,11 @@ $networkHint
 
     $name = Format-DeviceName -DeviceSerial $connected.Endpoint -Properties $connected.Properties
 
+    Complete-QuestConnection `
+        -Connection $connected `
+        -Message "ADB over Wi-Fi is operational."
+
     Write-Host ""
-    Write-Ok "ADB over Wi-Fi is operational."
     Write-Host "  Endpoint : $endpoint"
     Write-Host "  Device   : $name"
     Write-Host "  ADB      : $script:Adb"

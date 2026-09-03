@@ -51,6 +51,11 @@
 | P09-C | fermeture de cible ferme et libère explicitement les instances concernées | RESOLVED |
 | P09-D | transform local ; apparence canonique ; topologie P08/P05 partagée par hash | RESOLVED |
 | P09-E | layout conservé dans le même epoch pour IDs valides, purgé au nouvel epoch | RESOLVED |
+| P10-A | positions/attributs en GraphicsBuffer, un RenderMeshPrimitives par set de sites | RESOLVED |
+| P10-B | éligibilité visible/rayon positif ; classement géométrique déterministe puis ID opaque | RESOLVED |
+| P10-C | positions et rayons en mm locaux ; scale BrainInstance uniforme ; ray min 2 mm, proximité 12 mm | RESOLVED |
+| P10-D | BVH médian sur centres statiques, rebuild seulement au changement de hash | RESOLVED |
+| P10-E | métadonnées de sélection sur allowlist, transitoires et jamais journalisées/persistées | RESOLVED |
 
 Les motivations, règles complètes et conditions de réouverture sont enregistrées dans [ADR P02](adr/P02-contracts.md) et le [catalogue des scopes V1](contracts/P02-scope-catalog.md).
 
@@ -59,6 +64,8 @@ Les décisions de rendu, leurs frontières d'assemblage et les tolérances synth
 Les décisions de transfert, pression mémoire, lifecycle du cache et dépendances de variantes sont enregistrées dans [ADR P08](adr/P08-remote-assets.md). P14-B reste propriétaire du raccordement exact aux événements de plateforme et de la matrice sécurité globale.
 
 Les bindings, fermetures et règles de restauration du layout local sont enregistrés dans [ADR P09](adr/P09-multi-brain.md). P09 rouvre P02 uniquement pour rendre explicite le mapping entité/scope nécessaire à ces bindings.
+
+Le backend bufferisé, le BVH, les règles de classement, les unités/seuils et l'allowlist de métadonnées des sites sont enregistrés dans [ADR P10](adr/P10-sites.md). Le choix A/D est fondé sur le benchmark D3 hôte puis validé sur Quest 3 : 37 500 sites sans plafond, picking exact, CPU/GPU sous D20 et endurance 30 minutes sans dérive thermique ou mémoire.
 
 ## D01 — topologie Unity
 

@@ -7,6 +7,7 @@ using CRNL.HiBoP.Protocol;
 using CRNL.HiBoP.RenderModel;
 using CRNL.HiBoP.XR.BrainInstances.Editor;
 using CRNL.HiBoP.XR.RemoteAssets;
+using CRNL.HiBoP.XR.Sites;
 using CRNL.HiBoP.XR.StaticRendering;
 using NUnit.Framework;
 using UnityEditor;
@@ -167,6 +168,39 @@ namespace CRNL.HiBoP.XR.BrainInstances.Tests
             Assert.That(metrics.DistinctMeshes, Is.Zero);
             environment.Registry.CloseSession();
             Assert.That(environment.Cache.ResidentBytes, Is.Zero);
+        }
+
+        [Test]
+        public void RegistryOwnsTheProductionSiteFrameCommandAndOutcomePath()
+        {
+            using TestEnvironment environment = TestEnvironment.Create();
+            environment.Registry.Reconcile(Snapshot(environment.Hash, epoch: 1, firstSelected: true, secondSelected: false));
+            ContractId instanceId = new(210, 1);
+            Assert.That(environment.Registry.TryCreate(instanceId, BrainInstanceBinding.ForColumn(VisualizationId, FirstColumnId), BrainInstanceLayout.Identity, out BrainInstance instance), Is.True);
+
+            ContractId siteId = new(210, 2);
+            var siteAsset = new SiteAsset(new AssetHash(210, 3, 4, 5), CoordinateSpace.DesktopUnityMillimetersV1, new Bounds3F(new Float3(0f, 0f, 0f), new Float3(0f, 0f, 0f)), RenderBuffer<ContractId>.TakeOwnership(new[] { siteId }), RenderBuffer<Float3>.TakeOwnership(new[] { new Float3(0f, 0f, 0f) }));
+            var siteFrame = new SiteRenderFrame(siteAsset.Hash, new StateRevision(1), new RenderTemporalSample(0, 0f), TemporalApplication.Linear, RenderBuffer<Float3>.TakeOwnership(new[] { new Float3(0f, 0f, 0f) }), RenderBuffer<Rgba32>.TakeOwnership(new[] { new Rgba32(255, 255, 255, 255) }), RenderBuffer<float>.TakeOwnership(new[] { 1f }), RenderBuffer<byte>.TakeOwnership(new byte[] { 1 }), RenderBuffer<SiteRenderFlags>.TakeOwnership(new SiteRenderFlags[1]));
+            ContractId forwardedInstance = default;
+            Command forwarded = null;
+            environment.Registry.SiteSelectionRequested += (source, command) =>
+            {
+                forwardedInstance = source;
+                forwarded = command;
+            };
+
+            Assert.That(environment.Registry.TryApplySiteFrame(instanceId, siteAsset, siteFrame), Is.True);
+            Assert.That(environment.Registry.TryUpdateSiteProximityHover(instanceId, Vector3.zero, out SitePickResult hover), Is.True);
+            Assert.That(hover.SiteId, Is.EqualTo(siteId));
+            ContractId commandId = new(210, 6);
+            Assert.That(environment.Registry.TryConfirmSiteHover(instanceId, commandId, new ContractId(210, 7)), Is.True);
+            Assert.That(forwardedInstance, Is.EqualTo(instanceId));
+            Assert.That(forwarded.Kind, Is.EqualTo(CommandKind.SelectSite));
+            Assert.That(forwarded.Scope, Is.EqualTo(new ScopeKey(ScopeType.Column, new ContractId(9, FirstColumnId.Low + 200))));
+
+            var metadata = new SiteSelectionMetadata(forwarded.Session, siteId, FirstColumnId, new StateRevision(2), "A1", Array.Empty<SiteSelectionMeasurement>(), true, false, false);
+            Assert.That(environment.Registry.TryApplySiteSelectionOutcome(instanceId, CommandOutcome.Accept(commandId, new StateRevision(2), new ScopeRevision(2), Optional<ContractValue>.Some(ContractValue.FromId(siteId))), metadata), Is.True);
+            Assert.That(instance.View.SiteSelection.CanonicalSiteId, Is.EqualTo(siteId));
         }
 
         [Test]

@@ -1,0 +1,18 @@
+{
+  "name": "CRNL.HiBoP.XR.Sites.EditModeTests",
+  "rootNamespace": "CRNL.HiBoP.XR.Sites.Tests",
+  "references": [
+    "CRNL.HiBoP.Contracts",
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.XR.BrainInstances",
+    "CRNL.HiBoP.XR.Sites",
+    "CRNL.HiBoP.XR.Sites.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false
+}
