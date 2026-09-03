@@ -1,8 +1,8 @@
 {
   "name": "com.crnl.hibop.protocol",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "HiBoP Protocol",
-  "description": "Shared protocol assembly skeleton for HiBoP Desktop and HiBoPXR.",
+  "description": "AOT-safe handshake, pairing, transactional session state, commands, resume and redacted diagnostics shared by HiBoP Desktop and HiBoPXR.",
   "unity": "6000.5",
   "author": {
     "name": "CRNL"

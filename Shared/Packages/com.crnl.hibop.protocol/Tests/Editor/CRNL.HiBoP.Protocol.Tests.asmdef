@@ -2,7 +2,8 @@
     "name": "CRNL.HiBoP.Protocol.Tests",
     "rootNamespace": "CRNL.HiBoP.Protocol.Tests",
     "references": [
-        "CRNL.HiBoP.Protocol"
+        "CRNL.HiBoP.Protocol",
+        "CRNL.HiBoP.Contracts"
     ],
     "includePlatforms": [
         "Editor"

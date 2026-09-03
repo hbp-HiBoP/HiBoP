@@ -256,3 +256,7 @@ Important CLI details:
 - Closed-editor PlayMode runs are possible, but the full HiBoP PlayMode UI set
   can create very large logs/XML when UI tests time out. Prefer filtered
   PlayMode runs while debugging.
+
+## XR Development
+
+For Quest deployment/debugging, use Tools/Connect-QuestAdbWifi.ps1 to establish ADB connectivity. Do not manually configure ADB unless the script reports an error.

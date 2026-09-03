@@ -19,13 +19,14 @@ namespace CRNL.HiBoP.Contracts
         RateLimited = 12,
         SessionReplaced = 13,
         TransportFailure = 14,
+        SessionBusy = 15,
     }
 
     public sealed class ContractError : IEquatable<ContractError>
     {
         public ContractError(ErrorCode code, ContractId correlationId, bool retryable, Optional<StateRevision> currentStateRevision = default, Optional<ScopeRevision> currentScopeRevision = default)
         {
-            if (code <= ErrorCode.Unknown || code > ErrorCode.TransportFailure)
+            if (code <= ErrorCode.Unknown || code > ErrorCode.SessionBusy)
                 throw new ArgumentOutOfRangeException(nameof(code));
             if (!correlationId.IsValid)
                 throw new ArgumentException("A valid correlation identifier is required.", nameof(correlationId));

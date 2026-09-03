@@ -1,0 +1,9 @@
+{
+    "name": "CRNL.HiBoP.XR.DistributedSession",
+    "rootNamespace": "CRNL.HiBoP.XR.DistributedSession",
+    "references": [
+        "CRNL.HiBoP.Contracts",
+        "CRNL.HiBoP.Protocol"
+    ],
+    "autoReferenced": true
+}
