@@ -46,12 +46,19 @@
 | P08-C | reprise 30 s ; purge staging/inactifs ; actifs purge-pending jusqu’au retrait explicite | RESOLVED |
 | P08-D | limites d’allocation par type négociées au minimum des pairs | RESOLVED |
 | P08-E | hashes propres aux variantes et manifeste inflated → anatomical | RESOLVED |
+| P09-A | deux bindings exacts : visualisation suit la sélection, colonne reste épinglée | RESOLVED |
+| P09-B | création uniquement sur demande XR, jamais depuis snapshot/resume | RESOLVED |
+| P09-C | fermeture de cible ferme et libère explicitement les instances concernées | RESOLVED |
+| P09-D | transform local ; apparence canonique ; topologie P08/P05 partagée par hash | RESOLVED |
+| P09-E | layout conservé dans le même epoch pour IDs valides, purgé au nouvel epoch | RESOLVED |
 
 Les motivations, règles complètes et conditions de réouverture sont enregistrées dans [ADR P02](adr/P02-contracts.md) et le [catalogue des scopes V1](contracts/P02-scope-catalog.md).
 
 Les décisions de rendu, leurs frontières d'assemblage et les tolérances synthétiques sont enregistrées dans [ADR P03](adr/P03-render-model.md). Les hashes reproductibles sont consignés dans la [preuve de parité P03](evidence/P03/render-model-parity.md).
 
 Les décisions de transfert, pression mémoire, lifecycle du cache et dépendances de variantes sont enregistrées dans [ADR P08](adr/P08-remote-assets.md). P14-B reste propriétaire du raccordement exact aux événements de plateforme et de la matrice sécurité globale.
+
+Les bindings, fermetures et règles de restauration du layout local sont enregistrés dans [ADR P09](adr/P09-multi-brain.md). P09 rouvre P02 uniquement pour rendre explicite le mapping entité/scope nécessaire à ces bindings.
 
 ## D01 — topologie Unity
 

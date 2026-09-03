@@ -31,6 +31,8 @@ namespace CRNL.HiBoP.XR.StaticRendering
 
         public SurfaceAsset SurfaceAsset { get; private set; }
 
+        public Mesh SharedMesh => meshFilter == null ? null : meshFilter.sharedMesh;
+
         public void Configure(MeshFilter filter, MeshRenderer renderer, Material opaque, Material transparent, MeshFilter depthFilter, MeshRenderer depthRenderer, Material depthMaterial, Color surfaceColor, float alpha, int sortingOrder)
         {
             meshFilter = filter;

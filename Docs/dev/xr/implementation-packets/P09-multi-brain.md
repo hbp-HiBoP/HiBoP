@@ -74,13 +74,21 @@ Si l'inventaire fonctionnel ne répond pas à P09-A–D, demander une décision 
 
 ## Critères de sortie binaires
 
-- [ ] P09-A–E enregistrées ;
-- [ ] bindings V1 déterministes ;
-- [ ] transformations indépendantes et locales ;
-- [ ] topologie partagée physiquement ;
-- [ ] fermeture/reconnexion sans instance fantôme ;
-- [ ] aucun maximum métier codé ;
-- [ ] métriques 1/3/8 archivées.
+- [x] P09-A–E enregistrées ;
+- [x] bindings V1 déterministes ;
+- [x] transformations indépendantes et locales ;
+- [x] topologie partagée physiquement ;
+- [x] fermeture/reconnexion sans instance fantôme ;
+- [x] aucun maximum métier codé ;
+- [x] métriques 1/3/8 archivées.
+
+## Résultat d'exécution — 3 septembre 2026
+
+**PASS sur le périmètre lifecycle/bindings/transforms local.** L'[ADR P09](../adr/P09-multi-brain.md) ferme P09-A–E avant le modèle public et rouvre P02 uniquement pour les mappings entité/scope manquants. `VisualizationBound` suit la sélection canonique ; `ColumnBound` reste épinglé. Les instances ne naissent que sur demande XR, ferment explicitement avec leur cause lorsque leur cible disparaît, conservent leur layout pendant une reprise du même epoch et sont toutes purgées au nouvel epoch.
+
+La suite P09 passe `13/13`. Avec la vraie surface anatomique D1, 1/3/8 instances conservent exactement un `SurfaceAsset`, un `Mesh`, 3 317 125 octets de payload P08 et 6 635 760 octets de mémoire mesh mesurée ; seuls les renderers/draw calls structurels passent de 1 à 3 à 8. Les 256 cycles create/close ne laissent aucun mesh référencé et la fermeture ramène `ResidentBytes` à zéro. Les régressions P09/P08/P05 passent `24/24`, et la suite Desktop partagée + serialization passe `670/670`.
+
+Les commandes, métriques et limites sont consignées dans [la validation P09](../evidence/P09/multi-brain-validation.md). La preuve est Windows EditMode ; la capture GPU et les gestes mains/contrôleurs sur Quest restent à P13.
 
 ## Artefacts à remettre
 

@@ -96,6 +96,8 @@ Ordering
 
 Les indices de tableaux sont valides seulement avec l'asset hash auquel ils appartiennent. Ils ne remplacent jamais un ID stable sur le wire.
 
+Pour P09, les scopes Desktop portent explicitement `VisualizationEntity`, `ColumnEntity` et `ColumnVisualization`. Ces propriétés relient les `scopeId` à leurs `visualizationId`/`columnId` opaques sans supposer leur égalité et rendent les bindings `BrainInstance` déterministes.
+
 ## 6. Commande et résultat
 
 ```text

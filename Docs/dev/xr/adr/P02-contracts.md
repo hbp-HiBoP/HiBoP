@@ -99,3 +99,7 @@ P02-A–D étant enregistrées et le catalogue ne contenant aucun propriétaire 
 ## Réouverture
 
 Réouvrir cet ADR si une identité doit survivre à un epoch sur le wire, si un scope acquiert plusieurs autorités, si une commande doit fusionner automatiquement un conflit ou si le codec retenu ne peut pas représenter l'optionalité sans sentinelle.
+
+### Addendum P09 — mapping entité/scope
+
+P09 a rouvert le catalogue de façon additive le 2026-09-03. Les clés V1 `VisualizationEntity`, `ColumnEntity` et `ColumnVisualization` rendent explicites les mappings déjà exigés conceptuellement par P02-A et nécessaires aux bindings `BrainInstance`. Elles utilisent les `ContractValue` de type `Id`, ne modifient aucun propriétaire et deviennent requises pour négocier la capability multi-instance P09 dans une paire Desktop/XR coordonnée.

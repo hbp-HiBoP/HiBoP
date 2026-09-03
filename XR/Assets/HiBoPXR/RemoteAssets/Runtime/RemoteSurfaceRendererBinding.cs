@@ -23,11 +23,18 @@ namespace CRNL.HiBoP.XR.RemoteAssets
 
         public bool TryActivate(AssetHash hash, SurfaceTransparency transparency)
         {
+            return TryActivate(hash, transparency, null);
+        }
+
+        public bool TryActivate(AssetHash hash, SurfaceTransparency transparency, SurfaceRepresentation? expectedRepresentation)
+        {
             if (!m_Store.TryAcquire(hash, out RemoteSurfaceAssetLease nextLease))
                 return false;
 
             try
             {
+                if (expectedRepresentation.HasValue && nextLease.Asset.Representation != expectedRepresentation.Value)
+                    throw new InvalidOperationException("The acquired surface representation does not match the canonical visualization state.");
                 m_Renderer.SetSurface(nextLease.Asset, transparency);
                 RemoteSurfaceAssetLease previousLease = m_Lease;
                 m_Lease = nextLease;

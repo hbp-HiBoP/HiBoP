@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 
 namespace CRNL.HiBoP.Contracts.Tests
@@ -32,6 +33,15 @@ namespace CRNL.HiBoP.Contracts.Tests
             ScopeKey site = new(ScopeType.Site, sameOpaqueValue);
 
             Assert.That(column, Is.Not.EqualTo(site));
+        }
+
+        [Test]
+        public void P09EntityScopeMappingKeysAreDistinctAndStable()
+        {
+            Assert.That(V1PropertyKeys.VisualizationEntity.Value, Is.EqualTo(2012));
+            Assert.That(V1PropertyKeys.ColumnEntity.Value, Is.EqualTo(3009));
+            Assert.That(V1PropertyKeys.ColumnVisualization.Value, Is.EqualTo(3010));
+            Assert.That(new[] { V1PropertyKeys.VisualizationEntity, V1PropertyKeys.ColumnEntity, V1PropertyKeys.ColumnVisualization }.Distinct().Count(), Is.EqualTo(3));
         }
 
         [Test]

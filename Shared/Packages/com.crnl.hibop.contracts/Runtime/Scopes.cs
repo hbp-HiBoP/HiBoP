@@ -138,6 +138,7 @@ namespace CRNL.HiBoP.Contracts
         public static readonly PropertyKey VisualizationHideBlacklistedSites = new(2009);
         public static readonly PropertyKey VisualizationShowAllSites = new(2010);
         public static readonly PropertyKey VisualizationAutomaticCut = new(2011);
+        public static readonly PropertyKey VisualizationEntity = new(2012);
 
         public static readonly PropertyKey ColumnKind = new(3001);
         public static readonly PropertyKey ColumnSelected = new(3002);
@@ -147,6 +148,8 @@ namespace CRNL.HiBoP.Contracts
         public static readonly PropertyKey ColumnVisibilityBands = new(3006);
         public static readonly PropertyKey ColumnSelectedLabel = new(3007);
         public static readonly PropertyKey ColumnIncludedInTimeline = new(3008);
+        public static readonly PropertyKey ColumnEntity = new(3009);
+        public static readonly PropertyKey ColumnVisualization = new(3010);
 
         public static readonly PropertyKey BrainInstanceBinding = new(4001);
         public static readonly PropertyKey BrainInstancePose = new(4002);
