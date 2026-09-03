@@ -8,6 +8,7 @@
         "HBP.RenderModelAdapters.Runtime",
         "CRNL.HiBoP.Contracts",
         "CRNL.HiBoP.RenderModel",
+        "CRNL.HiBoP.Protocol",
         "UniTask"
     ],
     "includePlatforms": [

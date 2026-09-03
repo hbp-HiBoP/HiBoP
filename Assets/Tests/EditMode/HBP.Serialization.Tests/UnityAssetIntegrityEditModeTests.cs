@@ -193,6 +193,7 @@ namespace HBP.Tests.Serialization
                 "HBP.RenderModelAdapters.Runtime",
                 "CRNL.HiBoP.Contracts",
                 "CRNL.HiBoP.RenderModel",
+                "CRNL.HiBoP.Protocol",
                 "UniTask"
             }));
             Assert.That(serialization.includePlatforms, Is.EquivalentTo(new[] { "Editor" }));

@@ -76,13 +76,21 @@ Les limites de sécurité protègent les allocations malveillantes ; elles ne do
 
 ## Critères de sortie binaires
 
-- [ ] P08-A–E enregistrées ;
-- [ ] asset incomplet/corrompu jamais exposé ;
-- [ ] déduplication physique démontrée ;
-- [ ] aucune écriture de payload sur disque ;
-- [ ] cycle de vie et purge conformes ;
-- [ ] pression mémoire visible et non destructive selon décision ;
-- [ ] reprise/annulation testées.
+- [x] P08-A–E enregistrées ;
+- [x] asset incomplet/corrompu jamais exposé ;
+- [x] déduplication physique démontrée ;
+- [x] aucune écriture de payload sur disque ;
+- [x] cycle de vie et purge conformes ;
+- [x] pression mémoire visible et non destructive selon décision ;
+- [x] reprise/annulation testées.
+
+## Résultat d'exécution — 3 septembre 2026
+
+**PASS sur le périmètre mémoire synthétique Desktop/XR.** L'[ADR P08](../adr/P08-remote-assets.md) ferme P08-A–E avant le cache : budget injecté, éviction LRU des seuls inactifs, états utilisateur explicites, matrice lifecycle du cache, limites négociées et dépendance hashed inflated → anatomical. Le provider Desktop, le staging et le cache utilisent exclusivement des buffers mémoire ; un test d'architecture interdit les APIs de persistance dans le runtime P08.
+
+La régression finale HiBoP passe `633/633` dans les assemblies touchées. La suite XR P08/P05 passe `11/11` et démontre qu'un payload validé et un unique mesh servent deux renderers. Corruption, chunks manquants ou conflictuels ne remplacent pas le mesh visible. Background/nouvel epoch marquent l'actif purge-pending et refusent de nouveaux leases, mais attendent `ReleaseActiveContent` avant de le retirer. Les 256 cycles open/release/close reviennent à `ResidentBytes = 0`.
+
+Les commandes, résultats et limites de cette preuve sont consignés dans [la validation P08](../evidence/P08/remote-assets-validation.md). Il s'agit d'une preuve EditMode synthétique sans donnée patient ni mesure Quest physique ; P14-B reste propriétaire du raccordement des événements de plateforme et de la validation sécurité lifecycle complète.
 
 ## Artefacts à remettre
 

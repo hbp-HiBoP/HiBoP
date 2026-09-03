@@ -260,3 +260,4 @@ Important CLI details:
 ## XR Development
 
 For Quest deployment/debugging, use Tools/Connect-QuestAdbWifi.ps1 to establish ADB connectivity. Do not manually configure ADB unless the script reports an error.
+If the Quest is not detected, first assume it may simply be asleep or locked. Ask the user to put on the headset, wake it, and unlock it, then retry the connection script before suggesting USB reconnection, Wireless Debugging changes, or any manual ADB reconfiguration.

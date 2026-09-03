@@ -1,0 +1,11 @@
+{
+  "name": "CRNL.HiBoP.XR.RemoteAssets",
+  "rootNamespace": "CRNL.HiBoP.XR.RemoteAssets",
+  "references": [
+    "CRNL.HiBoP.Contracts",
+    "CRNL.HiBoP.Protocol",
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.XR.StaticRendering"
+  ],
+  "autoReferenced": true
+}

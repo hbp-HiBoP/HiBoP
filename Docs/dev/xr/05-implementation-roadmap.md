@@ -15,7 +15,7 @@ La roadmap peut démarrer, mais les points suivants ne doivent pas être infér�
 - P03 : interpolation temporelle de surface, repères et tolérances ;
 - P04 : matrice exacte des packages/paramètres Quest ;
 - P06 : bibliothèque transport et codec, décidés par spike ;
-- P08 : comportement sous pression mémoire ;
+- P08 : **fermé et implémenté** — budget injecté, LRU des seuls inactifs, échec explicite sous pression et lifecycle mémoire sans persistance ;
 - P09 : bindings exacts des instances ;
 - P10 : sémantique de picking et backend mesuré ;
 - P11/P12 : politiques d'échec/atomicité et ownership ;

@@ -41,10 +41,17 @@
 | P03-C | D0/D5/D6 synthétiques : structure/octets exacts, calcul D5 `maxAbs <= 1e-6` | RESOLVED |
 | P03-D | Copie ou transfert explicite, buffers read-only possédés, GC sans pooling V1 | RESOLVED |
 | P03-E | Surfaces, sites, coupes et bundles atomiques via primitives génériques | RESOLVED |
+| P08-A | Budget mémoire injecté ; LRU des seuls inactifs ; actifs jamais évincés | RESOLVED |
+| P08-B | échec explicite et action utilisateur, sans réduction silencieuse | RESOLVED |
+| P08-C | reprise 30 s ; purge staging/inactifs ; actifs purge-pending jusqu’au retrait explicite | RESOLVED |
+| P08-D | limites d’allocation par type négociées au minimum des pairs | RESOLVED |
+| P08-E | hashes propres aux variantes et manifeste inflated → anatomical | RESOLVED |
 
 Les motivations, règles complètes et conditions de réouverture sont enregistrées dans [ADR P02](adr/P02-contracts.md) et le [catalogue des scopes V1](contracts/P02-scope-catalog.md).
 
 Les décisions de rendu, leurs frontières d'assemblage et les tolérances synthétiques sont enregistrées dans [ADR P03](adr/P03-render-model.md). Les hashes reproductibles sont consignés dans la [preuve de parité P03](evidence/P03/render-model-parity.md).
+
+Les décisions de transfert, pression mémoire, lifecycle du cache et dépendances de variantes sont enregistrées dans [ADR P08](adr/P08-remote-assets.md). P14-B reste propriétaire du raccordement exact aux événements de plateforme et de la matrice sécurité globale.
 
 ## D01 — topologie Unity
 
@@ -158,7 +165,7 @@ Les décisions de rendu, leurs frontières d'assemblage et les tolérances synth
 
 ## D17 — sécurité et vie privée
 
-**Statut : RESOLVED pour l'absence de persistance.** Données patient en mémoire de session seulement ; logs redacted et IDs opaques. Seuls endpoint et matériau d'appairage peuvent être persistés dans le stockage sécurisé plateforme. Fermeture et nouvel epoch imposent une purge ; la matrice exacte déconnexion/retry, arrière-plan, timeout, crash et reprise doit être décidée en P14-B avant implémentation.
+**Statut : RESOLVED pour l'absence de persistance.** Données patient en mémoire de session seulement ; logs redacted et IDs opaques. Seuls endpoint et matériau d'appairage peuvent être persistés dans le stockage sécurisé plateforme. P08 fixe les effets internes du cache lorsqu'il reçoit interruption, expiration du lease, nouvel epoch, background ou fermeture. P14-B doit encore décider et valider le raccordement exact de ces événements aux transitions Android/application, ainsi que logout, crash et reboot.
 
 ## D18 — versions et compatibilité
 

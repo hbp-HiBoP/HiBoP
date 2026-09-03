@@ -47,7 +47,7 @@ namespace CRNL.HiBoP.XR.StaticRendering
 
         public void SetSurface(SurfaceAsset asset, SurfaceTransparency transparency)
         {
-            ValidateReferences();
+            ValidateReferences(transparency);
             SurfaceMeshLease nextLease = SurfaceMeshCache.Acquire(asset);
             Clear();
             m_Lease = nextLease;
@@ -131,11 +131,21 @@ namespace CRNL.HiBoP.XR.StaticRendering
             Clear();
         }
 
-        private void ValidateReferences()
+        private void ValidateReferences(SurfaceTransparency transparency)
         {
             if (meshFilter == null || meshRenderer == null)
             {
                 throw new InvalidOperationException("P05 renderer references must be serialized in its prefab.");
+            }
+
+            if (transparency == SurfaceTransparency.Opaque && opaqueMaterial == null)
+            {
+                throw new InvalidOperationException("The Opaque P05 material is not assigned.");
+            }
+
+            if (transparency == SurfaceTransparency.Transparent && (transparentMaterial == null || transparentDepthFilter == null || transparentDepthRenderer == null || transparentDepthMaterial == null))
+            {
+                throw new InvalidOperationException("The P05 transparent material and depth-prepass references are not assigned.");
             }
         }
     }
