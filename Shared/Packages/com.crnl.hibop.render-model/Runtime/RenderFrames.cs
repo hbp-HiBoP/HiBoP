@@ -261,28 +261,85 @@ namespace CRNL.HiBoP.RenderModel
         public IReadOnlyList<CutOverlayFrame> CutOverlays => m_CutOverlays;
     }
 
+    [Flags]
+    public enum DynamicColumnContent : byte
+    {
+        None = 0,
+        Surface = 1,
+        Sites = 2,
+    }
+
+    public sealed class DynamicColumnExpectation
+    {
+        private readonly ReadOnlyCollection<ContractId> m_CutIds;
+
+        public DynamicColumnExpectation(ContractId columnId, DynamicColumnContent content, IEnumerable<ContractId> cutIds)
+        {
+            if (!columnId.IsValid)
+                throw new ArgumentException("A valid column ID is required.", nameof(columnId));
+            if ((content & ~(DynamicColumnContent.Surface | DynamicColumnContent.Sites)) != 0)
+                throw new ArgumentOutOfRangeException(nameof(content));
+            if (cutIds == null)
+                throw new ArgumentNullException(nameof(cutIds));
+
+            List<ContractId> cutCopy = new(cutIds);
+            HashSet<ContractId> uniqueCuts = new();
+            foreach (ContractId cutId in cutCopy)
+            {
+                if (!cutId.IsValid || !uniqueCuts.Add(cutId))
+                    throw new ArgumentException("Expected cut IDs must be valid and unique.", nameof(cutIds));
+            }
+
+            ColumnId = columnId;
+            Content = content;
+            m_CutIds = cutCopy.AsReadOnly();
+        }
+
+        public ContractId ColumnId { get; }
+        public DynamicColumnContent Content { get; }
+        public IReadOnlyList<ContractId> CutIds => m_CutIds;
+    }
+
     public sealed class DynamicFrameBundle
     {
         private readonly ReadOnlyCollection<ContractId> m_ExpectedColumnIds;
+        private readonly ReadOnlyCollection<DynamicColumnExpectation> m_Expectations;
         private readonly ReadOnlyCollection<ColumnFrame> m_ColumnFrames;
 
-        public DynamicFrameBundle(SessionEpoch session, ContractId timelineId, ScopeRevision playbackRevision, double logicalTime, RenderTemporalSample sample, StateRevision sourceStateRevision, IEnumerable<ContractId> expectedColumnIds, IEnumerable<ColumnFrame> columnFrames)
+        public DynamicFrameBundle(SessionEpoch session, ContractId timelineId, ScopeRevision playbackRevision, double logicalTime, RenderTemporalSample sample, StateRevision sourceStateRevision, IEnumerable<ContractId> expectedColumnIds, IEnumerable<ColumnFrame> columnFrames) : this(session, timelineId, playbackRevision, logicalTime, sample, sourceStateRevision, CreateLegacyInput(expectedColumnIds, columnFrames))
+        {
+        }
+
+        private DynamicFrameBundle(SessionEpoch session, ContractId timelineId, ScopeRevision playbackRevision, double logicalTime, RenderTemporalSample sample, StateRevision sourceStateRevision, LegacyBundleInput input) : this(session, timelineId, playbackRevision, 1, logicalTime, sample, sourceStateRevision, input.Expectations, input.Frames)
+        {
+        }
+
+        public DynamicFrameBundle(SessionEpoch session, ContractId timelineId, ScopeRevision playbackRevision, double logicalTime, RenderTemporalSample sample, StateRevision sourceStateRevision, IEnumerable<DynamicColumnExpectation> expectations, IEnumerable<ColumnFrame> columnFrames) : this(session, timelineId, playbackRevision, 1, logicalTime, sample, sourceStateRevision, expectations, columnFrames)
+        {
+        }
+
+        public DynamicFrameBundle(SessionEpoch session, ContractId timelineId, ScopeRevision playbackRevision, ulong frameSequence, double logicalTime, RenderTemporalSample sample, StateRevision sourceStateRevision, IEnumerable<DynamicColumnExpectation> expectations, IEnumerable<ColumnFrame> columnFrames)
         {
             if (!session.IsValid || !timelineId.IsValid)
                 throw new ArgumentException("A valid session and timeline ID are required.");
+            if (frameSequence == 0)
+                throw new ArgumentOutOfRangeException(nameof(frameSequence));
             if (!RenderMath.IsFinite(logicalTime))
                 throw new ArgumentOutOfRangeException(nameof(logicalTime));
-            if (expectedColumnIds == null || columnFrames == null)
-                throw new ArgumentNullException(expectedColumnIds == null ? nameof(expectedColumnIds) : nameof(columnFrames));
-            List<ContractId> expectedCopy = new(expectedColumnIds);
+            if (expectations == null || columnFrames == null)
+                throw new ArgumentNullException(expectations == null ? nameof(expectations) : nameof(columnFrames));
+            List<DynamicColumnExpectation> expectationCopy = new(expectations);
             List<ColumnFrame> frameCopy = new(columnFrames);
-            if (expectedCopy.Count == 0 || expectedCopy.Count != frameCopy.Count)
+            if (expectationCopy.Count == 0 || expectationCopy.Count != frameCopy.Count)
                 throw new ArgumentException("An atomic bundle must contain exactly one frame per expected column.");
             HashSet<ContractId> expectedSet = new();
-            foreach (ContractId id in expectedCopy)
+            ContractId[] expectedCopy = new ContractId[expectationCopy.Count];
+            for (int index = 0; index < expectationCopy.Count; index++)
             {
-                if (!id.IsValid || !expectedSet.Add(id))
-                    throw new ArgumentException("Expected column IDs must be valid and unique.", nameof(expectedColumnIds));
+                DynamicColumnExpectation expectation = expectationCopy[index];
+                if (expectation == null || !expectedSet.Add(expectation.ColumnId))
+                    throw new ArgumentException("Expected columns must be non-null and unique.", nameof(expectations));
+                expectedCopy[index] = expectation.ColumnId;
             }
 
             HashSet<ContractId> actualSet = new();
@@ -292,32 +349,124 @@ namespace CRNL.HiBoP.RenderModel
                     throw new ArgumentException("Column frames must match expected columns exactly once.", nameof(columnFrames));
                 if (frame.Surface.HasValue && (frame.Surface.Value.Sample != sample || frame.Surface.Value.SourceStateRevision != sourceStateRevision))
                     throw new ArgumentException("Every surface frame must match the bundle sample and state revision.", nameof(columnFrames));
+                if (frame.Surface.HasValue && frame.Surface.Value.TemporalApplication != TemporalApplication.SampleAndHold)
+                    throw new ArgumentException("P03 requires sample-and-hold surface frames.", nameof(columnFrames));
                 if (frame.Sites.HasValue && (frame.Sites.Value.Sample != sample || frame.Sites.Value.SourceStateRevision != sourceStateRevision))
                     throw new ArgumentException("Every site frame must match the bundle sample and state revision.", nameof(columnFrames));
+                if (frame.Sites.HasValue && frame.Sites.Value.TemporalApplication != TemporalApplication.Linear)
+                    throw new ArgumentException("P03 requires linearly interpolated site frames.", nameof(columnFrames));
                 foreach (CutOverlayFrame overlay in frame.CutOverlays)
                 {
                     if (overlay.Sample != sample || overlay.SourceStateRevision != sourceStateRevision)
                         throw new ArgumentException("Every cut overlay must match the bundle sample and state revision.", nameof(columnFrames));
+                    if (overlay.TemporalApplication != TemporalApplication.SampleAndHold)
+                        throw new ArgumentException("P03 requires sample-and-hold cut overlays.", nameof(columnFrames));
                 }
+
+                DynamicColumnExpectation expectation = FindExpectation(expectationCopy, frame.ColumnId);
+                ValidateExpectedContent(expectation, frame, nameof(columnFrames));
             }
 
             Session = session;
             TimelineId = timelineId;
             PlaybackRevision = playbackRevision;
+            FrameSequence = frameSequence;
             LogicalTime = logicalTime;
             Sample = sample;
             SourceStateRevision = sourceStateRevision;
-            m_ExpectedColumnIds = expectedCopy.AsReadOnly();
+            m_ExpectedColumnIds = Array.AsReadOnly(expectedCopy);
+            m_Expectations = expectationCopy.AsReadOnly();
             m_ColumnFrames = frameCopy.AsReadOnly();
         }
 
         public SessionEpoch Session { get; }
         public ContractId TimelineId { get; }
         public ScopeRevision PlaybackRevision { get; }
+        public ulong FrameSequence { get; }
         public double LogicalTime { get; }
         public RenderTemporalSample Sample { get; }
         public StateRevision SourceStateRevision { get; }
         public IReadOnlyList<ContractId> ExpectedColumnIds => m_ExpectedColumnIds;
+        public IReadOnlyList<DynamicColumnExpectation> Expectations => m_Expectations;
         public IReadOnlyList<ColumnFrame> ColumnFrames => m_ColumnFrames;
+
+        private static LegacyBundleInput CreateLegacyInput(IEnumerable<ContractId> expectedColumnIds, IEnumerable<ColumnFrame> columnFrames)
+        {
+            if (expectedColumnIds == null || columnFrames == null)
+                throw new ArgumentNullException(expectedColumnIds == null ? nameof(expectedColumnIds) : nameof(columnFrames));
+
+            var frames = new List<ColumnFrame>(columnFrames);
+            var expectations = new List<DynamicColumnExpectation>();
+            foreach (ContractId columnId in expectedColumnIds)
+            {
+                ColumnFrame matchingFrame = null;
+                for (int index = 0; index < frames.Count; index++)
+                {
+                    if (frames[index] != null && frames[index].ColumnId == columnId)
+                    {
+                        matchingFrame = frames[index];
+                        break;
+                    }
+                }
+
+                DynamicColumnContent content = DynamicColumnContent.None;
+                var cutIds = new List<ContractId>();
+                if (matchingFrame != null)
+                {
+                    if (matchingFrame.Surface.HasValue)
+                        content |= DynamicColumnContent.Surface;
+                    if (matchingFrame.Sites.HasValue)
+                        content |= DynamicColumnContent.Sites;
+                    for (int index = 0; index < matchingFrame.CutOverlays.Count; index++)
+                        cutIds.Add(matchingFrame.CutOverlays[index].CutId);
+                }
+
+                expectations.Add(new DynamicColumnExpectation(columnId, content, cutIds));
+            }
+
+            return new LegacyBundleInput(expectations, frames);
+        }
+
+        private static DynamicColumnExpectation FindExpectation(IReadOnlyList<DynamicColumnExpectation> expectations, ContractId columnId)
+        {
+            for (int index = 0; index < expectations.Count; index++)
+            {
+                if (expectations[index].ColumnId == columnId)
+                    return expectations[index];
+            }
+
+            throw new ArgumentException("A column frame is absent from the bundle manifest.");
+        }
+
+        private static void ValidateExpectedContent(DynamicColumnExpectation expectation, ColumnFrame frame, string parameterName)
+        {
+            bool expectsSurface = (expectation.Content & DynamicColumnContent.Surface) != 0;
+            bool expectsSites = (expectation.Content & DynamicColumnContent.Sites) != 0;
+            if (frame.Surface.HasValue != expectsSurface || frame.Sites.HasValue != expectsSites)
+                throw new ArgumentException("A column frame does not match its required surface/site content.", parameterName);
+            if (frame.CutOverlays.Count != expectation.CutIds.Count)
+                throw new ArgumentException("A column frame does not contain every expected cut overlay.", parameterName);
+
+            var actualCuts = new HashSet<ContractId>();
+            for (int index = 0; index < frame.CutOverlays.Count; index++)
+                actualCuts.Add(frame.CutOverlays[index].CutId);
+            for (int index = 0; index < expectation.CutIds.Count; index++)
+            {
+                if (!actualCuts.Contains(expectation.CutIds[index]))
+                    throw new ArgumentException("A column frame does not contain every expected cut overlay.", parameterName);
+            }
+        }
+
+        private sealed class LegacyBundleInput
+        {
+            public LegacyBundleInput(IReadOnlyList<DynamicColumnExpectation> expectations, IReadOnlyList<ColumnFrame> frames)
+            {
+                Expectations = expectations;
+                Frames = frames;
+            }
+
+            public IReadOnlyList<DynamicColumnExpectation> Expectations { get; }
+            public IReadOnlyList<ColumnFrame> Frames { get; }
+        }
     }
 }

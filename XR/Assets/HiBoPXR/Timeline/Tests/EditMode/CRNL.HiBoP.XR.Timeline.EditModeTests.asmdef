@@ -1,9 +1,10 @@
 {
-    "name": "CRNL.HiBoP.Protocol.Tests",
-    "rootNamespace": "CRNL.HiBoP.Protocol.Tests",
+    "name": "CRNL.HiBoP.XR.Timeline.EditModeTests",
+    "rootNamespace": "CRNL.HiBoP.XR.Timeline.Tests",
     "references": [
-        "CRNL.HiBoP.Protocol",
+        "CRNL.HiBoP.XR.Timeline",
         "CRNL.HiBoP.Contracts",
+        "CRNL.HiBoP.Protocol",
         "CRNL.HiBoP.RenderModel"
     ],
     "includePlatforms": [

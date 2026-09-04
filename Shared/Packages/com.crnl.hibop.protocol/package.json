@@ -4,6 +4,9 @@
   "displayName": "HiBoP Protocol",
   "description": "AOT-safe handshake, pairing, transactional session state, commands, resume and redacted diagnostics shared by HiBoP Desktop and HiBoPXR.",
   "unity": "6000.5",
+  "dependencies": {
+    "com.crnl.hibop.render-model": "0.2.0"
+  },
   "author": {
     "name": "CRNL"
   }

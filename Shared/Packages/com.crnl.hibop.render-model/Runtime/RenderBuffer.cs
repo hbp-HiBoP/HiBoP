@@ -19,6 +19,8 @@ namespace CRNL.HiBoP.RenderModel
 
         public T this[int index] => m_Values[index];
 
+        public ReadOnlySpan<T> AsReadOnlySpan() => m_Values;
+
         public static RenderBuffer<T> CopyFrom(T[] source)
         {
             if (source == null)

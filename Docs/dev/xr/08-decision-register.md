@@ -56,6 +56,11 @@
 | P10-C | positions et rayons en mm locaux ; scale BrainInstance uniforme ; ray min 2 mm, proximité 12 mm | RESOLVED |
 | P10-D | BVH médian sur centres statiques, rebuild seulement au changement de hash | RESOLVED |
 | P10-E | métadonnées de sélection sur allowlist, transitoires et jamais journalisées/persistées | RESOLVED |
+| P11-A | membership canonique filtré par inclusion timeline, manifeste de contenu figé par requête | RESOLVED |
+| P11-B | échec d'une colonne rejette le bundle complet et conserve le dernier commit | RESOLVED |
+| P11-C | Timeline Desktop autoritaire ; intentions Quest séquencées, pending jusqu'au résultat | RESOLVED |
+| P11-D | un actif + un pending latest par scope, annulation et stale-drop sans changer le temps | RESOLVED |
+| P11-E | surface, sites et overlays préparés puis publiés par un commit atomique unique | RESOLVED |
 
 Les motivations, règles complètes et conditions de réouverture sont enregistrées dans [ADR P02](adr/P02-contracts.md) et le [catalogue des scopes V1](contracts/P02-scope-catalog.md).
 
@@ -66,6 +71,8 @@ Les décisions de transfert, pression mémoire, lifecycle du cache et dépendanc
 Les bindings, fermetures et règles de restauration du layout local sont enregistrés dans [ADR P09](adr/P09-multi-brain.md). P09 rouvre P02 uniquement pour rendre explicite le mapping entité/scope nécessaire à ces bindings.
 
 Le backend bufferisé, le BVH, les règles de classement, les unités/seuils et l'allowlist de métadonnées des sites sont enregistrés dans [ADR P10](adr/P10-sites.md). Le choix A/D est fondé sur le benchmark D3 hôte puis validé sur Quest 3 : 37 500 sites sans plafond, picking exact, CPU/GPU sous D20 et endurance 30 minutes sans dérive thermique ou mémoire.
+
+Les règles de membership, d'échec complet, d'ownership temporel, de cadence latest-wins et de commit surface/sites/coupes sont enregistrées dans [ADR P11](adr/P11-timeline.md). La baseline float32 utilise désormais un preload lossless complet sous budget mémoire explicite ; 97 indices est le profil qualifié et non un plafond fonctionnel. La validation physique de cette baseline garde D20 ouvert avant production.
 
 ## D01 — topologie Unity
 
@@ -209,3 +216,9 @@ Ce gate appartient à P18 après intégration P15, normalisation P16 et cleanup 
 - mémoire : aucune éviction silencieuse de données, marge système mesurée après 30 minutes et sous contrainte thermique.
 
 Chaque mesure publie environnement, dataset, p50, p95, maximum, mémoire et décision. Un seuil non atteint entraîne optimisation, changement de stratégie documenté ou nouvelle décision — jamais un plafond fonctionnel caché.
+
+**Réouverture P11 du 4 septembre 2026.** Le pipeline float32 géré synthétique dépasse déjà la cible timeline sur Windows : p95 end-to-end loopback de 179,207 ms pour 1 colonne, 433,535 ms pour 3 et 2 652,031 ms pour 8. La baseline reste inchangée et sans quantification/compression/plafond ; l'optimisation float32 contiguë, le réseau réel et l'upload Quest doivent être mesurés avant tout GO production.
+
+**Spike Quest P11 du 4 septembre 2026.** Les copies contiguës réduisent le p95 Windows du dernier run à 151,702 / 334,455 / 2 121,770 ms. Sur Quest 3, décodage, soumission des uploads Unity et commit atomique locaux valent 13,636 / 34,225 / 191,583 ms p95 pour 1/3/8 colonnes. Au meilleur débit Quest P06 mesuré, le transfert seul impose déjà 132,091 / 396,236 / 2 409,433 ms. La cible timeline de 100 ms ne peut donc pas être fermée avec un payload complet à chaque pas. D20 reste `REQUIRES_SPIKE` jusqu'à une décision explicite sur la reconstruction lossless depuis des contenus inchangés mis en cache, la cible, ou une autre stratégie autorisée. Voir la [preuve D20 timeline](evidence/D20/timeline-quest-spike.md).
+
+**Décision preload P11 du 4 septembre 2026.** La timeline dérivée float32 complète est transférée et préparée une fois, puis les accès aléatoires ne transmettent plus de frame et sélectionnent une tranche GPU via un index de 4 octets. L'admission est régie par un budget explicite d'octets lossless uniques ; 1–97 indices, y compris 8 colonnes × 37 500 sites × 97, est le profil qualifié et non un plafond. Un dépassement échoue sans troncature ; les cas extrêmes non qualifiés tels que 8 × 37 500 × 3 073 restent différés. La déduplication est byte-exacte, sans quantification, compression ni bundle partiel. Sur Quest 3, le profil maximal passe 60 s de scrub aléatoire et 10 min d'autoplay : soumission p95 `0,0506 / 0,0529 ms`, fin de frame p95 `14,2364 / 14,2538 ms`, delta maximal une frame, zéro swap/OOM et statut thermique 0. Le sous-gate P11 sélection locale préchargée est PASS. D20 global reste `REQUIRES_SPIKE` pour les autres fonctions et P11 reste NO-GO production jusqu'au raccord renderer command-to-photon et transport/UX P15. Voir la [preuve preload](evidence/D20/timeline-preload-implementation.md).

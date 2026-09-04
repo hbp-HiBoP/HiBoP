@@ -1,8 +1,9 @@
 {
-    "name": "CRNL.HiBoP.Protocol",
-    "rootNamespace": "CRNL.HiBoP.Protocol",
+    "name": "CRNL.HiBoP.XR.Timeline",
+    "rootNamespace": "CRNL.HiBoP.XR.Timeline",
     "references": [
         "CRNL.HiBoP.Contracts",
+        "CRNL.HiBoP.Protocol",
         "CRNL.HiBoP.RenderModel"
     ],
     "includePlatforms": [],

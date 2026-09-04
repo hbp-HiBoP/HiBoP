@@ -27,7 +27,9 @@
       "version": "file:../Shared/Packages/com.crnl.hibop.protocol",
       "depth": 0,
       "source": "local",
-      "dependencies": {}
+      "dependencies": {
+        "com.crnl.hibop.render-model": "0.2.0"
+      }
     },
     "com.crnl.hibop.render-model": {
       "version": "file:../Shared/Packages/com.crnl.hibop.render-model",

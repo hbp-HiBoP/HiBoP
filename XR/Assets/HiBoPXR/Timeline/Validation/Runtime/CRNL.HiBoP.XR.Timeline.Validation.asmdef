@@ -1,0 +1,12 @@
+{
+    "name": "CRNL.HiBoP.XR.Timeline.Validation",
+    "rootNamespace": "CRNL.HiBoP.XR.Timeline.Validation",
+    "references": [
+        "CRNL.HiBoP.Contracts",
+        "CRNL.HiBoP.Protocol",
+        "CRNL.HiBoP.RenderModel",
+        "CRNL.HiBoP.XR.Timeline",
+        "CRNL.HiBoP.XR.Timeline.Rendering"
+    ],
+    "autoReferenced": true
+}

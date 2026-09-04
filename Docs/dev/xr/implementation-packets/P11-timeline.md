@@ -1,5 +1,7 @@
 # P11 — timeline, autoplay et bundles atomiques
 
+**Résultat d'exécution (2026-09-04) :** P11-A–E résolues et baseline float32 atomique implémentée. La décision D20 suivante est également implémentée et validée sur Quest 3 : préchargement lossless de la timeline dérivée complète, admission sous budget explicite d'octets de payload unique, puis sélection aléatoire par un buffer GPU de 4 octets. Le profil qualifié comporte 1 à 97 indices ; il ne constitue plus un plafond fonctionnel. Le sous-gate de sélection locale passe sur 8 colonnes × 37 500 sites après 60 s de scrub et 10 min d'autoplay ; le raccord renderer et transport/UX P15 reste requis avant production. Voir [ADR P11](../adr/P11-timeline.md), [preuve P11](../evidence/P11/timeline-pipeline-validation.md), [implémentation et mesure du preload D20](../evidence/D20/timeline-preload-implementation.md) et [spike D20 initial](../evidence/D20/timeline-quest-spike.md).
+
 ## Objectif et résultat observable
 
 Synchroniser autoplay, pause et scrubbing depuis le Desktop vers toutes les colonnes fonctionnelles concernées, avec `DynamicFrameBundle` atomique, latest-wins et aucun backlog.
@@ -28,7 +30,7 @@ Une capability de bundle partiel ne peut être inventée pour masquer une perfor
 
 ## Hors périmètre
 
-- envoi des données source/volume temporel complet ;
+- envoi des données scientifiques source ou du volume brut complet ; la timeline dérivée float32 complète fait désormais partie du périmètre ;
 - calcul scientifique Quest ;
 - quantification/compression non validée ;
 - réduction du nombre de colonnes.
@@ -40,6 +42,8 @@ Une capability de bundle partiel ne peut être inventée pour masquer une perfor
 - un active + un pending latest maximum par scope ;
 - résultat stale rejeté avant upload ;
 - float32 complet est la baseline de fidélité.
+- l'appelant fournit un budget maximal explicite d'octets de payload unique ; son dépassement échoue avant publication et n'est jamais tronqué ;
+- une fois le preload atomiquement prêt, un scrub ne retransfère aucun frame et ne modifie que l'index GPU courant.
 
 ## Dépendances et état initial
 
@@ -80,13 +84,17 @@ Une capability de bundle partiel ne peut être inventée pour masquer une perfor
 
 ## Critères de sortie binaires
 
-- [ ] P11-A–E enregistrées ;
-- [ ] aucun bundle mixte/partiel hors décision ;
-- [ ] aucune croissance de backlog ;
-- [ ] toutes les colonnes attendues avancent atomiquement ;
-- [ ] interpolation P03 respectée ;
-- [ ] lecture courante p95 cible ≤ 100 ms et scrub converge ≤ 250 ms, ou décision D20 réouverte ;
-- [ ] aucune quantification non approuvée.
+- [x] P11-A–E enregistrées ;
+- [x] aucun bundle mixte/partiel hors décision ;
+- [x] aucune croissance de backlog ;
+- [x] toutes les colonnes attendues avancent atomiquement ;
+- [x] interpolation P03 respectée ;
+- [x] lecture courante p95 cible ≤ 100 ms et scrub converge ≤ 250 ms, ou décision D20 réouverte ;
+- [x] aucune quantification non approuvée.
+- [x] archive preload 97 indices round-trip bit-exact, hash global et déduplication byte-exact ; admission régie par budget mémoire explicite plutôt que par nombre d'indices ;
+- [x] sélection aléatoire/reverse latest-wins sans nouvelle préparation ;
+- [x] profil physique Quest 1/3/8 colonnes × 97 indices, scrub 60 s et autoplay 10 min ;
+- [ ] raccord renderer command-to-photon et transport/UX P15.
 
 ## Artefacts à remettre
 

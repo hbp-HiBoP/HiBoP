@@ -1,9 +1,11 @@
 {
-    "name": "CRNL.HiBoP.Protocol",
-    "rootNamespace": "CRNL.HiBoP.Protocol",
+    "name": "CRNL.HiBoP.XR.Timeline.Rendering",
+    "rootNamespace": "CRNL.HiBoP.XR.Timeline.Rendering",
     "references": [
         "CRNL.HiBoP.Contracts",
-        "CRNL.HiBoP.RenderModel"
+        "CRNL.HiBoP.Protocol",
+        "CRNL.HiBoP.RenderModel",
+        "CRNL.HiBoP.XR.Timeline"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -13,5 +15,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true
+    "noEngineReferences": false
 }

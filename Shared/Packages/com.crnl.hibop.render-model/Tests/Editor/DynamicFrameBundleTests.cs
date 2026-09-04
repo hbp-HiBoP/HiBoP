@@ -28,6 +28,20 @@ namespace CRNL.HiBoP.RenderModel.Tests
         }
 
         [Test]
+        public void Bundle_LegacyConstructorInfersOverlayManifest()
+        {
+            ContractId columnId = RenderModelValidationTests.Id(10);
+            ContractId cutId = RenderModelValidationTests.Id(30);
+            RenderTemporalSample sample = new(0, 0.5f);
+            CutOverlayFrame overlay = Overlay(cutId, columnId, new StateRevision(1), sample);
+            ColumnFrame column = new(columnId, RenderModelValidationTests.Hash(10), new ScopeRevision(1), Optional<SurfaceFrame>.None, Optional<SiteRenderFrame>.None, new[] { overlay });
+
+            DynamicFrameBundle bundle = new(new SessionEpoch(RenderModelValidationTests.Id(1), 1), RenderModelValidationTests.Id(2), new ScopeRevision(1), 0.25, sample, new StateRevision(1), new[] { columnId }, new[] { column });
+
+            Assert.That(bundle.Expectations[0].CutIds, Is.EqualTo(new[] { cutId }));
+        }
+
+        [Test]
         public void Bundle_RejectsCutOverlayFromAnotherStateRevision()
         {
             ContractId columnId = RenderModelValidationTests.Id(10);

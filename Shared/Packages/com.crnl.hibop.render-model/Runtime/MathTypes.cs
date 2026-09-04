@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace CRNL.HiBoP.RenderModel
 {
@@ -18,6 +19,7 @@ namespace CRNL.HiBoP.RenderModel
         public override int GetHashCode() => HashCode.Combine(X, Y);
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public readonly struct Float3 : IEquatable<Float3>
     {
         public Float3(float x, float y, float z)
@@ -36,6 +38,7 @@ namespace CRNL.HiBoP.RenderModel
         public override int GetHashCode() => HashCode.Combine(X, Y, Z);
     }
 
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct Rgba32 : IEquatable<Rgba32>
     {
         public Rgba32(byte r, byte g, byte b, byte a)
