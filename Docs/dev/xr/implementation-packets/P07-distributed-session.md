@@ -1,8 +1,10 @@
 # P07 — session distribuée, snapshot et reconnexion
 
+> **Amendement produit du 4 septembre 2026 :** ce paquet conserve la preuve de l'implémentation P07, y compris son journal de deltas. D12/D22 fixent désormais le snapshot complet comme baseline de reconnexion V1. La reprise par deltas existante reste une capability optionnelle ; elle ne doit pas être rendue obligatoire par P15 ou un déploiement produit. Le résultat Windows/Quest est suffisant pour poursuivre ; la qualification native macOS/Linux suit D24 après E11.
+
 ## Objectif et résultat observable
 
-Implémenter le host/client de session avec handshake compatible, appairage, snapshot transactionnel, deltas, commandes idempotentes, journal borné, reprise et resynchronisation complète.
+**Objectif historique exécuté :** implémenter le host/client de session avec handshake compatible, appairage, snapshot transactionnel, deltas, commandes idempotentes, journal borné, reprise et resynchronisation complète. Pour la suite produit, seul le snapshot complet de reconnexion est requis ; le journal déjà développé reste optionnel conformément à l'amendement ci-dessus.
 
 ## Decision gate
 

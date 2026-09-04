@@ -6,14 +6,14 @@ Produire une paire Desktop/XR reproductible, signée, versionnée, licenciée et
 
 ## Decision gate
 
-**Hérité :** D18 versions distinctes/compatibilité, D19 distribution à spiker, D20 gates mesurées, parcours produit P15, architecture P16 et cleanup P17.
+**Hérité :** D18 versions distinctes/compatibilité, D19 distribution à spiker, D20 gates mesurées, D24 module optionnel et ordre Windows → macOS Apple Silicon → Ubuntu 24.04, parcours produit P15, architecture P16 et cleanup P17.
 
 **Décisions externes obligatoires :**
 
 - `P18-A` : organisation Meta propriétaire, vérification et responsables ;
 - `P18-B` : canal pilote exact, population et politique d'accès ;
 - `P18-C` : application ID final, nom produit, signature/keystore et custody ;
-- `P18-D` : matrice OS Desktop/Quest supportée et fenêtre de compatibilité ;
+- `P18-D` : fenêtre de compatibilité et détail des versions supportées dans la matrice D24 déjà fixée ;
 - `P18-E` : versioning/release/rollback et cadence coordonnée ;
 - `P18-F` : licences/notices/SBOM et responsables de validation ;
 - `P18-G` : critères go/no-go et autorité de lancement.
@@ -61,23 +61,27 @@ Revalider les règles Meta officielles au moment de la phase. Sans organisation,
 - CI/workflows/build scripts ;
 - manifests/version files ;
 - packaging/licences/SBOM ;
+- packaging du pont Desktop léger et du module XR optionnel, avec mesures comparatives d'une intégration complète ;
 - docs installation/support/release.
 
 ## Étapes
 
 1. Résoudre P18-A–G et vérifier règles Meta actuelles.
 2. Définir version matrix et stamping.
-3. Construire CI packages, Desktop 3 OS et APK.
+3. Construire d'abord Windows x64 + APK, puis macOS Apple Silicon sur MacBook Air M2 et Ubuntu 24.04 x64.
 4. Intégrer signature via secret store.
 5. Générer SBOM/notices/symbols.
 6. Exécuter suite go/no-go P00–P17, dont le parcours P15 release-like.
 7. Uploader sur canal choisi avec autorisation.
-8. Faire installer/update/rollback par pilote non développeur.
-9. Archiver checksums, release notes et runbook.
+8. Tester le build Desktop sans module, l'installation proposée lorsqu'un canal fiable existe, le masquage sinon et l'update automatique d'un module déjà installé.
+9. Faire installer/update/rollback par pilote non développeur.
+10. Archiver checksums, release notes et runbook.
 
 ## Tests et commandes
 
 - clean builds reproductibles et checksums expliqués ;
+- mesures comparatives du pont XR dans le build standard, du module optionnel et d'une intégration complète candidate ;
+- installation/absence/update du module sur chaque OS supporté ;
 - tests protocol N/N et fenêtre P18-D ;
 - APK install/update/rollback ;
 - scan secrets/dependencies/licences ;
@@ -89,7 +93,10 @@ Revalider les règles Meta officielles au moment de la phase. Sans organisation,
 ## Critères de sortie binaires
 
 - [ ] P18-A–G approuvées ;
-- [ ] builds Desktop 3 OS + APK reproductibles ;
+- [ ] builds Windows x64, macOS Apple Silicon, Ubuntu 24.04 x64 + APK reproductibles, qualifiés dans cet ordre ;
+- [ ] MacBook Air M2 passe le parcours hôte avec vues 3D Desktop désactivées ;
+- [ ] poids du pont/module/intégration complète publié et packaging final accepté selon D24 ;
+- [ ] absence et mise à jour du module produisent le comportement utilisateur prévu ;
 - [ ] signature sans fuite de secret ;
 - [ ] compatibilité version testée ;
 - [ ] SBOM/notices complets ;

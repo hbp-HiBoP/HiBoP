@@ -32,7 +32,7 @@
 | positions/normales/indices, site positions, textures anatomiques | asset immuable par SHA-256 | identité par hash, jamais par index seul |
 | projections surface/site, overlays, coupes calculées | résultat dérivé révisionné | cite toutes les révisions d'entrée et est rejeté s'il devient stale |
 | hover, feedback de gizmo, focus/panels et tracking | présentation Quest locale | ne modifie pas l'état scientifique ; seule une intention explicitement commandée traverse la frontière |
-| noms patient/site/visualisation/colonne, chemins, labels libres, contenu source | exclu du snapshot V1 | D17 interdit les identifiants humains/logs ; les détails nécessaires sont transitoires et non persistés |
+| noms patient/site/visualisation/colonne et labels utiles | réponse de métadonnées sur allowlist, transitoire en mémoire ; hors snapshot commandable par défaut | D17/D22 autorisent leur affichage XR mais interdisent persistance et journalisation ; chemins, labels libres non autorisés et contenu source restent Desktop |
 | données source, matrices patient, volumes temporels complets | Desktop seulement | D04/D06 : le Quest reçoit des résultats post-projection minimaux |
 
 ## Mapping des scopes

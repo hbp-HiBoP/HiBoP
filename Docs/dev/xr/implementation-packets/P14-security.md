@@ -6,11 +6,11 @@ Prouver que la session est authentifiée/chiffrée, que les données patient ne 
 
 ## Decision gate
 
-**Hérité :** D10 TLS/pinning, D12 epochs/resync, D17 zéro cache patient persistant, D18 compatibilité.
+**Hérité :** D10 TLS/pinning, D12 epochs/resync, D17 zéro cache patient persistant, D18 compatibilité, D22 métadonnées UI transitoires et D23 absence de paging/persistance scientifique.
 
 **Décisions sécurité obligatoires :**
 
-- `P14-A` : classification complète des données et IDs ;
+- `P14-A` : classification complète des données et IDs, dont l'allowlist des noms/libellés utiles affichables transitoirement ;
 - `P14-B` : matrice de cycle de vie exacte pour disconnect, retry, background, timeout, logout, close, crash et reboot ;
 - `P14-C` : stockage sécurisé autorisé pour endpoint/clé/empreinte et politique de rotation/révocation ;
 - `P14-D` : schéma de logs/metrics, durée, export et redaction ;
@@ -39,6 +39,7 @@ Le terme « courte reprise » ou « background prolongé » n'est pas suffisamme
 
 - aucune donnée source persistante ;
 - aucun nom/path patient dans logs ;
+- les noms patient, libellés de site et noms de colonne autorisés peuvent exister en mémoire de session pour l'UI, jamais sur disque ou dans les logs ;
 - IDs opaques ;
 - TLS/pinning selon P06 ;
 - Desktop peut révoquer/fermer une session.
@@ -71,6 +72,7 @@ Le terme « courte reprise » ou « background prolongé » n'est pas suffisamme
 ## Tests et commandes
 
 - tests lifecycle pour chaque ligne P14-B ;
+- affichage des métadonnées allowlistées puis preuve de purge à la fermeture/nouvel epoch ;
 - background/kill/reboot/crash simulé ;
 - logcat/filesystem/search sentinelles ;
 - duplicate/replay/out-of-order ;
@@ -82,6 +84,7 @@ Le terme « courte reprise » ou « background prolongé » n'est pas suffisamme
 
 - [ ] P14-A–F acceptées ;
 - [ ] aucune sentinelle patient sur stockage/log après chaque scénario ;
+- [ ] les métadonnées humaines nécessaires sont affichables uniquement en mémoire et purgées selon P14-B ;
 - [ ] seuls endpoint et matériau autorisé sont persistés ;
 - [ ] identité changée bloquée et révocation effective ;
 - [ ] purge déterministe testée ;

@@ -1,13 +1,15 @@
 # HiBoP XR — dossier de spécification
 
-**Version :** 0.3
-**Date de consolidation :** 3 septembre 2026
+**Version :** 0.4
+**Date de consolidation :** 4 septembre 2026
 **Périmètre :** extension mixed reality autonome sur Meta Quest 3, connectée à HiBoP Desktop  
-**Statut :** briques P01–P10 implémentées ; intégration produit P15, normalisation P16, cleanup P17 et industrialisation P18 planifiés
+**Statut :** briques P01–P11 implémentées à leurs niveaux de preuve respectifs et P11 validée sur Quest 3 ; P05-D (transparence passthrough) reste ouvert avant UX/E11 ; P12–P18 restent à poursuivre
 
 ## Résumé exécutable
 
 HiBoP XR est une application Android autonome qui rend localement sur Quest 3 les visualisations produites par un HiBoP Desktop déjà ouvert. Elle ne diffuse pas l'écran du PC. Le desktop reste l'autorité sur le projet, les données patient, les calculs scientifiques et l'état fonctionnel ; le Quest possède la disposition spatiale et l'interaction XR.
+
+Cette architecture est une baseline à valider par un prototype end-to-end. Le rendu local Quest est retenu en priorité parce que l'inspection rapprochée — tourner autour d'un cerveau agrandi, le déplacer et le manipuler — doit rester fluide et correctement reprojetée avec le mouvement de tête. Aucun second moteur de rendu distant n'est développé en parallèle avant cette évaluation.
 
 La baseline V1 est :
 
@@ -16,6 +18,9 @@ La baseline V1 est :
 - trois packages UPM partagés sous `Shared/Packages/` pour Contracts, RenderModel et Protocol ; le code spécifique reste respectivement sous `Assets/` et `XR/Assets/` ;
 - `hbp_core` et les calculs canoniques sur le desktop ;
 - rendu Quest local à partir d'assets immuables et de résultats post-projection ;
+- une session V1 relie un Desktop à un seul Quest ;
+- transformations, tracking et feedback de manipulation immédiat exécutés localement ; commandes scientifiques validées par le Desktop ;
+- timeline préchargée après admission par budget mémoire réel, sans plafond arbitraire d'indices ;
 - Kestrel sidecar avec HTTPS pour les gros assets et WebSocket sécurisé pour contrôle, état et résultats dynamiques, baseline provisoire validée sur Windows/Quest ; macOS/Linux natifs restent à qualifier et une alternative embarquée plus petite reste ouverte ;
 - OpenXR, XR Interaction Toolkit et Input System dans le projet Quest ; extensions Meta isolées pour le passthrough et seulement lorsque nécessaires ;
 - aucun cache persistant de données patient sur le Quest ;
@@ -25,16 +30,18 @@ Le prototype HoloLens ne validait pas cette architecture. Il exécutait une copi
 
 ## Invariants produit
 
-1. Quest 3 est la cible V1 ; passthrough par défaut, mode VR de repli.
-2. HiBoP Desktop doit être ouvert et reste utilisable pour ses panels 2D.
-3. Les résultats scientifiques affichés sont canoniques et proviennent du desktop.
-4. Les transformations spatiales des cerveaux et panels sont locales au Quest.
-5. Plusieurs visualisations et plusieurs cerveaux peuvent coexister.
-6. L'autoplay fait avancer atomiquement toutes les colonnes fonctionnelles concernées.
-7. Le cas de référence maximal comprend environ 37 500 sites, tous affichables et sélectionnables.
-8. Mains et contrôleurs sont tous deux supportés ; les contrôleurs servent de référence de précision.
-9. Les données patient ne sont ni persistées ni journalisées sur le Quest.
-10. Le produit est un outil de recherche et de visualisation, non un dispositif médical.
+1. La fluidité et l'absence d'inconfort priment sur les autres objectifs produit ; le Quest conserve toujours localement le tracking, le passthrough et le rendu spatial.
+2. Quest 3 est la cible V1 ; passthrough par défaut, mode VR de repli.
+3. HiBoP Desktop doit être ouvert et reste utilisable pour ses panels 2D ; ses vues 3D peuvent être désactivées pendant la session.
+4. Les résultats scientifiques affichés sont canoniques et proviennent du desktop.
+5. Les transformations spatiales des cerveaux et panels sont locales au Quest.
+6. Plusieurs visualisations et plusieurs cerveaux peuvent coexister tant que leur coût réel respecte le budget de ressources.
+7. L'autoplay fait avancer atomiquement toutes les colonnes fonctionnelles concernées ; les indices sautés pour rattraper le temps logique sont signalés.
+8. Le cas de référence maximal comprend environ 37 500 sites, tous affichables et sélectionnables.
+9. Mains et contrôleurs sont tous deux supportés ; les contrôleurs servent de référence de précision.
+10. L'UI XR couvre les interactions courantes ; les informations, graphes, tags et matrices du site sélectionné sont de très haute priorité.
+11. Les données patient ne sont ni persistées ni journalisées sur le Quest ; les libellés utiles peuvent exister transitoirement en mémoire pendant la session.
+12. Le produit est un outil de recherche et de visualisation, non un dispositif médical.
 
 ## Documents normatifs
 
@@ -47,7 +54,7 @@ Le prototype HoloLens ne validait pas cette architecture. Il exécutait une copi
 | [05-implementation-roadmap.md](05-implementation-roadmap.md) | ordre d'exécution et gates |
 | [06-hololens-audit-checklist.md](06-hololens-audit-checklist.md) | résultat et contrôles de l'audit historique |
 | [07-validation-plan.md](07-validation-plan.md) | validation fonctionnelle, scientifique et performance |
-| [08-decision-register.md](08-decision-register.md) | décisions D01–D20 et statut de preuve |
+| [08-decision-register.md](08-decision-register.md) | décisions D01–D24 et statut de preuve |
 | [implementation-packets/README.md](implementation-packets/README.md) | paquets P00–P18/PX1/PX2 prêts pour des chats distincts |
 | [SOURCES.md](SOURCES.md) | sources locales et officielles |
 

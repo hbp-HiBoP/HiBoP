@@ -7,6 +7,8 @@
 - **Décisions héritées :** P02-A–D, D12, D17, D18 et ADR P06 `ACCEPTED — PROVISIONAL WINDOWS/QUEST VALIDATED`
 - **Périmètre :** état synthétique en mémoire, un Desktop autoritaire et un client XR ; aucune donnée patient, aucun asset scientifique et aucun multi-client
 
+> **Amendement produit du 4 septembre 2026 :** D12/D22 supersèdent l'obligation de reprise par journal pour la V1. Le code et les preuves de `ResumeWithDeltas` restent valides comme optimisation négociée, mais un client/host V1 doit seulement garantir la reconnexion transactionnelle par snapshot complet. Les sections ci-dessous décrivent la décision et l'implémentation historiques P07 ; elles ne rendent pas la capability delta obligatoire pour P15.
+
 ## Gate P06 et contraintes conservées
 
 P06 autorise P07 derrière des interfaces remplaçables avec la baseline T3 : Kestrel self-contained côté Desktop, websocket-sharp WSS et `UnityWebRequest` HTTPS côté Quest, TLS 1.2 minimum, même pin SPKI sur les deux chemins, et Protobuf `3.36.1` pour le contrôle. La qualification native macOS/Linux et le coût de distribution du sidecar restent ouverts ; P07 ne déclare donc qu'une validation Windows/Quest.
@@ -44,7 +46,7 @@ Suspended
 Replaced/Closed (terminaux)
 ```
 
-Le handshake précède tout état applicatif. `ClientHello` et `ServerHello` annoncent séparément protocole, schémas, capabilities, versions d'application, commits et version native. Un major différent produit `PROTOCOL_INCOMPATIBLE`; l'absence de hash de schéma commun produit `SCHEMA_INCOMPATIBLE`; un minor différent négocie seulement l'intersection des capabilities. Les capabilities V1 requises sont snapshot transactionnel, delta ordonné, séquence de commande idempotente et reprise. Aucune version d'application ne remplace ce contrôle.
+Le handshake précède tout état applicatif. `ClientHello` et `ServerHello` annoncent séparément protocole, schémas, capabilities, versions d'application, commits et version native. Un major différent produit `PROTOCOL_INCOMPATIBLE`; l'absence de hash de schéma commun produit `SCHEMA_INCOMPATIBLE`; un minor différent négocie seulement l'intersection des capabilities. Les capabilities produit V1 requises sont snapshot transactionnel et séquence de commande idempotente ; delta ordonné et reprise par journal sont optionnels depuis l'amendement D12/D22. Aucune version d'application ne remplace ce contrôle.
 
 ### Décision client
 

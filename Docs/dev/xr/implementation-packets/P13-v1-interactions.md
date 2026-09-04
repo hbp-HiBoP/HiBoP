@@ -6,11 +6,11 @@ Assembler les fonctions validées en un parcours V1 cohérent avec mains et cont
 
 ## Decision gate
 
-**Hérité :** product spec, D15 XRI/OpenXR baseline, P09–P12 comportements techniques.
+**Hérité :** product spec, D15 XRI/OpenXR baseline, D21 rendu local, D22 autorité/UX, D23 ressources, P09–P12 comportements techniques.
 
 **Décision produit obligatoire avant tout assemblage :**
 
-- `P13-A` : inventaire signé des fonctions V1, incluant panels/matrices/ROI/comparaisons ;
+- `P13-A` : inventaire signé des fonctions V1 restantes, sachant que graphes/tags/matrices et panels du site sélectionné sont déjà fixés comme très haute priorité ;
 - `P13-B` : mapping actions mains et contrôleurs par tâche ;
 - `P13-C` : hiérarchie des menus, états pending/canonical/stale/error et terminologie ;
 - `P13-D` : règles de recentrage, tailles, placement initial et récupération d'objet ;
@@ -23,7 +23,7 @@ Cette phase est `DECISION_ONLY` tant que P13-A–F ne sont pas acceptées. « Re
 
 - orchestration UX des fonctions déjà validées ;
 - prefabs/UI XR, actions XRI, feedback et accessibilité ;
-- ROI/panels seulement s'ils figurent dans P13-A ;
+- graphes/tags/matrices et panels du site sélectionné ; ROI et autres panels seulement s'ils figurent dans P13-A ;
 - tests utilisateurs structurés.
 
 ## Hors périmètre
@@ -36,10 +36,11 @@ Cette phase est `DECISION_ONLY` tant que P13-A–F ne sont pas acceptées. « Re
 
 ## Hypothèses fixées
 
-- contrôleurs référence précision ;
-- mains couvrent exploration nominale ;
+- contrôleurs couvrent le scénario V1 complet ;
+- mains couvrent les interactions principales ;
 - passthrough défaut/VR repli ;
 - transformations locales ;
+- tracking, passthrough et transformations locales continuent pendant une coupure ; l'état scientifique gèle avec feedback explicite ;
 - chaque état scientifique confirmé par Desktop.
 
 ## Dépendances et état initial
@@ -63,7 +64,7 @@ Cette phase est `DECISION_ONLY` tant que P13-A–F ne sont pas acceptées. « Re
 2. Créer prefabs et action maps, sans construction runtime compensatoire.
 3. Implémenter navigation, menus et feedback d'état.
 4. Assembler instances/sites/coupes/timeline.
-5. Ajouter ROI/panels retenus, un par scénario/test.
+5. Ajouter en priorité les informations du site sélectionné, puis ROI/autres panels retenus, un par scénario/test.
 6. Valider mains puis contrôleurs, assis/debout.
 7. Tester erreurs, déconnexion, perte tracking et recentrage.
 8. Conduire sessions utilisateur et corriger dans le scope signé.
@@ -72,7 +73,7 @@ Cette phase est `DECISION_ONLY` tant que P13-A–F ne sont pas acceptées. « Re
 
 - tests action maps et UI ;
 - PlayMode/device pour chaque tâche P13-A ;
-- mains/contrôleurs, assis/debout, 10 cm–2 m ;
+- mains/contrôleurs, assis/debout, inspection rapprochée de petite à très grande échelle ;
 - perte tracking/réseau et états pending/error ;
 - frame timing et fatigue/temps/erreurs utilisateur ;
 - scan prefab-first et dépendances Meta.
@@ -83,6 +84,7 @@ Cette phase est `DECISION_ONLY` tant que P13-A–F ne sont pas acceptées. « Re
 - [ ] chaque fonction V1 possède scénario automatisé ou protocole device ;
 - [ ] tâches critiques réussies avec contrôleurs ;
 - [ ] tâches nominales mains réussies selon P13-E ;
+- [ ] graphes, tags, matrices et métadonnées autorisées du site sélectionné sont consultables dans le casque ;
 - [ ] pending/canonical/stale/error distinguables ;
 - [ ] aucun élément hors inventaire implémenté implicitement ;
 - [ ] budgets D20 revalidés end-to-end.

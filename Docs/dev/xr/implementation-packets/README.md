@@ -1,6 +1,6 @@
 # HiBoP XR — paquets d'implémentation
 
-**Version :** 0.3
+**Version :** 0.4
 **Usage :** un paquet par chat Codex, avec état de départ contrôlé et résultat intégrable indépendamment.
 
 ## Règle absolue de décision
@@ -9,7 +9,7 @@ Avant toute modification de code, scène, prefab, package, settings, CI ou forma
 
 Une décision est considérée explicite seulement si elle est :
 
-1. héritée d'une entrée `RESOLVED` du registre D01–D20 ;
+1. héritée d'une entrée `RESOLVED` du registre D01–D24 ;
 2. fixée sans ambiguïté dans le paquet ;
 3. produite par une phase de spike, enregistrée dans un ADR ou le registre, puis acceptée par l'autorité indiquée ;
 4. fournie explicitement par l'utilisateur.
@@ -28,7 +28,7 @@ Les choix locaux, réversibles et sans effet sur les contrats publics peuvent ê
 
 ## Protocole commun d'un chat
 
-1. Lire `AGENTS.md`, le paquet, D01–D20 et ses documents normatifs.
+1. Lire `AGENTS.md`, le paquet, D01–D24 et ses documents normatifs.
 2. Vérifier branche/worktree, modifications préexistantes et dépendances intégrées.
 3. Exécuter le `Decision gate` et annoncer `GO`, `DECISION_ONLY` ou `BLOCKED`.
 4. Ne toucher qu'au périmètre autorisé.
@@ -64,6 +64,8 @@ P17 ────────────────────> P18 Industrial
 P12 FAIL distant ───────> décision explicite ──> PX2 hbp_core Quest
 ```
 
+Après P11, l'ordre séquentiel recommandé est `P12 → fermeture ciblée P05-D → P14 → P13 → P15 → P16 → P17 → P18`. P12 peut avancer malgré P05-D ; P13 ne se ferme pas avant validation de la transparence et intégration des contraintes P14. PX1 reste une voie indépendante et PX2 n'est ouvert qu'après la décision explicite prévue par P12.
+
 ## Index
 
 | Paquet | Livrable principal | Décision préalable notable |
@@ -73,20 +75,20 @@ P12 FAIL distant ───────> décision explicite ──> PX2 hbp_core
 | [P02](P02-contracts.md) | package Contracts | représentation des IDs |
 | [P03](P03-render-model.md) | RenderModel fidèle | sémantique d'interpolation |
 | [P04](P04-xr-bootstrap.md) | APK OpenXR minimal | matrice packages |
-| [P05](P05-static-renderer.md) | surface statique Quest | baseline shader |
+| [P05](P05-static-renderer.md) | **CANDIDATE** — surface statique Quest, transparence P05-D ouverte | baseline shader/passthrough |
 | [P06](P06-transport-spike.md) | **ACCEPTED PROVISIONAL** — transport/codec Windows+Quest | macOS/Linux différés |
 | [P07](P07-distributed-session.md) | handshake/snapshot/resume | résultats P06 |
 | [P08](P08-remote-assets.md) | assets par hash/cache mémoire | politique de pression |
 | [P09](P09-multi-brain.md) | instances dédupliquées | bindings V1 |
 | [P10](P10-sites.md) | 37 500 sites/picking | backend issu des mesures |
-| [P11](P11-timeline.md) | bundles atomiques | interpolation P03 |
-| [P12](P12-cuts.md) | coupes canoniques distantes | seuils D20 |
-| [P13](P13-v1-interactions.md) | UX V1 complète | inventaire fonctionnel signé |
-| [P14](P14-security.md) | sécurité/purge/redaction | matrice de cycle de vie |
-| [P15](P15-end-to-end-integration.md) | vraie tranche Desktop/Quest | parcours produit signé |
-| [P16](P16-production-architecture.md) | architecture et nomenclature finales | mapping de migration accepté |
+| [P11](P11-timeline.md) | **COMPLETE / QUEST PASS** — bundles atomiques et preload lossless sous budget | interpolation P03 |
+| [P12](P12-cuts.md) | coupes canoniques distantes et overlays préchargés | D23 + seuils D20 |
+| [P13](P13-v1-interactions.md) | UX V1 complète | inventaire fonctionnel signé + contraintes P14 |
+| [P14](P14-security.md) | sécurité/purge/redaction | allowlist transitoire + matrice de cycle de vie |
+| [P15](P15-end-to-end-integration.md) | vraie tranche Desktop/Quest | parcours produit signé, Windows + Quest d'abord |
+| [P16](P16-production-architecture.md) | architecture et nomenclature finales | revue D21 post-E11 + mapping accepté |
 | [P17](P17-cleanup-hardening.md) | cleanup et Players consolidés | inventaire de suppression accepté |
-| [P18](P18-industrialization.md) | CI/distribution pilote | organisation/canal Meta |
+| [P18](P18-industrialization.md) | CI/distribution pilote et module optionnel | D24 + organisation/canal Meta |
 | [PX1](PX1-desktop-input-system.md) | migration Input Desktop | carte de parité |
 | [PX2](PX2-hbp-core-quest.md) | backend natif ciblé | autorisation après échec P12 |
 

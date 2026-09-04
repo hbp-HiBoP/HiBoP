@@ -1,6 +1,6 @@
 # HiBoP XR — registre de décisions
 
-**Version :** 0.2  
+**Version :** 0.3
 **Règle :** chaque décision possède une baseline, une preuve et une condition explicite de réouverture.
 
 ## Synthèse
@@ -27,6 +27,10 @@
 | D18 | Versions distinctes, handshake de compatibilité | RESOLVED |
 | D19 | Canal de distribution pilote Meta | REQUIRES_SPIKE |
 | D20 | Enveloppes de performance V1 | REQUIRES_SPIKE |
+| D21 | Rendu local Quest interaction-first, réévalué après E11 | PROVISIONAL |
+| D22 | Session V1 unique et autorité/feedback XR | RESOLVED |
+| D23 | Admission par budget réel, sans plafond de cardinalité | RESOLVED |
+| D24 | Module XR optionnel et qualification OS progressive | PROVISIONAL |
 
 ## Décisions d'implémentation acceptées
 
@@ -162,7 +166,7 @@ Les règles de membership, d'échec complet, d'ownership temporel, de cadence la
 
 **Statut : RESOLVED.** `sessionId` définit l'epoch hôte ; `commandId` l'idempotence ; `interactionId/sequence` la coalescence ; révision globale et révisions par scope l'ordre sémantique ; hashes l'identité des assets.
 
-**Reconnexion.** Snapshot initial systématique. Après coupure, demande de reprise avec révisions connues ; deltas d'un journal borné si possible, sinon snapshot complet. Le layout XR local est réappliqué uniquement aux instances encore valides.
+**Reconnexion.** Snapshot initial systématique. Après coupure, un nouveau snapshot complet est la baseline V1. Les deltas d'un journal borné restent une optimisation négociable si déjà disponible, jamais un prérequis produit. Le layout XR local est réappliqué uniquement aux instances encore valides ; tracking, passthrough et transformations locales continuent pendant que l'état scientifique reste gelé et signalé.
 
 ## D13 — 37 500 sites
 
@@ -174,13 +178,13 @@ Les règles de membership, d'échec complet, d'ownership temporel, de cadence la
 
 **Statut : RESOLVED pour l'architecture.** `SurfaceAsset` immuable et dédupliqué par hash ; chaque `BrainInstance` conserve sa transformation locale et chaque colonne seulement ses buffers mutables. La topologie MNI n'est jamais clonée uniquement pour changer des UV.
 
-**Capacité.** Pas de constante maximale fonctionnelle. L'enveloppe mesurée peut réduire la fréquence des mises à jour, jamais masquer des données.
+**Capacité.** Pas de constante maximale fonctionnelle. Si une nouvelle instance dépasserait l'enveloppe sûre, seule sa création est refusée avec explication ; les instances existantes ne sont ni masquées ni évincées.
 
 ## D15 — couche d'interaction
 
 **Statut : PROVISIONAL.** OpenXR + XRI + XR Hands sont la baseline portable. Les capacités Meta, dont passthrough, restent derrière des adaptateurs. Meta Interaction SDK n'est ajouté que si un geste nécessaire est mesurablement insuffisant avec XRI.
 
-**Gate.** Ray, grab, rotation, échelle à deux mains, proximité, UI et coupe avec mains et contrôleurs, assis, sur des objets de 10 cm à 2 m.
+**Gate.** Ray, grab, rotation, échelle à deux mains, proximité, UI et coupe avec contrôleurs sur le scénario complet et mains sur les interactions principales, assis/debout, y compris inspection rapprochée d'un cerveau fortement agrandi.
 
 ## D16 — Input System
 
@@ -188,7 +192,7 @@ Les règles de membership, d'échec complet, d'ownership temporel, de cadence la
 
 ## D17 — sécurité et vie privée
 
-**Statut : RESOLVED pour l'absence de persistance.** Données patient en mémoire de session seulement ; logs redacted et IDs opaques. Seuls endpoint et matériau d'appairage peuvent être persistés dans le stockage sécurisé plateforme. P08 fixe les effets internes du cache lorsqu'il reçoit interruption, expiration du lease, nouvel epoch, background ou fermeture. P14-B doit encore décider et valider le raccordement exact de ces événements aux transitions Android/application, ainsi que logout, crash et reboot.
+**Statut : RESOLVED pour l'absence de persistance.** Données patient en mémoire de session seulement ; les noms patient, libellés de site et noms de colonne nécessaires à l'UI sont autorisés transitoirement sur allowlist, mais jamais persistés ni journalisés. Les logs restent redacted et les IDs opaques. Seuls endpoint et matériau d'appairage peuvent être persistés dans le stockage sécurisé plateforme. P08 fixe les effets internes du cache lorsqu'il reçoit interruption, expiration du lease, nouvel epoch, background ou fermeture. P14-B doit encore décider et valider le raccordement exact de ces événements aux transitions Android/application, ainsi que logout, crash et reboot.
 
 ## D18 — versions et compatibilité
 
@@ -210,7 +214,7 @@ Ce gate appartient à P18 après intégration P15, normalisation P16 et cleanup 
 
 - rendu 72 Hz : CPU et GPU frame p95 chacun sous 13,89 ms, sans dérive thermique soutenue ;
 - sites : 37 500 visibles, picking correct à 100 %, latence p95 inférieure à 50 ms ;
-- timeline : aucune croissance de backlog, colonnes atomiques, command-to-visible p95 proposé à 100 ms en lecture courante ;
+- timeline : après preload, aucune croissance de backlog, colonnes atomiques et tout index admis visible au plus tard à la frame XR suivante ; confirmation Desktop et rollback mesurés séparément ;
 - coupe : dernier résultat canonique toujours affiché, p95 proposé à 150 ms pendant le geste et convergence finale sous 250 ms ;
 - reconnexion locale : reprise ou snapshot explicite, sans état mixte, cible p95 5 s ;
 - mémoire : aucune éviction silencieuse de données, marge système mesurée après 30 minutes et sous contrainte thermique.
@@ -222,3 +226,31 @@ Chaque mesure publie environnement, dataset, p50, p95, maximum, mémoire et déc
 **Spike Quest P11 du 4 septembre 2026.** Les copies contiguës réduisent le p95 Windows du dernier run à 151,702 / 334,455 / 2 121,770 ms. Sur Quest 3, décodage, soumission des uploads Unity et commit atomique locaux valent 13,636 / 34,225 / 191,583 ms p95 pour 1/3/8 colonnes. Au meilleur débit Quest P06 mesuré, le transfert seul impose déjà 132,091 / 396,236 / 2 409,433 ms. La cible timeline de 100 ms ne peut donc pas être fermée avec un payload complet à chaque pas. D20 reste `REQUIRES_SPIKE` jusqu'à une décision explicite sur la reconstruction lossless depuis des contenus inchangés mis en cache, la cible, ou une autre stratégie autorisée. Voir la [preuve D20 timeline](evidence/D20/timeline-quest-spike.md).
 
 **Décision preload P11 du 4 septembre 2026.** La timeline dérivée float32 complète est transférée et préparée une fois, puis les accès aléatoires ne transmettent plus de frame et sélectionnent une tranche GPU via un index de 4 octets. L'admission est régie par un budget explicite d'octets lossless uniques ; 1–97 indices, y compris 8 colonnes × 37 500 sites × 97, est le profil qualifié et non un plafond. Un dépassement échoue sans troncature ; les cas extrêmes non qualifiés tels que 8 × 37 500 × 3 073 restent différés. La déduplication est byte-exacte, sans quantification, compression ni bundle partiel. Sur Quest 3, le profil maximal passe 60 s de scrub aléatoire et 10 min d'autoplay : soumission p95 `0,0506 / 0,0529 ms`, fin de frame p95 `14,2364 / 14,2538 ms`, delta maximal une frame, zéro swap/OOM et statut thermique 0. Le sous-gate P11 sélection locale préchargée est PASS. D20 global reste `REQUIRES_SPIKE` pour les autres fonctions et P11 reste NO-GO production jusqu'au raccord renderer command-to-photon et transport/UX P15. Voir la [preuve preload](evidence/D20/timeline-preload-implementation.md).
+
+## D21 — stratégie de rendu orientée interaction
+
+**Statut : PROVISIONAL.** La baseline V1 conserve un renderer local Quest alimenté par des assets et résultats scientifiques calculés sur Desktop. Elle protège le tracking, la perspective, le passthrough et la manipulation lorsqu'un utilisateur agrandit un cerveau et tourne physiquement autour de lui. Un flux vidéo distant principal est rejeté à ce stade, car il devrait réintroduire profondeur, reprojection et picking côté casque pour fournir la même expérience.
+
+**Gate de réouverture.** Après E11, le prototype end-to-end pseudo-fonctionnel fait l'objet d'une revue centrée sur fluidité, confort, fidélité et complexité réellement observée. La décision peut alors être simplifiée ou rouverte. Aucun second système de rendu de production n'est développé en parallèle avant ce gate ; un miroir spectateur reste une extension indépendante hors V1.
+
+## D22 — session et autorité d'interaction V1
+
+**Statut : RESOLVED.** Une session relie un HiBoP Desktop à un Quest. Les transformations des cerveaux/panels, le tracking et le feedback immédiat sont locaux. Les commandes scientifiques, la sélection canonique et la timeline canonique restent validées par Desktop ; le Quest peut afficher un état optimiste `pending`, puis accepter ou rollback vers la dernière valeur Desktop.
+
+**UX retenue.** Le casque contient l'UI des interactions courantes. Les graphes, tags, matrices et panels du site sélectionné sont de très haute priorité. Les contrôleurs couvrent tout le scénario V1 ; les mains couvrent les interactions principales. La disposition peut survivre à une reconnexion courte du même epoch, mais n'a pas à persister entre sessions.
+
+## D23 — admission et politique de ressources
+
+**Statut : RESOLVED.** Timeline, cerveaux et coupes sont admis selon leur coût CPU/GPU réel après déduplication, partage statique et représentation des canaux absents. Aucun nombre d'indices, colonnes, sites ou cerveaux n'est un plafond fonctionnel. Pour la timeline, le budget effectif est le minimum de la limite Quest validée et d'une estimation conservatrice de la mémoire courante, avec marge de sécurité séparée ; l'UI Desktop peut permettre une valeur utilisateur dans cette borne sûre.
+
+**Refus.** Un dépassement est détecté avant transfert et refuse seulement la nouvelle ressource. Le message donne requis/permis, cardinalités, principaux contributeurs et explication. Il ne propose pas de réduire la plage ou les colonnes dans le flux XR. La V1 ne pagine pas et ne persiste pas de données scientifiques sur le Quest.
+
+**Représentations compactes.** Elles deviennent automatiques seulement après validation d'équivalence visuelle. Avant validation, elles peuvent être proposées explicitement après refus, avec feedback sur la dégradation. Toute extension paging/disque exige une nouvelle décision et des preuves de latence, sécurité et usure.
+
+## D24 — empreinte Desktop et qualification des plateformes
+
+**Statut : PROVISIONAL.** Le build HiBoP standard peut contenir un pont et un point d'entrée XR très légers. Le host, ses runtimes et les assets volumineux restent un module optionnel lancé/supervisé par HiBoP, sauf si une mesure démontre qu'une intégration plus complète n'augmente pas drastiquement le build. Si le module manque, l'entrée propose discrètement son installation lorsqu'un canal fiable existe ; sinon elle est masquée. Un module déjà installé peut être mis à jour automatiquement avec contrôle de compatibilité.
+
+**Ordre de validation.** Windows x64 est la première plateforme du prototype. Après E11, macOS Apple Silicon est qualifié avec un MacBook Air M2 comme machine minimale de test, puis Ubuntu 24.04 x64. Quest 3 est la cible casque V1 ; Quest 3S n'est pas promis.
+
+**Gate.** P17/P18 publient la taille du pont, du module et de l'intégration complète, le comportement d'installation/update et les mesures runtime sur chaque OS avant de figer le packaging final.

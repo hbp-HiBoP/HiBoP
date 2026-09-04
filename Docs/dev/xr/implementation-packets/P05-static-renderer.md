@@ -71,13 +71,18 @@ Si les shaders Desktop ne compilent pas Android, produire une comparaison et une
 
 ## Critères de sortie binaires
 
-- [x] P05-A–D enregistrées ;
-- [x] anatomical/inflated fidèles dans tolérances ;
+- [x] P05-A–C enregistrées et validées ;
+- [ ] P05-D transparence passthrough identifiée, corrigée et acceptée sur Quest 3 ;
+- [ ] anatomical/inflated, transparence comprise, fidèles dans les tolérances sur Quest ;
 - [x] aucun accès Core/Data/native ;
 - [x] aucun clone de topologie requis pour une instance ;
 - [x] shader Android sans erreur/fallback caché ;
 - [x] ressources libérées après fermeture ;
 - [x] métriques de référence archivées.
+
+## Résultat d'exécution — statut courant
+
+Le renderer et ses preuves statiques sont implémentés, mais le paquet n'est pas fermé pour la production. L'ADR P05 constate que l'inflated reste visuellement opaque par rapport au passthrough sur Quest 3 malgré le chemin alpha attendu. P05-D doit être reprise comme investigation ciblée de la composition URP/OpenXR/Meta, sans modifications empiriques supplémentaires du matériau. Cette ouverture n'empêche pas P12, mais bloque la validation UX P13 et E11.
 
 ## Artefacts à remettre
 

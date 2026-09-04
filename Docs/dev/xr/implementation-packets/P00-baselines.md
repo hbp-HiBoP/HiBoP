@@ -92,4 +92,4 @@ Arrêter si un dataset réel ne peut être classifié, si la baseline n'est pas 
 
 ## Prompt de démarrage
 
-> Exécute le paquet P00 dans `Docs/dev/xr/implementation-packets/P00-baselines.md`. Commence par lire AGENTS.md, D01–D20 et le plan de validation. Exécute le Decision gate et annonce GO, DECISION_ONLY ou BLOCKED. Ne capture ni ne versionne aucune donnée tant que P00-A–D ne sont pas explicitement résolues. Livre uniquement les baselines, fixtures autorisées, preuves et documentation prévues.
+> Exécute le paquet P00 dans `Docs/dev/xr/implementation-packets/P00-baselines.md`. Commence par lire AGENTS.md, D01–D24 et le plan de validation. Exécute le Decision gate et annonce GO, DECISION_ONLY ou BLOCKED. Ne capture ni ne versionne aucune donnée tant que P00-A–D ne sont pas explicitement résolues. Livre uniquement les baselines, fixtures autorisées, preuves et documentation prévues.

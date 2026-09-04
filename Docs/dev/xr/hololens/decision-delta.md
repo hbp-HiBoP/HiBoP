@@ -2,6 +2,8 @@
 
 # Audit HoloLens — delta vers la spécification 0.2
 
+> **Mise à jour produit du 4 septembre 2026 :** ce document retrace le passage historique vers la spécification 0.2. D21 conserve le rendu local Quest comme baseline, mais le qualifie désormais de `PROVISIONAL` jusqu'à la revue end-to-end E11. Les formulations absolues ci-dessous ne doivent pas être interprétées comme une interdiction de réouvrir l'architecture après ce gate.
+
 | Sujet | Position 0.1 | Preuve du prototype/courant | Correction 0.2 |
 | --- | --- | --- | --- |
 | architecture historique | supposée client/protocole à auditer | App Remoting vidéo/entrée, processus unique PC | déclarer qu'aucun protocole n'est réutilisable |
@@ -24,7 +26,7 @@
 ## Décisions non modifiées
 
 - desktop autoritaire ;
-- rendu XR local, jamais vidéo ;
+- rendu XR local comme baseline ; aucun second renderer vidéo avant la revue E11 ;
 - passthrough par défaut avec VR de repli ;
 - calculs scientifiques canoniques côté Desktop ;
 - transformations spatiales locales ;

@@ -2,6 +2,8 @@
 
 # Audit HoloLens — matrice fonctionnelle
 
+> **Mise à jour produit du 4 septembre 2026 :** la colonne « Décision Quest » conserve la trace de la spécification 0.2. D21 rend le choix du renderer local provisoire jusqu'à la revue E11 ; les faits observés sur le prototype HoloLens restent inchangés.
+
 | Fonction | Prototype | Preuve/limite | Décision Quest |
 | --- | --- | --- | --- |
 | connexion casque | oui | App Remoting IP/port/codec | remplacer par appairage HTTPS/WSS |
@@ -23,7 +25,7 @@
 | reconnexion sémantique | non | aucun miroir casque | snapshot + resync |
 | versioning protocole | non | aucun protocole | handshake obligatoire |
 | cache patient casque | non | conséquence du flux vidéo | maintenir comme invariant explicite |
-| rendu local casque | non | images rendues sur PC | obligatoire |
+| rendu local casque | non | images rendues sur PC | baseline provisoire, revue après E11 |
 | builds 3 OS hôte | script standalone présent | remoting réellement Windows/HoloLens non prouvé 3 OS | valider serveur sur 3 OS |
 
 ## Classification

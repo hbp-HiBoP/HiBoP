@@ -1,6 +1,6 @@
 # HiBoP XR — architecture technique
 
-**Version :** 0.3
+**Version :** 0.4
 **Décision :** deux projets Unity, monorepo applicatif, calcul Desktop et rendu Quest local
 
 ## 1. Architecture logique
@@ -54,6 +54,8 @@ Repo hbp_core
 
 P01 conserve le projet Desktop à la racine et ajoute le second projet sous `XR/`, sans déplacer ni copier le code HiBoP existant. Les trois packages locaux sont consommés par chemins `file:` relatifs et verrouillés séparément dans chaque projet. Les scènes, prefabs de rig, settings et UI spécifiques restent dans leur projet. Un shader, matériau ou renderer ne devient partagé qu'après avoir démontré qu'il est réellement consommé et testé par les deux projets.
 
+Le build Desktop standard ne doit embarquer que le pont et le point d'entrée XR nécessaires. Le host, les runtimes self-contained et les assets volumineux sont distribuables comme module optionnel, sauf si leur intégration complète est mesurée comme négligeable par rapport au build. HiBoP lance et supervise ce module lorsqu'il est installé ; l'utilisateur ne lance jamais manuellement un second programme.
+
 ## 3. Matrice de topologie
 
 Scores de 1 (défavorable) à 5 (favorable).
@@ -103,7 +105,8 @@ Ils restent sous `Assets/` et ne modifient pas les modèles HiBoP pour leur ajou
 - validation et exécution des commandes ;
 - orchestration `hbp_core` ;
 - extraction des résultats après calcul ;
-- gestion de session, journal de deltas et cache d'assets.
+- gestion de session, snapshots complets et cache d'assets ;
+- journal de deltas seulement comme optimisation optionnelle négociée.
 
 ### 4.3 Client Quest
 
@@ -142,6 +145,8 @@ Le Desktop :
 
 Le Quest reconstruit uniquement les attributs shader. Il ne reçoit pas par défaut signaux sources, matrices patient complètes, volume temporel ou champ de projection.
 
+Pour la timeline V1, ces résultats post-projection sont calculés/préparés en amont pour tous les indices admis, transférés une fois et conservés en mémoire Quest. Le changement d'index sélectionne ensuite localement une tranche déjà résidente et doit être visible à la frame XR suivante. Il n'existe aucune constante de cardinalité : l'admission se fait en octets CPU/GPU réellement contrôlés, après déduplication et partage.
+
 Une divergence potentielle du code actuel doit être fermée : les sites utilisent l'alpha temporel, tandis que le chemin surface observé ne le transmet pas explicitement. La baseline scientifique de l'extraction est définie par un test attendu, pas par le bug éventuel.
 
 ### 6.2 Coupes
@@ -149,7 +154,8 @@ Une divergence potentielle du code actuel doit être fermée : les sites utilise
 - plan/gizmo local pour feedback immédiat ;
 - calcul exact Desktop ;
 - géométrie et texture anatomique transférées lorsqu'elles changent ;
-- overlays par colonne transférés avec le bundle temporel si le plan est stable ;
+- résultat final de coupe calculé sur Desktop puis transféré ;
+- overlays par colonne inclus dans le preload temporel si le plan est stable ;
 - résultat atomique et latest-wins.
 
 ### 6.3 `hbp_core` sur Quest
@@ -201,6 +207,8 @@ RenderMirror                 Quest, dérivé et révisionné
 
 Chaque commande déclare son scope et sa `baseScopeRevision`. Le Desktop renvoie acceptation/rejet, delta d'état et résultats corrélés. Un résultat cite toutes ses révisions d'entrée ; le client ne l'applique que si elles correspondent encore.
 
+Le Quest peut présenter un feedback local `pending`, notamment pour les transformations, la sélection et un index temporel résident. La valeur Desktop validée reste canonique et tout rejet produit un rollback explicite. Une coupure réseau ne bloque jamais tracking, passthrough, perspective ou transformations locales ; elle gèle seulement les commandes et évolutions scientifiques.
+
 ## 10. Concurrence et pression
 
 - file de contrôle prioritaire ;
@@ -211,6 +219,8 @@ Chaque commande déclare son scope et sa `baseScopeRevision`. Le Desktop renvoie
 - pools de buffers et uploads GPU groupés ;
 - aucun callback réseau ne modifie directement des objets Unity hors main thread ;
 - snapshots appliqués transactionnellement.
+
+L'admission d'une timeline, d'un cerveau ou d'une coupe estime avant transfert les coûts CPU/GPU et refuse uniquement la nouvelle ressource si le budget sûr serait dépassé. Les ressources existantes ne sont ni tronquées ni évincées silencieusement. Le paging disque/réseau de données scientifiques n'appartient pas à la V1.
 
 ## 11. OpenXR et Meta
 
@@ -226,7 +236,8 @@ Le host expose des diagnostics sans données patient :
 - révisions envoyées/appliquées/rejetées ;
 - profondeur des files et taux de coalescence ;
 - temps calcul/sérialisation/transfert/décodage/upload ;
-- mémoire de cache par type d'asset.
+- mémoire de cache par type d'asset ;
+- pour tout refus de ressources : octets requis/permis, cardinalités et principaux contributeurs.
 
 Un identifiant de corrélation permet de tracer une commande sans nom patient ni payload. Les erreurs sont typées : auth, compatibilité, state conflict, asset missing, compute failed, resource pressure et transport.
 
@@ -235,8 +246,10 @@ Un identifiant de corrélation permet de tracer une commande sans nom patient ni
 1. Les deux projets consomment un même package local sans copie.
 2. Contracts/Protocol passent des tests AOT/IL2CPP.
 3. Un renderer indépendant reproduit une image Desktop depuis `RenderModel`.
-4. Le serveur se build et fonctionne sur Windows/macOS/Linux.
-5. Le client Quest se reconnecte sans état mixte.
+4. Le serveur se build et fonctionne d'abord sur Windows x64, puis sur macOS Apple Silicon — MacBook Air M2 inclus — et Ubuntu 24.04 x64.
+5. Le client Quest se reconnecte par snapshot complet sans état mixte ; les deltas sont un bonus négocié.
 6. 37 500 sites utilisent buffers/index spatial.
 7. Une surface MNI est partagée entre instances.
 8. Aucune donnée patient n'est écrite sur le Quest.
+9. Le déplacement de tête autour d'un cerveau agrandi et ses manipulations locales restent fluides à 72 Hz.
+10. Le poids marginal XR du build standard et du module optionnel est mesuré avant décision d'intégration finale.

@@ -40,7 +40,7 @@ L'inventaire peut être réalisé en lecture seule. Aucun type public ne doit ê
 ## Dépendances et état initial
 
 - P01 packages partagés opérationnels ;
-- D01–D20 et product spec accessibles ;
+- D01–D24 et product spec accessibles ;
 - inventaire de l'état actuel réalisable depuis HiBoP.
 
 ## Fichiers/modules pressentis

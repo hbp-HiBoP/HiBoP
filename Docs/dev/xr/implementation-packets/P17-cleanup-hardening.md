@@ -6,7 +6,7 @@ Retirer ou isoler l'échafaudage accumulé pendant P01–P15, réduire la surfac
 
 ## Decision gate
 
-**Hérité :** classification initiale P16-G, architecture/nomenclature P16, invariants de sécurité P14 et parcours P15.
+**Hérité :** classification initiale P16-G, architecture/nomenclature P16, invariants de sécurité P14, parcours P15 et frontière build/module D24.
 
 **À résoudre avant toute suppression ou dépublication :**
 
@@ -14,7 +14,7 @@ Retirer ou isoler l'échafaudage accumulé pendant P01–P15, réduire la surfac
 - `P17-B` : politique de conservation et niveau de reproductibilité requis pour les preuves P00–P15 ;
 - `P17-C` : scènes, prefabs et composition roots canoniques des Players Desktop/XR ;
 - `P17-D` : scripts et commandes canoniques de test, build, lancement du host/sidecar et déploiement Quest ;
-- `P17-E` : dépendances, données de démonstration et symboles autorisés dans les Players finaux ;
+- `P17-E` : dépendances, données de démonstration et symboles autorisés dans les Players finaux, séparément pour build Desktop standard, module XR et Player Quest ;
 - `P17-F` : critères de suppression, méthode de rollback et propriétaire qui accepte la disparition de chaque catégorie ;
 - `P17-G` : budget final de dette résiduelle et allowlist documentée des noms/artefacts historiques conservés.
 
@@ -67,7 +67,7 @@ La présence d'un préfixe Pxx, d'un nom `Synthetic`, `Demo`, `Probe` ou `Spike`
 
 ## Étapes
 
-1. Capturer la baseline fonctionnelle, taille, dépendances et contenu des builds.
+1. Capturer la baseline fonctionnelle, taille, dépendances et contenu séparés du Desktop standard, du module XR et du Player Quest.
 2. Construire l'inventaire référencé et résoudre P17-A–G.
 3. Retirer d'abord des build settings et Players les éléments non produit, sans les supprimer immédiatement.
 4. Vérifier le parcours P15 avec les seules composition roots P17-C.
@@ -84,7 +84,7 @@ La présence d'un préfixe Pxx, d'un nom `Synthetic`, `Demo`, `Probe` ou `Spike`
 - ouverture/validation de toutes les scènes et prefabs canoniques ;
 - scan `Missing Script`, dépendances asmdef/UPM/NuGet et code inaccessible ;
 - inspection du contenu Desktop/Quest pour scènes, données, symboles et assemblies interdits ;
-- comparaison des tailles avant/après et justification de toute hausse ;
+- comparaison des tailles avant/après pour pont standard, module XR et APK, avec justification de toute hausse ;
 - scénarios P15 réels, P14 lifecycle et régressions P05/P08/P09/P10/P11/P12 ;
 - build Desktop et APK release-like puis test Quest physique ;
 - formatter C# obligatoire et `git diff --check`.
@@ -101,6 +101,7 @@ La présence d'un préfixe Pxx, d'un nom `Synthetic`, `Demo`, `Probe` ou `Spike`
 - [ ] le parcours P15 passe sur Quest après cleanup ;
 - [ ] la couverture fonctionnelle, scientifique et sécurité ne régresse pas ;
 - [ ] taille, dépendances et dette résiduelle sont mesurées et acceptées.
+- [ ] sans module installé, le build standard ne contient que le pont/point d'entrée XR accepté par D24.
 
 ## Artefacts à remettre
 

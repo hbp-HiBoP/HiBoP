@@ -1,6 +1,6 @@
 # HiBoP XR — faisabilité, risques et spikes
 
-**Version :** 0.2  
+**Version :** 0.3
 **Règle :** un spike produit des données reproductibles et ferme une décision ; il ne devient pas du code de production par défaut.
 
 ## 1. Échelle
@@ -16,7 +16,7 @@ Chaque rapport contient commit, Unity/SDK/OS, modèle et version Quest, réseau,
 | Risque | Prob. | Impact | Preuve actuelle | Fermeture |
 | --- | --- | --- | --- | --- |
 | bibliothèque réseau incompatible IL2CPP/3 OS | haute | critique | aucune implémentation historique | S01 |
-| payload timeline trop volumineux | haute | critique | 0,5355 MiB/colonne float32 MNI | S02 |
+| preload timeline trop volumineux pour la mémoire sûre | haute | critique | P11 valide 8 colonnes × 37 500 sites × 97 indices, pas les cas arbitraires | S02 |
 | coupe distante trop lente | moyenne | élevée | calcul Desktop rapide, E2E inconnu | S03 |
 | 37 500 sites trop coûteux | haute | critique | architecture actuelle par objets/O(N) | S04 |
 | renderer XR non fidèle au RenderModel partagé | moyenne | critique | projection/adaptation non faite | S05 |
@@ -34,23 +34,23 @@ Chaque rapport contient commit, Unity/SDK/OS, modèle et version Quest, réseau,
 
 **Environnement.** Host minimal Windows/macOS/Linux ; client Editor puis APK IL2CPP Quest 3 ; Wi-Fi local avec et sans multicast ; firewall nominal.
 
-**Procédure.** Tester les bibliothèques candidates avec TLS/pinning, WSS contrôle et HTTPS ranges. Transférer simultanément un asset 100 MiB, 20 commandes/s et un flux dynamique. Couper Wi-Fi 1, 5 et 30 s ; changer l'identité serveur ; corrompre chunks et headers.
+**Procédure.** Tester les bibliothèques candidates avec TLS/pinning, WSS contrôle et HTTPS ranges. Transférer simultanément un asset 100 MiB, 20 commandes/s et un flux dynamique. Couper Wi-Fi 1, 5 et 30 s ; vérifier le nouveau snapshot complet, puis la reprise delta uniquement si sa capability est annoncée ; changer l'identité serveur ; corrompre chunks et headers.
 
 **Mesures.** réussite build/AOT, temps d'appairage/reprise, RTT p50/p95/max, débit, latence contrôle sous bulk, allocations/GC, mémoire, détection d'identité et hash.
 
-**Gate.** quatre plateformes fonctionnelles ; aucune commande p95 > 100 ms à cause du bulk ; reprise cohérente cible p95 5 s ; identité modifiée bloquée ; aucun payload patient en clair. Sinon changer bibliothèque ou séparation des canaux.
+**Gate.** Windows x64 + Quest d'abord, puis macOS Apple Silicon/MacBook Air M2 et Ubuntu 24.04 x64 ; aucune commande p95 > 100 ms à cause du bulk ; reconnexion par snapshot cohérente cible p95 5 s ; identité modifiée bloquée ; aucun payload patient en clair. Sinon changer bibliothèque ou séparation des canaux.
 
 ## S02 — timeline multi-colonnes
 
 **Priorité : P0. Décisions : D06, D07, D11, D20.**
 
-**Environnement.** MNI réel et mesh patient ; 1/3/8 colonnes ; cas simple/courant/maximal ; float32 puis candidats float16/compression ; réseau représentatif.
+**Environnement.** MNI réel et mesh patient ; 1/3/8 colonnes ; nombres d'indices variables sans plafond codé ; budgets juste suffisants/insuffisants ; float32 lossless puis candidats compacts ; réseau représentatif.
 
-**Procédure.** Autoplay 10 min, scrub continu 60 s, pause/reprise, changement de paramètres en vol. Comparer Desktop et Quest frame par frame aux mêmes `TemporalSample`.
+**Procédure.** Estimer/admettre/refuser avant transfert, précharger avec progression et annulation, puis exécuter autoplay 10 min, scrub continu/aléatoire 60 s, pause/reprise et changement de paramètres. Comparer Desktop et Quest aux mêmes `TemporalSample`, y compris rollback après refus Desktop et indication des indices sautés.
 
-**Mesures.** calcul, extraction, sérialisation, octets, débit, RTT, décodage, upload GPU, p50/p95/max command-to-visible, backlog, stale drops, erreur numérique/image.
+**Mesures.** calcul, extraction, sérialisation, octets uniques avant/après partage, mémoire CPU/GPU et marge, précision de l'estimation, durée de preload, débit, décodage/upload, frame de visibilité après sélection locale, backlog, indices sautés et erreur numérique/image.
 
-**Gate.** backlog toujours borné, aucune colonne mixte, p95 proposé ≤ 100 ms en lecture courante, convergence scrub ≤ 250 ms. Quantification acceptée uniquement dans la tolérance scientifique/visuelle documentée.
+**Gate.** chaque index admis est visible au plus tard à la frame suivante, backlog nul ou borné selon la phase, aucune colonne mixte, refus détaillé avant transfert au-delà du budget et aucune limite de cardinalité. Une représentation compacte ne devient automatique qu'après équivalence visuelle validée ; sinon elle reste une proposition explicite.
 
 ## S03 — coupe canonique distante
 
@@ -70,7 +70,7 @@ Chaque rapport contient commit, Unity/SDK/OS, modèle et version Quest, réseau,
 
 **Environnement.** Quest 3, 37 500 sites, 1/3/8 instances, tailles/visibilités dynamiques, passthrough et VR.
 
-**Procédure.** Comparer baseline objets uniquement comme témoin, instancing/GraphicsBuffer, grille puis BVH ; ray, proche, changement d'échelle 10 cm–2 m ; updates complètes et dirty ranges.
+**Procédure.** Comparer baseline objets uniquement comme témoin, instancing/GraphicsBuffer, grille puis BVH ; ray, proche, inspection de très petite à très grande échelle ; updates complètes et dirty ranges.
 
 **Mesures.** CPU/GPU frame, draw calls, mémoire, allocations, upload, picking p50/p95/max, exactitude, thermique 30 min.
 
@@ -124,7 +124,7 @@ Chaque rapport contient commit, Unity/SDK/OS, modèle et version Quest, réseau,
 
 **Mesures.** mémoire par asset/instance/colonne, draw calls, upload, CPU/GPU, fuite, cache hit.
 
-**Gate.** topologie physiquement partagée ; mémoire marginale expliquée ; 72 Hz sur scénario V1 ; aucune limite fonctionnelle fixe.
+**Gate.** topologie physiquement partagée ; mémoire marginale expliquée ; 72 Hz sur scénario V1 ; aucune limite fonctionnelle fixe ; seule une nouvelle instance dépassant le budget est refusée.
 
 ## S09 — sécurité, persistance et resync
 
@@ -140,13 +140,13 @@ Chaque rapport contient commit, Unity/SDK/OS, modèle et version Quest, réseau,
 
 ## S10 — build et distribution pilote
 
-**Priorité : P1. Décision : D19.**
+**Priorité : P1. Décisions : D19, D24.**
 
-**Environnement.** organisation Meta vérifiée, APK signé, canal privé, comptes test non développeurs.
+**Environnement.** organisation Meta vérifiée, APK signé, canal privé, comptes test non développeurs ; builds Windows x64, macOS Apple Silicon et Ubuntu 24.04 x64 avec/sans module XR.
 
 **Procédure.** CI → signature → upload Alpha/Beta → invitation → installation → update → rollback documenté ; vérifier permissions et politiques au jour du pilote.
 
-**Mesures.** reproductibilité, taille, délai, erreurs packaging, parcours utilisateur, mises à jour.
+**Mesures.** reproductibilité, taille du pont standard/module/intégration complète, délai, erreurs packaging, installation/absence/mise à jour du module, parcours utilisateur et mises à jour Quest.
 
 **Gate.** utilisateur pilote installe et met à jour sans ADB ; licences/notice/politiques validées ; secret de signature protégé.
 

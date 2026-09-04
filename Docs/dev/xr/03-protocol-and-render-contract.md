@@ -1,6 +1,6 @@
 # HiBoP XR — protocole et contrat de rendu
 
-**Version :** 0.2  
+**Version :** 0.3
 **Statut :** contrat logique normatif ; D10/D11 acceptées provisoirement pour Windows/Quest, qualification macOS/Linux différée
 
 ## 1. Principes
@@ -11,7 +11,8 @@
 - Les assets immuables sont adressés par SHA-256.
 - Contrôle et commandes ne sont pas bloqués par un asset volumineux.
 - Les résultats dynamiques sont latest-wins, jamais mis en file indéfiniment.
-- Snapshot et deltas sont transactionnels.
+- Le snapshot complet est la baseline transactionnelle de connexion et reconnexion ; les deltas sont une optimisation optionnelle.
+- Les contenus temporels admis sont préchargés une fois puis sélectionnés localement par index.
 - Le schéma est AOT/IL2CPP-safe et indépendant de Meta.
 
 ## 2. Transport proposé
@@ -122,6 +123,8 @@ CommandOutcome
 
 Commandes V1 : sélection site/colonne, paramètres de représentation, couches, opacité, seuils, coupes, ROI, timeline/playback et demandes/fermetures d'instances. Une commande répétée avec le même `commandId` produit le même outcome logique.
 
+Le client peut afficher une valeur optimiste locale avec un état `pending`. `CommandOutcome` accepte cette valeur ou fournit la valeur canonique qui doit la remplacer visiblement. Le dernier état validé par le Desktop gagne toujours.
+
 ## 7. Snapshot, deltas et reprise
 
 `SessionSnapshot` contient :
@@ -136,11 +139,9 @@ Commandes V1 : sélection site/colonne, paramètres de représentation, couches,
 
 Le client construit un nouvel état hors ligne puis effectue un swap atomique. Les deltas sont appliqués uniquement sur la révision de base attendue.
 
-À la reconnexion, `ResumeRequest` fournit epoch, state revision, assets présents et dernière révision par scope. Le serveur répond :
+À la reconnexion V1, le serveur répond par défaut `FullSnapshotRequired` et le client reconstruit son miroir hors ligne avant swap atomique. `ResumeRequest` peut annoncer epoch, révisions et assets encore présents afin d'éviter les retransferts byte-identiques. `ResumeWithDeltas` reste une capability optionnelle si un journal borné est disponible ; aucun déploiement V1 ne peut l'exiger. `NewSession` est renvoyé si l'epoch a changé.
 
-- `ResumeWithDeltas` si son journal borné couvre l'écart ;
-- `FullSnapshotRequired` sinon ;
-- `NewSession` si l'epoch a changé.
+Pendant la coupure, tracking, passthrough et transformations spatiales restent locaux. Les commandes et changements scientifiques sont gelés et la déconnexion est visible.
 
 ## 8. Transfert d'assets
 
@@ -213,7 +214,31 @@ SurfaceFrame
 
 Pour le shader actuel, deux composantes `x` et un masque permettent de reconstruire les deux `Vector2`. Baseline MNI : 561 470 octets/colonne en float32, soit environ 0,5355 MiB ; huit colonnes représentent environ 4,28 MiB par bundle complet avant framing/compression.
 
-`float16` ramène l'estimation à 285 054 octets/colonne, mais reste désactivé jusqu'à validation numérique et visuelle. Les deltas clairsemés ne sont permis que si leur coût total et leur atomicité sont meilleurs qu'un frame complet.
+`float16` ramène l'estimation à 285 054 octets/colonne, mais reste désactivé jusqu'à validation numérique et visuelle. Une représentation compacte avec perte ne devient automatique qu'après validation d'équivalence visuelle ; avant cela elle peut seulement être proposée explicitement après un refus de budget.
+
+```text
+TimelinePreloadManifest
+  requestId, timelineId
+  sourceStateRevision, playbackRevision
+  temporalIndices[]
+  expectedColumnIds[]
+  uniqueContentDescriptors[]
+  cpuBytesRequired, gpuBytesRequired
+  safetyMarginBytes
+  dominantContributors[]
+
+TimelineAdmission
+  accepted
+  effectiveBudgetBytes
+  estimatedAvailableBytes
+  failureReason?
+```
+
+Le Desktop calcule une estimation haute avant transfert. Le coût est celui des octets uniques réellement conservés après partage/déduplication statique et représentation explicite des canaux absents. Le budget effectif ne dépasse ni la limite Quest validée ni l'estimation conservatrice de la mémoire courante. Aucun champ de protocole n'impose un nombre maximal d'indices, de colonnes, de sites ou de cerveaux ; 97 indices est un profil P11, pas une limite.
+
+Une admission acceptée transfère et prépare les contenus une fois. Une commande d'index ultérieure ne transmet que l'intention/index et sélectionne atomiquement les tranches résidentes au plus tard à la frame XR suivante. La commande peut être appliquée optimistement ; un rejet Desktop restaure l'index canonique avec feedback utilisateur.
+
+Une admission refusée arrive avant le transfert et ne modifie aucun contenu déjà actif. Elle fournit mémoire requise et permise, nombres d'indices/colonnes et principaux contributeurs. La V1 ne négocie pas automatiquement une plage réduite, ne pagine pas depuis disque/réseau et ne persiste pas le preload sur le Quest.
 
 Politique :
 
@@ -222,6 +247,7 @@ Politique :
 - un active + un pending latest maximum par timeline ;
 - résultats avec anciennes révisions rejetés ;
 - surface/sites/overlays d'un même bundle passent au renderer lors du même commit.
+- l'autoplay peut sauter les indices obsolètes pour suivre le temps logique, mais annonce au client qu'il ne présente pas chaque échantillon.
 
 ## 11. `SiteAsset` et `SiteRenderFrame`
 
@@ -242,7 +268,7 @@ SiteRenderFrame
   selected/hover flags
 ```
 
-Les informations humaines détaillées sont demandées à la sélection et affichées sans persistance. Le renderer fait instancing/buffers ; le picking indexé renvoie `siteId`.
+Les informations humaines utiles — notamment noms patient, libellés de site et noms de colonne — sont demandées à la sélection, placées sur allowlist et affichées transitoirement en mémoire sans persistance ni journalisation. Le renderer fait instancing/buffers ; le picking indexé renvoie `siteId`.
 
 ## 12. `CutRenderResult`
 
@@ -265,7 +291,7 @@ CutRenderResult
   complete=true
 ```
 
-Le résultat est rejeté si sa séquence, sa coupe, ses assets ou son scope ne sont plus courants. La géométrie/base peuvent être omises si leurs hashes sont déjà présents. Pour le stencil MNI observé, un overlay RGBA8 fait 109 068 octets ; la texture anatomique de même taille est partageable entre colonnes.
+Le Desktop produit et envoie le résultat scientifique final ; seul le plan/gizmo est approché localement pendant le geste. Le résultat est rejeté si sa séquence, sa coupe, ses assets ou son scope ne sont plus courants. La géométrie/base peuvent être omises si leurs hashes sont déjà présents. Pour le stencil MNI observé, un overlay RGBA8 fait 109 068 octets ; la texture anatomique de même taille est partageable entre colonnes. Pour un plan stable, les overlays par index peuvent appartenir au preload temporel admis ; changer le plan invalide ce contenu et impose un nouveau calcul/chargement explicite.
 
 ## 13. Backpressure
 
@@ -275,8 +301,8 @@ Priorités décroissantes :
 2. commandes et outcomes ;
 3. deltas d'état ;
 4. dernier résultat interactif ;
-5. timeline courante ;
-6. assets bulk et préfetch.
+5. sélection locale de timeline déjà préchargée ;
+6. assets bulk, preload et préfetch.
 
 Un nouveau `interactionId/sequence` annule le pending précédent. Si un calcul natif n'est pas annulable, sa sortie est jetée avant sérialisation. Si un asset bulk monopolise la connexion, le spike D10 échoue.
 
@@ -298,7 +324,7 @@ RATE_LIMITED
 SESSION_REPLACED
 ```
 
-Chaque erreur contient code, correlation ID, caractère retryable et message redacted. Aucun stack trace ou chemin patient n'est envoyé au Quest en production.
+Chaque erreur contient code, correlation ID, caractère retryable et message redacted. `RESOURCE_PRESSURE` contient aussi budget effectif, octets CPU/GPU requis, marge, cardinalités et principaux contributeurs. Aucun stack trace ou chemin patient n'est envoyé au Quest en production.
 
 ## 15. Tests normatifs
 
@@ -307,7 +333,9 @@ Chaque erreur contient code, correlation ID, caractère retryable et message red
 - endian/tailles/valeurs NaN et buffers tronqués ;
 - duplicate command et out-of-order results ;
 - snapshot transactionnel interrompu ;
-- reprise avec/sans journal ;
+- reconnexion par snapshot complet ; reprise par journal testée seulement si la capability est annoncée ;
+- admission/refus preload sur coût byte-exact, sans plafond de cardinalité ;
+- index local arbitraire visible en une frame, rollback sur refus et signalement des indices sautés en autoplay ;
 - hash faux, asset dupliqué et chunk manquant ;
 - gros asset simultané avec commandes ;
 - fuzz du décodeur avec allocations bornées ;

@@ -6,7 +6,7 @@ Migrer HiBoP Desktop du legacy Input Manager au nouveau Input System avec parit�
 
 ## Decision gate
 
-**Hérité :** D16 migration Desktop séparée ; le projet XR utilise déjà Input System.
+**Hérité :** D16 migration Desktop séparée ; le projet XR utilise déjà Input System ; ordre de qualification D24.
 
 **À résoudre avant migration :**
 
@@ -42,7 +42,7 @@ Sans carte de parité PX1-A–E, aucune substitution globale de `Input.*`.
 
 - baseline P00 ;
 - inventaire `Input.*`, KeyCode, EventSystem, UI/plugins ;
-- builds Desktop 3 OS accessibles.
+- Windows accessible pour l'implémentation initiale ; macOS Apple Silicon/MacBook Air M2 et Ubuntu 24.04 accessibles après E11 pour la qualification D24.
 
 ## Fichiers/modules pressentis
 
@@ -56,7 +56,7 @@ Sans carte de parité PX1-A–E, aucune substitution globale de `Input.*`.
 2. Ajouter/verrouiller Input System selon version Unity.
 3. Créer action maps et couche d'adaptation.
 4. Migrer par domaine avec A/B/parité.
-5. Tester plugins/UI et trois OS.
+5. Tester d'abord plugins/UI sur Windows, puis qualifier macOS Apple Silicon et Ubuntu 24.04 après E11.
 6. Désactiver legacy seulement après gate explicite.
 7. Retirer chemin ancien et documenter bindings.
 
@@ -64,8 +64,8 @@ Sans carte de parité PX1-A–E, aucune substitution globale de `Input.*`.
 
 - tests unitaires/action callbacks ;
 - PlayMode caméra/UI/raccourcis ;
-- checklist manuelle 3 OS ;
-- builds 3 OS ;
+- checklist manuelle Windows puis macOS/Linux selon D24 ;
+- builds Windows x64, macOS Apple Silicon et Ubuntu 24.04 x64 dans cet ordre ;
 - recherche finale `Input.*`/legacy settings ;
 - formatter C# obligatoire.
 
@@ -88,4 +88,4 @@ Arrêter si une action existante n'a pas de propriétaire attendu, si un plugin 
 
 ## Prompt de démarrage
 
-> Exécute PX1 depuis `Docs/dev/xr/implementation-packets/PX1-desktop-input-system.md`. Commence par l'inventaire et la décision PX1-A–E. Migre ensuite par tranche avec parité stricte, sans changement UX ni package XR, valide les trois OS et n'éteins jamais le legacy avant le gate explicite.
+> Exécute PX1 depuis `Docs/dev/xr/implementation-packets/PX1-desktop-input-system.md`. Commence par l'inventaire et la décision PX1-A–E. Migre ensuite par tranche avec parité stricte, sans changement UX ni package XR. Valide Windows pendant le prototype, puis macOS Apple Silicon et Ubuntu 24.04 après E11 conformément à D24 ; n'éteins jamais le legacy avant le gate explicite.

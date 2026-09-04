@@ -1,6 +1,6 @@
 # HiBoP XR — roadmap d'implémentation
 
-**Version :** 0.4
+**Version :** 0.5
 **Principe :** chaque tranche conserve un HiBoP Desktop fonctionnel et produit un gate vérifiable.
 
 Les phases sont détaillées en paquets autonomes dans [implementation-packets/README.md](implementation-packets/README.md). Chaque paquet possède un prompt de démarrage, un périmètre et un `Decision gate` obligatoire.
@@ -14,11 +14,13 @@ La roadmap peut démarrer, mais les points suivants ne doivent pas être infér�
 - P02 : représentation des IDs et catalogue des scopes ;
 - P03 : interpolation temporelle de surface, repères et tolérances ;
 - P04 : matrice exacte des packages/paramètres Quest ;
+- P05 : **candidate implémentée, gate ouvert** — P05-A–C validées ; transparence passthrough P05-D à fermer avant P13/E11 ;
 - P06 : bibliothèque transport et codec, décidés par spike ;
 - P08 : **fermé et implémenté** — budget injecté, LRU des seuls inactifs, échec explicite sous pression et lifecycle mémoire sans persistance ;
 - P09 : bindings exacts des instances ;
 - P10 : sémantique de picking et backend mesuré ;
-- P11/P12 : politiques d'échec/atomicité et ownership ;
+- P11 : **fermé, implémenté et validé sur Quest** — preload lossless sous budget byte-explicite, 97 indices comme profil et non plafond ;
+- P12 : politiques d'échec/atomicité et ownership des coupes ;
 - P13 : inventaire fonctionnel et interactions V1 signés ;
 - P14 : matrice exacte de purge et propriétaire sécurité ;
 - P15 : parcours d'activation, contenu envoyé, lifecycle du sidecar et scénario vertical signé ;
@@ -45,7 +47,7 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 
 - enregistrer commits Desktop, `hbp_core` et prototype ;
 - conserver les datasets D0–D4 et images/buffers attendus ;
-- publier D01–D20 et propriétaires.
+- publier D01–D24 et propriétaires.
 
 **Gate :** registre, datasets et hygiène sécurité validés.
 
@@ -70,7 +72,7 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 - inventaire des propriétés/scopes/invalidations ;
 - capture des sorties actuelles.
 
-**Gate :** les deux projets consomment les mêmes fichiers de package ; APK minimal et trois builds Desktop reproductibles.
+**Gate :** les deux projets consomment les mêmes fichiers de package ; APK minimal et build Desktop Windows reproductible. La portabilité des packages reste obligatoire, mais l'exécution native macOS/Linux est qualifiée après E11 selon D24.
 
 ## Phase 2 — parité RenderModel
 
@@ -93,13 +95,13 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 - résultat attendu explicite surface/sites ;
 - correction Desktop si le comportement courant est un défaut.
 
-**Gate :** S05 PASS et aucune dépendance Desktop transitive dans le client.
+**Gate :** S05 PASS et aucune dépendance Desktop transitive dans le client. La parité de buffers peut autoriser P06–P12, mais P05-D doit être fermée avant l'assemblage UX P13 et E11.
 
 ## Phase 3 — transport et état
 
 ### XR-030 — spike D10/D11
 
-- sélectionner bibliothèque après build 3 OS + Quest IL2CPP ;
+- sélectionner une baseline provisoire après build/runtime Windows + Quest IL2CPP, en conservant une architecture portable ; qualifier macOS/Linux nativement après E11 selon D24 ;
 - TLS/pinning, WSS, HTTPS ranges ;
 - schéma binaire et golden vectors.
 
@@ -107,8 +109,8 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 
 - handshake/capabilities ;
 - appairage + IP manuelle ;
-- snapshot transactionnel et deltas ;
-- journal borné, resume et full resync ;
+- snapshot transactionnel initial et de reconnexion ;
+- full resync comme baseline ; journal/deltas seulement comme capability optionnelle ;
 - backpressure et diagnostics.
 
 **Gate :** S01 et tests D12/D18 PASS, gros asset sans blocage du contrôle.
@@ -125,11 +127,11 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 ### XR-041 — interactions de base
 
 - XRI ray/grab/rotate/two-hand scale ;
-- recentrage, 10 cm–2 m ;
+- recentrage et inspection rapprochée sans limite métier étroite ;
 - mains et contrôleurs ;
 - adaptateur passthrough Meta.
 
-**Gate :** une multi-patient et deux mono-patient simultanées, topologie dédupliquée, S06/S08 documentés.
+**Gate :** une multi-patient et deux mono-patient simultanées, topologie dédupliquée, déplacement de tête autour d'un cerveau fortement agrandi à 72 Hz, S06/S08 documentés.
 
 ## Phase 5 — sites
 
@@ -145,7 +147,7 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 - grille/BVH local brain space ;
 - ray/proximité ;
 - ID stable et feedback pending/canonical ;
-- panel d'information redacted.
+- panel du site sélectionné avec graphes, tags, matrices et métadonnées sur allowlist transitoire.
 
 **Gate :** S04 PASS sur 37 500 sites sans plafond.
 
@@ -153,18 +155,20 @@ Le chat d'une phase peut produire une fiche de décision ou un ADR, mais il ne c
 
 ### XR-060 — bundle canonique
 
-- autoplay toutes colonnes ;
-- scrub coalescé ;
+- estimation et admission en octets CPU/GPU uniques, sans plafond de cardinalité ;
+- preload lossless de tous les indices acceptés, avec progression/annulation via `LoadingManager` ;
+- autoplay toutes colonnes avec signalement des indices sautés ;
+- scrub et sélection locale arbitraire visibles en une frame ;
 - surface/sites/overlays atomiques ;
 - float32 baseline.
 
 ### XR-061 — optimisation mesurée
 
-- encodage/compression seulement après parité ;
+- représentation compacte automatique seulement après équivalence visuelle validée, proposition explicite sinon ;
 - pooling et uploads groupés ;
-- fréquence scientifique adaptative sans retirer de colonnes.
+- budget configurable dans une borne Quest validée ; refus précoce détaillé, sans paging ni réduction silencieuse.
 
-**Gate :** S02 PASS, aucun backlog ou état de colonnes mixte.
+**Gate :** S02 PASS, index accepté visible à la frame suivante, aucun backlog/état mixte et refus explicite au-delà du budget.
 
 ## Phase 7 — coupes et ROI
 
@@ -188,14 +192,26 @@ Exécuter S07 uniquement si S03 échoue après optimisation. Ne porter que la fo
 
 ## Phase 8 — fonctions V1 et UX
 
+Dans une exécution séquentielle, fermer d'abord le gate de transparence P05-D et P14, puis assembler P13. P12 peut avancer avant P05-D. P13 et P14 peuvent avancer en parallèle uniquement si P05-D et les états, métadonnées et transitions de cycle de vie P14 sont intégrés avant la sortie de P13.
+
+### XR-080 — sécurité et cycle de vie P14
+
+- classification des payloads et allowlist des métadonnées humaines transitoires ;
+- matrice disconnect/background/timeout/logout/close/crash/reboot ;
+- stockage sécurisé limité à l'appairage, purge mémoire et logs redacted ;
+- tests sentinelles D6 et acceptation du propriétaire sécurité.
+
+### XR-081 — interactions et UI P13
+
 - paramètres de colonne avec scopes ;
 - sélection/blacklist/highlight ;
-- panels et matrices retenus ;
+- UI XR des commandes d'inspection courantes ;
+- graphes, tags, matrices et panels du site sélectionné traités en très haute priorité ;
 - erreurs et états pending/canonical/stale ;
 - perte tracking, background, reconnexion ;
 - passthrough/VR et accessibilité.
 
-**Gate :** scénarios fonctionnels P13 sur mains et contrôleurs. Le raccordement interprocess à une vraie visualisation HiBoP reste le gate E11 de P15.
+**Gate :** P05-D et P14 acceptés ; scénario complet avec contrôleurs et interactions principales avec mains. Le raccordement interprocess à une vraie visualisation HiBoP reste le gate E11 de P15.
 
 ## Phase 9 — migration Input Desktop
 
@@ -204,10 +220,10 @@ Workstream indépendant :
 1. inventorier tous les `Input.*`, raccourcis, caméra et tests ;
 2. action maps Desktop ;
 3. migration par domaine avec parité ;
-4. builds Windows/macOS/Linux ;
+4. build/parité Windows pendant le prototype ; qualification macOS/Linux après E11 selon D24 ;
 5. legacy Input Manager désactivable puis supprimé.
 
-Il peut démarrer tôt, mais ne bloque que l'intégration finale des commandes communes — pas le projet XR minimal.
+Il peut démarrer tôt sur Windows, mais ne bloque que l'intégration finale des commandes communes — pas le projet XR minimal. Ses validations natives macOS/Linux suivent le gate E11 et l'ordre D24.
 
 ## Phase 10 — intégration produit end-to-end
 
@@ -217,9 +233,11 @@ Il peut démarrer tôt, mais ne bloque que l'intégration finale des commandes c
 - snapshot réel construit depuis une visualisation HiBoP ;
 - surfaces, sites, timeline et coupes retenus traversent le réseau réel ;
 - au moins une commande Quest est validée par le Desktop puis republiée au Quest ;
-- déconnexion, reprise, erreur et fermeture suivent P14.
+- déconnexion, snapshot de reconnexion, erreur et fermeture suivent P14.
 
 **Gate :** E11 PASS sur un Quest physique, sans scène, host ou injection synthétique dans le chemin produit.
+
+Après E11, une revue explicite confirme ou rouvre la baseline de rendu local Quest à partir de l'expérience réelle. Aucun second moteur de rendu distant n'est construit avant ce gate.
 
 ## Phase 11 — architecture de production et normalisation
 
@@ -245,7 +263,10 @@ Il peut démarrer tôt, mais ne bloque que l'intégration finale des commandes c
 
 ## Phase 13 — industrialisation
 
+- validation Windows x64 en premier, puis macOS Apple Silicon avec MacBook Air M2 et Ubuntu 24.04 x64 ;
 - CI packages, Desktop 3 OS, APK et tests protocole ;
+- mesurer séparément le pont XR du build standard et le module host/assets optionnel ; intégrer davantage seulement si le coût est non drastique ;
+- proposition d'installation discrète si un canal fiable existe, entrée XR masquée sinon ; mise à jour automatique du module déjà installé ;
 - déclenchements limités à `workflow_dispatch` ou à `release: published` pour une release créée manuellement ; aucun déclenchement sur `push`, `pull_request` ou planification ;
 - signature et gestion des secrets ;
 - SBOM/licences tierces ;

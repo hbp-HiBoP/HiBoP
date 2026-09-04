@@ -6,10 +6,11 @@ Transformer la tranche verticale P15 en architecture maintenable et nommée selo
 
 ## Decision gate
 
-**Hérité :** frontières D01–D04, trois packages partagés seulement, séparation Desktop/XR, compatibilité D18, parcours P15 fonctionnel et prefab-first.
+**Hérité :** frontières D01–D04, trois packages partagés seulement, séparation Desktop/XR, compatibilité D18, D21 stratégie de rendu, D22/D23 frontières fonctionnelles et D24 module optionnel, parcours P15 fonctionnel et prefab-first.
 
 **À résoudre avant tout renommage transversal :**
 
+- `P16-0` : revue post-E11 enregistrée confirmant D21 ou nouvelle décision d'architecture acceptée avant toute normalisation ;
 - `P16-A` : convention finale des namespaces C# par domaine, y compris le devenir exact de `CRNL.HiBoP.*` et la relation avec les namespaces `HBP.*` existants ;
 - `P16-B` : noms finaux et stabilité des assemblies et identifiants UPM, décidés séparément des namespaces C# ;
 - `P16-C` : convention des noms de classes/fichiers/assets de production et politique exacte pour les préfixes `Pxx` ;
@@ -42,6 +43,8 @@ Un namespace C#, un nom d'assembly et un identifiant UPM sont trois décisions d
 ## Hypothèses fixées
 
 - P15 fournit un chemin fonctionnel servant d'oracle avant/après ;
+- D21 a été explicitement confirmée après E11 ; si elle est rouverte, P16 attend la nouvelle architecture au lieu de normaliser le chemin provisoire ;
+- la frontière build standard léger/module XR de D24 est conservée et mesurable ;
 - les ADR et preuves P00–P15 conservent leurs noms historiques ;
 - les GUID Unity sont préservés lorsque l'identité logique de l'asset ne change pas ;
 - les renommages sont effectués par lots vérifiables et réversibles ;
@@ -68,7 +71,7 @@ Un namespace C#, un nom d'assembly et un identifiant UPM sont trois décisions d
 
 1. Cartographier types, namespaces, assemblies, packages, scènes, prefabs et dépendances réellement parcourus par P15.
 2. Classifier production, test, outil développeur, preuve et candidat à suppression future.
-3. Résoudre P16-A–G et publier le mapping complet avant modification.
+3. Fermer P16-0, puis résoudre P16-A–G et publier le mapping complet avant modification.
 4. Établir l'ordre de migration et les shims temporaires, avec rollback par lot.
 5. Renommer/déplacer le code de production en préservant GUID et références sérialisées.
 6. Normaliser APIs, visibilité et dépendances sans changer les données ni l'ordre d'exécution.
@@ -90,6 +93,8 @@ Un namespace C#, un nom d'assembly et un identifiant UPM sont trois décisions d
 ## Critères de sortie binaires
 
 - [ ] P16-A–G acceptées et mapping ancien → nouveau archivé ;
+- [ ] D21 est confirmée après E11 ou remplacée par une décision architecturale explicitement acceptée ;
+- [ ] la frontière du module D24 reste explicite et n'alourdit pas silencieusement le build standard ;
 - [ ] tous les composants de production P16-G respectent les conventions décidées ;
 - [ ] namespaces, assemblies et package IDs ne sont pas confondus ou modifiés implicitement ;
 - [ ] aucun `Missing Script`, GUID perdu ou référence prefab/scène cassée ;
