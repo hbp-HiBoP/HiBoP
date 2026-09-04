@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$UnityPath = "C:\Program Files\Unity\Hub\Editor\6000.5.2f1\Editor\Unity.exe",
-    [string]$OutputPath
+    [string]$OutputPath,
+    [string]$JavaTempPath = "C:\jtmp"
 )
 
 $ErrorActionPreference = "Stop"
@@ -17,6 +18,9 @@ if ([string]::IsNullOrWhiteSpace($OutputPath))
 $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)
 
 New-Item -ItemType Directory -Force -Path $artifactRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $JavaTempPath | Out-Null
+$env:TEMP = $JavaTempPath
+$env:TMP = $JavaTempPath
 $arguments = @(
     "-batchmode",
     "-nographics",

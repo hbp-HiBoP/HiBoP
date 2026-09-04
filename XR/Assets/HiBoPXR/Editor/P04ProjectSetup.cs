@@ -58,7 +58,7 @@ namespace CRNL.HiBoP.XR.Bootstrap.Editor
 
             Check(PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android) == "fr.crnl.hibop.xr.dev", "application ID", failures);
             Check(PlayerSettings.Android.minSdkVersion == AndroidSdkVersions.AndroidApiLevel32, "minimum API 32", failures);
-            Check(PlayerSettings.Android.targetSdkVersion == AndroidSdkVersions.AndroidApiLevelAuto, "automatic target API", failures);
+            Check(PlayerSettings.Android.targetSdkVersion == AndroidSdkVersions.AndroidApiLevel34, "target API 34", failures);
             Check(PlayerSettings.GetScriptingBackend(NamedBuildTarget.Android) == ScriptingImplementation.IL2CPP, "IL2CPP", failures);
             Check(PlayerSettings.Android.targetArchitectures == AndroidArchitecture.ARM64, "ARM64 only", failures);
             Check(PlayerSettings.GetGraphicsAPIs(BuildTarget.Android).SequenceEqual(new[] { GraphicsDeviceType.Vulkan }), "Vulkan only", failures);
@@ -124,7 +124,7 @@ namespace CRNL.HiBoP.XR.Bootstrap.Editor
             PlayerSettings.companyName = "CRNL";
             PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "fr.crnl.hibop.xr.dev");
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel32;
-            PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevelAuto;
+            PlayerSettings.Android.targetSdkVersion = AndroidSdkVersions.AndroidApiLevel34;
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.Android.useCustomKeystore = false;
