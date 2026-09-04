@@ -1,0 +1,10 @@
+{
+  "name": "CRNL.HiBoP.XR.Sites.Validation",
+  "rootNamespace": "CRNL.HiBoP.XR.Sites.Validation",
+  "references": [
+    "CRNL.HiBoP.Contracts",
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.XR.Sites"
+  ],
+  "autoReferenced": true
+}

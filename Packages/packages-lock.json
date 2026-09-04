@@ -17,6 +17,26 @@
       },
       "hash": "4ce7dd3cc54e37e2ed6dc59cb5a047f3dccb3f50"
     },
+    "com.crnl.hibop.contracts": {
+      "version": "file:../Shared/Packages/com.crnl.hibop.contracts",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "com.crnl.hibop.protocol": {
+      "version": "file:../Shared/Packages/com.crnl.hibop.protocol",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "com.crnl.hibop.render-model": {
+      "version": "file:../Shared/Packages/com.crnl.hibop.render-model",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "com.crnl.hibop.contracts": "0.2.0"
+      }
+    },
     "com.crnl.hibop_utilities": {
       "version": "https://github.com/hbp-HiBoP/HiBoP_Utilities.git",
       "depth": 0,

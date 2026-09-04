@@ -16,8 +16,8 @@
 | D07 | `DynamicFrameBundle` atomique | RESOLVED |
 | D08 | Coupes canoniques distantes, latest-wins | RESOLVED |
 | D09 | `CutRenderResult` atomique et révisionné | RESOLVED |
-| D10 | HTTPS + WSS ; bibliothèque à valider | REQUIRES_SPIKE |
-| D11 | Enveloppe binaire + buffers typés | REQUIRES_SPIKE |
+| D10 | Kestrel sidecar + HTTPS/WSS appairés | PROVISIONAL |
+| D11 | Protobuf + buffers float32 little-endian | PROVISIONAL |
 | D12 | Révisions par scope, snapshot et resync | RESOLVED |
 | D13 | Sites bufferisés + index spatial | RESOLVED |
 | D14 | Assets immuables partagés entre cerveaux | RESOLVED |
@@ -27,6 +27,45 @@
 | D18 | Versions distinctes, handshake de compatibilité | RESOLVED |
 | D19 | Canal de distribution pilote Meta | REQUIRES_SPIKE |
 | D20 | Enveloppes de performance V1 | REQUIRES_SPIKE |
+
+## Décisions d'implémentation acceptées
+
+| ID | Décision | Statut |
+| --- | --- | --- |
+| P02-A | IDs opaques 128 bits, pseudonymes propres à l'epoch, aucun nom/index | RESOLVED |
+| P02-B | Huit scopes V1, propriétaire unique et catalogue normatif | RESOLVED |
+| P02-C | Champs requis par défaut, `Optional<T>` explicite, évolution additive par capability | RESOLVED |
+| P02-D | Duplicate-first, conflit rejeté sans mutation ni rebase implicite | RESOLVED |
+| P03-A | Sites linéaires ; surfaces/coupes sample-and-hold ; alpha temporel distinct de l'opacité | RESOLVED |
+| P03-B | Assets normalisés en espace Unity XYZ left-handed, millimètres, mapping versionné | RESOLVED |
+| P03-C | D0/D5/D6 synthétiques : structure/octets exacts, calcul D5 `maxAbs <= 1e-6` | RESOLVED |
+| P03-D | Copie ou transfert explicite, buffers read-only possédés, GC sans pooling V1 | RESOLVED |
+| P03-E | Surfaces, sites, coupes et bundles atomiques via primitives génériques | RESOLVED |
+| P08-A | Budget mémoire injecté ; LRU des seuls inactifs ; actifs jamais évincés | RESOLVED |
+| P08-B | échec explicite et action utilisateur, sans réduction silencieuse | RESOLVED |
+| P08-C | reprise 30 s ; purge staging/inactifs ; actifs purge-pending jusqu’au retrait explicite | RESOLVED |
+| P08-D | limites d’allocation par type négociées au minimum des pairs | RESOLVED |
+| P08-E | hashes propres aux variantes et manifeste inflated → anatomical | RESOLVED |
+| P09-A | deux bindings exacts : visualisation suit la sélection, colonne reste épinglée | RESOLVED |
+| P09-B | création uniquement sur demande XR, jamais depuis snapshot/resume | RESOLVED |
+| P09-C | fermeture de cible ferme et libère explicitement les instances concernées | RESOLVED |
+| P09-D | transform local ; apparence canonique ; topologie P08/P05 partagée par hash | RESOLVED |
+| P09-E | layout conservé dans le même epoch pour IDs valides, purgé au nouvel epoch | RESOLVED |
+| P10-A | positions/attributs en GraphicsBuffer, un RenderMeshPrimitives par set de sites | RESOLVED |
+| P10-B | éligibilité visible/rayon positif ; classement géométrique déterministe puis ID opaque | RESOLVED |
+| P10-C | positions et rayons en mm locaux ; scale BrainInstance uniforme ; ray min 2 mm, proximité 12 mm | RESOLVED |
+| P10-D | BVH médian sur centres statiques, rebuild seulement au changement de hash | RESOLVED |
+| P10-E | métadonnées de sélection sur allowlist, transitoires et jamais journalisées/persistées | RESOLVED |
+
+Les motivations, règles complètes et conditions de réouverture sont enregistrées dans [ADR P02](adr/P02-contracts.md) et le [catalogue des scopes V1](contracts/P02-scope-catalog.md).
+
+Les décisions de rendu, leurs frontières d'assemblage et les tolérances synthétiques sont enregistrées dans [ADR P03](adr/P03-render-model.md). Les hashes reproductibles sont consignés dans la [preuve de parité P03](evidence/P03/render-model-parity.md).
+
+Les décisions de transfert, pression mémoire, lifecycle du cache et dépendances de variantes sont enregistrées dans [ADR P08](adr/P08-remote-assets.md). P14-B reste propriétaire du raccordement exact aux événements de plateforme et de la matrice sécurité globale.
+
+Les bindings, fermetures et règles de restauration du layout local sont enregistrés dans [ADR P09](adr/P09-multi-brain.md). P09 rouvre P02 uniquement pour rendre explicite le mapping entité/scope nécessaire à ces bindings.
+
+Le backend bufferisé, le BVH, les règles de classement, les unités/seuils et l'allowlist de métadonnées des sites sont enregistrés dans [ADR P10](adr/P10-sites.md). Le choix A/D est fondé sur le benchmark D3 hôte puis validé sur Quest 3 : 37 500 sites sans plafond, picking exact, CPU/GPU sous D20 et endurance 30 minutes sans dérive thermique ou mémoire.
 
 ## D01 — topologie Unity
 
@@ -46,7 +85,7 @@
 
 ## D03 — partage de code et d'assets
 
-**Statut : RESOLVED.** Packages embarqués : `Contracts`, `RenderModel`, `Protocol` et, après portabilité, `Rendering`. Les shells conservent UI, rig, scènes et réglages. Les assets génériques portables vivent dans les packages ; aucun dossier n'est copié.
+**Statut : RESOLVED.** P01 matérialise uniquement `com.crnl.hibop.contracts`, `com.crnl.hibop.render-model` et `com.crnl.hibop.protocol` sous `Shared/Packages/`. Le code exclusivement Desktop reste sous `Assets/` et le code exclusivement XR — notamment le renderer, le client, OpenXR et Meta — sous `XR/Assets/`. Aucun fichier HiBoP existant n'est déplacé ou copié et les modèles HiBoP ne reçoivent pas de méthodes DTO. Toute extension future de `Shared/Packages/` exige une réouverture explicite de D03 et un ADR distinct.
 
 **Gate.** Une modification commune doit être testée dans les deux projets depuis un seul fichier source.
 
@@ -56,7 +95,7 @@
 
 **Preuves.** Ces assemblies entraînent TMPro, UI, accès fichiers/base de données, wrappers natifs, globals et renderer Desktop. Elles ne constituent pas un contrat AOT/Android propre.
 
-**Extraction minimale.** IDs et scopes, DTOs, révisions, valeurs mathématiques, sérialisation générée, modèle de rendu et interfaces. Les loaders, DB, préférences, calculs scientifiques et adaptateurs restent Desktop.
+**Projection minimale.** De nouveaux DTO portent IDs et scopes, révisions, valeurs mathématiques, sérialisation, modèle de rendu et interfaces. Des adaptateurs Desktop externes les construisent à partir des modèles HiBoP ; aucun fichier ou type HiBoP existant n'est déplacé, copié ou enrichi de méthodes DTO. Les loaders, DB, préférences, calculs scientifiques et adaptateurs restent Desktop.
 
 ## D05 — `hbp_core` Android ARM64
 
@@ -94,17 +133,23 @@
 
 ## D10 — transport physique
 
-**Statut : REQUIRES_SPIKE. Baseline proposée : HTTPS + WSS sur un endpoint appairé.** WSS transporte contrôle, état et petits résultats dynamiques ; HTTPS transporte assets immuables découpés, hashés, reprenables et annulables. L'IP manuelle est obligatoire, la découverte locale facultative.
+**Statut : PROVISIONAL — WINDOWS/QUEST VALIDATED.** Kestrel/.NET self-contained sert HTTPS + WSS sur un endpoint, un port et un certificat communs. `websocket-sharp` est retenu provisoirement pour WSS Quest et `UnityWebRequest` pour HTTPS. WSS transporte contrôle, état et petits résultats dynamiques ; HTTPS transporte assets immuables découpés, hashés, reprenables et annulables. L'IP manuelle est obligatoire, la découverte locale facultative.
 
 **Sécurité.** TLS via une bibliothèque maintenue ; première confiance par code court liant l'identité cryptographique du poste, puis pinning. Aucun protocole cryptographique maison.
 
-**Gate.** Même bibliothèque serveur/client validée sur Windows, macOS, Linux et Quest IL2CPP, avec priorité du contrôle pendant un gros transfert, reconnexion et firewall documentés.
+**Preuve et limites.** P06-W/P06-WQ passent sur Windows et Quest IL2CPP, y compris pin SPKI, charge nominale, golden vectors et rejets identité/corruption. macOS/Linux natifs restent non qualifiés. Le sidecar ajoute environ 50,6 Mio compressés, soit environ 25 % d'une archive HiBoP de 200 Mio; ce dépassement est accepté pour poursuivre.
+
+**Réouverture.** Qualification macOS/Linux, échec de packaging ou démonstration d'une solution embarquée sensiblement plus petite conservant transparence, TLS/pinning, limites et performances équivalentes. Une édition XR séparée reste le fallback de distribution.
+
+**Intégration et distribution.** P15 possède le raccordement et la supervision du sidecar dans le parcours produit ; P18 possède son packaging dans les artefacts distribués et la qualification des OS déclarés.
 
 ## D11 — sérialisation et compression
 
-**Statut : REQUIRES_SPIKE.** Contrôle schématisé/AOT-safe ; gros tableaux en blocs contigus little-endian typés avec type, dimensions, longueur, checksum, compression et calibration. Pas de JSON ni base64 pour les buffers lourds.
+**Statut : PROVISIONAL — WINDOWS/QUEST VALIDATED.** Protobuf 3.36.1 est retenu pour le contrôle avec framing borné et versionné. Les gros tableaux utilisent des blocs contigus `float32` IEEE-754 little-endian avec type, dimensions, longueur et SHA-256. Pas de JSON ni base64 pour les buffers lourds et aucune compression par défaut.
 
 **Baseline qualité.** `float32` exact. `float16`, 8 bits et compression ne sont activés que représentation par représentation après mesure d'erreur, d'image, CPU, copies et GC.
+
+**Réouverture.** Divergence de golden vector sur une plateforme native, allocations Protobuf problématiques sous charge réelle, ou dataset démontrant un gain net et reproductible pour une compression/quantification compatible avec les tolérances scientifiques.
 
 ## D12 — état, snapshot et reconnexion
 
@@ -136,7 +181,7 @@
 
 ## D17 — sécurité et vie privée
 
-**Statut : RESOLVED pour l'absence de persistance.** Données patient en mémoire de session seulement ; logs redacted et IDs opaques. Seuls endpoint et matériau d'appairage peuvent être persistés dans le stockage sécurisé plateforme. Fermeture et nouvel epoch imposent une purge ; la matrice exacte déconnexion/retry, arrière-plan, timeout, crash et reprise doit être décidée en P14-B avant implémentation.
+**Statut : RESOLVED pour l'absence de persistance.** Données patient en mémoire de session seulement ; logs redacted et IDs opaques. Seuls endpoint et matériau d'appairage peuvent être persistés dans le stockage sécurisé plateforme. P08 fixe les effets internes du cache lorsqu'il reçoit interruption, expiration du lease, nouvel epoch, background ou fermeture. P14-B doit encore décider et valider le raccordement exact de ces événements aux transitions Android/application, ainsi que logout, crash et reboot.
 
 ## D18 — versions et compatibilité
 
@@ -149,6 +194,8 @@
 **Statut : REQUIRES_SPIKE.** Pilote recommandé via canal Meta privé Alpha/Beta, après vérification de l'organisation et conformité packaging. Le sideload reste réservé au développement et ne fournit pas les mises à jour de plateforme.
 
 **Gate.** Vérifier au moment du pilote les règles Meta, le nombre d'utilisateurs, la signature, les permissions, la politique de données et le parcours d'installation réel.
+
+Ce gate appartient à P18 après intégration P15, normalisation P16 et cleanup P17.
 
 ## D20 — enveloppes et gates de performance
 

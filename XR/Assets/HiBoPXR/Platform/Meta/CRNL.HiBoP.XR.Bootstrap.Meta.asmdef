@@ -1,0 +1,13 @@
+{
+  "name": "CRNL.HiBoP.XR.Bootstrap.Meta",
+  "rootNamespace": "CRNL.HiBoP.XR.Bootstrap.Meta",
+  "references": [
+    "CRNL.HiBoP.XR.Bootstrap",
+    "Unity.Collections",
+    "Unity.XR.ARFoundation",
+    "Unity.XR.ARSubsystems",
+    "Unity.XR.Management",
+    "Unity.XR.MetaOpenXR"
+  ],
+  "autoReferenced": true
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "P00-synthetic-render-v1",
+  "approvedScope": "D0/D5/D6 synthetic automatic validation only",
+  "desktopBehavior": "HiBoP Desktop at parent commit 43e589db05614ca64f0d4c6c34623e438037a7b9",
+  "unity": "6000.5.2f1",
+  "floatMaxAbsoluteError": 0.000001,
+  "entries": [
+    {
+      "name": "d0-surface",
+      "bytes": 168,
+      "sha256": "19149b6a21d4f9df69bd500deacae220caeafb4f480c410de6021c6c7d0e5ea1"
+    },
+    {
+      "name": "d0-sites",
+      "bytes": 60,
+      "sha256": "963960768007cee67c2af64009575400ad18fa56ba9dd531d3fc490461d2ab17"
+    },
+    {
+      "name": "d0-cut-geometry",
+      "bytes": 168,
+      "sha256": "19149b6a21d4f9df69bd500deacae220caeafb4f480c410de6021c6c7d0e5ea1"
+    },
+    {
+      "name": "d0-cut-overlay",
+      "bytes": 16,
+      "sha256": "95f19c05a9b81c838492ff9b0b577cda63c89d28acf61bd00cfdc982557adab0"
+    },
+    {
+      "name": "d0-cut-image",
+      "bytes": 82,
+      "sha256": "f664a5439f7d8199680aab3cbd7f4c62dcdedc3aff314633e717ec9272d3ba69"
+    },
+    {
+      "name": "d5-surface-sample-and-hold",
+      "bytes": 32,
+      "sha256": "86337c3bb82fc0a4fffbca319b39f9c89bf1843b1beddd67c4d50b77a2903938"
+    },
+    {
+      "name": "d5-site-linear",
+      "bytes": 16,
+      "sha256": "32c252c88e2627a87d75bdcecbd42325be8df3858f858f3f679dcfa91e0fbc21"
+    }
+  ]
+}

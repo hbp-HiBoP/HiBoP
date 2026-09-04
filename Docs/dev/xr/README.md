@@ -1,9 +1,9 @@
 # HiBoP XR — dossier de spécification
 
-**Version :** 0.2  
-**Date de consolidation :** 31 août 2026  
+**Version :** 0.3
+**Date de consolidation :** 3 septembre 2026
 **Périmètre :** extension mixed reality autonome sur Meta Quest 3, connectée à HiBoP Desktop  
-**Statut :** spécification consolidée après audit du prototype HoloLens ; revue humaine requise avant implémentation
+**Statut :** briques P01–P10 implémentées ; intégration produit P15, normalisation P16, cleanup P17 et industrialisation P18 planifiés
 
 ## Résumé exécutable
 
@@ -12,10 +12,11 @@ HiBoP XR est une application Android autonome qui rend localement sur Quest 3 le
 La baseline V1 est :
 
 - deux projets Unity isolés, dans un même monorepo applicatif ;
-- packages UPM partagés pour contrats, modèle de rendu, protocole et code réellement portable ;
+- projet Desktop conservé à la racine, projet Quest sous `XR/` ;
+- trois packages UPM partagés sous `Shared/Packages/` pour Contracts, RenderModel et Protocol ; le code spécifique reste respectivement sous `Assets/` et `XR/Assets/` ;
 - `hbp_core` et les calculs canoniques sur le desktop ;
 - rendu Quest local à partir d'assets immuables et de résultats post-projection ;
-- HTTPS pour les gros assets et WebSocket sécurisé pour contrôle, état et résultats dynamiques, sous réserve d'un spike IL2CPP/3 OS pour la bibliothèque ;
+- Kestrel sidecar avec HTTPS pour les gros assets et WebSocket sécurisé pour contrôle, état et résultats dynamiques, baseline provisoire validée sur Windows/Quest ; macOS/Linux natifs restent à qualifier et une alternative embarquée plus petite reste ouverte ;
 - OpenXR, XR Interaction Toolkit et Input System dans le projet Quest ; extensions Meta isolées pour le passthrough et seulement lorsque nécessaires ;
 - aucun cache persistant de données patient sur le Quest ;
 - aucun plafond logiciel arbitraire sur le nombre de sites, colonnes ou cerveaux.
@@ -47,7 +48,7 @@ Le prototype HoloLens ne validait pas cette architecture. Il exécutait une copi
 | [06-hololens-audit-checklist.md](06-hololens-audit-checklist.md) | résultat et contrôles de l'audit historique |
 | [07-validation-plan.md](07-validation-plan.md) | validation fonctionnelle, scientifique et performance |
 | [08-decision-register.md](08-decision-register.md) | décisions D01–D20 et statut de preuve |
-| [implementation-packets/README.md](implementation-packets/README.md) | paquets P00–P15/PX1/PX2 prêts pour des chats distincts |
+| [implementation-packets/README.md](implementation-packets/README.md) | paquets P00–P18/PX1/PX2 prêts pour des chats distincts |
 | [SOURCES.md](SOURCES.md) | sources locales et officielles |
 
 Les constats publiables du prototype sont sous [hololens](hololens/architecture.md). Les notes détaillées, commandes et preuves sensibles restent volontairement non suivies dans `.codex-temp/hibop-xr-hololens-audit/`.

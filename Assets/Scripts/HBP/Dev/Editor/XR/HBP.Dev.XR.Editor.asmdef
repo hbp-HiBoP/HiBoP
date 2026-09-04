@@ -1,0 +1,14 @@
+{
+    "name": "HBP.Dev.XR.Editor",
+    "rootNamespace": "HBP.Dev.XR.Editor",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.RenderModelAdapters.Runtime",
+        "CRNL.HiBoP.Contracts",
+        "CRNL.HiBoP.RenderModel"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "autoReferenced": true
+}

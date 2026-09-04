@@ -1,0 +1,23 @@
+{
+  "name": "CRNL.HiBoP.XR.Bootstrap.Editor",
+  "rootNamespace": "CRNL.HiBoP.XR.Bootstrap.Editor",
+  "references": [
+    "CRNL.HiBoP.XR.Bootstrap",
+    "CRNL.HiBoP.XR.Bootstrap.Meta",
+    "Unity.InputSystem",
+    "Unity.XR.ARFoundation",
+    "Unity.XR.ARSubsystems",
+    "Unity.XR.CoreUtils",
+    "Unity.XR.Hands",
+    "Unity.XR.Management",
+    "Unity.XR.Management.Editor",
+    "Unity.XR.MetaOpenXR",
+    "Unity.XR.OpenXR",
+    "Unity.XR.OpenXR.Editor",
+    "Unity.XR.OpenXR.Features.MetaQuestSupport"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}

@@ -1,0 +1,13 @@
+{
+  "name": "CRNL.HiBoP.XR.BrainInstances",
+  "rootNamespace": "CRNL.HiBoP.XR.BrainInstances",
+  "references": [
+    "CRNL.HiBoP.Contracts",
+    "CRNL.HiBoP.Protocol",
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.XR.RemoteAssets",
+    "CRNL.HiBoP.XR.StaticRendering",
+    "CRNL.HiBoP.XR.Sites"
+  ],
+  "autoReferenced": true
+}

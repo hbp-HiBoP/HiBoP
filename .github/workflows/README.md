@@ -1,5 +1,16 @@
 # GitHub Actions builds
 
+## Politique de déclenchement
+
+Les workflows de ce dépôt ne se déclenchent jamais automatiquement sur `push`,
+`pull_request` ou planification. Ils sont lancés soit explicitement avec
+`workflow_dispatch`, soit lors de la publication d'une GitHub Release créée
+manuellement lorsqu'ils produisent les artefacts de cette release. Cette règle
+s'applique aussi à tous les workflows XR présents et futurs.
+
+`xr-topology.yml` est un contrôle manuel : **Actions > Validate XR topology >
+Run workflow**. Il ne crée ni build de release ni publication.
+
 `build.yml` builds HiBoP for Linux x64, Windows x64 and macOS ARM64 when a
 GitHub Release is published, and on demand. Each target is built on its native
 runner: this guarantees that the macOS player is ARM64 and avoids a dependency

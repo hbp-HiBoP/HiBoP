@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option csharp_namespace = "CRNL.HiBoP.Spikes.P06.Protobuf";
+
+message ControlSample {
+  uint32 kind = 1;
+  uint64 message_id = 2;
+  uint64 correlation_id = 3;
+  uint32 sequence = 4;
+  int64 timestamp_ticks = 5;
+  string payload = 6;
+  repeated sint32 values = 7;
+}

@@ -1,0 +1,10 @@
+{
+  "name": "com.crnl.hibop.contracts",
+  "version": "0.2.0",
+  "displayName": "HiBoP Contracts",
+  "description": "Pure AOT-safe identities, scopes, revisions, commands, outcomes, errors, snapshots and deltas shared by HiBoP Desktop and HiBoPXR.",
+  "unity": "6000.5",
+  "author": {
+    "name": "CRNL"
+  }
+}

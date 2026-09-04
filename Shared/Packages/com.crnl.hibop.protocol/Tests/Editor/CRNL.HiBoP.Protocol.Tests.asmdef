@@ -1,0 +1,22 @@
+{
+    "name": "CRNL.HiBoP.Protocol.Tests",
+    "rootNamespace": "CRNL.HiBoP.Protocol.Tests",
+    "references": [
+        "CRNL.HiBoP.Protocol",
+        "CRNL.HiBoP.Contracts"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

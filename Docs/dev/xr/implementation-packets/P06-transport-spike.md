@@ -50,7 +50,7 @@ Le code de spike est autorisé après P06-A–E. Aucun candidat ne devient dépe
 ## Fichiers/modules pressentis
 
 - dossier spike isolé/jetable ;
-- package Protocol expérimental ;
+- expérimentation autour de `com.crnl.hibop.protocol`, sans dépendance de production avant l'ADR P06 ;
 - rapports sous Docs/dev/xr ;
 - aucun branchement au module 3D production.
 
@@ -78,14 +78,26 @@ Le code de spike est autorisé après P06-A–E. Aucun candidat ne devient dépe
 
 ## Critères de sortie binaires
 
-- [ ] P06-A–E fixées ;
+- [x] P06-A–E fixées ;
 - [ ] au moins une pile passe les quatre plateformes ;
-- [ ] contrôle p95 ≤ 100 ms sous bulk nominal ;
-- [ ] identité modifiée et corruption sont rejetées ;
-- [ ] codec contrôle fonctionne sous IL2CPP/AOT ;
-- [ ] format buffers, endian, framing et compression baseline décidés ;
-- [ ] ADR D10/D11 accepté ;
-- [ ] aucun candidat rejeté n'est une dépendance production.
+- [x] contrôle p95 ≤ 100 ms sous bulk nominal sur P06-W et P06-WQ ; P06-ML natif reste requis ;
+- [x] identité modifiée et corruption sont rejetées sur Windows et Quest physique ;
+- [x] codec contrôle et trois golden vectors fonctionnent sous IL2CPP/AOT ;
+- [x] format buffers, endian, framing et compression baseline décidés dans l’ADR candidat ;
+- [x] ADR D10/D11 accepté au statut provisoire Windows/Quest ;
+- [x] aucun candidat rejeté n'est une dépendance production.
+
+## Progression au 2 septembre 2026
+
+- `P06-W` : **PASS** sur Windows N0, cinq répétitions 120 s, sécurité négative et launcher invisible validés ;
+- `P06-WQ` : **PASS** — Quest 3 physique Android 14/API 34, APK ARM64/IL2CPP, cinq répétitions N2 de 120 s, 12 000 commandes sans échec, pire p95 `19,1079 ms`, bulk moyen `38,159 Mbit/s`, golden vectors et rejets identité/corruption validés ;
+- `P06-ML` : **CROSS-PUBLISH PASS / NATIVE PENDING** — packages Linux x64 et macOS ARM64 produits, sans mesure native ;
+- NativeWebSocket verrouillé : **VETO** faute de callback de certificat WSS ;
+- recommandation D10/D11 : **ACCEPTÉE** au statut `PROVISIONAL — WINDOWS/QUEST VALIDATED` le 2 septembre 2026 ; P06-ML natif est différé et non bloquant pour P07+, aucun support macOS/Linux n’est encore qualifié ;
+- revue sécurité externe : abandonnée par décision du propriétaire, qui accepte la revue de base et les risques résiduels documentés ;
+- packaging : le sidecar compressé représente environ 25 % des quelque 200 Mio de HiBoP et dépasse le budget de 10 %, sans bloquer la suite ; édition XR séparée ou alternative embarquée moins coûteuse à décider avant distribution.
+
+Le propriétaire conclut et accepte P06 sur ce périmètre le 2 septembre 2026. Le critère original d’exécution sur quatre plateformes est transféré à la qualification `P06-ML` et ne bloque pas P07+; il interdit seulement de déclarer macOS/Linux supportés avant leurs essais natifs. Une alternative embarquée au sidecar peut rouvrir D10 ultérieurement sans invalider la progression actuelle.
 
 ## Artefacts à remettre
 

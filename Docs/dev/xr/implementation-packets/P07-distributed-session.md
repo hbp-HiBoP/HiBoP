@@ -49,7 +49,7 @@ Si l'ADR P06 n'est pas accepté ou si P07-A–E manquent, aucun host/client prod
 
 ## Fichiers/modules pressentis
 
-- `HBP.XR.Protocol`, `HBP.XR.DesktopHost`, `HBP.XR.Client` ;
+- Protocol sous `Shared/Packages/com.crnl.hibop.protocol`, DesktopHost sous `Assets/` et client sous `XR/Assets/` ;
 - tests host/client sans Unity lorsque possible ;
 - UI diagnostic minimale Desktop/XR.
 
@@ -76,14 +76,20 @@ Si l'ADR P06 n'est pas accepté ou si P07-A–E manquent, aucun host/client prod
 
 ## Critères de sortie binaires
 
-- [ ] P07-A–E enregistrées ;
-- [ ] handshake accepte/refuse conformément à D18 ;
-- [ ] snapshot jamais partiellement visible ;
-- [ ] commandes dupliquées sans double effet ;
-- [ ] resume utilise deltas ou snapshot de façon déterministe ;
-- [ ] nouvel epoch purge les résultats anciens ;
-- [ ] reprise nominale p95 cible ≤ 5 s ;
-- [ ] logs redacted et diagnostics corrélables.
+- [x] P07-A–E enregistrées ;
+- [x] handshake accepte/refuse conformément à D18 ;
+- [x] snapshot jamais partiellement visible ;
+- [x] commandes dupliquées sans double effet ;
+- [x] resume utilise deltas ou snapshot de façon déterministe ;
+- [x] nouvel epoch purge les résultats anciens ;
+- [x] reprise nominale p95 cible ≤ 5 s ;
+- [x] logs redacted et diagnostics corrélables.
+
+## Résultat d'exécution — 3 septembre 2026
+
+**PASS sur le périmètre synthétique Windows/Quest demandé.** L'ADR [P07](../adr/P07-distributed-session.md) ferme P07-A–E avant le code. Les suites finales passent `29/29` dans le projet HiBoP Windows et `29/29` dans le projet XR. L'APK ARM64/IL2CPP a été exécuté sur Quest 3 Android 14/API 34 : 10 000 swaps atomiques, aucune lecture incohérente, replay sans double effet, ID réutilisé rejeté, conflit sans mutation, purge d'epoch, coupures 1/5/30 s et 200 reprises avec p95 `0,0062 ms`. Le panneau diagnostic head-locked affiche `RESULT: PASS` et sa visibilité a été confirmée dans le casque.
+
+Le rapport et ses limites sont consignés dans [la validation Windows/Quest](../evidence/P07/windows-quest-validation.md). P07 reste transport-neutral et réutilise la décision P06 ; cette exécution ne revendique ni nouvel adaptateur réseau, ni support macOS/Linux qualifié, ni donnée réelle.
 
 ## Artefacts à remettre
 

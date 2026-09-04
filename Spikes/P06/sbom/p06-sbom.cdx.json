@@ -1,0 +1,31 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:cb8ce54d-87dc-4fd0-9b66-273337e7282d",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-09-02T00:00:00Z",
+    "component": {
+      "type": "application",
+      "name": "HiBoP P06 isolated transport spike",
+      "version": "0.1.0"
+    }
+  },
+  "components": [
+    { "type": "framework", "name": "Microsoft.AspNetCore.App", "version": "10.0.11", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "framework", "name": "Microsoft.NETCore.App", "version": "10.0.11", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "Google.Protobuf", "version": "3.36.1", "purl": "pkg:nuget/Google.Protobuf@3.36.1", "licenses": [{ "license": { "id": "BSD-3-Clause" } }] },
+    { "type": "library", "name": "Grpc.Tools", "version": "2.76.0", "purl": "pkg:nuget/Grpc.Tools@2.76.0", "scope": "excluded", "licenses": [{ "license": { "id": "Apache-2.0" } }] },
+    { "type": "library", "name": "K4os.Compression.LZ4", "version": "1.3.8", "purl": "pkg:nuget/K4os.Compression.LZ4@1.3.8", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "MemoryPack", "version": "1.21.4", "purl": "pkg:nuget/MemoryPack@1.21.4", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "MemoryPack.Core", "version": "1.21.4", "purl": "pkg:nuget/MemoryPack.Core@1.21.4", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "MessagePack", "version": "3.1.8", "purl": "pkg:nuget/MessagePack@3.1.8", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "MessagePack.Annotations", "version": "3.1.8", "purl": "pkg:nuget/MessagePack.Annotations@3.1.8", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "Microsoft.NET.StringTools", "version": "17.11.4", "purl": "pkg:nuget/Microsoft.NET.StringTools@17.11.4", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "System.Collections.Immutable", "version": "8.0.0", "purl": "pkg:nuget/System.Collections.Immutable@8.0.0", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "System.Runtime.CompilerServices.Unsafe", "version": "6.0.0", "purl": "pkg:nuget/System.Runtime.CompilerServices.Unsafe@6.0.0", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "websocket-sharp", "version": "1.0.2+7aed0002451cf70ed74bc2e1ca6504dab5b50a10", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "library", "name": "NativeWebSocket", "version": "2.0.7+c612a4fef60f2ae57614b73202d2d261ba56aa3e", "scope": "excluded", "licenses": [{ "license": { "id": "MIT" } }] },
+    { "type": "framework", "name": "Unity", "version": "6000.5.2f1", "licenses": [{ "license": { "name": "LicenseRef-Unity" } }] }
+  ]
+}

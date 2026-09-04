@@ -30,6 +30,7 @@ Cette phase est `DECISION_ONLY` tant que P13-A–F ne sont pas acceptées. « Re
 
 - nouvelle fonction scientifique ;
 - refactor transport/renderer non requis ;
+- point d'entrée Desktop, supervision du sidecar et raccordement interprocess de production, réservés à P15 ;
 - fonctions absentes de P13-A ;
 - dépendance Meta directe hors adaptateur.
 
@@ -89,6 +90,8 @@ Cette phase est `DECISION_ONLY` tant que P13-A–F ne sont pas acceptées. « Re
 ## Artefacts à remettre
 
 Inventaire signé, prefabs/action maps/UI, tests/scénarios, rapport utilisateur et ADR P13.
+
+Le parcours interprocess avec une vraie visualisation HiBoP, le transport P06 et le sidecar de production est fermé par P15 ; les harnais utilisés ici doivent rester remplaçables et ne peuvent pas être présentés comme cette preuve end-to-end.
 
 ## Conditions d'arrêt
 

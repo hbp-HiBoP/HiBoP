@@ -1,0 +1,12 @@
+{
+    "name": "CRNL.HiBoP.XR.DistributedSession.Editor",
+    "rootNamespace": "CRNL.HiBoP.XR.DistributedSession.Editor",
+    "references": [
+        "CRNL.HiBoP.XR.Bootstrap.Editor",
+        "CRNL.HiBoP.XR.DistributedSession"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "autoReferenced": true
+}

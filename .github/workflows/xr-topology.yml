@@ -1,0 +1,19 @@
+name: Validate XR topology
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  topology:
+    name: Static topology checks
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate
+        shell: pwsh
+        run: ./Tools/Validate-XRTopology.ps1

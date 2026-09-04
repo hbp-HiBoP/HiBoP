@@ -19,7 +19,7 @@ Chaque rapport contient commit, Unity/SDK/OS, modèle et version Quest, réseau,
 | payload timeline trop volumineux | haute | critique | 0,5355 MiB/colonne float32 MNI | S02 |
 | coupe distante trop lente | moyenne | élevée | calcul Desktop rapide, E2E inconnu | S03 |
 | 37 500 sites trop coûteux | haute | critique | architecture actuelle par objets/O(N) | S04 |
-| renderer partagé non fidèle | moyenne | critique | extraction non faite | S05 |
+| renderer XR non fidèle au RenderModel partagé | moyenne | critique | projection/adaptation non faite | S05 |
 | interpolation surface divergente | moyenne | élevée | alpha temporel non explicite | S05 |
 | OpenXR/XRI insuffisant pour mains | moyenne | moyenne | MRTK historique seulement | S06 |
 | `hbp_core` Android instable | moyenne | moyenne | compilation ARM64 seulement | S07 |
@@ -80,11 +80,11 @@ Chaque rapport contient commit, Unity/SDK/OS, modèle et version Quest, réseau,
 
 **Priorité : P0. Décisions : D03, D04, D06.**
 
-**Environnement.** scène Unity indépendante consommant seulement Contracts/RenderModel/Rendering ; datasets de chaque représentation V1.
+**Environnement.** scène sous `XR/Assets/` consommant les packages partagés Contracts/RenderModel et un renderer XR local ; datasets de chaque représentation V1.
 
 **Procédure.** Capturer sorties du Desktop, reconstruire sans Core/Data, comparer buffers et images. Créer un signal où `TemporalSample.Alpha` est non nul pour tester surface et sites.
 
-**Mesures.** couverture de propriétés, écarts numériques, image diff, dépendances transitives, allocations et taille package.
+**Mesures.** couverture de propriétés, écarts numériques, image diff, dépendances transitives, allocations et taille des assemblies/builds.
 
 **Gate.** reproduction complète sans données source ; scopes documentés ; interpolation attendue définie et identique ou défaut Desktop enregistré/corrigé avant baseline.
 

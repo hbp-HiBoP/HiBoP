@@ -1,0 +1,9 @@
+{
+  "name": "CRNL.HiBoP.XR.StaticRendering",
+  "rootNamespace": "CRNL.HiBoP.XR.StaticRendering",
+  "references": [
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.Contracts"
+  ],
+  "autoReferenced": true
+}

@@ -1,6 +1,9 @@
 {
   "dependencies": {
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
+    "com.crnl.hibop.contracts": "file:../Shared/Packages/com.crnl.hibop.contracts",
+    "com.crnl.hibop.protocol": "file:../Shared/Packages/com.crnl.hibop.protocol",
+    "com.crnl.hibop.render-model": "file:../Shared/Packages/com.crnl.hibop.render-model",
     "com.crnl.hibop_utilities": "https://github.com/hbp-HiBoP/HiBoP_Utilities.git",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
     "com.unity.2d.sprite": "1.0.0",
@@ -48,5 +51,10 @@
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  }
+  },
+  "testables": [
+    "com.crnl.hibop.contracts",
+    "com.crnl.hibop.protocol",
+    "com.crnl.hibop.render-model"
+  ]
 }

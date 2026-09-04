@@ -76,13 +76,18 @@ Des variantes jetables peuvent être mesurées avant P10-A/D. Le chemin producti
 
 ## Critères de sortie binaires
 
-- [ ] P10-A–E enregistrées ;
-- [ ] 37 500 sites présents sans plafond ;
-- [ ] aucun objet/renderer/collider individuel ;
-- [ ] exactitude 100 % sur D0 déterministe ;
-- [ ] picking p95 < 50 ms sur D3 cible ;
-- [ ] budgets 72 Hz D20 mesurés ;
-- [ ] metadata/logs conformes D17.
+- [x] P10-A–E enregistrées ;
+- [x] 37 500 sites présents sans plafond ;
+- [x] aucun objet/renderer/collider individuel ;
+- [x] exactitude 100 % sur D0 déterministe ;
+- [x] picking p95 < 50 ms sur D3 cible ;
+- [x] budgets 72 Hz D20 mesurés ;
+- [x] metadata/logs conformes D17.
+
+État au 2026-09-03 : **PASS**. La mesure Quest 3 confirme 37 500 sites sans
+plafond ni objet individuel, 100 % de picks exacts, CPU/GPU p95 sous 13,89 ms et
+30 minutes sans dérive thermique ou mémoire. Voir
+`evidence/P10/implementation-validation.md`.
 
 ## Artefacts à remettre
 

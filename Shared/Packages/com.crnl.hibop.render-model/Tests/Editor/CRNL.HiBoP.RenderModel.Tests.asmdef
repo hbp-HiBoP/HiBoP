@@ -1,0 +1,22 @@
+{
+    "name": "CRNL.HiBoP.RenderModel.Tests",
+    "rootNamespace": "CRNL.HiBoP.RenderModel.Tests",
+    "references": [
+        "CRNL.HiBoP.RenderModel",
+        "CRNL.HiBoP.Contracts"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

@@ -6,7 +6,7 @@ Afficher sur Quest une surface anatomical puis inflated depuis un `SurfaceAsset`
 
 ## Decision gate
 
-**Hérité :** D03 renderer portable, D14 asset immuable partagé, P03 repères/tolérances, P04 stack XR.
+**Hérité :** D03 renderer XR consommant le RenderModel partagé, D14 asset immuable partagé, P03 repères/tolérances, P04 stack XR.
 
 **À résoudre avant renderer production :**
 
@@ -19,7 +19,7 @@ Si les shaders Desktop ne compilent pas Android, produire une comparaison et une
 
 ## Périmètre autorisé
 
-- package Rendering portable ;
+- renderer et asmdef exclusivement XR sous `XR/Assets/` ;
 - application d'un SurfaceAsset local/synthétique ;
 - matériaux/shaders statiques et profiling ;
 - tests de repères/bounds.
@@ -46,7 +46,7 @@ Si les shaders Desktop ne compilent pas Android, produire une comparaison et une
 
 ## Fichiers/modules pressentis
 
-- package `HBP.Visualization.Rendering` ;
+- assembly de rendu XR sous `XR/Assets/` ;
 - shaders/materials portables ;
 - scène de test XR et tests renderer.
 
@@ -71,17 +71,17 @@ Si les shaders Desktop ne compilent pas Android, produire une comparaison et une
 
 ## Critères de sortie binaires
 
-- [ ] P05-A–D enregistrées ;
-- [ ] anatomical/inflated fidèles dans tolérances ;
-- [ ] aucun accès Core/Data/native ;
-- [ ] aucun clone de topologie requis pour une instance ;
-- [ ] shader Android sans erreur/fallback caché ;
-- [ ] ressources libérées après fermeture ;
-- [ ] métriques de référence archivées.
+- [x] P05-A–D enregistrées ;
+- [x] anatomical/inflated fidèles dans tolérances ;
+- [x] aucun accès Core/Data/native ;
+- [x] aucun clone de topologie requis pour une instance ;
+- [x] shader Android sans erreur/fallback caché ;
+- [x] ressources libérées après fermeture ;
+- [x] métriques de référence archivées.
 
 ## Artefacts à remettre
 
-Renderer statique, shaders/materials approuvés, scène/test APK, golden comparisons, profiler report et ADR P05.
+Renderer statique, shaders/materials approuvés et scène/test APK. Les rapports profiler et golden comparisons bruts restent hors Git sous `.artifacts/xr/`; seuls le rapport textuel et les hashes sont promus dans la documentation.
 
 ## Conditions d'arrêt
 

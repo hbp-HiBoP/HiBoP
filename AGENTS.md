@@ -256,3 +256,11 @@ Important CLI details:
 - Closed-editor PlayMode runs are possible, but the full HiBoP PlayMode UI set
   can create very large logs/XML when UI tests time out. Prefer filtered
   PlayMode runs while debugging.
+
+## XR Development
+
+Use the `adb` command available in PowerShell without hard-coding its executable path; run Quest ADB commands outside the sandbox.
+Before any Quest operation, check whether an authorized headset is immediately visible with `adb devices`.
+If none is visible, promptly ask the user to connect it by USB and run `Tools/Connect-QuestAdbWifi.ps1`.
+Use that script to configure or restore ADB over Wi-Fi; it also enables off-head testing by default.
+Tests and scripts may otherwise manage ADB and the proximity sensor as required by their own workflow.

@@ -1,0 +1,16 @@
+{
+  "name": "CRNL.HiBoP.XR.Sites.Editor",
+  "rootNamespace": "CRNL.HiBoP.XR.Sites.Editor",
+  "references": [
+    "CRNL.HiBoP.XR.BrainInstances",
+    "CRNL.HiBoP.XR.BrainInstances.Editor",
+    "CRNL.HiBoP.XR.Bootstrap.Editor",
+    "CRNL.HiBoP.XR.Sites",
+    "CRNL.HiBoP.XR.Sites.Validation",
+    "Unity.RenderPipelines.Core.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false
+}

@@ -10,11 +10,43 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 /[Uu]ser[Ss]ettings/
+/[Pp]rofilerCaptures/
 /.test-results/
+/.artifacts/xr/
 /.native-plugin-update/
 /LoadingBenchmarks/
 /Tools/InflationBaseline/__pycache__/
 /.codex-temp/
+
+# Generated files for the nested Unity XR project
+/XR/.utmp/
+/XR/[Ll]ibrary/
+/XR/[Tt]emp/
+/XR/[Oo]bj/
+/XR/[Bb]uild/
+/XR/[Bb]uilds/
+/XR/[Ll]ogs/
+/XR/[Mm]emoryCaptures/
+/XR/[Uu]ser[Ss]ettings/
+/XR/[Pp]rofilerCaptures/
+/XR/Assets/HiBoPXR/StaticRendering/Data/P05D1Anatomical.bytes
+/XR/Assets/HiBoPXR/StaticRendering/Data/P05D1Inflated.bytes
+
+# Isolated P06 transport spike generated state and tracked .NET projects
+/Spikes/P06/**/[Bb]in/
+/Spikes/P06/**/[Oo]bj/
+/Spikes/P06/.artifacts/
+/Spikes/P06/UnityClient/[Ll]ibrary/
+/Spikes/P06/UnityClient/[Tt]emp/
+/Spikes/P06/UnityClient/[Ll]ogs/
+/Spikes/P06/UnityClient/[Uu]ser[Ss]ettings/
+/Spikes/P06/UnityClient/.utmp/
+/Spikes/P06/UnityClient/Assets/ThirdPartyGenerated/
+/Spikes/P06/UnityClient/Assets/ThirdPartyGenerated.meta
+/Spikes/P06/UnityClient/build/
+/Spikes/P06/UnityClient/Packages/packages-lock.json
+/Spikes/P06/UnityClient/ProjectSettings/*
+!/Spikes/P06/UnityClient/ProjectSettings/ProjectVersion.txt
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
@@ -35,6 +67,7 @@
 ExportedObj/
 .consulo/
 *.csproj
+!/Spikes/P06/**/*.csproj
 *.unityproj
 *.sln
 *.slnx

@@ -1,0 +1,9 @@
+{
+  "name": "CRNL.HiBoP.XR.Bootstrap",
+  "rootNamespace": "CRNL.HiBoP.XR.Bootstrap",
+  "references": [
+    "Unity.InputSystem",
+    "Unity.XR.Hands"
+  ],
+  "autoReferenced": true
+}
