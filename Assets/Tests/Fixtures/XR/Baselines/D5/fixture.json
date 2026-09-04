@@ -1,0 +1,12 @@
+{
+  "id": "D5",
+  "kind": "synthetic-temporal-interpolation",
+  "frame0": [0.0, 10.0, -10.0, 20.0],
+  "frame1": [4.0, 6.0, 2.0, 12.0],
+  "samples": [
+    { "index": 0, "alpha": 0.0, "expected": [0.0, 10.0, -10.0, 20.0] },
+    { "index": 0, "alpha": 0.25, "expected": [1.0, 9.0, -7.0, 18.0] },
+    { "index": 0, "alpha": 0.75, "expected": [3.0, 7.0, -1.0, 14.0] },
+    { "index": 0, "alpha": 1.0, "expected": [4.0, 6.0, 2.0, 12.0] }
+  ]
+}

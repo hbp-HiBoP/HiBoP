@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "decisionStatus": "GO",
+  "visualValidationOwner": "HiBoP maintainer/user",
+  "realExternalDataAllowed": false,
+  "datasets": [
+    {
+      "id": "D0",
+      "classification": "SYNTHETIC_PUBLIC",
+      "fixture": "Assets/Tests/Fixtures/XR/Baselines/D0/fixture.json",
+      "testsAllowed": true,
+      "redactedArtifactsAllowed": true,
+      "versioningAllowed": true
+    },
+    {
+      "id": "D1",
+      "classification": "PROJECT_ASSET_VERSIONED",
+      "testsAllowed": true,
+      "redactedArtifactsAllowed": true,
+      "versioningAllowed": true,
+      "copyAllowed": false,
+      "metadataPolicy": "Raw NIfTI header metadata is never copied to reports or logs.",
+      "assets": [
+        {
+          "path": "Assets/Data/IRM/MNI.nii",
+          "bytes": 11661664,
+          "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96"
+        },
+        {
+          "path": "Assets/Data/Meshes/MNI_single_hight_Bhemi.obj",
+          "bytes": 4784818,
+          "vertices": 69104,
+          "faces": 138216,
+          "sha256": "b4ef8af195349db2e30f8659022f2ebf027420fa82e8e5b1511060483c053179"
+        },
+        {
+          "path": "Assets/Data/Meshes/MNI_single_hight_Bwhite.obj",
+          "bytes": 4587292,
+          "vertices": 66299,
+          "faces": 132590,
+          "sha256": "3839c1d03c026a8410d902ad68ee3a5a129bb71ac414c876dc50dc1f9e270a0b"
+        },
+        {
+          "path": "Assets/Data/Meshes/MNI_single_hight_Bwhite_inflated.obj",
+          "bytes": 4586699,
+          "vertices": 66299,
+          "faces": 132590,
+          "sha256": "2da1bfb3b207e5a38874ebeac759b089f0e7ae09b82af59dbb9e1888b3799a8c"
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "classification": "SYNTHETIC_PUBLIC",
+      "fixture": "Assets/Tests/Fixtures/XR/Baselines/D2/fixture.json",
+      "testsAllowed": true,
+      "redactedArtifactsAllowed": true,
+      "versioningAllowed": true
+    },
+    {
+      "id": "D3",
+      "classification": "SYNTHETIC_PUBLIC",
+      "fixture": "Assets/Tests/Fixtures/XR/Baselines/D3/fixture.json",
+      "testsAllowed": true,
+      "redactedArtifactsAllowed": true,
+      "versioningAllowed": true
+    },
+    {
+      "id": "D4",
+      "classification": "SYNTHETIC_PUBLIC",
+      "fixture": "Assets/Tests/Fixtures/XR/Baselines/D4/fixture.json",
+      "testsAllowed": true,
+      "redactedArtifactsAllowed": true,
+      "versioningAllowed": true
+    },
+    {
+      "id": "D5",
+      "classification": "SYNTHETIC_PUBLIC",
+      "fixture": "Assets/Tests/Fixtures/XR/Baselines/D5/fixture.json",
+      "testsAllowed": true,
+      "redactedArtifactsAllowed": true,
+      "versioningAllowed": true
+    },
+    {
+      "id": "D6",
+      "classification": "SYNTHETIC_PUBLIC",
+      "fixture": "Assets/Tests/Fixtures/XR/Baselines/D6/fixture.json",
+      "testsAllowed": true,
+      "redactedArtifactsAllowed": true,
+      "versioningAllowed": true
+    }
+  ]
+}

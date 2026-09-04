@@ -1,0 +1,14 @@
+{
+  "id": "D4",
+  "kind": "synthetic-heavy-volume-descriptor",
+  "seed": 4004,
+  "volumeDimensions": [208, 256, 219],
+  "projectionGridDimensions": [65, 80, 68],
+  "overlayCount": 8,
+  "bytesPerValue": 4,
+  "expectedVolumeVoxelCount": 11661312,
+  "expectedProjectionPointCount": 353600,
+  "expectedLogicalBytesWithBaseVolume": 419807232,
+  "maximumCutTextureSize": 2048,
+  "valueFormula": "((x * 3 + y * 5 + z * 7 + overlayIndex * 11) % 257) / 256"
+}

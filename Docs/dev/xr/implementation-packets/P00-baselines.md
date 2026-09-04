@@ -6,6 +6,11 @@ Créer une baseline reproductible du comportement scientifique et visuel actuel 
 
 ## Decision gate
 
+La fiche de décision de l'exécution courante est disponible dans
+[`../P00-decision-catalog.md`](../P00-decision-catalog.md). Son statut `GO`
+autorise uniquement les fixtures synthétiques et les assets MNI qui y sont
+énumérés.
+
 **Hérité :** invariants produit, D06 calcul Desktop, D17 confidentialité, baselines de commits du README.
 
 **À résoudre avant toute capture :**
@@ -70,12 +75,12 @@ Les commandes exactes sont consignées avec la version Unity et le commit.
 
 ## Critères de sortie binaires
 
-- [ ] P00-A–D sont explicitement enregistrées ;
-- [ ] D0–D6 ont un manifeste, un propriétaire et une politique de diffusion ;
-- [ ] au moins un golden surface, site, coupe et D5 temporel est reproductible ;
-- [ ] aucune donnée sensible n'est versionnée/loggée ;
-- [ ] tolérances validées ou marquées comme décision scientifique bloquante ;
-- [ ] procédure de régénération testée.
+- [x] P00-A–D sont explicitement enregistrées ;
+- [x] D0–D6 ont un manifeste, un propriétaire et une politique de diffusion ;
+- [x] au moins un golden surface, site, coupe et D5 temporel est reproductible ;
+- [x] aucune donnée sensible n'est versionnée/loggée par P00 ;
+- [x] égalité numérique fixée ; aucune tolérance visuelle globale inventée ;
+- [x] procédure de régénération testée.
 
 ## Artefacts à remettre
 

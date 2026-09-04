@@ -1,0 +1,12 @@
+{
+  "id": "D2",
+  "kind": "synthetic-representative-visualization",
+  "seed": 2002,
+  "mniSurface": "Assets/Data/Meshes/MNI_single_hight_Bhemi.obj",
+  "mniVolume": "Assets/Data/IRM/MNI.nii",
+  "siteCount": 150,
+  "columnCount": 3,
+  "timelineLength": 8,
+  "cutOrientations": ["Axial", "Coronal", "Sagittal"],
+  "valueFormula": "((siteIndex * 17 + columnIndex * 31 + timelineIndex * 13) % 101) / 100"
+}

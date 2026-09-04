@@ -1,0 +1,11 @@
+{
+  "id": "D6",
+  "kind": "synthetic-redaction-sentinels",
+  "sentinels": [
+    "P00_SENTINEL_PATIENT_7F3A",
+    "P00_SENTINEL_CENTER_9B21",
+    "P00_SENTINEL_PATH_C4D8",
+    "P00_SENTINEL_PAYLOAD_E6A2"
+  ],
+  "redactedToken": "[REDACTED:P00]"
+}

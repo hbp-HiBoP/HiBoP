@@ -1,0 +1,12 @@
+{
+  "id": "D3",
+  "kind": "synthetic-site-stress",
+  "seed": 3003,
+  "groupCount": 250,
+  "sitesPerGroup": 150,
+  "expectedSiteCount": 37500,
+  "columnCount": 8,
+  "timelineLength": 16,
+  "siteIdFormat": "synthetic-group-{group:000}-site-{site:000}",
+  "valueFormula": "((globalSiteIndex * 17 + columnIndex * 31 + timelineIndex * 13) % 1009) / 1008"
+}
