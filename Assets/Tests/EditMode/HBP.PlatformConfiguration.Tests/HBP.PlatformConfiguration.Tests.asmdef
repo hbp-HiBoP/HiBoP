@@ -1,0 +1,14 @@
+{
+    "name": "HBP.PlatformConfiguration.Tests",
+    "references": [
+        "Unity.InputSystem",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor",
+        "Unity.XR.Interaction.Toolkit"
+    ],
+    "includePlatforms": ["Editor"],
+    "overrideReferences": false,
+    "precompiledReferences": ["Newtonsoft.Json.dll"],
+    "autoReferenced": true,
+    "optionalUnityReferences": ["TestAssemblies"]
+}

@@ -20,6 +20,10 @@
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
 
+# Temporary settings moved by AR Foundation during Player builds
+/Assets/XR/Temp/
+/Assets/XR/Temp.meta
+
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
 

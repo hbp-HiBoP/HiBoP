@@ -2,6 +2,10 @@
 
 Jalon : [J1](../milestones/J1.md). Type : implémentation ciblée.
 Dépendances : [QUEST-002](QUEST-002.md)
+Option planifiée : si [QUEST-002-A](QUEST-002-A.md) a été exécutée après le commit
+de QUEST-002, utiliser New dans les deux profils sans réintroduire Both ou son
+sélecteur. Sinon conserver la stratégie d'entrée de QUEST-002 ; cette option
+n'est pas une dépendance bloquante.
 Statut et preuves : [registre](../TASK-STATUS.md#quest-003).
 
 ## Instructions de reprise

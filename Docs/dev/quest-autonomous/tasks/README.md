@@ -14,6 +14,7 @@ Une tâche peut encore être divisée si un obstacle concret l'exige, selon le c
 | --- | --- | --- | --- |
 | QUEST-001 | [Établir la référence de travail et la fixture anatomique](QUEST-001.md) | J0 | Aucune |
 | QUEST-002 | [Unifier les packages et préserver les deux systèmes d'entrée](QUEST-002.md) | J1 | QUEST-001 |
+| QUEST-002-A | [Migrer HiBoP vers Input System seul — optionnel, après le commit de QUEST-002](QUEST-002-A.md) | J1 (optionnel) | QUEST-002 validée et commitée |
 | QUEST-003 | [Produire deux Players avec des profils isolés](QUEST-003.md) | J1 | QUEST-002 |
 | QUEST-004 | [Afficher passthrough et contrôleurs Quest](QUEST-004.md) | J1 | QUEST-003 |
 | QUEST-005 | [Définir le contrat de snapshot anatomique](QUEST-005.md) | J2 | QUEST-001 |

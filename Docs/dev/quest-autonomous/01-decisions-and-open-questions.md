@@ -33,6 +33,7 @@ décisions du nouveau produit.
 | D19 | Pour les électrodes, un bouton afficher/masquer le cerveau suffit. | La transparence passthrough n'est pas requise pour ce jalon. |
 | D20 | Le propriétaire demande des tâches exécutables depuis leur fichier dans une nouvelle conversation, avec rapport, points de review, validation manuelle et questions de décision. | Contrat TASK-WORKFLOW.md, IDs QUEST, fiches par tâche et jalon, statut durable distinct des preuves. |
 | D21 | Le propriétaire a supprimé le dossier XR résiduel et ajusté .gitignore pour les artefacts temporaires. | Anciennes sources à consulter via Git ; aucune restauration/nettoyage implicite. |
+| D22 | Le 2026-09-07, le propriétaire demande de définir une migration optionnelle de tout HiBoP vers Input System seul, à effectuer juste après le commit de QUEST-002 si recommandée par l'agent. L'audit recommande cette migration et la fiche QUEST-002-A la prépare. | Cible envisagée : New sur Desktop/Android, commandes existantes préservées ; définir la tâche maintenant, l'exécuter séparément après le commit. QUEST-002 reste validée avec Both/New ; la sensibilité verticale préexistante ne se corrige pas implicitement dans cette migration. |
 
 Ajustement documentaire après review du propriétaire : le bloc de routage Quest
 ajouté au AGENTS.md global a été retiré. Les fiches renvoient directement au

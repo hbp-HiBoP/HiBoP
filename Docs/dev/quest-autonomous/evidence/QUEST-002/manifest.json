@@ -1,0 +1,1350 @@
+{
+  "schemaVersion": 1,
+  "taskId": "QUEST-002",
+  "recordedAtUtc": "2026-09-07T13:32:12.7354476Z",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "sourceState": {
+    "branch": "feature/xr-autonomous",
+    "self": "This manifest is excluded from its own hash inventory.",
+    "initiallyClean": true,
+    "historicalPackageReference": "eb26c323e2bdf6c138f9e9e3c02f3e9796cae249:XR/Packages/manifest.json",
+    "generatedChangesRestored": [
+      "Assets/Resources/BuildInfo.json",
+      "Assets/Settings/Rendering/HBP-Desktop-URP.asset",
+      "Assets/Settings/Rendering/HBP-Desktop-URP-GlobalSettings.asset",
+      "ProjectSettings/ShaderGraphSettings.asset",
+      "ProjectSettings/ProjectSettings.asset except activeInputHandler=2"
+    ],
+    "head": "bba6dce634d0374d0dd00ece76a7b58104b4e892",
+    "sourceChanges": [
+      {
+        "path": ".gitignore",
+        "bytes": 1360,
+        "sha256": "c768be636e6402b974291786862d0fb1b9a8975742352d12e97342be67c841ef"
+      },
+      {
+        "path": "Assets/CompositionLayers.meta",
+        "bytes": 172,
+        "sha256": "7d0e9f393b6350e4243e716b50dc91c249008d6f0c6940273142fe2b6f9ff869"
+      },
+      {
+        "path": "Assets/CompositionLayers/UserSettings.meta",
+        "bytes": 172,
+        "sha256": "ec3abe4b6edc2d98700df2262c57f2355ee40488399898bed76a2db3106b495f"
+      },
+      {
+        "path": "Assets/CompositionLayers/UserSettings/CompositionLayersPreferences.asset",
+        "bytes": 581,
+        "sha256": "4119f872208fc7578f7cd42a3e387e0665cd2c66b464725e867a902f70ecbde2"
+      },
+      {
+        "path": "Assets/CompositionLayers/UserSettings/CompositionLayersPreferences.asset.meta",
+        "bytes": 189,
+        "sha256": "9e694c02d9dba267b6718514d164eac8f5b0dcd31aee2a11c3fbb285a1fa5cc6"
+      },
+      {
+        "path": "Assets/CompositionLayers/UserSettings/Resources.meta",
+        "bytes": 172,
+        "sha256": "b14b36c6b5606072d07727c23da19ef97473b858a83f0e967ad1639aaaefe771"
+      },
+      {
+        "path": "Assets/CompositionLayers/UserSettings/Resources/CompositionLayersRuntimeSettings.asset",
+        "bytes": 1068,
+        "sha256": "a4cae70985bfca916d193d381cdfe6d5a960710e76b6c1f0836a19b4c62acaa8"
+      },
+      {
+        "path": "Assets/CompositionLayers/UserSettings/Resources/CompositionLayersRuntimeSettings.asset.meta",
+        "bytes": 189,
+        "sha256": "6f4ba5fd3079c93f2f5dfe436351e405aad1064ba5f948f074ff808b37c4e230"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests.meta",
+        "bytes": 172,
+        "sha256": "c34a531a0343e3274a7fa0cec00f3769133481813da2deda930b5cd7690023c7"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/HBP.PlatformConfiguration.Tests.asmdef",
+        "bytes": 416,
+        "sha256": "568ded4c35865ce4d6fbb240b2ff65873caadaf66f8854263cb3ff573ce98614"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/HBP.PlatformConfiguration.Tests.asmdef.meta",
+        "bytes": 166,
+        "sha256": "77680e3f7ecfa266654fe9b2d579602b7a5590c0032f8d1d4190ca87e0457a7e"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/QuestPackageConfigurationTests.cs",
+        "bytes": 6274,
+        "sha256": "0e7b8ec8b3f8d6f8b5ee8bd57264b1261bb49712cb8f6814b8e646344b200885"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/QuestPackageConfigurationTests.cs.meta",
+        "bytes": 59,
+        "sha256": "a1a2c5fc9c43fb67b2608eaddb133ec5f51e41cdd42a6de48f1498f9861481e0"
+      },
+      {
+        "path": "Assets/XR.meta",
+        "bytes": 172,
+        "sha256": "20e04dc8fc84a306fd1523425664120168bf528e27ce52fddc9af573e86f2546"
+      },
+      {
+        "path": "Assets/XR/Loaders.meta",
+        "bytes": 172,
+        "sha256": "b4c9c2c903e03abda863eddff41993edb92c077572e9b124a7cc3451165637fc"
+      },
+      {
+        "path": "Assets/XR/Loaders/OpenXRLoader.asset",
+        "bytes": 452,
+        "sha256": "3dade780ddfc9ef1e12c3275788df48569ad586f9310d96cd91105e1c5739a7a"
+      },
+      {
+        "path": "Assets/XR/Loaders/OpenXRLoader.asset.meta",
+        "bytes": 189,
+        "sha256": "a14579f9634d3fe7af3cae0a5fd1963505055fb7a337754f31602e74c7013dfa"
+      },
+      {
+        "path": "Assets/XR/Loaders/SimulationLoader.asset",
+        "bytes": 468,
+        "sha256": "f2ba21266323a7535f0ff53d6ca6eacf13524a39d5899e924bccd18f1bd69e09"
+      },
+      {
+        "path": "Assets/XR/Loaders/SimulationLoader.asset.meta",
+        "bytes": 189,
+        "sha256": "b411a527850ad9e3c3b271db937040d8955ea4ade04a48df63a81004be35214e"
+      },
+      {
+        "path": "Assets/XR/Resources.meta",
+        "bytes": 172,
+        "sha256": "8d9d0c0bd5aef4149ae7282acfd6788800cd280eab0d11f255fa74c84d8781dd"
+      },
+      {
+        "path": "Assets/XR/Resources/XRSimulationRuntimeSettings.asset",
+        "bytes": 1920,
+        "sha256": "b5d862588e148e5370808d52abc0f8ec584ec8549a436dddc7044fb14faea9d5"
+      },
+      {
+        "path": "Assets/XR/Resources/XRSimulationRuntimeSettings.asset.meta",
+        "bytes": 189,
+        "sha256": "2fef8cd3fced44e5ca2a3e5135dc0232cd46af04e71d193c921623d2ae28aba1"
+      },
+      {
+        "path": "Assets/XR/Settings.meta",
+        "bytes": 172,
+        "sha256": "3a09bca67372fb3f0d20e2dbcf3c9d0145bad779df3dc30d2337aef7f4579def"
+      },
+      {
+        "path": "Assets/XR/Settings/OpenXR Editor Settings.asset",
+        "bytes": 634,
+        "sha256": "0598552006308b03faa7e0af8f7fc5154c401d18dd81aec9f0f5b20db0b982ae"
+      },
+      {
+        "path": "Assets/XR/Settings/OpenXR Editor Settings.asset.meta",
+        "bytes": 189,
+        "sha256": "b32626cf7d6adbbf80ba4cf1d203008add1bbb245780759ed0b3296cf96a9d7e"
+      },
+      {
+        "path": "Assets/XR/Settings/OpenXR Package Settings.asset",
+        "bytes": 61007,
+        "sha256": "300e5d5980ada2e31f2b7fbc2ec85dc5f51c0159b7b2db321061244d9f268f65"
+      },
+      {
+        "path": "Assets/XR/Settings/OpenXR Package Settings.asset.meta",
+        "bytes": 189,
+        "sha256": "a99ae77ee93fe7f6d9a418ca5531941db172a9036fb6785d66eb9c2b1915ef9b"
+      },
+      {
+        "path": "Assets/XR/UserSimulationSettings.meta",
+        "bytes": 172,
+        "sha256": "8dd9367a391ca90de1aec3dd95a8bcf8eec0847f76e397c25b0ef401332696a5"
+      },
+      {
+        "path": "Assets/XR/UserSimulationSettings/Resources.meta",
+        "bytes": 172,
+        "sha256": "1ea2d0ed0b88f94d8b811081d39cc8482f4570ed39e61db152813fda7f1c81bf"
+      },
+      {
+        "path": "Assets/XR/UserSimulationSettings/Resources/XRSimulationPreferences.asset",
+        "bytes": 1179,
+        "sha256": "3f4165a78008ae23a7b0ab61e547648d9638dd61283d183e50a7ae1a8ec7871f"
+      },
+      {
+        "path": "Assets/XR/UserSimulationSettings/Resources/XRSimulationPreferences.asset.meta",
+        "bytes": 189,
+        "sha256": "ae3ce0e7bee7b5b1e52ab6d8f8c1f5dac30920926ac145781aa9768358d1598c"
+      },
+      {
+        "path": "Assets/XR/UserSimulationSettings/SimulationEnvironmentAssetsManager.asset",
+        "bytes": 569,
+        "sha256": "8f8a2a16b400995761ace338f27be8ada34ae44f21b3010492724f3fa6ad59ae"
+      },
+      {
+        "path": "Assets/XR/UserSimulationSettings/SimulationEnvironmentAssetsManager.asset.meta",
+        "bytes": 189,
+        "sha256": "0ea2047ca59dd83cebe3f3e157ca25efd0066c041ecdb81b9b874db90db4ba18"
+      },
+      {
+        "path": "Assets/XR/XRGeneralSettingsPerBuildTarget.asset",
+        "bytes": 558,
+        "sha256": "6d9186dbe3b63c22e9e8c6c89758a37ebd8a2ee9dd3cd3ff57b9800d700d1af4"
+      },
+      {
+        "path": "Assets/XR/XRGeneralSettingsPerBuildTarget.asset.meta",
+        "bytes": 189,
+        "sha256": "3f479c6d87d3d77ba1e86b7c97a42ec2ecfd67205d07d76b6d49a22c6257aeb5"
+      },
+      {
+        "path": "Assets/XRI.meta",
+        "bytes": 172,
+        "sha256": "7fd472b7fe1a0998a0fc598083272d48ee1c97140b1082dcec5d3077e53d18de"
+      },
+      {
+        "path": "Assets/XRI/Settings.meta",
+        "bytes": 172,
+        "sha256": "1babd31b5d53110147aa28dffdc3038e20514dda5bbe8a773e39b852a9ba8fdd"
+      },
+      {
+        "path": "Assets/XRI/Settings/Resources.meta",
+        "bytes": 172,
+        "sha256": "7e6ea5fbece258cd8145e4e0542d9b6f8c9514daef67d8bd2ff710f8cdb8cd3c"
+      },
+      {
+        "path": "Assets/XRI/Settings/Resources/InteractionLayerSettings.asset",
+        "bytes": 685,
+        "sha256": "d816024d94d3969237a90ec80d77de13341bf0ddb75527649922a391745000a6"
+      },
+      {
+        "path": "Assets/XRI/Settings/Resources/InteractionLayerSettings.asset.meta",
+        "bytes": 189,
+        "sha256": "396b3078265dcf8dbb5f36413ce185c7f783c69d1166018299a11bb9a4071fac"
+      },
+      {
+        "path": "Assets/XRI/Settings/Resources/XRDeviceSimulatorSettings.asset",
+        "bytes": 664,
+        "sha256": "2bcf4032dccdb60972e9a9f19b35b47f0979f7f25fab94f56dbbb3ff767218a8"
+      },
+      {
+        "path": "Assets/XRI/Settings/Resources/XRDeviceSimulatorSettings.asset.meta",
+        "bytes": 189,
+        "sha256": "966d7b9f26939d0c937c93a6358f11d2d317e8b4fa98d62d858d370c97a1eee8"
+      },
+      {
+        "path": "Assets/XRI/Settings/Resources/XRInteractionRuntimeSettings.asset",
+        "bytes": 650,
+        "sha256": "621eee77a77bddd458addfb2c4e4264786b5eb846d5882ad45ee3fcd58084210"
+      },
+      {
+        "path": "Assets/XRI/Settings/Resources/XRInteractionRuntimeSettings.asset.meta",
+        "bytes": 189,
+        "sha256": "9cfad3ff3757eab0f4655189e41cfdb01871788e3fdf0ceb03c3d4536f3b3bc1"
+      },
+      {
+        "path": "Assets/XRI/Settings/XRInteractionEditorSettings.asset",
+        "bytes": 552,
+        "sha256": "476c223ec4af4a61805c100afb7436fee514d610affe4682328e13ab2e9989b2"
+      },
+      {
+        "path": "Assets/XRI/Settings/XRInteractionEditorSettings.asset.meta",
+        "bytes": 189,
+        "sha256": "2a9cf9a522c8859ed9f3fb69d0f50b98d32817cf5501f891f22d34990637f13d"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/reports/QUEST-002.md",
+        "bytes": 14481,
+        "sha256": "f62cc8408b5f9a5274f4f8d375080e9bb853dce9567b70b1ba9c6a263f695bb4",
+        "sha256BeforeManualFollowup": "317a7cbf8d10797992cee9d21d22567e0b70933c98614d3e1a485f726b220979"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+        "bytes": 4886,
+        "sha256": "1bbc81452f2020e763d51cfedc3e71463c5b4b48429b7a4380fe1b522181c52a",
+        "sha256BeforeManualFollowup": "e437f372a095c4c0ff1ab364aa8245abb5c4f20f1c8525a89ef2f20842066842"
+      },
+      {
+        "path": "Packages/manifest.json",
+        "bytes": 2598,
+        "sha256": "ff2121b9498f214213407c163dd42e6d07e6b09e4645902544aec52082500d36"
+      },
+      {
+        "path": "Packages/packages-lock.json",
+        "bytes": 17366,
+        "sha256": "c5c2823f9418740e9f027b60f0f3408a789b4468d9456a4c073813820a0f6cb4"
+      },
+      {
+        "path": "ProjectSettings/EditorBuildSettings.asset",
+        "bytes": 477,
+        "sha256": "9f7e6c0a7cbab35c990f84b0d3fd67d940c7c00595f13dad0eca8404fe079d2c"
+      },
+      {
+        "path": "ProjectSettings/ProjectSettings.asset",
+        "bytes": 24239,
+        "sha256": "3e5e21392a347974431607c333d8342e0e11253e62c522fb9eb7be92d1fb4b8c"
+      },
+      {
+        "path": "Tools/Set-QuestInputMode.ps1",
+        "bytes": 1439,
+        "sha256": "4ad9cbf35b362bce053c1b6e65b44e54e84b98354dd5636720e9ccba626551aa"
+      }
+    ]
+  },
+  "environment": {
+    "deliveredGlobalInputHandler": 2,
+    "unity": "6000.5.2f1 (eb73d3b415a1)",
+    "launch": "Start-Process -Wait -PassThru -WindowStyle Hidden, outside sandbox; wait for process exit and inspect log",
+    "platform": "Windows",
+    "desktopCompiledDefines": [
+      "ENABLE_INPUT_SYSTEM",
+      "ENABLE_LEGACY_INPUT_MANAGER"
+    ],
+    "packageVersions": [
+      {
+        "depth": 2,
+        "name": "com.unity.editorcoroutines",
+        "version": "1.1.0"
+      },
+      {
+        "depth": 0,
+        "name": "com.unity.inputsystem",
+        "version": "1.20.0"
+      },
+      {
+        "depth": 0,
+        "name": "com.unity.render-pipelines.universal",
+        "version": "17.5.0"
+      },
+      {
+        "depth": 1,
+        "name": "com.unity.xr.arfoundation",
+        "version": "6.5.0"
+      },
+      {
+        "depth": 1,
+        "name": "com.unity.xr.compositionlayers",
+        "version": "2.4.0"
+      },
+      {
+        "depth": 1,
+        "name": "com.unity.xr.core-utils",
+        "version": "2.6.0"
+      },
+      {
+        "depth": 0,
+        "name": "com.unity.xr.interaction.toolkit",
+        "version": "3.6.0"
+      },
+      {
+        "depth": 1,
+        "name": "com.unity.xr.legacyinputhelpers",
+        "version": "3.0.1"
+      },
+      {
+        "depth": 0,
+        "name": "com.unity.xr.management",
+        "version": "4.7.0"
+      },
+      {
+        "depth": 0,
+        "name": "com.unity.xr.meta-openxr",
+        "version": "2.4.1"
+      },
+      {
+        "depth": 0,
+        "name": "com.unity.xr.openxr",
+        "version": "1.18.0"
+      }
+    ],
+    "androidCompiledDefines": [
+      "ENABLE_INPUT_SYSTEM"
+    ],
+    "editorInitiallyOpen": false,
+    "unityExecutable": "C:/Program Files/Unity/Hub/Editor/6000.5.2f1/Editor/Unity.exe"
+  },
+  "nativeReferences": {
+    "commits": [
+      {
+        "name": "EEGFormat",
+        "repository": "hbp-HiBoP/EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd"
+      },
+      {
+        "name": "hbp_core",
+        "repository": "hbp-HiBoP/hbp_core",
+        "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c"
+      },
+      {
+        "name": "hbp_math",
+        "repository": "hbp-HiBoP/hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7"
+      }
+    ],
+    "windowsBinaries": [
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+        "bytes": 1005056,
+        "sha256": "3b886cf1a31c67e7b8ddb2b38e93a634b56f8694f80deb3d9312839e2b69d448"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+        "bytes": 1378816,
+        "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+        "bytes": 246784,
+        "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b"
+      }
+    ],
+    "lock": {
+      "path": "Tools/NativePlugins.lock.json",
+      "bytes": 6048,
+      "sha256": "3b4e39202f453a745429ab7645901b16e6cf94832321d111c30e2bbc8cf14384"
+    },
+    "androidRuntimeQualified": false
+  },
+  "checks": [
+    {
+      "log": ".test-results/quest-002/import-windows.log",
+      "exitCode": 0,
+      "result": "REUSSI",
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-quit",
+        "-projectPath",
+        "C:/HBP/Software/HiBoP",
+        "-buildTarget",
+        "Win64",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-002/import-windows.log",
+        "-forgetProjectPath"
+      ],
+      "id": "T1"
+    },
+    {
+      "skippedReason": "Desktop-only legacy input smoke test",
+      "skipped": 1,
+      "passed": 5,
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:/HBP/Software/HiBoP",
+        "-buildTarget",
+        "Android",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-assemblyNames",
+        "HBP.PlatformConfiguration.Tests",
+        "-testResults",
+        "C:/HBP/Software/HiBoP/.test-results/quest-002/android-tests.xml",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-002/android-tests.log",
+        "-forgetProjectPath"
+      ],
+      "id": "T2",
+      "inputHandler": 1,
+      "failed": 0,
+      "exitCode": 0,
+      "preCommand": "Tools/Set-QuestInputMode.ps1 -Platform Quest",
+      "playerAssemblies": 59,
+      "result": "REUSSI"
+    },
+    {
+      "preCommand": "Tools/Set-QuestInputMode.ps1 -Platform Desktop",
+      "skipped": 0,
+      "passed": 8,
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:/HBP/Software/HiBoP",
+        "-buildTarget",
+        "Win64",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testFilter",
+        "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests;HBP.Tests.Serialization.QuestAnatomyFixtureTests",
+        "-testResults",
+        "C:/HBP/Software/HiBoP/.test-results/quest-002/windows-delivery.xml",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-002/windows-delivery.log",
+        "-forgetProjectPath"
+      ],
+      "id": "T3",
+      "inputHandler": 2,
+      "failed": 0,
+      "exitCode": 0,
+      "playerAssemblies": 60,
+      "result": "REUSSI"
+    },
+    {
+      "exitCode": 0,
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-quit",
+        "-projectPath",
+        "C:/HBP/Software/HiBoP",
+        "-buildTarget",
+        "Win64",
+        "-executeMethod",
+        "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+        "-buildOutput",
+        "C:/HBP/Software/HiBoP/.artifacts/quest-002/player",
+        "-scriptingBackend",
+        "IL2CPP",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-002/build-windows.log",
+        "-forgetProjectPath"
+      ],
+      "result": "REUSSI",
+      "backend": "IL2CPP",
+      "id": "T4"
+    },
+    {
+      "description": "Raw SHA256 of manifest and lock identical before target change, after Android, and after Windows return",
+      "snapshots": [
+        "packages-before-target-switch.json",
+        "packages-after-android.json",
+        "packages-after-windows-return.json"
+      ],
+      "result": "REUSSI",
+      "id": "T5"
+    },
+    {
+      "log": ".test-results/quest-002/format-delivery.log",
+      "command": "Tools/format-code.cmd",
+      "exitCode": 0,
+      "result": "REUSSI",
+      "id": "T6"
+    },
+    {
+      "log": ".test-results/quest-002/final-checks.json",
+      "command": "git diff --check; package/source/settings invariants",
+      "result": "REUSSI",
+      "id": "T7"
+    }
+  ],
+  "artifacts": {
+    "player": [
+      {
+        "path": ".artifacts/quest-002/player/HiBoP.6.1.0.win64/GameAssembly.dll",
+        "bytes": 59053568,
+        "sha256": "29c24f0343bfd628edfb5be6e223415e223585778af5a7c29d0d20fe485789d7"
+      },
+      {
+        "path": ".artifacts/quest-002/player/HiBoP.6.1.0.win64/HiBoP.exe",
+        "bytes": 667648,
+        "sha256": "aab370fc59ed240ed50af0c9461d0d3e83548253ac11c820420d4d37bba64250"
+      },
+      {
+        "path": ".artifacts/quest-002/player/HiBoP.6.1.0.win64/UnityPlayer.dll",
+        "bytes": 37225896,
+        "sha256": "13b8f157368f55c06c2a7ebf9c2d9907b797b3299329f225da351beb741e54b8"
+      }
+    ],
+    "availability": "Local ignored artifacts; source hashes, summaries and commands are tracked here.",
+    "fixture": {
+      "path": ".artifacts/quest-002/fixture/quest-mni-anatomy.hibop",
+      "bytes": 1853,
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a"
+    },
+    "playerAssemblies": [
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Assembly-CSharp.dll",
+        "bytes": 67072,
+        "sha256": "45118ca6be433231a88fca261f0103bd1891ca2d751a4165e347f2251cb2f94d"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/HBP.Core.Runtime.dll",
+        "bytes": 1125376,
+        "sha256": "668b0981b1af65fac48bc70c6910e6bf32cc029c2a89a4d20ca6c5e34f873d47"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/HBP.Data.Runtime.dll",
+        "bytes": 243712,
+        "sha256": "d26bde64f861510800c359bd5d065984019e84e4ad6afd2953f754203f5035a2"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/HBP.Dev.Runtime.dll",
+        "bytes": 96256,
+        "sha256": "72295691452c618af06f4eb85ff4c87e4efdb6ca0913a712095f9ad905a26836"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/HBP.PlayModeTestUtilities.dll",
+        "bytes": 28160,
+        "sha256": "87f1a906a59b5432a139c1660ec37b9c4c65b321ce37df80c47b43e678e38bd3"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/HBP.Rendering.Runtime.dll",
+        "bytes": 19968,
+        "sha256": "f4680cdbfffb57daa81f0c9c70c11b6f7b7e97297a794de13e1cfc0453363f4c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/HBP.Theme.Runtime.dll",
+        "bytes": 12800,
+        "sha256": "1fbc38ed696fba54704b16240a497b21c31513caa9b2f596d73e0c00a731e98c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/HBP.UI.Runtime.dll",
+        "bytes": 1230848,
+        "sha256": "e4a0cd002987423fd83e20a725227e75c35e2a0acdacbefc2b50296c34150786"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/MCPForUnity.Runtime.dll",
+        "bytes": 31744,
+        "sha256": "eb7322669c6d338b2a3eb9137e73905f939148dcf72cf7246e5fd4405ffca056"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/ThirdParty.SFB.Runtime.dll",
+        "bytes": 7168,
+        "sha256": "c965938c2a6dbd974387e17074708ac41f4ca09d16dbc22e57ed467de42be6d8"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/ThirdParty.UIExtensions.Runtime.dll",
+        "bytes": 49152,
+        "sha256": "6338958b4271af1365fe8f0d50cb1bff1adb2d31b013e6a27e6c0cb378d55c8f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UniTask.Addressables.dll",
+        "bytes": 4096,
+        "sha256": "1d21cf5aada9ed0cbbb8c1e2987dd801f3a164f1f026c49f68acf5051ed140f1"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UniTask.dll",
+        "bytes": 557056,
+        "sha256": "f4a0e9fd4dd79e57714a3b4a877cec7764cb8a3b61ecb0c51264dd22355d6d00"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UniTask.DOTween.dll",
+        "bytes": 4096,
+        "sha256": "3614c2fd111535e06091b25235ff2fbaa45c6d1aa2aaf767bd079fc2282164e3"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UniTask.Linq.dll",
+        "bytes": 704000,
+        "sha256": "742d92d6d527b012f525ea11cd7c5ecc9e53b058e2d4f35e3f140a725a358173"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UniTask.TextMeshPro.dll",
+        "bytes": 13312,
+        "sha256": "a5727436ffb35c0a7703423b822d3c9a5310181d767c17f9643211b03c8cb220"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.Burst.dll",
+        "bytes": 304640,
+        "sha256": "5951312d8e2e4a55a7b283ec65f1aa152bb7b24768631b7f8bf0f9119b9a085b"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.Collections.dll",
+        "bytes": 461824,
+        "sha256": "884f14546fb7e57ac063c6bcaaea7623de87053bf1fc2af202e96ce2ecfff6e7"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.InputSystem.dll",
+        "bytes": 1137664,
+        "sha256": "e208404a71c37cf1a90593b59c9841b5a80bc91a7ee41eef512a19e959b2bc71"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.InputSystem.ForUI.dll",
+        "bytes": 16896,
+        "sha256": "268db33878a11994a8073dcf7ca1dab02ba0b002d87a84477cc88659cd982317"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.InternalAPIEngineBridge.004.dll",
+        "bytes": 5120,
+        "sha256": "f3ab7111937ce69a90c7d156c5a98991bf8093e58a97ad519ddb0870f9ac6fc1"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll",
+        "bytes": 4096,
+        "sha256": "7565a586f99f1901fb2c7cc99d7ae28782e147e1b09c18c9aadebe13207b40ed"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.Mathematics.dll",
+        "bytes": 6656,
+        "sha256": "9051b3ff049ec2f5fcda0cb9ccff43e389a8681754b5be9a0cd18713bd20f0d2"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.Multiplayer.Center.Common.dll",
+        "bytes": 10752,
+        "sha256": "2bb40240f0edb8d4b93270f051f131d9f240a5653d5af6fd2336cfe9b61c8b97"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipeline.Universal.ShaderLibrary.dll",
+        "bytes": 9216,
+        "sha256": "392a790ba0a1ddc7387ea3b9768d26e0751b98467996bf1a31d8892f1d6eaa0d"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.Core.Runtime.dll",
+        "bytes": 1141248,
+        "sha256": "adc2ec5435d66a5145fdcdd505b1d07b12229268f73bac047006d8c5b86f64c7"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.Core.Runtime.Shared.dll",
+        "bytes": 12800,
+        "sha256": "7d00c498ed20be0bd145a9ed207eb93208b4b2b50c0aa2a4443915cca4dff34f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.Core.ShaderLibrary.dll",
+        "bytes": 4608,
+        "sha256": "8c15c9d6815632c6f39eb2ab92d9d39584ad49ee2ae73d2c749eb57b2f54311c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.GPUDriven.Runtime.dll",
+        "bytes": 281088,
+        "sha256": "5d63a5a1389e14acfeb4bcec59ec37e2f4e6d3c74041e95ba24c5015147f187a"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll",
+        "bytes": 4608,
+        "sha256": "e551ff83a87c67a5e1e29198b2953c1c8c04569536fde04196509aa57cc95b6f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.Universal.2D.Runtime.dll",
+        "bytes": 211968,
+        "sha256": "36e01024e3c5f611a81afa73aeda0026f8a9e03da862a77afe4dfa7c642718c5"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.Universal.Config.Runtime.dll",
+        "bytes": 5632,
+        "sha256": "3b6ed48c40843eb50ff550354df4ca981590d5fc036984f4cb46d95375373a5c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.Universal.Runtime.dll",
+        "bytes": 771072,
+        "sha256": "075edc7eb8a13ddabb616f5df548a198071ae0889fea33852cb3435b06fb88d3"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.RenderPipelines.Universal.Shaders.dll",
+        "bytes": 4608,
+        "sha256": "5f5d062b1113d7dfba74cd38317d7e367f7803b4d814342a338e0998ffe3c8c1"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.SurfaceCache.Runtime.dll",
+        "bytes": 4096,
+        "sha256": "289b527a1cf0f00f2a52df6dcf0e0c87497d55a96ff646d65f8aa862ed9de4d1"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.TextMeshPro.dll",
+        "bytes": 449024,
+        "sha256": "9ecf32155c2e87729cc3f0be058a8cc43ead027a1ab5d5e52be541c314d2310c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.Timeline.dll",
+        "bytes": 134144,
+        "sha256": "5e9315cfbd3d13c2a6d9202bca71e1648f81f14b4cbef95eb269f94f12e361ca"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.UnifiedRayTracing.Runtime.dll",
+        "bytes": 101888,
+        "sha256": "c7a11e879dc728c7474f984bfcc22c17b06175992268675af7e7bdc2f6efca6b"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.ARFoundation.dll",
+        "bytes": 256512,
+        "sha256": "63e9f5f973b8793d755dc7f727bff1a649cebf2c317f8bb92bf2776cb0a3e06f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.ARFoundation.InternalUtils.dll",
+        "bytes": 11264,
+        "sha256": "4684af7f788b5c42080afef06c30547af4cad2a4e4e101b1159ea7ea78f4f347"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.ARFoundation.VisualScripting.dll",
+        "bytes": 7680,
+        "sha256": "8c006fa00cb517b36fc3a50a9394920acc45430e68920bc2782d0c235eca6dae"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.ARSubsystems.dll",
+        "bytes": 237568,
+        "sha256": "b9d9df8fcf5e2b6e9614245f480ec38e59fbef78d5d219fecd380341bd2c6c9c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.CompositionLayers.dll",
+        "bytes": 121344,
+        "sha256": "e64ffe5f79bfcaa524aebeef6f4840292db51495b5d73ab53369a72f7ca69164"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.CompositionLayers.UIInteraction.dll",
+        "bytes": 29696,
+        "sha256": "d33691d8b898e86978513c9ac7b14344a2f1db1a177ab1b685523b9d17de4a91"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.CoreUtils.dll",
+        "bytes": 94720,
+        "sha256": "599ae6d6bedbd4c67d60d175c64f785184e9333321e94ffd53a8108c609fd540"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.Interaction.Toolkit.dll",
+        "bytes": 1415168,
+        "sha256": "132ecb1d5315c599f0849de9de34e6efd3a21a6ee46bf5ca634d69144af52198"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.Management.dll",
+        "bytes": 17920,
+        "sha256": "1648dff93c4dd3a79c34b8ee78cba106f0bd717046e9c3259ab7854cfa41be6a"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.MetaOpenXR.dll",
+        "bytes": 108544,
+        "sha256": "eba213fd05c557d68cc73d5cba6fd19ceb69ff354e79a3e22b9840f72d08dca2"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.dll",
+        "bytes": 391680,
+        "sha256": "d02aa9fa073e1d011a835eb0e0e18178cb5ef19ccd2a45daf741e7f397f1707e"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.Features.ConformanceAutomation.dll",
+        "bytes": 7680,
+        "sha256": "6306ae55d0673fe1cae160e540d5c24430df42f753ff24d908778a0b626c35d0"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.Features.MetaHandMeshData.dll",
+        "bytes": 4608,
+        "sha256": "e41403824456b8648a2a2e4724d07ae19cbf53d8c54cc0bf9e621cd32c15d60c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.Features.MetaQuestSupport.dll",
+        "bytes": 5632,
+        "sha256": "8b1eb962584ecfb76ac6421e2e581b285342dfd4dfa2dbf08afc6c08ecb489e9"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.Features.MockRuntime.dll",
+        "bytes": 11264,
+        "sha256": "0977f6f3cbc87239238cb9cfb797f62ad66d1073835655d9908498cacfad1bbe"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.Features.OculusQuestSupport.dll",
+        "bytes": 5120,
+        "sha256": "316dbc594a7a3c67a924ffa363e0279235d48f344dbd6631ce940399e2e8433f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.Features.RuntimeDebugger.dll",
+        "bytes": 6656,
+        "sha256": "d5a7978c197fced6b3166122377537f244ef948d6784097aa07d50ea04423abc"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/Unity.XR.OpenXR.TestTooling.dll",
+        "bytes": 10240,
+        "sha256": "5aa4f847dbe48465bb1aabb3fd22573e366faecfe7d34210320cb839cd9cdd56"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UnityEngine.SpatialTracking.dll",
+        "bytes": 11776,
+        "sha256": "e3e4df6a4733f76df57732c1d29434aa566a9e2d39970afaf45d0b59dc674ddb"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UnityEngine.UI.dll",
+        "bytes": 276992,
+        "sha256": "ea14b43c4c666154d6d5d145d0a285e31e6a5edf8264e9b4fe2c1fb417a3f13c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/Android/UnityEngine.XR.LegacyInputHelpers.dll",
+        "bytes": 22528,
+        "sha256": "785148ea44f7503dc1ebceddf5005e13b72142340efd94b64b7e1ec940c92a4f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Assembly-CSharp.dll",
+        "bytes": 67072,
+        "sha256": "209fcf4fbe336dd3765457d2071d4a570e27c180b0f7b631dc356148d9b24a11"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/HBP.Core.Runtime.dll",
+        "bytes": 1125376,
+        "sha256": "ec750c16088a44d452569835d04798371197aa62d76795bc1d8fa1f80877463f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/HBP.Data.Runtime.dll",
+        "bytes": 244736,
+        "sha256": "786ca6d67e7de74b6c53ceaecee7d312c51906d64a5169a266c75cc12d35d066"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/HBP.Dev.Runtime.dll",
+        "bytes": 96256,
+        "sha256": "f2af795d928d54d42c79f664be7194e3f4d22c4b1ccc6241378825319070aa6e"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/HBP.PlayModeTestUtilities.dll",
+        "bytes": 28160,
+        "sha256": "9da78e4a0b46e5a94389c3d04b077e4f4d22bfde8be141efb559b6716e625931"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/HBP.Rendering.Runtime.dll",
+        "bytes": 19968,
+        "sha256": "7acb2c7e034c79becf97617385da437617d5f479abea3f4cf4e759ac4c2ada1b"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/HBP.Theme.Runtime.dll",
+        "bytes": 12800,
+        "sha256": "75eb58a5d6a5547784c53505aad9051c2fb5286d17aec4c226ae80ed1e50f160"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/HBP.UI.Runtime.dll",
+        "bytes": 1230848,
+        "sha256": "39cd0a41a19bcf0d99fc3ce4c0392271cede5560637c6159d822d618dcfc95fd"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/MCPForUnity.Runtime.dll",
+        "bytes": 31744,
+        "sha256": "e7f6e65a2ec8de48e312487b7e1fa7b687b82af8bb34c2fdcf3bed8aa096ccab"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/ThirdParty.SFB.Runtime.dll",
+        "bytes": 14848,
+        "sha256": "3e7992f899dfdcec3b62b6eb000ffb6b58944972c2738e92b96102c683bf408b"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/ThirdParty.UIExtensions.Runtime.dll",
+        "bytes": 49152,
+        "sha256": "e717c2d0ddffae64cb9e896c93d1e820050f063a0f951579a4199fd7006ca0b4"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UniTask.Addressables.dll",
+        "bytes": 4096,
+        "sha256": "0120e02c003100f0fc738b564765d858d11d7b0792533eac991290e3c95d9075"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UniTask.dll",
+        "bytes": 562688,
+        "sha256": "51994a1a3e24d47cc2302574835b0e8a21afd08025aa780ed2f826f1c1788dc9"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UniTask.DOTween.dll",
+        "bytes": 4096,
+        "sha256": "1c4f9dd59ce62e8ff4b55f90fbb54896b649b8dc2e20a9645c043560468e48b5"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UniTask.Linq.dll",
+        "bytes": 704000,
+        "sha256": "bb75ecd93e18cad0573eaa82c505968d3ce81a0729171d73df0345a6291af5fb"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UniTask.TextMeshPro.dll",
+        "bytes": 13312,
+        "sha256": "4d253af42093a64797afba042046f343f86556b3b4adc13eefab1a6e834e2bf9"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.Burst.dll",
+        "bytes": 305152,
+        "sha256": "15bb890624f443d8e40cdae524c310bf165987f43d094b5a7d23e13819c49a9f"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.Collections.dll",
+        "bytes": 461824,
+        "sha256": "bd0e9c5f0f14a6906cee87ffeff517a4729d7240cc078e373968f1e12061d709"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.InputSystem.dll",
+        "bytes": 1148928,
+        "sha256": "91da46dcf5e884e30dfc99c0625f19024a2f7d84418e2f91663b59bb6de1781b"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.InputSystem.ForUI.dll",
+        "bytes": 16896,
+        "sha256": "53067066ce3dff4f2cffb5b39263383abd2eee94a5f7f8b35e2faa7771de3f60"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.InternalAPIEngineBridge.004.dll",
+        "bytes": 5120,
+        "sha256": "dddf020bbad129f5a8fea5b62380f8518da7f2cab578b9ad88a3060a121fbdcc"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared.dll",
+        "bytes": 4096,
+        "sha256": "17f88f37cce0cfcdd878134f1dc514c9ed468694b29403fd76d349ffb520f42c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.Mathematics.dll",
+        "bytes": 6656,
+        "sha256": "3194bd707e5348790ac14279d950ab8c3c4db1c506f7577fa74270170e4e8598"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.Multiplayer.Center.Common.dll",
+        "bytes": 10752,
+        "sha256": "b024d293bdf5044491ea3a7814e455b031d07aacd0548a8d74f2aa5057123295"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.PathTracing.Runtime.dll",
+        "bytes": 153600,
+        "sha256": "d19b46bb730fbc79e56517eb9d9dd1da9ca2285b502e391535e59ec3106e7962"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipeline.Universal.ShaderLibrary.dll",
+        "bytes": 9216,
+        "sha256": "c2868979188be39550909a1f8e238084957676fb2b9049fac5a6a71ccdc430ee"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.Core.Runtime.dll",
+        "bytes": 1141248,
+        "sha256": "89170d4b23825797d3bccb1c5656b592d4b8cd2ebdb40e7cd49469db0283a259"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.Core.Runtime.Shared.dll",
+        "bytes": 12800,
+        "sha256": "8f9cf6d76156274267b4e3fbd762e1294c96558103803faa34bf75c462dd206e"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.Core.ShaderLibrary.dll",
+        "bytes": 4608,
+        "sha256": "0492ab81f71218c93b1086c89d2d0f92b7beb21060ff1930919bb73524022406"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.GPUDriven.Runtime.dll",
+        "bytes": 281088,
+        "sha256": "528a4422100fa5f0bbad600bfaf52709466eeed1faf316f8062cdb3124ed95a7"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll",
+        "bytes": 4608,
+        "sha256": "d52ea529022742c00935543184294070a04ca819be0b227adb5abf351a44a3b2"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.Universal.2D.Runtime.dll",
+        "bytes": 211968,
+        "sha256": "cfa5322152625dc042696b8b6dfef06f43bf4ca4b9a5aa7e15f97545d1b8e5c5"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.Universal.Config.Runtime.dll",
+        "bytes": 5632,
+        "sha256": "7b588ea7814e48dfa07c1847a7af9feb0c756f20954a79285e3f3bf804b121f7"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.Universal.Runtime.dll",
+        "bytes": 770560,
+        "sha256": "dd9dd6eb5d3b77871cea003868993667324d94ce9b2e7ff3a544726472c9d3e2"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.RenderPipelines.Universal.Shaders.dll",
+        "bytes": 4608,
+        "sha256": "45be10c4f0f430e66ca2a339937a05305484f3e53cb9a1dfc6d943ea2d13167c"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.SurfaceCache.Runtime.dll",
+        "bytes": 4096,
+        "sha256": "2f92c9a5a6ead9929ebcb4aaca524927a492ee7b9847633658cc447ab698c5c5"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.TextMeshPro.dll",
+        "bytes": 448512,
+        "sha256": "2103b642471cacec9d3f0b33274fe4371efa56fe388137f87090e6551fe37d0d"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.Timeline.dll",
+        "bytes": 134144,
+        "sha256": "9af2466c1d20c2e46ffce3386452a5b0981cb462dc5aeffc2f6b5e5dc6d404f5"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.UnifiedRayTracing.Runtime.dll",
+        "bytes": 101888,
+        "sha256": "5387b0fdb016170bfb6755d18b038a5882b43f5329bf4dab10fe484414c7dbbb"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.ARFoundation.dll",
+        "bytes": 256512,
+        "sha256": "4b8e14f6de0b8b93b677502d6a41ae9d1f1b722017e3893ba7a1af5b30ee584a"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.ARFoundation.InternalUtils.dll",
+        "bytes": 11264,
+        "sha256": "11077fe888614a1e3772dfd56fa866d5fcf2231fa9855f7c4866c56b0f966612"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.ARFoundation.VisualScripting.dll",
+        "bytes": 7680,
+        "sha256": "0eda0e4f6af2c5005e5415a86d599bc32cc83deb878507864070b49e2322a780"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.ARSubsystems.dll",
+        "bytes": 237568,
+        "sha256": "8f3f6c65c869643e0d2232d82bcd4731a57066700bcfac82bf0a0d52fe785696"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.CompositionLayers.dll",
+        "bytes": 122368,
+        "sha256": "22cb8e2f453b6ac6a0a0cabbb6b42422835ab53ada2a26ac91c6f89765a909b7"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.CompositionLayers.UIInteraction.dll",
+        "bytes": 29696,
+        "sha256": "2a343b0bb36435a0f1d28627625d78d6f9b347d516a1092195febdd4fa686e6d"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.CoreUtils.dll",
+        "bytes": 94720,
+        "sha256": "a1f593cbb5d8eea935abbfe12d1a801537373ee2c43b3b59d73ea7b8b2b198c9"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.Interaction.Toolkit.dll",
+        "bytes": 1418240,
+        "sha256": "ae7817b91ea395d7df9056ca6113fd91101ae8cf50b3a4d57ed4515902c894ac"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.Management.dll",
+        "bytes": 17920,
+        "sha256": "1ba88969f153b91e38bedc23c6aba70cc3b27910bd4f07f7de9d29892e60aa7b"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.dll",
+        "bytes": 390656,
+        "sha256": "b364cf17eb02fed92a416f0f02f6d3c3d4e2cf1a6bbde10a80f6b73d4ebcf35d"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.Features.ConformanceAutomation.dll",
+        "bytes": 7680,
+        "sha256": "4c9c6292e35ca3cb4e68debcbf8090630fc040f947b440363d6dfb586aa76a33"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.Features.MetaHandMeshData.dll",
+        "bytes": 4608,
+        "sha256": "dd911ef30777aca280b920df8025b05965faea4ab8fb8289c63ffd165c6e6ad9"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.Features.MetaQuestSupport.dll",
+        "bytes": 5632,
+        "sha256": "218e81d4ee1396dc2c7b86b97969fe22899d912066278f08fa176b2fd7e6c562"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.Features.MockRuntime.dll",
+        "bytes": 11264,
+        "sha256": "da245d89587b9c0aaa9b03f5dbd53555eb7b4e37070bc6bd70cd7a2bbc7f5d65"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.Features.OculusQuestSupport.dll",
+        "bytes": 5120,
+        "sha256": "add740237bad912803de708b6d50c3db2d33772f1815522d8df3d989f52273d1"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.Features.RuntimeDebugger.dll",
+        "bytes": 6656,
+        "sha256": "99da98ca70a30389f969495eef782e91e563fea3af9dfbbabf0ec70608f206f4"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.OpenXR.TestTooling.dll",
+        "bytes": 10240,
+        "sha256": "56974a709ab0f44f53fa6e1ef3d59602718cdf78a4c355ee6022c9594c0e8f0b"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/Unity.XR.Simulation.dll",
+        "bytes": 186368,
+        "sha256": "5c31c13fd6e09c856b242be54592f834c3dfc43d92987663c967c3fe9c664df5"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UnityEngine.SpatialTracking.dll",
+        "bytes": 11776,
+        "sha256": "a04db719d4cc8b180bee7e22914d5487e862868b54a647cd0c9d1946f3ae7304"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UnityEngine.UI.dll",
+        "bytes": 276480,
+        "sha256": "c4b787c7b88213712bedd8b7cf81651a87075a42e5fed76eecf97aaeacb5842e"
+      },
+      {
+        "path": ".test-results/quest-002/player-scripts/StandaloneWindows64/UnityEngine.XR.LegacyInputHelpers.dll",
+        "bytes": 22528,
+        "sha256": "f65a711d65b77b8079f979f34d17620f9e449762ae34b4b757c40d01196caa12"
+      }
+    ],
+    "files": [
+      {
+        "path": ".test-results/quest-002/android-tests.log",
+        "bytes": 1292516,
+        "sha256": "dd5b9deaf62ef63d23ba3e3f31617206e380601c20b03b226f02acd79e3a9917"
+      },
+      {
+        "path": ".test-results/quest-002/android-tests.xml",
+        "bytes": 33063,
+        "sha256": "a00890bf097090f1bbb048d4cc6edc7bab8755cf282fc5ed05a52aef25fd04c4"
+      },
+      {
+        "path": ".test-results/quest-002/build-windows.log",
+        "bytes": 847072,
+        "sha256": "1c5d04beebc4819eb4386abe0a92268d895849a67f8c47b126a2570c718ef281"
+      },
+      {
+        "path": ".test-results/quest-002/final-checks.json",
+        "bytes": 351,
+        "sha256": "4492e4e563cf1ce4c9c5df800725baadf2ac33e5146ed5e836a92259d39ef2e5"
+      },
+      {
+        "path": ".test-results/quest-002/format-delivery.log",
+        "bytes": 170,
+        "sha256": "bda751d64bb6a8f9215a361909a2826e3d36237ff87b74fe910d4e25a0785586"
+      },
+      {
+        "path": ".test-results/quest-002/format-final.log",
+        "bytes": 170,
+        "sha256": "bda751d64bb6a8f9215a361909a2826e3d36237ff87b74fe910d4e25a0785586"
+      },
+      {
+        "path": ".test-results/quest-002/format.log",
+        "bytes": 572,
+        "sha256": "960ab2eb2b56b459de4c12cec895a062910af6cc8dc3b3fcfebf2eb6a3e462b0"
+      },
+      {
+        "path": ".test-results/quest-002/generated-settings.diff",
+        "bytes": 3125,
+        "sha256": "780f1010b1f3a8f489f6556405b6977cf754a68e7c92b3b5628ba6a2ac437b4a"
+      },
+      {
+        "path": ".test-results/quest-002/import-windows.log",
+        "bytes": 961753,
+        "sha256": "82bda9cd17eadf59dc8cab3f5f3f23d8a1597456d966d7ee74cfd0d054f0ac83"
+      },
+      {
+        "path": ".test-results/quest-002/packages-after-android.json",
+        "bytes": 324,
+        "sha256": "a038b4948604aa9a5bc3d0f1f75fb01aa4f69ee8e309ed90f331f73caee81f29"
+      },
+      {
+        "path": ".test-results/quest-002/packages-after-windows-return.json",
+        "bytes": 324,
+        "sha256": "a038b4948604aa9a5bc3d0f1f75fb01aa4f69ee8e309ed90f331f73caee81f29"
+      },
+      {
+        "path": ".test-results/quest-002/packages-before-target-switch.json",
+        "bytes": 324,
+        "sha256": "a038b4948604aa9a5bc3d0f1f75fb01aa4f69ee8e309ed90f331f73caee81f29"
+      },
+      {
+        "path": ".test-results/quest-002/windows-delivery.log",
+        "bytes": 134193,
+        "sha256": "277a87c147db5b73d043d7af3d1239136d2675e27f2e820ad46cfc1c02925dac"
+      },
+      {
+        "path": ".test-results/quest-002/windows-delivery.xml",
+        "bytes": 14075,
+        "sha256": "cac143f03856a4436fa09b4d5113931698af771bd7618dc06d569a36cb4b2668"
+      },
+      {
+        "path": ".test-results/quest-002/windows-tests-final.log",
+        "bytes": 226254,
+        "sha256": "9f6afc1c917b82e584c7319f6a30f14c6bd2a460c6baaa4849bd66bc0b121546"
+      },
+      {
+        "path": ".test-results/quest-002/windows-tests-retry.log",
+        "bytes": 74369,
+        "sha256": "0968bcf5faf0d3e93918c35a5ca3f82b6e099fb22eae707fc61dffea7ef3e808"
+      },
+      {
+        "path": ".test-results/quest-002/windows-tests.log",
+        "bytes": 70597,
+        "sha256": "5a75cbd2bcce8d195a2524c885c61a5e473162cc09ece45149fcb0b61774f51c"
+      },
+      {
+        "path": ".test-results/quest-002/windows-tests.xml",
+        "bytes": 33338,
+        "sha256": "2633fe848b1ae806bb510035a6ed80e84ee33aeb479f1c7f71e9b91d2bc192fd"
+      }
+    ]
+  },
+  "priorAttempts": [
+    {
+      "log": "windows-tests.log",
+      "result": "compile error",
+      "reason": "Missing Newtonsoft reference in new test asmdef"
+    },
+    {
+      "log": "windows-tests-retry.log",
+      "result": "compile error",
+      "reason": "PackageInfo and XRController ambiguous; fixed with aliases"
+    },
+    {
+      "log": "windows-tests-final.log",
+      "passed": 5,
+      "failed": 1,
+      "reason": "Synthetic action event was processed in Editor loop; final test verifies binding only",
+      "exitCode": 2
+    },
+    {
+      "log": "format.log",
+      "result": "formatter failure",
+      "reason": "Solution lacked new test project; regenerated via UnityEditor.SyncVS.SyncSolution"
+    }
+  ],
+  "manualValidation": [
+    {
+      "status": "VALIDE",
+      "action": "Launch the QUEST-002 Windows Player with the QUEST-002 fixture using -pf and -v MNI Anatomy",
+      "observedByAgent": false,
+      "id": "M1",
+      "validatedAtUtc": "2026-09-07T13:43:24.315742+00:00",
+      "basis": "Owner feedback in this task on 2026-09-07; global acceptance conditional on no introduced vertical-sensitivity regression, confirmed by source audit."
+    },
+    {
+      "status": "VALIDE",
+      "action": "Right mouse drag rotates, wheel zooms, middle mouse drag translates",
+      "observedByAgent": false,
+      "id": "M2",
+      "validatedAtUtc": "2026-09-07T13:43:24.315742+00:00",
+      "basis": "Owner feedback in this task on 2026-09-07; global acceptance conditional on no introduced vertical-sensitivity regression, confirmed by source audit.",
+      "confirmedGestures": [
+        "rotation",
+        "horizontal translation",
+        "zoom"
+      ],
+      "reservation": "Vertical translation too sensitive; pre-existing 5:1 vertical/horizontal scale remains unchanged."
+    }
+  ],
+  "unperformed": [
+    "Android APK/IL2CPP native build",
+    "Quest physical runtime/controllers/passthrough",
+    "Physical Desktop gestures not observed by agent; owner feedback recorded in manualFollowup, including the pre-existing vertical-sensitivity issue."
+  ],
+  "nextSuggestedTask": "QUEST-002-A after the QUEST-002 commit; QUEST-003 if the option is deferred",
+  "updatedAtUtc": "2026-09-07T13:43:24.315742+00:00",
+  "manualFollowup": {
+    "date": "2026-09-07",
+    "source": "Owner message in this Codex task",
+    "quote": "La rotation, la translation horizontale et le zoom marchent très bien. En revanche, la translation verticale a une sensibilité bien trop élevée.",
+    "conditionalAcceptance": "Dans tous les cas, si ton travail n’a pas impacté cet aspect de l’interaction, je pense qu’on peut valider cette tâche.",
+    "sourceAudit": {
+      "referenceCommit": "bba6dce634d0374d0dd00ece76a7b58104b4e892",
+      "horizontalScale": 0.2,
+      "verticalScale": 1,
+      "verticalToHorizontalRatio": 5,
+      "unchangedFiles": [
+        "Assets/Scripts/HBP/Data/Module3D/Camera3D.cs",
+        "Assets/Scripts/HBP/Data/Module3D/View3D.cs",
+        "Assets/Scripts/HBP/UI/Module3D/View3DUI.cs",
+        "ProjectSettings/InputManager.asset",
+        "Assets/_Scenes/HiBoP.unity"
+      ],
+      "comparisonCommand": "git diff --exit-code -- <unchangedFiles>; git show HEAD:Assets/Scripts/HBP/Data/Module3D/Camera3D.cs",
+      "exitCode": 0
+    },
+    "physicalABComparisonPerformed": false,
+    "sensitivityChanged": false,
+    "rebuildRequired": false,
+    "optionalNextTask": "QUEST-002-A",
+    "plannedOrder": "After committing QUEST-002, before QUEST-003; optional migration not started.",
+    "planningFiles": [
+      {
+        "path": "Docs/dev/quest-autonomous/tasks/QUEST-002-A.md",
+        "sha256": "35d63d308d9c459337cc2ae366105e02d864f447367cbccfde43c9b6ebd6e9f4",
+        "bytes": 8178
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/tasks/README.md",
+        "sha256": "d9decbd4cccb6e03a75a3421b223ababce317876cac6ed11e62a57a992b9bf7a",
+        "bytes": 4263
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/tasks/QUEST-003.md",
+        "sha256": "a573d6628c357d8363fb18d6828ca7652edc768988bc8909d64f334fb53bc787",
+        "bytes": 3659
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/01-decisions-and-open-questions.md",
+        "sha256": "83c6f91e1ed54b094ed95da7cb2e6393e4deb043a8d24e82b6df76947dc0db0e",
+        "bytes": 10346
+      }
+    ]
+  }
+}
