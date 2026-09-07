@@ -21,7 +21,7 @@ namespace HBP.Tests.PlatformConfiguration
             try
             {
                 PlayerSettings.SetPreloadedAssets(new Object[] { unrelated, xr });
-                HBPBuildProfiles.RemoveUnusedOpenXRPreload(EditorUserBuildSettings.activeBuildTarget);
+                HBPBuildProfiles.RemoveUnusedOpenXRPreload(BuildTarget.StandaloneWindows64);
                 Assert.That(PlayerSettings.GetPreloadedAssets(), Is.EqualTo(new Object[] { unrelated }));
             }
             finally
@@ -51,7 +51,7 @@ namespace HBP.Tests.PlatformConfiguration
         {
             var dependencies = AssetDatabase.GetDependencies(HBPBuildProfiles.QuestScene, true);
             Assert.That(dependencies, Does.Contain("Assets/Prefabs/Quest/QuestBootstrap.prefab"));
-            Assert.That(dependencies.Any(p => p.StartsWith("Assets/Scripts/HBP/")), Is.False);
+            Assert.That(dependencies.Where(p => p.StartsWith("Assets/Scripts/HBP/")).All(p => p.StartsWith("Assets/Scripts/HBP/Quest/")), Is.True);
             Assert.That(dependencies.Any(p => p.StartsWith("Assets/Prefabs/Managers/")), Is.False);
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             Assert.That(prefab.GetComponentsInChildren<Camera>(true).Length, Is.EqualTo(1));

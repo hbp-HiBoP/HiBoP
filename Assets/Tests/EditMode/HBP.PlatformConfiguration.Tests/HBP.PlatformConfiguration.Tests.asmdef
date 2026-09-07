@@ -2,6 +2,12 @@
     "name": "HBP.PlatformConfiguration.Tests",
     "references": [
         "HBP.Dev.Editor",
+        "HBP.Quest.Runtime",
+        "HBP.Quest.Editor",
+        "Unity.XR.CoreUtils",
+        "Unity.XR.ARFoundation",
+        "Unity.XR.ARSubsystems",
+        "Unity.RenderPipelines.Universal.Runtime",
         "Unity.XR.OpenXR",
         "Unity.InputSystem", "HBP.UI.Runtime",
         "Unity.XR.Management",

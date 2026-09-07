@@ -1,0 +1,7 @@
+{
+    "name": "HBP.Quest.PlayModeTests",
+    "references": ["HBP.Quest.Runtime", "Unity.InputSystem"],
+    "includePlatforms": [],
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "optionalUnityReferences": ["TestAssemblies"]
+}
