@@ -1,0 +1,450 @@
+{
+  "schemaVersion": 1,
+  "taskId": "QUEST-001",
+  "recordedAtUtc": "2026-09-07T12:53:41.9578974Z",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "sourceState": {
+    "initialUntrackedFiles": [],
+    "historicalFeatureXrLocal": "eb26c323e2bdf6c138f9e9e3c02f3e9796cae249",
+    "self": "This evidence manifest is an additional untracked file; omitted from its own hash list",
+    "branch": "feature/xr-autonomous",
+    "historicalComparison": "No diff for six anatomical assets and MNIObjects.cs against eb26c323e; reused current checkout only",
+    "historicalRestorations": [],
+    "head": "b230166204024b5dd350d8fe897aa854160ff384",
+    "generatedChangesRestored": [
+      "Assets/Resources/BuildInfo.json",
+      "Assets/Settings/Rendering/HBP-Desktop-URP-GlobalSettings.asset",
+      "Assets/Settings/Rendering/HBP-Desktop-URP.asset",
+      "ProjectSettings/ProjectSettings.asset"
+    ],
+    "sourceChanges": [
+      {
+        "path": "Assets/Tests/EditMode/HBP.Serialization.Tests/QuestAnatomyFixtureTests.cs",
+        "sha256": "a2bf5ddfa10f603c7c170b5fdb7114388545820a352fa9c3b75a22087286bde2",
+        "state": "untracked addition"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Serialization.Tests/QuestAnatomyFixtureTests.cs.meta",
+        "sha256": "162267c296f995a688b47b19f0f9e3636011e7310e408c1b1c7622f039445c6f",
+        "state": "untracked addition"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/manifest.json",
+        "sha256": "a34bb5f47260af2cb58189c9b39078e2a311d1c72896661c5e4300b15632eff1",
+        "state": "untracked addition"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/MNI Anatomy.visualization",
+        "sha256": "c249111dbc94e68fc443933dcd643313dd0edd4d83e32ad17e1ccd9dc2393887",
+        "state": "untracked addition"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/quest-mni-anatomy.settings",
+        "sha256": "8236e0cc9fdc8a19cde678ab7b71972b22b580669570c70842fe98642d10fbd4",
+        "state": "untracked addition"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/README.md",
+        "sha256": "54a74c79bcfa432c248ec286265661c1307c1917e930ed19c0c999482848c4b7",
+        "state": "untracked addition",
+        "sha256BeforeManualFollowup": "a5fc6962234639d0ce9066860d4a8a3167987e770fcb14c6c7b650b1f1c5c0e9"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/reports/QUEST-001.md",
+        "sha256": "0733880bf2f63f62c698292f0fbe756b33c201858ebbaf817cfc491bff064033",
+        "state": "untracked addition",
+        "sha256BeforeManualFollowup": "2d67bd2163b3e1063ae209e1e772c5c28f44c1f48af75aca552f5a4eb6f145ba"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+        "sha256": "c59d8e8c071b332980400a2f85095e41b76ac1e5ea4f418187d52151c3d83477",
+        "state": "modified: QUEST-001 row only",
+        "sha256BeforeManualFollowup": "14a1c6d6fa1dc20187568946d6330eb8aa4835bf2ae7d7c0a340a90101f3724d"
+      },
+      {
+        "path": "Tools/Prepare-QuestAnatomyFixture.ps1",
+        "sha256": "e27c938f37d4c0cc03be4be71989a46f9a958e6273c535003f6d334dfcc01af6",
+        "state": "untracked addition"
+      }
+    ],
+    "commitOrPush": false,
+    "originDevelopLocal": "8b868a5b851ed7c920b5847bc83f79114bd0f166",
+    "adjacentRepositoriesModified": false,
+    "worktrees": [
+      {
+        "head": "b230166204024b5dd350d8fe897aa854160ff384",
+        "branch": "refs/heads/feature/xr-autonomous",
+        "path": "C:/HBP/Software/HiBoP"
+      }
+    ],
+    "initialTrackedChanges": []
+  },
+  "environment": {
+    "unity": "6000.5.2f1 (eb73d3b415a1)",
+    "playerTarget": "StandaloneWindows64",
+    "os": "Windows",
+    "unityExecution": "Outside sandbox, Start-Process -Wait -PassThru -WindowStyle Hidden",
+    "urp": "17.5.0",
+    "scriptingBackend": "IL2CPP",
+    "editorInitiallyOpen": false,
+    "formatter": "jetbrains.resharper.globaltools 2026.2.0",
+    "applicationVersion": "6.1.0",
+    "powershell": "7.6.3",
+    "unityExecutable": "C:/Program Files/Unity/Hub/Editor/6000.5.2f1/Editor/Unity.exe"
+  },
+  "fixture": {
+    "siteCount": 0,
+    "manifest": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/manifest.json",
+    "columnCount": 1,
+    "privacy": "Repository MNI reference anatomy only; no patient records or signals. GIFTI metadata: gifticlib-version; NIfTI descrip: spm - algebra, aux_file: none. No claim that reference anatomy is synthetic or that its upstream template edition has been identified.",
+    "patientCount": 0,
+    "datasetCount": 0,
+    "archive": ".artifacts/quest-001/fixture/quest-mni-anatomy.hibop",
+    "hemispheres": [
+      "left",
+      "right"
+    ],
+    "visualization": "MNI Anatomy",
+    "groupCount": 0
+  },
+  "nativeReferences": {
+    "lockSha256": "3b4e39202f453a745429ab7645901b16e6cf94832321d111c30e2bbc8cf14384",
+    "lockPath": "Tools/NativePlugins.lock.json",
+    "windowsBinaries": [
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+        "sha256": "3b886cf1a31c67e7b8ddb2b38e93a634b56f8694f80deb3d9312839e2b69d448",
+        "bytes": 1005056
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+        "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b",
+        "bytes": 1378816
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+        "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b",
+        "bytes": 246784
+      }
+    ],
+    "commits": [
+      {
+        "name": "EEGFormat",
+        "repository": "hbp-HiBoP/EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd"
+      },
+      {
+        "name": "hbp_core",
+        "repository": "hbp-HiBoP/hbp_core",
+        "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c"
+      },
+      {
+        "name": "hbp_math",
+        "repository": "hbp-HiBoP/hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "result": "PASS",
+      "id": "T1",
+      "exitCode": 0,
+      "commands": [
+        "git branch --show-current",
+        "git rev-parse HEAD origin/develop feature/xr",
+        "git worktree list --porcelain",
+        "git status --porcelain=v1 --untracked-files=all"
+      ]
+    },
+    {
+      "commands": [
+        ".\\Tools\\Prepare-QuestAnatomyFixture.ps1",
+        ".\\Tools\\Prepare-QuestAnatomyFixture.ps1 -OutputDirectory .artifacts/quest-001/replay"
+      ],
+      "verifiedSources": 8,
+      "id": "T2",
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a",
+      "result": "PASS",
+      "exitCodes": [
+        0,
+        0
+      ],
+      "archiveBytes": 1853
+    },
+    {
+      "result": "PASS",
+      "method": "System.IO.Compression.ZipFile inspection: compare both text entries to canonical source, inspect empty structural directories, one column/no patients, relative source paths",
+      "id": "T3",
+      "exitCode": 0,
+      "details": ".test-results/quest-001/preparation.json"
+    },
+    {
+      "mode": "EditMode",
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:/HBP/Software/HiBoP",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testFilter",
+        "HBP.Tests.Serialization.QuestAnatomyFixtureTests",
+        "-testResults",
+        "C:/HBP/Software/HiBoP/.test-results/quest-001/editmode-results.xml",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-001/editmode.log",
+        "-forgetProjectPath"
+      ],
+      "result": "PASS",
+      "startUtc": "2026-09-07T12:44:26Z",
+      "tests": 2,
+      "exitCode": 0,
+      "failed": 0,
+      "filter": "HBP.Tests.Serialization.QuestAnatomyFixtureTests",
+      "limits": "Project test imports the versioned text sources in a temporary ZIP; T3 separately establishes prepared ZIP contents. No Player rendering asserted.",
+      "passed": 2,
+      "id": "T4",
+      "endUtc": "2026-09-07T12:44:27Z"
+    },
+    {
+      "command": ".\\Tools\\format-code.cmd",
+      "notes": "Initial NuGet access failed in sandbox; first restored attempt found no items before Unity regenerated csproj; final run outside sandbox succeeded.",
+      "result": "PASS",
+      "id": "T5",
+      "exitCode": 0
+    },
+    {
+      "playerBuildInfo": {
+        "commit": "b23016620402",
+        "buildDate": "2026-09-07T14:46:11.534833+02:00"
+      },
+      "exitCode": 0,
+      "buildLogResult": "Build Finished, Result: Success.",
+      "id": "T6",
+      "result": "PASS",
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-quit",
+        "-projectPath",
+        "C:/HBP/Software/HiBoP",
+        "-buildTarget",
+        "Win64",
+        "-executeMethod",
+        "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+        "-buildOutput",
+        "C:/HBP/Software/HiBoP/.artifacts/quest-001/player",
+        "-scriptingBackend",
+        "IL2CPP",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-001/build.log",
+        "-forgetProjectPath"
+      ],
+      "copiedAnatomicalAssetsVerified": 6
+    },
+    {
+      "notes": "Only QUEST-001 additions and its status row; four Unity-generated file changes restored. Documentation links resolved from repository.",
+      "result": "PASS",
+      "id": "T7",
+      "exitCode": 0,
+      "commands": [
+        "git diff --check",
+        "git status --short"
+      ],
+      "verifiedDocumentationLinks": 10
+    },
+    {
+      "id": "T8",
+      "result": "PASS",
+      "date": "2026-09-07",
+      "exitCode": 0,
+      "method": "Copied only eight fixture sources, fixture manifest and preparation script into a new relocated root, then ran the copied script; no old .artifacts copied",
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a",
+      "bytes": 1853,
+      "verifiedSources": 8,
+      "existingArtifactsRequired": false,
+      "playerRebuildOnSecondComputer": "NOT_EXECUTED",
+      "playerInputAudit": "MNI assets, Windows native DLLs, Unity code/settings, package manifests/lock and HBPBuilder are tracked; added QUEST-001 files must be committed",
+      "externalPrerequisites": [
+        "Matching Unity Editor and Windows IL2CPP build support",
+        "C++ toolchain and Windows SDK",
+        "Access to declared Unity/Git package sources for restoration"
+      ],
+      "details": ".test-results/quest-001/relocation.json"
+    }
+  ],
+  "geometry": {
+    "grey": {
+      "leftVertices": 34733,
+      "bothTriangles": 138216,
+      "leftTriangles": 69470,
+      "rightVertices": 34371,
+      "bothVertices": 69104,
+      "rightTriangles": 68746
+    },
+    "white": {
+      "leftVertices": 33036,
+      "bothTriangles": 132590,
+      "leftTriangles": 66068,
+      "rightVertices": 33263,
+      "bothVertices": 66299,
+      "rightTriangles": 66522
+    }
+  },
+  "priorAttempts": [
+    {
+      "log": ".test-results/quest-001/editmode-first-compile.log",
+      "result": "FAILED_THEN_FIXED",
+      "reason": "New test referenced Ionic.Zip without an assembly reference; switched to System.IO.Compression before successful rerun",
+      "exitCode": 1,
+      "phase": "EditMode compile"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".artifacts/quest-001/fixture/quest-mni-anatomy.hibop",
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a",
+      "bytes": 1853,
+      "lastWriteUtc": "2026-09-07T12:43:52.5760172Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".artifacts/quest-001/replay/quest-mni-anatomy.hibop",
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a",
+      "bytes": 1853,
+      "lastWriteUtc": "2026-09-07T12:43:53.0859296Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".artifacts/quest-001/player/HiBoP.6.1.0.win64/HiBoP.exe",
+      "sha256": "aab370fc59ed240ed50af0c9461d0d3e83548253ac11c820420d4d37bba64250",
+      "bytes": 667648,
+      "lastWriteUtc": "2026-09-07T12:46:57.9636825Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".artifacts/quest-001/player/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "sha256": "cfc38fbc5ef578226b57179ed5fc4efeff7d0f68b0c8e9ae57652836d929d643",
+      "bytes": 40777728,
+      "lastWriteUtc": "2026-09-07T12:49:36.4762297Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".artifacts/quest-001/player/HiBoP.6.1.0.win64/UnityPlayer.dll",
+      "sha256": "13b8f157368f55c06c2a7ebf9c2d9907b797b3299329f225da351beb741e54b8",
+      "bytes": 37225896,
+      "lastWriteUtc": "2026-09-07T12:46:58.1213033Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/editmode-results.xml",
+      "sha256": "32015e852db9f42fdad9725b322e84fa03e564d3ecf482c32711bf8f4273a77c",
+      "bytes": 4859,
+      "lastWriteUtc": "2026-09-07T12:44:27.9134952Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/editmode.log",
+      "sha256": "e8a1f5ea42129fe4b0cc2da6ff27bf9762366e78322e9d6d029d1a86bee64864",
+      "bytes": 43477,
+      "lastWriteUtc": "2026-09-07T12:44:31.8560291Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/editmode-first-compile.log",
+      "sha256": "2d0b3e48d48a43050a382367c86b492e7f35c055bca6b5824532a9f8c3907d77",
+      "bytes": 123252,
+      "lastWriteUtc": "2026-09-07T12:42:29.7388262Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/build.log",
+      "sha256": "1cebb8de6d10c7e2f53d7035f8ab18b0757ca57190f30be1131a8a843433182b",
+      "bytes": 630233,
+      "lastWriteUtc": "2026-09-07T12:50:00.4271165Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/format.log",
+      "sha256": "bda751d64bb6a8f9215a361909a2826e3d36237ff87b74fe910d4e25a0785586",
+      "bytes": 170,
+      "lastWriteUtc": "2026-09-07T12:45:33.7313334Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/preparation.json",
+      "sha256": "ca5d26eb5366a5397592b5056b11e368d52121438e3e18105f8450728026c890",
+      "bytes": 1062,
+      "lastWriteUtc": "2026-09-07T12:47:53.7768067Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/player-assets.json",
+      "sha256": "addefe79f0d53cd69bc2a64a6076ab44077cbf213ca04d66172d6ab829880f3c",
+      "bytes": 1557,
+      "lastWriteUtc": "2026-09-07T12:52:11.3008181Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/unity-generated-changes.diff",
+      "sha256": "787fe1efea916e81db0f0f880d1a310dd9b07affc9a6d53d473b79d027ad140a",
+      "bytes": 2759,
+      "lastWriteUtc": "2026-09-07T12:51:10.8879904Z",
+      "availability": "local-ignored"
+    },
+    {
+      "path": ".test-results/quest-001/relocation.json",
+      "sha256": "eeccd8a029c525b64b8b000a5d1181be1948e7b3956d424a6248b222e1fcb49a",
+      "bytes": 870,
+      "lastWriteUtc": "2026-09-07T13:01:34.0610512Z",
+      "availability": "local-ignored"
+    }
+  ],
+  "manualValidation": {
+    "expected": "Expected complete reference MNI brain, two hemispheres, one column MNI Anatomy",
+    "playerLaunchedByAgent": false,
+    "id": "M1",
+    "status": "VALIDE",
+    "command": "& 'C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-001\\player\\HiBoP.6.1.0.win64\\HiBoP.exe' -pf 'C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-001\\fixture\\quest-mni-anatomy.hibop' -v 'MNI Anatomy'",
+    "headsetRequired": false,
+    "userReturn": "Je confirme que HiBoP 6.1.0 s'ouvre bien avec le cerveau MNI",
+    "confirmedOn": "2026-09-07",
+    "confirmationSource": "Owner message in the current QUEST-001 conversation"
+  },
+  "nextSuggestedTask": "QUEST-002",
+  "unperformed": [
+    "Player graphical launch/render observation by the agent (owner confirmation received)",
+    "Full Windows Player rebuild on a second computer",
+    "Quest/device/network work outside task scope"
+  ],
+  "updatedAtUtc": "2026-09-07T13:05:01.8766813Z",
+  "hotfixAudit": {
+    "date": "2026-09-07",
+    "commands": [
+      "git fetch origin master develop",
+      "git ls-remote --tags origin '*6.1.1*'",
+      "git merge-base --is-ancestor 3c72c260c develop",
+      "git merge-base --is-ancestor 3c72c260c HEAD"
+    ],
+    "exitCodes": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "remoteTag": "6.1.1",
+    "annotatedTagObject": "ff7b0524857b1a00adef13139f33c788a77f7212",
+    "hotfixCommit": "3c72c260c1b7c70675e2ae482adcd87d6e282fde",
+    "alreadyMergedIntoDevelopBy": "8b868a5b851ed7c920b5847bc83f79114bd0f166",
+    "alreadyInQuestBranch": true,
+    "bundleVersionInSource": "6.1.0",
+    "conclusion": "The tested Player already includes the hotfix tagged 6.1.1; displayed/build version remains 6.1.0 because Git tags do not change bundleVersion",
+    "mergeExecuted": false
+  }
+}

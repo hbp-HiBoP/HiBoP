@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "fixtureId": "quest-001-mni-anatomy",
+  "description": "Repository MNI reference anatomy, one column, no patient/site/dataset records",
+  "sourceCommit": "b230166204024b5dd350d8fe897aa854160ff384",
+  "historicalRestorations": [],
+  "archiveEntries": [
+    {
+      "entry": "Patients/",
+      "source": null
+    },
+    {
+      "entry": "Groups/",
+      "source": null
+    },
+    {
+      "entry": "Datasets/",
+      "source": null
+    },
+    {
+      "entry": "Visualizations/",
+      "source": null
+    },
+    {
+      "source": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/quest-mni-anatomy.settings",
+      "entry": "quest-mni-anatomy.settings"
+    },
+    {
+      "source": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/MNI Anatomy.visualization",
+      "entry": "Visualizations/MNI Anatomy.visualization"
+    }
+  ],
+  "sources": [
+    {
+      "path": "Assets/Data/IRM/MNI.nii",
+      "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96",
+      "hashEncoding": "raw",
+      "hashedBytes": 11661664,
+      "provenance": "Existing repository reference anatomy at b230166204024b5dd350d8fe897aa854160ff384; no historical restoration"
+    },
+    {
+      "path": "Assets/Data/Meshes/MNI.trm",
+      "sha256": "751f96184efa1fd229e883013e8863b32233847262071b0262164fe11c5424b8",
+      "hashEncoding": "utf8-lf",
+      "hashedBytes": 53,
+      "provenance": "Existing repository reference anatomy at b230166204024b5dd350d8fe897aa854160ff384; no historical restoration"
+    },
+    {
+      "path": "Assets/Data/Meshes/MNI_Lhemi.gii",
+      "sha256": "8a1e5a23f61645538b22161e24b51a7615fd9a465b246a38dcbf916563e55776",
+      "hashEncoding": "utf8-lf",
+      "hashedBytes": 1668447,
+      "provenance": "Existing repository reference anatomy at b230166204024b5dd350d8fe897aa854160ff384; no historical restoration"
+    },
+    {
+      "path": "Assets/Data/Meshes/MNI_Rhemi.gii",
+      "sha256": "505249c54e3d475e359c6030ae9b8634214f5c68163325b48671ad06a575fcdb",
+      "hashEncoding": "utf8-lf",
+      "hashedBytes": 1651071,
+      "provenance": "Existing repository reference anatomy at b230166204024b5dd350d8fe897aa854160ff384; no historical restoration"
+    },
+    {
+      "path": "Assets/Data/Meshes/MNI_Lwhite.gii",
+      "sha256": "ad8c7998a78b05df1efd9b07971af3568e5a6b76b14ab6589d86451a31fb645a",
+      "hashEncoding": "utf8-lf",
+      "hashedBytes": 1586863,
+      "provenance": "Existing repository reference anatomy at b230166204024b5dd350d8fe897aa854160ff384; no historical restoration"
+    },
+    {
+      "path": "Assets/Data/Meshes/MNI_Rwhite.gii",
+      "sha256": "8ff0a2ba32b13106cb39e97ee22c050199f63a883be48a88a02ec5c7058b977c",
+      "hashEncoding": "utf8-lf",
+      "hashedBytes": 1597759,
+      "provenance": "Existing repository reference anatomy at b230166204024b5dd350d8fe897aa854160ff384; no historical restoration"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/quest-mni-anatomy.settings",
+      "sha256": "8236e0cc9fdc8a19cde678ab7b71972b22b580669570c70842fe98642d10fbd4",
+      "hashEncoding": "utf8-lf",
+      "hashedBytes": 54,
+      "provenance": "QUEST-001 deterministic metadata; no patient records"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/fixtures/mni-anatomy/MNI Anatomy.visualization",
+      "sha256": "c249111dbc94e68fc443933dcd643313dd0edd4d83e32ad17e1ccd9dc2393887",
+      "hashEncoding": "utf8-lf",
+      "hashedBytes": 1109,
+      "provenance": "QUEST-001 deterministic metadata; no patient records"
+    }
+  ],
+  "conventions": {
+    "mri": "MNI",
+    "meshPart": "Both (2)",
+    "preparation": "MNIObjects.LoadDataAsync: LoadGIIFile with TRM, FlipTriangles per hemisphere, clone left then append right, ComputeNormals on left/right/both; NIFTI via Volume.LoadNIFTIFile",
+    "unityConversion": "Existing ReferenceSystemConversion in HbpCoreValueTypes.cs: InvertX=true and triangle winding conversion at native/Unity boundary",
+    "hashes": "SHA-256; raw for NIFTI, UTF-8 without BOM and CRLF normalized to LF for text",
+    "coordinates": "Existing Desktop MNI pipeline, anatomical distances in mm; no new scale or camera transform",
+    "archive": "Fixed entry order, uncompressed ZIP, timestamp 2000-01-01T00:00:00, canonical UTF-8/LF text; uses application MNI assets, not bundled patient files",
+    "transform": "MNI.trm: translation (74.04, 76.599, 87.459), diagonal (-0.999, -0.999, -0.999)",
+    "surfaceRepresentation": "Anatomical (0)",
+    "mesh": "MNI Grey matter"
+  },
+  "ids": [
+    "quest-001-project",
+    "quest-001-visualization",
+    "quest-001-visualization-configuration",
+    "quest-001-column",
+    "quest-001-base-configuration",
+    "quest-001-anatomic-configuration"
+  ]
+}

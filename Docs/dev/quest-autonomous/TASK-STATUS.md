@@ -16,7 +16,7 @@ contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs
 
 | ID | Implémentation | Technique | Manuel | Rapport / preuve / décision |
 | --- | --- | --- | --- | --- |
-| <a id="quest-001"></a>[QUEST-001](tasks/QUEST-001.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-001"></a>[QUEST-001](tasks/QUEST-001.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-001.md) · [Preuves](evidence/QUEST-001/manifest.json) ; M1 confirmée par le propriétaire le 2026-09-07 : ouverture de HiBoP 6.1.0 avec le cerveau MNI. |
 | <a id="quest-002"></a>[QUEST-002](tasks/QUEST-002.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-003"></a>[QUEST-003](tasks/QUEST-003.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-004"></a>[QUEST-004](tasks/QUEST-004.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
