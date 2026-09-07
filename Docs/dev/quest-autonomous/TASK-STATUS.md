@@ -1,0 +1,53 @@
+# Registre de réalisation
+
+État initial documentaire au 2026-09-07 : aucune des tâches ci-dessous n'a été
+implémentée ou testée dans ce chantier. La branche feature/xr-autonomous existe
+déjà ; QUEST-001 ne doit pas la recréer.
+
+Ce fichier est la source de statut. Les fiches décrivent le périmètre, les rapports
+contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs index.
+
+- Implémentation : A_FAIRE, EN_COURS, IMPLEMENTEE, BLOQUEE, NON_APPLICABLE.
+- Technique : NON_EXECUTE, PARTIEL, REUSSI, ECHEC, OBSOLETE, NON_REQUIS.
+- Manuel : NON_DEMANDE, EN_ATTENTE, VALIDE, REFUSE, OBSOLETE, NON_REQUIS.
+- Une qualification manuelle exige un retour daté et référencé dans le rapport.
+- NON_APPLICABLE ne remplace pas un échec : réservé à un report/décision explicite.
+- Aucune tâche n'est « validée » sur la seule base de son implémentation.
+
+| ID | Implémentation | Technique | Manuel | Rapport / preuve / décision |
+| --- | --- | --- | --- | --- |
+| <a id="quest-001"></a>[QUEST-001](tasks/QUEST-001.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-002"></a>[QUEST-002](tasks/QUEST-002.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-003"></a>[QUEST-003](tasks/QUEST-003.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-004"></a>[QUEST-004](tasks/QUEST-004.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-005"></a>[QUEST-005](tasks/QUEST-005.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-006"></a>[QUEST-006](tasks/QUEST-006.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-007"></a>[QUEST-007](tasks/QUEST-007.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-008"></a>[QUEST-008](tasks/QUEST-008.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-009"></a>[QUEST-009](tasks/QUEST-009.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-010"></a>[QUEST-010](tasks/QUEST-010.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-011"></a>[QUEST-011](tasks/QUEST-011.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-012"></a>[QUEST-012](tasks/QUEST-012.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-013"></a>[QUEST-013](tasks/QUEST-013.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-014"></a>[QUEST-014](tasks/QUEST-014.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-015"></a>[QUEST-015](tasks/QUEST-015.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-016"></a>[QUEST-016](tasks/QUEST-016.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-017"></a>[QUEST-017](tasks/QUEST-017.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-018"></a>[QUEST-018](tasks/QUEST-018.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-019"></a>[QUEST-019](tasks/QUEST-019.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-020"></a>[QUEST-020](tasks/QUEST-020.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-021"></a>[QUEST-021](tasks/QUEST-021.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-022"></a>[QUEST-022](tasks/QUEST-022.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-023"></a>[QUEST-023](tasks/QUEST-023.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-024"></a>[QUEST-024](tasks/QUEST-024.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-025"></a>[QUEST-025](tasks/QUEST-025.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-026"></a>[QUEST-026](tasks/QUEST-026.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-027"></a>[QUEST-027](tasks/QUEST-027.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-028"></a>[QUEST-028](tasks/QUEST-028.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-029"></a>[QUEST-029](tasks/QUEST-029.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+
+## Décisions bloquantes et retour utilisateur
+
+Aucune nouvelle décision d'implémentation prise par la rédaction de ces fiches.
+Au lancement d'une tâche, consigner ici un pointeur vers le rapport et Dxx si
+une décision en bloque réellement la suite. Le choix Linux reste futur.
