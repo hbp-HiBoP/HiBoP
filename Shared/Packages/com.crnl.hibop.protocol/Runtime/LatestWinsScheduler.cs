@@ -35,6 +35,7 @@ namespace CRNL.HiBoP.Protocol
         private readonly object m_Gate = new();
         private readonly Func<TRequest, CancellationToken, Task<TResult>> m_Worker;
         private readonly Dictionary<TScope, ScopeQueue> m_Scopes = new();
+        private readonly Dictionary<TScope, ulong> m_LatestSequences = new();
         private long m_Completed;
         private long m_Failed;
         private long m_Superseded;
@@ -68,20 +69,21 @@ namespace CRNL.HiBoP.Protocol
             WorkItem replacedPending = null;
             lock (m_Gate)
             {
-                if (!m_Scopes.TryGetValue(scope, out ScopeQueue queue))
-                {
-                    queue = new ScopeQueue();
-                    m_Scopes.Add(scope, queue);
-                }
-
-                if (sequence <= queue.LatestSequence)
+                if (m_LatestSequences.TryGetValue(scope, out ulong latestSequence) && sequence <= latestSequence)
                 {
                     Interlocked.Increment(ref m_Superseded);
                     item.Completion.SetResult(LatestWinsOutcome<TResult>.Superseded());
                     return item.Completion.Task;
                 }
 
+                if (!m_Scopes.TryGetValue(scope, out ScopeQueue queue))
+                {
+                    queue = new ScopeQueue();
+                    m_Scopes.Add(scope, queue);
+                }
+
                 queue.LatestSequence = sequence;
+                m_LatestSequences[scope] = sequence;
                 if (queue.Active == null)
                 {
                     queue.Active = item;
@@ -105,6 +107,16 @@ namespace CRNL.HiBoP.Protocol
             if (start != null)
                 _ = RunAsync(scope, start);
             return item.Completion.Task;
+        }
+
+        public bool ForgetScope(TScope scope)
+        {
+            lock (m_Gate)
+            {
+                if (m_Scopes.ContainsKey(scope))
+                    return false;
+                return m_LatestSequences.Remove(scope);
+            }
         }
 
         public void GetDepth(TScope scope, out int active, out int pending)

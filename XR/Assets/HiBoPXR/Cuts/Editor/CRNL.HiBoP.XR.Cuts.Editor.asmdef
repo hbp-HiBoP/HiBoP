@@ -1,0 +1,10 @@
+{
+  "name": "CRNL.HiBoP.XR.Cuts.Editor",
+  "rootNamespace": "CRNL.HiBoP.XR.Cuts.Editor",
+  "references": [
+    "CRNL.HiBoP.XR.Cuts",
+    "Unity.XR.Interaction.Toolkit"
+  ],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false
+}

@@ -1,0 +1,14 @@
+{
+  "name": "CRNL.HiBoP.XR.Cuts.EditModeTests",
+  "rootNamespace": "CRNL.HiBoP.XR.Cuts.Tests",
+  "references": [
+    "CRNL.HiBoP.Contracts",
+    "CRNL.HiBoP.Protocol",
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.XR.Cuts",
+    "Unity.XR.Interaction.Toolkit"
+  ],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

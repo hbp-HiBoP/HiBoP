@@ -1,0 +1,12 @@
+{
+  "name": "CRNL.HiBoP.XR.Cuts",
+  "rootNamespace": "CRNL.HiBoP.XR.Cuts",
+  "references": [
+    "CRNL.HiBoP.Contracts",
+    "CRNL.HiBoP.Protocol",
+    "CRNL.HiBoP.RenderModel",
+    "CRNL.HiBoP.XR.Timeline.Rendering",
+    "Unity.XR.Interaction.Toolkit"
+  ],
+  "autoReferenced": true
+}

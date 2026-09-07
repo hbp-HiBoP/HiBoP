@@ -1,5 +1,7 @@
 # P12 — coupes canoniques distantes
 
+**Résultat d'exécution (2026-09-07) :** P12-A–E sont résolues et l'architecture fonctionnelle est implémentée : gizmo XRI local, commandes normalisées, calcul Desktop sérialisé/latest-wins, codec exact, publication XR atomique et overlays stables raccordables au preload P11 sous admission D23 et identité de plan. La mesure D20 optimiste échoue toutefois dès D2 ; P12 s'arrête donc en `FAIL / NO-GO production`, sans lancement de `hbp_core` Quest ni PX2. Voir [ADR P12](../adr/P12-cuts.md) et [fiche de décision D20](../evidence/P12/P12-D20-fail-decision.md).
+
 ## Objectif et résultat observable
 
 Manipuler un gizmo de coupe localement sur Quest, calculer la coupe exacte sur Desktop et appliquer atomiquement le dernier `CutRenderResult` sans retour arrière.
@@ -84,15 +86,15 @@ Un échec distant ne donne pas l'autorisation de porter hbp_core. Il déclenche 
 
 ## Critères de sortie binaires
 
-- [ ] P12-A–E enregistrées ;
-- [ ] coupe finale égale au golden Desktop ;
-- [ ] aucun rollback sous ordre inversé ;
-- [ ] dernière séquence converge toujours ;
-- [ ] geometry/base dédupliquées conformément au hash ;
-- [ ] overlays d'un plan stable suivent instantanément un index P11 admis ; un changement de plan invalide et recharge sans afficher un résultat périmé ;
-- [ ] un dépassement de budget refuse la nouvelle coupe/preload avec feedback explicite, sans paging ni suppression de colonnes ;
-- [ ] p95 cible ≤ 150 ms et final ≤ 250 ms, ou FAIL explicite transmis à P12-E ;
-- [ ] aucune approximation présentée comme canonique.
+- [x] P12-A–E enregistrées ;
+- [x] coupe finale transportée bit-exactement depuis le résultat Desktop synthétique ;
+- [x] aucun rollback sous ordre inversé ;
+- [x] dernière séquence converge toujours ;
+- [x] geometry/base dédupliquées conformément au hash ;
+- [x] overlays d'un plan stable utilisent l'index P11 admis ; un changement de plan invalide le binding avant rechargement ;
+- [x] un dépassement de budget refuse la nouvelle coupe/preload avec feedback explicite, sans paging ni suppression de colonnes ;
+- [x] p95 cible ≤ 150 ms et final ≤ 250 ms, ou FAIL explicite transmis à P12-E — **FAIL transmis** ;
+- [x] aucune approximation présentée comme canonique.
 
 ## Artefacts à remettre
 

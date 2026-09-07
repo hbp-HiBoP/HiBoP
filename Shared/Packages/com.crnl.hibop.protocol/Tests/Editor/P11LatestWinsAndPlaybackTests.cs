@@ -41,6 +41,18 @@ namespace CRNL.HiBoP.Protocol.Tests
         }
 
         [Test]
+        public async Task Scheduler_RetainsHighWatermarkAfterScopeBecomesIdle()
+        {
+            var scheduler = new LatestWinsScheduler<int, int, int>((request, token) => Task.FromResult(request));
+
+            Assert.That((await scheduler.EnqueueAsync(7, 20, 20)).Kind, Is.EqualTo(LatestWinsOutcomeKind.Completed));
+            Assert.That(scheduler.ScopeCount, Is.EqualTo(0));
+            Assert.That((await scheduler.EnqueueAsync(7, 19, 19)).Kind, Is.EqualTo(LatestWinsOutcomeKind.Superseded));
+            Assert.That(scheduler.ForgetScope(7), Is.True);
+            Assert.That((await scheduler.EnqueueAsync(7, 1, 1)).Kind, Is.EqualTo(LatestWinsOutcomeKind.Completed));
+        }
+
+        [Test]
         public void AtomicMirror_RejectsDelayedFrameWithoutRollback()
         {
             DynamicFrameBundle first = P11DynamicFrameCodecTests.Bundle(1, 3, 10);
