@@ -1,0 +1,722 @@
+{
+  "schemaVersion": 1,
+  "taskId": "QUEST-002-A",
+  "recordedAtUtc": "2026-09-07T14:26:47.834703+00:00",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "sourceState": {
+    "branch": "feature/xr-autonomous",
+    "referenceCommit": "f64212b7f3110de9ca30f04a25dd33e0ecc6fa4d",
+    "initiallyClean": true,
+    "committed": false,
+    "sourceChanges": [
+      {
+        "path": "Assets/Prefabs/Managers/Input Manager.prefab",
+        "bytes": 4190,
+        "sha256": "31a60fe5e1e01a96071f81fb86755e679d071a07038cef1eb40c0aa55c43b331"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/HBP.Data.Runtime.asmdef",
+        "bytes": 556,
+        "sha256": "b90047b8a360d567123cee2614c64ccd30da3e0d1da74f95c72bcf8c60e6dec1"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/AtlasManager.cs",
+        "bytes": 7583,
+        "sha256": "b275591d24059c442703615a7bf15ccc1d15309d57aae0a3e8667a7a29a59892"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/ImplantationManager.cs",
+        "bytes": 7285,
+        "sha256": "8626a4f3d27b5a544ef3108ab268b367d9473cd93479fa649fc32eeafb7f0c84"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Tools/PerformanceManager.cs",
+        "bytes": 2372,
+        "sha256": "94d0ccd1c79d2556f087c39159d1d606eac8c6aec5a08ff0f3dc3a4b3762bcfe"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/DevDebug.cs",
+        "bytes": 19038,
+        "sha256": "b2f80c6f9e17c5d8273c1607f348c65abaccbb966045f381f17f11b48bc6c0b3"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/HBP.Dev.Runtime.asmdef",
+        "bytes": 563,
+        "sha256": "97d38452c22db7eb38baf51e25bdfdf389f1778217ed89ca4860195844d9bba7"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Theme/HBP.Theme.Runtime.asmdef",
+        "bytes": 459,
+        "sha256": "db086691b2f2e560e3ae81b51299b5a178ca1bc06062bb25abc878ac26af1ac5"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Theme/Settings/Cursor.cs",
+        "bytes": 502,
+        "sha256": "f575447fbb92a072d19270fbb776c977acd1d58c3864e334e22f78977467c52c"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/HBP.UI.Runtime.asmdef",
+        "bytes": 648,
+        "sha256": "d49960064dc79340be3a215281a0e2e8305a229b295b575eb5537cd523d80c1b"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Informations/Graph/Listener.cs",
+        "bytes": 7168,
+        "sha256": "87cda24f2b3f156a30331ff2799b5e92e1da6b6a1dcf3cb848514b772a01b723"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Informations/Graph/PositionMouseValueDisplayer.cs",
+        "bytes": 3727,
+        "sha256": "5972d1b7a44e52573bb43a01da2d5ad7b1f99f82bc1c912460463a8c40d5b6f0"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Informations/Graph/Simplified/GraphsGridItem.cs",
+        "bytes": 2190,
+        "sha256": "dcc46ef0a07321290a6d2dbcc80151a6b6aed492927996efe9de45ba062c4070"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Informations/TrialMatrix/ChannelBloc.cs",
+        "bytes": 17949,
+        "sha256": "b08f2e32985b0a78c5dfab36a99b392d72b2a87b77cc73b39872fc772901ae8a"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Informations/TrialMatrix/SubBlocOverlay.cs",
+        "bytes": 11934,
+        "sha256": "a7c2ea85eb266b96146f58fcf73b3a7b6d3dddb70c67b091e9206219d7bde572"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Main/Database/TrialMatrixExplorer/TrialMatrixDisplayer.cs",
+        "bytes": 17436,
+        "sha256": "46c6604388ae59a90678f9e9b9517ea58d10ddd3c2c16539ca3939cef42f6319"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Main/Menu/MainMenu.cs",
+        "bytes": 3264,
+        "sha256": "f4effad590318f8c2a009c953dcafd0d48c3c17ac3a4f202932945121d7b204a"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/Column3DUI.cs",
+        "bytes": 21089,
+        "sha256": "86ca8f4f0c638ea0c367029fdc8254068fe8f80d9f07dd1a9a592bb20441d7ca"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/Cuts/CutController.cs",
+        "bytes": 7031,
+        "sha256": "428abec0f64ee2af884d442caf8a045f5527420a0ca50a9abd36e78781c0e733"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/Cuts/CutSite.cs",
+        "bytes": 3656,
+        "sha256": "8d034e48b45fa527f4cea512742e83fdbf3b883b3858fb8bf6f563158b2bea92"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/Scene3DWindow.cs",
+        "bytes": 27026,
+        "sha256": "23e4deee301e7c3a0e11e3647f4adb81783e4c4af91c58e5ec79c82a23d425bc"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/Sites/SiteItemInfoDisplayer.cs",
+        "bytes": 1558,
+        "sha256": "96c58f0153fd4c70bf42a5704a62443d1cf41e0489fc03e4169a435928225251"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/Sites/SiteLabels.cs",
+        "bytes": 5232,
+        "sha256": "3bf790ff649e8f723a17f9bcaa330fdc39c4f789203462a0e0902202cc8945a4"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/View3DUI.cs",
+        "bytes": 17091,
+        "sha256": "e850d5638dbe169179556f43011c82679fa3107f30782ff0cf63613a984c9b11"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Module3D/overlay/ColumnLabel.cs",
+        "bytes": 3884,
+        "sha256": "1bc659fe2330a7372c35b881f59cda29a0679807f379cdaecb0e20237f489398"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/InputFieldBackend.cs",
+        "bytes": 2740,
+        "sha256": "6202d5b271fd915a80dc03573f1559e4202d2428988a42df8927e3ce944dc314"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/InputFieldBackend.cs.meta",
+        "bytes": 62,
+        "sha256": "56f03fc041893fe5425da399d5f90608f18ab886126b0657477808cdaf53103c"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/List/ListBrowser.cs",
+        "bytes": 3369,
+        "sha256": "6cce8a571d10469668b2c9b5b4dd890b118063158cdf4cb629b3437308b2b419"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/List/SelectableList.cs",
+        "bytes": 19264,
+        "sha256": "f7a06aae8eeaedbda8c844a05d11d3c728e0f184e389c325fd75df7be76fc63e"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/MousePositionAndClamp.cs",
+        "bytes": 3742,
+        "sha256": "5604889bec50571877d1a216f8e06810f5677fdf52afdb8c25d6fc12c6f3b728"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/MousePositionRatio.cs",
+        "bytes": 937,
+        "sha256": "2f63d649450908102e18f20c31ec586c16bf8bbcbb462134b715f7532a8b4ca3"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/OnClickOutsideHandler.cs",
+        "bytes": 904,
+        "sha256": "fe0fea1463e2006051911d6462a7a2d9fec30a9166e98b450f25b814362e1b67"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/RangeSlider.cs",
+        "bytes": 42885,
+        "sha256": "40b8114ddaf68f4a4a7cc8ffa65a83262e76a555ab5ac88acb41792cee008ea6"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/ShortcutManager.cs",
+        "bytes": 17055,
+        "sha256": "5d0dc420e029ddfbcc9c7094693475a300f735f8c3cd5e6b9595a129d98f4dc9"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/Tooltip.cs",
+        "bytes": 2760,
+        "sha256": "7b68307b4ae4e068baaa2e6dafe1c70e925557fbde5e0dd4eb2d3d09cdd08da3"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/TooltipManager.cs",
+        "bytes": 3052,
+        "sha256": "c47a5c5a3a7b0aa72b1904ac27e87c76d73f1a84ff3c6cc21ca364d282bdff0a"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/Window/Dragger.cs",
+        "bytes": 1471,
+        "sha256": "18fec7e08c3b4a8cc6e5183990c4efd789a6e1c651724ed9067ebc991d76233d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/Window/FieldsSwitcher.cs",
+        "bytes": 911,
+        "sha256": "385c48aa4565bc56aeaa47fa53dffc2532d6bf6af76694b4e9918a7f4406e007"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/Window/Resizer.cs",
+        "bytes": 6859,
+        "sha256": "8ef3f06da46e610329bfc77f6dd9216662f93daaad59acbed459ea8f75606d38"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/Window/SelectionManager.cs",
+        "bytes": 2993,
+        "sha256": "a44228653e0a4331344aa11716477673778db130a4e0b2224b0d63b6ddcbb2f3"
+      },
+      {
+        "path": "Assets/Settings/DesktopInputSettings.asset",
+        "bytes": 1214,
+        "sha256": "4b3753962c2973c0b934852719722ca32c276401b5ac2dad7ff64d4701d761fd"
+      },
+      {
+        "path": "Assets/Settings/DesktopInputSettings.asset.meta",
+        "bytes": 194,
+        "sha256": "7d23e204c4baaa1b2bae8018d61e5b95ddb9397f3146c6491d5347673ee7e0f4"
+      },
+      {
+        "path": "Assets/Settings/DesktopUI.inputactions",
+        "bytes": 12852,
+        "sha256": "0c03abc792c773e4e5dfc19845b6bf4583fd1b5a91117300b3023c4edd3b5c16"
+      },
+      {
+        "path": "Assets/Settings/DesktopUI.inputactions.meta",
+        "bytes": 384,
+        "sha256": "059f0255f349f4ebf590e33d5c5b62a750d93450d08f5bc932b367133d2eca00"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/DesktopInputConfigurationTests.cs",
+        "bytes": 4452,
+        "sha256": "d8ef9598fc77010095713bf7cda29dd048f00e0451e2a52bbcdafc4afa8467cd"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/DesktopInputConfigurationTests.cs.meta",
+        "bytes": 62,
+        "sha256": "3196af785ff565d67d2142eef53a0f82336761844fda4e6f6c25cbce598bdeb2"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/HBP.PlatformConfiguration.Tests.asmdef",
+        "bytes": 434,
+        "sha256": "a9b08527530a2bdc4a44ced147b7db364b4fe7e874e06db1dafb76452b462c73"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/QuestPackageConfigurationTests.cs",
+        "bytes": 5595,
+        "sha256": "fdff0b58e4d9299e62176cbd7174e36b2d8c0f5a12be488834166f2efd26ba22"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.PlayModeTestUtilities/HBP.PlayModeTestUtilities.asmdef",
+        "bytes": 542,
+        "sha256": "b2ce5ff3ecd6aed60b852673735bde7921e486bf1805e9038769908dcab769b7"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.PlayModeTestUtilities/PlayModeWindowHarness.cs",
+        "bytes": 1262,
+        "sha256": "c1edf01ddd6a0cec11c6ecfbfd04f0c96f812b2de3726f0d0a6520495dd35b27"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/DesktopInputPlayModeTests.cs",
+        "bytes": 21159,
+        "sha256": "3825e4169db52b4d2ab99e80ef277770f7e51441f564f3ea7cba40ac2b1cc6b1"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/DesktopInputPlayModeTests.cs.meta",
+        "bytes": 62,
+        "sha256": "f18ce87be1cd925e8436332b42e85cfcb62b44f796cf1b5abd12930fd1948b56"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/HBP.UI.PlayModeTests.asmdef",
+        "bytes": 635,
+        "sha256": "27b890343d097b23d35ade5eb9ff11db48e5555e8f63ae0114969e2805b247b3"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/UiPlayModeArchitectureTests.cs",
+        "bytes": 997,
+        "sha256": "9c940f6bdfa0ff5a9d2ca01149009b9e2adc15a6133112fa01b6541e0f566553"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/03-target-architecture.md",
+        "bytes": 8573,
+        "sha256": "960570980d7bf730f0de33859b3f34212040d1d1f74382337af3aaa749d184ac"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+        "bytes": 5022,
+        "sha256": "ca39d5e69d919ce1c5454267f0b0a3ece3568cdf5c42dd1aeef40b3135f77abd"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/evidence/QUEST-002-A/input-inventory.json",
+        "bytes": 9291,
+        "sha256": "d71e42e8914f916bdca9ad92918d28552d97f89700030e7621d1cc683fa50c9e"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/reports/QUEST-002-A.md",
+        "bytes": 12788,
+        "sha256": "e44b858537c06689190f14c52180b70f552cd64c56506561007fdfce9d57cf83"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/tasks/QUEST-003.md",
+        "bytes": 3700,
+        "sha256": "e592c7101a4914a27c5447b44d6b2e5aee9ffd6d4529ebbc2faf92a89ae8bde0"
+      },
+      {
+        "path": "ProjectSettings/EditorBuildSettings.asset",
+        "bytes": 581,
+        "sha256": "5cb4b6a1e685d6658bcdf8a83189970506df2c8b465e1e4fa34d1856eddda411"
+      },
+      {
+        "path": "ProjectSettings/ProjectSettings.asset",
+        "bytes": 24239,
+        "sha256": "d073c3621cc4a751fb2e6a380fdfe55b5957437b60529c69588a995ee557ca6d"
+      },
+      {
+        "path": "Tools/Set-QuestInputMode.ps1",
+        "deleted": true
+      }
+    ],
+    "trackedDiff": {
+      "path": ".test-results/quest-002-a/delivery.patch",
+      "bytes": 78342,
+      "sha256": "26543548b73cc8087d4f1d7f6728b9d77c0765ce343bf9390d21aae22c8a591f"
+    },
+    "self": "Manifest excludes itself from the source hash list; new untracked files are identified by individual hashes.",
+    "generatedChangesRestored": [
+      "Assets/Resources/BuildInfo.json (built contents retained in build-info.json)",
+      "ProjectSettings/ProjectSettings.asset (empty generated platform icon entries removed; activeInputHandler=1 retained)"
+    ],
+    "nonSemanticFinalization": "Trailing whitespace removed from newly serialized asset/meta lines after verification; no C# changes after the successful 80-test run.",
+    "scope": "Snapshot of the delivered Player before the subsequent static input facade refactor; original file hashes retained as provenance."
+  },
+  "versions": {
+    "unity": "6000.5.2f1",
+    "inputSystem": "1.20.0",
+    "ugui": "2.5.0",
+    "scriptingBackendWindows": "IL2CPP",
+    "activeInputHandlerWindows": 1,
+    "activeInputHandlerAndroid": 1
+  },
+  "packages": [
+    {
+      "path": "Packages/manifest.json",
+      "bytes": 2598,
+      "sha256": "ff2121b9498f214213407c163dd42e6d07e6b09e4645902544aec52082500d36",
+      "referenceGitBlobSha256": "3eabac3b50d2e6a3762799ebf9088a591a4f8b59bbce0f4c11c04328c2fcd83b",
+      "gitSourceUnchanged": true,
+      "referenceDeliverySha256": "ff2121b9498f214213407c163dd42e6d07e6b09e4645902544aec52082500d36"
+    },
+    {
+      "path": "Packages/packages-lock.json",
+      "bytes": 17366,
+      "sha256": "c5c2823f9418740e9f027b60f0f3408a789b4468d9456a4c073813820a0f6cb4",
+      "referenceGitBlobSha256": "c5c2823f9418740e9f027b60f0f3408a789b4468d9456a4c073813820a0f6cb4",
+      "gitSourceUnchanged": true,
+      "referenceDeliverySha256": "c5c2823f9418740e9f027b60f0f3408a789b4468d9456a4c073813820a0f6cb4"
+    }
+  ],
+  "packageSnapshots": [
+    {
+      "path": ".test-results/quest-002-a/packages-after-android.json",
+      "bytes": 579,
+      "sha256": "9e6c9b64659e3950edf5cb7a0ea0d7a06682b157eba98639d95c26c651dab43c"
+    },
+    {
+      "path": ".test-results/quest-002-a/packages-after-windows-return.json",
+      "bytes": 579,
+      "sha256": "9e6c9b64659e3950edf5cb7a0ea0d7a06682b157eba98639d95c26c651dab43c"
+    }
+  ],
+  "inputAudit": {
+    "inventory": {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-002-A/input-inventory.json",
+      "bytes": 9291,
+      "sha256": "d71e42e8914f916bdca9ad92918d28552d97f89700030e7621d1cc683fa50c9e"
+    },
+    "deliveredDependencies": {
+      "path": ".test-results/quest-002-a/delivered-dependencies.txt",
+      "bytes": 123514,
+      "sha256": "b5f36d56bc6a2aa020fcc6d2f0939b20959212425ea3ae9bdf362b6a1c4932f5"
+    },
+    "beforeApplicationFiles": 33,
+    "beforeOccurrencesIncludingComments": 147,
+    "activeApplicationLegacyReadsAfter": 0,
+    "commentedLegacyExpressionsAfter": 16,
+    "deliveredLegacyModulesAfter": 0,
+    "excludedExamples": [
+      "Assets/TextMesh Pro/Examples & Extras",
+      "Assets/ThirdParty/UIExtensions/Scripts/Controls/ColorPicker/TiltWindow.cs"
+    ],
+    "packageCodeModified": false
+  },
+  "tests": [
+    {
+      "name": "windows-edit",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-buildTarget",
+        "Win64",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testFilter",
+        "HBP.Tests.PlatformConfiguration;HBP.Tests.Serialization.QuestAnatomyFixtureTests",
+        "-testResults",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\windows-edit.xml",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\windows-edit.log",
+        "-forgetProjectPath"
+      ],
+      "exitCode": 0,
+      "result": "Passed",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "startedUtc": "2026-09-07 14:02:33Z",
+      "endedUtc": "2026-09-07 14:03:00Z",
+      "playerAssemblies": [
+        "60"
+      ],
+      "evidence": [
+        {
+          "path": ".test-results/quest-002-a/windows-edit.xml",
+          "bytes": 38046,
+          "sha256": "af15c624fbc93c5d32c86bd5be55a8cee830ab9837342475357a1bb1c593f552"
+        },
+        {
+          "path": ".test-results/quest-002-a/windows-edit.log",
+          "bytes": 236149,
+          "sha256": "3e8b71a277fc909debc16697c42fa25066907247aa30b120108811ff50148014"
+        }
+      ]
+    },
+    {
+      "name": "ui-module3d",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+      "arguments": [
+        "-batchmode",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-buildTarget",
+        "Win64",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-assemblyNames",
+        "HBP.UI.PlayModeTests;HBP.Module3D.PlayModeTests",
+        "-testResults",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\ui-module3d.xml",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\ui-module3d.log",
+        "-forgetProjectPath"
+      ],
+      "exitCode": 0,
+      "result": "Passed",
+      "total": 80,
+      "passed": 80,
+      "failed": 0,
+      "startedUtc": "2026-09-07 14:13:01Z",
+      "endedUtc": "2026-09-07 14:13:11Z",
+      "playerAssemblies": [],
+      "evidence": [
+        {
+          "path": ".test-results/quest-002-a/ui-module3d.xml",
+          "bytes": 82838,
+          "sha256": "ecf33ee35795fa16d2741540a62f3766edfe6e91bb0d204e8786f2c02c40e4c4"
+        },
+        {
+          "path": ".test-results/quest-002-a/ui-module3d.log",
+          "bytes": 105966,
+          "sha256": "78c1b13efa8aba6b936ac847ee9f3187b1156546da6ac1fd42db8302cf266bb8"
+        }
+      ]
+    },
+    {
+      "name": "android-edit",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-buildTarget",
+        "Android",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-assemblyNames",
+        "HBP.PlatformConfiguration.Tests",
+        "-testResults",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\android-edit.xml",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\android-edit.log",
+        "-forgetProjectPath"
+      ],
+      "exitCode": 0,
+      "result": "Passed",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "startedUtc": "2026-09-07 14:15:22Z",
+      "endedUtc": "2026-09-07 14:15:38Z",
+      "playerAssemblies": [
+        "59"
+      ],
+      "evidence": [
+        {
+          "path": ".test-results/quest-002-a/android-edit.xml",
+          "bytes": 32907,
+          "sha256": "ad9b33d4776c7f70558f51b65bebd05587979a9307504cd135dc85813b85a47c"
+        },
+        {
+          "path": ".test-results/quest-002-a/android-edit.log",
+          "bytes": 250208,
+          "sha256": "0a0f4e8bce8fa0efdbf8041dd6755e89670b095d7694115feb31c83ae3904f3c"
+        }
+      ]
+    },
+    {
+      "name": "windows-return",
+      "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+      "arguments": [
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-buildTarget",
+        "Win64",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testFilter",
+        "HBP.Tests.PlatformConfiguration;HBP.Tests.Serialization.QuestAnatomyFixtureTests",
+        "-testResults",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\windows-return.xml",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\windows-return.log",
+        "-forgetProjectPath"
+      ],
+      "exitCode": 0,
+      "result": "Passed",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "startedUtc": "2026-09-07 14:17:35Z",
+      "endedUtc": "2026-09-07 14:17:50Z",
+      "playerAssemblies": [
+        "60"
+      ],
+      "evidence": [
+        {
+          "path": ".test-results/quest-002-a/windows-return.xml",
+          "bytes": 36881,
+          "sha256": "e862401cc5a9dac2cf066becbd05c92d3e734b4bcee9528dc18f78379e60a4b5"
+        },
+        {
+          "path": ".test-results/quest-002-a/windows-return.log",
+          "bytes": 178514,
+          "sha256": "40322b9a3cdffa080d9f59b31abb915c42b04979ff258286461364d5641e1ad8"
+        }
+      ]
+    }
+  ],
+  "build": {
+    "executable": "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+    "arguments": [
+      "-batchmode",
+      "-nographics",
+      "-projectPath",
+      "C:\\HBP\\Software\\HiBoP",
+      "-buildTarget",
+      "Win64",
+      "-executeMethod",
+      "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+      "-buildOutput",
+      "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-002-a\\player",
+      "-scriptingBackend",
+      "IL2CPP",
+      "-quit",
+      "-logFile",
+      "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-002-a\\build-windows.log",
+      "-forgetProjectPath"
+    ],
+    "exitCode": 0,
+    "result": "Success",
+    "unityBuildSeconds": 254.451,
+    "log": {
+      "path": ".test-results/quest-002-a/build-windows.log",
+      "bytes": 828886,
+      "sha256": "ab6199590a26cded48464f43a62fe8b1482247e7f25d20c6ed3efb0ebb924919"
+    },
+    "buildInfo": {
+      "path": ".test-results/quest-002-a/build-info.json",
+      "bytes": 119,
+      "sha256": "ab8c931fe100e2e0283636f9e23738b9573dc03addc2df10f157c642ad083836"
+    },
+    "distributionInventory": {
+      "path": ".test-results/quest-002-a/player-files.json",
+      "bytes": 23163,
+      "sha256": "b6e790659601868bee9f4de3caacb93499333d661ab9420bd2cd351c35472f52"
+    },
+    "fileCount": 106,
+    "totalBytes": 631190139,
+    "player": {
+      "path": ".artifacts/quest-002-a/player/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "aab370fc59ed240ed50af0c9461d0d3e83548253ac11c820420d4d37bba64250"
+    },
+    "gameAssembly": {
+      "path": ".artifacts/quest-002-a/player/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 59068416,
+      "sha256": "b76b9ad36397aaf6742909bcc9c7f7426eb73acd4cac85ab8993578e5cdc6008"
+    }
+  },
+  "formatting": {
+    "command": ".\\Tools\\format-code.cmd",
+    "exitCode": 0,
+    "log": {
+      "path": ".test-results/quest-002-a/format-delivery.log",
+      "bytes": 611,
+      "sha256": "3d509841f571f06e3bb95e36f9765adb72ffe0395d6fa5760ee5597d932b2f63"
+    },
+    "execution": "Outside sandbox for NuGet restore; initial sandbox failure retained in format.log."
+  },
+  "diffCheck": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "referencePlayer": {
+    "sourceTask": "QUEST-002",
+    "commit": "f64212b7f3110de9ca30f04a25dd33e0ecc6fa4d",
+    "player": {
+      "path": ".artifacts/quest-002/player/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "aab370fc59ed240ed50af0c9461d0d3e83548253ac11c820420d4d37bba64250"
+    },
+    "gameAssembly": {
+      "path": ".artifacts/quest-002/player/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 59053568,
+      "sha256": "29c24f0343bfd628edfb5be6e223415e223585778af5a7c29d0d20fe485789d7"
+    },
+    "fixture": {
+      "path": ".artifacts/quest-002/fixture/quest-mni-anatomy.hibop",
+      "bytes": 1853,
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a"
+    },
+    "preserved": true
+  },
+  "fixture": {
+    "path": ".artifacts/quest-002-a/fixture/quest-mni-anatomy.hibop",
+    "bytes": 1853,
+    "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a"
+  },
+  "behaviorMeasurements": {
+    "source": "Injected MouseState/KeyboardState, InputSystemUIInputModule, real View3DUI/View3D/Camera3D; unchanged camera formulas from reference commit",
+    "translation20Pixels": {
+      "uiScale1": {
+        "x": -4,
+        "y": -20
+      },
+      "uiScale0_5": {
+        "x": -2,
+        "y": -10
+      }
+    },
+    "rotation20PixelsDegrees": {
+      "uiScale1": 20,
+      "uiScale0_5": 10
+    },
+    "zoomTicks": {
+      "plus1": 5,
+      "minus0_5": -2.5
+    },
+    "uiWheelMultiplier": 1,
+    "listRepeatDelaySeconds": 0.5,
+    "listRepeatIntervalSeconds": 0.1,
+    "preexistingVerticalSensitivityRatio": 5
+  },
+  "manualValidation": {
+    "status": "VALIDE",
+    "requestedItems": [
+      "M1: compare camera gestures with QUEST-002 at same physical DPI",
+      "M2: menus, text, Tab/Enter/Escape, selection modifiers, windows and shortcuts",
+      "M3: OS focus loss/return, no stuck input or duplicated action"
+    ],
+    "ownerResponse": "Je valide les 3 résultats à la date de maintenant.",
+    "validatedAt": "2026-09-07T16:34:16+02:00",
+    "results": {
+      "M1": "OK",
+      "M2": "OK",
+      "M3": "OK"
+    },
+    "appliesTo": {
+      "path": ".artifacts/quest-002-a/player/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 59068416,
+      "sha256": "b76b9ad36397aaf6742909bcc9c7f7426eb73acd4cac85ab8993578e5cdc6008"
+    }
+  },
+  "limitations": [
+    "No physical Mac/Linux qualification",
+    "No Quest rig, APK build or physical Quest gestures",
+    "Physical DPI/trackpad/keyboard layout/IME require owner verification",
+    "Focus reset is injected; actual OS focus gesture remains manual",
+    "Accented text is injected with InputField.ProcessEvent; native OS IMGUI text delivery is not simulated by KeyboardState",
+    "Initial failed setup/harness attempts are retained as local logs; only final successful campaigns are accepted evidence"
+  ],
+  "followUpRefactor": {
+    "path": "Docs/dev/quest-autonomous/evidence/QUEST-002-A/input-facade.json",
+    "bytes": 14931,
+    "sha256": "e1e3c381d8318fe65379f37ef474ea9bcfeb911a052553546e79dc0fdd27e6a0"
+  }
+}

@@ -1,7 +1,7 @@
 {
     "name": "HBP.PlatformConfiguration.Tests",
     "references": [
-        "Unity.InputSystem",
+        "Unity.InputSystem", "HBP.UI.Runtime",
         "Unity.XR.Management",
         "Unity.XR.Management.Editor",
         "Unity.XR.Interaction.Toolkit"

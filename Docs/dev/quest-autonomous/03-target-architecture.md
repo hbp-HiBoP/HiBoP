@@ -21,7 +21,7 @@ compatibilité complète sur la seule égalité URP.
 | Profil | DesktopWindows, puis DesktopMac et éventuel Linux | Quest |
 | Identité de composition | HIBOP_DESKTOP | HIBOP_QUEST |
 | Runtime XR | Aucun loader actif ni initialisation | OpenXR Android / Meta passthrough |
-| Entrée | Navigation historique conservée | Actions Input System/XRI, contrôleurs |
+| Entrée | Commandes Desktop conservées, Input System seul (QUEST-002-A) | Actions Input System/XRI, contrôleurs |
 | Rendu | URP Desktop actuel | Réglages URP Quest et stéréo |
 | Natif | Plugins de l'OS/architecture | Android ARM64 uniquement |
 | Données | Sources et import Desktop | Session préparée reçue |
@@ -29,10 +29,11 @@ compatibilité complète sur la seule égalité URP.
 Les Build Profiles portent scènes, defines et overrides Player lorsqu'ils sont
 disponibles. Les réglages XR restent configurés par cible. Un validateur de
 composition vérifie les valeurs effectives, car tous les paramètres ne sont pas
-nécessairement indépendants dans le profil. Le changement d'Input System doit
-faire l'objet d'un essai : conserver l'entrée historique Desktop, activer la
-nouvelle entrée Quest et éviter une bascule globale cassant la souris. Ne pas
-réécrire silencieusement le manifeste selon la plateforme.
+nécessairement indépendants dans le profil. QUEST-002-A conserve les commandes
+Desktop avec Input System seul : le réglage global vaut New sur Desktop et
+Android, sans sélecteur Both/New. Les essais et limites de qualification sont
+consignés dans son rapport. Ne pas réécrire silencieusement le manifeste selon
+la plateforme.
 
 Unity documente les scènes, defines et overrides des profils dans
 [Build Profiles](https://docs.unity3d.com/6000.0/Documentation/Manual/build-profiles-reference.html).

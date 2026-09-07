@@ -1,3 +1,5 @@
+using HBP.Input;
+using UnityEngine.InputSystem;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
@@ -138,9 +140,9 @@ namespace HBP.UI.Database
             if (m_ParentSelector != null && !m_ParentSelector.Selected)
                 return;
 
-            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            if (DesktopInput.WasPressedThisFrame(Key.LeftArrow))
                 m_ProtocolDropdown.SelectPrevious();
-            else if (Input.GetKeyDown(KeyCode.RightArrow))
+            else if (DesktopInput.WasPressedThisFrame(Key.RightArrow))
                 m_ProtocolDropdown.SelectNext();
         }
 

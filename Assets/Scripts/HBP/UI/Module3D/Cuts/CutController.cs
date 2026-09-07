@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using HBP.Input;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -108,10 +109,10 @@ namespace HBP.UI.Module3D
                 m_RectTransform.hasChanged = false;
             }
 
-            if (Input.GetMouseButtonDown(0) && m_CutParametersControllers.Any(c => c.AreControlsOpen))
+            if (DesktopInput.WasLeftMouseButtonPressedThisFrame && m_CutParametersControllers.Any(c => c.AreControlsOpen))
             {
                 Rect rect = m_RectTransform.ToScreenSpace();
-                Vector3 mousePosition = Input.mousePosition;
+                Vector3 mousePosition = DesktopInput.MousePosition;
                 if (!(mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height))
                 {
                     foreach (CutParametersController control in m_CutParametersControllers)

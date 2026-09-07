@@ -2,10 +2,10 @@
 
 Jalon : [J1](../milestones/J1.md). Type : implémentation ciblée.
 Dépendances : [QUEST-002](QUEST-002.md)
-Option planifiée : si [QUEST-002-A](QUEST-002-A.md) a été exécutée après le commit
-de QUEST-002, utiliser New dans les deux profils sans réintroduire Both ou son
-sélecteur. Sinon conserver la stratégie d'entrée de QUEST-002 ; cette option
-n'est pas une dépendance bloquante.
+Entrée : [QUEST-002-A](QUEST-002-A.md) migre le checkout vers New sur les deux
+cibles. Lire son [rapport](../reports/QUEST-002-A.md) et son statut avant reprise ;
+conserver `activeInputHandler=1` dans les deux profils. Le sélecteur Both/New est
+supprimé ; les commandes historiques de QUEST-002 restent des preuves datées.
 Statut et preuves : [registre](../TASK-STATUS.md#quest-003).
 
 ## Instructions de reprise

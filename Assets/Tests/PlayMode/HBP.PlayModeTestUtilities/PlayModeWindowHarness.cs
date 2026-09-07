@@ -1,3 +1,4 @@
+using UnityEngine.InputSystem.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
@@ -24,7 +25,9 @@ namespace HBP.Tests.PlayMode.Utilities
             GameObject eventSystemObject = new($"{rootName} EventSystem");
             SceneManager.MoveGameObjectToScene(eventSystemObject, scene);
             EventSystem = eventSystemObject.AddComponent<EventSystem>();
-            eventSystemObject.AddComponent<StandaloneInputModule>();
+            var module = eventSystemObject.AddComponent<InputSystemUIInputModule>();
+            module.scrollDeltaPerTick = 1f;
+            module.inputOverride = eventSystemObject.AddComponent<HBP.UI.Tools.InputFieldBackend>();
         }
     }
 }

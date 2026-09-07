@@ -1,3 +1,4 @@
+using HBP.Input;
 using UnityEngine;
 using HBP.Core.Preferences;
 using HBP.Core.Tools;
@@ -45,7 +46,7 @@ namespace HBP.Data.Tools
             }
 
             m_TimeSinceLastAction += Time.deltaTime;
-            if (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0 || Input.anyKey || Input.anyKeyDown)
+            if (DesktopInput.MouseDelta.x != 0 || DesktopInput.MouseDelta.y != 0 || DesktopInput.IsAnyKeyPressed || DesktopInput.WasAnyKeyPressedThisFrame || DesktopInput.IsLeftMouseButtonPressed || DesktopInput.IsRightMouseButtonPressed || DesktopInput.IsMiddleMouseButtonPressed)
             {
                 m_TimeSinceLastAction = 0;
             }

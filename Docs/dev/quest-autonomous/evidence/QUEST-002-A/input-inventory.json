@@ -1,0 +1,342 @@
+{
+  "referenceCommit": "f64212b7f3110de9ca30f04a25dd33e0ecc6fa4d",
+  "before": [
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/AtlasManager.cs",
+      "occurrences": 4,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/ImplantationManager.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Tools/PerformanceManager.cs",
+      "occurrences": 4,
+      "reads": [
+        "Input.GetAxis",
+        "Input.anyKey",
+        "Input.anyKeyDown"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/Dev/DevDebug.cs",
+      "occurrences": 17,
+      "reads": [
+        "Input.GetAxis",
+        "Input.GetKeyDown",
+        "Input.anyKey",
+        "Input.anyKeyDown"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/Theme/Settings/Cursor.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.GetMouseButton"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/Graph/Listener.cs",
+      "occurrences": 5,
+      "reads": [
+        "Input.mousePosition",
+        "Input.mouseScrollDelta"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/Graph/PositionMouseValueDisplayer.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/Graph/Simplified/GraphsGridItem.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/TrialMatrix/ChannelBloc.cs",
+      "occurrences": 7,
+      "reads": [
+        "Input.GetAxis",
+        "Input.GetKey"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/TrialMatrix/SubBlocOverlay.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Main/Database/TrialMatrixExplorer/TrialMatrixDisplayer.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.GetKeyDown"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Main/Menu/MainMenu.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.GetMouseButtonUp",
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Column3DUI.cs",
+      "occurrences": 3,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Cuts/CutController.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.GetMouseButtonDown",
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Cuts/CutSite.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Scene3DWindow.cs",
+      "occurrences": 3,
+      "reads": [
+        "Input.GetMouseButtonDown",
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Sites/SiteItemInfoDisplayer.cs",
+      "occurrences": 3,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Sites/SiteLabels.cs",
+      "occurrences": 3,
+      "reads": [
+        "Input.GetKey",
+        "Input.GetKeyDown"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/View3DUI.cs",
+      "occurrences": 5,
+      "reads": [
+        "Input.GetMouseButton",
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/overlay/ColumnLabel.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/List/ListBrowser.cs",
+      "occurrences": 8,
+      "reads": [
+        "Input.GetKey",
+        "Input.GetKeyDown"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/List/SelectableList.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.GetKey"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/MousePositionAndClamp.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/MousePositionRatio.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/OnClickOutsideHandler.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.GetMouseButtonUp",
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/RangeSlider.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/ShortcutManager.cs",
+      "occurrences": 42,
+      "reads": [
+        "Input.GetKey",
+        "Input.GetKeyDown"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Tooltip.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.GetAxis"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/TooltipManager.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/Dragger.cs",
+      "occurrences": 3,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/FieldsSwitcher.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.GetKeyDown"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/Resizer.cs",
+      "occurrences": 12,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/SelectionManager.cs",
+      "occurrences": 2,
+      "reads": [
+        "Input.GetMouseButtonDown",
+        "Input.mousePosition"
+      ]
+    }
+  ],
+  "afterIncludingComments": [
+    {
+      "path": "Assets/Scripts/HBP/Dev/DevDebug.cs",
+      "occurrences": 16,
+      "reads": [
+        "Input.GetAxis",
+        "Input.GetKeyDown",
+        "Input.anyKey",
+        "Input.anyKeyDown"
+      ]
+    }
+  ],
+  "remainingAcrossAssetsIncludingCommentsAndTests": [
+    {
+      "path": "Assets/ThirdParty/UIExtensions/Scripts/Controls/ColorPicker/TiltWindow.cs",
+      "occurrences": 1,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/TextMesh Pro/Examples & Extras/Scripts/CameraController.cs",
+      "occurrences": 20,
+      "reads": [
+        "Input.GetAxis",
+        "Input.GetKey",
+        "Input.GetKeyDown",
+        "Input.GetMouseButton",
+        "Input.GetTouch",
+        "Input.mousePosition",
+        "Input.simulateMouseWithTouches",
+        "Input.touchCount"
+      ]
+    },
+    {
+      "path": "Assets/TextMesh Pro/Examples & Extras/Scripts/TMP_TextEventHandler.cs",
+      "occurrences": 6,
+      "reads": [
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/TextMesh Pro/Examples & Extras/Scripts/TMP_TextSelector_A.cs",
+      "occurrences": 8,
+      "reads": [
+        "Input.GetKey",
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/TextMesh Pro/Examples & Extras/Scripts/TMP_TextSelector_B.cs",
+      "occurrences": 11,
+      "reads": [
+        "Input.GetKey",
+        "Input.mousePosition"
+      ]
+    },
+    {
+      "path": "Assets/Scripts/HBP/Dev/DevDebug.cs",
+      "occurrences": 16,
+      "reads": [
+        "Input.GetAxis",
+        "Input.GetKeyDown",
+        "Input.anyKey",
+        "Input.anyKeyDown"
+      ]
+    }
+  ],
+  "classification": [
+    {
+      "path": "Assets/Scripts/HBP/Dev/DevDebug.cs",
+      "reason": "Remaining legacy expressions are disabled experiments in comments. The live F1 read uses Keyboard; this component destroys itself in a Player."
+    },
+    {
+      "path": "Assets/ThirdParty/UIExtensions/Scripts/Controls/ColorPicker/TiltWindow.cs",
+      "reason": "Unused example behaviour; absent from delivered scene/Resources dependencies. Its source and assembly remain, no attached runtime instance is shipped."
+    },
+    {
+      "path": "Assets/TextMesh Pro/Examples & Extras",
+      "reason": "Sample scripts and sample scene (12a legacy module) are outside build scenes and Resources dependencies. Not migrated."
+    },
+    {
+      "path": "Packages/com.unity.ugui/BaseInput and InputField",
+      "reason": "InputField requests compositionString, imeCompositionMode, compositionCursorPos and touchSupported through the serialized InputFieldBackend. Native text/IMGUI events remain required for text entry, independent of the legacy device backend. Other BaseInput virtual legacy readers are not called by delivered UI."
+    },
+    {
+      "path": "Editor/IMGUI and KeyCode declarations",
+      "reason": "Editor Event.current and native text Event processing are not UnityEngine.Input backend polling. No serialized shortcut KeyCode data was removed; ShortcutManager lists are private and were never serialized."
+    }
+  ]
+}

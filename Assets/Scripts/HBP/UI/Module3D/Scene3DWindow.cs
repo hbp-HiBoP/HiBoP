@@ -1,4 +1,6 @@
-﻿using System;
+using HBP.Input;
+using UnityEngine.InputSystem;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -80,16 +82,16 @@ namespace HBP.UI.Module3D
 
         private void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (DesktopInput.WasLeftMouseButtonPressedThisFrame)
             {
                 Rect rect = m_RectTransform.ToScreenSpace();
-                Vector3 mousePosition = Input.mousePosition;
+                Vector3 mousePosition = DesktopInput.MousePosition;
                 if (mousePosition.x >= rect.x && mousePosition.x <= rect.x + rect.width && mousePosition.y >= rect.y && mousePosition.y <= rect.y + rect.height)
                 {
                     PointerEventData pointerData = new(EventSystem.current)
                     {
                         pointerId = -1,
-                        position = Input.mousePosition
+                        position = DesktopInput.MousePosition
                     };
                     List<RaycastResult> raycastResults = new();
                     EventSystem.current.RaycastAll(pointerData, raycastResults);

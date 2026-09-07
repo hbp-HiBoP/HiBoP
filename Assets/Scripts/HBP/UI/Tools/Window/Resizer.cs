@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Tools
@@ -63,7 +64,7 @@ namespace HBP.UI.Tools
         {
             if (isActiveAndEnabled)
             {
-                Vector2 resize = new(GetLimits().xMin - Input.mousePosition.x, 0);
+                Vector2 resize = new(GetLimits().xMin - DesktopInput.MousePosition.x, 0);
                 Vector2 sides = new(-1, 0);
                 Resize(resize, sides);
             }
@@ -73,7 +74,7 @@ namespace HBP.UI.Tools
         {
             if (isActiveAndEnabled)
             {
-                Vector2 resize = new(Input.mousePosition.x - GetLimits().xMax, 0);
+                Vector2 resize = new(DesktopInput.MousePosition.x - GetLimits().xMax, 0);
                 Vector2 sides = new(1, 0);
                 Resize(resize, sides);
             }
@@ -83,7 +84,7 @@ namespace HBP.UI.Tools
         {
             if (isActiveAndEnabled)
             {
-                Vector2 resize = new(0, Input.mousePosition.y - GetLimits().yMax);
+                Vector2 resize = new(0, DesktopInput.MousePosition.y - GetLimits().yMax);
                 Vector2 sides = new(0, 1);
                 Resize(resize, sides);
             }
@@ -93,7 +94,7 @@ namespace HBP.UI.Tools
         {
             if (isActiveAndEnabled)
             {
-                Vector2 resize = new(0, GetLimits().yMin - Input.mousePosition.y);
+                Vector2 resize = new(0, GetLimits().yMin - DesktopInput.MousePosition.y);
                 Vector2 sides = new(0, -1);
                 Resize(resize, sides);
             }
@@ -104,7 +105,7 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new(limits.xMin - Input.mousePosition.x, limits.yMin - Input.mousePosition.y);
+                Vector2 resize = new(limits.xMin - DesktopInput.MousePosition.x, limits.yMin - DesktopInput.MousePosition.y);
                 Vector2 sides = new(-1, -1);
                 Resize(resize, sides);
             }
@@ -115,7 +116,7 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new(Input.mousePosition.x - limits.xMax, Input.mousePosition.y - limits.yMax);
+                Vector2 resize = new(DesktopInput.MousePosition.x - limits.xMax, DesktopInput.MousePosition.y - limits.yMax);
                 Vector2 sides = new(1, 1);
                 Resize(resize, sides);
             }
@@ -126,7 +127,7 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new(limits.xMin - Input.mousePosition.x, Input.mousePosition.y - limits.yMax);
+                Vector2 resize = new(limits.xMin - DesktopInput.MousePosition.x, DesktopInput.MousePosition.y - limits.yMax);
                 Vector2 sides = new(-1, 1);
                 Resize(resize, sides);
             }
@@ -137,7 +138,7 @@ namespace HBP.UI.Tools
             if (isActiveAndEnabled)
             {
                 Limits limits = GetLimits();
-                Vector2 resize = new(Input.mousePosition.x - limits.xMax, limits.yMin - Input.mousePosition.y);
+                Vector2 resize = new(DesktopInput.MousePosition.x - limits.xMax, limits.yMin - DesktopInput.MousePosition.y);
                 Vector2 sides = new(1, -1);
                 Resize(resize, sides);
             }

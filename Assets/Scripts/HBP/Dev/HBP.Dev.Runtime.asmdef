@@ -2,6 +2,8 @@
     "name": "HBP.Dev.Runtime",
     "rootNamespace": "",
     "references": [
+        "HBP.Input.Runtime",
+        "Unity.InputSystem",
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
         "HBP.Theme.Runtime",

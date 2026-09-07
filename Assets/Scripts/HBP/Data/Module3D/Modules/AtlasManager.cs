@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using HBP.Core.Object3D;
 
 namespace HBP.Data.Module3D
@@ -175,21 +176,21 @@ namespace HBP.Data.Module3D
                 string[] information = SelectedAtlas.GetInformation(HoveredArea);
                 if (information.Length == 5)
                 {
-                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, AtlasInfo.AtlasType.MarsAtlas, information[0] + " - ID:" + HoveredArea, information[1], information[2], information[3], information[4]));
+                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, DesktopInput.MousePosition, AtlasInfo.AtlasType.MarsAtlas, information[0] + " - ID:" + HoveredArea, information[1], information[2], information[3], information[4]));
                 }
                 else if (information.Length == 1 && !string.IsNullOrEmpty(information[0]))
                 {
-                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, Input.mousePosition, AtlasInfo.AtlasType.JuBrainAtlas, information[0] + " - ID:" + HoveredArea));
+                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, DesktopInput.MousePosition, AtlasInfo.AtlasType.JuBrainAtlas, information[0] + " - ID:" + HoveredArea));
                 }
                 else
                 {
-                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
+                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, DesktopInput.MousePosition));
                 }
             }
             else
             {
                 HoveredArea = -1;
-                Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, Input.mousePosition));
+                Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, DesktopInput.MousePosition));
             }
         }
 

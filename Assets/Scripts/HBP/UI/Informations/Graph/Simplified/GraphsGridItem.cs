@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
@@ -30,7 +31,7 @@ namespace HBP.UI.Informations.Graphs
 
         public void OnDrag(PointerEventData eventData)
         {
-            m_RectTransform.position = Input.mousePosition;
+            m_RectTransform.position = DesktopInput.MousePosition;
         }
 
         public void OnEndDrag(PointerEventData eventData)

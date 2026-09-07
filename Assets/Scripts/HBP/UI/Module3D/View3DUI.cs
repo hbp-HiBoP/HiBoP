@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
@@ -325,7 +326,7 @@ namespace HBP.UI.Module3D
             if (IsMinimized) return;
 
             m_View.IsSelected = true;
-            if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
+            if (data.button == PointerEventData.InputButton.Right || data.button == PointerEventData.InputButton.Middle)
             {
                 m_View.DisplayRotationCircles = true;
                 m_ThemeElement.Set(m_MoveState);
@@ -411,7 +412,7 @@ namespace HBP.UI.Module3D
         public void OnPointerExit(PointerEventData eventData)
         {
             m_PointerIsInView = false;
-            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, eventData.position));
         }
 
         /// <summary>
@@ -465,7 +466,7 @@ namespace HBP.UI.Module3D
             }
 
             Vector2 localPosition = new();
-            Vector2 position = new(Input.mousePosition.x, Input.mousePosition.y);
+            Vector2 position = DesktopInput.MousePosition;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, position, null, out localPosition);
             localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
             ray = m_View.Camera.ViewportPointToRay(localPosition);

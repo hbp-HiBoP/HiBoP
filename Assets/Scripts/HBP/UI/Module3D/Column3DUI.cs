@@ -1,4 +1,5 @@
-﻿using HBP.Core.Tools;
+using HBP.Input;
+using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.UI.Tools.ResizableGrids;
 using System.Collections.Generic;
@@ -140,7 +141,7 @@ namespace HBP.UI.Module3D
         {
             get
             {
-                Vector3 mousePosition = Input.mousePosition;
+                Vector3 mousePosition = DesktopInput.MousePosition;
                 Rect columnRect = GetComponent<RectTransform>().ToScreenSpace();
                 return mousePosition.x >= columnRect.x && mousePosition.x <= columnRect.x + columnRect.width && mousePosition.y >= columnRect.y && mousePosition.y <= columnRect.y + columnRect.height;
             }
@@ -153,7 +154,7 @@ namespace HBP.UI.Module3D
         {
             get
             {
-                Vector3 mousePosition = Input.mousePosition;
+                Vector3 mousePosition = DesktopInput.MousePosition;
                 Rect borderRect = m_LeftBorder.ToScreenSpace();
                 return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
             }
@@ -166,7 +167,7 @@ namespace HBP.UI.Module3D
         {
             get
             {
-                Vector3 mousePosition = Input.mousePosition;
+                Vector3 mousePosition = DesktopInput.MousePosition;
                 Rect borderRect = m_RightBorder.ToScreenSpace();
                 return mousePosition.x >= borderRect.x && mousePosition.x <= borderRect.x + borderRect.width && mousePosition.y >= borderRect.y && mousePosition.y <= borderRect.y + borderRect.height;
             }

@@ -1,3 +1,4 @@
+using HBP.Input;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI.Extensions;
@@ -76,12 +77,12 @@ namespace HBP.UI.Informations.Graphs
 
         public void OnBeginDrag()
         {
-            m_MouseLastPosition = Input.mousePosition;
+            m_MouseLastPosition = DesktopInput.MousePosition;
         }
 
         public void OnDrag()
         {
-            Vector2 mouseActualPosition = Input.mousePosition;
+            Vector2 mouseActualPosition = DesktopInput.MousePosition;
             Vector2 displacement = mouseActualPosition - m_MouseLastPosition;
             Vector2 proportionnalDisplacement = new(displacement.x / m_RectTransform.rect.width, displacement.y / m_RectTransform.rect.height);
             Move(proportionnalDisplacement);
@@ -90,7 +91,7 @@ namespace HBP.UI.Informations.Graphs
 
         public void OnScroll()
         {
-            float delta = Input.mouseScrollDelta.y;
+            float delta = DesktopInput.ScrollDelta.y;
             if (delta > 0) Zoom();
             else if (delta < 0) Dezoom();
         }
@@ -165,7 +166,7 @@ namespace HBP.UI.Informations.Graphs
 
         void Zoom()
         {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, DesktopInput.MousePosition, null, out Vector2 localPoint);
             Vector2 ratio = localPoint / m_RectTransform.rect.size + m_RectTransform.pivot;
             Vector2 zoom = m_ZoomSpeed * new Vector2(m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x, m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x);
 
@@ -180,7 +181,7 @@ namespace HBP.UI.Informations.Graphs
 
         void Dezoom()
         {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, Input.mousePosition, null, out Vector2 localPoint);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, DesktopInput.MousePosition, null, out Vector2 localPoint);
             Vector2 ratio = localPoint / m_RectTransform.rect.size + m_RectTransform.pivot;
             Vector2 dezoom = new Vector2(m_AbscissaDisplayRange.y - m_AbscissaDisplayRange.x, m_OrdinateDisplayRange.y - m_OrdinateDisplayRange.x) * (m_ZoomSpeed / (1 - m_ZoomSpeed));
 

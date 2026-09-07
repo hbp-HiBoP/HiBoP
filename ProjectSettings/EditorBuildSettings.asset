@@ -9,6 +9,8 @@ EditorBuildSettings:
     path: Assets/_Scenes/HiBoP.unity
     guid: ad31403b903ed704c8ace06ac4494492
   m_configObjects:
+    com.unity.input.settings: {fileID: 11400000, guid: 73b4142ec66a1864eb6d688b32b08a16,
+      type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: abe02993ebbb32e4081ee5adc5989c4f,
       type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 17e7af9a70ccb9542bb1ec98f7d96610,

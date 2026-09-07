@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+using HBP.Input;
+using UnityEngine.InputSystem;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -30,17 +32,17 @@ namespace HBP.UI.Tools
 
         private bool IsControlPressed
         {
-            get { return Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl); }
+            get { return DesktopInput.IsControlPressed; }
         }
 
         private bool IsAltPressed
         {
-            get { return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt); }
+            get { return DesktopInput.IsAltPressed; }
         }
 
         private bool IsShiftPressed
         {
-            get { return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift); }
+            get { return DesktopInput.IsShiftPressed; }
         }
 
         private bool IsModPressed
@@ -50,84 +52,84 @@ namespace HBP.UI.Tools
 
         private bool IsArrowKeyPressed
         {
-            get { return Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow); }
+            get { return DesktopInput.IsPressed(Key.LeftArrow) || DesktopInput.IsPressed(Key.RightArrow) || DesktopInput.IsPressed(Key.UpArrow) || DesktopInput.IsPressed(Key.DownArrow); }
         }
 
         private bool IsArrowKeyDown
         {
-            get { return Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow); }
+            get { return DesktopInput.WasPressedThisFrame(Key.LeftArrow) || DesktopInput.WasPressedThisFrame(Key.RightArrow) || DesktopInput.WasPressedThisFrame(Key.UpArrow) || DesktopInput.WasPressedThisFrame(Key.DownArrow); }
         }
 
-        private List<KeyCode> m_ChangeColorActions = new() { KeyCode.Alpha1, KeyCode.Alpha2, KeyCode.Alpha3, KeyCode.Alpha4, KeyCode.Alpha5, KeyCode.Alpha6, KeyCode.Alpha7, KeyCode.Alpha8, KeyCode.Alpha9, KeyCode.Alpha0 };
+        private List<Key> m_ChangeColorActions = new() { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5, Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9, Key.Digit0 };
 
-        private List<KeyCode> ChangeSiteStateActions
+        private List<Key> ChangeSiteStateActions
         {
-            get { return new List<KeyCode>(m_ChangeColorActions) { KeyCode.H, KeyCode.B }; }
+            get { return new List<Key>(m_ChangeColorActions) { Key.H, Key.B }; }
         }
 
         private bool IsSiteStateActionDown
         {
-            get { return ChangeSiteStateActions.Any(a => Input.GetKeyDown(a)); }
+            get { return ChangeSiteStateActions.Any(DesktopInput.WasPressedThisFrame); }
         }
 
         private bool NewProjectActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.N); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.N); }
         }
 
         private bool OpenProjectActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.O); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.O); }
         }
 
         private bool SaveActionPerformed
         {
-            get { return IsControlPressed && !IsShiftPressed && Input.GetKeyDown(KeyCode.S); }
+            get { return IsControlPressed && !IsShiftPressed && DesktopInput.WasPressedThisFrame(Key.S); }
         }
 
         private bool SaveAsActionPerformed
         {
-            get { return IsControlPressed && IsShiftPressed && Input.GetKeyDown(KeyCode.S); }
+            get { return IsControlPressed && IsShiftPressed && DesktopInput.WasPressedThisFrame(Key.S); }
         }
 
         private bool QuitActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.Q); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.Q); }
         }
 
         private bool OpenPreferencesActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.U); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.U); }
         }
 
         private bool OpenProjectPreferencesActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.T); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.T); }
         }
 
         private bool OpenPatientsActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.P); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.P); }
         }
 
         private bool OpenGroupsActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.G); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.G); }
         }
 
         private bool OpenProtocolsActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.E); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.E); }
         }
 
         private bool OpenDatasetsActionPerformed
         {
-            get { return IsControlPressed && Input.GetKeyDown(KeyCode.D); }
+            get { return IsControlPressed && DesktopInput.WasPressedThisFrame(Key.D); }
         }
 
         private bool OpenVisualizationsActionPerformed
         {
-            get { return IsControlPressed && Input.GetKey(KeyCode.Y); }
+            get { return IsControlPressed && DesktopInput.IsPressed(Key.Y); }
         }
 
         private const float SITE_SELECTION_DELAY = 0.2f;
@@ -141,7 +143,7 @@ namespace HBP.UI.Tools
 
         private bool CutModificationActionPerformed
         {
-            get { return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || Input.GetKeyDown(KeyCode.F) || Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.Tab)) && IsControlPressed && !IsWindowSelected; }
+            get { return ((IsArrowKeyPressed && m_Timer >= CUT_ACTION_DELAY) || IsArrowKeyDown || DesktopInput.WasPressedThisFrame(Key.F) || DesktopInput.WasPressedThisFrame(Key.C) || DesktopInput.WasPressedThisFrame(Key.A) || DesktopInput.WasPressedThisFrame(Key.Tab)) && IsControlPressed && !IsWindowSelected; }
         }
 
         private bool ChangeSiteStateActionPerformed
@@ -167,6 +169,9 @@ namespace HBP.UI.Tools
                                 return true;
                             }
                         }
+
+                        TMPro.TMP_InputField tmpInputField = currentObject.GetComponent<TMPro.TMP_InputField>();
+                        if (tmpInputField && tmpInputField.isFocused) return true;
                     }
                 }
 
@@ -239,7 +244,7 @@ namespace HBP.UI.Tools
             else if (SiteSelectionActionPerformed)
             {
                 m_Timer = 0;
-                SiteNavigationDirection direction = Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.UpArrow) ? SiteNavigationDirection.Left : SiteNavigationDirection.Right;
+                SiteNavigationDirection direction = DesktopInput.IsPressed(Key.LeftArrow) || DesktopInput.IsPressed(Key.UpArrow) ? SiteNavigationDirection.Left : SiteNavigationDirection.Right;
                 ChangeSiteSelection(direction);
             }
             else if (ChangeSiteStateActionPerformed)
@@ -387,16 +392,16 @@ namespace HBP.UI.Tools
                         }
 
                         sites = sites.Where(s => s.State.IsFiltered).ToList();
-                        KeyCode downAction = ChangeSiteStateActions.FirstOrDefault(a => Input.GetKeyDown(a));
+                        Key downAction = ChangeSiteStateActions.FirstOrDefault(DesktopInput.WasPressedThisFrame);
                         switch (downAction)
                         {
-                            case KeyCode.H:
+                            case Key.H:
                                 {
                                     bool allHighlighted = sites.All(s => s.State.IsHighlighted);
                                     foreach (var site in sites) site.State.IsHighlighted = !allHighlighted;
                                 }
                                 break;
-                            case KeyCode.B:
+                            case Key.B:
                                 {
                                     bool allBlacklisted = sites.All(s => s.State.IsBlackListed);
                                     foreach (var site in sites) site.State.IsBlackListed = !allBlacklisted;
@@ -422,12 +427,12 @@ namespace HBP.UI.Tools
             CutController selectedCutController = Module3DUI.Scenes.FirstOrDefault(s => s.Key.IsSelected).Value?.CutController;
             if (selectedCutController != null)
             {
-                if (Input.GetKeyDown(KeyCode.A))
+                if (DesktopInput.WasPressedThisFrame(Key.A))
                 {
                     Module3DMain.SelectedScene.AddCutPlane();
                     selectedCutController.OpenNextController();
                 }
-                else if (Input.GetKeyDown(KeyCode.Tab))
+                else if (DesktopInput.WasPressedThisFrame(Key.Tab))
                 {
                     selectedCutController.OpenNextController();
                 }
@@ -435,19 +440,19 @@ namespace HBP.UI.Tools
                 Cut selectedCut = selectedCutController.SelectedCut;
                 if (selectedCut != null)
                 {
-                    if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.DownArrow))
+                    if (DesktopInput.IsPressed(Key.LeftArrow) || DesktopInput.IsPressed(Key.DownArrow))
                     {
                         selectedCut.Position -= 1.0f / selectedCut.NumberOfCuts;
                     }
-                    else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.UpArrow))
+                    else if (DesktopInput.IsPressed(Key.RightArrow) || DesktopInput.IsPressed(Key.UpArrow))
                     {
                         selectedCut.Position += 1.0f / selectedCut.NumberOfCuts;
                     }
-                    else if (Input.GetKeyDown(KeyCode.F))
+                    else if (DesktopInput.WasPressedThisFrame(Key.F))
                     {
                         selectedCut.Flip = !selectedCut.Flip;
                     }
-                    else if (Input.GetKeyDown(KeyCode.C))
+                    else if (DesktopInput.WasPressedThisFrame(Key.C))
                     {
                         selectedCut.Orientation = (CutOrientation)(((int)selectedCut.Orientation + 1) % 3);
                     }

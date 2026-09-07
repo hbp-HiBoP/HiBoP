@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using HBP.Input;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -57,11 +58,11 @@ namespace HBP.UI.Tools
 
         void Update()
         {
-            if (Input.GetMouseButtonDown(0))
+            if (DesktopInput.WasLeftMouseButtonPressedThisFrame)
             {
                 Selector selector = null;
                 PointerEventData pointerEventData = new(EventSystem.current);
-                pointerEventData.position = Input.mousePosition;
+                pointerEventData.position = DesktopInput.MousePosition;
                 var results = FindObjectsByType<GraphicRaycaster>(FindObjectsInactive.Exclude).SelectMany(r =>
                 {
                     List<RaycastResult> res = new();

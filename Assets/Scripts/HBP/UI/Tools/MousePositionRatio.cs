@@ -1,4 +1,5 @@
-﻿using HBP.Core.Tools;
+using HBP.Input;
+using HBP.Core.Tools;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -33,7 +34,7 @@ namespace HBP.UI.Tools
 
         private void Update()
         {
-            Position = Container.GetRatioPosition(Input.mousePosition);
+            Position = Container.GetRatioPosition(DesktopInput.MousePosition);
         }
 
         #endregion

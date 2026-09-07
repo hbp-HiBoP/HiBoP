@@ -49,10 +49,10 @@ namespace HBP.Tests.PlatformConfiguration
             bool android = EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android;
             Assert.That(android || EditorUserBuildSettings.activeBuildTarget == BuildTarget.StandaloneWindows64, Is.True, "Run this qualification on Windows or Android.");
             SerializedObject settings = new(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
-            Assert.That(settings.FindProperty("activeInputHandler").intValue, Is.EqualTo(android ? 1 : 2), "Close Unity and run Tools/Set-QuestInputMode.ps1 for this target.");
+            Assert.That(settings.FindProperty("activeInputHandler").intValue, Is.EqualTo(1), "Input System only is required on every target.");
             var core = CompilationPipeline.GetAssemblies(AssembliesType.Player).Single(assembly => assembly.name == "HBP.Core.Runtime");
             Assert.That(core.defines, Does.Contain("ENABLE_INPUT_SYSTEM"));
-            Assert.That(core.defines.Contains("ENABLE_LEGACY_INPUT_MANAGER"), Is.EqualTo(!android));
+            Assert.That(core.defines.Contains("ENABLE_LEGACY_INPUT_MANAGER"), Is.False);
         }
 
         [Test]
@@ -62,21 +62,6 @@ namespace HBP.Tests.PlatformConfiguration
             if (settings == null) return;
             Assert.That(settings.InitManagerOnStart, Is.False, "Installing packages must not initialize XR on Desktop.");
             if (settings.Manager != null) Assert.That(settings.Manager.activeLoaders, Is.Empty);
-        }
-
-        [Test]
-        public void Desktop_LegacyMouseAndKeyboardApisRemainAvailable()
-        {
-            if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
-            {
-                Assert.Ignore("Desktop-only input smoke test; Android intentionally disables the legacy backend.");
-            }
-
-            // API availability only. Real rotation/scroll gestures are validated in the Desktop Player.
-            _ = Input.GetMouseButton(1);
-            _ = Input.GetKey(KeyCode.LeftControl);
-            _ = Input.GetAxis("Mouse ScrollWheel");
-            _ = Input.mousePosition;
         }
 
         [Test]
@@ -103,7 +88,7 @@ namespace HBP.Tests.PlatformConfiguration
             byte[] manifest = File.ReadAllBytes(manifestPath);
             byte[] locked = File.ReadAllBytes(lockPath);
             BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
-            string output = Path.Combine(Root, ".test-results/quest-002/player-scripts", target.ToString());
+            string output = Path.Combine(Root, ".test-results/quest-002-a/player-scripts", target.ToString());
             Directory.CreateDirectory(output);
             var result = PlayerBuildInterface.CompilePlayerScripts(new ScriptCompilationSettings
             {

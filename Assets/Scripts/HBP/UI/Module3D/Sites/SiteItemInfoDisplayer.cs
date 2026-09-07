@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
@@ -20,7 +21,7 @@ namespace HBP.UI.Module3D
         {
             if (m_IsInside)
             {
-                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
+                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, DesktopInput.MousePosition, SiteInformationDisplayMode.Anatomy));
             }
         }
 
@@ -36,12 +37,12 @@ namespace HBP.UI.Module3D
         public void OnPointerEnter(PointerEventData eventData)
         {
             m_IsInside = true;
-            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, Input.mousePosition, SiteInformationDisplayMode.Anatomy));
+            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(m_Site, true, DesktopInput.MousePosition, SiteInformationDisplayMode.Anatomy));
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, DesktopInput.MousePosition));
             m_IsInside = false;
         }
 

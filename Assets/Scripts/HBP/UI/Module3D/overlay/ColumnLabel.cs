@@ -1,4 +1,5 @@
-﻿using HBP.Data.Module3D;
+using HBP.Input;
+using HBP.Data.Module3D;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -63,7 +64,7 @@ namespace HBP.UI.Module3D
 
             if (m_CurrentImage)
             {
-                m_CurrentImage.transform.position = Input.mousePosition;
+                m_CurrentImage.transform.position = DesktopInput.MousePosition;
             }
         }
 

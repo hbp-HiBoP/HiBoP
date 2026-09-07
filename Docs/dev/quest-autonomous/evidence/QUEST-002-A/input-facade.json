@@ -1,0 +1,397 @@
+{
+  "recordedAt": "2026-09-07T16:45:47.518720+02:00",
+  "purpose": "Owner-requested static DesktopInput facade after manual validation",
+  "status": "REUSSI",
+  "sourceChanges": [
+    {
+      "path": "Assets/Prefabs/Managers/Input Manager.prefab",
+      "bytes": 4190,
+      "sha256": "31a60fe5e1e01a96071f81fb86755e679d071a07038cef1eb40c0aa55c43b331"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/HBP.Data.Runtime.asmdef",
+      "bytes": 556,
+      "sha256": "978a516d5dde7c19e244e653e54bcd6962c6fb256157084ba67510158ea23172"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/AtlasManager.cs",
+      "bytes": 7425,
+      "sha256": "8f4a580664ba114f22c53f2408fd47b24c77a71cf3bfdb721e83d50879d5c8dc"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/ImplantationManager.cs",
+      "bytes": 7199,
+      "sha256": "ca1da6f040258b4d6818071b89a8a7a128298a9fa1d08163cbe0d31437655755"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Tools/PerformanceManager.cs",
+      "bytes": 2268,
+      "sha256": "30b1a873ca35014ce68395dc3c3a2cdf75bf9f0db8f60b8d9b7a2114bb50e0f6"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Dev/DevDebug.cs",
+      "bytes": 19047,
+      "sha256": "aae7bb77098ed74243e23ce1de82db7a131e989b1f89d510d4e5e2b4d6c6faa4"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Dev/HBP.Dev.Runtime.asmdef",
+      "bytes": 593,
+      "sha256": "8f5b74c4d68a477375a206fb6bd2b6619306c94a32e92557ff7132353cc9d3b9"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Input.meta",
+      "bytes": 169,
+      "sha256": "9a0e26cad120b6f5cd01aa5b36715d829e7a3133332f77529cd87027073dd1e3"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Input/DesktopInput.cs",
+      "bytes": 1940,
+      "sha256": "616524dbbfa14d7b508fbc3998cf6060077134d4ac60aeb46a1ecfd961d7b6b9"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Input/DesktopInput.cs.meta",
+      "bytes": 60,
+      "sha256": "00e7107a7e40f06fc541c56319d9fa7c7bf3f64f07d49f0d3751b0ba1e8533fb"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Input/HBP.Input.Runtime.asmdef",
+      "bytes": 91,
+      "sha256": "f89b658ba69dae52723450b5dccc1205a8b9ec4d66a459270912a38f8103b64c"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Input/HBP.Input.Runtime.asmdef.meta",
+      "bytes": 163,
+      "sha256": "2b7a86dd87732430b93a31e38973a86da66c870ffde6f36ad728957c44da3d22"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Theme/HBP.Theme.Runtime.asmdef",
+      "bytes": 459,
+      "sha256": "446592ce8580c97125e6304d7779d6551e0b9d51d7cdb49586cface6dd78966d"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Theme/Settings/Cursor.cs",
+      "bytes": 480,
+      "sha256": "14ff9087d79aa560c2825a4de50b60613bb9570bcfad0f81f51b7ebe9d4244dc"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/HBP.UI.Runtime.asmdef",
+      "bytes": 678,
+      "sha256": "8434583b9f2c295a94a2dfa5009159a2d616a803422c641b85d1402e8a4cce07"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/Graph/Listener.cs",
+      "bytes": 6995,
+      "sha256": "44a05e9661f8c24a06e47b884eb1bf125ece882f510472e6f44685993a56dfa2"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/Graph/PositionMouseValueDisplayer.cs",
+      "bytes": 3641,
+      "sha256": "99bfa0eccac337ccf2a7f1a7f61f521f98fe2a877224344186fc88a7bb28f6c2"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/Graph/Simplified/GraphsGridItem.cs",
+      "bytes": 2140,
+      "sha256": "deb216e81dfc399fc82034fcbc27dfa95b6f891395aa817e533225acb560300c"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/TrialMatrix/ChannelBloc.cs",
+      "bytes": 17889,
+      "sha256": "7c1b88a4f4798b0f14212a53f784c8dd8e1411eae9a3a22845d4b80cee69a346"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Informations/TrialMatrix/SubBlocOverlay.cs",
+      "bytes": 11916,
+      "sha256": "fe9f9e3bef089075e2b4112e4c9ddf21b5094f21eed402f1cf5b9c190a682fa8"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Main/Database/TrialMatrixExplorer/TrialMatrixDisplayer.cs",
+      "bytes": 17428,
+      "sha256": "994573f8b12ec0be32e53fa4142a654299da3e5d1b983a3349efb32c97b483e2"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Main/Menu/MainMenu.cs",
+      "bytes": 3206,
+      "sha256": "cf2e5c6df1d8a8f257f0430c7953958a6f6d646e83f65787dccedf2dbe2922c0"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Column3DUI.cs",
+      "bytes": 20967,
+      "sha256": "5840c1b547ad2c966e456a69c186f7775a3d4c0286d65751e633f87e60b1c2fa"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Cuts/CutController.cs",
+      "bytes": 6973,
+      "sha256": "12e5d09c8f4b16c22d3b51e13c8c1c2e09a1aeb14e22403f8fae58ab5e1498bf"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Cuts/CutSite.cs",
+      "bytes": 3570,
+      "sha256": "2e6b70b648499ed1ff7bdeab78a34694092d07855073e18e7b329e45373b0dc5"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Scene3DWindow.cs",
+      "bytes": 26964,
+      "sha256": "e9e9a8f327b9820403327c0e08c5fcc2b83ca69b84c190ad8ea6451b83bab8a6"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Sites/SiteItemInfoDisplayer.cs",
+      "bytes": 1436,
+      "sha256": "2fdca3ebed29965efd09ddc054000037b507902f0da31f3367307dd23b379383"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/Sites/SiteLabels.cs",
+      "bytes": 5211,
+      "sha256": "a0b82435ac4f6abea221f7e8532361bab945e8eaefe2964e60e922f98cdb0262"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/View3DUI.cs",
+      "bytes": 17052,
+      "sha256": "1379bdc7ba551b31e0f6dd7e1170f40eafafc9dfc510dc1529cca7d78e2e74d4"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Module3D/overlay/ColumnLabel.cs",
+      "bytes": 3834,
+      "sha256": "2cbfae2b3e915924cf5e3bb80eebc64456c967a3688ce329a45ec89de6411007"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/InputFieldBackend.cs",
+      "bytes": 2740,
+      "sha256": "6202d5b271fd915a80dc03573f1559e4202d2428988a42df8927e3ce944dc314"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/InputFieldBackend.cs.meta",
+      "bytes": 62,
+      "sha256": "56f03fc041893fe5425da399d5f90608f18ab886126b0657477808cdaf53103c"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/List/ListBrowser.cs",
+      "bytes": 3283,
+      "sha256": "6d0d2ab4149fcd9445c7f288311ec07ff5aad2dd971b73924e2af5db74c451aa"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/List/SelectableList.cs",
+      "bytes": 19269,
+      "sha256": "5ede4cdf2b6a0d7dcf1f1f274f82bfa7c2caa297c9d551b4ee1dbeec2875e5e9"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/MousePositionAndClamp.cs",
+      "bytes": 3692,
+      "sha256": "18416787b1ef56e2df43b071d997878c895ab45775e117350027db9870b5bafb"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/MousePositionRatio.cs",
+      "bytes": 887,
+      "sha256": "bfcccd27bb7dac729c4a104f16e3420484fb98f61cee684ffe16a6b649981905"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/OnClickOutsideHandler.cs",
+      "bytes": 846,
+      "sha256": "2ffc57ed614a48bc2b1de998c1e38cac8ea0b3ad32efb7c488362464eb040da1"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/RangeSlider.cs",
+      "bytes": 42835,
+      "sha256": "34e5482ffb81097e6deca5dcff3466b2336d2d75a4a95ee766041c360c23d02c"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/ShortcutManager.cs",
+      "bytes": 16357,
+      "sha256": "462139051d98294bf79b34fbd0af8f4ed49ffdfd5307442d7dea25f5e1d1ea25"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Tooltip.cs",
+      "bytes": 2712,
+      "sha256": "299f5fe8cdc392f07376b28b152e1a6cb17c6eabe18099217fef79fc347b09d3"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/TooltipManager.cs",
+      "bytes": 3002,
+      "sha256": "1ab21768a5bfa22c2f2f7cf9b18c377de69dcc828743d7664b55b195d3f91940"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/Dragger.cs",
+      "bytes": 1349,
+      "sha256": "501ae6e24006c39496685c4c89ee0561c3e15a95dc1a89086c07e20dd774b043"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/FieldsSwitcher.cs",
+      "bytes": 916,
+      "sha256": "446ed75e60d039d63586a0531aa3dc49387730fd727f52cde4dc2371383b3a97"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/Resizer.cs",
+      "bytes": 6521,
+      "sha256": "af2354a66b9ec53b84cdc7c59b8e90258f8d2f7802e2a56cd36a677924142d63"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Tools/Window/SelectionManager.cs",
+      "bytes": 2935,
+      "sha256": "b9f9df71f6487aea1d4f0d29374dc0892fb22acaeebf5cd7b7bb9c4920a20ca3"
+    },
+    {
+      "path": "Assets/Settings/DesktopInputSettings.asset",
+      "bytes": 1214,
+      "sha256": "4b3753962c2973c0b934852719722ca32c276401b5ac2dad7ff64d4701d761fd"
+    },
+    {
+      "path": "Assets/Settings/DesktopInputSettings.asset.meta",
+      "bytes": 194,
+      "sha256": "7d23e204c4baaa1b2bae8018d61e5b95ddb9397f3146c6491d5347673ee7e0f4"
+    },
+    {
+      "path": "Assets/Settings/DesktopUI.inputactions",
+      "bytes": 12852,
+      "sha256": "0c03abc792c773e4e5dfc19845b6bf4583fd1b5a91117300b3023c4edd3b5c16"
+    },
+    {
+      "path": "Assets/Settings/DesktopUI.inputactions.meta",
+      "bytes": 384,
+      "sha256": "059f0255f349f4ebf590e33d5c5b62a750d93450d08f5bc932b367133d2eca00"
+    },
+    {
+      "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/DesktopInputConfigurationTests.cs",
+      "bytes": 4452,
+      "sha256": "d8ef9598fc77010095713bf7cda29dd048f00e0451e2a52bbcdafc4afa8467cd"
+    },
+    {
+      "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/DesktopInputConfigurationTests.cs.meta",
+      "bytes": 62,
+      "sha256": "3196af785ff565d67d2142eef53a0f82336761844fda4e6f6c25cbce598bdeb2"
+    },
+    {
+      "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/HBP.PlatformConfiguration.Tests.asmdef",
+      "bytes": 434,
+      "sha256": "a9b08527530a2bdc4a44ced147b7db364b4fe7e874e06db1dafb76452b462c73"
+    },
+    {
+      "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/QuestPackageConfigurationTests.cs",
+      "bytes": 5595,
+      "sha256": "fdff0b58e4d9299e62176cbd7174e36b2d8c0f5a12be488834166f2efd26ba22"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.PlayModeTestUtilities/HBP.PlayModeTestUtilities.asmdef",
+      "bytes": 542,
+      "sha256": "b2ce5ff3ecd6aed60b852673735bde7921e486bf1805e9038769908dcab769b7"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.PlayModeTestUtilities/PlayModeWindowHarness.cs",
+      "bytes": 1262,
+      "sha256": "c1edf01ddd6a0cec11c6ecfbfd04f0c96f812b2de3726f0d0a6520495dd35b27"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/DesktopInputPlayModeTests.cs",
+      "bytes": 23892,
+      "sha256": "46a4beceab311f7c1994a18d9cb60e704fcbdc642f78d38258ff99f9a4acc0cb"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/DesktopInputPlayModeTests.cs.meta",
+      "bytes": 62,
+      "sha256": "f18ce87be1cd925e8436332b42e85cfcb62b44f796cf1b5abd12930fd1948b56"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/HBP.UI.PlayModeTests.asmdef",
+      "bytes": 663,
+      "sha256": "0c27aacbdf36677bcd6207fe61c757f6ca04aed41dbc93f59da29001ac9da2e0"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.UI.PlayModeTests/UiPlayModeArchitectureTests.cs",
+      "bytes": 997,
+      "sha256": "9c940f6bdfa0ff5a9d2ca01149009b9e2adc15a6133112fa01b6541e0f566553"
+    },
+    {
+      "path": "ProjectSettings/EditorBuildSettings.asset",
+      "bytes": 581,
+      "sha256": "5cb4b6a1e685d6658bcdf8a83189970506df2c8b465e1e4fa34d1856eddda411"
+    },
+    {
+      "path": "ProjectSettings/ProjectSettings.asset",
+      "bytes": 24239,
+      "sha256": "d073c3621cc4a751fb2e6a380fdfe55b5957437b60529c69588a995ee557ca6d"
+    }
+  ],
+  "tests": [
+    {
+      "name": "ui-module3d",
+      "result": "Passed",
+      "total": 81,
+      "passed": 81,
+      "failed": 0,
+      "xml": {
+        "path": ".test-results/quest-002-a/input-facade/ui-module3d.xml",
+        "bytes": 83577,
+        "sha256": "9de14550783b307326c035b691e9e2b2c1815ea2c06c48ca279e268b3fa5e927"
+      },
+      "log": {
+        "path": ".test-results/quest-002-a/input-facade/ui-module3d.log",
+        "bytes": 137591,
+        "sha256": "5d65f0e31896796af8372921d1c50426d36840050b55e8d125d4eeb79da41c41"
+      }
+    },
+    {
+      "name": "android-edit",
+      "result": "Passed",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "xml": {
+        "path": ".test-results/quest-002-a/input-facade/android-edit.xml",
+        "bytes": 32912,
+        "sha256": "27bbeae645e4be2b304b46ba4dcb971f0428f6ce889e04e22ed94f3ddce1964d"
+      },
+      "log": {
+        "path": ".test-results/quest-002-a/input-facade/android-edit.log",
+        "bytes": 237085,
+        "sha256": "d396e185ddbf8389e588a934061dd1a074ceda063ea0922a488a330ee61427d9"
+      }
+    },
+    {
+      "name": "windows-return",
+      "result": "Passed",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "xml": {
+        "path": ".test-results/quest-002-a/input-facade/windows-return.xml",
+        "bytes": 36882,
+        "sha256": "d4da8bca8e213e01eb2c89a06bdc0293868afe0c90086392f36ddfad7a0589bd"
+      },
+      "log": {
+        "path": ".test-results/quest-002-a/input-facade/windows-return.log",
+        "bytes": 183517,
+        "sha256": "b355ee8dc48d216a1311aa3f4f55cfd910125985584cd79400f68a6cc4dcbb67"
+      }
+    }
+  ],
+  "formatting": {
+    "command": "./Tools/format-code.cmd",
+    "exitCode": 0,
+    "log": {
+      "path": ".test-results/quest-002-a/input-facade/format.log",
+      "bytes": 483,
+      "sha256": "fd167f2fd4e12668c31b46985c2c160edabe334f7e3dd2f8469379c9bd4d55f1"
+    }
+  },
+  "directDeviceAccessFiles": [
+    "Assets/Scripts/HBP/Input/DesktopInput.cs",
+    "Assets/Scripts/HBP/UI/Tools/InputFieldBackend.cs"
+  ],
+  "packages": [
+    {
+      "path": "Packages/manifest.json",
+      "bytes": 2598,
+      "sha256": "ff2121b9498f214213407c163dd42e6d07e6b09e4645902544aec52082500d36"
+    },
+    {
+      "path": "Packages/packages-lock.json",
+      "bytes": 17366,
+      "sha256": "c5c2823f9418740e9f027b60f0f3408a789b4468d9456a4c073813820a0f6cb4"
+    }
+  ],
+  "playerRebuilt": false,
+  "preservedValidatedPlayer": {
+    "path": ".artifacts/quest-002-a/player/HiBoP.6.1.0.win64/GameAssembly.dll",
+    "bytes": 59068416,
+    "sha256": "b76b9ad36397aaf6742909bcc9c7f7426eb73acd4cac85ab8993578e5cdc6008"
+  },
+  "manualValidationScope": "The owner validation applies to the previous Player. This forwarding refactor is verified by fresh tests and Player script compilation for Android and Windows."
+}

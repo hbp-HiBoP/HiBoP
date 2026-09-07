@@ -1,0 +1,6 @@
+{
+    "name": "HBP.Input.Runtime",
+    "references": [
+        "Unity.InputSystem"
+    ]
+}
