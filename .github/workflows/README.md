@@ -5,6 +5,28 @@ GitHub Release is published, and on demand. Each target is built on its native
 runner: this guarantees that the macOS player is ARM64 and avoids a dependency
 on cross-platform IL2CPP toolchains.
 
+`platform: quest` runs a separate Windows job with the Android SDK/NDK/JDK,
+the versioned `Quest` Build Profile, and IL2CPP/ARM64. It is manual only: neither
+`all` nor a published release selects it, and it never attaches an APK to a
+release. The job uploads the minimal `HiBoP.Quest.apk` and its content/build
+reports. `Tools/Test-QuestApk.ps1` checks the actual packaged ELF headers and
+rejects Desktop native libraries. Quest Library and Gradle caches have their
+own keys; Desktop restores only the matching platform Library cache.
+
+Local builds from the same checkout (Unity closed) use the existing entry point:
+
+```text
+Unity.exe -batchmode -quit -nographics -projectPath <checkout> -activeBuildProfile Assets/Settings/BuildProfiles/DesktopWindows.asset -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine -buildOutput <output>/desktop -logFile <output>/desktop.log
+Unity.exe -batchmode -quit -nographics -projectPath <checkout> -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine -buildOutput <output>/quest -logFile <output>/quest.log
+```
+
+On Windows, launch Unity outside the Codex sandbox using `Start-Process -Wait
+-PassThru -WindowStyle Hidden` as documented in AGENTS.md. Desktop keeps its
+data/documentation packaging. Quest produces only the APK and report, with no
+copy of `Assets/Data`. The minimal camera scene does not initialize XR yet;
+the Quest loader/rig/passthrough are the next task, QUEST-004. Both profiles
+serialize Input System only (`activeInputHandler=1`).
+
 The workflow calls `HBP.Dev.HBPBuilder.BuildFromCommandLine`. That entry point
 reuses `HBPBuilder.BuildProjectAndZipIt`, so CI archives contain the same files
 as a build run from `Tools/Build HiBoP`: it copies `Assets/Data`, removes `.meta`

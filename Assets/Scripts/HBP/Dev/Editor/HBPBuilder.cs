@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
+using UnityEditor.Build.Profile;
 using UnityEditor.Build.Reporting;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -35,6 +36,14 @@ namespace HBP.Dev
                 ScriptingImplementation scriptingBackend = GetCommandLineScriptingBackend(target);
                 bool development = HasCommandLineArgument("-developmentBuild");
                 WriteBuildInfo();
+                if (target == BuildTarget.Android)
+                {
+                    if (scriptingBackend != ScriptingImplementation.IL2CPP)
+                        throw new BuildFailedException("Quest requires IL2CPP.");
+                    BuildQuest(buildsDirectory, development);
+                    return;
+                }
+
                 BuildProjectAndZipIt(buildsDirectory, development, target, scriptingBackend);
             }
             catch (System.Exception exception)
@@ -58,8 +67,12 @@ namespace HBP.Dev
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, ScriptingImplementation scriptingBackend, bool connectProfiler = false)
         {
+            if (target != BuildTarget.StandaloneWindows64 && target != BuildTarget.StandaloneLinux64 && target != BuildTarget.StandaloneOSX)
+                throw new BuildFailedException($"Unsupported Desktop target: {target}.");
             SerializationTypeRegistryGenerator.EnsureUpToDateForBuild();
             PrepareBuildTarget(target);
+            BuildProfile profile = target == BuildTarget.StandaloneWindows64 ? HBPBuildProfiles.Load(false) : null;
+            BuildProfile.SetActiveBuildProfile(profile);
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, scriptingBackend);
 
             string os = "";
@@ -116,10 +129,16 @@ namespace HBP.Dev
                 locationPathName = buildDirectory + hibopName,
                 target = target,
                 scenes = new string[] { "Assets/_Scenes/HiBoP.unity" },
-                options = buildOptions
+                options = buildOptions | BuildOptions.DetailedBuildReport
             };
             using DiagnosticBuildSettingsScope diagnosticSettings = new(development, scriptingBackend);
-            BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
+            BuildReport report = profile == null ? BuildPipeline.BuildPlayer(buildPlayerOptions) : BuildPipeline.BuildPlayer(new BuildPlayerWithProfileOptions
+            {
+                buildProfile = profile,
+                locationPathName = buildPlayerOptions.locationPathName,
+                options = buildPlayerOptions.options
+            });
+            HBPBuildProfiles.WriteReport(report, Path.Combine(buildsDirectory, (profile == null ? target.ToString() : profile.name) + ".build-report.json"));
             if (report.summary.result != BuildResult.Succeeded)
             {
                 throw new BuildFailedException($"Build failed for {target}: {report.summary.result}");
@@ -178,6 +197,38 @@ namespace HBP.Dev
 
             FileInfo documentation = new(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
             documentation.CopyTo(buildDirectory + documentation.Name, true);
+        }
+
+        public static void BuildQuest(string buildsDirectory, bool development = false)
+        {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
+                throw new BuildFailedException("Select Quest in Build Profiles first, or use -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset on the command line.");
+            BuildProfile profile = HBPBuildProfiles.Load(true);
+            if (BuildProfile.GetActiveBuildProfile() != profile)
+                throw new BuildFailedException("Quest must be the active Build Profile before building.");
+            Directory.CreateDirectory(buildsDirectory);
+            bool bundle = EditorUserBuildSettings.buildAppBundle;
+            bool export = EditorUserBuildSettings.exportAsGoogleAndroidProject;
+            try
+            {
+                EditorUserBuildSettings.buildAppBundle = false;
+                EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+                using DiagnosticBuildSettingsScope diagnosticSettings = new(development, ScriptingImplementation.IL2CPP, NamedBuildTarget.Android);
+                BuildReport report = BuildPipeline.BuildPlayer(new BuildPlayerWithProfileOptions
+                {
+                    buildProfile = profile,
+                    locationPathName = Path.Combine(buildsDirectory, "HiBoP.Quest.apk"),
+                    options = BuildOptions.DetailedBuildReport | (development ? BuildOptions.Development : BuildOptions.None)
+                });
+                HBPBuildProfiles.WriteReport(report, Path.Combine(buildsDirectory, "Quest.build-report.json"));
+                if (report.summary.result != BuildResult.Succeeded)
+                    throw new BuildFailedException($"Quest build failed: {report.summary.result}");
+            }
+            finally
+            {
+                EditorUserBuildSettings.buildAppBundle = bundle;
+                EditorUserBuildSettings.exportAsGoogleAndroidProject = export;
+            }
         }
 
         private static void PrepareBuildTarget(BuildTarget target)
@@ -349,9 +400,13 @@ namespace HBP.Dev
             private readonly Il2CppStacktraceInformation m_Il2CppStacktraceInformation;
             private readonly Il2CppCompilerConfiguration m_Il2CppCompilerConfiguration;
             private readonly Il2CppCodeGeneration m_Il2CppCodeGeneration;
+            private readonly NamedBuildTarget m_Target;
+            private readonly UnityEngine.Object[] m_PreloadedAssets;
 
-            public DiagnosticBuildSettingsScope(bool development, ScriptingImplementation scriptingBackend)
+            public DiagnosticBuildSettingsScope(bool development, ScriptingImplementation scriptingBackend, NamedBuildTarget? target = null)
             {
+                m_Target = target ?? NamedBuildTarget.Standalone;
+                m_PreloadedAssets = PlayerSettings.GetPreloadedAssets();
                 m_UsePlayerLog = PlayerSettings.usePlayerLog;
                 m_ErrorStackTrace = PlayerSettings.GetStackTraceLogType(LogType.Error);
                 m_AssertStackTrace = PlayerSettings.GetStackTraceLogType(LogType.Assert);
@@ -372,19 +427,20 @@ namespace HBP.Dev
                     return;
                 }
 
-                m_Il2CppStacktraceInformation = PlayerSettings.GetIl2CppStacktraceInformation(NamedBuildTarget.Standalone);
-                m_Il2CppCompilerConfiguration = PlayerSettings.GetIl2CppCompilerConfiguration(NamedBuildTarget.Standalone);
-                m_Il2CppCodeGeneration = PlayerSettings.GetIl2CppCodeGeneration(NamedBuildTarget.Standalone);
-                PlayerSettings.SetIl2CppStacktraceInformation(NamedBuildTarget.Standalone, Il2CppStacktraceInformation.MethodFileLineNumber);
+                m_Il2CppStacktraceInformation = PlayerSettings.GetIl2CppStacktraceInformation(m_Target);
+                m_Il2CppCompilerConfiguration = PlayerSettings.GetIl2CppCompilerConfiguration(m_Target);
+                m_Il2CppCodeGeneration = PlayerSettings.GetIl2CppCodeGeneration(m_Target);
+                PlayerSettings.SetIl2CppStacktraceInformation(m_Target, Il2CppStacktraceInformation.MethodFileLineNumber);
                 if (!development)
                 {
-                    PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Standalone, Il2CppCompilerConfiguration.Release);
-                    PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, Il2CppCodeGeneration.OptimizeSpeed);
+                    PlayerSettings.SetIl2CppCompilerConfiguration(m_Target, Il2CppCompilerConfiguration.Release);
+                    PlayerSettings.SetIl2CppCodeGeneration(m_Target, Il2CppCodeGeneration.OptimizeSpeed);
                 }
             }
 
             public void Dispose()
             {
+                PlayerSettings.SetPreloadedAssets(m_PreloadedAssets);
                 PlayerSettings.usePlayerLog = m_UsePlayerLog;
                 PlayerSettings.SetStackTraceLogType(LogType.Error, m_ErrorStackTrace);
                 PlayerSettings.SetStackTraceLogType(LogType.Assert, m_AssertStackTrace);
@@ -394,9 +450,9 @@ namespace HBP.Dev
 
                 if (m_UsesIl2Cpp)
                 {
-                    PlayerSettings.SetIl2CppStacktraceInformation(NamedBuildTarget.Standalone, m_Il2CppStacktraceInformation);
-                    PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.Standalone, m_Il2CppCompilerConfiguration);
-                    PlayerSettings.SetIl2CppCodeGeneration(NamedBuildTarget.Standalone, m_Il2CppCodeGeneration);
+                    PlayerSettings.SetIl2CppStacktraceInformation(m_Target, m_Il2CppStacktraceInformation);
+                    PlayerSettings.SetIl2CppCompilerConfiguration(m_Target, m_Il2CppCompilerConfiguration);
+                    PlayerSettings.SetIl2CppCodeGeneration(m_Target, m_Il2CppCodeGeneration);
                 }
             }
         }

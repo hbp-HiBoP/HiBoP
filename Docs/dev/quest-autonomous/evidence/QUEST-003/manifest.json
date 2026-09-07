@@ -1,0 +1,602 @@
+{
+  "schemaVersion": 1,
+  "taskId": "QUEST-003",
+  "recordedAtUtc": "2026-09-07T16:54:08.070263+00:00",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "sourceState": {
+    "head": "b1ff09bc49c064f9538caec3d3e91bacddb6950c",
+    "branch": "feature/xr-autonomous",
+    "initiallyClean": true,
+    "committed": false,
+    "diff": {
+      "path": ".test-results/quest-003/delivered-source.diff",
+      "bytes": 16784,
+      "sha256": "28d5c880fc3847a4dc4d16f7a84b6734207cdafaf57b050aa586523afd07a36d"
+    },
+    "files": [
+      {
+        "path": ".github/workflows/README.md",
+        "bytes": 7466,
+        "sha256": "853b7ea15e55ce0901dd81f66d9d99cc39eb8c55e0da35d7769e9e0228926bce"
+      },
+      {
+        "path": ".github/workflows/build.yml",
+        "bytes": 15396,
+        "sha256": "efcc6eedbed7602a56967278f7ba08a2b533cefc737847768914189adc9ce34b"
+      },
+      {
+        "path": "Assets/Prefabs/Quest.meta",
+        "bytes": 172,
+        "sha256": "d3e5d48880e7f68b95a8a24bc53dd08725e01e830137e78ee55f4f126c5726d5"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestBootstrap.prefab",
+        "bytes": 2401,
+        "sha256": "fc385165a91dd2e2406535be2e9fe4833b7f2f9316defb04499bdd22ca1cfbad"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestBootstrap.prefab.meta",
+        "bytes": 154,
+        "sha256": "661695c6a8041942bc1f0b9167a960ddc02e187bc826bb8638debf09f7d9f057"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/Editor/HBP.Dev.Editor.asmdef",
+        "bytes": 679,
+        "sha256": "5b248a054d2d1e1a1c4ce3cf3604e6c874fefe87f677cd4d1cfcfa5749bdabbc"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/Editor/HBPBuildProfiles.cs",
+        "bytes": 6414,
+        "sha256": "d45a2e6ef148af3a16e79b60a392bd20d30c0bb01c1ded602332189b0d0fcac9"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/Editor/HBPBuildProfiles.cs.meta",
+        "bytes": 59,
+        "sha256": "fdc7837900f678084366ecbeff7966a73abd810d918299b05fc4914cc8f454c7"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/Editor/HBPBuilder.cs",
+        "bytes": 24694,
+        "sha256": "8229f304b808fb8617f3c5ab3be88459a15109a3d4d73dbec1e728c8b885a34d"
+      },
+      {
+        "path": "Assets/Settings/BuildProfiles.meta",
+        "bytes": 172,
+        "sha256": "c26a65c900b91de91691171b7cb74f7cce49bae379f16b2e4db7a3368283e690"
+      },
+      {
+        "path": "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+        "bytes": 42717,
+        "sha256": "a561a5936f66363c3075bd0be8ddfd8c30e206eaef3491c4897c813711209bc7"
+      },
+      {
+        "path": "Assets/Settings/BuildProfiles/DesktopWindows.asset.meta",
+        "bytes": 189,
+        "sha256": "c3c38ea08ed712b04706d03a6992926eadd4885bc53f9c8963a6c83c60a21a30"
+      },
+      {
+        "path": "Assets/Settings/BuildProfiles/Quest.asset",
+        "bytes": 43274,
+        "sha256": "3c0ecac2bc702cb4ec5de1a0a4a7181e1465274f2900689212fe8c59776ad173"
+      },
+      {
+        "path": "Assets/Settings/BuildProfiles/Quest.asset.meta",
+        "bytes": 189,
+        "sha256": "33d2c350db5bc3f32c800452807cf950f61ca1bb0cfeb832198e62679fda8972"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/BuildProfileConfigurationTests.cs",
+        "bytes": 4566,
+        "sha256": "dcc22eb98c1d315d594b4cef621ecb261c62ec1b9b65fa3777cafeff66f4923f"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/BuildProfileConfigurationTests.cs.meta",
+        "bytes": 59,
+        "sha256": "3c26cf2fb5343848aec6962aef327ec26ea7432a9b17c5c76a8587eaf89fc055"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/HBP.PlatformConfiguration.Tests.asmdef",
+        "bytes": 500,
+        "sha256": "f29a8a65adff32476333058dcf4c621794dd00ca3d6a5449d1a1545a11dbac6d"
+      },
+      {
+        "path": "Assets/_Scenes/QuestBootstrap.unity",
+        "bytes": 6045,
+        "sha256": "f2730a621d1d00d7fd76c647d6011c936cab19555838a1e193827556b0c4c451"
+      },
+      {
+        "path": "Assets/_Scenes/QuestBootstrap.unity.meta",
+        "bytes": 155,
+        "sha256": "2361f5d448c47460b54f6d49986b8674ad2f5cd64be6d25250f1d83806174b1f"
+      },
+      {
+        "path": "Tools/Test-QuestApk.ps1",
+        "bytes": 3319,
+        "sha256": "f0a780884b9ef9cddc8187e1be267ddaab19839f37356cb55c0546006a75501a"
+      }
+    ],
+    "buildSnapshot": {
+      "path": ".test-results/quest-003/delivery-source.json",
+      "bytes": 4682,
+      "sha256": "0d2e3430ecc6fc381184c0b749308198342c9221d07f05420028881d6335ae25"
+    },
+    "buildTrackedDiffSha256": "b41cffd2e21570497c82e20fae74f479328c22a43bc47c266373f3b7dd5d9f27",
+    "differencesAfterBuildSnapshot": [
+      "Assets/Resources/PerformanceTestRunInfo.json",
+      "Assets/Resources/PerformanceTestRunInfo.json.meta",
+      "Assets/Resources/PerformanceTestRunSettings.json",
+      "Assets/Resources/PerformanceTestRunSettings.json.meta",
+      "Assets/Settings/BuildProfiles/Quest.asset",
+      "Assets/XR/Settings/OpenXR Package Settings.asset",
+      "ProjectSettings/ProjectSettings.asset"
+    ],
+    "provenanceNote": "Same implementation for final Android and Windows builds. Unity regenerated profile preload settings and temporary performance test resources; import-only global settings restored and generated BuildInfo restored after builds. Documentation finalized afterwards. Build snapshot and final file hashes distinguish these states."
+  },
+  "versions": {
+    "unity": "6000.5.2f1",
+    "packages": {
+      "dependencies": {
+        "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
+        "com.crnl.hibop_utilities": "https://github.com/hbp-HiBoP/HiBoP_Utilities.git",
+        "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+        "com.unity.2d.sprite": "1.0.0",
+        "com.unity.2d.tilemap": "1.0.0",
+        "com.unity.ide.visualstudio": "2.0.27",
+        "com.unity.inputsystem": "1.20.0",
+        "com.unity.multiplayer.center": "1.0.1",
+        "com.unity.nuget.newtonsoft-json": "3.2.2",
+        "com.unity.render-pipelines.universal": "17.5.0",
+        "com.unity.sdk.linux-x86_64": "1.1.0",
+        "com.unity.test-framework": "1.7.0",
+        "com.unity.timeline": "1.8.12",
+        "com.unity.toolchain.win-x86_64-linux": "1.1.0",
+        "com.unity.ugui": "2.5.0",
+        "com.unity.xr.interaction.toolkit": "3.6.0",
+        "com.unity.xr.management": "4.7.0",
+        "com.unity.xr.meta-openxr": "2.4.1",
+        "com.unity.xr.openxr": "1.18.0",
+        "com.unity.modules.accessibility": "1.0.0",
+        "com.unity.modules.adaptiveperformance": "1.0.0",
+        "com.unity.modules.ai": "1.0.0",
+        "com.unity.modules.androidjni": "1.0.0",
+        "com.unity.modules.animation": "1.0.0",
+        "com.unity.modules.assetbundle": "1.0.0",
+        "com.unity.modules.audio": "1.0.0",
+        "com.unity.modules.cloth": "1.0.0",
+        "com.unity.modules.director": "1.0.0",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0",
+        "com.unity.modules.particlesystem": "1.0.0",
+        "com.unity.modules.physics": "1.0.0",
+        "com.unity.modules.physics2d": "1.0.0",
+        "com.unity.modules.physicscore2d": "1.0.0",
+        "com.unity.modules.screencapture": "1.0.0",
+        "com.unity.modules.terrain": "1.0.0",
+        "com.unity.modules.terrainphysics": "1.0.0",
+        "com.unity.modules.tilemap": "1.0.0",
+        "com.unity.modules.ui": "1.0.0",
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.umbra": "1.0.0",
+        "com.unity.modules.unityanalytics": "1.0.0",
+        "com.unity.modules.unitywebrequest": "1.0.0",
+        "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
+        "com.unity.modules.unitywebrequestaudio": "1.0.0",
+        "com.unity.modules.unitywebrequesttexture": "1.0.0",
+        "com.unity.modules.unitywebrequestwww": "1.0.0",
+        "com.unity.modules.vectorgraphics": "1.0.0",
+        "com.unity.modules.vehicles": "1.0.0",
+        "com.unity.modules.video": "1.0.0",
+        "com.unity.modules.wind": "1.0.0",
+        "com.unity.modules.xr": "1.0.0"
+      }
+    },
+    "packageLock": {
+      "path": "Packages/packages-lock.json",
+      "bytes": 17988,
+      "sha256": "c5f3d1c413ee802e90ab68a618fc5a3e9bd93b248a6959ed8ff01416bf4906c5"
+    },
+    "nativeLock": {
+      "path": "Tools/NativePlugins.lock.json",
+      "bytes": 6048,
+      "sha256": "3b4e39202f453a745429ab7645901b16e6cf94832321d111c30e2bbc8cf14384"
+    }
+  },
+  "commands": [
+    {
+      "name": "build-quest-delivery",
+      "argv": [
+        "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+        "-batchmode",
+        "-quit",
+        "-nographics",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-activeBuildProfile",
+        "Assets/Settings/BuildProfiles/Quest.asset",
+        "-executeMethod",
+        "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+        "-buildOutput",
+        "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-003\\quest",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\build-quest-delivery.log"
+      ],
+      "exitCode": 0,
+      "launcher": "Start-Process -Wait -PassThru -WindowStyle Hidden outside sandbox",
+      "environment": {
+        "TEMP": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\tmp",
+        "TMP": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\tmp"
+      }
+    },
+    {
+      "name": "build-windows-delivery",
+      "argv": [
+        "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+        "-batchmode",
+        "-quit",
+        "-nographics",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-activeBuildProfile",
+        "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+        "-executeMethod",
+        "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+        "-buildOutput",
+        "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-003\\desktop",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\build-windows-delivery.log"
+      ],
+      "exitCode": 0,
+      "launcher": "Start-Process -Wait -PassThru -WindowStyle Hidden outside sandbox",
+      "environment": {}
+    },
+    {
+      "name": "android-edit-final",
+      "argv": [
+        "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-activeBuildProfile",
+        "Assets/Settings/BuildProfiles/Quest.asset",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-assemblyNames",
+        "HBP.PlatformConfiguration.Tests",
+        "-testResults",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\android-edit-final.xml",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\android-edit-final.log"
+      ],
+      "exitCode": 0,
+      "launcher": "Start-Process -Wait -PassThru -WindowStyle Hidden outside sandbox",
+      "environment": {}
+    },
+    {
+      "name": "windows-edit-final",
+      "argv": [
+        "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+        "-batchmode",
+        "-nographics",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-activeBuildProfile",
+        "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testFilter",
+        "HBP.Tests.PlatformConfiguration;HBP.Tests.Serialization.QuestAnatomyFixtureTests",
+        "-testResults",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\windows-edit-final.xml",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\windows-edit-final.log"
+      ],
+      "exitCode": 0,
+      "launcher": "Start-Process -Wait -PassThru -WindowStyle Hidden outside sandbox",
+      "environment": {}
+    },
+    {
+      "name": "windows-play",
+      "argv": [
+        "C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Unity.exe",
+        "-batchmode",
+        "-projectPath",
+        "C:\\HBP\\Software\\HiBoP",
+        "-activeBuildProfile",
+        "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-assemblyNames",
+        "HBP.UI.PlayModeTests;HBP.Module3D.PlayModeTests",
+        "-testResults",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\windows-play.xml",
+        "-logFile",
+        "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-003\\windows-play.log"
+      ],
+      "exitCode": 0,
+      "launcher": "Start-Process -Wait -PassThru -WindowStyle Hidden outside sandbox",
+      "environment": {}
+    }
+  ],
+  "tests": [
+    {
+      "name": "android-edit-final",
+      "exitCode": 0,
+      "summary": {
+        "id": "2",
+        "testcasecount": "15",
+        "result": "Passed",
+        "total": "15",
+        "passed": "15",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-09-07 16:39:29Z",
+        "end-time": "2026-09-07 16:39:39Z",
+        "duration": "9,9273081"
+      },
+      "evidence": {
+        "path": ".test-results/quest-003/android-edit-final.xml",
+        "bytes": 18251,
+        "sha256": "36caa72f8536d75594de96df6f35b9a28a73549d758632c7648ce11008128ea9"
+      }
+    },
+    {
+      "name": "windows-edit-final",
+      "exitCode": 0,
+      "summary": {
+        "id": "2",
+        "testcasecount": "17",
+        "result": "Skipped:Ignored",
+        "total": "17",
+        "passed": "16",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "1",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-09-07 16:43:27Z",
+        "end-time": "2026-09-07 16:43:34Z",
+        "duration": "7,0816937"
+      },
+      "evidence": {
+        "path": ".test-results/quest-003/windows-edit-final.xml",
+        "bytes": 23187,
+        "sha256": "8e256ffe2bbefdbe234a0438cc6243b3c8ceddf182dc88ade0063de3c3f4589b"
+      }
+    },
+    {
+      "name": "windows-play",
+      "exitCode": 0,
+      "summary": {
+        "id": "2",
+        "testcasecount": "81",
+        "result": "Passed",
+        "total": "81",
+        "passed": "81",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-09-07 16:28:58Z",
+        "end-time": "2026-09-07 16:29:08Z",
+        "duration": "9,7721551"
+      },
+      "evidence": {
+        "path": ".test-results/quest-003/windows-play.xml",
+        "bytes": 83567,
+        "sha256": "7710c5dfe71f5343a22dd5ca95fd48afbd09aef511fdb58dec9234fcb05f44cb"
+      }
+    }
+  ],
+  "builds": {
+    "windows": {
+      "result": "Succeeded",
+      "seconds": 31.1479315,
+      "warnings": 1,
+      "unityReportedBytes": 1955199424,
+      "deliveredBytes": 631062184,
+      "fileCount": 106,
+      "scene": [
+        "Assets/_Scenes/HiBoP.unity"
+      ],
+      "resourcesBytes": 153457023,
+      "strippedAssemblies": 109
+    },
+    "quest": {
+      "result": "Succeeded",
+      "seconds": 71.657862,
+      "warnings": 2,
+      "unityReportedBytes": 1432315262,
+      "apkBytes": 98637675,
+      "scene": [
+        "Assets/_Scenes/QuestBootstrap.unity"
+      ],
+      "resourcesBytes": 153566035,
+      "strippedAssemblies": 104,
+      "nativeLibraries": [
+        "lib/arm64-v8a/lib_burst_generated.so",
+        "lib/arm64-v8a/libil2cpp.so",
+        "lib/arm64-v8a/libmain.so",
+        "lib/arm64-v8a/libunity.so"
+      ]
+    }
+  },
+  "manual": [
+    {
+      "id": "M1",
+      "status": "VALIDE",
+      "action": "Open supplied Windows Player with supplied anatomy fixture; visual confirmation received from owner",
+      "ownerFeedback": [
+        "M1 OK"
+      ]
+    },
+    {
+      "id": "M2",
+      "status": "VALIDE",
+      "device": "Quest 3 / Android 14 / SDK 34",
+      "ownerFeedback": [
+        "Je confirme avoir vu la splash image de hibop, puis une fenêtre noire",
+        "La fenêtre sombre est visible et reste ouverte"
+      ]
+    }
+  ],
+  "limitations": [
+    "Remote CI not run; workflow YAML and selection/cache rules checked locally.",
+    "Nonfatal Android AssetPackManager ClassNotFoundException at startup; no fatal/crash and stable visible window confirmed.",
+    "Shared Resources remain packaged; Windows package XRSimulationSubsystem binaries remain but no XR loader initialized.",
+    "Initial failed Gradle logs contain redacted environment sections; final build logs are authoritative."
+  ],
+  "evidence": [
+    {
+      "path": ".test-results/quest-003/delivery-source.json",
+      "bytes": 4682,
+      "sha256": "0d2e3430ecc6fc381184c0b749308198342c9221d07f05420028881d6335ae25"
+    },
+    {
+      "path": ".test-results/quest-003/delivery-source.diff",
+      "bytes": 28120,
+      "sha256": "b41cffd2e21570497c82e20fae74f479328c22a43bc47c266373f3b7dd5d9f27"
+    },
+    {
+      "path": ".test-results/quest-003/delivered-source.json",
+      "bytes": 4103,
+      "sha256": "4d9401463de897d6c51a66fe1b5f1190daf08c69d7060e09005049a01e5e9589"
+    },
+    {
+      "path": ".test-results/quest-003/delivered-source.diff",
+      "bytes": 16784,
+      "sha256": "28d5c880fc3847a4dc4d16f7a84b6734207cdafaf57b050aa586523afd07a36d"
+    },
+    {
+      "path": ".test-results/quest-003/windows-content.json",
+      "bytes": 25717,
+      "sha256": "99fc07f4e1446fb815d13484d48aa414ef0e10f869fb40d7512acc2b47eff6aa"
+    },
+    {
+      "path": ".test-results/quest-003/android-stripped-assemblies.json",
+      "bytes": 21301,
+      "sha256": "69dabb75168a99c6682777c78d956b28a62b65f1732e22ac64a058eb19c08d37"
+    },
+    {
+      "path": ".test-results/quest-003/windows-stripped-assemblies.json",
+      "bytes": 23865,
+      "sha256": "420f3cb23e8eb9e70a4edf7311db6daa976f08d7f9dacf627fc32bf3d4f04f46"
+    },
+    {
+      "path": ".test-results/quest-003/build-quest-delivery.log",
+      "bytes": 629217,
+      "sha256": "e399bd532dc9620816b54196f2bcc4b11b3c37f962697ad73d6e4e3990814e78"
+    },
+    {
+      "path": ".test-results/quest-003/build-windows-delivery.log",
+      "bytes": 735817,
+      "sha256": "f74d1c4c99b923bd3b813d806c14aca6a5e45fc531347b8a87ae571f919ac066"
+    },
+    {
+      "path": ".test-results/quest-003/android-edit-final.xml",
+      "bytes": 18251,
+      "sha256": "36caa72f8536d75594de96df6f35b9a28a73549d758632c7648ce11008128ea9"
+    },
+    {
+      "path": ".test-results/quest-003/android-edit-final.log",
+      "bytes": 113712,
+      "sha256": "49060f9d3172e8708f32fcc01bbe7c916f3abc9e9c32e6d03c40b2c5479f8a47"
+    },
+    {
+      "path": ".test-results/quest-003/windows-edit-final.xml",
+      "bytes": 23187,
+      "sha256": "8e256ffe2bbefdbe234a0438cc6243b3c8ceddf182dc88ade0063de3c3f4589b"
+    },
+    {
+      "path": ".test-results/quest-003/windows-edit-final.log",
+      "bytes": 326990,
+      "sha256": "9ec67a59b2e2e5f2445dbb36313906427b61f4775d5399cfab54c583fa5b1ee8"
+    },
+    {
+      "path": ".test-results/quest-003/windows-play.xml",
+      "bytes": 83567,
+      "sha256": "7710c5dfe71f5343a22dd5ca95fd48afbd09aef511fdb58dec9234fcb05f44cb"
+    },
+    {
+      "path": ".test-results/quest-003/windows-play.log",
+      "bytes": 95231,
+      "sha256": "6699756a7589923ec8bdfc4196f3219edc71e6a17073f2fac74cae6f127d57b2"
+    },
+    {
+      "path": ".test-results/quest-003/windows-player-delivery.log",
+      "bytes": 1851,
+      "sha256": "b872cea558d51880e9a18c8faa0f08bdf2f480c8c863a9562de18ced8470d59b"
+    },
+    {
+      "path": ".test-results/quest-003/quest-install.log",
+      "bytes": 117,
+      "sha256": "808a17f305fab623456a298c2f5897e52770307e2b32fdd2070c3b034bee093c"
+    },
+    {
+      "path": ".test-results/quest-003/quest-relaunch.log",
+      "bytes": 227,
+      "sha256": "2126b92138d34fb8b8678264821b15826b556f649426dabad81906d56ba53c18"
+    },
+    {
+      "path": ".test-results/quest-003/quest-relaunch-player.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".test-results/quest-003/quest-confirmed.json",
+      "bytes": 200,
+      "sha256": "79dda24b8dad5795fe5a66c3c386c579e8ba5c45e16838be63b0a730341d097b"
+    },
+    {
+      "path": ".test-results/quest-003/quest-player.log",
+      "bytes": 43169,
+      "sha256": "c208caceb8b60ece4b80bee42c6a16dc40ff8ca3a14a758b630a7a6fbf963a9f"
+    },
+    {
+      "path": ".test-results/quest-003/create-profiles.cs",
+      "bytes": 4162,
+      "sha256": "1f36815565e0844d01c98986b74df323ea92d3af75def971e1eb2d1171aa4cee"
+    },
+    {
+      "path": ".artifacts/quest-003/quest/HiBoP.Quest.apk",
+      "bytes": 98637675,
+      "sha256": "bc0352351b6afebc428264e803233368bc79647dbb36d9796a4bc65f0d768542"
+    },
+    {
+      "path": ".artifacts/quest-003/quest/Quest.build-report.json",
+      "bytes": 751515,
+      "sha256": "70e83711e8fc6d188a8fb98096a627cda1960d421c622a6d3a287b01ae0d127c"
+    },
+    {
+      "path": ".artifacts/quest-003/quest/quest-apk-content.json",
+      "bytes": 4942,
+      "sha256": "f01e67146e9f78fced54623ff573c733c2a40eb5904226c538ab5a0e339524b5"
+    },
+    {
+      "path": ".artifacts/quest-003/desktop/DesktopWindows.build-report.json",
+      "bytes": 808292,
+      "sha256": "bfae25af52a802685fc6474f8ab80209296c3510b9f07c6bd810d453edee5fc5"
+    },
+    {
+      "path": ".artifacts/quest-003/fixture/quest-mni-anatomy.hibop",
+      "bytes": 1853,
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a"
+    }
+  ],
+  "manualValidationUpdatedAtUtc": "2026-09-07T16:58:29.079104+00:00"
+}

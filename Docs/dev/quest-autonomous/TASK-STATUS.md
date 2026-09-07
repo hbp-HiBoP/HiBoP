@@ -19,7 +19,7 @@ contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs
 | <a id="quest-001"></a>[QUEST-001](tasks/QUEST-001.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-001.md) · [Preuves](evidence/QUEST-001/manifest.json) ; M1 confirmée par le propriétaire le 2026-09-07 : ouverture de HiBoP 6.1.0 avec le cerveau MNI. |
 | <a id="quest-002"></a>[QUEST-002](tasks/QUEST-002.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-002.md) · [Preuves](evidence/QUEST-002/manifest.json) ; retour propriétaire le 2026-09-07 : rotation, translation horizontale et zoom OK ; sensibilité verticale excessive préexistante (rapport 5), sans régression introduite par QUEST-002. |
 | <a id="quest-002-a"></a>[QUEST-002-A](tasks/QUEST-002-A.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-002-A.md) · [Preuves](evidence/QUEST-002-A/manifest.json) ; New sur Windows/Android et Player Windows IL2CPP. M1–M3 validées par le propriétaire le 2026-09-07 à 16:34 +02:00. Simplification DesktopInput ensuite : 81 tests UI/Module3D et compilation des deux cibles réussis ; Player validé conservé. |
-| <a id="quest-003"></a>[QUEST-003](tasks/QUEST-003.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-003"></a>[QUEST-003](tasks/QUEST-003.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-003.md), [preuves](evidence/QUEST-003/manifest.json) ; deux builds et tests réussis, M1 Windows et M2 Quest validés par le propriétaire. |
 | <a id="quest-004"></a>[QUEST-004](tasks/QUEST-004.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-005"></a>[QUEST-005](tasks/QUEST-005.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-006"></a>[QUEST-006](tasks/QUEST-006.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |

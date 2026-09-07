@@ -15,12 +15,13 @@ on:
           - linux
           - windows
           - macos
+          - quest
 
 permissions:
   contents: write
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-${{ inputs.platform == 'quest' && 'quest-' || '' }}${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -30,6 +31,7 @@ defaults:
 jobs:
   prepare_matrix:
     name: Select build platforms
+    if: github.event_name != 'workflow_dispatch' || inputs.platform != 'quest'
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.select.outputs.matrix }}
@@ -99,7 +101,6 @@ jobs:
           key: Library-${{ matrix.module }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.module }}-
-            Library-
 
       - name: Install Unity Hub (Linux)
         if: runner.os == 'Linux'
@@ -293,3 +294,68 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.event.release.tag_name }}" "${{ steps.package.outputs.archive }}" --clobber
+
+  quest:
+    name: Build Quest bootstrap (manual only)
+    if: github.event_name == 'workflow_dispatch' && inputs.platform == 'quest'
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    env:
+      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle/quest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Cache Quest Library
+        uses: actions/cache@v5
+        with:
+          path: Library
+          key: Library-Quest-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-Quest-Android-
+      - name: Cache Quest Gradle
+        uses: actions/cache@v5
+        with:
+          path: .gradle/quest
+          key: Gradle-Quest-6000.5.2f1-${{ hashFiles('Packages/**', 'Assets/Plugins/Android/**') }}
+          restore-keys: Gradle-Quest-6000.5.2f1-
+      - name: Install Unity with Android toolchain
+        uses: RageAgainstThePixel/unity-setup@v2
+        with:
+          unity-version: 6000.5.2f1
+          build-targets: Android
+          modules: android-sdk-ndk-tools, android-open-jdk
+          auto-update-hub: false
+      - name: Activate Unity licence
+        uses: RageAgainstThePixel/activate-unity-license@v2
+        with:
+          license: Personal
+          username: ${{ secrets.UNITY_USERNAME }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+      - name: Build Quest
+        run: |
+          set -euo pipefail
+          "$UNITY_EDITOR_PATH" \
+            -batchmode -quit -nographics \
+            -projectPath "$GITHUB_WORKSPACE" \
+            -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset \
+            -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine \
+            -buildOutput "$GITHUB_WORKSPACE/build" \
+            -buildCommit "$GITHUB_SHA" \
+            -logFile "$GITHUB_WORKSPACE/quest-build.log"
+      - name: Validate APK contents
+        shell: pwsh
+        run: ./Tools/Test-QuestApk.ps1 -Apk build/HiBoP.Quest.apk -ReportPath build/quest-apk-content.json
+      - name: Upload Quest build and reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: HiBoP-Quest-bootstrap
+          path: |
+            build/HiBoP.Quest.apk
+            build/Quest.build-report.json
+            build/quest-apk-content.json
+          if-no-files-found: error
+      - name: Upload Unity log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: HiBoP-Quest-log
+          path: quest-build.log
