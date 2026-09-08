@@ -63,10 +63,6 @@ namespace HBP.Quest
             snapshot = decode.Result; // Already completed; never blocks the PlayerLoop.
             statusText.text = "LOCAL HBNA DIAGNOSTIC\nWaiting for head tracking";
             while (!head.IsTracked) yield return null;
-            Vector3 forward = Vector3.ProjectOnPlane(head.transform.forward, Vector3.up).normalized;
-            if (forward.sqrMagnitude < 0.5f) forward = Vector3.forward;
-            view.transform.position = head.transform.position + forward * 0.65f - Vector3.up * 0.12f;
-            view.transform.rotation = Quaternion.LookRotation(forward) * Quaternion.Euler(-90, 0, 0);
             landmarks.SetActive(true);
             Record("baseline");
             for (int cycle = 0; cycle < 3; cycle++)
@@ -89,7 +85,7 @@ namespace HBP.Quest
             clear = new InputAction("Diagnostic clear", binding: "<XRController>{RightHand}/secondaryButton");
             reload.Enable();
             clear.Enable();
-            statusText.text = "LOCAL HBNA DIAGNOSTIC (no network)\nA: load/replace  B: release\nX/Y/Z: prepared frame, 100 mm marks";
+            statusText.text = "LOCAL HBNA DIAGNOSTIC (no network)\nIndex trigger: move/rotate\nBoth triggers: scale | X: recenter\nA: reload  B: clear | Marks: 100 mm";
         }
 
         private bool Load()

@@ -92,10 +92,19 @@ arrêter le serveur ADB, les services système ou d'autres applications : la
 connexion doit rester disponible pour la reprise. Si le casque est déconnecté,
 indiquer que l'arrêt n'a pas pu être vérifié plutôt que le prétendre effectué.
 
-Pour la connexion Wi-Fi, utiliser `Tools/Connect-QuestAdbWifi.ps1` avec
-`-NoProximityOverride` par défaut afin de conserver la gestion normale du
-capteur de proximité. Un besoin explicite de test hors tête peut justifier
-l'override ; le désactiver à la fin de cet essai avec la commande Meta adaptée.
+Pour le casque de développement, D26 demande désormais
+`Tools/Connect-QuestAdbWifi.ps1 -KeepAwakeWhilePluggedIn` : conserver l'override
+de proximité et le maintien éveillé sur alimentation entre les essais.
+L'arrêt de HiBoP prévu par D23 ne remet pas le casque en veille.
+Sur un autre casque, ou à la demande d'un usage normal, employer
+`-NoProximityOverride`. Pour restaurer le mode normal sur le casque configuré,
+exécuter `adb -s <IP:port> shell svc power stayon false` puis
+`adb -s <IP:port> shell am broadcast -a com.oculus.vrpowermanager.automation_disable`.
+Après redémarrage du casque, relancer le script ; le mode ADB TCP et l'override
+ne sont pas garantis persistants. Dans Unity / Preferences / External Tools,
+désactiver `Kill ADB server on exit` et `Kill external ADB instances` pour
+préserver la session de développement. Les clients ADB doivent partager une
+version compatible ; éviter les arrêts/redémarrages automatiques du serveur.
 Après connexion Wi-Fi, employer `adb -s <IP:port>` : `adb -d` cible uniquement
 le transport USB. Exécuter les opérations ADB hors sandbox Windows.
 

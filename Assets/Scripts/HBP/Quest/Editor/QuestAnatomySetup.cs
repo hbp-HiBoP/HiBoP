@@ -43,6 +43,9 @@ namespace HBP.Quest.Editor
                 Set(serialized, "meshRenderer", renderer);
                 Set(serialized, "opaqueMaterial", material);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
+                var manipulation = new SerializedObject(root.AddComponent<QuestAnatomyManipulator>());
+                Set(manipulation, "view", root.GetComponent<QuestAnatomyView>());
+                manipulation.ApplyModifiedPropertiesWithoutUndo();
                 PrefabUtility.SaveAsPrefabAsset(root, ViewPath);
             }
             finally
@@ -76,6 +79,13 @@ namespace HBP.Quest.Editor
                 Label(markers.transform, "Positive Z", "+Z 100 mm", new Vector3(0, 0, 0.1f), Color.cyan);
                 foreach (Transform label in markers.transform) label.localRotation = Quaternion.Euler(90, 0, 0);
                 var head = Array.Find(root.GetComponentsInChildren<QuestDevicePoseTracker>(), tracker => tracker.Role == QuestDevicePoseTracker.DeviceRole.Head);
+                var input = new SerializedObject(diagnostic.AddComponent<QuestAnatomyInput>());
+                Set(input, "view", instance.GetComponent<QuestAnatomyView>());
+                Set(input, "manipulator", instance.GetComponent<QuestAnatomyManipulator>());
+                Set(input, "head", head);
+                Set(input, "left", Array.Find(root.GetComponentsInChildren<QuestDevicePoseTracker>(), tracker => tracker.Role == QuestDevicePoseTracker.DeviceRole.LeftController));
+                Set(input, "right", Array.Find(root.GetComponentsInChildren<QuestDevicePoseTracker>(), tracker => tracker.Role == QuestDevicePoseTracker.DeviceRole.RightController));
+                input.ApplyModifiedPropertiesWithoutUndo();
                 var status = Label(head.transform, "Anatomy Diagnostic Status", "", new Vector3(-0.45f, -0.20f, 1.25f), Color.white);
                 status.characterSize = 0.012f;
                 var serialized = new SerializedObject(diagnostic.AddComponent<QuestAnatomyDiagnostic>());

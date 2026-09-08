@@ -51,6 +51,16 @@
     Restarts the local ADB server before starting.
 
 .EXAMPLE
+    .\Connect-QuestAdbWifi.ps1 -KeepAwakeWhilePluggedIn
+
+    Keeps the headset awake on a wall charger as well as USB power. Combined with
+    the default proximity override, prepares an off-head development session.
+    Run again after a headset reboot; TCP ADB and proximity override are not
+    guaranteed to survive it. To restore charging sleep: adb -s <endpoint> shell
+    svc power stayon false. To restore proximity: adb -s <endpoint> shell am
+    broadcast -a com.oculus.vrpowermanager.automation_disable.
+
+.EXAMPLE
     .\Connect-QuestAdbWifi.ps1 -NoProximityOverride
 
     Connects ADB without changing the Quest proximity-sensor behavior.
@@ -106,6 +116,9 @@ param(
 
     # Does not keep the Quest awake by overriding its proximity sensor.
     [switch]$NoProximityOverride,
+
+    # Prevents Android sleep while powered by a charger (not just a PC USB port).
+    [switch]$KeepAwakeWhilePluggedIn,
 
     # Displays less output.
     [switch]$Quiet
@@ -470,6 +483,16 @@ function Connect-AdbEndpoint {
 
 function Enable-QuestOffHeadMode {
     param([string]$DeviceSerial)
+
+    if ($KeepAwakeWhilePluggedIn) {
+        Write-Step "Keeping the Quest awake while connected to power..."
+        [void](Invoke-Adb -Arguments @("-s", $DeviceSerial, "shell", "svc", "power", "stayon", "true"))
+        $stayOn = Invoke-Adb -Arguments @("-s", $DeviceSerial, "shell", "settings", "get", "global", "stay_on_while_plugged_in")
+        if ($stayOn.Text.Trim() -notmatch '^\d+$' -or (([int]$stayOn.Text.Trim() -band 3) -ne 3)) {
+            throw "ADB is connected, but stay-awake on AC and USB power was not verified: $($stayOn.Text)"
+        }
+        Write-Step "Stay-awake on AC and USB power verified (value $($stayOn.Text.Trim()))."
+    }
 
     if (-not $NoProximityOverride) {
         Write-Step "Enabling off-head mode (proximity sensor override)..."

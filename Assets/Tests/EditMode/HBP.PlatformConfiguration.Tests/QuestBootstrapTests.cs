@@ -11,6 +11,7 @@ using UnityEngine;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.OpenXR;
+using UnityEngine.XR.OpenXR.Features.Meta;
 
 namespace HBP.Tests.PlatformConfiguration
 {
@@ -18,6 +19,65 @@ namespace HBP.Tests.PlatformConfiguration
     {
         [Test]
         public void QuestConfiguration_PassesGuard() => QuestBuildValidation.Validate();
+
+        [Test]
+        public void BoundaryVisibility_IsContextualAndWiredToPassthrough()
+        {
+            var settings = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Android);
+            var feature = settings.GetFeature<BoundaryVisibilityFeature>();
+            Assert.That(feature.enabled, Is.True);
+            Assert.That(new SerializedObject(feature).FindProperty("m_SuppressVisibility").boolValue, Is.False);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.RigPath);
+            var boundary = new SerializedObject(prefab.GetComponent<QuestBoundaryVisibility>());
+            Assert.That(boundary.FindProperty("passthrough").objectReferenceValue, Is.EqualTo(prefab.GetComponent<QuestPassthroughStatus>()));
+            Assert.That(boundary.FindProperty("freeMovementInPassthrough").boolValue, Is.True);
+            var desktop = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Standalone).GetFeature<BoundaryVisibilityFeature>();
+            Assert.That(desktop == null || !desktop.enabled, Is.True, "Desktop does not suppress the system boundary.");
+        }
+
+        [Test]
+        public void AutomaticBoundarySuppression_IsRejectedBeforeBuild()
+        {
+            var feature = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Android).GetFeature<BoundaryVisibilityFeature>();
+            var serialized = new SerializedObject(feature);
+            var property = serialized.FindProperty("m_SuppressVisibility");
+            bool original = property.boolValue;
+            try
+            {
+                property.boolValue = true;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                Assert.Throws<BuildFailedException>(() => QuestBuildValidation.Validate());
+            }
+            finally
+            {
+                property.boolValue = original;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        [TestCase("OnApplicationFocus", true)]
+        [TestCase("OnApplicationPause", false)]
+        public void BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(string callback, bool value)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.RigPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var boundary = instance.GetComponent<QuestBoundaryVisibility>();
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                var accepted = typeof(QuestBoundaryVisibility).GetField("acceptedRequest", flags);
+                var requested = typeof(QuestBoundaryVisibility).GetField("lastRequested", flags);
+                accepted.SetValue(boundary, XrBoundaryVisibility.VisibilitySuppressed);
+                requested.SetValue(boundary, XrBoundaryVisibility.VisibilitySuppressed);
+                typeof(QuestBoundaryVisibility).GetMethod(callback, flags).Invoke(boundary, new object[] { value });
+                Assert.That(accepted.GetValue(boundary), Is.Null, "A failed restore at session shutdown must not suppress the next session's request.");
+                Assert.That(requested.GetValue(boundary), Is.Null);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
 
         [Test]
         public void OpaqueCamera_IsRejectedBeforeBuild()

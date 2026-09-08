@@ -1,0 +1,898 @@
+{
+  "task": "QUEST-008",
+  "createdUtc": "2026-09-08T10:28:14.9597594Z",
+  "updatedUtc": "2026-09-08T11:01:07.2117686Z",
+  "implementation": "IMPLEMENTEE",
+  "technical": "REUSSI",
+  "manual": "VALIDE",
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "initialHead": "2918139dc499ae050f335a37b3ab1512189bfbfd",
+    "finalHead": "2918139dc499ae050f335a37b3ab1512189bfbfd",
+    "initialWorktree": "clean",
+    "finalWorktree": "uncommitted source files enumerated and hashed below; no commit or push",
+    "historicalReference": "HiBoP_HoloLens@5a119948df337454c1dc9a053faf375f024a02b9: Assets/Prefabs/3D/Scenes/Scene 3D.prefab and Assets/Scripts/HBP/HoloLens/Module3D/Base3DScene.cs; read-only, no source or GUID copied",
+    "cleanup": "Only CLI-generated BuildInfo, settings migrations, icons and URP prefilters restored to initial versions after inspection. Prefab trailing whitespace normalized."
+  },
+  "versions": {
+    "Unity": "6000.5.2f1",
+    "InputSystem": "1.20.0",
+    "OpenXR": "1.18.0",
+    "MetaOpenXR": "2.4.1",
+    "URP": "17.5.0",
+    "backend": "IL2CPP ARM64 Vulkan SinglePassInstanced"
+  },
+  "fixture": {
+    "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+    "origin": ".artifacts/quest-007/fixture/quest-anatomy.hbna (unchanged real Desktop MNI capture from QUEST-006)",
+    "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+    "bytes": 3870248,
+    "devicePath": "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest-anatomy.hbna",
+    "delivery": "local diagnostic, not network transport"
+  },
+  "native": {
+    "boundaryExtension": "XR_META_boundary_visibility",
+    "apkAudit": ".artifacts/quest-008/trigger-boundary/Quest/quest-apk-content.json",
+    "scientificRuntime": "none on Quest; no changes to hbp_core/hbp_math/EEGFormat"
+  },
+  "adjustments": {
+    "development": "D26: preserve off-head and stay-awake-on-power; Unity ADB kill-server-on-exit and kill-external-instance preferences changed from 1 to 0 locally",
+    "boundary": "Contextual passthrough request, automatic feature suppression disabled; local-floor; restore on focus/pause/provider loss; retry on resume",
+    "mapping": "Index triggerPressed left/right, X recenter; side grips do not grab"
+  },
+  "verification": [
+    {
+      "name": "boundary prefab setup",
+      "log": ".test-results/quest-008/trigger-boundary/setup.log",
+      "exitCode": 0,
+      "method": "HBP.Quest.Editor.QuestBoundarySetup.Apply"
+    },
+    {
+      "name": "C# formatter",
+      "command": ".\\Tools\\format-code.cmd",
+      "log": ".test-results/quest-008/trigger-boundary/format.log",
+      "exitCode": 0
+    },
+    {
+      "command": "Unity.exe -batchmode -nographics -projectPath C:\\HBP\\Software\\HiBoP -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -runTests -testPlatform EditMode -assemblyNames HBP.Quest.Anatomy.Tests;HBP.PlatformConfiguration.Tests;HBP.Transfer.Anatomy.Tests -questAnatomyFixture C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-008\\fixture\\quest-anatomy.hbna",
+      "skipped": 0,
+      "exitCode": 0,
+      "xml": ".test-results/quest-008/trigger-boundary/editmode.xml",
+      "total": 69,
+      "result": "Passed",
+      "failed": 0,
+      "passed": 69,
+      "mode": "editmode",
+      "log": ".test-results/quest-008/trigger-boundary/editmode.log"
+    },
+    {
+      "command": "Unity.exe -batchmode -projectPath C:\\HBP\\Software\\HiBoP -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -runTests -testPlatform PlayMode -assemblyNames HBP.Quest.PlayModeTests -questAnatomyFixture C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-008\\fixture\\quest-anatomy.hbna",
+      "skipped": 0,
+      "exitCode": 0,
+      "xml": ".test-results/quest-008/trigger-boundary/playmode.xml",
+      "total": 15,
+      "result": "Passed",
+      "failed": 0,
+      "passed": 15,
+      "mode": "playmode",
+      "log": ".test-results/quest-008/trigger-boundary/playmode.log"
+    },
+    {
+      "errors": 0,
+      "exitCode": 0,
+      "warnings": 6,
+      "seconds": 144.04453859999998,
+      "log": ".test-results/quest-008/trigger-boundary/build-quest.log",
+      "result": "Succeeded",
+      "name": "Quest build",
+      "command": "Unity.exe -batchmode -nographics -projectPath C:\\HBP\\Software\\HiBoP -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine -buildOutput C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-008\\trigger-boundary\\Quest -quit"
+    },
+    {
+      "name": "APK content",
+      "command": ".\\Tools\\Test-QuestApk.ps1 -Apk .artifacts/quest-008/trigger-boundary/Quest/HiBoP.Quest.apk -ReportPath .artifacts/quest-008/trigger-boundary/Quest/quest-apk-content.json",
+      "exitCode": 0,
+      "desktopScientificLibraries": 0,
+      "arm64Libraries": 7
+    },
+    {
+      "name": "APK permission",
+      "command": "aapt dump permissions .artifacts/quest-008/trigger-boundary/Quest/HiBoP.Quest.apk",
+      "log": ".test-results/quest-008/trigger-boundary/apk-permissions.txt",
+      "exitCode": 0,
+      "required": "com.oculus.permission.BOUNDARY_VISIBILITY"
+    },
+    {
+      "name": "ADB persistence across Unity",
+      "log": ".test-results/quest-008/trigger-boundary/adb-unity-check.log",
+      "exitCode": 0,
+      "result": "Same server PID 5072 and device transports before/after Unity; shell echo succeeded without reconnect",
+      "method": "HBP.Quest.Editor.QuestBuildValidation.Validate"
+    },
+    {
+      "name": "PowerShell syntax and live keep-awake",
+      "command": ".\\Tools\\Connect-QuestAdbWifi.ps1 -AdbPath C:\\Android\\Sdk\\platform-tools\\adb.exe -KeepAwakeWhilePluggedIn",
+      "log": ".test-results/quest-008/trigger-boundary/wifi-keepawake.log",
+      "result": "Parser passed; connection script exit 0; stay_on_while_plugged_in=15; dumpsys Awake/powered/stayOn true"
+    },
+    {
+      "name": "ADB install and launch",
+      "command": "adb -s 192.168.1.18:5555 install -r C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-008\\trigger-boundary\\Quest\\HiBoP.Quest.apk; adb -s 192.168.1.18:5555 shell am start -W -n fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity",
+      "exitCode": 0,
+      "result": "Success; Status ok; COLD 170 ms; PID 12745"
+    },
+    {
+      "name": "Native boundary runtime",
+      "log": ".test-results/quest-008/trigger-boundary/device-logcat.txt",
+      "result": "Initial SUPPRESSION_NOT_ALLOWED (1000528000), then exact Success, actual VisibilitySuppressed at 12:56:16.927; COMPOSITION READY"
+    },
+    {
+      "name": "Diff check",
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "manualFeedback": {
+    "proximity": "override retained per D26; Awake, powered and StayOn verified after app stop",
+    "M4": "VALIDE",
+    "evidence": ".test-results/quest-008/trigger-boundary/validated-device-logcat.txt; .test-results/quest-008/trigger-boundary/validated-stop.txt",
+    "baseline": "M1/M2/M3 validated on preceding APK; see validatedBaseline",
+    "date": "2026-09-08",
+    "boundaryLifecycle": "During owner trial native logs confirm NotSuppressed at 12:58:49.237 then Suppressed at 12:58:50.383 on return",
+    "app": "Stopped after validation: force-stop exit 0; pidof exit 1, no PID; ADB echo succeeds",
+    "owner": "Tout me semble ok",
+    "M5": "VALIDE"
+  },
+  "limitations": [
+    "No uninterrupted Wi-Fi or reboot persistence guarantee; reconnect script and possibly USB needed after headset reboot.",
+    "Previously documented Java AssetPackManager ClassNotFoundException remains; no new C# error observed."
+  ],
+  "sourceFiles": [
+    {
+      "sha256": "a430ce9f0be072ff24e0fb56f307f38471c725a0a127e32ecdcf199979b61b56",
+      "path": "Assets/Prefabs/Quest/QuestAnatomy.prefab",
+      "bytes": 4921
+    },
+    {
+      "sha256": "a10a2f738a061c5f6a2b803738a5bd66e2465b4fdcc5fe5cdff7840b74dec66a",
+      "path": "Assets/Prefabs/Quest/QuestBootstrap.prefab",
+      "bytes": 28581
+    },
+    {
+      "sha256": "e2a9551b4ee7288556f973b7ed170d9700d1fdd872f0a597ab10c19f7dff888f",
+      "path": "Assets/Prefabs/Quest/QuestRig.prefab",
+      "bytes": 22967
+    },
+    {
+      "sha256": "c85345875f1a05b2e146dc932d1b903bc4e31fe3e027342d0fd8550095380083",
+      "path": "Assets/Scripts/HBP/Quest/Editor/QuestAnatomySetup.cs",
+      "bytes": 6878
+    },
+    {
+      "sha256": "2eb14fb7eab11d93e77795c321d02d9fbe3eee4d96fdc0057ab76ba97b4d1402",
+      "path": "Assets/Scripts/HBP/Quest/Editor/QuestBootstrapSetup.cs",
+      "bytes": 13399
+    },
+    {
+      "sha256": "85d8c5f080bd0b806dc88d99afb2613a5d083edf99b763dce81ee67a64e47541",
+      "path": "Assets/Scripts/HBP/Quest/Editor/QuestBoundarySetup.cs",
+      "bytes": 1874
+    },
+    {
+      "sha256": "1e5bb125966881529ecee88398020454cd70858a7fa4caf69419ebd303e95da0",
+      "path": "Assets/Scripts/HBP/Quest/Editor/QuestBoundarySetup.cs.meta",
+      "bytes": 60
+    },
+    {
+      "sha256": "5b7ac02efeb6086351d5194b0e6c1c0d9719922d0f0e6152083476b11612bff4",
+      "path": "Assets/Scripts/HBP/Quest/Editor/QuestBuildValidation.cs",
+      "bytes": 5525
+    },
+    {
+      "sha256": "5f2399765965c9e3d4f29ec4946f269467e53aa1fbc7f92d55f0d9938670e255",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyDiagnostic.cs",
+      "bytes": 5758
+    },
+    {
+      "sha256": "8335c26f71a9da85cc99b9e5d3c2a15f32e7e91b2406ace9c011a07b47277a38",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyInput.cs",
+      "bytes": 2986
+    },
+    {
+      "sha256": "1fdb1f9fb05de6e82b3939b2d685fb9af486e160a5d6b798e001a55d55d0d5ed",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyInput.cs.meta",
+      "bytes": 60
+    },
+    {
+      "sha256": "91443d87ac3304a56fb7f879154da932b404527eb7b508e9d8389f65a87b1c2c",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyManipulator.cs",
+      "bytes": 6261
+    },
+    {
+      "sha256": "7da05c024dbcc1512a99c14a2e48da95ea581738f83bbf249a60acd80a6e25a6",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyManipulator.cs.meta",
+      "bytes": 60
+    },
+    {
+      "sha256": "d767d322b4014dba8be744dd4b215110d98662da34f55fa3b331293b7c09ad44",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestBoundaryVisibility.cs",
+      "bytes": 4398
+    },
+    {
+      "sha256": "0d936d4a4693eb30c733698ee2aa5f2aad316a9fc62d36430de48c97209dca91",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestBoundaryVisibility.cs.meta",
+      "bytes": 60
+    },
+    {
+      "sha256": "25fc9b505ace8ac8e878a016d63217e73e002addbdfe07c3cc005c3443081ea5",
+      "path": "Assets/Scripts/HBP/Quest/Runtime/QuestPassthroughStatus.cs",
+      "bytes": 2506
+    },
+    {
+      "sha256": "bb212747d0e0fc42fe2666f267045c1c2d449e968be719e2f25e125f95d48e1d",
+      "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/HBP.PlatformConfiguration.Tests.asmdef",
+      "bytes": 735
+    },
+    {
+      "sha256": "9afe1033857ab7766ef3c0ee832634bc2c19f7ab590ee445a7e01e88eb0cd870",
+      "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/QuestBootstrapTests.cs",
+      "bytes": 6980
+    },
+    {
+      "sha256": "e9a200d6423510dedbbefdfa994c9e9cf8a3a0ba2f292de9014524a2aea38f9f",
+      "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyManipulationTests.cs",
+      "bytes": 12105
+    },
+    {
+      "sha256": "d8e592f945de2907ff49ca5fb685b9f0b8b8254e001d3f32081d6f83a18e1074",
+      "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyManipulationTests.cs.meta",
+      "bytes": 60
+    },
+    {
+      "sha256": "6c521155d55c539315c4b5220b823d2094196ffee8f0f42553b1dc998030d6ee",
+      "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestManipulationInputTests.cs",
+      "bytes": 8405
+    },
+    {
+      "sha256": "f60d3a94f466397ac8f4fb3597f584fac163ae59b3f3354e1c434540801f5b10",
+      "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestManipulationInputTests.cs.meta",
+      "bytes": 60
+    },
+    {
+      "sha256": "7f85d2904a4cfb2678fe2970e45fa1c96261b74d8dce51acfa0402da6453e89c",
+      "path": "Assets/XR/Settings/OpenXR Package Settings.asset",
+      "bytes": 61007
+    },
+    {
+      "sha256": "caab28cc2d99f8d9a7861400599adbfb09d6fa80b1d04f10d32e26a78f22c3d0",
+      "path": "Docs/dev/quest-autonomous/01-decisions-and-open-questions.md",
+      "bytes": 12274
+    },
+    {
+      "sha256": "8659d7bdaac6d0d40836186a3ae2b6c2d8e0a9bafe55c61062b8571611e81365",
+      "path": "Docs/dev/quest-autonomous/reports/QUEST-008.md",
+      "bytes": 28085
+    },
+    {
+      "sha256": "5c99f438f516004fbc97d9556b1e99e6b55f13396ff9c306f451c13ef2e6ae4b",
+      "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+      "bytes": 6475
+    },
+    {
+      "sha256": "014aa899c53df8ed18a843af2fdecfca8011205a05e339e13e6c78d2d8416023",
+      "path": "Docs/dev/quest-autonomous/TASK-WORKFLOW.md",
+      "bytes": 12344
+    },
+    {
+      "sha256": "48087654164c2f391c3a687d8f538f3ea67bc8007dad0f721412044628d6f413",
+      "path": "Tools/Connect-QuestAdbWifi.ps1",
+      "bytes": 33801
+    }
+  ],
+  "artifacts": [
+    {
+      "sha256": "5c9f4dd186bb20a1fc134aff1132aab1f8a20ef31ca23858b4902317d708bdba",
+      "path": ".artifacts/quest-008/trigger-boundary/Quest/BuildInfo.json",
+      "bytes": 119
+    },
+    {
+      "sha256": "bb60d1407b8cb07af992689dee47da86b2cac6a6dc0fdc030c0364f72df179e9",
+      "path": ".artifacts/quest-008/trigger-boundary/Quest/HiBoP.Quest.apk",
+      "bytes": 102181014
+    },
+    {
+      "sha256": "4d26053b10bf508d38395dadc464474f9284cc0451ced816ab7fee49f0407340",
+      "path": ".artifacts/quest-008/trigger-boundary/Quest/quest-apk-content.json",
+      "bytes": 5474
+    },
+    {
+      "sha256": "c0a9d7255aec376edecc97d25a345ffcf86e214b937492a51b122f8f58323ce5",
+      "path": ".artifacts/quest-008/trigger-boundary/Quest/Quest.build-report.json",
+      "bytes": 760063
+    },
+    {
+      "sha256": "308303c30a5f85315a3d8bdfe79be1e91305881d7c4edf189021b54b265be6c1",
+      "path": ".test-results/quest-008/trigger-boundary/adb-after-unity.txt",
+      "bytes": 263
+    },
+    {
+      "sha256": "59946906bd0706b3f2059a050ef3c8f346d3d5a8033be70f2e9f27cf84945587",
+      "path": ".test-results/quest-008/trigger-boundary/adb-before-unity.txt",
+      "bytes": 237
+    },
+    {
+      "sha256": "b0b493bec98ba698e7750e3dcfa5323977be5e2816dca37c94e0f5adbb035811",
+      "path": ".test-results/quest-008/trigger-boundary/adb-unity-check.log",
+      "bytes": 56387
+    },
+    {
+      "sha256": "44d2cfaed98708ae3887ce2863369e96f24bc1d8f49baacbd6198a8d28156d80",
+      "path": ".test-results/quest-008/trigger-boundary/apk-permissions.txt",
+      "bytes": 463
+    },
+    {
+      "sha256": "b4177119d8cd81bb254eaa7e770e98ee8f4d834268ea2f232193d45fba41d0b1",
+      "path": ".test-results/quest-008/trigger-boundary/build-quest.log",
+      "bytes": 657710
+    },
+    {
+      "sha256": "728a503f5dec3ef93f08f5db94e9340c7d229abf6584e155d4208a55c0859fd1",
+      "path": ".test-results/quest-008/trigger-boundary/device-fixture.txt",
+      "bytes": 133
+    },
+    {
+      "sha256": "976e8bd13f31a040def3687116d028b1e634a32a1664393e6fd5fb30442dd550",
+      "path": ".test-results/quest-008/trigger-boundary/device-logcat.txt",
+      "bytes": 208649
+    },
+    {
+      "sha256": "395665c3bcd24d7a6a9d3b42121011a8a9e2cbd7cf5ce862bf063a99f1c0db59",
+      "path": ".test-results/quest-008/trigger-boundary/device-power.txt",
+      "bytes": 115
+    },
+    {
+      "sha256": "bb15251b170515b5b2d540231e11923a5ec58ada7582be3a65daf5b642924557",
+      "path": ".test-results/quest-008/trigger-boundary/editmode.log",
+      "bytes": 85011
+    },
+    {
+      "sha256": "97011c02e3c50975e2f5b184515ad13e3c79bce3196c18b18b8c9c7759eb4bb4",
+      "path": ".test-results/quest-008/trigger-boundary/editmode.xml",
+      "bytes": 66557
+    },
+    {
+      "sha256": "5a49c5eb1807bf1dd12637504e6a6e49f1c9c4bce601ae34c9984843074b129c",
+      "path": ".test-results/quest-008/trigger-boundary/final-device-state.txt",
+      "bytes": 8
+    },
+    {
+      "sha256": "0c5a540f4f073dd66516744445c12b612f72436c233b3e707b27a60ce5452668",
+      "path": ".test-results/quest-008/trigger-boundary/format.log",
+      "bytes": 341
+    },
+    {
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3",
+      "path": ".test-results/quest-008/trigger-boundary/install.txt",
+      "bytes": 38
+    },
+    {
+      "sha256": "c9523c15c1ce180347cb5b69b22727b3c8834bd9327b4b50d2d8d38ab481bc2d",
+      "path": ".test-results/quest-008/trigger-boundary/launch.txt",
+      "bytes": 227
+    },
+    {
+      "sha256": "3ba7077e4c166579acb0c57e5faae0f0d48a24c35dae9ff7e38973f4658d5a83",
+      "path": ".test-results/quest-008/trigger-boundary/playmode.log",
+      "bytes": 89194
+    },
+    {
+      "sha256": "c6a9e9b392d5c2a05c2c573e1b69701fd311fc2f014395b59d54f1eba0bac093",
+      "path": ".test-results/quest-008/trigger-boundary/playmode.xml",
+      "bytes": 16707
+    },
+    {
+      "sha256": "3c7f64094e1b6da4384bfc849006bab7a5be8fc13588f1cfbbfbd16c5fe5e8e5",
+      "path": ".test-results/quest-008/trigger-boundary/setup.log",
+      "bytes": 67848
+    },
+    {
+      "sha256": "f981cb50095c9a66e16f3e4a398dbccbda0db469db053dc31ef7c475c007ca7c",
+      "path": ".test-results/quest-008/trigger-boundary/unity-adb-preferences-after.json",
+      "bytes": 173
+    },
+    {
+      "sha256": "67e982684195efaae1004eff2619b3aff1e7233c1536bf51ead4010603f08d6f",
+      "path": ".test-results/quest-008/trigger-boundary/unity-adb-preferences-before.json",
+      "bytes": 217
+    },
+    {
+      "sha256": "009ae811086e39a5001bc365bddef56cf4970147cbb7069eca2fb31bc42ebdee",
+      "path": ".test-results/quest-008/trigger-boundary/validated-baseline-stop.txt",
+      "bytes": 39
+    },
+    {
+      "sha256": "66dbf3231187d9b85d07f8efe23bd66d72e8430a28bb9fbee51416587a0499b8",
+      "path": ".test-results/quest-008/trigger-boundary/validated-device-logcat.txt",
+      "bytes": 123374
+    },
+    {
+      "sha256": "e0c83c4a73c634ffb4eb599a44add598cada6927c74d6821b4afed6100efe923",
+      "path": ".test-results/quest-008/trigger-boundary/validated-stop.txt",
+      "bytes": 177
+    },
+    {
+      "sha256": "c0ada20f687c98db2861aeca043dd1d2f7305a86af930e3e0638542d7dcee333",
+      "path": ".test-results/quest-008/trigger-boundary/wifi-before-unity-check.log",
+      "bytes": 693
+    },
+    {
+      "sha256": "c0ada20f687c98db2861aeca043dd1d2f7305a86af930e3e0638542d7dcee333",
+      "path": ".test-results/quest-008/trigger-boundary/wifi-keepawake.log",
+      "bytes": 693
+    },
+    {
+      "sha256": "ca6562e2742e6e42ce5978f901c632e2e8b83e667432487abcd824b003b0f682",
+      "path": ".test-results/quest-008/trigger-boundary/Write-Evidence.ps1",
+      "bytes": 8067
+    }
+  ],
+  "validatedBaseline": {
+    "task": "QUEST-008",
+    "createdUtc": "2026-09-08T10:28:14.9597594Z",
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE",
+    "source": {
+      "branch": "feature/xr-autonomous",
+      "initialHead": "2918139dc499ae050f335a37b3ab1512189bfbfd",
+      "finalHead": "2918139dc499ae050f335a37b3ab1512189bfbfd",
+      "initialWorktree": "clean",
+      "finalWorktree": "uncommitted source files enumerated and hashed below; no commit or push",
+      "historicalReference": "HiBoP_HoloLens@5a119948df337454c1dc9a053faf375f024a02b9: Assets/Prefabs/3D/Scenes/Scene 3D.prefab and Assets/Scripts/HBP/HoloLens/Module3D/Base3DScene.cs; read-only, no source or GUID copied",
+      "cleanup": "Only CLI-generated BuildInfo, settings migrations, icons and URP prefilters restored to initial versions after inspection. Prefab trailing whitespace normalized."
+    },
+    "versions": {
+      "Unity": "6000.5.2f1",
+      "InputSystem": "1.20.0",
+      "OpenXR": "1.18.0",
+      "MetaOpenXR": "2.4.1",
+      "URP": "17.5.0",
+      "backend": "IL2CPP ARM64 Vulkan SinglePassInstanced"
+    },
+    "native": {
+      "scientificRuntime": "none on Quest; no changes to hbp_core/hbp_math/EEGFormat",
+      "apkAudit": ".artifacts/quest-008/Quest/quest-apk-content.json"
+    },
+    "fixture": {
+      "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+      "origin": ".artifacts/quest-007/fixture/quest-anatomy.hbna (unchanged real Desktop MNI capture from QUEST-006)",
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+      "bytes": 3870248,
+      "devicePath": "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest-anatomy.hbna",
+      "delivery": "local diagnostic, not network transport"
+    },
+    "verification": [
+      {
+        "name": "setup",
+        "exitCode": 0,
+        "method": "HBP.Quest.Editor.QuestAnatomySetup.Apply",
+        "log": ".test-results/quest-008/setup.log"
+      },
+      {
+        "mode": "editmode",
+        "result": "Passed",
+        "total": 65,
+        "passed": 65,
+        "failed": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "xml": ".test-results/quest-008/editmode.xml",
+        "log": ".test-results/quest-008/editmode.log"
+      },
+      {
+        "mode": "playmode",
+        "result": "Passed",
+        "total": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "xml": ".test-results/quest-008/playmode.xml",
+        "log": ".test-results/quest-008/playmode.log"
+      },
+      {
+        "name": "format",
+        "exitCode": 0,
+        "command": ".\\Tools\\format-code.cmd",
+        "log": ".test-results/quest-008/format.log"
+      },
+      {
+        "name": "build",
+        "exitCode": 0,
+        "method": "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+        "report": ".artifacts/quest-008/Quest/Quest.build-report.json",
+        "log": ".test-results/quest-008/build-quest.log"
+      },
+      {
+        "name": "apk-audit",
+        "exitCode": 0,
+        "command": ".\\Tools\\Test-QuestApk.ps1 -Apk .artifacts/quest-008/Quest/HiBoP.Quest.apk -ReportPath .artifacts/quest-008/Quest/quest-apk-content.json"
+      },
+      {
+        "name": "MNI-immutability",
+        "result": "Passed",
+        "vertices": 69104,
+        "identicalEncodedBytes": 3870248,
+        "sourcePairDistanceMm": 3.84311461,
+        "retainedMeshAndBounds": true,
+        "gestureUploads": 0,
+        "proof": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh in playmode.xml"
+      },
+      {
+        "name": "physical-start",
+        "result": "REUSSI: installed APK and MNI startup; owner reports one-controller trial successful; two-controller scaling untested; left controller also missing in Quest system menu",
+        "manualGestures": "EN_ATTENTE; simulated inputs are not physical comfort validation"
+      }
+    ],
+    "invocation": {
+      "unity": "C:/Program Files/Unity/Hub/Editor/6000.5.2f1/Editor/Unity.exe",
+      "launcher": "Start-Process -Wait -PassThru -WindowStyle Hidden, escalated outside sandbox",
+      "common": [
+        "-batchmode",
+        "-accept-apiupdate",
+        "-projectPath",
+        "C:/HBP/Software/HiBoP",
+        "-activeBuildProfile",
+        "Assets/Settings/BuildProfiles/Quest.asset",
+        "-forgetProjectPath"
+      ],
+      "editmode": [
+        "-nographics",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-assemblyNames",
+        "HBP.Quest.Anatomy.Tests;HBP.PlatformConfiguration.Tests;HBP.Transfer.Anatomy.Tests",
+        "-questAnatomyFixture",
+        "C:/HBP/Software/HiBoP/.artifacts/quest-008/fixture/quest-anatomy.hbna",
+        "-testResults",
+        "C:/HBP/Software/HiBoP/.test-results/quest-008/editmode.xml",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-008/editmode.log"
+      ],
+      "playmode": [
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-assemblyNames",
+        "HBP.Quest.PlayModeTests",
+        "-questAnatomyFixture",
+        "C:/HBP/Software/HiBoP/.artifacts/quest-008/fixture/quest-anatomy.hbna",
+        "-testResults",
+        "C:/HBP/Software/HiBoP/.test-results/quest-008/playmode.xml",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-008/playmode.log"
+      ],
+      "build": [
+        "-nographics",
+        "-quit",
+        "-executeMethod",
+        "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+        "-buildOutput",
+        "C:/HBP/Software/HiBoP/.artifacts/quest-008/Quest",
+        "-logFile",
+        "C:/HBP/Software/HiBoP/.test-results/quest-008/build-quest.log"
+      ],
+      "buildEnvironment": {
+        "TMP": "C:/HBP/Software/HiBoP/.test-results/quest-008/tmp",
+        "TEMP": "C:/HBP/Software/HiBoP/.test-results/quest-008/tmp"
+      }
+    },
+    "earlierAttempts": [
+      {
+        "proof": "editmode-initial.xml",
+        "exitCode": 2,
+        "failed": 14,
+        "reason": "Missing active Quest profile and EditMode lifecycle initialization"
+      },
+      {
+        "proof": "editmode-lifecycle.xml",
+        "exitCode": 2,
+        "failed": 11,
+        "reason": "Unity disallows manually invoking Awake in EditMode; move component integration tests to PlayMode"
+      },
+      {
+        "proof": "playmode-initial.xml",
+        "exitCode": 2,
+        "failed": 1,
+        "reason": "Synthetic controller bitfields do not accept delta state events"
+      },
+      {
+        "proof": "playmode-layout.xml",
+        "exitCode": 2,
+        "failed": 1,
+        "reason": "Synthetic BYTE tracked control normalization; fixed using floating state"
+      },
+      {
+        "proof": "input-byte-normalization.xml",
+        "exitCode": 2,
+        "failed": 1,
+        "reason": "Isolated diagnostic confirms controller tracking false, head tracked, grip pressed"
+      }
+    ],
+    "deviceSession": {
+      "endpoint": "192.168.1.18:5555",
+      "package": "fr.crnl.hibop.quest",
+      "wifiCommand": ".\\Tools\\Connect-QuestAdbWifi.ps1 -AdbPath C:\\Android\\Sdk\\platform-tools\\adb.exe",
+      "proximity": "Owner-requested off-head override used for the trial, then automation_disable broadcast returned result 0 at end of partial manual trial.",
+      "shutdown": "2026-09-08 around 12:26 +02:00: HiBoP force-stop exit 0; pidof exit 1 without PID; Wi-Fi ADB preserved. Evidence: .test-results/quest-008/manual-partial-stop.txt"
+    },
+    "sourceFiles": [
+      {
+        "path": "Assets/Prefabs/Quest/QuestAnatomy.prefab",
+        "bytes": 4921,
+        "sha256": "a430ce9f0be072ff24e0fb56f307f38471c725a0a127e32ecdcf199979b61b56"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestBootstrap.prefab",
+        "bytes": 28581,
+        "sha256": "a10a2f738a061c5f6a2b803738a5bd66e2465b4fdcc5fe5cdff7840b74dec66a"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestAnatomySetup.cs",
+        "bytes": 6878,
+        "sha256": "c85345875f1a05b2e146dc932d1b903bc4e31fe3e027342d0fd8550095380083"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyDiagnostic.cs",
+        "bytes": 5757,
+        "sha256": "eb120679247704498432f15d019aa2a31c337d69b94f0499c6cd2fbcb06c8c35"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyInput.cs",
+        "bytes": 2944,
+        "sha256": "9c0e7d86bcd815bedb95e5f96fd4c34610a08fca55350ce58c3ae83c340bba46"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyInput.cs.meta",
+        "bytes": 60,
+        "sha256": "1fdb1f9fb05de6e82b3939b2d685fb9af486e160a5d6b798e001a55d55d0d5ed"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyManipulator.cs",
+        "bytes": 6261,
+        "sha256": "91443d87ac3304a56fb7f879154da932b404527eb7b508e9d8389f65a87b1c2c"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyManipulator.cs.meta",
+        "bytes": 60,
+        "sha256": "7da05c024dbcc1512a99c14a2e48da95ea581738f83bbf249a60acd80a6e25a6"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyManipulationTests.cs",
+        "bytes": 12105,
+        "sha256": "e9a200d6423510dedbbefdfa994c9e9cf8a3a0ba2f292de9014524a2aea38f9f"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyManipulationTests.cs.meta",
+        "bytes": 60,
+        "sha256": "d8e592f945de2907ff49ca5fb685b9f0b8b8254e001d3f32081d6f83a18e1074"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestManipulationInputTests.cs",
+        "bytes": 7900,
+        "sha256": "053e725c3a53f0b9c51be16c222868d9cd5b3299f73e55655eb1ea154b104015"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestManipulationInputTests.cs.meta",
+        "bytes": 60,
+        "sha256": "f60d3a94f466397ac8f4fb3597f584fac163ae59b3f3354e1c434540801f5b10"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/reports/QUEST-008.md",
+        "bytes": 19604,
+        "sha256": "6e2b2b5c777914092fa9da2368e22ff5457478cd07d76cd9373c9930ac451362"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+        "bytes": 6438,
+        "sha256": "11c0d3edd08fd19db46cd911cbefabdd548a4be1805601bd9aa6edbd96e4d2ab"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": ".test-results/quest-008/adb-wifi-final.log",
+        "bytes": 563,
+        "sha256": "c3ad3400f6980879808948c2b72e1792480416612abe1fc350a6c26ac3bb0855"
+      },
+      {
+        "path": ".test-results/quest-008/adb-wifi.log",
+        "bytes": 625,
+        "sha256": "0c70227ad1ca5c5ccecbd3dd9fa349964ed814ca7a3a9eb3c38e80fe382a89e5"
+      },
+      {
+        "path": ".test-results/quest-008/build-quest.log",
+        "bytes": 679549,
+        "sha256": "147263586710ca16d772d0e105328172af78700c6cf670641d58d43e15f42b0e"
+      },
+      {
+        "path": ".test-results/quest-008/editmode-initial.log",
+        "bytes": 210053,
+        "sha256": "c95ddfbfd3ac841c907960bcf2672a658db97997aac95ddf680abbfa571e1d00"
+      },
+      {
+        "path": ".test-results/quest-008/editmode-initial.xml",
+        "bytes": 111737,
+        "sha256": "5c2d0b7d92805ecf137da26fd27988436cf4bcad9920accfd3976485ff9ec205"
+      },
+      {
+        "path": ".test-results/quest-008/editmode-lifecycle.log",
+        "bytes": 533647,
+        "sha256": "206447d240d4b04b830d536f9e657a96ba4371481eda8e49db4cec5276460874"
+      },
+      {
+        "path": ".test-results/quest-008/editmode-lifecycle.xml",
+        "bytes": 104626,
+        "sha256": "aa2385a965d03115ce07a2bf25c455f1aba89af588bd605be0dcf079be5d8234"
+      },
+      {
+        "path": ".test-results/quest-008/editmode.log",
+        "bytes": 94441,
+        "sha256": "5267c068b7826d620ca22361c60178747c2c10517bf58f1dc26ebfac500d27c2"
+      },
+      {
+        "path": ".test-results/quest-008/editmode.xml",
+        "bytes": 62907,
+        "sha256": "95dd729736b9a38111bda88773317a132294de33b306571611c3e25f4e8ece19"
+      },
+      {
+        "path": ".test-results/quest-008/format.log",
+        "bytes": 170,
+        "sha256": "8c07516b93cb51245f86c1bad601c8d9caefa7cf71b5043adb07738c068e16e9"
+      },
+      {
+        "path": ".test-results/quest-008/input-byte-normalization.xml",
+        "bytes": 5320,
+        "sha256": "303945627c67c2402b6a1910da7e72be83d94c650863df60fbdb7f7ba0d0ee92"
+      },
+      {
+        "path": ".test-results/quest-008/input-debug.log",
+        "bytes": 76524,
+        "sha256": "804cfccf23b429aecdcfe61cafe174c1d56964490e59823aae39d5261f6260e4"
+      },
+      {
+        "path": ".test-results/quest-008/input-debug.xml",
+        "bytes": 5320,
+        "sha256": "303945627c67c2402b6a1910da7e72be83d94c650863df60fbdb7f7ba0d0ee92"
+      },
+      {
+        "path": ".test-results/quest-008/install-launch.txt",
+        "bytes": 256,
+        "sha256": "3066c67b7790dcbb8fe1f1bfe9b2bf05fbadba104189a7da38b4db8776f91b26"
+      },
+      {
+        "path": ".test-results/quest-008/manual-partial-stop.txt",
+        "bytes": 167,
+        "sha256": "a851ca258d0eba84ec2f0beddefae4ffd7ae654da4b7b9c1ca28b963ae0b593d"
+      },
+      {
+        "path": ".test-results/quest-008/playmode-initial.log",
+        "bytes": 92057,
+        "sha256": "404fcb28c52e9929ef2a8f608e7f84e23b047c3583c4baa81173d8bbdaebabe0"
+      },
+      {
+        "path": ".test-results/quest-008/playmode-initial.xml",
+        "bytes": 18755,
+        "sha256": "d2b5f5766174d75385d99cbef86e60db7f44a35c32da1a6ad037119b4c90de94"
+      },
+      {
+        "path": ".test-results/quest-008/playmode-layout.log",
+        "bytes": 79161,
+        "sha256": "30e20b822c19b305388c1234f854cbd0c0aef93e5b7512dd7a5e21013e04f1ff"
+      },
+      {
+        "path": ".test-results/quest-008/playmode-layout.xml",
+        "bytes": 17709,
+        "sha256": "8851204a437e0bca969eacaa3787483afee65eed291744d1fc777a8f27d02342"
+      },
+      {
+        "path": ".test-results/quest-008/playmode.log",
+        "bytes": 76558,
+        "sha256": "f915b2abf778aa4d2f7da5ed7917177551150d25ee18f904518f4b7c678ee212"
+      },
+      {
+        "path": ".test-results/quest-008/playmode.xml",
+        "bytes": 16699,
+        "sha256": "3a280052904bf2cf127cb9db97ccef8de349ddcc99cf478d003903ed2cbd7396"
+      },
+      {
+        "path": ".test-results/quest-008/quest-launch-diagnostic.txt",
+        "bytes": 145105,
+        "sha256": "109aea1fbe83af379e20296c951ebb6f3ff7d4ed7327b618dd2214ee642c9975"
+      },
+      {
+        "path": ".test-results/quest-008/quest-logcat.txt",
+        "bytes": 194712,
+        "sha256": "6b2a5792876046f0ed3257d878e0b083327b58175eb1078d2b26c56a310c1eed"
+      },
+      {
+        "path": ".test-results/quest-008/quest-manual-partial-logcat.txt",
+        "bytes": 70199,
+        "sha256": "beca0bab2b39226de243551c4543ecd961c8db1829fd7470a3c2002414b12ade"
+      },
+      {
+        "path": ".test-results/quest-008/quest-startup-missing.txt",
+        "bytes": 26076,
+        "sha256": "cd7790cdc4f256af03a22e62ed71eea784e7ad157d473bc1b5ba387584ae6ca1"
+      },
+      {
+        "path": ".test-results/quest-008/relaunch.txt",
+        "bytes": 227,
+        "sha256": "94f2678d73ad992d238db78dffc53232a477949d5d3086a43573de1bb296b6b0"
+      },
+      {
+        "path": ".test-results/quest-008/setup.log",
+        "bytes": 317454,
+        "sha256": "1eac83063363f08cc2e4a9cc3b7f996af3f782428bd2cb541b3f2f6655cfbf7f"
+      },
+      {
+        "path": ".test-results/quest-008/Write-Evidence.ps1",
+        "bytes": 7556,
+        "sha256": "ce68ac171e1821de028b1608952418a92c82c28935237168e9b310eb68593632"
+      },
+      {
+        "path": ".artifacts/quest-008/Quest/BuildInfo.json",
+        "bytes": 117,
+        "sha256": "6036c66ea49aa56e3172847e49804c39de165ce8de95cb001878d3ca901f08d9"
+      },
+      {
+        "path": ".artifacts/quest-008/Quest/HiBoP.Quest.apk",
+        "bytes": 102166750,
+        "sha256": "a0fa5d0c8e8ffc52b470972bbd2576ec668bb6f5e91d7feca53ef242dfff6fb2"
+      },
+      {
+        "path": ".artifacts/quest-008/Quest/quest-apk-content.json",
+        "bytes": 5456,
+        "sha256": "eb88fd3907cb72b18e6c6da3399d226e12c6363259cc7eb70b55c36c3a6d0466"
+      },
+      {
+        "path": ".artifacts/quest-008/Quest/Quest.build-report.json",
+        "bytes": 760094,
+        "sha256": "937327a223a41d26aa0bbd0c078a551bc4ee400ce0b03804144a1aca657d4186"
+      },
+      {
+        "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+        "bytes": 3870248,
+        "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+      },
+      {
+        "path": ".test-results/quest-008/scale-retest-launch.txt",
+        "bytes": 234,
+        "sha256": "cd7c040e430b33d1e9477aa4a0beceda06aac7ba83c5a4ba776b6ab6318f5dc8"
+      },
+      {
+        "path": ".test-results/quest-008/scale-retest-logcat.txt",
+        "bytes": 205588,
+        "sha256": "95ef289330492b759061f723dec28cd3fabc150b951ddf97551475fba8b92571"
+      }
+    ],
+    "manualFeedback": {
+      "date": "2026-09-08",
+      "M3": "VALIDE",
+      "note": "User confirmation after battery reinsertion and scale retest, before trigger/boundary amendments.",
+      "M1": "VALIDE",
+      "owner": "Je confirme le bon fonctionnement de tout.",
+      "result": "VALIDE",
+      "M2": "VALIDE",
+      "apkSha256": "a0fa5d0c8e8ffc52b470972bbd2576ec668bb6f5e91d7feca53ef242dfff6fb2"
+    },
+    "scaleRetest": {
+      "date": "2026-09-08",
+      "owner": "Removing and reinserting battery restored controller; requests scaling retest",
+      "launch": "Status ok COLD 178 ms, PID 10108",
+      "tracking": "Head and both controllers TRACKED, 12:30:52 to 12:31:07 headset time",
+      "result": "VALIDE",
+      "app": "After offline attempt, stop verified on reconnection before installing amended APK: force-stop 0, pidof 1 without PID.",
+      "proximity": "normal"
+    }
+  }
+}

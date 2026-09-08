@@ -9,6 +9,7 @@
         "Unity.XR.ARSubsystems",
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.XR.OpenXR",
+        "Unity.XR.MetaOpenXR",
         "Unity.InputSystem", "HBP.UI.Runtime",
         "Unity.XR.Management",
         "Unity.XR.Management.Editor",

@@ -730,6 +730,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7967103153556995031}
   - component: {fileID: 7251435037861318519}
+  - component: {fileID: 158340578836087007}
   m_Layer: 0
   m_Name: QuestRig
   m_TagString: Untagged
@@ -768,3 +769,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestPassthroughStatus
   cameraManager: {fileID: 515707500142266548}
   xrCamera: {fileID: 5564091310237251746}
+--- !u!114 &158340578836087007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8397969930559835280}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7b24d4b0f214fce820cfd59cfff3ed9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestBoundaryVisibility
+  passthrough: {fileID: 7251435037861318519}
+  freeMovementInPassthrough: 1

@@ -32,7 +32,8 @@ namespace HBP.Quest
             if (!OpenXRRuntime.IsExtensionEnabled("XR_FB_passthrough")) return "XR_FB_passthrough unavailable";
             if (!OpenXRLayerProvider.isStarted) return "OpenXR composition provider stopped";
             if (cameraManager == null || !cameraManager.isActiveAndEnabled || cameraManager.subsystem?.running != true) return "Passthrough camera stopped";
-            if (xrCamera == null || xrCamera.clearFlags != CameraClearFlags.SolidColor || xrCamera.backgroundColor.a != 0) return "Camera background is opaque";
+            if (xrCamera == null || !xrCamera.isActiveAndEnabled) return "Passthrough render camera stopped";
+            if (xrCamera.clearFlags != CameraClearFlags.SolidColor || xrCamera.backgroundColor.a != 0) return "Camera background is opaque";
             var pipeline = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             if (pipeline == null || pipeline.supportsHDR || xrCamera.allowHDR || xrCamera.GetUniversalAdditionalCameraData().renderPostProcessing) return "Unexpected render configuration";
             if (CompositionLayerManager.Instance != null)

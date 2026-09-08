@@ -34,6 +34,8 @@ namespace HBP.Quest.Editor
             RequireFeature<MetaQuestFeature>(settings);
             RequireFeature<ARSessionFeature>(settings);
             RequireFeature<ARCameraFeature>(settings);
+            RequireFeature<BoundaryVisibilityFeature>(settings);
+            Require(!new SerializedObject(settings.GetFeature<BoundaryVisibilityFeature>()).FindProperty("m_SuppressVisibility").boolValue, "contextual boundary visibility, no automatic suppression");
             RequireFeature<OpenXRCompositionLayersFeature>(settings);
             RequireFeature<OculusTouchControllerProfile>(settings);
             RequireFeature<MetaQuestTouchPlusControllerProfile>(settings);
@@ -54,6 +56,8 @@ namespace HBP.Quest.Editor
                 Require(PlayerSettings.GetGraphicsAPIs(BuildTarget.Android).SequenceEqual(new[] { GraphicsDeviceType.Vulkan }), "Vulkan only");
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.PrefabPath);
             Require(prefab != null && prefab.GetComponent<QuestBootstrap>() != null, "Quest bootstrap prefab");
+            var boundary = prefab.GetComponentInChildren<QuestBoundaryVisibility>(true);
+            Require(boundary != null && new SerializedObject(boundary).FindProperty("passthrough").objectReferenceValue != null, "serialized passthrough boundary controller");
             var bootstrap = new SerializedObject(prefab.GetComponent<QuestBootstrap>());
             foreach (string field in new[] { "passthrough", "head", "leftController", "rightController", "statusText" })
                 Require(bootstrap.FindProperty(field).objectReferenceValue != null, "serialized bootstrap reference " + field);

@@ -24,7 +24,7 @@ contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs
 | <a id="quest-005"></a>[QUEST-005](tasks/QUEST-005.md) | IMPLEMENTEE | REUSSI | NON_REQUIS | [Rapport](reports/QUEST-005.md), [preuves](evidence/QUEST-005/manifest.json) ; contrat HBNA v1 pur, 36 tests EditMode réussis, round-trip bit-exact et validation bornée. |
 | <a id="quest-006"></a>[QUEST-006](tasks/QUEST-006.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-006.md), [preuves](evidence/QUEST-006/manifest.json) ; 53 tests EditMode réussis, Player Windows IL2CPP et capture MNI réelle ; M1/M2 confirmés visuellement par le propriétaire le 2026-09-08. |
 | <a id="quest-007"></a>[QUEST-007](tasks/QUEST-007.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-007.md), [preuves](evidence/QUEST-007/manifest.json) ; APK final installé via ADB Wi-Fi, M1/M2 et lisibilité confirmés le 2026-09-08 ; HiBoP arrêté après validation, absence de PID vérifiée (D23). |
-| <a id="quest-008"></a>[QUEST-008](tasks/QUEST-008.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-008"></a>[QUEST-008](tasks/QUEST-008.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-008.md), [preuves](evidence/QUEST-008/manifest.json) ; M1–M3 puis M4/M5 (index et frontière passthrough) validés le 2026-09-08 ; 84 tests réussis, APK installé ; ADB conservé après cycle Unity ; HiBoP arrêté après validation, casque éveillé sur chargeur et Wi-Fi préservés (D23/D26). |
 | <a id="quest-009"></a>[QUEST-009](tasks/QUEST-009.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-010"></a>[QUEST-010](tasks/QUEST-010.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-011"></a>[QUEST-011](tasks/QUEST-011.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |

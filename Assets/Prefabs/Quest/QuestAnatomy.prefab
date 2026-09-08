@@ -100,6 +100,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1029545776034098981}
   - component: {fileID: 510045443892623503}
+  - component: {fileID: 2926650362359151247}
   m_Layer: 0
   m_Name: QuestAnatomy
   m_TagString: Untagged
@@ -139,3 +140,23 @@ MonoBehaviour:
   meshFilter: {fileID: 222842286883896084}
   meshRenderer: {fileID: 6201878218899059889}
   opaqueMaterial: {fileID: 2100000, guid: 5ed04141661bef74d83f442ac11b2694, type: 2}
+--- !u!114 &2926650362359151247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5633916839406821509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e339133b29f4c518806020a9566778e, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestAnatomyManipulator
+  view: {fileID: 510045443892623503}
+  minimumScale: 0.25
+  maximumScale: 4
+  grabPaddingMeters: 0.12
+  minimumHandDistanceMeters: 0.08
+  recenterDistanceMeters: 0.65
+  recenterHeightMeters: -0.12
+  recenterEuler: {x: -90, y: 0, z: 0}

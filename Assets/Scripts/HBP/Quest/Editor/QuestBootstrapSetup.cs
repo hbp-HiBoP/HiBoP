@@ -68,6 +68,7 @@ namespace HBP.Quest.Editor
             }
 
             Enable<MetaQuestFeature>(settings);
+            QuestBoundarySetup.ConfigureFeature();
             Enable<ARSessionFeature>(settings);
             Enable<ARCameraFeature>(settings);
             Enable<OpenXRCompositionLayersFeature>(settings);
@@ -157,6 +158,7 @@ namespace HBP.Quest.Editor
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var root = new GameObject("Quest Rig");
             var provider = root.AddComponent<QuestPassthroughStatus>();
+            root.AddComponent<QuestBoundaryVisibility>().Configure(provider);
             Child(root.transform, "AR Session").AddComponent<ARSession>();
             var origin = Child(root.transform, "XR Origin").AddComponent<XROrigin>();
             var offset = Child(origin.transform, "Camera Offset");

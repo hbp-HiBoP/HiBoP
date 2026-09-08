@@ -1,0 +1,78 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace HBP.Quest
+{
+    /// <summary>Controller adapter; contains no Desktop or network command path.</summary>
+    public sealed class QuestAnatomyInput : MonoBehaviour
+    {
+        [SerializeField] private QuestAnatomyView view;
+        [SerializeField] private QuestAnatomyManipulator manipulator;
+        [SerializeField] private QuestDevicePoseTracker head;
+        [SerializeField] private QuestDevicePoseTracker left;
+        [SerializeField] private QuestDevicePoseTracker right;
+        private InputAction leftTrigger, rightTrigger, recenter;
+        private Mesh previousMesh;
+        private bool placed;
+        private bool focused = true;
+        private bool paused;
+
+        private void OnEnable()
+        {
+            leftTrigger = new InputAction("Grab left", InputActionType.Button, "<XRController>{LeftHand}/triggerPressed");
+            rightTrigger = new InputAction("Grab right", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
+            recenter = new InputAction("Recenter anatomy (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
+            leftTrigger.Enable();
+            rightTrigger.Enable();
+            recenter.Enable();
+        }
+
+        private void LateUpdate()
+        {
+            if (view == null || manipulator == null || head == null || left == null || right == null) return;
+            if (!focused || paused || !head.IsTracked)
+            {
+                manipulator.CancelGrab();
+                return;
+            }
+
+            if (previousMesh != view.SharedMesh)
+            {
+                manipulator.CancelGrab();
+                previousMesh = view.SharedMesh;
+            }
+
+            if (view.SharedMesh != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))
+            {
+                manipulator.Recenter(ReadPose(head));
+                placed = true;
+                return;
+            }
+
+            manipulator.Step(ReadPose(left), left.IsTracked, leftTrigger.IsPressed(), ReadPose(right), right.IsTracked, rightTrigger.IsPressed());
+        }
+
+        private static Pose ReadPose(Component tracker) => new Pose(tracker.transform.position, tracker.transform.rotation);
+
+        private void OnApplicationFocus(bool value)
+        {
+            focused = value;
+            if (!value && manipulator != null) manipulator.CancelGrab();
+        }
+
+        private void OnApplicationPause(bool value)
+        {
+            paused = value;
+            if (value && manipulator != null) manipulator.CancelGrab();
+        }
+
+        private void OnDisable()
+        {
+            leftTrigger?.Dispose();
+            rightTrigger?.Dispose();
+            recenter?.Dispose();
+            leftTrigger = rightTrigger = recenter = null;
+            if (manipulator != null) manipulator.CancelGrab();
+        }
+    }
+}
