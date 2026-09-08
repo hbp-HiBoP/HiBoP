@@ -1,0 +1,14 @@
+{
+  "task": "QUEST-007",
+  "stoppedUtc": "2026-09-08T09:48:45.1870233Z",
+  "transport": "192.168.1.18:5555",
+  "package": "fr.crnl.hibop.quest",
+  "pidBefore": "11469",
+  "stopCommand": "adb -s 192.168.1.18:5555 shell am force-stop fr.crnl.hibop.quest",
+  "stopExitCode": 0,
+  "pidofExitCode": 1,
+  "pidAfter": [],
+  "processStopped": true,
+  "ownerValidation": "Oui tout est ok",
+  "reason": "D23: stop HiBoP after validated test to save headset battery"
+}

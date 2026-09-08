@@ -1,0 +1,127 @@
+{
+  "task": "QUEST-007",
+  "observed": "2026-09-08 10:46:24-25 device local time",
+  "device": "Quest 3 / Android 14 API 34",
+  "initialApkSha256": "f6d62974957ab3b6d5a1f943c9362c5817d26e3ab65ca6b586aa7958c09abb91",
+  "fixtureSha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+  "localDiagnosticOnly": true,
+  "cyclesVerified": true,
+  "stages": [
+    {
+      "stage": "baseline",
+      "vertices": 0,
+      "uploads": 0,
+      "liveMeshes": 0,
+      "meshRuntimeBytes": 0,
+      "bufferBytesEstimate": 0,
+      "totalAllocatedBytes": 91939519,
+      "managedBytes": 12443648
+    },
+    {
+      "stage": "load-0",
+      "vertices": 69104,
+      "uploads": 1,
+      "liveMeshes": 1,
+      "meshRuntimeBytes": 3869920,
+      "bufferBytesEstimate": 3869920,
+      "totalAllocatedBytes": 91963199,
+      "managedBytes": 12447744
+    },
+    {
+      "stage": "replace-0",
+      "vertices": 69104,
+      "uploads": 2,
+      "liveMeshes": 1,
+      "meshRuntimeBytes": 3869920,
+      "bufferBytesEstimate": 3869920,
+      "totalAllocatedBytes": 91963391,
+      "managedBytes": 12447744
+    },
+    {
+      "stage": "clear-0",
+      "vertices": 0,
+      "uploads": 2,
+      "liveMeshes": 0,
+      "meshRuntimeBytes": 0,
+      "bufferBytesEstimate": 0,
+      "totalAllocatedBytes": 91960543,
+      "managedBytes": 12455936
+    },
+    {
+      "stage": "load-1",
+      "vertices": 69104,
+      "uploads": 3,
+      "liveMeshes": 1,
+      "meshRuntimeBytes": 3869920,
+      "bufferBytesEstimate": 3869920,
+      "totalAllocatedBytes": 91963471,
+      "managedBytes": 12451840
+    },
+    {
+      "stage": "replace-1",
+      "vertices": 69104,
+      "uploads": 4,
+      "liveMeshes": 1,
+      "meshRuntimeBytes": 3869920,
+      "bufferBytesEstimate": 3869920,
+      "totalAllocatedBytes": 91963719,
+      "managedBytes": 12451840
+    },
+    {
+      "stage": "clear-1",
+      "vertices": 0,
+      "uploads": 4,
+      "liveMeshes": 0,
+      "meshRuntimeBytes": 0,
+      "bufferBytesEstimate": 0,
+      "totalAllocatedBytes": 91952319,
+      "managedBytes": 12451840
+    },
+    {
+      "stage": "load-2",
+      "vertices": 69104,
+      "uploads": 5,
+      "liveMeshes": 1,
+      "meshRuntimeBytes": 3869920,
+      "bufferBytesEstimate": 3869920,
+      "totalAllocatedBytes": 91954935,
+      "managedBytes": 12451840
+    },
+    {
+      "stage": "replace-2",
+      "vertices": 69104,
+      "uploads": 6,
+      "liveMeshes": 1,
+      "meshRuntimeBytes": 3869920,
+      "bufferBytesEstimate": 3869920,
+      "totalAllocatedBytes": 91955199,
+      "managedBytes": 12455936
+    },
+    {
+      "stage": "clear-2",
+      "vertices": 0,
+      "uploads": 6,
+      "liveMeshes": 0,
+      "meshRuntimeBytes": 0,
+      "bufferBytesEstimate": 0,
+      "totalAllocatedBytes": 91952367,
+      "managedBytes": 12455936
+    },
+    {
+      "stage": "ready",
+      "vertices": 69104,
+      "uploads": 7,
+      "liveMeshes": 1,
+      "meshRuntimeBytes": 3869920,
+      "bufferBytesEstimate": 3869920,
+      "totalAllocatedBytes": 91954975,
+      "managedBytes": 12451840
+    }
+  ],
+  "limitations": [
+    "Profiler mesh runtime memory is not independent GPU-driver instrumentation",
+    "Diagnostic retains decoded snapshot until disabled for reload button",
+    "Manual controller test pending connection",
+    "Final APK only enlarges diagnostic labels"
+  ]
+}

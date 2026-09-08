@@ -70,6 +70,35 @@ utiliser Tools/Connect-QuestAdbWifi.ps1 s'il est disponible, en reprenant le scr
 historique sélectivement si la tâche le nécessite. Ne pas réinstaller/redémarrer
 des applications pour contourner une incertitude que l'utilisateur peut lever.
 
+### Batterie et fin des essais sur Quest
+
+À la demande du propriétaire (D23), après chaque essai sur casque déclaré validé,
+l'agent doit récupérer les preuves nécessaires puis arrêter le processus HiBoP
+sur ce casque pour économiser la batterie. Pour un essai manuel, attendre le
+retour de validation du propriétaire avant cet arrêt ; ne pas fermer l'application
+pendant qu'il doit encore l'observer ou manipuler les contrôleurs.
+
+Utiliser le transport ADB vérifié, en ciblant explicitement le casque et le
+package de l'APK testé. Pour l'application Quest actuelle :
+
+```powershell
+adb -s <serial-ou-IP:port> shell am force-stop fr.crnl.hibop.quest
+adb -s <serial-ou-IP:port> shell pidof fr.crnl.hibop.quest
+```
+
+Vérifier que `pidof` ne retourne plus de PID (son code 1 est normal si le
+processus est absent). Consigner l'arrêt dans le rapport de l'essai. Ne pas
+arrêter le serveur ADB, les services système ou d'autres applications : la
+connexion doit rester disponible pour la reprise. Si le casque est déconnecté,
+indiquer que l'arrêt n'a pas pu être vérifié plutôt que le prétendre effectué.
+
+Pour la connexion Wi-Fi, utiliser `Tools/Connect-QuestAdbWifi.ps1` avec
+`-NoProximityOverride` par défaut afin de conserver la gestion normale du
+capteur de proximité. Un besoin explicite de test hors tête peut justifier
+l'override ; le désactiver à la fin de cet essai avec la commande Meta adaptée.
+Après connexion Wi-Fi, employer `adb -s <IP:port>` : `adb -d` cible uniquement
+le transport USB. Exécuter les opérations ADB hors sandbox Windows.
+
 ## Dépendances et granularité
 
 Chaque tâche correspond à un changement explicable ou à une preuve bornée.
