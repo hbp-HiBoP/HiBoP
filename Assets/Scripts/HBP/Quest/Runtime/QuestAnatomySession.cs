@@ -54,6 +54,22 @@ namespace HBP.Quest
         /// <summary>Call on the main thread. One attempt at a time; interruption restarts from byte zero.</summary>
         public async Task<DeliveryReceipt> ReceiveAsync(string host, int port, byte[] pin, byte[] secret, CancellationToken stop = default)
         {
+            return await ReceiveCoreAsync((token, publish, progress) => PinnedTlsTransfer.ReceiveAsync(host, port, pin, secret, token, publish, progress), stop);
+        }
+
+        /// <summary>Accept an authenticated incoming stream using the same publication and cancellation owner.</summary>
+        public async Task<DeliveryReceipt> ReceiveStreamAsync(Stream stream, CancellationToken stop)
+        {
+            Task<DeliveryReceipt> receptionTask = await OnUnityThreadAsync(() => ReceiveCoreAsync(async (token, publish, progress) =>
+            {
+                using var closeStream = token.Register(stream.Dispose);
+                return await PinnedTlsTransfer.ReceivePayloadAsync(stream, token, publish, progress).ConfigureAwait(false);
+            }, stop), stop).ConfigureAwait(false);
+            return await receptionTask.ConfigureAwait(false);
+        }
+
+        private async Task<DeliveryReceipt> ReceiveCoreAsync(Func<CancellationToken, Func<byte[], CancellationToken, Task<DeliveryStatus>>, Action<int>, Task<DeliveryReceipt>> receive, CancellationToken stop)
+        {
             RequireMainThread();
             if (destroyed || !isActiveAndEnabled) throw new InvalidOperationException("The session receiver is unavailable.");
             if (view == null || unityContext == null) throw new InvalidOperationException("Missing serialized view or Unity synchronization context.");
@@ -68,7 +84,7 @@ namespace HBP.Quest
             ReceptionState = AnatomyReceptionState.Connecting;
             try
             {
-                return await PinnedTlsTransfer.ReceiveAsync(host, port, pin, secret, attempt.Token, (bytes, token) => PrepareAsync(bytes, token), count => unityContext.Post(_ =>
+                return await receive(attempt.Token, (bytes, token) => PrepareAsync(bytes, token), count => unityContext.Post(_ =>
                 {
                     if (destroyed || reception != attempt || attempt.IsCancellationRequested) return;
                     IsConnected = true;

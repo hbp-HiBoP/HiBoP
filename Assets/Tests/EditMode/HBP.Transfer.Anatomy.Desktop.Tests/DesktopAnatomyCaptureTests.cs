@@ -20,6 +20,18 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
     public class DesktopAnatomyCaptureTests
     {
         [Test]
+        public void SelectionAvailability_UsesTheCaptureRules()
+        {
+            Assert.That(DesktopAnatomyCapture.GetSelectionError(), Is.Null);
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
+            Assert.That(DesktopAnatomyCapture.GetSelectionError(), Does.Contain("preparing"));
+            m_Scene.SceneInformation.GeometryNeedsUpdate = false;
+            m_Scene.SceneInformation.CutsNeedUpdate = false;
+            m_Materials.BrainMaterial.SetFloat("_Atlas", 1);
+            Assert.That(DesktopAnatomyCapture.GetSelectionError(), Does.Contain("coloration"));
+        }
+
+        [Test]
         public async Task DeliveryOffer_FreezesTheSelectedCaptureAndKeepsItsIdentity()
         {
             var expected = await DesktopAnatomyCapture.CaptureSelectedAsync("delivery", "session", 1);

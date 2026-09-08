@@ -41,6 +41,7 @@ namespace HBP.Quest.Editor
             ConfigureRendering();
             CreatePrefabs();
             QuestAnatomySetup.AttachToBootstrap();
+            QuestConnectionSetup.AttachQuest();
             AssetDatabase.SaveAssets();
             Debug.Log("QUEST-004 bootstrap assets serialized.");
         }

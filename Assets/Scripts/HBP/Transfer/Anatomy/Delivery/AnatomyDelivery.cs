@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -28,5 +29,7 @@ namespace HBP.Transfer.Anatomy.Delivery
 
         /// <summary>Listener must already be started. Keep the certificate alive until this task ends.</summary>
         public Task ServeAsync(TcpListener listener, X509Certificate2 identity, byte[] pairingSecret, CancellationToken stop, Action<string> record, Action<DeliveryReceipt> acknowledged = null) => PinnedTlsTransfer.ServeAsync(listener, identity, pairingSecret, payload, stop, record, acknowledged);
+
+        public Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<int> progress = null) => PinnedTlsTransfer.SendPayloadAsync(stream, payload, stop, progress: progress);
     }
 }

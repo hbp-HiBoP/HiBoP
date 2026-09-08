@@ -1,0 +1,999 @@
+{
+  "task": "QUEST-011",
+  "collectedAt": "2026-09-08T17:19:17.0812808+02:00",
+  "implementation": "IMPLEMENTEE",
+  "technical": "REUSSI",
+  "manual": "VALIDE",
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "initialHead": "77629706ebf7e108390957c25e7e43a554f7e22b",
+    "initialCheckout": "clean",
+    "committed": false,
+    "currentHead": "77629706ebf7e108390957c25e7e43a554f7e22b",
+    "files": [
+      {
+        "path": "Assets/Prefabs/General/Main menu.prefab",
+        "sha256": "3d2f41645001aec99626c6667ecc2cacd90d44898494cbc202a205260c84c6c7"
+      },
+      {
+        "path": "Assets/Prefabs/General/Quest Connection.prefab",
+        "sha256": "54c1beee2fcc5937a244bc7e029f7a46e0041cc58716760ff36d9f5a8e8bffdf"
+      },
+      {
+        "path": "Assets/Prefabs/General/Quest Connection.prefab.meta",
+        "sha256": "6cec2b404c4e2716c6888a3bde6bfd523cab4e7ea13d1aa3b8236c43dcc1f138"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestBootstrap.prefab",
+        "sha256": "f40742cc2f2a2fe7cf00ad4c8d02af4d438b924ff9bcb161cebb600acf4c1d2b"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/HBP.Quest.Editor.asmdef",
+        "sha256": "8a9511283b61a16daa50c0325d89764a32ea1c8aeb626823178141d3dd064664"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestAnatomySetup.cs",
+        "sha256": "8aeb7923f283cc0d7a5352ef29bd7e75d51ffa98fde568bbc9a416d984fda366"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestBootstrapSetup.cs",
+        "sha256": "b68c0c0549832ed5bc540f54d140d9fb3369b4c13e317fe8e0714a0a53c2e9a2"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestConnectionSetup.cs",
+        "sha256": "cc0eca1024f1af4a4a3b2c9e0481cf5bfe2ed8b8b7279bf14b27ce810f80c730"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestConnectionSetup.cs.meta",
+        "sha256": "55310dc7a176af4387431dc2fe9b787e66eae7b680681b1ee4e4b4083367a57e"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs",
+        "sha256": "ddcfcead4183e678dd72798907fe0bc1450fb7fa8056d8ecf48ea4798cab69a1"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestConnectionPanel.cs",
+        "sha256": "038833346d73a9494e69aa42e1417ba4c21685a2991fa845f5c3a200efc5104d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestConnectionPanel.cs.meta",
+        "sha256": "32a7dfee3424a8b3c30d12a69b713b8a02ab6ec66d5565be831fe459844fa2c4"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Delivery/AnatomyDelivery.cs",
+        "sha256": "25ce2d3e0c301ccd7677c1b8e2e5027e838cf11baa781acbdc8c3bb446be8a9f"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopAnatomyCapture.cs",
+        "sha256": "5cb7851162d25c08b55790d56ed4c92a79e1e929dfe6d870f2a0b49a70acea01"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/PinnedTlsTransfer.cs",
+        "sha256": "707de422575fe00144fe79f3ba8c14bfa2d40e42e9878b108d6f755f446a3a64"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/QuestPairing.cs",
+        "sha256": "8eea0f8a0a83d6d6fa9edf4253bac3c290463b4672fbba1b2652b7cbe8bbb80d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/QuestPairing.cs.meta",
+        "sha256": "f9ed21b32d61f521f7ab20a6d63ce070f14b7fb9ec781b4aed021176e858e2dd"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/HBP.UI.Runtime.asmdef",
+        "sha256": "6ed9f0a46f9c90dedc401b1d0bcb078452c6c01e69fb1d3ee420c134d069b797"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Quest.meta",
+        "sha256": "b9aae85df54186e0dc77f6670b2dab04385ce3b022f5bb1f598744bd06ff7eb7"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Quest/DesktopQuestPanel.cs",
+        "sha256": "b80adb7c7abf3b63004d430e51f63ec80dfb77c29da3aec02344d618c3995d4d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Quest/DesktopQuestPanel.cs.meta",
+        "sha256": "d5631b41a8fa52704785b26e36dadc0f0aeae9e590b509d94aa0876569e14f9e"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/QuestConnectionLayoutTests.cs",
+        "sha256": "3ad0c25e4652443e443509feac695e1f7bb90e63a320aa410ad4b4d5881e5143"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/QuestConnectionLayoutTests.cs.meta",
+        "sha256": "dbdca02dde80b7cb5ce63e4d21f464695196fc949acdb169844d64bda6454748"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopAnatomyCaptureTests.cs",
+        "sha256": "a91aa45037be54b729d716a04bad35c0fd2f5c0f6327101b3eb72837fc9dc6f3"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/HBP.Quest.PlayModeTests.asmdef",
+        "sha256": "abcd259b175935f4c73d9ad05c70596dfe3a8f0f0f8e80f41b5fd04ddc2ff23e"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestPairingTests.cs",
+        "sha256": "4b951a2e95d4b7017c551b4a596c1a541864e828b607685d83c45cc09ceacd2b"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestPairingTests.cs.meta",
+        "sha256": "415e075413f5b3f41d6ae79011cbf8a1e2d084d501f0f712fbe90d6ede2c0b48"
+      },
+      {
+        "path": "Tools/Build-QuestConnectionPlayers.ps1",
+        "sha256": "111dd06442168e34b103d47a835af23a1f319ce88a95bf82f8afefa4eef18197"
+      }
+    ]
+  },
+  "environment": {
+    "unity": "6000.5.2f1",
+    "editorInitiallyOpen": false,
+    "execution": "Unity CLI outside sandbox",
+    "finalProfile": "DesktopWindows",
+    "headset": "Quest 3",
+    "adbEndpoint": "192.168.1.18:5555",
+    "receiverPort": 45871,
+    "nativeSourcesChanged": false
+  },
+  "artifacts": [
+    {
+      "path": ".artifacts/quest-011/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    {
+      "path": ".artifacts/quest-011/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 62866432,
+      "sha256": "426c5ae4ac51198802935b1a44d4d02fa0f11bce307da9bdf185ef0f972b5836"
+    },
+    {
+      "path": ".artifacts/quest-011/Android/HiBoP.Quest.apk",
+      "bytes": 162990184,
+      "sha256": "2aa695d4402a0bb03a638c0aae63e50e6f9574ec458c9a440a2272cdd04fbe3a"
+    },
+    {
+      "path": ".artifacts/quest-006/fixture/quest-mni-anatomy.hibop",
+      "bytes": 1853,
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a"
+    },
+    {
+      "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+      "bytes": 3870248,
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+    },
+    {
+      "path": "Assets/Plugins/Managed/BouncyCastle/BouncyCastle.Cryptography.dll",
+      "bytes": 4885904,
+      "sha256": "d61c1f2ba929a230a58e101ccd850e21f2675fa6b9814ec279633e8a089c3495"
+    },
+    {
+      "path": "Packages/manifest.json",
+      "bytes": 2605,
+      "sha256": "c962cea53601a70c1a38ede220b1e0e9c2b6a008b740e00058055faba4d59652"
+    },
+    {
+      "path": "Packages/packages-lock.json",
+      "bytes": 17988,
+      "sha256": "c5f3d1c413ee802e90ab68a618fc5a3e9bd93b248a6959ed8ff01416bf4906c5"
+    },
+    {
+      "path": ".artifacts/quest-011/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/EEGFormat.dll",
+      "bytes": 1005056,
+      "sha256": "3b886cf1a31c67e7b8ddb2b38e93a634b56f8694f80deb3d9312839e2b69d448"
+    },
+    {
+      "path": ".artifacts/quest-011/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_core.dll",
+      "bytes": 1378816,
+      "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b"
+    },
+    {
+      "path": ".artifacts/quest-011/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_math.dll",
+      "bytes": 246784,
+      "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b"
+    }
+  ],
+  "tests": [
+    {
+      "id": "playmode-release",
+      "path": ".test-results/quest-011/playmode-release.xml",
+      "exitCode": 0,
+      "result": "Passed",
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "duration": "7,7177855",
+      "sha256": "efb912c5009d7504964219ec87299e00530cba5c84d852ed1e631e60fb871484"
+    },
+    {
+      "id": "editmode-final",
+      "path": ".test-results/quest-011/editmode-final.xml",
+      "exitCode": 0,
+      "result": "Skipped:Ignored",
+      "passed": 87,
+      "failed": 0,
+      "skipped": 1,
+      "duration": "16,0269672",
+      "sha256": "1440b7bdc2b018d9233c7c9fce2e4579bd0a28d3e226f6840f7c4b0da6aadf42"
+    },
+    {
+      "id": "layout",
+      "path": ".test-results/quest-011/layout.xml",
+      "exitCode": 0,
+      "result": "Skipped:Ignored",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 1,
+      "duration": "9,3243178",
+      "sha256": "3368f0fe65baceec526e3dd0357e73366ba9b3107a9a1e4c5368d3e498711050"
+    },
+    {
+      "id": "final-desktop",
+      "path": ".test-results/quest-011/final-desktop.xml",
+      "exitCode": 0,
+      "result": "Skipped:Ignored",
+      "passed": 23,
+      "failed": 0,
+      "skipped": 1,
+      "duration": "18,1410602",
+      "sha256": "dfef2a7ff8156515cde0145f37b52b782336b0c8466df990b082ef42f868f54c"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".test-results/quest-011/playmode-release.log",
+      "sha256": "19f006bc15ce5df708ce387e0ec7a5f0caec2b22864ac4b35b16e427bf7401d1"
+    },
+    {
+      "path": ".test-results/quest-011/editmode-final.log",
+      "sha256": "aeb27d95f290773f408396fb9f552da1516156e482eff9d31266319aef2977ef"
+    },
+    {
+      "path": ".test-results/quest-011/layout.log",
+      "sha256": "407b450792f07791abe0562cd9be780b33043a06d1c3cc04640a0f1a17fbf5c9"
+    },
+    {
+      "path": ".test-results/quest-011/final-desktop.log",
+      "sha256": "6301b2593742afc898b2bb5207dd2bdfe78306598c41b56fc4a7234204962747"
+    },
+    {
+      "path": ".test-results/quest-011/windows-build.log",
+      "sha256": "5c28b9e3120a2f93e831882135f5ed54d07d844977708943fa91871dc4c52ce1"
+    },
+    {
+      "path": ".test-results/quest-011/android-build.log",
+      "sha256": "a56d9b55fa47fe99bdf13822a9f4dec5ddb5dd08c432e91830ec884e1afbbcec"
+    },
+    {
+      "path": ".test-results/quest-011/format-release.log",
+      "sha256": "e10c5f940639800ce0638698a7066fc6a9648489f7760bd4d9791e8f617fcfba"
+    },
+    {
+      "path": ".test-results/quest-011/generated-settings.diff",
+      "sha256": "26d2296e8d8914c2792f5188812f597329bbeb9a8c6697f3ccb3b38a44bc3a12"
+    },
+    {
+      "path": ".test-results/quest-011/apk-content.json",
+      "sha256": "8a9ca51857241ea258d0724f5e0fcd2980c5716bd83ca33f0f2588a02ecd2cad"
+    },
+    {
+      "path": ".test-results/quest-011/quest-final-logcat.txt",
+      "sha256": "ec42b54cc6eb78572439c71c986d222968373c85a947b643710071625960ad52"
+    },
+    {
+      "path": ".test-results/quest-011/device-final-state.json",
+      "sha256": "991f88d3530ed9b3acb54bbbf47b6c23a716f07a7cfc1e6d963bf87af9451326"
+    },
+    {
+      "path": ".test-results/quest-011/desktop-player-validated.log",
+      "sha256": "c1f130aba5644c79351f8acb2a2aab0773d38130d217ff66d4659091a983ae32",
+      "origin": ".test-results/quest-011/desktop-player-final.log (snapshot while Player remains open)"
+    }
+  ],
+  "builds": [
+    {
+      "profile": "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+      "unity": "6000.5.2f1",
+      "target": "StandaloneWindows64",
+      "result": "Succeeded",
+      "bytes": 2162311081,
+      "seconds": 44.8907161,
+      "errors": 0,
+      "warnings": 39,
+      "scenes": [
+        "Assets/_Scenes/HiBoP.unity"
+      ],
+      "plugins": [
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/android/arm64/libmock_runtime.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/concrt140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/osx/UnityOpenXR.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/windows/x64/openxr_loader.dll",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/windows-arm64/XRSimulationSubsystem.dll",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/vcomp140.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libboost_iostreams.so.1.71.0",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libhbp_export.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/vccorlib140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/RuntimeLoaders/android/openxr_loader.aar",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libopencv_world.so.411",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.management/xrmanifest.androidlib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/ConformanceAutomation/osx/ConformanceAutomationExt.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/osx/mock_runtime.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/ConformanceAutomation/android/arm64/ConformanceAutomationExt.so",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/android/arm64/libUnityOpenXR.so",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/osx/mock_api.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/ConformanceAutomation/windows/x64/ConformanceAutomationExt.dll",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/RuntimeDebugger/osx/openxr_runtime_debugger.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/ucrtbase.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.meta-openxr/Runtime/Plugins/osx/libUnityARFoundationMeta.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/android/arm64/libmock_api.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_core.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/macOS/arm64/hbp_export.bundle",
+          "included": false
+        },
+        {
+          "path": "Assets/ThirdParty/StandaloneFileBrowser/Plugins/Linux/x86_64/libStandaloneFileBrowser.so",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/android/arm64/libopenxr_loader.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/msvcp140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/RuntimeDebugger/android/arm64/libopenxr_runtime_debugger.so",
+          "included": false
+        },
+        {
+          "path": "Assets/ThirdParty/StandaloneFileBrowser/Plugins/StandaloneFileBrowser.jslib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/macos/XRSimulationSubsystem.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/RuntimeDebugger/windows/x64/openxr_runtime_debugger.dll",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/windows-x64/XRSimulationSubsystem.dll",
+          "included": true
+        },
+        {
+          "path": "Assets/ThirdParty/StandaloneFileBrowser/Plugins/StandaloneFileBrowser.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.meta-openxr/Runtime/Plugins/android/arm64/libUnityARFoundationMeta.so",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/osx/openxr_loader.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/vcruntime140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/windows/x64/mock_api.dll",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/windows/x64/UnityOpenXR.dll",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/opencv_world4110.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/hbp_export.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.inputsystem/InputSystem/Runtime/Plugins/iOS/iOSStepCounter.mm",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/RuntimeLoaders/windows/x64/openxr_loader.dll",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/RuntimeLoaders/osx/libopenxr_loader.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/linux/XRSimulationSubsystem.so",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.meta-openxr/Runtime/Plugins/windows/x64/libUnityARFoundationMeta.dll",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/windows/x64/mock_runtime.dll",
+          "included": true
+        }
+      ],
+      "compiledAssemblies": [
+        "Assembly-CSharp",
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Dev.Runtime",
+        "HBP.Input.Runtime",
+        "HBP.Module3D.PlayModeTests",
+        "HBP.PlayModeTestUtilities",
+        "HBP.Quest.PlayModeTests",
+        "HBP.Rendering.Runtime",
+        "HBP.Theme.Runtime",
+        "HBP.Toolbar.PlayModeTests",
+        "HBP.Transfer.Anatomy.Contracts",
+        "HBP.Transfer.Anatomy.Delivery",
+        "HBP.Transfer.Anatomy.Desktop",
+        "HBP.Transfer.Transport",
+        "HBP.UI.PlayModeTests",
+        "HBP.UI.Runtime",
+        "HBP.Workflow.PlayModeTests",
+        "MCPForUnity.Runtime",
+        "ThirdParty.SFB.Runtime",
+        "ThirdParty.UIExtensions.Runtime",
+        "UniTask",
+        "UniTask.Addressables",
+        "UniTask.DOTween",
+        "UniTask.Linq",
+        "UniTask.TextMeshPro",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.InputSystem",
+        "Unity.InputSystem.ForUI",
+        "Unity.InputSystem.TestFramework",
+        "Unity.InternalAPIEngineBridge.004",
+        "Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared",
+        "Unity.Mathematics",
+        "Unity.Multiplayer.Center.Common",
+        "Unity.PathTracing.Runtime",
+        "Unity.PerformanceTesting",
+        "Unity.RenderPipeline.Universal.ShaderLibrary",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Runtime.Shared",
+        "Unity.RenderPipelines.Core.ShaderLibrary",
+        "Unity.RenderPipelines.GPUDriven.Runtime",
+        "Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary",
+        "Unity.RenderPipelines.Universal.2D.Runtime",
+        "Unity.RenderPipelines.Universal.Config.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Universal.Shaders",
+        "Unity.SurfaceCache.Runtime",
+        "Unity.TextMeshPro",
+        "Unity.Timeline",
+        "Unity.UnifiedRayTracing.Runtime",
+        "Unity.XR.ARFoundation",
+        "Unity.XR.ARFoundation.InternalUtils",
+        "Unity.XR.ARFoundation.VisualScripting",
+        "Unity.XR.ARSubsystems",
+        "Unity.XR.CompositionLayers",
+        "Unity.XR.CompositionLayers.UIInteraction",
+        "Unity.XR.CoreUtils",
+        "Unity.XR.Interaction.Toolkit",
+        "Unity.XR.Management",
+        "Unity.XR.OpenXR",
+        "Unity.XR.OpenXR.Features.ConformanceAutomation",
+        "Unity.XR.OpenXR.Features.MetaHandMeshData",
+        "Unity.XR.OpenXR.Features.MetaQuestSupport",
+        "Unity.XR.OpenXR.Features.MockRuntime",
+        "Unity.XR.OpenXR.Features.OculusQuestSupport",
+        "Unity.XR.OpenXR.Features.RuntimeDebugger",
+        "Unity.XR.OpenXR.TestTooling",
+        "Unity.XR.Simulation",
+        "UnityEngine.SpatialTracking",
+        "UnityEngine.TestRunner",
+        "UnityEngine.UI",
+        "UnityEngine.XR.LegacyInputHelpers"
+      ],
+      "fullReport": ".artifacts/quest-011/Windows/DesktopWindows.build-report.json",
+      "reportSha256": "bd2a0d79b45194a312c1071a4faff54f1a0e4938feda03ae7c7939b48934ca53"
+    },
+    {
+      "profile": "Assets/Settings/BuildProfiles/Quest.asset",
+      "unity": "6000.5.2f1",
+      "target": "Android",
+      "result": "Succeeded",
+      "bytes": 1747844640,
+      "seconds": 141.59691279999998,
+      "errors": 0,
+      "warnings": 41,
+      "scenes": [
+        "Assets/_Scenes/QuestBootstrap.unity"
+      ],
+      "plugins": [
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/android/arm64/libmock_runtime.so",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/concrt140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/osx/UnityOpenXR.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/windows/x64/openxr_loader.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/windows-arm64/XRSimulationSubsystem.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/vcomp140.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libboost_iostreams.so.1.71.0",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libhbp_export.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/vccorlib140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/RuntimeLoaders/android/openxr_loader.aar",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libopencv_world.so.411",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.management/xrmanifest.androidlib",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/ConformanceAutomation/osx/ConformanceAutomationExt.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/osx/mock_runtime.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/ConformanceAutomation/android/arm64/ConformanceAutomationExt.so",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/android/arm64/libUnityOpenXR.so",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/osx/mock_api.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/ConformanceAutomation/windows/x64/ConformanceAutomationExt.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/RuntimeDebugger/osx/openxr_runtime_debugger.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/ucrtbase.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.meta-openxr/Runtime/Plugins/osx/libUnityARFoundationMeta.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/android/arm64/libmock_api.so",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_core.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/macOS/arm64/hbp_export.bundle",
+          "included": false
+        },
+        {
+          "path": "Assets/ThirdParty/StandaloneFileBrowser/Plugins/Linux/x86_64/libStandaloneFileBrowser.so",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/android/arm64/libopenxr_loader.so",
+          "included": true
+        },
+        {
+          "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/msvcp140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/RuntimeDebugger/android/arm64/libopenxr_runtime_debugger.so",
+          "included": true
+        },
+        {
+          "path": "Assets/ThirdParty/StandaloneFileBrowser/Plugins/StandaloneFileBrowser.jslib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/macos/XRSimulationSubsystem.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/RuntimeDebugger/windows/x64/openxr_runtime_debugger.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/windows-x64/XRSimulationSubsystem.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/ThirdParty/StandaloneFileBrowser/Plugins/StandaloneFileBrowser.bundle",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.meta-openxr/Runtime/Plugins/android/arm64/libUnityARFoundationMeta.so",
+          "included": true
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/osx/openxr_loader.dylib",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/vcruntime140.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/windows/x64/mock_api.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/windows/x64/UnityOpenXR.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/opencv_world4110.dll",
+          "included": false
+        },
+        {
+          "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/hbp_export.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.inputsystem/InputSystem/Runtime/Plugins/iOS/iOSStepCounter.mm",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/RuntimeLoaders/windows/x64/openxr_loader.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/RuntimeLoaders/osx/libopenxr_loader.dylib",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.arfoundation/Runtime/Simulation/Plugins/linux/XRSimulationSubsystem.so",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.meta-openxr/Runtime/Plugins/windows/x64/libUnityARFoundationMeta.dll",
+          "included": false
+        },
+        {
+          "path": "Packages/com.unity.xr.openxr/Runtime/MockRuntime/windows/x64/mock_runtime.dll",
+          "included": false
+        }
+      ],
+      "compiledAssemblies": [
+        "Assembly-CSharp",
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Dev.Runtime",
+        "HBP.Input.Runtime",
+        "HBP.Module3D.PlayModeTests",
+        "HBP.PlayModeTestUtilities",
+        "HBP.Quest.PlayModeTests",
+        "HBP.Quest.Runtime",
+        "HBP.Rendering.Runtime",
+        "HBP.Theme.Runtime",
+        "HBP.Toolbar.PlayModeTests",
+        "HBP.Transfer.Anatomy.Contracts",
+        "HBP.Transfer.Anatomy.Delivery",
+        "HBP.Transfer.Anatomy.Desktop",
+        "HBP.Transfer.Transport",
+        "HBP.UI.PlayModeTests",
+        "HBP.UI.Runtime",
+        "HBP.Workflow.PlayModeTests",
+        "MCPForUnity.Runtime",
+        "ThirdParty.SFB.Runtime",
+        "ThirdParty.UIExtensions.Runtime",
+        "UniTask",
+        "UniTask.Addressables",
+        "UniTask.DOTween",
+        "UniTask.Linq",
+        "UniTask.TextMeshPro",
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.InputSystem",
+        "Unity.InputSystem.ForUI",
+        "Unity.InputSystem.TestFramework",
+        "Unity.InternalAPIEngineBridge.004",
+        "Unity.InternalAPIEngineBridge.RenderPipelines.Core.Runtime.Shared",
+        "Unity.Mathematics",
+        "Unity.Multiplayer.Center.Common",
+        "Unity.PerformanceTesting",
+        "Unity.RenderPipeline.Universal.ShaderLibrary",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Runtime.Shared",
+        "Unity.RenderPipelines.Core.ShaderLibrary",
+        "Unity.RenderPipelines.GPUDriven.Runtime",
+        "Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary",
+        "Unity.RenderPipelines.Universal.2D.Runtime",
+        "Unity.RenderPipelines.Universal.Config.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Universal.Shaders",
+        "Unity.SurfaceCache.Runtime",
+        "Unity.TextMeshPro",
+        "Unity.Timeline",
+        "Unity.UnifiedRayTracing.Runtime",
+        "Unity.XR.ARFoundation",
+        "Unity.XR.ARFoundation.InternalUtils",
+        "Unity.XR.ARFoundation.VisualScripting",
+        "Unity.XR.ARSubsystems",
+        "Unity.XR.CompositionLayers",
+        "Unity.XR.CompositionLayers.UIInteraction",
+        "Unity.XR.CoreUtils",
+        "Unity.XR.Interaction.Toolkit",
+        "Unity.XR.Management",
+        "Unity.XR.MetaOpenXR",
+        "Unity.XR.OpenXR",
+        "Unity.XR.OpenXR.Features.ConformanceAutomation",
+        "Unity.XR.OpenXR.Features.MetaHandMeshData",
+        "Unity.XR.OpenXR.Features.MetaQuestSupport",
+        "Unity.XR.OpenXR.Features.MockRuntime",
+        "Unity.XR.OpenXR.Features.OculusQuestSupport",
+        "Unity.XR.OpenXR.Features.RuntimeDebugger",
+        "Unity.XR.OpenXR.TestTooling",
+        "UnityEngine.SpatialTracking",
+        "UnityEngine.TestRunner",
+        "UnityEngine.UI",
+        "UnityEngine.XR.LegacyInputHelpers"
+      ],
+      "fullReport": ".artifacts/quest-011/Android/Quest.build-report.json",
+      "reportSha256": "4d4eeb5b3efe2249ca22662a8c01ec65e7f2a916b21cc62c723dbc40b95ceb56"
+    }
+  ],
+  "deployment": {
+    "command": "adb -s 192.168.1.18:5555 install -r C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-011\\Android\\HiBoP.Quest.apk",
+    "exitCode": 0,
+    "result": "Success",
+    "launch": "am start -W -n fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity",
+    "launchStatus": "ok",
+    "launchType": "COLD",
+    "totalTimeMs": 363,
+    "wifiAdbPreserved": true,
+    "stayAwakeWhilePluggedIn": true,
+    "manualSessionLeftOpen": false,
+    "finalState": {
+      "recordedAt": "2026-09-08T17:17:12.3931821+02:00",
+      "package": "fr.crnl.hibop.quest",
+      "endpoint": "192.168.1.18:5555",
+      "stopExitCode": 0,
+      "pidofExitCode": 1,
+      "remainingPid": "",
+      "adbState": "device",
+      "stayAwakeWhilePluggedIn": "15"
+    }
+  },
+  "review": {
+    "scope": "Security, concurrency, publication cancellation, pairing and retry",
+    "independent": true,
+    "findingsCorrected": [
+      "Keep listener alive on InvalidDataException, with unknown-command/corruption recovery tests",
+      "Recheck five-minute expiry after code read; retain legitimate fifth attempt"
+    ]
+  },
+  "manualChecks": [
+    {
+      "id": "M0",
+      "status": "VALIDE",
+      "date": "2026-09-08",
+      "response": "Oui c'est bon pour le panneau !"
+    },
+    {
+      "id": "M1",
+      "status": "VALIDE",
+      "check": "Pairing security failure followed by successful reinspection, fingerprint comparison and code entry. Physical abc case not separately confirmed; invalid addresses covered by automated tests.",
+      "date": "2026-09-08",
+      "response": "Ok en effet j'ai pu refaire l'étape inspect, puis comparer les fingerprint puis remettre le code et pair là c'était bon. J'ai ensuite pu transférer le mesh et interagir avec comme lors de l'étape 9 je crois"
+    },
+    {
+      "id": "M2",
+      "status": "VALIDE",
+      "check": "Send from actual Desktop column, observe progress and manipulate independently on Quest",
+      "date": "2026-09-08",
+      "response": "Transfer and manipulation confirmed in M1 response; readable progress and independent Desktop view separately confirmed: Oui, les deux sont bons."
+    }
+  ],
+  "limitations": [
+    "No one-minute disconnection qualification (QUEST-012)",
+    "Windows Computer Use was stopped with Escape; no further Computer Use action",
+    "Android pause renews pairing; published anatomy remains",
+    "Initial pairing screenshots are private temporary previews and excluded from versioned evidence",
+    "Known nonfatal AssetPackManager ClassNotFoundException already reported in QUEST-003/007",
+    "Initial pairing failure resolved by reinspection; code refusal versus identity change not distinguished in available logs",
+    "Physical invalid-address case and B/X shortcuts not separately reconfirmed during this recipe"
+  ],
+  "nonPassingAttempts": [
+    {
+      "path": ".test-results/quest-011/setup.log",
+      "outcome": "Compile error from out parameter in lambda; fixed"
+    },
+    {
+      "path": ".test-results/quest-011/playmode.log",
+      "outcome": "NUnit Unity lacks NonParallelizable; removed"
+    },
+    {
+      "path": ".test-results/quest-011/editmode.xml",
+      "outcome": "One new test left a dependent dirty flag set; test fixed and rerun"
+    },
+    {
+      "outcome": "Initial Windows panel laid out outside viewport; prefab ignoreLayout/sorting corrected and verified by layout test and owner"
+    },
+    {
+      "outcome": "Owner observed pairing/security check failed; reinspection, fingerprint comparison and current code succeeded without modifying or rebuilding Players; precise initial cause unproven"
+    }
+  ],
+  "physicalTransfer": {
+    "receipt": "Published",
+    "bytes": 3870258,
+    "contentHash": "7052315487cc911f642cc7cc06970b4db340bf38a855b2ff12751d837cd0536b",
+    "log": ".test-results/quest-011/desktop-player-validated.log",
+    "line": 42,
+    "performedBy": "Owner using the two product Players; no probe"
+  }
+}

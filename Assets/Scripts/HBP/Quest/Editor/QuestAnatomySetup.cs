@@ -57,6 +57,7 @@ namespace HBP.Quest.Editor
             }
 
             AttachToBootstrap();
+            QuestConnectionSetup.AttachQuest();
             AssetDatabase.SaveAssets();
         }
 

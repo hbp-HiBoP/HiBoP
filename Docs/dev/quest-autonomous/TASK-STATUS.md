@@ -27,7 +27,7 @@ contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs
 | <a id="quest-008"></a>[QUEST-008](tasks/QUEST-008.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-008.md), [preuves](evidence/QUEST-008/manifest.json) ; M1–M3 puis M4/M5 (index et frontière passthrough) validés le 2026-09-08 ; 84 tests réussis, APK installé ; ADB conservé après cycle Unity ; HiBoP arrêté après validation, casque éveillé sur chargeur et Wi-Fi préservés (D23/D26). |
 | <a id="quest-009"></a>[QUEST-009](tasks/QUEST-009.md) | IMPLEMENTEE | REUSSI | NON_REQUIS | [Rapport](reports/QUEST-009.md), [preuves](evidence/QUEST-009/manifest.json) ; TLS embarqué + identité BouncyCastle (D27), 18 contrôles Player Windows et 9 scénarios Quest physique, MNI identique ; build Android autonome corrigé, sonde arrêtée. |
 | <a id="quest-010"></a>[QUEST-010](tasks/QUEST-010.md) | IMPLEMENTEE | REUSSI | NON_REQUIS | [Rapport](reports/QUEST-010.md), [preuves](evidence/QUEST-010/manifest.json) ; publication après staging, reçus idempotents, 27 tests PlayMode, 86 tests EditMode Windows et 69 Android réussis ; transfert Windows IL2CPP–Quest réel, un mesh, conservation hors connexion et libération vérifiées ; HiBoP arrêté. |
-| <a id="quest-011"></a>[QUEST-011](tasks/QUEST-011.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-011"></a>[QUEST-011](tasks/QUEST-011.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-011.md), [preuves](evidence/QUEST-011/manifest.json) ; 38 tests PlayMode, 87 EditMode et 23 contrôles de configuration réussis ; M0–M2 validés le 2026-09-08, appairage après réinspection puis transfert Published, progression/manipulation et vues indépendantes confirmées ; HiBoP arrêté, absence de PID vérifiée, ADB Wi-Fi conservé (D23/D26). |
 | <a id="quest-012"></a>[QUEST-012](tasks/QUEST-012.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-013"></a>[QUEST-013](tasks/QUEST-013.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-014"></a>[QUEST-014](tasks/QUEST-014.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
@@ -46,6 +46,7 @@ contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs
 | <a id="quest-027"></a>[QUEST-027](tasks/QUEST-027.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-028"></a>[QUEST-028](tasks/QUEST-028.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-029"></a>[QUEST-029](tasks/QUEST-029.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-030"></a>[QUEST-030](tasks/QUEST-030.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | D28 ; fiche rédigée, exécution après les jalons J0–J7. |
 
 ## Décisions bloquantes et retour utilisateur
 

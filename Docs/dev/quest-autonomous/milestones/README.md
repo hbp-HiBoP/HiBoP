@@ -15,6 +15,10 @@ Utiliser les IDs QUEST pour commander une unité d'implémentation.
 | [J6 — Qualification Mac Apple Silicon](J6.md) | Refaire le parcours complet depuis un Mac physique. | QUEST-025, QUEST-026 |
 | [J7 — Décision Linux puis qualification éventuelle](J7.md) | Décider du test Linux, puis le réaliser uniquement si retenu. | QUEST-027, QUEST-028, QUEST-029 |
 
+Après ces jalons, [QUEST-030](../tasks/QUEST-030.md) prévoit la découverte locale
+et l'appairage par sélection du casque puis code, sans comparaison manuelle
+d'empreinte. Cette extension ne modifie pas les critères de J0–J7.
+
 Pour qualifier un jalon, relire les rapports des tâches, exécuter la démonstration
 finale pertinente et enregistrer les retours manuels. Ne pas rejouer chaque test
 sans changement ou doute justifiant cette répétition.

@@ -130,7 +130,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public static async Task<DeliveryReceipt> SendPayloadAsync(Stream stream, byte[] payload, CancellationToken stop, bool corruptChunk = false)
+        public static async Task<DeliveryReceipt> SendPayloadAsync(Stream stream, byte[] payload, CancellationToken stop, bool corruptChunk = false, Action<int> progress = null)
         {
             if (payload == null || payload.Length == 0 || payload.Length > MaximumPayloadBytes) throw new InvalidDataException("Payload size out of bounds.");
             using var sha = SHA256.Create();
@@ -154,6 +154,7 @@ namespace HBP.Transfer.Transport
                 if (corruptChunk && offset == 0) chunkHeader[8] ^= 1; // Explicit adversarial probe injection.
                 await stream.WriteAsync(chunkHeader, 0, chunkHeader.Length, stop).ConfigureAwait(false);
                 await stream.WriteAsync(payload, offset, count, stop).ConfigureAwait(false);
+                progress?.Invoke(offset + count);
             }
 
             var receipt = new byte[33];

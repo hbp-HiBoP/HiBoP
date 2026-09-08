@@ -42,6 +42,8 @@ décisions du nouveau produit.
 
 | D27 | Le 2026-09-08, après l'échec Player Windows IL2CPP de `CertificateRequest` dans QUEST-009, le propriétaire autorise l'essai de BouncyCastle pour créer l'identité éphémère, en conservant le transport embarqué `TcpListener`/`SslStream`. | Qualifier l'import de clé, TLS et le coût réel dans les Players ; cette autorisation ne valide pas le transport et ne choisit pas l'auxiliaire P06. |
 
+| D28 | Le 2026-09-08, le propriétaire demande de rédiger QUEST-030 après les derniers jalons pour sélectionner un Quest découvert sur le réseau dans une liste, puis saisir uniquement le code affiché dans le casque, sans comparaison manuelle d'empreinte et sans compromettre la sécurité. | Rédiger la fiche maintenant ; exécuter après J0–J7, avec clôture possible de J7 par report Linux explicite. Qualifier le remplacement sécurisé de l'authentification et la découverte avant de revendiquer leur réussite. L'harmonisation menus, fenêtres et charte HiBoP reste différée et distincte de cette tâche. Aucun protocole ou bibliothèque cryptographique n'est encore choisi. |
+
 Ajustement documentaire après review du propriétaire : le bloc de routage Quest
 ajouté au AGENTS.md global a été retiré. Les fiches renvoient directement au
 contrat d'exécution ; l'invocation recommandée peut préciser leur chemin. Aucun

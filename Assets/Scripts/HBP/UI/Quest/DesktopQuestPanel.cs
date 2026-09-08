@@ -1,0 +1,161 @@
+using System;
+using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Threading;
+using System.Threading.Tasks;
+using HBP.Transfer.Anatomy.Desktop;
+using HBP.Transfer.Anatomy.Delivery;
+using HBP.Transfer.Transport;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace HBP.UI.Quest
+{
+    public sealed class DesktopQuestPanel : MonoBehaviour
+    {
+        [SerializeField] private GameObject panel;
+        [SerializeField] private InputField address, code;
+        [SerializeField] private Text fingerprint, status, selection;
+        [SerializeField] private Toggle confirmed;
+        [SerializeField] private Button inspect, pair, send, retry, cancel;
+        private byte[] pin, credential;
+        private AnatomyDelivery offer;
+        private CancellationTokenSource operation;
+        private bool busy;
+        private bool failedDelivery;
+        private string selectionError;
+        private float nextCheck;
+        public bool IsBusy => busy;
+
+        private void Awake()
+        {
+            inspect.onClick.AddListener(() => _ = InspectAsync());
+            pair.onClick.AddListener(() => _ = PairAsync());
+            send.onClick.AddListener(() => _ = SendAsync(false));
+            retry.onClick.AddListener(() => _ = SendAsync(true));
+            cancel.onClick.AddListener(() => operation?.Cancel());
+            address.onValueChanged.AddListener(_ => ClearPairing());
+        }
+
+        public void TogglePanel() => panel.SetActive(!panel.activeSelf);
+
+        private void ClearPairing()
+        {
+            if (credential != null) Array.Clear(credential, 0, credential.Length);
+            credential = pin = null;
+            confirmed.isOn = false;
+            fingerprint.text = "Compare the complete fingerprint with the headset.";
+            offer = null;
+            failedDelivery = false;
+        }
+
+        public Task InspectAsync() =>
+            RunAsync(async token =>
+            {
+                ClearPairing();
+                status.text = "Connecting to Quest...";
+                pin = await QuestPairing.InspectAsync(address.text.Trim(), token);
+                token.ThrowIfCancellationRequested();
+                fingerprint.text = QuestPairing.FormatPin(pin);
+                status.text = "Compare every fingerprint group in the headset, then confirm and enter its code.";
+            });
+
+        public Task PairAsync() =>
+            RunAsync(async token =>
+            {
+                if (!confirmed.isOn || pin == null) throw new InvalidOperationException("Compare and confirm the complete fingerprint first.");
+                status.text = "Pairing...";
+                byte[] next = await QuestPairing.PairAsync(address.text.Trim(), pin, code.text.Trim(), token);
+                if (token.IsCancellationRequested)
+                {
+                    Array.Clear(next, 0, next.Length);
+                    token.ThrowIfCancellationRequested();
+                }
+
+                credential = next;
+                code.text = "";
+                status.text = "Paired. Select an anatomical column, then Envoyer au Quest.";
+            });
+
+        public Task SendAsync(bool repeat) =>
+            RunAsync(async token =>
+            {
+                if (credential == null) throw new InvalidOperationException("Pair with the Quest first.");
+                failedDelivery = false;
+                try
+                {
+                    if (!repeat)
+                    {
+                        offer = null;
+                        status.text = "Preparing selected anatomy...";
+                        offer = await DesktopAnatomyCapture.CaptureDeliverySelectedAsync(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, token);
+                    }
+
+                    if (offer == null) throw new InvalidOperationException("No captured delivery to retry. Use Envoyer au Quest.");
+                    token.ThrowIfCancellationRequested();
+                    status.text = "Connecting to paired Quest...";
+                    var context = SynchronizationContext.Current;
+                    DeliveryReceipt receipt = await QuestPairing.SendAsync(address.text.Trim(), pin, credential, token, (stream, stop) => offer.SendAsync(stream, stop, count => context.Post(_ =>
+                    {
+                        if (!token.IsCancellationRequested && operation != null && operation.Token == token && busy) status.text = count < offer.EncodedBytes ? $"Sending: {100L * count / offer.EncodedBytes}%" : "Transfer complete. Waiting for Quest preparation...";
+                    }, null)));
+                    status.text = receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Anatomy ready on Quest. Views are independent; the headset can work offline." : "This delivery was closed or replaced on Quest. Use Envoyer au Quest for a new snapshot.";
+                    Debug.Log($"QUEST-011 delivery={receipt.Status}; hash={receipt.ContentHash}; bytes={offer.EncodedBytes}");
+                }
+                catch
+                {
+                    failedDelivery = offer != null;
+                    throw;
+                }
+            });
+
+        private async Task RunAsync(Func<CancellationToken, Task> action)
+        {
+            if (busy || !isActiveAndEnabled) return;
+            busy = true; // Guard before the first await, including direct/double calls.
+            using var attempt = new CancellationTokenSource();
+            operation = attempt;
+            try
+            {
+                await action(attempt.Token);
+            }
+            catch (Exception exception)
+            {
+                if (this) status.text = attempt.IsCancellationRequested ? "Cancelled. A published anatomy remains on Quest; retry is safe." : exception is AuthenticationException ? "Pairing/security check failed. Verify the fingerprint and code; Y on Quest starts a new pairing." : exception is SocketException ? "Quest unreachable. Check the address and Wi-Fi, then retry." : exception is ArgumentException || exception is InvalidOperationException ? exception.Message : "Connection or preparation failed. Check Quest and retry. If pairing was interrupted, press Y in the headset.";
+            }
+            finally
+            {
+                operation = null;
+                busy = false;
+            }
+        }
+
+        private void Update()
+        {
+            if (!panel.activeSelf) return;
+            if (Time.unscaledTime >= nextCheck)
+            {
+                nextCheck = Time.unscaledTime + 0.5f;
+                selectionError = DesktopAnatomyCapture.GetSelectionError();
+                selection.text = selectionError ?? "Selected anatomy is ready to send.";
+            }
+
+            address.interactable = code.interactable = confirmed.interactable = !busy;
+            inspect.interactable = !busy && !string.IsNullOrWhiteSpace(address.text);
+            pair.interactable = !busy && pin != null && confirmed.isOn && credential == null && code.text.Trim().Length == 6;
+            send.interactable = !busy && credential != null && selectionError == null;
+            retry.interactable = !busy && credential != null && failedDelivery && offer != null;
+            cancel.interactable = busy;
+        }
+
+        private void OnDisable() => operation?.Cancel();
+
+        private void OnDestroy()
+        {
+            operation?.Cancel();
+            if (credential != null) Array.Clear(credential, 0, credential.Length);
+            credential = pin = null;
+            offer = null;
+        }
+    }
+}
