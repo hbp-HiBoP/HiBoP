@@ -82,6 +82,8 @@ namespace HBP.UI.Quest
             {
                 if (credential == null) throw new InvalidOperationException("Pair with the Quest first.");
                 failedDelivery = false;
+                var elapsed = System.Diagnostics.Stopwatch.StartNew();
+                double captureMs = 0;
                 try
                 {
                     if (!repeat)
@@ -89,6 +91,7 @@ namespace HBP.UI.Quest
                         offer = null;
                         status.text = "Preparing selected anatomy...";
                         offer = await DesktopAnatomyCapture.CaptureDeliverySelectedAsync(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, token);
+                        captureMs = elapsed.Elapsed.TotalMilliseconds;
                     }
 
                     if (offer == null) throw new InvalidOperationException("No captured delivery to retry. Use Envoyer au Quest.");
@@ -101,6 +104,8 @@ namespace HBP.UI.Quest
                     }, null)));
                     status.text = receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Anatomy ready on Quest. Views are independent; the headset can work offline." : "This delivery was closed or replaced on Quest. Use Envoyer au Quest for a new snapshot.";
                     Debug.Log($"QUEST-011 delivery={receipt.Status}; hash={receipt.ContentHash}; bytes={offer.EncodedBytes}");
+                    if (Debug.isDebugBuild)
+                        Debug.Log("QUEST012_SEND " + JsonUtility.ToJson(new DeliveryMeasurement { utc = DateTime.UtcNow.ToString("O"), retry = repeat, transfer = offer.TransferId, hash = receipt.ContentHash, bytes = offer.EncodedBytes, captureAndEncodeMs = captureMs, connectSendAndReceiptMs = elapsed.Elapsed.TotalMilliseconds - captureMs, totalMs = elapsed.Elapsed.TotalMilliseconds, status = receipt.Status.ToString() }));
                 }
                 catch
                 {
@@ -128,6 +133,15 @@ namespace HBP.UI.Quest
                 operation = null;
                 busy = false;
             }
+        }
+
+        [Serializable]
+        private sealed class DeliveryMeasurement
+        {
+            public string utc, transfer, hash, status;
+            public bool retry;
+            public int bytes;
+            public double captureAndEncodeMs, connectSendAndReceiptMs, totalMs;
         }
 
         private void Update()

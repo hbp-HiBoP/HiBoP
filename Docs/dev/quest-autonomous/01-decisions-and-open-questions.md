@@ -44,6 +44,8 @@ décisions du nouveau produit.
 
 | D28 | Le 2026-09-08, le propriétaire demande de rédiger QUEST-030 après les derniers jalons pour sélectionner un Quest découvert sur le réseau dans une liste, puis saisir uniquement le code affiché dans le casque, sans comparaison manuelle d'empreinte et sans compromettre la sécurité. | Rédiger la fiche maintenant ; exécuter après J0–J7, avec clôture possible de J7 par report Linux explicite. Qualifier le remplacement sécurisé de l'authentification et la découverte avant de revendiquer leur réussite. L'harmonisation menus, fenêtres et charte HiBoP reste différée et distincte de cette tâche. Aucun protocole ou bibliothèque cryptographique n'est encore choisi. |
 
+| D29 | Le 2026-09-08, à la fin de QUEST-012, le propriétaire confirme « Tout OK. Oui pour la durée des envois c'est largement ok. », après validation du confort des trois gestes, coupure radio mesurée de 60,02 s, indépendance de la vue Windows et renvois conservant contenu/pose/taille. | La démonstration anatomique J2 et les durées observées de 0,969–1,083 s sont acceptées pour cette fixture et ce prototype. Aucun seuil général de durée, cadence ou tolérance scientifique n'est créé ; 72 Hz reste une cible provisoire. |
+
 Ajustement documentaire après review du propriétaire : le bloc de routage Quest
 ajouté au AGENTS.md global a été retiré. Les fiches renvoient directement au
 contrat d'exécution ; l'invocation recommandée peut préciser leur chemin. Aucun

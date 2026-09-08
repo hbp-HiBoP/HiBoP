@@ -1,0 +1,1807 @@
+{
+  "task": "QUEST-012",
+  "collectedAt": "2026-09-08T16:25:42.6388279Z",
+  "implementation": "IMPLEMENTEE",
+  "technical": "REUSSI",
+  "manual": "VALIDE",
+  "milestoneJ2": "QUALIFIED",
+  "source": {
+    "committed": false,
+    "initialCheckout": "clean",
+    "buildInputs": [
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs",
+        "sha256": "f75d5516b531171c8ece08631ed362301f51b81e54191336b1a822747c580750"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyMeasurements.cs",
+        "sha256": "5bad7d98734d58b8cdd2aa1f113cf2d8fecaeaa13d632197210ea22512a216f8"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Quest/DesktopQuestPanel.cs",
+        "sha256": "fc317a9e9104c61000e1e43cd51a175f203b56a1d891e2f987cc9de466eb8b3c"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyDeliveryTests.cs",
+        "sha256": "90c53303840033e4affd8505f04b20a2058462407281db2d2ac8abd8bd06b925"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestBootstrap.prefab",
+        "sha256": "f40742cc2f2a2fe7cf00ad4c8d02af4d438b924ff9bcb161cebb600acf4c1d2b"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestAnatomy.prefab",
+        "sha256": "e42c87d4f443938c423a6abec71866cd147c4cb68aad5892df2c8f4bc295cffa"
+      },
+      {
+        "path": "Assets/Prefabs/General/Quest Connection.prefab",
+        "sha256": "54c1beee2fcc5937a244bc7e029f7a46e0041cc58716760ff36d9f5a8e8bffdf"
+      },
+      {
+        "path": "Packages/manifest.json",
+        "sha256": "c962cea53601a70c1a38ede220b1e0e9c2b6a008b740e00058055faba4d59652"
+      },
+      {
+        "path": "Packages/packages-lock.json",
+        "sha256": "c5f3d1c413ee802e90ab68a618fc5a3e9bd93b248a6959ed8ff01416bf4906c5"
+      },
+      {
+        "path": "ProjectSettings/ProjectVersion.txt",
+        "sha256": "37b79852fe632bb6d17f4a144fcc583bc700eff2aab10d2a3140e516c4391965"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64\\hbp_math.dll.meta",
+        "sha256": "73740e2f7846cd905ecfd0974500f0475d5384aa410697bece8a47dd91c8679e"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64\\hbp_math.dll",
+        "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64\\hbp_core.dll.meta",
+        "sha256": "a7f57b5ab1b47d88c3f8aba49d9bdb050366a2fa522178f1a96eb22ff2edfe65"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64\\hbp_core.dll",
+        "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64\\EEGFormat.dll.meta",
+        "sha256": "64a19af00fd5b380a35fffe46be18d1f7237839cd5cc59523d9f7252dd6b232e"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64\\EEGFormat.dll",
+        "sha256": "3b886cf1a31c67e7b8ddb2b38e93a634b56f8694f80deb3d9312839e2b69d448"
+      }
+    ],
+    "nativeRepositories": [
+      {
+        "head": "cf4400b168b120641aa69b7120e81a66a899cbd3",
+        "name": "hbp_core",
+        "status": []
+      },
+      {
+        "head": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7",
+        "name": "hbp_math",
+        "status": []
+      },
+      {
+        "head": "99b54e9faf607973451233c069315978d3c6bffd",
+        "name": "EEGFormat",
+        "status": []
+      }
+    ],
+    "initialHead": "4ba923ec03acdec3954bafe6439bbaad4609e332",
+    "sameCodeAndPackageHashesVerified": true,
+    "branch": "feature/xr-autonomous",
+    "changedFiles": [
+      {
+        "bytes": 10269,
+        "sha256": "f75d5516b531171c8ece08631ed362301f51b81e54191336b1a822747c580750",
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs"
+      },
+      {
+        "bytes": 4201,
+        "sha256": "5bad7d98734d58b8cdd2aa1f113cf2d8fecaeaa13d632197210ea22512a216f8",
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyMeasurements.cs"
+      },
+      {
+        "bytes": 60,
+        "sha256": "9c64e56a9b55e908150d75ed81b8a7830718b37455a09f96b8f4fa243f49b390",
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyMeasurements.cs.meta"
+      },
+      {
+        "bytes": 8706,
+        "sha256": "fc317a9e9104c61000e1e43cd51a175f203b56a1d891e2f987cc9de466eb8b3c",
+        "path": "Assets/Scripts/HBP/UI/Quest/DesktopQuestPanel.cs"
+      },
+      {
+        "bytes": 20951,
+        "sha256": "90c53303840033e4affd8505f04b20a2058462407281db2d2ac8abd8bd06b925",
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyDeliveryTests.cs"
+      },
+      {
+        "bytes": 1638,
+        "sha256": "357dfbb6ae156bd79d3a5fea4c04842472a79b9199b0312590f8f5659b83215e",
+        "path": "Tools/Build-QuestConnectionPlayers.ps1"
+      },
+      {
+        "bytes": 2277,
+        "sha256": "fa6f0d4125caee4385a236c5ed9839b272787b8b83fa299e96f995be2ddf2937",
+        "path": "Tools/Save-QuestAnatomyEvidence.ps1"
+      },
+      {
+        "bytes": 2573,
+        "sha256": "8aff0234b78f598c73692677b1afc03bd917fb85301b7dbb73bd084139a2b2b9",
+        "path": "Tools/Start-QuestAnatomyOutage.ps1"
+      }
+    ]
+  },
+  "unity": "6000.5.2f1",
+  "device": {
+    "package": "fr.crnl.hibop.quest",
+    "android": "14",
+    "model": "Quest 3",
+    "serial": "192.168.1.18:5555"
+  },
+  "builds": [
+    {
+      "warnings": 42,
+      "command": "Tools/Build-QuestConnectionPlayers.ps1 -Target Windows -EvidenceId quest-012",
+      "target": "Windows",
+      "seconds": 149.3741102,
+      "result": "Succeeded",
+      "errors": 0,
+      "scenes": [
+        "Assets/_Scenes/HiBoP.unity"
+      ],
+      "report": {
+        "bytes": 821851,
+        "sha256": "61441a904e57807847fd53f21f6c258feda23e827789c3cdbe37beefdb5831b2",
+        "path": ".artifacts/quest-012/Windows/DesktopWindows.build-report.json"
+      },
+      "exitCode": 0
+    },
+    {
+      "warnings": 44,
+      "command": "Tools/Build-QuestConnectionPlayers.ps1 -Target Android -EvidenceId quest-012",
+      "target": "Android",
+      "seconds": 253.9340861,
+      "result": "Succeeded",
+      "errors": 0,
+      "scenes": [
+        "Assets/_Scenes/QuestBootstrap.unity"
+      ],
+      "report": {
+        "bytes": 773969,
+        "sha256": "8de705cc653211722d7d723ca7b9468c7d50efedbc77fc3f19577929813b16a0",
+        "path": ".artifacts/quest-012/Android/Quest.build-report.json"
+      },
+      "exitCode": 0
+    }
+  ],
+  "binaries": [
+    {
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1",
+      "path": ".artifacts/quest-012/Windows/HiBoP.6.1.0.win64/HiBoP.exe"
+    },
+    {
+      "bytes": 62867456,
+      "sha256": "11c80360fdb6080a62e41c980ee815977b564a45c669f7f5bc3676c9b781d91c",
+      "path": ".artifacts/quest-012/Windows/HiBoP.6.1.0.win64/GameAssembly.dll"
+    },
+    {
+      "bytes": 162987971,
+      "sha256": "001375704baa0f992073c89ae78c35d95cff2dfe4b4cdc2e4df1a98d19a27235",
+      "path": ".artifacts/quest-012/Android/HiBoP.Quest.apk"
+    }
+  ],
+  "fixture": {
+    "projectPath": ".artifacts/quest-006/fixture/quest-mni-anatomy.hibop",
+    "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+    "vertices": 69104,
+    "surfaceBytes": 3869920,
+    "indices": 414648,
+    "projectSha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a",
+    "hbnaPath": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+    "hbnaSha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+  },
+  "checks": [
+    {
+      "failed": 0,
+      "id": "T1",
+      "passed": 39,
+      "kind": "Unity PlayMode",
+      "skipped": 0,
+      "exitCode": 0,
+      "result": "REUSSI",
+      "artifact": ".test-results/quest-012/playmode.xml",
+      "qualification": "60 seconds logical disconnection with simulated gestures, retry and replacement; not a physical radio outage"
+    },
+    {
+      "failed": 0,
+      "id": "T2",
+      "passed": 88,
+      "kind": "Unity EditMode",
+      "skipped": 1,
+      "exitCode": 0,
+      "result": "REUSSI",
+      "artifact": ".test-results/quest-012/editmode.xml",
+      "qualification": "Exact MNI buffers, codec, capture, uploader, platform configuration"
+    },
+    {
+      "id": "T3",
+      "artifact": ".test-results/quest-012/format.log",
+      "exitCode": 0,
+      "result": "REUSSI",
+      "command": "Tools/format-code.cmd",
+      "limitation": "Initial sandbox attempt could not access NuGet; unsandboxed rerun succeeded"
+    },
+    {
+      "id": "T4",
+      "artifact": ".test-results/quest-012/outage-syntax.json",
+      "exitCode": 0,
+      "qualification": "Syntax only; no radio commands executed",
+      "result": "REUSSI",
+      "kind": "PowerShell parser and Android sh -n"
+    },
+    {
+      "result": "REUSSI",
+      "exitCode": 0,
+      "kind": "Windows and Android IL2CPP builds",
+      "id": "T5"
+    },
+    {
+      "result": "REUSSI",
+      "qualification": "Baseline startup had no fallback anatomy despite persistent HBNA; six subsequent physical product transfers qualified in T7/T8.",
+      "kind": "APK inspection and empty receiver startup",
+      "id": "T6"
+    },
+    {
+      "result": "REUSSI",
+      "kind": "Physical 60-second radio outage and resend",
+      "id": "T7"
+    },
+    {
+      "result": "REUSSI",
+      "kind": "Cold/warm transfers with physical gestures",
+      "id": "T8"
+    },
+    {
+      "artifact": ".test-results/quest-012/final-desktop.xml",
+      "passed": 23,
+      "skipped": 1,
+      "kind": "Restore DesktopWindows profile and EditMode platform checks",
+      "result": "REUSSI",
+      "failed": 0,
+      "exitCode": 0,
+      "id": "T9"
+    },
+    {
+      "kind": "Windows startup and cleanup; Quest D23/D26 cleanup",
+      "qualification": "Windows initialized Direct3D; no visual validation claimed. Owned smoke process stopped. Quest force-stop exit 0 and pidof exit 1 with no PID; ADB device and stay-awake 15 preserved.",
+      "result": "REUSSI",
+      "id": "T10"
+    },
+    {
+      "result": "REUSSI",
+      "qualification": "All six payload hashes match and surface hash equals fixture. Same pose/rotation/scale before and after all publications. Owner validated 60.02-second radio outage gestures, Desktop independence and durations. Quest stopped after final collection.",
+      "id": "T11",
+      "kind": "Final physical qualification and D23/D26 cleanup"
+    }
+  ],
+  "baseline": {
+    "coldActivityLaunchMs": 246,
+    "batteryPercent": 27,
+    "androidPssKiB": 778126,
+    "vrapiSamples": [
+      {
+        "temperatureC": 44.0,
+        "cpuAndGpuMs": 41.39,
+        "targetFps": 72,
+        "appMs": 0.0,
+        "fps": 1,
+        "stale": 19
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.34,
+        "targetFps": 72,
+        "appMs": 0.88,
+        "fps": 71,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.46,
+        "targetFps": 72,
+        "appMs": 1.02,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.46,
+        "targetFps": 72,
+        "appMs": 0.21,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.6,
+        "targetFps": 72,
+        "appMs": 1.55,
+        "fps": 72,
+        "stale": 5
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.63,
+        "targetFps": 72,
+        "appMs": 0.41,
+        "fps": 58,
+        "stale": 11
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.09,
+        "targetFps": 72,
+        "appMs": 0.94,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.96,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.25,
+        "targetFps": 72,
+        "appMs": 0.9,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.95,
+        "targetFps": 72,
+        "appMs": 0.9,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.96,
+        "targetFps": 72,
+        "appMs": 0.94,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.94,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.91,
+        "targetFps": 72,
+        "appMs": 0.94,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.05,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.98,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.96,
+        "targetFps": 72,
+        "appMs": 0.94,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.97,
+        "targetFps": 72,
+        "appMs": 0.92,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.15,
+        "targetFps": 72,
+        "appMs": 0.85,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.03,
+        "targetFps": 72,
+        "appMs": 0.93,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.04,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.11,
+        "targetFps": 72,
+        "appMs": 0.92,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.22,
+        "targetFps": 72,
+        "appMs": 0.92,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.98,
+        "targetFps": 72,
+        "appMs": 0.9,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.01,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.87,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.98,
+        "targetFps": 72,
+        "appMs": 0.94,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.21,
+        "targetFps": 72,
+        "appMs": 0.92,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.01,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.89,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.97,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.08,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.9,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.93,
+        "targetFps": 72,
+        "appMs": 0.89,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.09,
+        "targetFps": 72,
+        "appMs": 0.93,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.9,
+        "targetFps": 72,
+        "appMs": 0.94,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.12,
+        "targetFps": 72,
+        "appMs": 0.92,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.15,
+        "targetFps": 72,
+        "appMs": 0.94,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.98,
+        "targetFps": 72,
+        "appMs": 0.88,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.97,
+        "targetFps": 72,
+        "appMs": 0.88,
+        "fps": 73,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 2.88,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 72,
+        "stale": 0
+      },
+      {
+        "temperatureC": 45.0,
+        "cpuAndGpuMs": 3.0,
+        "targetFps": 72,
+        "appMs": 0.91,
+        "fps": 73,
+        "stale": 0
+      }
+    ],
+    "installedApkSha256": "001375704baa0f992073c89ae78c35d95cff2dfe4b4cdc2e4df1a98d19a27235",
+    "managedBytesMax": 7008256.0,
+    "sampleEndUtc": "2026-09-08T15:53:40.994015Z",
+    "installedApkMatches": true,
+    "allSamplesEmpty": true,
+    "startupMaxFrameIntervalMs": 222.2222536802292,
+    "unityAllocatedBytesMin": 103159805.0,
+    "collectionDirectory": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-155342-710-empty-baseline",
+    "compositionReady": true,
+    "batteryTemperatureC": 46,
+    "androidRssKiB": 911952,
+    "stableFrameMeanMs": 13.888861138071533,
+    "sampleCount": 7,
+    "powered": false,
+    "startupError": "Known nonfatal AssetPackManager ClassNotFoundException",
+    "managedBytesMin": 6156288.0,
+    "scope": "Empty receiver, no anatomy and no controller manipulation",
+    "limitations": [
+      "No anatomical transfer timing yet",
+      "No physical radio outage yet",
+      "No GPU-only timing",
+      "No exhaustive memory peak or allocations per gesture",
+      "No perceived comfort result"
+    ],
+    "sampleStartUtc": "2026-09-08T15:53:10.938575Z",
+    "unityAllocatedBytesMax": 105351557.0
+  },
+  "manualChecks": [
+    {
+      "status": "VALIDE",
+      "id": "M1",
+      "validatedAt": "2026-09-08T16:13:34.7017014Z",
+      "response": "C'est bon !",
+      "scope": "Owner confirmed initial product transfer and comfort of translation, rotation and scale; subsequent checks and duration acceptance are recorded separately as validated."
+    },
+    {
+      "status": "VALIDE",
+      "id": "M2",
+      "date": "2026-09-08",
+      "response": "Tout OK. Oui pour la durée des envois c'est largement ok."
+    },
+    {
+      "status": "VALIDE",
+      "id": "M3",
+      "date": "2026-09-08",
+      "response": "Tout OK. Oui pour la durée des envois c'est largement ok."
+    }
+  ],
+  "ownerSteering": {
+    "date": "2026-09-08",
+    "response": "Prépare tout ce qu'il faut et dis moi quand tout est prêt, je te dirai quand je suis prêt",
+    "action": "Prepared only; wait for owner readiness before physical gestures and radio outage"
+  },
+  "finalDeviceState": {
+    "serial": "192.168.1.18:5555",
+    "remainingPid": [],
+    "stopExitCode": 0,
+    "ownerValidation": "Tout OK. Oui pour la durée des envois c'est largement ok.",
+    "adbState": [
+      "device"
+    ],
+    "stoppedAt": "2026-09-08T16:20:48.6927643Z",
+    "stayAwakeWhilePluggedIn": [
+      "15"
+    ],
+    "package": "fr.crnl.hibop.quest",
+    "pidofExitCode": 1
+  },
+  "limitations": [
+    "Android logcat ring rotated: five retained 5-second windows cover only the latter part of the outage; the on-device shell log independently proves 60.02 seconds disabled, and the owner confirms uninterrupted gestures",
+    "Metrics are from retained samples, not a continuous complete trace; summed observed Stale values are not an exhaustive missed-frame total",
+    "Frame intervals are not CPU/GPU durations or command-to-photon; publication timing measures preparation/upload submission, not first visible frame or GPU completion",
+    "Unity memory and Android PSS/RSS are samples, not exhaustive staging peaks or allocations per gesture; no general memory-leak claim",
+    "First transfer is cold at process level, not OS/cache cold; subsequent transfers use the same live processes",
+    "72 Hz remains provisional; acceptance covers observed fixture/prototype and does not establish general performance or scientific thresholds",
+    "Existing build launcher uses one workspace/Library sequentially, not fully isolated target workspaces",
+    "Known nonfatal AssetPackManager ClassNotFoundException in Quest startup; no new product defect observed",
+    "Roughly ten-minute interactive session includes pauses for conversation; no ten-minute continuous exploration or thirty-minute endurance claimed",
+    "Initial analysis compared incompatible DateTime kinds and assumed two uploads where four distinct user sends occurred; corrected using UTC and observed publication count"
+  ],
+  "localEvidence": [
+    {
+      "path": ".test-results/quest-012/adb-during-outage.log",
+      "bytes": 118,
+      "sha256": "b804e4c3e96d08d465724c56d9c6071ad9fd9fab66ec46bb0fbd0e3c2cfc480a"
+    },
+    {
+      "path": ".test-results/quest-012/after-stop-memory.txt",
+      "bytes": 43,
+      "sha256": "3f400d831154045876856a030ec802c0e1a3d992a9f7f8ba84a394914fdd52ef"
+    },
+    {
+      "path": ".test-results/quest-012/analyze-final.ps1",
+      "bytes": 6446,
+      "sha256": "8e1fb0673ede730564c6077d0c24c284eed22598e306dcc07faa895748ae062c"
+    },
+    {
+      "path": ".test-results/quest-012/android-build.log",
+      "bytes": 954432,
+      "sha256": "d42196a87496c826e181edc639c0e6291ff729098273eef59e319e8e2fde12cd"
+    },
+    {
+      "path": ".test-results/quest-012/android-launch.json",
+      "bytes": 214,
+      "sha256": "50889c71e6c3fb65ef66ec659cfec734add611b61ac6424a65ad82638e7c22d4"
+    },
+    {
+      "path": ".test-results/quest-012/android-launch.log",
+      "bytes": 227,
+      "sha256": "ec29c2f24a795b5ad6ce4118708cfbdcd6ca9a891424cb9439a1095a5d84ce63"
+    },
+    {
+      "path": ".test-results/quest-012/apk-content.json",
+      "bytes": 5836,
+      "sha256": "a2fabf16dfe79944f1295a456a1388837a4b2968da119461fd8e364d2bcc46cc"
+    },
+    {
+      "path": ".test-results/quest-012/desktop-smoke-launch.json",
+      "bytes": 362,
+      "sha256": "435aa49050d35c0782eb6f6895bbd2923ffb8adb0f20357575f48e96dfe14439"
+    },
+    {
+      "path": ".test-results/quest-012/desktop-smoke-state.json",
+      "bytes": 213,
+      "sha256": "7f3d2c167c237117f013708a19d5ab866ca186164f059c7cee8cbeba32b7b5c6"
+    },
+    {
+      "path": ".test-results/quest-012/desktop-smoke-stop.json",
+      "bytes": 173,
+      "sha256": "aebaf8e6b6f1a9ffbe1cba949e8bba2283d48c732b9ab20fc621824d3b33acaa"
+    },
+    {
+      "path": ".test-results/quest-012/desktop-smoke.log",
+      "bytes": 2764,
+      "sha256": "024a534ceae12ae417513a85c6a82b1c8e68e53698ca66294af3fe1d31f4621d"
+    },
+    {
+      "path": ".test-results/quest-012/device-final-state.json",
+      "bytes": 277,
+      "sha256": "a00fe1eacbceea58170a95834888cf659beb941af79280b00e34a51c20fb429f"
+    },
+    {
+      "path": ".test-results/quest-012/editmode.log",
+      "bytes": 163824,
+      "sha256": "6b4ef87bde66cecd5d4bd3bf2816e411b1820e8885ff29d1a37c95d0ae0147fa"
+    },
+    {
+      "path": ".test-results/quest-012/editmode.xml",
+      "bytes": 101424,
+      "sha256": "30baf3acea01c85ecdc0e57e9dcda34a23fe51ffcf528c6df82fbc4e7f6f287d"
+    },
+    {
+      "path": ".test-results/quest-012/empty-baseline-summary.json",
+      "bytes": 7547,
+      "sha256": "ca4523fd2bcd95676866434b3a77ef5b74ab5e99d1a8a0f98917b64185c55c03"
+    },
+    {
+      "path": ".test-results/quest-012/final-desktop.log",
+      "bytes": 336866,
+      "sha256": "72c34b9d87bbe24c79593281fc7e83591e476c57ab8163963d74b0c70e2a4e9f"
+    },
+    {
+      "path": ".test-results/quest-012/final-desktop.xml",
+      "bytes": 27324,
+      "sha256": "d1e2cd9aff993ba064a101873845a12dd78d346255684e38f0ddd016c3d96d76"
+    },
+    {
+      "path": ".test-results/quest-012/fixture.json",
+      "bytes": 476,
+      "sha256": "735b6bbd7eb3f4ae28fc66d50bebf04fb7deff26d370b1b3aee3a9145e08a4f2"
+    },
+    {
+      "path": ".test-results/quest-012/format.log",
+      "bytes": 624,
+      "sha256": "e72b73f5f018d8170e9675c4870a40068c23a73bb282ac2221cd77e970aebd1c"
+    },
+    {
+      "path": ".test-results/quest-012/generated-settings.diff",
+      "bytes": 7817,
+      "sha256": "b00fab8bc1b43f88572daa73e39ac21cda5e94667a0c961f19255bdc12fc079e"
+    },
+    {
+      "path": ".test-results/quest-012/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": ".test-results/quest-012/installed-apk-hash.log",
+      "bytes": 158,
+      "sha256": "e3b7e4168f965c4ea5562b9a8b54520ca59f99000b6c14ac2cc7887b4262a9e3"
+    },
+    {
+      "path": ".test-results/quest-012/manual-android-launch.log",
+      "bytes": 227,
+      "sha256": "96bb57b278d9faead1e724ece9e4b7c7bd58fd2abc6c439c73c9804e03738f88"
+    },
+    {
+      "path": ".test-results/quest-012/manual-desktop-launch.json",
+      "bytes": 349,
+      "sha256": "5f45429e21d6fa4e8772f40d755cb6b6104304e0f7772efc66bafa0ee6cdf976"
+    },
+    {
+      "path": ".test-results/quest-012/manual-device-final-state.json",
+      "bytes": 361,
+      "sha256": "0f0f8d63c128b80b2569db22c0105988526ede4f951bb8fce816d51a7f70e2b8"
+    },
+    {
+      "path": ".test-results/quest-012/outage-summary.json",
+      "bytes": 1886,
+      "sha256": "91292dd41ed1783a1fa00d3d50a0d3b0e731255f8cbcc8c0330c03cdb3fa5b98"
+    },
+    {
+      "path": ".test-results/quest-012/outage-syntax.json",
+      "bytes": 133,
+      "sha256": "14211c267390ad0df42bc451d76038e61378758d875a558094f8e937c7932479"
+    },
+    {
+      "path": ".test-results/quest-012/outage-syntax.sh",
+      "bytes": 407,
+      "sha256": "7ae867caae2fc033419ddd7f829cd3a6ad0b46f02639ed3ed3d72fcc12868ba5"
+    },
+    {
+      "path": ".test-results/quest-012/persistent-files.log",
+      "bytes": 261,
+      "sha256": "f41f688d0da7e924394f249cbdb604a0ce1b676a5a3a4f8e3d17302e42444ee5"
+    },
+    {
+      "path": ".test-results/quest-012/physical-summary.json",
+      "bytes": 209577,
+      "sha256": "2eb04dec6cead3e545757aeaf31bb401e5d9795f317f8c19bcb35b3222ec7cf3"
+    },
+    {
+      "path": ".test-results/quest-012/playmode.log",
+      "bytes": 142686,
+      "sha256": "9111d6ab9ede0e4dd7c3642fb5f9b8899257a15ad741d9c1b328d50178d3a280"
+    },
+    {
+      "path": ".test-results/quest-012/playmode.xml",
+      "bytes": 36374,
+      "sha256": "a786a531a2800835d9aef2bfe1f259fb00930146f86360c292059ce24a97ed75"
+    },
+    {
+      "path": ".test-results/quest-012/source-build-inputs.json",
+      "bytes": 3211,
+      "sha256": "b3ccf39e77ecfcf68aed1002a7f1503d466f85e8350e9e994ec5a7a8e9abf107"
+    },
+    {
+      "path": ".test-results/quest-012/warm-transfer.json",
+      "bytes": 1914,
+      "sha256": "bb4f5f2494a14a3cd3c6e48a988d27e61608c2c87756b7df617a227084f0fd89"
+    },
+    {
+      "path": ".test-results/quest-012/windows-build.log",
+      "bytes": 793586,
+      "sha256": "4dba2546d9210b7fb141160d73137322472bf23be11adb03eab3bbe4d593559d"
+    },
+    {
+      "path": ".test-results/quest-012/write-manifest.ps1",
+      "bytes": 5592,
+      "sha256": "2d22a0f3f13ed37db5b65cad4ec9d4db02be5c9996a85573cf96c9eed97d5abd"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/battery.txt",
+      "bytes": 358,
+      "sha256": "851db0d7d9167e49770b17fcf10057258c0a8f1c21e42f6078052a94a3109287"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/collection.json",
+      "bytes": 2442,
+      "sha256": "a9201d9477b1fa10f3519f3d59c36cc0754c8eab845ece22a20c6b3fd49fe989"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/logcat.txt",
+      "bytes": 258381,
+      "sha256": "01c3a3b5657e5eb0c2354ffa91fd2707b5c7b903d977b11eb86d49517886cff7"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/memory.txt",
+      "bytes": 3190,
+      "sha256": "8f9afcc88d5759f1b76a53fa47b84aa47cef9c3611d42f405e29afef3dbbff82"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/pid.txt",
+      "bytes": 7,
+      "sha256": "323b9658143b31fc60cff501097853a5b10f3f773747718a236fc48ac952afd3"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/power-policy.txt",
+      "bytes": 4,
+      "sha256": "e2bb232cac786f7284bb237d193407e94f32ee0fbf64d27d0ae8b1642de44923"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/thermal.txt",
+      "bytes": 16999,
+      "sha256": "cde04753844867e50ab83ff08e0fdd7b45d6ac11fcd967e04f26d21cf2381b7c"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-155342-710-empty-baseline/wifi.txt",
+      "bytes": 1266,
+      "sha256": "dd788e2956e55c31dbd7ef9ad5a883ca4f31e2b471ab8ae4039a7698f20256e9"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/battery.txt",
+      "bytes": 357,
+      "sha256": "20c08cd58995b4c26a163d952f74e237369af916f81abacaa10772fa1a1cde11"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/collection.json",
+      "bytes": 2595,
+      "sha256": "5a6160231abd4f6160a153e15ca0a147ecfd7d76d363c6dd2176927495f0c571"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/desktop-player.log",
+      "bytes": 2891,
+      "sha256": "b5afb9e3ecbc203eb809ae428cf4383506fbc4e77b2b7045f5fc62e7c0a5c1e8"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/logcat.txt",
+      "bytes": 234292,
+      "sha256": "2238dc7dc3badaebb4c8807239aef87c91033f01e0d06ed8246d2bd8fcc67b3c"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/memory.txt",
+      "bytes": 3188,
+      "sha256": "566b84bb33c772f6de23d1def279476bf21153f5d1d468efa04eb3e064de065f"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/pid.txt",
+      "bytes": 6,
+      "sha256": "afe8c2aad1e3fcf7e4700de88d6ca7cd8c34d29c85069eb03b8bfaca9706d1b0"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/power-policy.txt",
+      "bytes": 4,
+      "sha256": "e2bb232cac786f7284bb237d193407e94f32ee0fbf64d27d0ae8b1642de44923"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/thermal.txt",
+      "bytes": 17002,
+      "sha256": "0bae3747c3f5256228d54d78ae7157acb85b992be1d20e59d85bc8417bddc80f"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161022-958-cold-empty/wifi.txt",
+      "bytes": 1268,
+      "sha256": "8b302b95d5eb5a1e855cd17f636b7f2b33f6210bb8a6c812102e72f29ae4bcc2"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/battery.txt",
+      "bytes": 357,
+      "sha256": "1e043c0881545145aeb98419bb198159f01fe2763f3639d1e93d4906bdcc1f7a"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/collection.json",
+      "bytes": 2595,
+      "sha256": "454d68520c464006fae103432b15df4b23e4884cc44bcd80476cba074b996985"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/desktop-player.log",
+      "bytes": 5280,
+      "sha256": "b7d10f0f4d7423e84f2f7d04c09c557c7ee1e7441bf0b593a52e11112c9d5dcb"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/logcat.txt",
+      "bytes": 119011,
+      "sha256": "42eb91be1b657487af13d8667ff342976990650426de12686fe2f13cab0e8387"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/memory.txt",
+      "bytes": 3188,
+      "sha256": "84e5cbb81956c0e171f65a2fb90f3a43efc80d6cf748d0071a1a05032ddef000"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/pid.txt",
+      "bytes": 6,
+      "sha256": "afe8c2aad1e3fcf7e4700de88d6ca7cd8c34d29c85069eb03b8bfaca9706d1b0"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/power-policy.txt",
+      "bytes": 4,
+      "sha256": "e2bb232cac786f7284bb237d193407e94f32ee0fbf64d27d0ae8b1642de44923"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/thermal.txt",
+      "bytes": 17018,
+      "sha256": "c413904a4d1fb83d2bcf9732112f373354a1b9f313a00e79cef3511ff856cc40"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161253-393-cold-ready/wifi.txt",
+      "bytes": 1268,
+      "sha256": "11e8ec6958dbad1bbe63c0bcf9e8ecb282e8b549bb6f653130b9fd49b3acde51"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/battery.txt",
+      "bytes": 357,
+      "sha256": "031d1bc0667c345cc3f9421c2421ccd8a7bf38882300eba9b73d3b7576cd39a5"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/collection.json",
+      "bytes": 2596,
+      "sha256": "2b6b2b8ed7d2d7258373aa4ac4587252f45a620f95af1846db89dce72efed050"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/desktop-player.log",
+      "bytes": 12409,
+      "sha256": "5ac29930149f9fd70ea4066791d48a72bcf08102c4f7a227d1257e426721c524"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/logcat.txt",
+      "bytes": 108109,
+      "sha256": "6225c208df24e9704fdb58a60e088e4a53396a463803460551484353308fcb55"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/memory.txt",
+      "bytes": 3188,
+      "sha256": "828e0b9a3d684aaa2eba8bee03fb8399b688adac6868d84915210dc98605c076"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/pid.txt",
+      "bytes": 6,
+      "sha256": "afe8c2aad1e3fcf7e4700de88d6ca7cd8c34d29c85069eb03b8bfaca9706d1b0"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/power-policy.txt",
+      "bytes": 4,
+      "sha256": "e2bb232cac786f7284bb237d193407e94f32ee0fbf64d27d0ae8b1642de44923"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/thermal.txt",
+      "bytes": 17022,
+      "sha256": "cbc6585c456e5cd8fc67484434df0ca40a19fcb085d9498383e4967f55d1cbfb"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161523-533-warm-ready/wifi.txt",
+      "bytes": 1266,
+      "sha256": "55a04e86e9324fe72f7d0f47d3a7b55b8105b09e81e375e287799134dab2affc"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/battery.txt",
+      "bytes": 357,
+      "sha256": "6543da63f9ec84f51dc8c813ad88c6fab0199e15d82ea685815241a77389d354"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/collection.json",
+      "bytes": 2597,
+      "sha256": "c595d6a0137e93024d054395a0763b3f36dbe42129ab831e61c245e46971e871"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/desktop-player.log",
+      "bytes": 12409,
+      "sha256": "5ac29930149f9fd70ea4066791d48a72bcf08102c4f7a227d1257e426721c524"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/logcat.txt",
+      "bytes": 83138,
+      "sha256": "4d140cbc6ed4ad01c400fa6e0f6a34bae0909455fdcbfd1abc4f65064010e994"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/memory.txt",
+      "bytes": 3188,
+      "sha256": "1019607f4cc37136f553019e06fdd0e62024e82b8a7863a6423157199be2a4dc"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/pid.txt",
+      "bytes": 6,
+      "sha256": "afe8c2aad1e3fcf7e4700de88d6ca7cd8c34d29c85069eb03b8bfaca9706d1b0"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/power-policy.txt",
+      "bytes": 4,
+      "sha256": "e2bb232cac786f7284bb237d193407e94f32ee0fbf64d27d0ae8b1642de44923"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/thermal.txt",
+      "bytes": 17014,
+      "sha256": "c38a68d7b6918064a7351de5b59f6c3db328358ef8df3b73a95264e84f03e6fb"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-161746-343-after-outage/wifi.txt",
+      "bytes": 1237,
+      "sha256": "3d3927d68d16d375a08a61c203fc6999721e97f0d508d48853fd456871b8f960"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/battery.txt",
+      "bytes": 356,
+      "sha256": "9c4c68771614e45c35267fda25af1c346e878b399e7fb3db995907ef3202579a"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/collection.json",
+      "bytes": 2598,
+      "sha256": "43bd20dd57825afe5e365d0e3cc3013cbc751bd2284e1445866f6859d5719fd7"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/desktop-player.log",
+      "bytes": 17169,
+      "sha256": "39fcf28594a506e68ac7a1c06af6e0e74c008d2a3c6e39098adb7e279a827ec9"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/logcat.txt",
+      "bytes": 138226,
+      "sha256": "b313533424337450df7ec1cc29bf710e1bbf570aec30d0366e6944432357228d"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/memory.txt",
+      "bytes": 3188,
+      "sha256": "adc1f91373522595c1da62675793140c82b764676b1b3e2545cd8ddba7b7116c"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/pid.txt",
+      "bytes": 6,
+      "sha256": "afe8c2aad1e3fcf7e4700de88d6ca7cd8c34d29c85069eb03b8bfaca9706d1b0"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/power-policy.txt",
+      "bytes": 4,
+      "sha256": "e2bb232cac786f7284bb237d193407e94f32ee0fbf64d27d0ae8b1642de44923"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/thermal.txt",
+      "bytes": 17006,
+      "sha256": "cabc2f01218e6836c99337ac11ec5c4a6f785ba44e6d85833f0154c1f8513b1c"
+    },
+    {
+      "path": ".test-results/quest-012/20260908-162018-088-after-resend/wifi.txt",
+      "bytes": 1240,
+      "sha256": "e673e84187f4b9c34718a5eff3ba710f33da97bdf87ef027e26a54991ddfcc38"
+    },
+    {
+      "path": ".test-results/quest-012/outage-20260908-161532-542/dispatch.json",
+      "bytes": 323,
+      "sha256": "3222903e6a3fd484355dbf16aa0e3ac81b92cc8f39df0f2f6fe24e4eab240e81"
+    },
+    {
+      "path": ".test-results/quest-012/outage-20260908-161532-542/outage.log",
+      "bytes": 1414,
+      "sha256": "e3e941539c243eac68d7b1a8a2714d22c93d8b256734f844562e481f9ebe5970"
+    },
+    {
+      "path": ".test-results/quest-012/outage-20260908-161532-542/outage.sh",
+      "bytes": 407,
+      "sha256": "7ae867caae2fc033419ddd7f829cd3a6ad0b46f02639ed3ed3d72fcc12868ba5"
+    }
+  ],
+  "coldTransfer": {
+    "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-161253-393-cold-ready",
+    "publication": {
+      "utc": "2026-09-08T16:11:15.745715Z",
+      "transfer": "318f54cd83ae43e8b556ef6fc118bf21",
+      "hash": "6617646c1c3bc38b9a4451ca5f4b5c10640e242ac799974e10778c601ee4c184",
+      "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+      "status": "Published",
+      "bytes": 3870258,
+      "vertices": 69104,
+      "indices": 414648,
+      "uploads": 1,
+      "decodeAndHashMs": 299.4558,
+      "meshPrepareAndUploadSubmissionMs": 17.2374,
+      "positionBefore": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleBefore": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "positionAfter": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleAfter": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotationBefore": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "rotationAfter": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "exactHashMatch": true,
+    "send": {
+      "utc": "2026-09-08T16:11:15.2043242Z",
+      "transfer": "318f54cd83ae43e8b556ef6fc118bf21",
+      "hash": "6617646c1c3bc38b9a4451ca5f4b5c10640e242ac799974e10778c601ee4c184",
+      "status": "Published",
+      "retry": false,
+      "bytes": 3870258,
+      "captureAndEncodeMs": 101.3561,
+      "connectSendAndReceiptMs": 873.6870000000001,
+      "totalMs": 975.0431000000001
+    }
+  },
+  "warmTransfer": {
+    "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-161523-533-warm-ready",
+    "send": {
+      "utc": "2026-09-08T16:14:43.2524914Z",
+      "transfer": "9b1a7d2fc05e4f30bf171f803b0c8474",
+      "hash": "aee4f8b269748c9c1e39c20ea300d0ee78a4582d4491ea17231c015816110486",
+      "status": "Published",
+      "retry": false,
+      "bytes": 3870258,
+      "captureAndEncodeMs": 102.12910000000001,
+      "connectSendAndReceiptMs": 967.09,
+      "totalMs": 1069.2193
+    },
+    "sameSurfaceHash": true,
+    "exactPayloadHashMatch": true,
+    "publication": {
+      "utc": "2026-09-08T16:14:43.781469Z",
+      "transfer": "9b1a7d2fc05e4f30bf171f803b0c8474",
+      "hash": "aee4f8b269748c9c1e39c20ea300d0ee78a4582d4491ea17231c015816110486",
+      "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+      "status": "Published",
+      "bytes": 3870258,
+      "vertices": 69104,
+      "indices": 414648,
+      "uploads": 4,
+      "decodeAndHashMs": 295.0041,
+      "meshPrepareAndUploadSubmissionMs": 13.461500000000001,
+      "positionBefore": {
+        "x": 0.5961035490036011,
+        "y": 1.1829107999801636,
+        "z": 0.6900784373283386
+      },
+      "scaleBefore": {
+        "x": 2.394315719604492,
+        "y": 2.394315719604492,
+        "z": 2.394315719604492
+      },
+      "positionAfter": {
+        "x": 0.5961035490036011,
+        "y": 1.1829107999801636,
+        "z": 0.6900784373283386
+      },
+      "scaleAfter": {
+        "x": 2.394315719604492,
+        "y": 2.394315719604492,
+        "z": 2.394315719604492
+      },
+      "rotationBefore": {
+        "x": 0.37790948152542114,
+        "y": -0.1370944380760193,
+        "z": 0.35842227935791016,
+        "w": -0.8425692915916443
+      },
+      "rotationAfter": {
+        "x": 0.37790948152542114,
+        "y": -0.1370944380760193,
+        "z": 0.35842227935791016,
+        "w": -0.8425692915916443
+      }
+    },
+    "presentationPreserved": true
+  },
+  "outageDispatch": {
+    "deviceLog": "/data/local/tmp/quest012-outage-20260908-161532-542.log",
+    "dispatchedAt": "2026-09-08T16:15:32.791255Z",
+    "deviceScript": "/data/local/tmp/quest012-outage-20260908-161532-542.sh",
+    "minimumDisabledSeconds": 60,
+    "result": "DISPATCHED",
+    "serial": "192.168.1.18:5555",
+    "processId": "2441"
+  },
+  "physicalOutage": {
+    "limitation": "Android logcat ring rotated: only latter part of outage remains in collected frame samples; device shell log proves full radio duration. Initial analyzer also assumed upload count 2 instead of observed 4 and mixed DateTime kinds; corrected, no product failure inferred.",
+    "offlineSampleEndUtc": "2026-09-08T16:16:32.29614Z",
+    "offlineSampleStartUtc": "2026-09-08T16:16:12.269027Z",
+    "sameProcessId": "2441",
+    "wifiReconnected": true,
+    "availableOfflineSamplesConsistent": true,
+    "offlineFrames": 1802.0,
+    "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-161746-343-after-outage",
+    "latestSample": {
+      "utc": "2026-09-08T16:17:42.394165Z",
+      "hash": "aee4f8b269748c9c1e39c20ea300d0ee78a4582d4491ea17231c015816110486",
+      "uptimeSeconds": 450.39971439980604,
+      "windowSeconds": 5.000149768999108,
+      "meanFrameIntervalMs": 13.888884920419919,
+      "maxFrameIntervalMs": 13.889079913496971,
+      "frames": 360,
+      "uploads": 4,
+      "vertices": 69104,
+      "gen0Collections": 85,
+      "ready": true,
+      "bufferBytesEstimate": 3869920,
+      "unityAllocatedBytes": 105441221,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 24649728,
+      "position": {
+        "x": 0.3903700113296509,
+        "y": 0.7685722708702087,
+        "z": 0.7415313124656677
+      },
+      "scale": {
+        "x": 1.4883240461349487,
+        "y": 1.4883240461349487,
+        "z": 1.4883240461349487
+      },
+      "rotation": {
+        "x": 0.5484556555747986,
+        "y": -0.3865370750427246,
+        "z": -0.37262365221977234,
+        "w": -0.6410437226295471
+      }
+    },
+    "log": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\outage-20260908-161532-542/outage.log",
+    "radioDisabled": true,
+    "humanGestureValidation": "VALIDE",
+    "offlineSamples": 5,
+    "seconds": 60.02000000000044,
+    "result": "RADIO_REUSSI"
+  },
+  "durationAndComfortAcceptance": {
+    "date": "2026-09-08",
+    "covers": [
+      "Continuous translation/rotation/scale during radio outage",
+      "No content loss or presentation jump on reconnection",
+      "Desktop view remained independent",
+      "Resend preserved content and pose/scale",
+      "About-one-second transfer duration accepted"
+    ],
+    "formalPerformanceThresholdEstablished": false,
+    "response": "Tout OK. Oui pour la durée des envois c'est largement ok."
+  },
+  "physicalDeliveries": [
+    {
+      "send": {
+        "utc": "2026-09-08T16:11:15.2043242Z",
+        "transfer": "318f54cd83ae43e8b556ef6fc118bf21",
+        "hash": "6617646c1c3bc38b9a4451ca5f4b5c10640e242ac799974e10778c601ee4c184",
+        "status": "Published",
+        "retry": false,
+        "bytes": 3870258,
+        "captureAndEncodeMs": 101.3561,
+        "connectSendAndReceiptMs": 873.6870000000001,
+        "totalMs": 975.0431000000001
+      },
+      "usefulEndToEndMiBPerSecond": 4.224585752638897,
+      "payloadHashMatches": true,
+      "kind": "cold",
+      "surfaceHashMatchesFixture": true,
+      "presentationPreserved": true,
+      "publication": {
+        "utc": "2026-09-08T16:11:15.745715Z",
+        "transfer": "318f54cd83ae43e8b556ef6fc118bf21",
+        "hash": "6617646c1c3bc38b9a4451ca5f4b5c10640e242ac799974e10778c601ee4c184",
+        "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+        "status": "Published",
+        "bytes": 3870258,
+        "vertices": 69104,
+        "indices": 414648,
+        "uploads": 1,
+        "decodeAndHashMs": 299.4558,
+        "meshPrepareAndUploadSubmissionMs": 17.2374,
+        "positionBefore": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scaleBefore": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "positionAfter": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "scaleAfter": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "rotationBefore": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        },
+        "rotationAfter": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      }
+    },
+    {
+      "send": {
+        "utc": "2026-09-08T16:14:38.1163578Z",
+        "transfer": "b7196e4673d54d7187d77ed991051a3a",
+        "hash": "bad5749c6cdc0c6e8d5b529c9f070048dac79ac051e0dc9954f71d4610ab955c",
+        "status": "Published",
+        "retry": false,
+        "bytes": 3870258,
+        "captureAndEncodeMs": 110.8369,
+        "connectSendAndReceiptMs": 950.903,
+        "totalMs": 1061.74
+      },
+      "usefulEndToEndMiBPerSecond": 3.8815374990570226,
+      "payloadHashMatches": true,
+      "kind": "warm-before-outage",
+      "surfaceHashMatchesFixture": true,
+      "presentationPreserved": true,
+      "publication": {
+        "utc": "2026-09-08T16:14:38.670379Z",
+        "transfer": "b7196e4673d54d7187d77ed991051a3a",
+        "hash": "bad5749c6cdc0c6e8d5b529c9f070048dac79ac051e0dc9954f71d4610ab955c",
+        "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+        "status": "Published",
+        "bytes": 3870258,
+        "vertices": 69104,
+        "indices": 414648,
+        "uploads": 2,
+        "decodeAndHashMs": 297.942,
+        "meshPrepareAndUploadSubmissionMs": 12.9358,
+        "positionBefore": {
+          "x": 0.5961035490036011,
+          "y": 1.1829107999801636,
+          "z": 0.6900784373283386
+        },
+        "scaleBefore": {
+          "x": 2.394315719604492,
+          "y": 2.394315719604492,
+          "z": 2.394315719604492
+        },
+        "positionAfter": {
+          "x": 0.5961035490036011,
+          "y": 1.1829107999801636,
+          "z": 0.6900784373283386
+        },
+        "scaleAfter": {
+          "x": 2.394315719604492,
+          "y": 2.394315719604492,
+          "z": 2.394315719604492
+        },
+        "rotationBefore": {
+          "x": 0.37790948152542114,
+          "y": -0.1370944380760193,
+          "z": 0.35842227935791016,
+          "w": -0.8425692915916443
+        },
+        "rotationAfter": {
+          "x": 0.37790948152542114,
+          "y": -0.1370944380760193,
+          "z": 0.35842227935791016,
+          "w": -0.8425692915916443
+        }
+      }
+    },
+    {
+      "send": {
+        "utc": "2026-09-08T16:14:40.0661508Z",
+        "transfer": "524337797d5b47428d2f9e8ff01a64a7",
+        "hash": "380827f6f2730e53e5506c5e37ed564c6633f8894c539dcb5275a5f0746fbfec",
+        "status": "Published",
+        "retry": false,
+        "bytes": 3870258,
+        "captureAndEncodeMs": 99.6547,
+        "connectSendAndReceiptMs": 983.6025999999999,
+        "totalMs": 1083.2574
+      },
+      "usefulEndToEndMiBPerSecond": 3.7524968442192206,
+      "payloadHashMatches": true,
+      "kind": "warm-before-outage",
+      "surfaceHashMatchesFixture": true,
+      "presentationPreserved": true,
+      "publication": {
+        "utc": "2026-09-08T16:14:40.617003Z",
+        "transfer": "524337797d5b47428d2f9e8ff01a64a7",
+        "hash": "380827f6f2730e53e5506c5e37ed564c6633f8894c539dcb5275a5f0746fbfec",
+        "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+        "status": "Published",
+        "bytes": 3870258,
+        "vertices": 69104,
+        "indices": 414648,
+        "uploads": 3,
+        "decodeAndHashMs": 294.6651,
+        "meshPrepareAndUploadSubmissionMs": 15.8124,
+        "positionBefore": {
+          "x": 0.5961035490036011,
+          "y": 1.1829107999801636,
+          "z": 0.6900784373283386
+        },
+        "scaleBefore": {
+          "x": 2.394315719604492,
+          "y": 2.394315719604492,
+          "z": 2.394315719604492
+        },
+        "positionAfter": {
+          "x": 0.5961035490036011,
+          "y": 1.1829107999801636,
+          "z": 0.6900784373283386
+        },
+        "scaleAfter": {
+          "x": 2.394315719604492,
+          "y": 2.394315719604492,
+          "z": 2.394315719604492
+        },
+        "rotationBefore": {
+          "x": 0.37790948152542114,
+          "y": -0.1370944380760193,
+          "z": 0.35842227935791016,
+          "w": -0.8425692915916443
+        },
+        "rotationAfter": {
+          "x": 0.37790948152542114,
+          "y": -0.1370944380760193,
+          "z": 0.35842227935791016,
+          "w": -0.8425692915916443
+        }
+      }
+    },
+    {
+      "send": {
+        "utc": "2026-09-08T16:14:43.2524914Z",
+        "transfer": "9b1a7d2fc05e4f30bf171f803b0c8474",
+        "hash": "aee4f8b269748c9c1e39c20ea300d0ee78a4582d4491ea17231c015816110486",
+        "status": "Published",
+        "retry": false,
+        "bytes": 3870258,
+        "captureAndEncodeMs": 102.12910000000001,
+        "connectSendAndReceiptMs": 967.09,
+        "totalMs": 1069.2193
+      },
+      "usefulEndToEndMiBPerSecond": 3.8165689361546704,
+      "payloadHashMatches": true,
+      "kind": "warm-before-outage",
+      "surfaceHashMatchesFixture": true,
+      "presentationPreserved": true,
+      "publication": {
+        "utc": "2026-09-08T16:14:43.781469Z",
+        "transfer": "9b1a7d2fc05e4f30bf171f803b0c8474",
+        "hash": "aee4f8b269748c9c1e39c20ea300d0ee78a4582d4491ea17231c015816110486",
+        "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+        "status": "Published",
+        "bytes": 3870258,
+        "vertices": 69104,
+        "indices": 414648,
+        "uploads": 4,
+        "decodeAndHashMs": 295.0041,
+        "meshPrepareAndUploadSubmissionMs": 13.461500000000001,
+        "positionBefore": {
+          "x": 0.5961035490036011,
+          "y": 1.1829107999801636,
+          "z": 0.6900784373283386
+        },
+        "scaleBefore": {
+          "x": 2.394315719604492,
+          "y": 2.394315719604492,
+          "z": 2.394315719604492
+        },
+        "positionAfter": {
+          "x": 0.5961035490036011,
+          "y": 1.1829107999801636,
+          "z": 0.6900784373283386
+        },
+        "scaleAfter": {
+          "x": 2.394315719604492,
+          "y": 2.394315719604492,
+          "z": 2.394315719604492
+        },
+        "rotationBefore": {
+          "x": 0.37790948152542114,
+          "y": -0.1370944380760193,
+          "z": 0.35842227935791016,
+          "w": -0.8425692915916443
+        },
+        "rotationAfter": {
+          "x": 0.37790948152542114,
+          "y": -0.1370944380760193,
+          "z": 0.35842227935791016,
+          "w": -0.8425692915916443
+        }
+      }
+    },
+    {
+      "send": {
+        "utc": "2026-09-08T16:19:27.6918322Z",
+        "transfer": "802650a6954e40c28eacf1c10577e0f5",
+        "hash": "537628822f25d5a96dcc209ec8837594c17962b5f0972ffb5f66921debca1441",
+        "status": "Published",
+        "retry": false,
+        "bytes": 3870258,
+        "captureAndEncodeMs": 102.24820000000001,
+        "connectSendAndReceiptMs": 866.9467000000001,
+        "totalMs": 969.195
+      },
+      "usefulEndToEndMiBPerSecond": 4.257430880659468,
+      "payloadHashMatches": true,
+      "kind": "after-reconnection",
+      "surfaceHashMatchesFixture": true,
+      "presentationPreserved": true,
+      "publication": {
+        "utc": "2026-09-08T16:19:28.25105Z",
+        "transfer": "802650a6954e40c28eacf1c10577e0f5",
+        "hash": "537628822f25d5a96dcc209ec8837594c17962b5f0972ffb5f66921debca1441",
+        "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+        "status": "Published",
+        "bytes": 3870258,
+        "vertices": 69104,
+        "indices": 414648,
+        "uploads": 5,
+        "decodeAndHashMs": 298.04130000000004,
+        "meshPrepareAndUploadSubmissionMs": 10.4955,
+        "positionBefore": {
+          "x": 0.2204696089029312,
+          "y": 0.8911355137825012,
+          "z": 0.5765936374664307
+        },
+        "scaleBefore": {
+          "x": 2.441326379776001,
+          "y": 2.441326379776001,
+          "z": 2.441326379776001
+        },
+        "positionAfter": {
+          "x": 0.2204696089029312,
+          "y": 0.8911355137825012,
+          "z": 0.5765936374664307
+        },
+        "scaleAfter": {
+          "x": 2.441326379776001,
+          "y": 2.441326379776001,
+          "z": 2.441326379776001
+        },
+        "rotationBefore": {
+          "x": 0.5528891682624817,
+          "y": -0.03284461796283722,
+          "z": -0.15612748265266418,
+          "w": -0.8178380727767944
+        },
+        "rotationAfter": {
+          "x": 0.5528891682624817,
+          "y": -0.03284461796283722,
+          "z": -0.15612748265266418,
+          "w": -0.8178380727767944
+        }
+      }
+    },
+    {
+      "send": {
+        "utc": "2026-09-08T16:19:29.4586173Z",
+        "transfer": "9152f29ff41f4cafa9ac7e4c084b273d",
+        "hash": "9ef391a1cc4b8e9bb35cd119aabe3b57193b5ede4f02c5eb9a8c83ed4a39470a",
+        "status": "Published",
+        "retry": false,
+        "bytes": 3870258,
+        "captureAndEncodeMs": 99.6344,
+        "connectSendAndReceiptMs": 900.4047,
+        "totalMs": 1000.0392
+      },
+      "usefulEndToEndMiBPerSecond": 4.09922966024702,
+      "payloadHashMatches": true,
+      "kind": "after-reconnection",
+      "surfaceHashMatchesFixture": true,
+      "presentationPreserved": true,
+      "publication": {
+        "utc": "2026-09-08T16:19:30.018679Z",
+        "transfer": "9152f29ff41f4cafa9ac7e4c084b273d",
+        "hash": "9ef391a1cc4b8e9bb35cd119aabe3b57193b5ede4f02c5eb9a8c83ed4a39470a",
+        "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+        "status": "Published",
+        "bytes": 3870258,
+        "vertices": 69104,
+        "indices": 414648,
+        "uploads": 6,
+        "decodeAndHashMs": 294.6592,
+        "meshPrepareAndUploadSubmissionMs": 13.8885,
+        "positionBefore": {
+          "x": 0.2204696089029312,
+          "y": 0.8911355137825012,
+          "z": 0.5765936374664307
+        },
+        "scaleBefore": {
+          "x": 2.441326379776001,
+          "y": 2.441326379776001,
+          "z": 2.441326379776001
+        },
+        "positionAfter": {
+          "x": 0.2204696089029312,
+          "y": 0.8911355137825012,
+          "z": 0.5765936374664307
+        },
+        "scaleAfter": {
+          "x": 2.441326379776001,
+          "y": 2.441326379776001,
+          "z": 2.441326379776001
+        },
+        "rotationBefore": {
+          "x": 0.5528891682624817,
+          "y": -0.03284461796283722,
+          "z": -0.15612748265266418,
+          "w": -0.8178380727767944
+        },
+        "rotationAfter": {
+          "x": 0.5528891682624817,
+          "y": -0.03284461796283722,
+          "z": -0.15612748265266418,
+          "w": -0.8178380727767944
+        }
+      }
+    }
+  ],
+  "physicalFrameMetrics": {
+    "reportedFpsMax": 73.0,
+    "appMsMax": 4.36,
+    "sampleCount": 94,
+    "reportedStaleSum": 5.0,
+    "unityAllocatedBytesMax": 105550805.0,
+    "managedBytesMax": 29577216.0,
+    "unityAllocatedBytesMin": 105439877.0,
+    "representedFrames": 33883.0,
+    "weightedMeanUnityIntervalMs": 13.890940078023736,
+    "reportedFpsMin": 71.0,
+    "firstSampleUtc": "2026-09-08T16:11:16.824609Z",
+    "vrApiSamples": 471,
+    "cpuAndGpuMsMax": 6.66,
+    "appMsMin": 0.85,
+    "maxUnityIntervalMs": 27.77791954576969,
+    "managedBytesMin": 14340096.0,
+    "scope": "Only retained anatomy-ready samples, not a continuous full-run trace",
+    "cpuAndGpuMsMin": 2.91,
+    "lastSampleUtc": "2026-09-08T16:20:17.616441Z"
+  },
+  "physicalMemoryStages": [
+    {
+      "stage": "cold-empty",
+      "batteryTemperatureC": 47.0,
+      "batteryPercent": 17,
+      "rssKiB": 906908,
+      "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-161022-958-cold-empty",
+      "pssKiB": 773560
+    },
+    {
+      "stage": "cold-ready",
+      "batteryTemperatureC": 48.0,
+      "batteryPercent": 15,
+      "rssKiB": 948784,
+      "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-161253-393-cold-ready",
+      "pssKiB": 814920
+    },
+    {
+      "stage": "warm-ready",
+      "batteryTemperatureC": 48.0,
+      "batteryPercent": 13,
+      "rssKiB": 970468,
+      "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-161523-533-warm-ready",
+      "pssKiB": 836190
+    },
+    {
+      "stage": "after-outage",
+      "batteryTemperatureC": 49.0,
+      "batteryPercent": 11,
+      "rssKiB": 970304,
+      "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-161746-343-after-outage",
+      "pssKiB": 837311
+    },
+    {
+      "stage": "after-resend",
+      "batteryTemperatureC": 49.0,
+      "batteryPercent": 9,
+      "rssKiB": 960948,
+      "collection": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-012\\20260908-162018-088-after-resend",
+      "pssKiB": 827920
+    }
+  ],
+  "decision": "D29",
+  "desktopLogEvidence": "Frozen desktop-player.log copies in collection directories; live desktop-player.log excluded because Player remains open."
+}

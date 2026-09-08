@@ -28,6 +28,7 @@ namespace HBP.Quest
         private CancellationTokenSource reception;
         private Entry current;
         private bool destroyed;
+        private QuestAnatomyMeasurements measurements;
         public AnatomyReceptionState ReceptionState { get; private set; }
         public bool IsConnected { get; private set; }
         public bool IsReady => current != null && view != null && view.SharedMesh != null;
@@ -49,7 +50,11 @@ namespace HBP.Quest
         {
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
+            if (Debug.isDebugBuild && File.Exists(Path.Combine(Application.persistentDataPath, "quest012-measure")))
+                measurements = new QuestAnatomyMeasurements();
         }
+
+        private void Update() => measurements?.Sample(this, view);
 
         /// <summary>Call on the main thread. One attempt at a time; interruption restarts from byte zero.</summary>
         public async Task<DeliveryReceipt> ReceiveAsync(string host, int port, byte[] pin, byte[] secret, CancellationToken stop = default)
@@ -114,9 +119,21 @@ namespace HBP.Quest
                 return true;
             }, stop).ConfigureAwait(false);
             // The transport owns this complete, hash-checked buffer. Neither decoder nor renderer mutates it.
+            var elapsed = System.Diagnostics.Stopwatch.StartNew();
             AnatomySnapshot snapshot = await Task.Run(() => AnatomySnapshotCodec.Decode(bytes), stop).ConfigureAwait(false);
             string hash = new DeliveryReceipt(TransportIdentity.Hash(bytes), DeliveryStatus.Published).ContentHash;
-            return await OnUnityThreadAsync(() => Publish(snapshot, hash), stop).ConfigureAwait(false);
+            double decodeAndHashMs = elapsed.Elapsed.TotalMilliseconds;
+            return await OnUnityThreadAsync(() =>
+            {
+                Vector3 position = view.transform.position;
+                Quaternion rotation = view.transform.rotation;
+                Vector3 scale = view.transform.localScale;
+                elapsed.Restart();
+                DeliveryStatus status = Publish(snapshot, hash);
+                double publicationMs = elapsed.Elapsed.TotalMilliseconds;
+                measurements?.Published(this, view, snapshot, bytes, status, decodeAndHashMs, publicationMs, position, rotation, scale);
+                return status;
+            }, stop).ConfigureAwait(false);
         }
 
         private DeliveryStatus Publish(AnatomySnapshot snapshot, string hash)

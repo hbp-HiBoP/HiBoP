@@ -201,6 +201,65 @@ namespace HBP.Tests.Quest
             public Exception ServerError;
         }
 
+        [Test]
+        public async Task RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose()
+        {
+            string[] arguments = Environment.GetCommandLineArgs();
+            int index = Array.IndexOf(arguments, "-questAnatomyFixture");
+            if (index < 0) Assert.Ignore("Pass -questAnatomyFixture with the captured MNI HBNA.");
+            byte[] bytes = File.ReadAllBytes(arguments[index + 1]);
+            var first = await Transfer(bytes);
+            Assert.That(first.ClientError, Is.Null);
+            Assert.That(first.ServerError, Is.Null);
+            Mesh mesh = view.SharedMesh;
+            string hash = session.ContentHash;
+            session.Disconnect();
+            var manipulator = root.GetComponent<QuestAnatomyManipulator>();
+            Vector3 center = root.transform.TransformPoint(mesh.bounds.center * 0.001f);
+            var left = new Pose(center - Vector3.right * 0.06f, Quaternion.identity);
+            var right = new Pose(center + Vector3.right * 0.06f, Quaternion.identity);
+            manipulator.Step(left, true, false, right, true, false);
+            manipulator.Step(left, true, true, right, true, true);
+            var elapsed = System.Diagnostics.Stopwatch.StartNew();
+            int firstFrame = Time.frameCount;
+            while (elapsed.Elapsed.TotalSeconds < 60)
+            {
+                float seconds = (float)elapsed.Elapsed.TotalSeconds;
+                Vector3 offset = new Vector3(Mathf.Sin(seconds) * 0.1f, 0.05f, 0.02f);
+                Quaternion rotation = Quaternion.Euler(0, seconds * 5, seconds * 2);
+                float scale = 1.5f + 0.25f * Mathf.Sin(seconds);
+                manipulator.Step(new Pose(center + offset + rotation * (Vector3.left * 0.06f * scale), rotation), true, true, new Pose(center + offset + rotation * (Vector3.right * 0.06f * scale), rotation), true, true);
+                Assert.That(session.IsReady, Is.True);
+                Assert.That(view.SharedMesh, Is.SameAs(mesh));
+                await Task.Delay(20); // Never blocks the PlayerLoop; this is logical disconnection, not a radio test.
+            }
+
+            manipulator.CancelGrab();
+            Assert.That(Time.frameCount, Is.GreaterThan(firstFrame + 60));
+            Assert.That(root.transform.localScale.x, Is.GreaterThan(1.2f));
+            Assert.That(session.ContentHash, Is.EqualTo(hash));
+            Vector3 position = root.transform.position;
+            Quaternion finalRotation = root.transform.rotation;
+            Vector3 finalScale = root.transform.localScale;
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.AlreadyPublished));
+            Assert.That(view.SharedMesh, Is.SameAs(mesh));
+            Assert.That(view.UploadCount, Is.EqualTo(1));
+            AnatomySnapshot original = AnatomySnapshotCodec.Decode(bytes);
+            var replacement = AnatomySnapshot.Create("quest012-replacement", original.SessionId, original.VisualizationId, original.ColumnId, original.ContentRevision, original.Coordinates, original.Winding, original.Visible, original.Color.ToArray(), original.Positions.ToArray(), original.Normals.ToArray(), original.Indices.ToArray(), original.Uvs.ToArray());
+            byte[] replacementBytes = AnatomySnapshotCodec.Encode(replacement);
+            var next = await Transfer(replacementBytes);
+            Assert.That(next.Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            Assert.That(session.ContentHash, Is.EqualTo(new DeliveryReceipt(TransportIdentity.Hash(replacementBytes), DeliveryStatus.Published).ContentHash));
+            Assert.That(view.UploadCount, Is.EqualTo(2));
+            Assert.That(view.SharedMesh.vertexCount, Is.EqualTo(69104));
+            Assert.That(root.transform.position, Is.EqualTo(position));
+            Assert.That(root.transform.rotation, Is.EqualTo(finalRotation));
+            Assert.That(root.transform.localScale, Is.EqualTo(finalScale));
+            await NextFrame();
+            Assert.That(mesh == null, Is.True, "Replacement releases the old mesh.");
+            TestContext.Out.WriteLine($"Offline manipulation seconds={elapsed.Elapsed.TotalSeconds}; PlayerLoop frames={Time.frameCount - firstFrame}; exact retry then replacement preserved pose/scale.");
+        }
+
         // A real loopback TLS peer with deterministic faults below the production frame reader.
         private async Task<Outcome> Transfer(byte[] payload, string fault = null, TaskCompletionSource<bool> offered = null, TaskCompletionSource<bool> resume = null)
         {
