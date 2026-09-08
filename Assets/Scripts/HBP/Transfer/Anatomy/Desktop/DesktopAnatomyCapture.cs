@@ -13,6 +13,13 @@ namespace HBP.Transfer.Anatomy.Desktop
     /// <summary>Copies only the selected column's already prepared Unity surface. Never loads anatomy.</summary>
     public static class DesktopAnatomyCapture
     {
+        /// <summary>Capture once, then retain the offer for every retry. IDs must not change after an ACK is lost.</summary>
+        public static async Task<Delivery.AnatomyDelivery> CaptureDeliverySelectedAsync(string transferId, string sessionId, ulong revision, CancellationToken cancellationToken = default)
+        {
+            AnatomySnapshot snapshot = await CaptureSelectedAsync(transferId, sessionId, revision, cancellationToken).ConfigureAwait(false);
+            return await Task.Run(() => new Delivery.AnatomyDelivery(snapshot), cancellationToken).ConfigureAwait(false);
+        }
+
         // The native-to-Unity X reflection and winding conversion have already been
         // applied by Surface.UpdateMesh. This is the local brain frame, in mm;
         // scene spacing, parent transforms and camera framing are presentation only.

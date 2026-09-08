@@ -32,17 +32,15 @@ namespace HBP.Quest
                 throw new InvalidOperationException("The anatomical frame must apply exactly one uniform mm-to-m scale.");
             // Validate and prepare before replacing the visible surface. Invalid deliveries preserve it.
             Mesh next = AnatomyMeshUploader.CreateMesh(snapshot);
+            MaterialPropertyBlock nextProperties;
+            long nextBufferBytes;
             try
             {
                 next.UploadMeshData(true); // Release the CPU mesh copy; Mesh owns its GPU buffers.
-                properties ??= new MaterialPropertyBlock();
-                properties.Clear();
+                nextProperties = new MaterialPropertyBlock();
                 // HBNA RGB is already linear: SetVector avoids a second color-space conversion.
-                properties.SetVector(BaseColorId, new Vector4(snapshot.Color[0], snapshot.Color[1], snapshot.Color[2], 1));
-                meshRenderer.SetPropertyBlock(properties);
-                meshRenderer.sharedMaterial = opaqueMaterial;
-                meshFilter.sharedMesh = next;
-                meshRenderer.enabled = snapshot.Visible;
+                nextProperties.SetVector(BaseColorId, new Vector4(snapshot.Color[0], snapshot.Color[1], snapshot.Color[2], 1));
+                nextBufferBytes = 24L * snapshot.VertexCount + snapshot.Uvs.Count * 4L + snapshot.Indices.Count * (next.indexFormat == UnityEngine.Rendering.IndexFormat.UInt32 ? 4L : 2L);
             }
             catch
             {
@@ -50,11 +48,33 @@ namespace HBP.Quest
                 throw;
             }
 
-            AnatomyMeshUploader.Release(ownedMesh);
+            bool previousEnabled = meshRenderer.enabled;
+            Material previousMaterial = meshRenderer.sharedMaterial;
+            try
+            {
+                // Synchronous main-thread commit: no frame observes partially prepared resources.
+                meshRenderer.SetPropertyBlock(nextProperties);
+                meshRenderer.sharedMaterial = opaqueMaterial;
+                meshFilter.sharedMesh = next;
+                meshRenderer.enabled = snapshot.Visible;
+            }
+            catch
+            {
+                meshFilter.sharedMesh = ownedMesh;
+                meshRenderer.sharedMaterial = previousMaterial;
+                meshRenderer.SetPropertyBlock(properties);
+                meshRenderer.enabled = previousEnabled;
+                AnatomyMeshUploader.Release(next);
+                throw;
+            }
+
+            Mesh previous = ownedMesh;
             ownedMesh = next;
+            properties = nextProperties;
             TransferId = snapshot.TransferId;
-            BufferBytes = 24L * snapshot.VertexCount + snapshot.Uvs.Count * 4L + snapshot.Indices.Count * (next.indexFormat == UnityEngine.Rendering.IndexFormat.UInt32 ? 4L : 2L);
+            BufferBytes = nextBufferBytes;
             UploadCount++;
+            AnatomyMeshUploader.Release(previous);
         }
 
         public void Clear()

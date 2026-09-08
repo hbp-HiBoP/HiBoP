@@ -1,0 +1,544 @@
+{
+  "schemaVersion": 1,
+  "taskId": "QUEST-010",
+  "recordedAtUtc": "2026-09-08T12:48:56.9823495Z",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "NON_REQUIS"
+  },
+  "sourceState": {
+    "branch": "feature/xr-autonomous",
+    "head": "0e5f99208c5ba315bd47f457de3f2d427387a993",
+    "initiallyClean": true,
+    "committed": false,
+    "files": [
+      {
+        "path": "Assets/Plugins/Managed/BouncyCastle.meta",
+        "bytes": 60,
+        "sha256": "509aab80d62fc8bcdbfcdb058afb4fa218af700141440fae8ff8c1d89b716ac2"
+      },
+      {
+        "path": "Assets/Plugins/Managed/BouncyCastle/BouncyCastle.Cryptography.dll",
+        "bytes": 4885904,
+        "sha256": "d61c1f2ba929a230a58e101ccd850e21f2675fa6b9814ec279633e8a089c3495"
+      },
+      {
+        "path": "Assets/Plugins/Managed/BouncyCastle/BouncyCastle.Cryptography.dll.meta",
+        "bytes": 1024,
+        "sha256": "e4e2b43bac0c017e45eb4d0b94fdeae607b1f0c6249e2a75d0d5fceb19e3c79b"
+      },
+      {
+        "path": "Assets/Plugins/Managed/BouncyCastle/LICENSE.txt",
+        "bytes": 1186,
+        "sha256": "be0592a6c76f398356fbf252a4fb43476fb3ca3c45331428c2f4f22c499e8311"
+      },
+      {
+        "path": "Assets/Plugins/Managed/BouncyCastle/LICENSE.txt.meta",
+        "bytes": 60,
+        "sha256": "08ba188d66db284c4ed1f1b006bff414b3eb030948110092c436f3f041367c94"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestAnatomy.prefab",
+        "bytes": 5376,
+        "sha256": "e42c87d4f443938c423a6abec71866cd147c4cb68aad5892df2c8f4bc295cffa"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestAnatomySetup.cs",
+        "bytes": 7114,
+        "sha256": "b7cbdc57a96be54c5ec74a1fb6b0bc8bd00814391effe5ce44adb3a3818bd617"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/HBP.Quest.Runtime.asmdef",
+        "bytes": 372,
+        "sha256": "1367c071cbc597a3825bbc684a924c4c2d780ec342ac657b9f23403cc1cd2518"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyDiagnostic.cs",
+        "bytes": 5946,
+        "sha256": "c4fddc39678f68384d83336acd71527a877399a8557eac3e5f04549da7ffdba0"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs",
+        "bytes": 8221,
+        "sha256": "0a4bb4f1b92ef5a56f8297957282db018eae3be5730c8cb04bb21236762ea344"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs.meta",
+        "bytes": 60,
+        "sha256": "57baa6857f20776eae18c1a0a16d972569199c22cb63747d6b721eb16a7c8e9f"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyView.cs",
+        "bytes": 4751,
+        "sha256": "ba0fe2fd1aade879bfabfd5c1e2061e7161cef4d6a8dfb3f9be9a72583bc1f67"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestDeliveryDiagnostic.cs",
+        "bytes": 5277,
+        "sha256": "dac11e9214b8370f579fbf4ff80c8f9498e9e022393fe8a16580fe656290ce8e"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestDeliveryDiagnostic.cs.meta",
+        "bytes": 60,
+        "sha256": "f8632efc8c857a132876059cbf7ee028e2c7bc3b9896b3307fc120aabf856426"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Delivery.meta",
+        "bytes": 60,
+        "sha256": "5f705a4f14f71c4e012865c24aa88f0d3efe6f57c88231c8d207efacb178cec7"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Delivery/AnatomyDelivery.cs",
+        "bytes": 1626,
+        "sha256": "66dca2ff3f7d08dee8e442684b3f4d642d98757c5ee978cf1eedd8302c245352"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Delivery/AnatomyDelivery.cs.meta",
+        "bytes": 60,
+        "sha256": "1f753899cb3facc5772fc82fa1a55908cf44ffc02340c4ef9982cc405b9e9ba9"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Delivery/HBP.Transfer.Anatomy.Delivery.asmdef",
+        "bytes": 189,
+        "sha256": "ee4d62edb6fb9ddd30bc519ae1dcba29f7d38fb5b6aed10b6f51e27c698e82e8"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Delivery/HBP.Transfer.Anatomy.Delivery.asmdef.meta",
+        "bytes": 60,
+        "sha256": "2e5dd25bf626d576c83a751798d98abed8ce189cb374325b8b872022ffe3dce4"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopAnatomyCapture.cs",
+        "bytes": 8251,
+        "sha256": "b075be614a37e667d41dbb6179d76f953a5e500630bd83b57008681963677765"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/HBP.Transfer.Anatomy.Desktop.asmdef",
+        "bytes": 214,
+        "sha256": "ac3a1f8da82b67560a952d76b03eaace026d66941a1ffbbe155172896dad2c0c"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport.meta",
+        "bytes": 60,
+        "sha256": "5c0dbe1823de8fea4d8eba153e0d4f72d40e7f805386a53ac85219a9b391918d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/DeliveryReceipt.cs",
+        "bytes": 939,
+        "sha256": "ab06d2bf3507bfd903efd5cc291ec82f1c073455c720cca56749a7cf092b894f"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/DeliveryReceipt.cs.meta",
+        "bytes": 60,
+        "sha256": "45ece14780f33837a139e5f5092c105bfaeaaa3d03272122c095cdbc7b377aba"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/HBP.Transfer.Transport.asmdef",
+        "bytes": 220,
+        "sha256": "6cf7233c7d878064d1f329450520a72ad61b80fd7feddfb9475d529d953726d5"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/HBP.Transfer.Transport.asmdef.meta",
+        "bytes": 60,
+        "sha256": "a7074eb4ec6da0d09fa2d9bea72a896cefcf41b86af03b2269feb26eba931fdf"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/PinnedTlsTransfer.cs",
+        "bytes": 12854,
+        "sha256": "673a1d1bbc25d017eaf710d0fa4cd3a3a66b58f0839343de1f2749cb52751b58"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/PinnedTlsTransfer.cs.meta",
+        "bytes": 60,
+        "sha256": "900a9079c10749738fa53740f1322d437a24b2be12a0da8a9c17a876f1822b18"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/TransportIdentity.cs",
+        "bytes": 4028,
+        "sha256": "d68d16a0257533ea34a61ebb768da59a03bb0dfd3cbef74310fd429c1651c7eb"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Transport/TransportIdentity.cs.meta",
+        "bytes": 60,
+        "sha256": "28b8365fe410fd888b2672f50b20b8f9efc9f46ce0b0b4ee53ff751c95b1b121"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopAnatomyCaptureTests.cs",
+        "bytes": 11581,
+        "sha256": "bf22bafb9fbd1f009a9d9f22c4da1e0ce7cdd94dea7626d8d1b9492c0974a2cb"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/HBP.Transfer.Anatomy.Desktop.Tests.asmdef",
+        "bytes": 365,
+        "sha256": "6377f8f02132e56e1753ac5d7e9d0e5bf1ac8f7f06cf9cfddcd64fb1a5547ac5"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyDeliveryTests.cs",
+        "bytes": 16566,
+        "sha256": "dbeec8939f08a9955f58964ceeba1b2c23d648483f5700262bec576587d97e29"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyDeliveryTests.cs.meta",
+        "bytes": 60,
+        "sha256": "f867ed0bd0100ceca08dae64b90279930adc0383685085c8aff8d63d4137a81e"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/HBP.Quest.PlayModeTests.asmdef",
+        "bytes": 326,
+        "sha256": "21621030c3006ea70e127e5d39b675555fae3b216a69ad75588abb8b7563bd01"
+      },
+      {
+        "path": "Spikes/QUEST-010/Editor/DeliveryProbeBuilder.cs",
+        "bytes": 2852,
+        "sha256": "506ec50ba902296a61383c3c7092612ee1c9f6418e5411159af46dd1c881ff81"
+      },
+      {
+        "path": "Spikes/QUEST-010/README.md",
+        "bytes": 3469,
+        "sha256": "bb08325cbe70cb366ff84def2395479e990c91b22a5179d718e0c28bb750bf6e"
+      },
+      {
+        "path": "Spikes/QUEST-010/Server/DeliveryServer.cs",
+        "bytes": 3556,
+        "sha256": "38b85b15aae08c0711bb4d356af9dae78180ea2b10669c42c7b7eb5b15201c19"
+      },
+      {
+        "path": "Tools/Build-QuestDeliveryProbe.ps1",
+        "bytes": 3411,
+        "sha256": "c47d8111a167b385504e35249cdc268d679a1b3e8d701357d1114f910c11904a"
+      },
+      {
+        "path": "Tools/Run-QuestDeliveryProbe.ps1",
+        "bytes": 5325,
+        "sha256": "eef7aae8ffbd4e4d429944f086f9e05095b0131b670e645fc43304f4cc84b44e"
+      }
+    ],
+    "compiledWindowsHarnessSources": [
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/AnatomyBuffer.cs",
+        "bytes": 713,
+        "sha256": "33c7c4d6dba9013b8d9f9d1472bf2dd94e7f714e6e6906829a429737891c7abf"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/AnatomyCoordinateSpace.cs",
+        "bytes": 2909,
+        "sha256": "5de786624f4b5386bbca6dfbe1c481a112d51e4da221d1226d4077a9de053a00"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/AnatomyDelivery.cs",
+        "bytes": 1626,
+        "sha256": "66dca2ff3f7d08dee8e442684b3f4d642d98757c5ee978cf1eedd8302c245352"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/AnatomySnapshot.cs",
+        "bytes": 6426,
+        "sha256": "0f5388990ee2fd8411b2777e3424770d2590e200e57487b9e1646d5996060d95"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/AnatomySnapshotCodec.cs",
+        "bytes": 9886,
+        "sha256": "3e921942cd7dd6038e80b15db14296e0ea1656d0837e4b4505df0b1943974829"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/DeliveryReceipt.cs",
+        "bytes": 939,
+        "sha256": "ab06d2bf3507bfd903efd5cc291ec82f1c073455c720cca56749a7cf092b894f"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/DeliveryServer.cs",
+        "bytes": 3415,
+        "sha256": "7f7e9ebbac2915b097f57e851f697a79b9c475583c978aede5ebf8c59a4916b6"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/PinnedTlsTransfer.cs",
+        "bytes": 12854,
+        "sha256": "673a1d1bbc25d017eaf710d0fa4cd3a3a66b58f0839343de1f2749cb52751b58"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Runtime/TransportIdentity.cs",
+        "bytes": 4028,
+        "sha256": "d68d16a0257533ea34a61ebb768da59a03bb0dfd3cbef74310fd429c1651c7eb"
+      },
+      {
+        "path": ".artifacts/quest-010/WindowsProject/Assets/Editor/DeliveryProbeBuilder.cs",
+        "bytes": 2854,
+        "sha256": "4273074365bd1045ef815fb9a60ed209f495dc15df68a3a7d6357f92d25a6df6"
+      }
+    ],
+    "harnessFormattingAfterCopy": "Only whitespace differs between the two final harness sources and their compiled copies; comparison verified."
+  },
+  "environment": {
+    "unity": "6000.5.2f1 (eb73d3b415a1)",
+    "editorInitiallyOpen": false,
+    "editorFinallyOpen": false,
+    "finalProfile": "DesktopWindows",
+    "windowsBackend": "IL2CPP",
+    "questBackend": "IL2CPP ARM64",
+    "questModel": "Quest 3",
+    "questSerial": "192.168.1.18:5555",
+    "hostAddress": "192.168.1.14",
+    "packages": {
+      "path": "Packages/manifest.json",
+      "bytes": 2605,
+      "sha256": "c962cea53601a70c1a38ede220b1e0e9c2b6a008b740e00058055faba4d59652"
+    },
+    "packageLock": {
+      "path": "Packages/packages-lock.json",
+      "bytes": 17988,
+      "sha256": "c5f3d1c413ee802e90ab68a618fc5a3e9bd93b248a6959ed8ff01416bf4906c5"
+    },
+    "desktopNativeReferences": [
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+        "bytes": 1378816,
+        "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+        "bytes": 246784,
+        "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+        "bytes": 1005056,
+        "sha256": "3b886cf1a31c67e7b8ddb2b38e93a634b56f8694f80deb3d9312839e2b69d448"
+      }
+    ],
+    "nativeScientificPluginsInApk": []
+  },
+  "reuse": {
+    "transportSourceCommit": "0e5f99208c5ba315bd47f457de3f2d427387a993",
+    "transportSource": "Spikes/QUEST-009/Runtime",
+    "adaptation": "HBT v2: acknowledged status and HBNA digest after publication; frozen server buffers and application callback.",
+    "historicalRead": "eb26c323e:Shared/Packages/com.crnl.hibop.protocol/Runtime/RemoteAssets.cs",
+    "historicalCacheImported": false,
+    "bouncyCastleVersion": "2.7.0",
+    "bouncyCastleLicense": "MIT",
+    "bouncyCastleArchiveSha256": "f091ffccab4d03993e660bace277659a79dee0972f54d7f1f4bd46d680966241"
+  },
+  "commands": [
+    {
+      "exitCode": 0,
+      "command": "Unity.exe -batchmode -projectPath C:/HBP/Software/HiBoP -activeBuildProfile Assets/Settings/BuildProfiles/DesktopWindows.asset -runTests -testPlatform PlayMode -assemblyNames HBP.Quest.PlayModeTests -testResults C:/HBP/Software/HiBoP/.test-results/quest-010/playmode.xml -logFile C:/HBP/Software/HiBoP/.test-results/quest-010/playmode-retry.log -questAnatomyFixture C:/HBP/Software/HiBoP/.artifacts/quest-008/fixture/quest-anatomy.hbna -forgetProjectPath"
+    },
+    {
+      "exitCode": 0,
+      "command": "Unity CLI EditMode via Start-Process -Wait: HBP.Transfer.Anatomy.Tests;HBP.Transfer.Anatomy.Desktop.Tests;HBP.Quest.Anatomy.Tests;HBP.PlatformConfiguration.Tests, DesktopWindows, same fixture",
+      "fullCommandLog": ".test-results/quest-010/editmode.log"
+    },
+    {
+      "exitCode": 0,
+      "command": "Unity CLI EditMode via Start-Process -Wait: HBP.Transfer.Anatomy.Tests;HBP.Quest.Anatomy.Tests;HBP.PlatformConfiguration.Tests, Quest profile, same fixture",
+      "fullCommandLog": ".test-results/quest-010/android-editmode.log"
+    },
+    {
+      "exitCode": 0,
+      "command": "Tools/Build-QuestDeliveryProbe.ps1 -Target Android"
+    },
+    {
+      "exitCode": 0,
+      "command": "Tools/Build-QuestDeliveryProbe.ps1 -Target Windows"
+    },
+    {
+      "runId": "20260908-124323",
+      "exitCode": 0,
+      "command": "Tools/Run-QuestDeliveryProbe.ps1 -Serial 192.168.1.18:5555 -HostAddress 192.168.1.14"
+    },
+    {
+      "exitCode": 0,
+      "command": "Tools/format-code.cmd"
+    },
+    {
+      "exitCode": 0,
+      "command": "ReSharper CleanupCode 2026.2.0 on .artifacts/quest-010/format/Format.slnx"
+    }
+  ],
+  "androidBuild": {
+    "result": "Succeeded",
+    "seconds": 320.7314408,
+    "errors": 0,
+    "warnings": 65,
+    "apkBytes": 117474128
+  },
+  "authorization": {
+    "date": "2026-09-08",
+    "userResponse": "Oui, j'autorise cet essai",
+    "scope": "Install QUEST-010 APK, send only audited MNI 3870248-byte fixture over LAN to Quest 3 192.168.1.18:5555, stop HiBoP afterwards",
+    "automaticReviewInitiallyRejected": true,
+    "automaticReviewAcceptedAfterExplicitUserReply": true
+  },
+  "earlierAttempts": [
+    {
+      "result": "Stopped owned CLI after asynchronous OneTimeSetUp stalled; changed to pure synchronous certificate initialization; rerun passed.",
+      "kind": "Initial PlayMode"
+    },
+    {
+      "runId": "20260908-123354",
+      "result": "Wrong Android activity, no application publication; launcher now resolves installed activity."
+    },
+    {
+      "runId": "20260908-123634",
+      "result": "Experimental .NET 10 harness server TLS authentication failure before payload; replaced with Unity IL2CPP harness; no .NET harness source retained."
+    },
+    {
+      "runId": "20260908-124123",
+      "result": "All physical invariants passed; wrapper inherited expected pidof exit 1. Launcher exit handling corrected; final run exit 0."
+    }
+  ],
+  "limitations": [
+    "No UI pairing or Send-to-Quest workflow (QUEST-011).",
+    "No new live Desktop MNI capture in the physical harness: uses validated QUEST-006/008 capture. Capture-to-offer integration tested in Editor.",
+    "No 60-second radio outage or new user visual validation (QUEST-012).",
+    "ACK-loss injection is on sender read; no deterministic receiver ACK-write failure injection.",
+    "Cancellation tested during chunk reception; queued main-thread publication cancellation independently reviewed, not fault-injected separately.",
+    "No GPU out-of-memory injection, durable cache, Mac qualification or range resume."
+  ],
+  "artifacts": [
+    {
+      "path": ".test-results/quest-010/playmode.xml",
+      "bytes": 27035,
+      "sha256": "b4ce7dc623b99f71de7b240c3db94cb285387eb421be0af8f74719dde5d92425"
+    },
+    {
+      "path": ".test-results/quest-010/playmode.log",
+      "bytes": 175899,
+      "sha256": "692d00ad6b05a883988fdc5035a520f45ab903a978648d5e03ccdb1cafdbc3eb"
+    },
+    {
+      "path": ".test-results/quest-010/playmode-retry.log",
+      "bytes": 75865,
+      "sha256": "2ae3280a8e8e9c5c937ff1bd5cb44846c5ebe577f3a45287642d00e27ee1037d"
+    },
+    {
+      "path": ".test-results/quest-010/editmode.xml",
+      "bytes": 86504,
+      "sha256": "efb23d80a0c7302f94cc516c9e21102bda1830a8af92fcf45bd3887d3f43e80d"
+    },
+    {
+      "path": ".test-results/quest-010/editmode.log",
+      "bytes": 113129,
+      "sha256": "1d7d9abcc8ce71a90059d448dace40ed8304caa992de2c4aaef4714b34a52a3b"
+    },
+    {
+      "path": ".test-results/quest-010/android-editmode.xml",
+      "bytes": 67825,
+      "sha256": "9b4a1c71c80cd9a2b8436e09c18dd577a69af965753ec893b3279bd4a73c19f5"
+    },
+    {
+      "path": ".test-results/quest-010/android-editmode.log",
+      "bytes": 123958,
+      "sha256": "12d71e17031c7247d279e03e3291dec7f0604ccadc5d98753578f4ec11acfe81"
+    },
+    {
+      "path": ".test-results/quest-010/final-desktop.xml",
+      "bytes": 26098,
+      "sha256": "99a08bd8dc9d4ef7d9008c81e99a2e98069803db6627ed85e08e40659b372a5c"
+    },
+    {
+      "path": ".test-results/quest-010/final-desktop.log",
+      "bytes": 363333,
+      "sha256": "88e659699d6aa6279c61ad54a33d7dadd2ab2d9fbef808f6ab86d6b64cc2ced3"
+    },
+    {
+      "path": ".test-results/quest-010/android-build.log",
+      "bytes": 1090982,
+      "sha256": "590383ff97355a92eaaf2857b0d4cf7ad7b0597cd739bc64b621f5b274703432"
+    },
+    {
+      "path": ".test-results/quest-010/windows-build.log",
+      "bytes": 187681,
+      "sha256": "24a4ebf3f7b12c24dbf3f7b77d08ed94aa95ee30057915bb7a0ae5bc6d04ceec"
+    },
+    {
+      "path": ".test-results/quest-010/format-final.log",
+      "bytes": 351,
+      "sha256": "4cd338a2083983716703f0191e82ee0db28188c37e091289aa2c613d1d72c705"
+    },
+    {
+      "path": ".test-results/quest-010/format-server-final.log",
+      "bytes": 681,
+      "sha256": "9d7987e70a7c32de53a2aa1e4a073a122b6fed255e4d94b001bdaa6d8a27a309"
+    },
+    {
+      "path": ".test-results/quest-010/physical-final.log",
+      "bytes": 453,
+      "sha256": "0492ad591bd476f3d8c4121e7ef3ac74ffec4771f82f530472c74b1bae28ec49"
+    },
+    {
+      "path": ".test-results/quest-010/physical-run.log",
+      "bytes": 260,
+      "sha256": "08f56468b508b602956e7d099f7c419ac02fd8b612128973453c4b26086cf6da"
+    },
+    {
+      "path": ".test-results/quest-010/physical-run-final.log",
+      "bytes": 387,
+      "sha256": "d3ca8b3734fdf58aa9ed05e8f894919b6c1c98c47f84e4cde395772fa49f71ea"
+    },
+    {
+      "path": ".test-results/quest-010/unity-generated-changes.patch",
+      "bytes": 7752,
+      "sha256": "c91909db8fd05b32dba67d53958e7899bc950833f437d858549f8ddb9f44eaf7"
+    },
+    {
+      "path": ".test-results/quest-010/runs/20260908-123634/result.json",
+      "bytes": 391,
+      "sha256": "ac24d95a3adbd3b4f0daeb09c35f381fb88ae131df60c2f3b6d8dd555b2078e8"
+    },
+    {
+      "path": ".test-results/quest-010/runs/20260908-124323/server.log",
+      "bytes": 47447,
+      "sha256": "6cb28acd4c6d2d51944ab1f517cd157100f006ec4f36716e04097f31b747dbc8"
+    },
+    {
+      "path": ".test-results/quest-010/runs/20260908-124323/quest.log",
+      "bytes": 6176,
+      "sha256": "79126f04b799c23eb6dfbeaeeb73d7c7f0ea23292b43406b4fb63a8aa2dd0f03"
+    },
+    {
+      "path": ".test-results/quest-010/runs/20260908-124323/launch.log",
+      "bytes": 227,
+      "sha256": "035bfa01010351ee2aa3355a000794970ee183df1bf2f32c801f499827f8f7f0"
+    },
+    {
+      "path": ".test-results/quest-010/runs/20260908-124323/result.json",
+      "bytes": 402,
+      "sha256": "e7a4cedb0e85881d3f74cc62b8bdf4bbd1b233d47530962773d1c51467a25dba"
+    },
+    {
+      "path": ".artifacts/quest-010/Android/HiBoP.Quest.apk",
+      "bytes": 117474128,
+      "sha256": "e3cd5385489f458198e0cc8b17aeae32517e43150b00b9abf8db53a7973d5c9d"
+    },
+    {
+      "path": ".artifacts/quest-010/Android/Quest.build-report.json",
+      "bytes": 773351,
+      "sha256": "bf2b7d3dce509fa20ade383b170f0a152d07f02eda59aee487c3c55e3e506b72"
+    },
+    {
+      "path": ".artifacts/quest-010/Windows/DeliveryServer.exe",
+      "bytes": 667648,
+      "sha256": "03f512f4b5680959906166097629031a35c718e52a9be829a45e24b7a973b340"
+    },
+    {
+      "path": ".artifacts/quest-010/Windows/GameAssembly.dll",
+      "bytes": 21249536,
+      "sha256": "ee90c2975a3df2d0870f0046a7f0a43543b406b29506bc9b1553928114315d6a"
+    },
+    {
+      "path": ".artifacts/quest-010/Windows/UnityPlayer.dll",
+      "bytes": 88157104,
+      "sha256": "b9991f8b5d64e9f5d1c8d056f22a2688076df56d29fe281e018d94f90903dbd4"
+    },
+    {
+      "path": ".artifacts/quest-010/Windows/DeliveryServer.exe.build.txt",
+      "bytes": 120,
+      "sha256": "06e85b9a9615335f47df6cc660af0469df5f206f4c49e0defd0e0650bd19bacd"
+    },
+    {
+      "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+      "bytes": 3870248,
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+    }
+  ]
+}

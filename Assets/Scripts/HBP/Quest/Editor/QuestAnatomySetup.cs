@@ -43,6 +43,9 @@ namespace HBP.Quest.Editor
                 Set(serialized, "meshRenderer", renderer);
                 Set(serialized, "opaqueMaterial", material);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
+                var session = new SerializedObject(root.AddComponent<QuestAnatomySession>());
+                Set(session, "view", root.GetComponent<QuestAnatomyView>());
+                session.ApplyModifiedPropertiesWithoutUndo();
                 var manipulation = new SerializedObject(root.AddComponent<QuestAnatomyManipulator>());
                 Set(manipulation, "view", root.GetComponent<QuestAnatomyView>());
                 manipulation.ApplyModifiedPropertiesWithoutUndo();

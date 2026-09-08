@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 1029545776034098981}
   - component: {fileID: 510045443892623503}
   - component: {fileID: 2926650362359151247}
+  - component: {fileID: 726012340010000001}
   m_Layer: 0
   m_Name: QuestAnatomy
   m_TagString: Untagged
@@ -160,3 +161,16 @@ MonoBehaviour:
   recenterDistanceMeters: 0.65
   recenterHeightMeters: -0.12
   recenterEuler: {x: -90, y: 0, z: 0}
+--- !u!114 &726012340010000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5633916839406821509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 271ae1dd0df0445b828831405131a9cb, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  view: {fileID: 510045443892623503}

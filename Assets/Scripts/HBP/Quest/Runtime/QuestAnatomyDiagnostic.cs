@@ -19,6 +19,7 @@ namespace HBP.Quest
         [SerializeField] private GameObject landmarks;
         [SerializeField] private TextMesh statusText;
         private AnatomySnapshot snapshot;
+        private Mesh diagnosticMesh;
         private InputAction reload;
         private InputAction clear;
 
@@ -93,6 +94,7 @@ namespace HBP.Quest
             try
             {
                 view.ApplySnapshot(snapshot);
+                diagnosticMesh = view.SharedMesh;
                 return true;
             }
             catch (Exception exception)
@@ -132,7 +134,8 @@ namespace HBP.Quest
             reload = null;
             clear = null;
             snapshot = null;
-            if (view != null) view.Clear();
+            if (view != null && diagnosticMesh != null && view.SharedMesh == diagnosticMesh) view.Clear();
+            diagnosticMesh = null;
             if (landmarks != null) landmarks.SetActive(false);
         }
     }

@@ -1,0 +1,6 @@
+{
+    "name": "HBP.Transfer.Anatomy.Delivery",
+    "references": ["HBP.Transfer.Anatomy.Contracts", "HBP.Transfer.Transport"],
+    "autoReferenced": false,
+    "noEngineReferences": true
+}

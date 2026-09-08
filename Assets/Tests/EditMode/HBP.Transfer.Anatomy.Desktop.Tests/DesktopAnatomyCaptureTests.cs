@@ -19,6 +19,20 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
 {
     public class DesktopAnatomyCaptureTests
     {
+        [Test]
+        public async Task DeliveryOffer_FreezesTheSelectedCaptureAndKeepsItsIdentity()
+        {
+            var expected = await DesktopAnatomyCapture.CaptureSelectedAsync("delivery", "session", 1);
+            var preparing = DesktopAnatomyCapture.CaptureDeliverySelectedAsync("delivery", "session", 1);
+            m_Mesh.vertices = new[] { Vector3.zero, Vector3.one, Vector3.up };
+            var offer = await preparing;
+            byte[] encoded = AnatomySnapshotCodec.Encode(expected);
+            Assert.That(offer.TransferId, Is.EqualTo("delivery"));
+            Assert.That(offer.SessionId, Is.EqualTo("session"));
+            Assert.That(offer.EncodedBytes, Is.EqualTo(encoded.Length));
+            Assert.That(offer.ContentHash, Is.EqualTo(new HBP.Transfer.Transport.DeliveryReceipt(HBP.Transfer.Transport.TransportIdentity.Hash(encoded), HBP.Transfer.Transport.DeliveryStatus.Published).ContentHash));
+        }
+
         private GameObject m_Root;
         private Base3DScene m_Scene;
         private Column3DAnatomy m_Column;

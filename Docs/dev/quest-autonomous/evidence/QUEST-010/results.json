@@ -1,0 +1,896 @@
+{
+  "taskId": "QUEST-010",
+  "tests": [
+    {
+      "id": "playmode",
+      "result": "Passed",
+      "total": 27,
+      "passed": 27,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cases": [
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.CancellationDuringReception_DoesNotPublishLate(False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.CancellationDuringReception_DoesNotPublishLate(True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(\"chunk\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(\"truncated\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(\"transport-version\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(\"schema-version\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(\"incomplete-hbna\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(\"prepare\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(\"identity-conflict\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.LostAck_RetryReturnsExistingPublication_ThenOldRetryCannotReplaceNewContent"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.Offer_RealTlsPublishesAndAcknowledgesOnlyOnce"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.AnatomyDeliveryTests.RealMniCaptureFixture_TravelsThroughTlsToRenderer"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.QuestAnatomyLifetimeTests.ReplacementClearAndDestroy_ReleaseMeshesWithoutFrameRebuilds"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.QuestAnatomyLifetimeTests.WorkerDelivery_IsRejectedWithoutChangingTheView"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.QuestManipulationInputTests.SerializedRig_TriggerBindingsTrackingFocusReplacementAndXRecenter"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Quest.QuestTrackingTests.Controller_LostOrPartialTrackingHidesMarkerAndDoesNotMoveIt"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.CancelAndClear_ReleaseWithoutMovingOrReacquiringHeldGrips"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.CoincidentHands_FreezeAndRebaseWhenSeparated"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.HandTransitions_RebaseWithoutJump_ThenSurvivingHandContinues"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.NearGrab_RequiresFreshPressAndUsesRotatedScaledBounds"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.Prefabs_SerializeManipulationSettingsAndRigReferences"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.Recenter_KeepsMeshScaleAndChildren_AndCancelsGrab"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift(True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift(False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.TrackingLoss_FreezesAndRequiresReleaseBeforeRegrab"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.TwoHands_TransformAroundMidpointAndClampUniformPositiveScale"
+        }
+      ]
+    },
+    {
+      "id": "editmode",
+      "result": "Skipped:Ignored",
+      "total": 87,
+      "passed": 86,
+      "failed": 0,
+      "skipped": 1,
+      "exitCode": 0,
+      "cases": [
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.ActiveProfile_PassesBuildGuard"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildGuard_RejectsWrongSceneBeforeBuilding"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildWithoutXR_DropsOnlyOpenXRPreload"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers"
+        },
+        {
+          "result": "Skipped",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsWrongArchitecture"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputPrefab_SerializesAllUIActionsAndTextBackend"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.AutomaticBoundarySuppression_IsRejectedBeforeBuild"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(\"OnApplicationFocus\",True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(\"OnApplicationPause\",False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryVisibility_IsContextualAndWiredToPassthrough"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.OpaqueCamera_IsRejectedBeforeBuild"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestConfiguration_PassesGuard"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestPreload_IsPreservedWhenOpenXRIsActive"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.Rig_SerializesFloorOriginAndIndependentControllerPoses"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.Desktop_HasNoActiveXRLoader"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputBackends_MatchActiveTargetAndCompiledPlayerDefines"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputSystem_XRSpatialActionBindsToController"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.PlayerScripts_CompileForActiveTargetWithoutChangingPackages"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.UnifiedPackages_MatchManifestLockAndInstalledVersions"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.ActualDesktopFixture_PreservesEveryComponentAndFullSurface"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.Prefab_SerializesOneUnitConversionAndOpaqueMaterial"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"frame\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"handedness\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"unit\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"version\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"mapping\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"opacity\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(Clockwise)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(CounterClockwise)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_FreezesBuffersAndIdsBeforeReturningTask"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"selection\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"column-type\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"geometry\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"functional\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"transition\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"hemisphere\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"erasure\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"deformation\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"density\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"opacity-transform\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"palette\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"property-block\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(\"incomplete\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RejectsCancellationBeforeReadingSelection"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RejectsWorkerThread"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_UnchangedContentIsBitExactAndAppearanceIsLinear"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.DeliveryOffer_FreezesTheSelectedCaptureAndKeepsItsIdentity"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.ContractAssemblyHasOnlySystemDependencies"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.CorruptHashesTruncationAndTrailingBytesAreRejected"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"magic\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"version\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"totalLength\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"revision\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"handedness\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"unit\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"mappingVersion\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"affine\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"singular\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"matrixNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"winding\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"visible\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"color\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"colorNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"verticesNegative\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"verticesMaximum\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indicesMaximum\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indicesIncomplete\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"uvCount\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"surfaceLength\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indexOutOfRange\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"positionNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"normalInfinity\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"uvNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textLength\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textBlank\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textUtf8\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MaximumVertexAndIndexCountsRoundTripWithoutTruncation"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicConstructionAndDecodedSnapshotOwnTheirBuffers"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicFactoryRejectsInvalidDimensionsAndValues"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.Utf8IdentifiersArePreservedWithoutGuidParsingOrNormalization"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.WriteReviewExample"
+        }
+      ]
+    },
+    {
+      "id": "android-editmode",
+      "result": "Passed",
+      "total": 69,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "cases": [
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.ActiveProfile_PassesBuildGuard"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildGuard_RejectsWrongSceneBeforeBuilding"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildWithoutXR_DropsOnlyOpenXRPreload"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsWrongArchitecture"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputPrefab_SerializesAllUIActionsAndTextBackend"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.AutomaticBoundarySuppression_IsRejectedBeforeBuild"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(\"OnApplicationFocus\",True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(\"OnApplicationPause\",False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryVisibility_IsContextualAndWiredToPassthrough"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.OpaqueCamera_IsRejectedBeforeBuild"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestConfiguration_PassesGuard"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestPreload_IsPreservedWhenOpenXRIsActive"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.Rig_SerializesFloorOriginAndIndependentControllerPoses"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.Desktop_HasNoActiveXRLoader"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputBackends_MatchActiveTargetAndCompiledPlayerDefines"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputSystem_XRSpatialActionBindsToController"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.PlayerScripts_CompileForActiveTargetWithoutChangingPackages"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.UnifiedPackages_MatchManifestLockAndInstalledVersions"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.ActualDesktopFixture_PreservesEveryComponentAndFullSurface"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.Prefab_SerializesOneUnitConversionAndOpaqueMaterial"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"frame\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"handedness\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"unit\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"version\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"mapping\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(\"opacity\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(Clockwise)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.QuestAnatomy.AnatomyMeshTests.Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(CounterClockwise)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.ContractAssemblyHasOnlySystemDependencies"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.CorruptHashesTruncationAndTrailingBytesAreRejected"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"magic\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"version\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"totalLength\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"revision\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"handedness\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"unit\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"mappingVersion\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"affine\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"singular\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"matrixNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"winding\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"visible\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"color\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"colorNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"verticesNegative\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"verticesMaximum\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indicesMaximum\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indicesIncomplete\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"uvCount\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"surfaceLength\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indexOutOfRange\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"positionNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"normalInfinity\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"uvNan\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textLength\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textBlank\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textUtf8\")"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MaximumVertexAndIndexCountsRoundTripWithoutTruncation"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicConstructionAndDecodedSnapshotOwnTheirBuffers"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicFactoryRejectsInvalidDimensionsAndValues"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.Utf8IdentifiersArePreservedWithoutGuidParsingOrNormalization"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.WriteReviewExample"
+        }
+      ]
+    },
+    {
+      "id": "final-desktop",
+      "result": "Skipped:Ignored",
+      "total": 23,
+      "passed": 22,
+      "failed": 0,
+      "skipped": 1,
+      "exitCode": 0,
+      "cases": [
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.ActiveProfile_PassesBuildGuard"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildGuard_RejectsWrongSceneBeforeBuilding"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildWithoutXR_DropsOnlyOpenXRPreload"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers"
+        },
+        {
+          "result": "Skipped",
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsWrongArchitecture"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputPrefab_SerializesAllUIActionsAndTextBackend"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.AutomaticBoundarySuppression_IsRejectedBeforeBuild"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(\"OnApplicationFocus\",True)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(\"OnApplicationPause\",False)"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryVisibility_IsContextualAndWiredToPassthrough"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.OpaqueCamera_IsRejectedBeforeBuild"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestConfiguration_PassesGuard"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestPreload_IsPreservedWhenOpenXRIsActive"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestBootstrapTests.Rig_SerializesFloorOriginAndIndependentControllerPoses"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.Desktop_HasNoActiveXRLoader"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputBackends_MatchActiveTargetAndCompiledPlayerDefines"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputSystem_XRSpatialActionBindsToController"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.PlayerScripts_CompileForActiveTargetWithoutChangingPackages"
+        },
+        {
+          "result": "Passed",
+          "name": "HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.UnifiedPackages_MatchManifestLockAndInstalledVersions"
+        }
+      ]
+    }
+  ],
+  "physical": {
+    "runId": "20260908-124323",
+    "unity": "6000.5.2f1",
+    "passed": true,
+    "error": "",
+    "contentHash": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+    "vertices": 69104,
+    "bufferBytes": 3869920,
+    "uploads": 1,
+    "offlineRetained": true,
+    "replacementNotDuplicated": true,
+    "closedReleased": true,
+    "receipts": "Published,AlreadyPublished,Closed"
+  },
+  "receipts": [
+    "Published",
+    "AlreadyPublished",
+    "Closed"
+  ],
+  "physicalLauncherExitCode": 0,
+  "physicalServerExitCode": 0,
+  "hibopStopped": true,
+  "manual": "NON_REQUIS"
+}

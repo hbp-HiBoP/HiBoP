@@ -1,0 +1,14 @@
+{
+    "runId": "20260908-124323",
+    "unity": "6000.5.2f1",
+    "passed": true,
+    "error": "",
+    "contentHash": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+    "vertices": 69104,
+    "bufferBytes": 3869920,
+    "uploads": 1,
+    "offlineRetained": true,
+    "replacementNotDuplicated": true,
+    "closedReleased": true,
+    "receipts": "Published,AlreadyPublished,Closed"
+}
