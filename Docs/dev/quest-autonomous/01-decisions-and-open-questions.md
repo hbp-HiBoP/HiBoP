@@ -40,6 +40,8 @@ décisions du nouveau produit.
 | D25 | Le 2026-09-08, le propriétaire demande de marcher plus librement autour du cerveau en passthrough et confirme voir la grille ou l'avertissement système Quest. | QUEST-008 demande la suppression contextuelle de frontière via Meta OpenXR pendant le passthrough actif ; espace local-floor, restauration demandée à la perte de focus/pause ou si le passthrough cesse. Pas de désactivation globale du Guardian. |
 | D26 | Le 2026-09-08, le propriétaire demande un casque de développement toujours éveillé, en ADB Wi-Fi, utilisable sur un chargeur indépendant. | Conserver l'override de proximité et le maintien éveillé sur alimentation entre les essais ; ne plus les rétablir automatiquement en fin d'essai. Désactiver les deux préférences Unity qui arrêtent ADB sur ce poste. D23 continue d'arrêter uniquement HiBoP après validation. Aucun engagement de connexion permanente après redémarrage, perte Wi-Fi ou changement de réseau ; relancer le script si nécessaire. |
 
+| D27 | Le 2026-09-08, après l'échec Player Windows IL2CPP de `CertificateRequest` dans QUEST-009, le propriétaire autorise l'essai de BouncyCastle pour créer l'identité éphémère, en conservant le transport embarqué `TcpListener`/`SslStream`. | Qualifier l'import de clé, TLS et le coût réel dans les Players ; cette autorisation ne valide pas le transport et ne choisit pas l'auxiliaire P06. |
+
 Ajustement documentaire après review du propriétaire : le bloc de routage Quest
 ajouté au AGENTS.md global a été retiré. Les fiches renvoient directement au
 contrat d'exécution ; l'invocation recommandée peut préciser leur chemin. Aucun

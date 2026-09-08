@@ -1,0 +1,264 @@
+{
+  "task": "QUEST-009",
+  "createdUtc": "2026-09-08T12:03:58.2998842Z",
+  "windowsLoopback": [
+    {
+      "scenario": "nominal",
+      "passed": true,
+      "detail": "sha256=5d9f536ffff380a6f5d8ba19069524861dd617108e8b770d68aefa22d6fbcfc2",
+      "milliseconds": 137.14090000000002,
+      "bytes": 3145745,
+      "gcAllocatedFrameBytes": 27140207,
+      "managedRetainedDeltaBytes": 3792896
+    },
+    {
+      "scenario": "wrong-identity",
+      "passed": true,
+      "detail": "AuthenticationException: Certificate pin rejected.",
+      "milliseconds": 9.3119,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "wrong-pairing",
+      "passed": true,
+      "detail": "AuthenticationException: Pairing secret rejected.",
+      "milliseconds": 12.148900000000001,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "interrupt-0",
+      "passed": true,
+      "detail": "OperationCanceledException: The operation was canceled.",
+      "milliseconds": 31.3514,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "reconnect-0",
+      "passed": true,
+      "detail": "sha256=5d9f536ffff380a6f5d8ba19069524861dd617108e8b770d68aefa22d6fbcfc2",
+      "milliseconds": 107.43870000000001,
+      "bytes": 3145745,
+      "gcAllocatedFrameBytes": 18640499,
+      "managedRetainedDeltaBytes": -2670592
+    },
+    {
+      "scenario": "interrupt-1",
+      "passed": true,
+      "detail": "OperationCanceledException: The operation was canceled.",
+      "milliseconds": 31.568,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "reconnect-1",
+      "passed": true,
+      "detail": "sha256=5d9f536ffff380a6f5d8ba19069524861dd617108e8b770d68aefa22d6fbcfc2",
+      "milliseconds": 111.4683,
+      "bytes": 3145745,
+      "gcAllocatedFrameBytes": 18646244,
+      "managedRetainedDeltaBytes": -3489792
+    },
+    {
+      "scenario": "interrupt-2",
+      "passed": true,
+      "detail": "OperationCanceledException: The operation was canceled.",
+      "milliseconds": 30.7767,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "reconnect-2",
+      "passed": true,
+      "detail": "sha256=5d9f536ffff380a6f5d8ba19069524861dd617108e8b770d68aefa22d6fbcfc2",
+      "milliseconds": 113.05980000000001,
+      "bytes": 3145745,
+      "gcAllocatedFrameBytes": 18624318,
+      "managedRetainedDeltaBytes": -2461696
+    },
+    {
+      "scenario": "stop-listener",
+      "passed": true,
+      "detail": "owned server task awaited",
+      "milliseconds": 0.4056,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "rebind-port",
+      "passed": true,
+      "detail": "same port immediately reusable",
+      "milliseconds": 0.0,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "corrupt-chunk",
+      "passed": true,
+      "detail": "InvalidDataException: Chunk hash mismatch.",
+      "milliseconds": 30.846600000000002,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "stop-listener",
+      "passed": true,
+      "detail": "owned server task awaited",
+      "milliseconds": 1.3647,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "rebind-port",
+      "passed": true,
+      "detail": "same port immediately reusable",
+      "milliseconds": 0.0,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "stop-during-handshake",
+      "passed": true,
+      "detail": "accepted socket closed and task awaited",
+      "milliseconds": 2.8337000000000003,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "truncated",
+      "passed": true,
+      "detail": "EndOfStreamException: Truncated transport frame.",
+      "milliseconds": 0.0678,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "unknown-version",
+      "passed": true,
+      "detail": "InvalidDataException: Unknown transport version.",
+      "milliseconds": 0.0159,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "oversized",
+      "passed": true,
+      "detail": "InvalidDataException: Payload size out of bounds.",
+      "milliseconds": 0.0125,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    }
+  ],
+  "questPhysical": [
+    {
+      "scenario": "nominal",
+      "passed": true,
+      "detail": "sha256=065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+      "milliseconds": 841.3115,
+      "bytes": 3870248,
+      "gcAllocatedFrameBytes": 15538751,
+      "managedRetainedDeltaBytes": 4550656
+    },
+    {
+      "scenario": "wrong-identity",
+      "passed": true,
+      "detail": "AuthenticationException: Certificate pin rejected.",
+      "milliseconds": 38.9688,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "wrong-pairing",
+      "passed": true,
+      "detail": "AuthenticationException: Pairing secret rejected.",
+      "milliseconds": 40.4059,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "interrupt-0",
+      "passed": true,
+      "detail": "OperationCanceledException: The operation was canceled.",
+      "milliseconds": 83.0851,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "reconnect-0",
+      "passed": true,
+      "detail": "sha256=065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+      "milliseconds": 516.1347000000001,
+      "bytes": 3870248,
+      "gcAllocatedFrameBytes": 19669337,
+      "managedRetainedDeltaBytes": -3883008
+    },
+    {
+      "scenario": "interrupt-1",
+      "passed": true,
+      "detail": "OperationCanceledException: The operation was canceled.",
+      "milliseconds": 80.06360000000001,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "reconnect-1",
+      "passed": true,
+      "detail": "sha256=065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+      "milliseconds": 515.8481,
+      "bytes": 3870248,
+      "gcAllocatedFrameBytes": 19712758,
+      "managedRetainedDeltaBytes": -4349952
+    },
+    {
+      "scenario": "interrupt-2",
+      "passed": true,
+      "detail": "OperationCanceledException: The operation was canceled.",
+      "milliseconds": 80.5231,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    },
+    {
+      "scenario": "reconnect-2",
+      "passed": true,
+      "detail": "sha256=065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+      "milliseconds": 521.1026,
+      "bytes": 3870248,
+      "gcAllocatedFrameBytes": 19667364,
+      "managedRetainedDeltaBytes": -4214784
+    }
+  ],
+  "physicalServer": [
+    {
+      "scenario": "server-stop",
+      "passed": true,
+      "detail": "owned server task awaited",
+      "milliseconds": 0.39080000000000004,
+      "bytes": 0,
+      "gcAllocatedFrameBytes": 0,
+      "managedRetainedDeltaBytes": 0
+    }
+  ],
+  "allocationScope": "Unity GC Allocated In Frame summed over whole-player frames during operation; not isolated transport allocation; retained delta reported separately",
+  "interruption": "TCP connection closed after 131072 verified bytes on physical Quest; Wi-Fi radio kept enabled; fresh complete transfer after each interruption"
+}

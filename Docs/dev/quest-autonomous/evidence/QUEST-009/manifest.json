@@ -1,0 +1,282 @@
+{
+  "task": "QUEST-009",
+  "createdUtc": "2026-09-08T12:03:58.3866879Z",
+  "implementation": "IMPLEMENTEE",
+  "technical": "REUSSI",
+  "manual": "NON_REQUIS",
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "initialHead": "490de58119a3c9ad3c3be618085d09f3f9ea2bc7",
+    "finalHead": "490de58119a3c9ad3c3be618085d09f3f9ea2bc7",
+    "initialWorktree": "clean",
+    "finalWorktree": "uncommitted files hashed below; no commit/push",
+    "buildSourceParity": [
+      "Editor/TransportProbeBuilder.cs",
+      "Runtime/PinnedTlsTransfer.cs",
+      "Runtime/TransportIdentity.cs",
+      "Runtime/TransportProbe.cs",
+      "Runtime/TransportQualification.cs"
+    ],
+    "history": "P06 read-only at feature/xr / eb26c323e2bdf6c138f9e9e3c02f3e9796cae249; no historical code copied"
+  },
+  "versions": {
+    "unity": "6000.5.2f1 (eb73d3b415a1)",
+    "windows": "IL2CPP x64",
+    "quest": "IL2CPP ARM64, Android 14 API 34, Quest 3",
+    "bouncyCastle": "2.7.0 netstandard2.0",
+    "adb": "36.0.0-13206524",
+    "components": "Spikes/QUEST-009/components.json"
+  },
+  "fixture": {
+    "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+    "bytes": 3870248,
+    "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+    "provenance": "QUEST-001/006/008 reference MNI anatomy from repository Assets/Data, no patient/site/EEG records",
+    "authorization": "D14; exact hash enforced before transfer"
+  },
+  "decision": "D27 authorized BouncyCastle identity trial; embedded TcpListener/SslStream TLS 1.2 selected after physical proof; P06 not integrated",
+  "verification": [
+    {
+      "command": "Tools/Build-QuestTransportProbe.ps1 -Target Windows",
+      "exitCode": 0,
+      "result": "Succeeded"
+    },
+    {
+      "command": "Tools/Build-QuestTransportProbe.ps1 -Target Android",
+      "exitCode": 0,
+      "result": "Succeeded",
+      "executor": "Codex after per-invocation JDK_JAVA_OPTIONS socket-directory correction"
+    },
+    {
+      "command": "TransportProbe.exe -batchmode -nographics -logFile C:/HBP/Software/HiBoP/.test-results/quest-009/windows-qualification-final.log",
+      "exitCode": 0,
+      "passed": 18,
+      "failed": 0,
+      "mode": "Windows IL2CPP Player, no NUnit/Editor substitution"
+    },
+    {
+      "command": "Tools/Run-QuestTransportProbe.ps1 -Serial 192.168.1.18:5555 -HostAddress 192.168.1.14",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "serverDeliveries": 4,
+      "serverConnectionsReleased": 9,
+      "run": ".artifacts/quest-009/runs/20260908-135852",
+      "transport": "direct physical LAN TCP/TLS, no ADB network tunnel"
+    },
+    {
+      "command": "Tools/format-code.cmd then pinned CleanupCode on temporary QuestTransportProbe.Format.sln",
+      "exitCode": 0,
+      "files": 5,
+      "note": "HiBoP solution does not include Spikes; pinned formatter successfully applied through temporary solution; see format-spike-solution.log"
+    },
+    {
+      "command": "Get-Process TransportProbe,Unity; adb -s 192.168.1.18:5555 shell pidof fr.crnl.hibop.transportprobe",
+      "result": "no matching process; pidof exit 1 means absent",
+      "adbServerPreserved": true,
+      "wakeOnPowerPreserved": true
+    }
+  ],
+  "nativeLibraries": [
+    {
+      "path": "lib/arm64-v8a/libc++_shared.so",
+      "bytes": 1292904
+    },
+    {
+      "path": "lib/arm64-v8a/libgame.so",
+      "bytes": 252088
+    },
+    {
+      "path": "lib/arm64-v8a/libmain.so",
+      "bytes": 8720
+    },
+    {
+      "path": "lib/arm64-v8a/libswappywrapper.so",
+      "bytes": 227088
+    },
+    {
+      "path": "lib/arm64-v8a/libunity.so",
+      "bytes": 23981432
+    },
+    {
+      "path": "lib/arm64-v8a/libil2cpp.so",
+      "bytes": 22566104
+    }
+  ],
+  "pairing": "Full SHA256 pin and random 256-bit secret bootstrapped via trusted ADB for automated test; no user-facing pairing UI; configuration consumed/deleted, keys memory-only",
+  "historicalFailures": [
+    "Runtime CertificateRequest constructor throws PlatformNotSupportedException in Windows Player, exit 1",
+    "Default BC PKCS12 import rejected by Mono; fixed in-memory DER + compatible PBE, TLS1.2 unchanged",
+    "Android Java loopback failed from Codex; owner builds succeeded; final autonomous build fixed through JDK_JAVA_OPTIONS",
+    "Initial Windows PowerShell JSON BOM rejected by Unity; preparation now UTF-8 without BOM"
+  ],
+  "limitations": [
+    "Mac/Apple Silicon untested",
+    "No one-minute radio outage or offset resume",
+    "No product pairing UI, durable keys or atomic application session publication",
+    "No clinical/scientific validation; HBNA bytes treated as opaque payload",
+    "Whole-player frame allocations include instrumentation; not a microbenchmark",
+    "Additional footprint inside full HiBoP has not been measured"
+  ],
+  "review": "Independent bounded security/lifetime review; three findings fixed and verified in source; no remaining finding in that review",
+  "results": "results.json",
+  "sourceFiles": [
+    {
+      "path": "Docs/dev/quest-autonomous/01-decisions-and-open-questions.md",
+      "bytes": 12682,
+      "sha256": "0579bd425b8ced1596d5c03a50cb2f335699ff5f74687d2311c021a78120f5e0"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/reports/QUEST-009.md",
+      "bytes": 12324,
+      "sha256": "c9614198f86cfbde67f6467c9ec1189a0c3011b67098c220c1814915615b95ca"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+      "bytes": 6720,
+      "sha256": "b316ae82d4be6a89d1bed1c08b4f09a9514b3e9c6ec14f3c0565406692f9a8ab"
+    },
+    {
+      "path": "Spikes/QUEST-009/components.json",
+      "bytes": 1690,
+      "sha256": "c58f3f63e76358ec5a1f9d5bfbca5379eb8a71ebf76c98e7fe1279bfabf91787"
+    },
+    {
+      "path": "Spikes/QUEST-009/Editor/TransportProbeBuilder.cs",
+      "bytes": 2891,
+      "sha256": "b31cf0cc8500965ae07646a65887bb3d49dfbd9cf95d76d84df7d372a42cb18d"
+    },
+    {
+      "path": "Spikes/QUEST-009/licenses/BouncyCastle-MIT.md",
+      "bytes": 1186,
+      "sha256": "be0592a6c76f398356fbf252a4fb43476fb3ca3c45331428c2f4f22c499e8311"
+    },
+    {
+      "path": "Spikes/QUEST-009/README.md",
+      "bytes": 4538,
+      "sha256": "37db620ac0dfa71dc6f647ffe5ceb98311a8790e3673b93196614c7a49af4f6f"
+    },
+    {
+      "path": "Spikes/QUEST-009/Runtime/PinnedTlsTransfer.cs",
+      "bytes": 11518,
+      "sha256": "add6929117ea509fb476e9dc45845dede0a9453af820e25bd9101494ee19d071"
+    },
+    {
+      "path": "Spikes/QUEST-009/Runtime/TransportIdentity.cs",
+      "bytes": 4850,
+      "sha256": "55ad1691224b1ca226e1a07f8949c2e38fe13a1a8b13dbe6b7032b11b10f8739"
+    },
+    {
+      "path": "Spikes/QUEST-009/Runtime/TransportProbe.cs",
+      "bytes": 4537,
+      "sha256": "a55c920f4e4ac29a80866d739904899c692cdd65e503e9e8a7dc69fad0a7cf12"
+    },
+    {
+      "path": "Spikes/QUEST-009/Runtime/TransportQualification.cs",
+      "bytes": 12643,
+      "sha256": "af2042d7a7c0eaff461113eb2c10019b8b300d974a33651bd21a5492a1bd1c86"
+    },
+    {
+      "path": "Tools/Build-QuestTransportProbe.ps1",
+      "bytes": 2324,
+      "sha256": "91f57f0963aba4070ca05aa9fc9578743b7ca99b9cd742b81af3c07a557216b3"
+    },
+    {
+      "path": "Tools/Prepare-QuestTransportProbe.ps1",
+      "bytes": 1977,
+      "sha256": "2476ed91e423849fcc1be4e4da177480f52e70bec2ab54f05a7a7e38e0e6f462"
+    },
+    {
+      "path": "Tools/Run-QuestTransportProbe.ps1",
+      "bytes": 5927,
+      "sha256": "09c6eea0a1801c1f59f0c5e181d227acfa67d802368b492e5e801c5fd051ea51"
+    }
+  ],
+  "localArtifacts": [
+    {
+      "path": ".artifacts/quest-009/Windows/TransportProbe.exe",
+      "bytes": 667648,
+      "sha256": "03f512f4b5680959906166097629031a35c718e52a9be829a45e24b7a973b340"
+    },
+    {
+      "path": ".artifacts/quest-009/Windows/GameAssembly.dll",
+      "bytes": 21291520,
+      "sha256": "1cc2799ed83610820a483fd823b2813c90bddaa0b2b6e29c74e4f6a9a92c82cf"
+    },
+    {
+      "path": ".artifacts/quest-009/Windows/UnityPlayer.dll",
+      "bytes": 88157104,
+      "sha256": "b9991f8b5d64e9f5d1c8d056f22a2688076df56d29fe281e018d94f90903dbd4"
+    },
+    {
+      "path": ".artifacts/quest-009/Windows/TransportProbe.exe.build.txt",
+      "bytes": 120,
+      "sha256": "733476194778087ca5ce4a1f02f3ce54daa57e349c3b268fa89f0570e6dfe96e"
+    },
+    {
+      "path": ".artifacts/quest-009/Android/TransportProbe.apk",
+      "bytes": 37953005,
+      "sha256": "3aa391c2f4a89c783b61f176ba121338dce60f8bc5c746a2ee4f2f0dfa096605"
+    },
+    {
+      "path": ".artifacts/quest-009/Android/TransportProbe.apk.build.txt",
+      "bytes": 108,
+      "sha256": "5b502cd132160c814ab985a335ec0e1c0a4315eb4bbf433bc6da5634e96a5765"
+    },
+    {
+      "path": ".artifacts/quest-009/vendor/bouncycastle-2.7.0/lib/netstandard2.0/BouncyCastle.Cryptography.dll",
+      "bytes": 4885904,
+      "sha256": "d61c1f2ba929a230a58e101ccd850e21f2675fa6b9814ec279633e8a089c3495"
+    },
+    {
+      "path": ".test-results/quest-009/windows-build.log",
+      "bytes": 137134,
+      "sha256": "53811d75df13d2c6cfc7ceccfa19af8303f194ec36c4757ab7a1108519ccb468"
+    },
+    {
+      "path": ".test-results/quest-009/android-build.log",
+      "bytes": 134122,
+      "sha256": "2f162a8f52c9910bf6b408f239364f1d92f647ceb729850e1a15bfc7d4f4003a"
+    },
+    {
+      "path": ".test-results/quest-009/windows-capability.log",
+      "bytes": 5891,
+      "sha256": "ab3ffbe62bf4b858b12b928c86c17c801e0df53ed327e42a8f3394e93fdd479c"
+    },
+    {
+      "path": ".test-results/quest-009/windows-bc-compatible-pfx.log",
+      "bytes": 4882,
+      "sha256": "f246970847922c48dd0e68b3825dd32acee59e2b7bfbb7904ebd2d57842e4613"
+    },
+    {
+      "path": ".test-results/quest-009/windows-qualification-final.log",
+      "bytes": 107677,
+      "sha256": "34e194ff4253aa8740adde5d86c691257b9b1978130ce73fecb0d1abb3d6dbe6"
+    },
+    {
+      "path": ".test-results/quest-009/format-spike-solution.log",
+      "bytes": 1044,
+      "sha256": "1125c43bfb8f4de96cb870adf26dd86a0b98e8e3c4c14da6954b4530460bd5ae"
+    },
+    {
+      "path": ".artifacts/quest-009/runs/20260908-135852/windows.log",
+      "bytes": 79127,
+      "sha256": "8425d850456b2f5c93bd4cf7446bb405c8a2f55d1d87bd0843ac3a419ee3249d"
+    },
+    {
+      "path": ".artifacts/quest-009/runs/20260908-135852/quest.log",
+      "bytes": 9374,
+      "sha256": "48dff357a1a4fae15565c9665342bcedefba644bd361d3b46b23a22496db40e4"
+    },
+    {
+      "path": ".artifacts/quest-009/runs/20260908-135852/received.hbna",
+      "bytes": 3870248,
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+    },
+    {
+      "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+      "bytes": 3870248,
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+    }
+  ]
+}

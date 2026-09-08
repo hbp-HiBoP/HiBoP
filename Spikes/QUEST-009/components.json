@@ -1,0 +1,43 @@
+{
+  "task": "QUEST-009",
+  "components": [
+    {
+      "name": "Unity Editor / Player / UnityTLS",
+      "version": "6000.5.2f1 (eb73d3b415a1)",
+      "license": "LicenseRef-Unity",
+      "source": "Matching Unity Hub editor installed on the qualification host",
+      "licenseUrl": "https://unity.com/legal/editor-terms-of-service/software",
+      "scope": "existing engine; Windows x64 and Android ARM64 IL2CPP"
+    },
+    {
+      "name": "Mono class libraries shipped by Unity (System.Net.Security, System.Security.Cryptography)",
+      "version": "bundled with Unity 6000.5.2f1",
+      "license": "MIT and bundled third-party notices",
+      "licenseUrl": "https://github.com/Unity-Technologies/mono/blob/unity-main/LICENSE",
+      "scope": "existing engine component, no additional runtime distribution"
+    },
+    {
+      "name": "BouncyCastle.Cryptography",
+      "version": "2.7.0",
+      "targetFramework": "netstandard2.0",
+      "license": "MIT",
+      "licenseFile": "licenses/BouncyCastle-MIT.md",
+      "packageUrl": "https://api.nuget.org/v3-flatcontainer/bouncycastle.cryptography/2.7.0/bouncycastle.cryptography.2.7.0.nupkg",
+      "packageSha256": "f091ffccab4d03993e660bace277659a79dee0972f54d7f1f4bd46d680966241",
+      "inputDllBytes": 4885904,
+      "scope": "probe only; generates certificate, no HTTP or replacement TLS stack"
+    },
+    {
+      "name": "com.unity.modules.androidjni",
+      "version": "1.0.0",
+      "license": "LicenseRef-Unity",
+      "scope": "built-in probe package"
+    },
+    {
+      "name": "com.unity.modules.jsonserialize",
+      "version": "1.0.0",
+      "license": "LicenseRef-Unity",
+      "scope": "built-in probe package"
+    }
+  ]
+}
