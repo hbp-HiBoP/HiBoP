@@ -2,6 +2,8 @@
     "name": "HBP.Dev.Runtime",
     "rootNamespace": "",
     "references": [
+        "HBP.Transfer.Anatomy.Contracts",
+        "HBP.Transfer.Anatomy.Desktop",
         "HBP.Input.Runtime",
         "Unity.InputSystem",
         "HBP.Core.Runtime",

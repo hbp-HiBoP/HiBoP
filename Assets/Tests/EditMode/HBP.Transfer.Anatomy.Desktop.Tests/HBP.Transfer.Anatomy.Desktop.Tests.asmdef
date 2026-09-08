@@ -1,0 +1,7 @@
+{
+    "name": "HBP.Transfer.Anatomy.Desktop.Tests",
+    "references": ["HBP.Transfer.Anatomy.Contracts", "HBP.Transfer.Anatomy.Desktop", "HBP.Core.Runtime", "HBP.Data.Runtime", "UniTask"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

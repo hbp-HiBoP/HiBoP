@@ -22,7 +22,7 @@ contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs
 | <a id="quest-003"></a>[QUEST-003](tasks/QUEST-003.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-003.md), [preuves](evidence/QUEST-003/manifest.json) ; deux builds et tests réussis, M1 Windows et M2 Quest validés par le propriétaire. |
 | <a id="quest-004"></a>[QUEST-004](tasks/QUEST-004.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-004.md), [preuves](evidence/QUEST-004/manifest.json) ; APK Quest et Player Windows construits, tests et isolation XR vérifiés ; M1/M2 confirmés par le propriétaire le 2026-09-07 à 19:34 +02:00. Messages natifs Meta documentés dans le rapport. |
 | <a id="quest-005"></a>[QUEST-005](tasks/QUEST-005.md) | IMPLEMENTEE | REUSSI | NON_REQUIS | [Rapport](reports/QUEST-005.md), [preuves](evidence/QUEST-005/manifest.json) ; contrat HBNA v1 pur, 36 tests EditMode réussis, round-trip bit-exact et validation bornée. |
-| <a id="quest-006"></a>[QUEST-006](tasks/QUEST-006.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
+| <a id="quest-006"></a>[QUEST-006](tasks/QUEST-006.md) | IMPLEMENTEE | REUSSI | VALIDE | [Rapport](reports/QUEST-006.md), [preuves](evidence/QUEST-006/manifest.json) ; 53 tests EditMode réussis, Player Windows IL2CPP et capture MNI réelle ; M1/M2 confirmés visuellement par le propriétaire le 2026-09-08. |
 | <a id="quest-007"></a>[QUEST-007](tasks/QUEST-007.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-008"></a>[QUEST-008](tasks/QUEST-008.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-009"></a>[QUEST-009](tasks/QUEST-009.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |

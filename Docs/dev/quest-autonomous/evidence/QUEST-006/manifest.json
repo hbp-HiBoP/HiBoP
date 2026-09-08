@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "taskId": "QUEST-006",
+  "recordedAtUtc": "2026-09-08T07:45:59.3299099Z",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "sourceState": {
+    "branch": "feature/xr-autonomous",
+    "head": "0fb71b89fd644fb4880dc345aa0cb0f991407ca9",
+    "initiallyClean": true,
+    "committed": false,
+    "files": [
+      {
+        "path": "Assets/Scripts/HBP/Dev/AnatomyCaptureDiagnostic.cs",
+        "bytes": 8697,
+        "sha256": "41ef8a61f9f1b5f7a76ab2521c19a6800fe0d8efd1f41ef612dabfba57b1a51d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/AnatomyCaptureDiagnostic.cs.meta",
+        "bytes": 59,
+        "sha256": "0c506ce1d64d06cd3aaf77f09d06c8fdc13c58c9e7d7b586827e2c08c23a8ad3"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/HBP.Dev.Runtime.asmdef",
+        "bytes": 674,
+        "sha256": "f146936177c835588563b323ca58ea06d0c555dc1e867ccc7ec7854f5a4a1242"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop.meta",
+        "bytes": 172,
+        "sha256": "8c06ce6bec827bb33a63f638b78de28f4c30715a6c3d0d8ba44e0e76d4d4a72a"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests.meta",
+        "bytes": 172,
+        "sha256": "cf9cfa16439887ed18ed32b0a808c0ac35bdf72e3e830481b158492a3e1f0794"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopAnatomyCapture.cs",
+        "bytes": 7646,
+        "sha256": "bf46ebb6dde62e5d43a0de96ab812fe441331ea6de9ff1f4e8825024883d2da2"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopAnatomyCapture.cs.meta",
+        "bytes": 59,
+        "sha256": "f762c03eff28d29933fbae3474adb270eacbd495c2ae8345551a05fed48b465f"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/HBP.Transfer.Anatomy.Desktop.asmdef",
+        "bytes": 181,
+        "sha256": "a6f46d90e8d228c6f5f8aeec4ff9130602ea6ba12df0b0b552db7c1d8c16caf7"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/HBP.Transfer.Anatomy.Desktop.asmdef.meta",
+        "bytes": 166,
+        "sha256": "d7ee3ca23b7c84eb903b6c06c2d61a6b932ef16fcfd6722917050a2873288e6d"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopAnatomyCaptureTests.cs",
+        "bytes": 10625,
+        "sha256": "ea3901e58522130609bf2e6c5daee5fccfecc4879af520ba7212d16a37ed462e"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopAnatomyCaptureTests.cs.meta",
+        "bytes": 59,
+        "sha256": "d503d42ed0f0fa2fe4310023c6770f81d904c7683b1d4ec03b3ba0ec1b022173"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/HBP.Transfer.Anatomy.Desktop.Tests.asmdef",
+        "bytes": 306,
+        "sha256": "a05f71c73454deb9d0c88e91ab387e34e75c394b61650562c75b45d95d61068d"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/HBP.Transfer.Anatomy.Desktop.Tests.asmdef.meta",
+        "bytes": 166,
+        "sha256": "10ed55a1e45483b91f7f60408a844ec2919bd67136d62b210aacea18f0a8ba37"
+      }
+    ]
+  },
+  "environment": {
+    "unity": "6000.5.2f1",
+    "editorInitiallyOpen": false,
+    "player": "Windows x86_64 IL2CPP",
+    "graphicsDevice": "NVIDIA GeForce RTX 2070 SUPER",
+    "inputs": [
+      {
+        "path": "ProjectSettings/ProjectVersion.txt",
+        "bytes": 85,
+        "sha256": "37b79852fe632bb6d17f4a144fcc583bc700eff2aab10d2a3140e516c4391965"
+      },
+      {
+        "path": "Packages/manifest.json",
+        "bytes": 2605,
+        "sha256": "c962cea53601a70c1a38ede220b1e0e9c2b6a008b740e00058055faba4d59652"
+      },
+      {
+        "path": "Packages/packages-lock.json",
+        "bytes": 17988,
+        "sha256": "c5f3d1c413ee802e90ab68a618fc5a3e9bd93b248a6959ed8ff01416bf4906c5"
+      },
+      {
+        "path": "Tools/NativePlugins.lock.json",
+        "bytes": 6048,
+        "sha256": "3b4e39202f453a745429ab7645901b16e6cf94832321d111c30e2bbc8cf14384"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+        "bytes": 1378816,
+        "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+        "bytes": 246784,
+        "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b"
+      }
+    ],
+    "nativeRevisions": [
+      {
+        "name": "EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd"
+      },
+      {
+        "name": "hbp_core",
+        "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c"
+      },
+      {
+        "name": "hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7"
+      }
+    ],
+    "nativeUse": "Existing MNI loader and native dimensions only; capture does not reload data or invoke EEG import."
+  },
+  "checks": [
+    {
+      "id": "T1",
+      "result": "REUSSI",
+      "command": "Unity.exe -batchmode -nographics -runTests -testPlatform EditMode -assemblyNames HBP.Transfer.Anatomy.Desktop.Tests;HBP.Transfer.Anatomy.Tests (full command in report)",
+      "exitCode": 0,
+      "passed": 53,
+      "failed": 0,
+      "captureTests": 17,
+      "contractTests": 36
+    },
+    {
+      "id": "T2",
+      "result": "REUSSI",
+      "command": "Tools/format-code.cmd",
+      "exitCode": 0,
+      "files": 3
+    },
+    {
+      "id": "T3",
+      "result": "REUSSI",
+      "command": "Tools/Prepare-QuestAnatomyFixture.ps1 -OutputDirectory .artifacts/quest-006/fixture",
+      "exitCode": 0,
+      "verifiedSources": 8
+    },
+    {
+      "id": "T4",
+      "result": "REUSSI",
+      "method": "Independent read-only concurrency/integrity review, gpt-6-astra high; no blocking findings after guards."
+    },
+    {
+      "id": "T5",
+      "result": "REUSSI",
+      "command": "Unity.exe -batchmode -nographics -quit -buildTarget Win64 -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine -buildOutput C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-006\\player -scriptingBackend IL2CPP (full command in report)",
+      "exitCode": 0
+    },
+    {
+      "id": "T6",
+      "result": "REUSSI",
+      "command": "HiBoP.exe -pf C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-006\\fixture\\quest-mni-anatomy.hibop -v \"MNI Anatomy\" -captureAnatomy C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-006\\captures -logFile C:\\HBP\\Software\\HiBoP\\.test-results\\quest-006\\player-visible.log -screen-fullscreen 0",
+      "resultFile": ".artifacts/quest-006/captures/20260908-074153-0f0167e7-e0e9-43b5-82c6-38fc381ebfd0/capture.json",
+      "observations": {
+        "Task": "QUEST-006",
+        "CreatedUtc": "2026-09-08T07:41:53.8208272Z",
+        "Unity": "6000.5.2f1",
+        "GraphicsDevice": "NVIDIA GeForce RTX 2070 SUPER",
+        "VisualizationName": "MNI Anatomy",
+        "ColumnName": "MNI Anatomy",
+        "VisualizationId": "quest-001-visualization",
+        "ColumnId": "quest-001-column",
+        "TransferId": "0f0167e7-e0e9-43b5-82c6-38fc381ebfd0",
+        "SessionId": "anatomy-diagnostic",
+        "ContentRevision": 1,
+        "FrameId": "hibop-mni-unity-mm-v1",
+        "Unit": "Millimeter",
+        "AssetToBrain": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "VertexCount": 69104,
+        "IndexCount": 414648,
+        "TriangleCount": 138216,
+        "UvCount": 69104,
+        "BoundsMin": [
+          -69.9079,
+          -105.3945,
+          -50.0656738
+        ],
+        "BoundsMax": [
+          72.17938,
+          72.04567,
+          83.34009
+        ],
+        "Color": [
+          0.830769956,
+          0.462077051,
+          0.187820762,
+          1.0
+        ],
+        "Visible": true,
+        "SurfaceByteLength": 3869920,
+        "EncodedBytes": 3870248,
+        "Sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12",
+        "SourceBuffersBitExact": true,
+        "RepeatedCaptureBitExact": true,
+        "RoundTripBitExact": true,
+        "CameraCount": 1,
+        "CameraUnchanged": true,
+        "PresentationUnchanged": true,
+        "MainThreadCopyMilliseconds": 1.9246,
+        "EncodeTwiceAndRoundTripMilliseconds": 325.59000000000003,
+        "FramesDuringCapture": 2
+      }
+    },
+    {
+      "id": "T7",
+      "result": "REUSSI",
+      "command": "git diff --check; report links, artifact SHA-256 and HBNA equality checks",
+      "exitCode": 0
+    }
+  ],
+  "artifactsLocalIgnored": [
+    {
+      "path": ".test-results/quest-006/editmode-results.xml",
+      "bytes": 48918,
+      "sha256": "1c01c0669ef026f2a18c2d9d4e286d55fc2de138d945bb19c1fe48589ce1051f"
+    },
+    {
+      "path": ".test-results/quest-006/editmode.log",
+      "bytes": 80157,
+      "sha256": "2d49801f9791b86227a43608f06e510aa62fd23465b193cc2cf016ca6241e7ae"
+    },
+    {
+      "path": ".test-results/quest-006/format.log",
+      "bytes": 170,
+      "sha256": "6e50b2e4ef09eb7cc0d425f34d955b5eb11b78dabc56c98dfda5ece92b291562"
+    },
+    {
+      "path": ".test-results/quest-006/build.log",
+      "bytes": 751177,
+      "sha256": "b6eca3b217e92f2f8a5d385c43fd7d16ec3e7cff659b05b35d385043f30536e8"
+    },
+    {
+      "path": ".test-results/quest-006/player.log",
+      "bytes": 2032,
+      "sha256": "c368373d687d60b59a772fb2dde1493ad0ab061975d3a527ecaf89f8f71e7e82"
+    },
+    {
+      "path": ".test-results/quest-006/player-build-info.json",
+      "bytes": 119,
+      "sha256": "fb6ddf35a31aede020c468384fd20206c67de58095764e5df21f0e3fb406b5c8"
+    },
+    {
+      "path": ".test-results/quest-006/unity-generated-settings.diff",
+      "bytes": 9244,
+      "sha256": "92ca3b1ef88b66118bc57c1a31caaba923def474fb6d4dfc84af1324cd00d9ed"
+    },
+    {
+      "path": ".artifacts/quest-006/fixture/quest-mni-anatomy.hibop",
+      "bytes": 1853,
+      "sha256": "0bd800ec656ed8be03777b85457e47a749bbfd5b450d368185baab1b0e32a61a"
+    },
+    {
+      "path": ".artifacts/quest-006/player/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "aab370fc59ed240ed50af0c9461d0d3e83548253ac11c820420d4d37bba64250"
+    },
+    {
+      "path": ".artifacts/quest-006/player/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 59066368,
+      "sha256": "0e70185ca9a286a7175b13b695f90e62593ce8c61b897970c1ef5c0304a4266d"
+    },
+    {
+      "path": ".artifacts/quest-006/captures/20260908-074153-0f0167e7-e0e9-43b5-82c6-38fc381ebfd0/capture.json",
+      "bytes": 1480,
+      "sha256": "333d89d4dc777475a4c2a103897d52a4f525ec2c4eb3e13921efbe1a0f1728ea"
+    },
+    {
+      "path": ".artifacts/quest-006/captures/20260908-074153-0f0167e7-e0e9-43b5-82c6-38fc381ebfd0/anatomy.hbna",
+      "bytes": 3870248,
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+    },
+    {
+      "path": ".artifacts/quest-006/captures/20260908-074153-0f0167e7-e0e9-43b5-82c6-38fc381ebfd0/anatomy-repeat.hbna",
+      "bytes": 3870248,
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+    },
+    {
+      "path": ".test-results/quest-006/player-visible-observed.log",
+      "bytes": 2760,
+      "sha256": "1a6519dcf4fec3f9415a6702d2c29928299a084d2a684322f24fad5349165f0a"
+    }
+  ],
+  "manual": [
+    {
+      "id": "M1",
+      "status": "VALIDE",
+      "action": "Open delivered Player with fixture and diagnostic flags; verify MNI Anatomy / quest-001-column in capture.json."
+    },
+    {
+      "id": "M2",
+      "status": "VALIDE",
+      "action": "Press F8 with stationary view; check visual framing is unchanged and report OK/KO."
+    }
+  ],
+  "ownerAction": {
+    "date": "2026-09-08",
+    "statement": "C'est fait, j'ai mis le player en premier plan et appuyé sur F8",
+    "matchingCaptureUtc": "2026-09-08T07:41:53.8208272Z",
+    "interpretation": "Foreground/F8 action confirmed; source IDs and camera stability measured successfully. Subsequent explicit visual confirmation validates M1 and M2."
+  },
+  "limitations": [
+    "No Quest/network/scientific qualification.",
+    "Capture supports complete anatomical MNI with uniform appearance; unsupported selections are refused.",
+    "Visible is local renderer activation; camera/minimization are independent.",
+    "Simultaneous user edits can legitimately change the second diagnostic capture.",
+    "The first diagnostic JSON was empty under IL2CPP; fixed using explicit JObject tokens and rebuilt.",
+    "The automatic startup capture can overlap the existing camera/UI layout initialization; camera stability requires an idle capture.",
+    "Non-white material tint has not been separately qualified."
+  ],
+  "ownerVisualValidation": {
+    "date": "2026-09-08",
+    "recordedAtUtc": "2026-09-08T08:00:46.6573527Z",
+    "statement": "Je confirme le retour visuel sur le player desktop",
+    "items": [
+      "M1",
+      "M2"
+    ],
+    "source": "Owner reply in the QUEST-006 implementation conversation"
+  }
+}
