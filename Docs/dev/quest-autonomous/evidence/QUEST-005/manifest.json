@@ -1,0 +1,508 @@
+{
+  "schemaVersion": 1,
+  "taskId": "QUEST-005",
+  "recordedAtUtc": "2026-09-08T07:16:04.2951687Z",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "NON_REQUIS"
+  },
+  "sourceState": {
+    "branch": "feature/xr-autonomous",
+    "head": "fd95c507f8ae1ba0f3d2b8939071bb9108f9673e",
+    "initiallyClean": true,
+    "committed": false,
+    "files": [
+      {
+        "path": "Assets/Scripts/HBP/Transfer.meta",
+        "bytes": 173,
+        "sha256": "6b7227911af2ade987b19f1d5c8f9bc8ad80a5f0dd2648f19ce4b904957aaac8"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy.meta",
+        "bytes": 173,
+        "sha256": "b84b29ffa87cc4a70d2be7b181efdaca388898f50853f1c94778b2d9d48ba647"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomyBuffer.cs",
+        "bytes": 713,
+        "sha256": "33c7c4d6dba9013b8d9f9d1472bf2dd94e7f714e6e6906829a429737891c7abf"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomyBuffer.cs.meta",
+        "bytes": 61,
+        "sha256": "a19b5ab1ec92df5c0a4be7f87d4bbeb76de6160abaff69fc2e124fde26639fa5"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomyCoordinateSpace.cs",
+        "bytes": 2909,
+        "sha256": "5de786624f4b5386bbca6dfbe1c481a112d51e4da221d1226d4077a9de053a00"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomyCoordinateSpace.cs.meta",
+        "bytes": 61,
+        "sha256": "ac2349ecd709d642b8e4433826876a024c066986cad7ba5f7dd61cb5b28fccd5"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomySnapshot.cs",
+        "bytes": 6426,
+        "sha256": "0f5388990ee2fd8411b2777e3424770d2590e200e57487b9e1646d5996060d95"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomySnapshot.cs.meta",
+        "bytes": 61,
+        "sha256": "a26f887a9b90d7239e7371e07bc1070c767be412ab8659af95e2b7ef9c7b7d69"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomySnapshotCodec.cs",
+        "bytes": 9886,
+        "sha256": "3e921942cd7dd6038e80b15db14296e0ea1656d0837e4b4505df0b1943974829"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomySnapshotCodec.cs.meta",
+        "bytes": 61,
+        "sha256": "d300b4e30661421d55ef6b8156b52998952cf591955591e5a3dcece450c335d2"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/HBP.Transfer.Anatomy.Contracts.asmdef",
+        "bytes": 242,
+        "sha256": "f4b889fc23c7e202e218e1d41cbdb89b60b13df51d0cd3d48ffe39d4e9664be9"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/HBP.Transfer.Anatomy.Contracts.asmdef.meta",
+        "bytes": 61,
+        "sha256": "d86e29402bcadadf6f7def7209d10fa517c074b7aa3fad36aabae481d1bc8a6f"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests.meta",
+        "bytes": 173,
+        "sha256": "da2d88477d5f94d836666393638e608c7ec948a6eae8bc1b9a4da197cdd1a98b"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests/AnatomySnapshotTests.cs",
+        "bytes": 15122,
+        "sha256": "3b172821d0207ea6d62186edabc9f463dc70ee64e308d355bc06fc56872f6210"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests/AnatomySnapshotTests.cs.meta",
+        "bytes": 61,
+        "sha256": "981dfdee24a7dcf666409820bc8af4de4754bf593211ffedcd93796e19c91cd9"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests/HBP.Transfer.Anatomy.Tests.asmdef",
+        "bytes": 384,
+        "sha256": "4069ba1293f821b53c3bc96bb2d984bcb039609cd393c658e0c88f68bfb09a52"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests/HBP.Transfer.Anatomy.Tests.asmdef.meta",
+        "bytes": 61,
+        "sha256": "89218929002e27ac5a6ee63146cde2ae7aa9184254cf458a820becc515fb782d"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/evidence/QUEST-005/example.json",
+        "bytes": 1559,
+        "sha256": "b49fe7c8f4a7fbb16429f8941b0ba308682e2da48698ac29bee8d2480ef4289a"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/reports/QUEST-005.md",
+        "bytes": 15093,
+        "sha256": "409d4c6fb6f82a69973599942abc391bdb4f8b1dad0b691e950d8d2000f10f30"
+      },
+      {
+        "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+        "bytes": 5735,
+        "sha256": "4be43dc2368f797217e253e8e25651de7ef89e5da256867f928ff3259f206472"
+      }
+    ]
+  },
+  "versions": {
+    "unity": "6000.5.2f1 (eb73d3b415a1)",
+    "operatingSystem": "Microsoft Windows NT 10.0.26200.0",
+    "packages": [
+      {
+        "name": "com.unity.test-framework",
+        "version": "1.7.0"
+      },
+      {
+        "name": "com.unity.render-pipelines.universal",
+        "version": "17.5.0"
+      },
+      {
+        "name": "com.unity.xr.openxr",
+        "version": "1.18.0"
+      },
+      {
+        "name": "com.unity.xr.meta-openxr",
+        "version": "2.4.1"
+      }
+    ],
+    "nativeLibrariesUsed": false,
+    "nativeLock": {
+      "path": "Tools/NativePlugins.lock.json",
+      "bytes": 6048,
+      "sha256": "3b4e39202f453a745429ab7645901b16e6cf94832321d111c30e2bbc8cf14384"
+    },
+    "nativeRevisions": [
+      {
+        "name": "EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd"
+      },
+      {
+        "name": "hbp_core",
+        "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c"
+      },
+      {
+        "name": "hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7"
+      }
+    ]
+  },
+  "historicalReuse": {
+    "commit": "eb26c323e2bdf6c138f9e9e3c02f3e9796cae249",
+    "adapted": "Shared/Packages/com.crnl.hibop.render-model/Runtime/RenderBuffer.cs",
+    "referenceOnly": [
+      "CoordinateSpace.cs",
+      "RenderAssets.cs",
+      "SurfaceAssetPayloadCodec.cs"
+    ],
+    "changes": "New namespace/types/GUIDs; unmanaged read-only buffers; internal ownership; new standalone codec with serialized coordinates and envelope."
+  },
+  "verification": {
+    "unity": {
+      "command": "Unity.exe -batchmode -nographics -projectPath C:\\HBP\\Software\\HiBoP -runTests -testPlatform EditMode -assemblyNames HBP.Transfer.Anatomy.Tests -testResults C:\\HBP\\Software\\HiBoP\\.test-results\\quest-005\\editmode-results.xml -logFile C:\\HBP\\Software\\HiBoP\\.test-results\\quest-005\\editmode.log -forgetProjectPath",
+      "launcher": "Matching Unity Hub 6000.5.2f1; Start-Process -Wait -PassThru -WindowStyle Hidden; elevated outside sandbox",
+      "exitCode": 0,
+      "result": "Passed",
+      "total": 36,
+      "passed": 36,
+      "failed": 0,
+      "durationSeconds": 52460924.0,
+      "startTime": "2026-09-08 07:15:04Z",
+      "endTime": "2026-09-08 07:15:09Z",
+      "cases": [
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.ContractAssemblyHasOnlySystemDependencies",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.CorruptHashesTruncationAndTrailingBytesAreRejected",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"magic\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"version\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"totalLength\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"revision\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"handedness\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"unit\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"mappingVersion\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"affine\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"singular\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"matrixNan\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"winding\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"visible\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"color\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"colorNan\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"verticesNegative\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"verticesMaximum\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indicesMaximum\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indicesIncomplete\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"uvCount\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"surfaceLength\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"indexOutOfRange\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"positionNan\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"normalInfinity\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"uvNan\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textLength\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textBlank\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(\"textUtf8\")",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MaximumVertexAndIndexCountsRoundTripWithoutTruncation",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicConstructionAndDecodedSnapshotOwnTheirBuffers",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicFactoryRejectsInvalidDimensionsAndValues",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(True)",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(False)",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.Utf8IdentifiersArePreservedWithoutGuidParsingOrNormalization",
+          "result": "Passed"
+        },
+        {
+          "name": "HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.WriteReviewExample",
+          "result": "Passed"
+        }
+      ]
+    },
+    "formatting": {
+      "command": "Tools/format-code.cmd",
+      "exitCode": 0,
+      "initialAttempts": [
+        "Sandbox NuGet source access failed; retry elevated restored pinned tool.",
+        "No items to cleanup before Unity generated new C# projects."
+      ],
+      "projectGeneration": "Unity.exe -batchmode -nographics -quit -projectPath C:\\HBP\\Software\\HiBoP -executeMethod UnityEditor.SyncVS.SyncSolution -logFile C:\\HBP\\Software\\HiBoP\\.test-results\\quest-005\\sync-solution.log -forgetProjectPath",
+      "generationExitCode": 0
+    },
+    "independentReview": {
+      "scope": "Data integrity, buffer ownership, bounded allocation, coordinate conventions and tests",
+      "reviewer": "gpt-6-astra, high",
+      "findingsResolved": [
+        "Explicit source handedness/front-face winding before mapping.",
+        "Validate metadata before surface allocations and public copies."
+      ],
+      "residualFindings": 0,
+      "testsRunByReviewer": false
+    },
+    "maximumSurface": {
+      "vertices": 2000000,
+      "indices": 12000000,
+      "uvPairs": 2000000,
+      "bytes": 112000000,
+      "truncation": false,
+      "physicalQuestMemoryQualified": false
+    },
+    "transferNamespaceMigration": {
+      "requestedByOwnerOn": "2026-09-08",
+      "path": "Assets/Scripts/HBP/Transfer/Anatomy",
+      "namespace": "HBP.Transfer.Anatomy",
+      "assembly": "HBP.Transfer.Anatomy.Contracts",
+      "movedMetaHashesPreserved": true,
+      "encodedExampleUnchanged": true,
+      "purpose": "Shared Desktop-to-Quest and Quest-to-Desktop transfer code",
+      "behaviorChanges": false
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    "nonExecuted": [
+      "Player Windows/Android builds",
+      "Physical Quest/rendering/transport",
+      "Real Desktop capture",
+      "New scientific validation"
+    ]
+  },
+  "localArtifacts": [
+    {
+      "path": ".test-results/quest-005/editmode-results.xml",
+      "bytes": 31721,
+      "sha256": "9510727c4651c96796e4a55fbd38648c5985baf313476893a8dfd268f2e0dca3"
+    },
+    {
+      "path": ".test-results/quest-005/editmode.log",
+      "bytes": 75069,
+      "sha256": "2c95308510bb32d8e22a86599642bd741af70600df4575abfe46f8b1fb3c31ce"
+    },
+    {
+      "path": ".test-results/quest-005/format.log",
+      "bytes": 170,
+      "sha256": "5a29f46520537e0dcc385adc797839f113a8491370b26b35202127abc296cd58"
+    },
+    {
+      "path": ".test-results/quest-005/sync-solution.log",
+      "bytes": 62623,
+      "sha256": "30c3a77fb78a3983545b47491f486ba15b5ced5fd52867aa7450029a9c10eec2"
+    },
+    {
+      "path": ".test-results/quest-005/example.hbna",
+      "bytes": 417,
+      "sha256": "c3ec7ae343be4aec5afc61198e0bacb152459d9ae7329a976206facdaa7625f9"
+    },
+    {
+      "path": "Library/ScriptAssemblies/HBP.Transfer.Anatomy.Contracts.dll",
+      "bytes": 15872,
+      "sha256": "9aa11de28b26379db222a216e0ce94be000753339ce108e0b3e93a6675f6b34e"
+    },
+    {
+      "path": "Library/ScriptAssemblies/HBP.Transfer.Anatomy.Tests.dll",
+      "bytes": 17408,
+      "sha256": "10c229c671ddffd13e09f8ced4dfd3ec7a105b7899b641a4ced12daf4236e622"
+    }
+  ],
+  "example": {
+    "description": "Synthetic triangle, not a captured MNI surface. IDs from QUEST-001.",
+    "magic": "HBNA",
+    "schemaVersion": 1,
+    "encodedByteLength": 417,
+    "transferId": "example-transfer-005",
+    "sessionId": "example-session-005",
+    "visualizationId": "quest-001-visualization",
+    "columnId": "quest-001-column",
+    "frameId": "fixture-brain-XYZ",
+    "contentRevision": 1,
+    "handedness": 2,
+    "unit": 2,
+    "mappingVersion": 1,
+    "assetToBrainRowMajor": [
+      -1.0,
+      0.0,
+      0.0,
+      12.25,
+      0.0,
+      2.0,
+      0.0,
+      -3.5,
+      0.0,
+      0.0,
+      1.0,
+      7.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "winding": 1,
+    "visible": true,
+    "linearRgba": [
+      0.25,
+      0.5,
+      0.75,
+      1.0
+    ],
+    "vertexCount": 3,
+    "indexCount": 3,
+    "uvCount": 3,
+    "surfaceByteLength": 108,
+    "surfaceSha256": "8e20953849f419ed1a6a33785cddec7cc71aeafdb38885ddd6d401870b38e818",
+    "positionsXyz": [
+      -0.0,
+      0.0,
+      1E-45,
+      1.25,
+      0.0,
+      0.0,
+      0.0,
+      -2.5,
+      0.0
+    ],
+    "positionFloat32BitsHex": [
+      "80000000",
+      "00000000",
+      "00000001",
+      "3fa00000",
+      "00000000",
+      "00000000",
+      "00000000",
+      "c0200000",
+      "00000000"
+    ],
+    "normalsXyz": [
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "indices": [
+      0,
+      1,
+      2
+    ],
+    "uvs": [
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      1.0
+    ],
+    "envelopeSha256": "6cc357be781a350b31d25bcf551e98b10af4f84c13098d1166f6f2727f00b041"
+  }
+}

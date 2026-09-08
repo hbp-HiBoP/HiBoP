@@ -1,0 +1,93 @@
+{
+  "description": "Synthetic triangle, not a captured MNI surface. IDs from QUEST-001.",
+  "magic": "HBNA",
+  "schemaVersion": 1,
+  "encodedByteLength": 417,
+  "transferId": "example-transfer-005",
+  "sessionId": "example-session-005",
+  "visualizationId": "quest-001-visualization",
+  "columnId": "quest-001-column",
+  "frameId": "fixture-brain-XYZ",
+  "contentRevision": 1,
+  "handedness": 2,
+  "unit": 2,
+  "mappingVersion": 1,
+  "assetToBrainRowMajor": [
+    -1.0,
+    0.0,
+    0.0,
+    12.25,
+    0.0,
+    2.0,
+    0.0,
+    -3.5,
+    0.0,
+    0.0,
+    1.0,
+    7.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "winding": 1,
+  "visible": true,
+  "linearRgba": [
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "vertexCount": 3,
+  "indexCount": 3,
+  "uvCount": 3,
+  "surfaceByteLength": 108,
+  "surfaceSha256": "8e20953849f419ed1a6a33785cddec7cc71aeafdb38885ddd6d401870b38e818",
+  "positionsXyz": [
+    -0.0,
+    0.0,
+    1E-45,
+    1.25,
+    0.0,
+    0.0,
+    0.0,
+    -2.5,
+    0.0
+  ],
+  "positionFloat32BitsHex": [
+    "80000000",
+    "00000000",
+    "00000001",
+    "3fa00000",
+    "00000000",
+    "00000000",
+    "00000000",
+    "c0200000",
+    "00000000"
+  ],
+  "normalsXyz": [
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "indices": [
+    0,
+    1,
+    2
+  ],
+  "uvs": [
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "envelopeSha256": "6cc357be781a350b31d25bcf551e98b10af4f84c13098d1166f6f2727f00b041"
+}

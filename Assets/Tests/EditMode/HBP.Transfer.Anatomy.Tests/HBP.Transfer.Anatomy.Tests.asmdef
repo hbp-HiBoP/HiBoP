@@ -1,0 +1,11 @@
+{
+    "name": "HBP.Transfer.Anatomy.Tests",
+    "rootNamespace": "HBP.Tests.Transfer.Anatomy",
+    "references": ["HBP.Transfer.Anatomy.Contracts"],
+    "includePlatforms": ["Editor"],
+    "overrideReferences": true,
+    "precompiledReferences": ["nunit.framework.dll"],
+    "autoReferenced": false,
+    "noEngineReferences": true,
+    "optionalUnityReferences": ["TestAssemblies"]
+}
