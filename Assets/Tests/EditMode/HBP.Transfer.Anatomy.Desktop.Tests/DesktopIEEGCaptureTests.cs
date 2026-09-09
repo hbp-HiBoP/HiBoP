@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.IO;
+using System.Threading.Tasks;
+using HBP.Core.DLL;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
@@ -93,6 +96,70 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
             column.DynamicParameters.SetSpanValues(-1, 0, 1);
             Assert.That(capture.SpanMax, Is.EqualTo(10));
             Assert.That(capture.SiteValues[0], Is.EqualTo(negative));
+        }
+
+        [Test]
+        public async Task DesktopProjectionPreservesAllSamplesAndTemporalPolicies()
+        {
+            using var volume = new Volume();
+            Assert.That(volume.LoadNIFTIFile(Path.Combine(Application.dataPath, "Data/IRM/MNI.nii")), Is.True);
+            using var grid = ActivityProjectionGrid.Create(volume, 24, VolumeInterpolation.Trilinear);
+            using var surface = new HBP.Core.DLL.Surface();
+            surface.SetBuffers(new[] { new Vector3(10, 0, 0), new Vector3(11, 1, 0), new Vector3(9, 0, 1) }, new[] { 0, 1, 2 });
+            using var generator = new IEEGGenerator();
+            using var reference = new IEEGGenerator();
+            using var projection = new SurfaceGenerator();
+            using var referenceProjection = new SurfaceGenerator();
+            generator.Initialize(grid);
+            reference.Initialize(grid);
+            projection.Initialize(generator, surface, 0, 1);
+            referenceProjection.Initialize(reference, surface, 0, 1);
+            typeof(Column3D).GetProperty("ActivityGenerator").SetValue(column, generator);
+            column.SurfaceGenerator = projection;
+            for (int i = 0; i < column.Sites.Count; ++i)
+            {
+                column.Sites[i].State.IsFiltered = true;
+                column.RawElectrodes.AddSite("S" + i, new Vector3(-10 + i, i, 0), 0, i);
+            }
+
+            try
+            {
+                column.Sites[1].State.IsOutOfROI = true;
+                foreach (bool roiActive in new[] { false, true })
+                {
+                    var values = column.ActivityValues;
+                    float distance = column.DynamicParameters.InfluenceDistance;
+                    for (int i = 0; i < column.Sites.Count; ++i)
+                        column.RawElectrodes.UpdateMask(i, column.Sites[i].State.IsEffectivelyMasked(roiActive));
+                    reference.ComputeActivity(column.RawElectrodes, distance, values, column.ProjectionTimeline.Length, column.Sites.Count, SiteInfluenceByDistanceType.Quadratic);
+                    reference.AdjustValues(0, -10, 10);
+                    var prepared = column.PrepareActivityComputation(roiActive, SiteInfluenceByDistanceType.Quadratic, false);
+                    // After capture the worker must not consult the current UI or new buffers.
+                    typeof(Column3DDynamic).GetProperty("ActivityValues").SetValue(column, Array.Empty<float>());
+                    column.DynamicParameters.SetSpanValues(-100, 5, 100);
+                    column.DynamicParameters.InfluenceDistance = 1;
+                    await Task.Run(prepared.Compute);
+                    typeof(Column3DDynamic).GetProperty("ActivityValues").SetValue(column, values);
+                    column.DynamicParameters.SetSpanValues(-10, 0, 10);
+                    column.DynamicParameters.InfluenceDistance = distance;
+                    foreach (TemporalSamplingPolicy policy in Enum.GetValues(typeof(TemporalSamplingPolicy)))
+                    {
+                        PersistentDataManager.UserPreferences.Data.EEG.TemporalSampling = policy;
+                        for (int index = 0; index < column.Timeline.Length; ++index)
+                        {
+                            column.Timeline.CurrentIndex = index;
+                            column.ComputeSurfaceBrainUVWithActivity();
+                            referenceProjection.ComputeActivityUV(column.CurrentProjectionSample.Index, column.ActivityAlpha);
+                            Assert.That(projection.ActivityUV, Is.EqualTo(referenceProjection.ActivityUV), $"{policy}, navigation index {index}, ROI {roiActive}");
+                            Assert.That(projection.AlphaUV, Is.EqualTo(referenceProjection.AlphaUV));
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                column.RawElectrodes.Dispose();
+            }
         }
 
         [Test]

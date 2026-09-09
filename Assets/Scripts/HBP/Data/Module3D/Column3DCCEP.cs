@@ -455,9 +455,9 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
-        protected override System.Action PrepareSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        protected override System.Func<Core.DLL.IEEGComputeMetrics> PrepareCalibratedSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
         {
-            if (!IsSourceMarsAtlasLabelSelected) return base.PrepareSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
+            if (!IsSourceMarsAtlasLabelSelected) return base.PrepareCalibratedSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
             if (!supportsMarsAtlas)
             {
                 Debug.LogWarning("MarsAtlas CCEP projection was skipped because the selected mesh does not support MarsAtlas.");
@@ -466,7 +466,16 @@ namespace HBP.Data.Module3D
 
             var mask = AreaMask;
             var atlas = Object3DManager.MarsAtlas;
-            return () => generator.ComputeActivityAtlas(values, length, mask, atlas);
+            float middle = DynamicParameters.Middle;
+            float minimum = DynamicParameters.SpanMin;
+            float maximum = DynamicParameters.SpanMax;
+            return () =>
+            {
+                generator.ComputeActivityAtlas(values, length, mask, atlas);
+                var metrics = generator.GetLastComputeMetrics();
+                generator.AdjustValues(middle, minimum, maximum);
+                return metrics;
+            };
         }
 
 

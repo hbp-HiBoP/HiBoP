@@ -59,6 +59,7 @@ namespace HBP.UI.Tools
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             string[] arguments = System.Environment.GetCommandLineArgs();
             if (System.Array.IndexOf(arguments, "-captureOnce") >= 0 && System.Array.IndexOf(arguments, "-captureAnatomy") >= 0) return true;
+            if (System.Array.IndexOf(arguments, "-ieegEvidenceOnce") >= 0 && System.Array.IndexOf(arguments, "-ieegEvidence") >= 0) return true;
 #endif
             if (m_IsQuitting) return true;
 

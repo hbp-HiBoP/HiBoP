@@ -155,28 +155,26 @@ namespace HBP.Data.Module3D
             var generator = (Core.DLL.IEEGGenerator)ActivityGenerator;
             var values = ActivityValues;
             int length = ProjectionTimeline.Length;
-            var computeSignal = PrepareSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
+            var computeSignal = PrepareCalibratedSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
             if (computeSignal == null) return (updateMasks, null);
-            float middle = DynamicParameters.Middle;
-            float minimum = DynamicParameters.SpanMin;
-            float maximum = DynamicParameters.SpanMax;
             Core.DLL.IEEGComputeMetrics metrics = default;
             long valueCount = values.LongLength;
             return (() =>
             {
                 updateMasks();
-                computeSignal();
-                metrics = generator.GetLastComputeMetrics();
-                generator.AdjustValues(middle, minimum, maximum);
+                metrics = computeSignal();
             }, () => UpdateProjectionMemoryAccounting(metrics, valueCount));
         }
 
-        protected virtual System.Action PrepareSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        protected virtual System.Func<Core.DLL.IEEGComputeMetrics> PrepareCalibratedSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
         {
             var sites = RawElectrodes;
             int siteCount = sites.NumberOfSites;
             float distance = DynamicParameters.InfluenceDistance;
-            return () => generator.ComputeActivity(sites, distance, values, length, siteCount, influenceRule);
+            float middle = DynamicParameters.Middle;
+            float minimum = DynamicParameters.SpanMin;
+            float maximum = DynamicParameters.SpanMax;
+            return () => generator.ComputeCalibratedActivity(sites, distance, values, length, siteCount, influenceRule, middle, minimum, maximum);
         }
 
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)

@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="45" result="Passed" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:33Z" duration="7,6713462">
+  <test-suite type="TestSuite" id="1224" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="162" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:33Z" duration="7.671346" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1049" name="HBP.Module3D.PlayModeTests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Module3D.PlayModeTests.dll" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:33Z" duration="7.664833" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="37404" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1050" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:33Z" duration="7.663979" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1051" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:33Z" duration="7.663417" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1052" name="PlayMode" fullname="HBP.Tests.PlayMode" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:33Z" duration="7.662947" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1053" name="Module3D" fullname="HBP.Tests.PlayMode.Module3D" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:33Z" duration="7.662406" total="45" passed="45" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1001" name="CutsTriangleErasingPlayModeTests" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:27Z" duration="1.718907" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1007" name="Base3DScene_AddCutPlaneWithNativeSurfaceCreatesGeometry" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.Base3DScene_AddCutPlaneWithNativeSurfaceCreatesGeometry" methodname="Base3DScene_AddCutPlaneWithNativeSurfaceCreatesGeometry" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="945309415" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:25Z" duration="0.184350" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1002" name="Base3DScene_AddUpdateAndRemoveCutPlaneUpdatesSceneState" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.Base3DScene_AddUpdateAndRemoveCutPlaneUpdatesSceneState" methodname="Base3DScene_AddUpdateAndRemoveCutPlaneUpdatesSceneState" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="595526898" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:25Z" duration="0.028015" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1009" name="Base3DScene_CutPlaneLifecycleWithoutNativeSurfaceUsesFallbackState" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.Base3DScene_CutPlaneLifecycleWithoutNativeSurfaceUsesFallbackState" methodname="Base3DScene_CutPlaneLifecycleWithoutNativeSurfaceUsesFallbackState" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="716875256" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:25Z" duration="0.023174" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1004" name="CutParametersController_WritesPositionOrientationFlipCustomNormalAndRemoveToScene" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.CutParametersController_WritesPositionOrientationFlipCustomNormalAndRemoveToScene" methodname="CutParametersController_WritesPositionOrientationFlipCustomNormalAndRemoveToScene" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="1300934838" result="Passed" start-time="2026-09-09 16:14:25Z" end-time="2026-09-09 16:14:26Z" duration="0.056116" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1003" name="CutToolbarTools_WriteModeColorAndSiteCutStateBackToScene" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.CutToolbarTools_WriteModeColorAndSiteCutStateBackToScene" methodname="CutToolbarTools_WriteModeColorAndSiteCutStateBackToScene" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="2135769822" result="Passed" start-time="2026-09-09 16:14:26Z" end-time="2026-09-09 16:14:26Z" duration="0.034449" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1010" name="SurfaceRepresentationTransition_PreservesColumnActivityAndHidesThreeDimensionalCutMeshes" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.SurfaceRepresentationTransition_PreservesColumnActivityAndHidesThreeDimensionalCutMeshes" methodname="SurfaceRepresentationTransition_PreservesColumnActivityAndHidesThreeDimensionalCutMeshes" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="1754966419" result="Passed" start-time="2026-09-09 16:14:26Z" end-time="2026-09-09 16:14:27Z" duration="1.293959" asserts="0">
+                  <properties>
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PlayMode.Inflation" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1005" name="TriangleEraser_MaskActionsAffectOnlySelectedSceneAndCanBeResetCanceledAndLoaded" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.TriangleEraser_MaskActionsAffectOnlySelectedSceneAndCanBeResetCanceledAndLoaded" methodname="TriangleEraser_MaskActionsAffectOnlySelectedSceneAndCanBeResetCanceledAndLoaded" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="1767182344" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.032597" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1008" name="TriangleEraser_NativeMaskModesInvertAndExpandSurfaceMasks" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.TriangleEraser_NativeMaskModesInvertAndExpandSurfaceMasks" methodname="TriangleEraser_NativeMaskModesInvertAndExpandSurfaceMasks" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="1013420227" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.025502" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1006" name="TriangleErasingToolbarTools_WriteModeDegreesAndCommandsToTriangleEraser" fullname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests.TriangleErasingToolbarTools_WriteModeDegreesAndCommandsToTriangleEraser" methodname="TriangleErasingToolbarTools_WriteModeDegreesAndCommandsToTriangleEraser" classname="HBP.Tests.PlayMode.Module3D.CutsTriangleErasingPlayModeTests" runstate="Runnable" seed="1601938680" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.028554" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.CutsTriangleErasing" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1011" name="Module3DPlayModeArchitectureTests" fullname="HBP.Tests.PlayMode.Module3D.Module3DPlayModeArchitectureTests" classname="HBP.Tests.PlayMode.Module3D.Module3DPlayModeArchitectureTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.007285" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1012" name="Module3DHarness_CreatesSceneCameraLightAndRoot" fullname="HBP.Tests.PlayMode.Module3D.Module3DPlayModeArchitectureTests.Module3DHarness_CreatesSceneCameraLightAndRoot" methodname="Module3DHarness_CreatesSceneCameraLightAndRoot" classname="HBP.Tests.PlayMode.Module3D.Module3DPlayModeArchitectureTests" runstate="Runnable" seed="1238264903" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.005804" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3D" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1013" name="Module3DScenePlayModeTests" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" testcasecount="35" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:33Z" duration="5.934221" total="35" passed="35" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1026" name="Base3DScene_CameraTypeAndAutomaticRotationPropagateToControlledViews" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_CameraTypeAndAutomaticRotationPropagateToControlledViews" methodname="Base3DScene_CameraTypeAndAutomaticRotationPropagateToControlledViews" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="344280352" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.005101" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1045" name="Base3DScene_CleanAsyncDestroysSceneAndGeneratedObjects" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_CleanAsyncDestroysSceneAndGeneratedObjects" methodname="Base3DScene_CleanAsyncDestroysSceneAndGeneratedObjects" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="346049207" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.106287" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1027" name="Base3DScene_GenerateExportDirectoryUsesProjectVisualizationAndConfiguredExportRoot" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_GenerateExportDirectoryUsesProjectVisualizationAndConfiguredExportRoot" methodname="Base3DScene_GenerateExportDirectoryUsesProjectVisualizationAndConfiguredExportRoot" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="504042037" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.034831" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1042" name="Base3DScene_HbpCoreComputesRuntimeCutTexturesAndSurfaceActivity" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_HbpCoreComputesRuntimeCutTexturesAndSurfaceActivity" methodname="Base3DScene_HbpCoreComputesRuntimeCutTexturesAndSurfaceActivity" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1610785342" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.154145" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeMigration" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="HbpCoreOnly" />
+                    <property name="Category" value="PreviewSurface.Increment5" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1040" name="Base3DScene_InitializeAsync_MultiPatientSceneDoesNotGeneratePreview" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_MultiPatientSceneDoesNotGeneratePreview" methodname="Base3DScene_InitializeAsync_MultiPatientSceneDoesNotGeneratePreview" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1796952420" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:27Z" duration="0.026908" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PreviewSurface.Increment4" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1048" name="Base3DScene_InitializeAsync_WhenMNIIsUnavailableThrowsControlledException" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_WhenMNIIsUnavailableThrowsControlledException" methodname="Base3DScene_InitializeAsync_WhenMNIIsUnavailableThrowsControlledException" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="362217640" result="Passed" start-time="2026-09-09 16:14:27Z" end-time="2026-09-09 16:14:32Z" duration="5.024986" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1039" name="Base3DScene_InitializeAsync_WhenOnePreviewFailsKeepsTheOtherMRIStagesIndependent" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_WhenOnePreviewFailsKeepsTheOtherMRIStagesIndependent" methodname="Base3DScene_InitializeAsync_WhenOnePreviewFailsKeepsTheOtherMRIStagesIndependent" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="316136477" result="Passed" start-time="2026-09-09 16:14:32Z" end-time="2026-09-09 16:14:32Z" duration="0.032288" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PreviewSurface.Increment4" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Unable to generate the approximate MRI preview from 'Preimplantation'. This MRI preview will be skipped. A NIfTI volume must be loaded before extracting a preview surface.
+]]></output>
+                </test-case>
+                <test-case id="1038" name="Base3DScene_InitializeAsync_WhenPreviewExtractionFailsFallsBackToMNI" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_WhenPreviewExtractionFailsFallsBackToMNI" methodname="Base3DScene_InitializeAsync_WhenPreviewExtractionFailsFallsBackToMNI" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1338172491" result="Passed" start-time="2026-09-09 16:14:32Z" end-time="2026-09-09 16:14:32Z" duration="0.028023" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PreviewSurface.Increment4" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Unable to generate the approximate MRI preview from 'Preimplantation'. This MRI preview will be skipped. A NIfTI volume must be loaded before extracting a preview surface.
+]]></output>
+                </test-case>
+                <test-case id="1036" name="Base3DScene_InitializeAsync_WithoutPatientMeshGeneratesOnePreviewPerMRIAndSelectsConfiguredMRI" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_WithoutPatientMeshGeneratesOnePreviewPerMRIAndSelectsConfiguredMRI" methodname="Base3DScene_InitializeAsync_WithoutPatientMeshGeneratesOnePreviewPerMRIAndSelectsConfiguredMRI" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="941880222" result="Passed" start-time="2026-09-09 16:14:32Z" end-time="2026-09-09 16:14:32Z" duration="0.029789" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PreviewSurface.Increment4" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1035" name="Base3DScene_InitializeAsync_WithoutPatientsLoadsAnatomicScene" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_WithoutPatientsLoadsAnatomicScene" methodname="Base3DScene_InitializeAsync_WithoutPatientsLoadsAnatomicScene" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1030732074" result="Passed" start-time="2026-09-09 16:14:32Z" end-time="2026-09-09 16:14:32Z" duration="0.025578" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="MeshScene.ConfigurationRegression" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1037" name="Base3DScene_InitializeAsync_WithPersistentPatientMeshDoesNotGeneratePreview" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_WithPersistentPatientMeshDoesNotGeneratePreview" methodname="Base3DScene_InitializeAsync_WithPersistentPatientMeshDoesNotGeneratePreview" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1202659797" result="Passed" start-time="2026-09-09 16:14:32Z" end-time="2026-09-09 16:14:32Z" duration="0.028771" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PreviewSurface.Increment4" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1034" name="Base3DScene_InitializeAsync_WithSyntheticMNIAndAnatomyColumnCreatesLoadedSceneGraph" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializeAsync_WithSyntheticMNIAndAnatomyColumnCreatesLoadedSceneGraph" methodname="Base3DScene_InitializeAsync_WithSyntheticMNIAndAnatomyColumnCreatesLoadedSceneGraph" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="763941889" result="Passed" start-time="2026-09-09 16:14:32Z" end-time="2026-09-09 16:14:33Z" duration="0.025451" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="MeshScene.ConfigurationRegression" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1043" name="Base3DScene_InitializedMultiColumnViewAndCutLifecycleStaySynchronized" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_InitializedMultiColumnViewAndCutLifecycleStaySynchronized" methodname="Base3DScene_InitializedMultiColumnViewAndCutLifecycleStaySynchronized" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1636654041" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.028462" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1047" name="Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState" methodname="Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1523961668" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.033648" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="MeshScene.ConfigurationRegression" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1015" name="Base3DScene_ManualColumnsExposeVariantListsAndSelection" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_ManualColumnsExposeVariantListsAndSelection" methodname="Base3DScene_ManualColumnsExposeVariantListsAndSelection" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1431388725" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.004481" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1018" name="Base3DScene_RemoveViewLine_RemovesViewsFromAllColumnsAndSelectsFallback" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_RemoveViewLine_RemovesViewsFromAllColumnsAndSelectsFallback" methodname="Base3DScene_RemoveViewLine_RemovesViewsFromAllColumnsAndSelectsFallback" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="668839599" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.001969" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1046" name="Base3DScene_RepeatedInitializeCutCleanAndSceneReloadCyclesReleaseGeneratedObjects" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_RepeatedInitializeCutCleanAndSceneReloadCyclesReleaseGeneratedObjects" methodname="Base3DScene_RepeatedInitializeCutCleanAndSceneReloadCyclesReleaseGeneratedObjects" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1406396507" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.108122" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeMigration" />
+                    <property name="Category" value="HbpCoreOnly" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1041" name="Base3DScene_RuntimePreviewEnforcesAtlasHemisphereFmriAndCcepCapabilities" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_RuntimePreviewEnforcesAtlasHemisphereFmriAndCcepCapabilities" methodname="Base3DScene_RuntimePreviewEnforcesAtlasHemisphereFmriAndCcepCapabilities" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1675800042" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.049967" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PreviewSurface.Increment5" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1017" name="Base3DScene_SelectionRaisesModule3DSelectionEvents" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_SelectionRaisesModule3DSelectionEvents" methodname="Base3DScene_SelectionRaisesModule3DSelectionEvents" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="2076780184" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.002378" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1044" name="Base3DScene_TriangleEraserToggleControlsGeneratedInvisibleMesh" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_TriangleEraserToggleControlsGeneratedInvisibleMesh" methodname="Base3DScene_TriangleEraserToggleControlsGeneratedInvisibleMesh" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="2114556867" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.028403" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeDll" />
+                    <property name="Category" value="PreviewSurface.Increment5" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1016" name="Base3DScene_UpdateVisibleStatePublishesVisibilityAndSelectionEvents" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Base3DScene_UpdateVisibleStatePublishesVisibilityAndSelectionEvents" methodname="Base3DScene_UpdateVisibleStatePublishesVisibilityAndSelectionEvents" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="293853877" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.003213" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1023" name="Camera3D_ZoomAndStrafeRespectConfiguredTargetAndDistanceLimits" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Camera3D_ZoomAndStrafeRespectConfiguredTargetAndDistanceLimits" methodname="Camera3D_ZoomAndStrafeRespectConfiguredTargetAndDistanceLimits" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1577187689" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.002398" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1020" name="Column3D_LoadAndSaveConfigurationSynchronizesActivityAlpha" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Column3D_LoadAndSaveConfigurationSynchronizesActivityAlpha" methodname="Column3D_LoadAndSaveConfigurationSynchronizesActivityAlpha" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1682122675" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.001726" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1019" name="Column3D_SelectionMinimizeAndActivityAlphaRaiseObservableEvents" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Column3D_SelectionMinimizeAndActivityAlphaRaiseObservableEvents" methodname="Column3D_SelectionMinimizeAndActivityAlphaRaiseObservableEvents" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1496019989" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.001588" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1021" name="Column3D_SiteRenderingPreservesVisibilityStatesAlphaGainAndPicking" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Column3D_SiteRenderingPreservesVisibilityStatesAlphaGainAndPicking" methodname="Column3D_SiteRenderingPreservesVisibilityStatesAlphaGainAndPicking" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="91199893" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.007884" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1033" name="ImplantationManager_ComparingSitesTracksSelectedSiteUntilDisabled" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.ImplantationManager_ComparingSitesTracksSelectedSiteUntilDisabled" methodname="ImplantationManager_ComparingSitesTracksSelectedSiteUntilDisabled" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="206389261" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.004474" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1014" name="Module3DMain_SelectedSceneColumnAndViewFollowControlledSceneState" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.Module3DMain_SelectedSceneColumnAndViewFollowControlledSceneState" methodname="Module3DMain_SelectedSceneColumnAndViewFollowControlledSceneState" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1853409364" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.003833" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1029" name="ROI_ContainsUsesStrictSphereUnion" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.ROI_ContainsUsesStrictSphereUnion" methodname="ROI_ContainsUsesStrictSphereUnion" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1506581142" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.003746" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeMigration" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1031" name="ROI_PublicEditingVisibilityRenderingAndEventsUpdateObservableState" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.ROI_PublicEditingVisibilityRenderingAndEventsUpdateObservableState" methodname="ROI_PublicEditingVisibilityRenderingAndEventsUpdateObservableState" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1581221402" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.101379" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeMigration" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1032" name="ROI_PublicSelectionAndRemovalOperationsChooseClosestAndKeepValidSelection" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.ROI_PublicSelectionAndRemovalOperationsChooseClosestAndKeepValidSelection" methodname="ROI_PublicSelectionAndRemovalOperationsChooseClosestAndKeepValidSelection" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="847689841" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.004519" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeMigration" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1030" name="ROI_UpdateMaskTracksSphereAddResizeMoveAndRemove" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.ROI_UpdateMaskTracksSphereAddResizeMoveAndRemove" methodname="ROI_UpdateMaskTracksSphereAddResizeMoveAndRemove" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="607805245" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.002483" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="Category" value="NativeMigration" />
+                    <property name="Category" value="PreviewSurface.Increment5" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1028" name="ROIManager_UpdateROIMasksWithoutSelectedROIMarksSitesOutOfROIAndInvalidatesGenerator" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.ROIManager_UpdateROIMasksWithoutSelectedROIMarksSitesOutOfROIAndInvalidatesGenerator" methodname="ROIManager_UpdateROIMasksWithoutSelectedROIMarksSitesOutOfROIAndInvalidatesGenerator" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1186478850" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.002756" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1025" name="View3D_DefaultStandardViewsAndCameraTypeUseControlledCameraState" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.View3D_DefaultStandardViewsAndCameraTypeUseControlledCameraState" methodname="View3D_DefaultStandardViewsAndCameraTypeUseControlledCameraState" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="330497417" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.001637" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1022" name="View3D_MinimizeSelectionAndCameraCircleStateUseControlledCameraGraph" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.View3D_MinimizeSelectionAndCameraCircleStateUseControlledCameraGraph" methodname="View3D_MinimizeSelectionAndCameraCircleStateUseControlledCameraGraph" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1055159824" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.002192" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1024" name="View3D_SetViewportAndTargetTextureUpdateTheBackingCamera" fullname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.View3D_SetViewportAndTargetTextureUpdateTheBackingCamera" methodname="View3D_SetViewportAndTargetTextureUpdateTheBackingCamera" classname="HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests" runstate="Runnable" seed="1587876988" result="Passed" start-time="2026-09-09 16:14:33Z" end-time="2026-09-09 16:14:33Z" duration="0.004519" asserts="0">
+                  <properties>
+                    <property name="_JOINTYPE" value="UnityCombinatorial" />
+                    <property name="Category" value="PlayMode.Module3DScene" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Zigaroula/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,10 @@
+{
+  "task": "QUEST-021",
+  "id": "M1",
+  "status": "VALIDE",
+  "recordedAt": "2026-09-09T16:38:26.603803+00:00",
+  "source": "Explicit owner confirmation in this conversation",
+  "ownerQuote": "Très bien laisse comme ça alors. J'ai fait les tests et je valide M1.",
+  "scope": "Desktop visual validation described in reports/QUEST-021.md; no Quest test",
+  "codeDecision": "Keep the existing production metrics usage unchanged."
+}
