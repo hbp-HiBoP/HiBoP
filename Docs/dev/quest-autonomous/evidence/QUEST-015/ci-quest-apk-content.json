@@ -1,0 +1,232 @@
+{
+  "apk": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\ci-update\\Quest\\HiBoP.Quest.apk",
+  "sha256": "3795af97e3a89c53c1de806ae7686a63f196d40da5c5ccdf9570539ec0cab0ae",
+  "bytes": 104902000,
+  "nativeLibraries": [
+    "lib/arm64-v8a/libUnityARFoundationMeta.so",
+    "lib/arm64-v8a/libUnityOpenXR.so",
+    "lib/arm64-v8a/lib_burst_generated.so",
+    "lib/arm64-v8a/libhbp_core.so",
+    "lib/arm64-v8a/libil2cpp.so",
+    "lib/arm64-v8a/libmain.so",
+    "lib/arm64-v8a/libopenxr_loader.so",
+    "lib/arm64-v8a/libunity.so"
+  ],
+  "symbolTables": [
+    "lib/arm64-v8a/libil2cpp.usym.so"
+  ],
+  "result": "Passed",
+  "hbpCore": {
+    "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1",
+    "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+    "matchesLock": true,
+    "runtimeTested": false
+  },
+  "entries": [
+    {
+      "path": "META-INF/com/android/build/gradle/app-metadata.properties",
+      "bytes": 56,
+      "compressedBytes": 52
+    },
+    {
+      "path": "META-INF/version-control-info.textproto",
+      "bytes": 46,
+      "compressedBytes": 48
+    },
+    {
+      "path": "classes.dex",
+      "bytes": 183548,
+      "compressedBytes": 183548
+    },
+    {
+      "path": "lib/arm64-v8a/libUnityARFoundationMeta.so",
+      "bytes": 736360,
+      "compressedBytes": 231898
+    },
+    {
+      "path": "lib/arm64-v8a/libUnityOpenXR.so",
+      "bytes": 1569448,
+      "compressedBytes": 535210
+    },
+    {
+      "path": "lib/arm64-v8a/lib_burst_generated.so",
+      "bytes": 426232,
+      "compressedBytes": 130164
+    },
+    {
+      "path": "lib/arm64-v8a/libhbp_core.so",
+      "bytes": 1450608,
+      "compressedBytes": 621267
+    },
+    {
+      "path": "lib/arm64-v8a/libil2cpp.so",
+      "bytes": 101766152,
+      "compressedBytes": 26583606
+    },
+    {
+      "path": "lib/arm64-v8a/libil2cpp.usym.so",
+      "bytes": 140723453,
+      "compressedBytes": 14244506
+    },
+    {
+      "path": "lib/arm64-v8a/libmain.so",
+      "bytes": 6696,
+      "compressedBytes": 2579
+    },
+    {
+      "path": "lib/arm64-v8a/libopenxr_loader.so",
+      "bytes": 1656736,
+      "compressedBytes": 491172
+    },
+    {
+      "path": "lib/arm64-v8a/libunity.so",
+      "bytes": 23584832,
+      "compressedBytes": 10385190
+    },
+    {
+      "path": "assets/bin/Data/Managed/Metadata/global-metadata.dat",
+      "bytes": 14434384,
+      "compressedBytes": 4458057
+    },
+    {
+      "path": "assets/bin/Data/Managed/Resources/I18N.CJK.dll-resources.dat",
+      "bytes": 641770,
+      "compressedBytes": 282448
+    },
+    {
+      "path": "assets/bin/Data/Managed/Resources/Ionic.Zip.dll-resources.dat",
+      "bytes": 209043,
+      "compressedBytes": 176782
+    },
+    {
+      "path": "assets/bin/Data/Managed/Resources/System.Data.dll-resources.dat",
+      "bytes": 93718,
+      "compressedBytes": 7957
+    },
+    {
+      "path": "assets/bin/Data/Managed/Resources/System.Drawing.dll-resources.dat",
+      "bytes": 25453,
+      "compressedBytes": 9716
+    },
+    {
+      "path": "assets/bin/Data/Managed/Resources/mscorlib.dll-resources.dat",
+      "bytes": 337563,
+      "compressedBytes": 126076
+    },
+    {
+      "path": "assets/bin/Data/Resources/unity default resources",
+      "bytes": 3750432,
+      "compressedBytes": 798407
+    },
+    {
+      "path": "assets/bin/Data/RuntimeInitializeOnLoads.json",
+      "bytes": 12133,
+      "compressedBytes": 1330
+    },
+    {
+      "path": "assets/bin/Data/ScriptingAssemblies.json",
+      "bytes": 5802,
+      "compressedBytes": 1292
+    },
+    {
+      "path": "assets/bin/Data/UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json",
+      "bytes": 250,
+      "compressedBytes": 120
+    },
+    {
+      "path": "assets/bin/Data/UnitySubsystems/libUnityARFoundationMeta/UnitySubsystemsManifest.json",
+      "bytes": 181,
+      "compressedBytes": 109
+    },
+    {
+      "path": "assets/bin/Data/boot.config",
+      "bytes": 737,
+      "compressedBytes": 404
+    },
+    {
+      "path": "assets/bin/Data/data.unity3d",
+      "bytes": 45523009,
+      "compressedBytes": 45523009
+    },
+    {
+      "path": "assets/bin/Data/unity_app_guid",
+      "bytes": 36,
+      "compressedBytes": 38
+    },
+    {
+      "path": "META-INF/com.android.games.engine.build_fingerprint",
+      "bytes": 83,
+      "compressedBytes": 83
+    },
+    {
+      "path": "AndroidManifest.xml",
+      "bytes": 8628,
+      "compressedBytes": 2390
+    },
+    {
+      "path": "res/De.png",
+      "bytes": 12593,
+      "compressedBytes": 12593
+    },
+    {
+      "path": "res/FN.png",
+      "bytes": 18834,
+      "compressedBytes": 18834
+    },
+    {
+      "path": "res/H-.png",
+      "bytes": 5709,
+      "compressedBytes": 5709
+    },
+    {
+      "path": "res/Iw.png",
+      "bytes": 12593,
+      "compressedBytes": 12593
+    },
+    {
+      "path": "res/K0.png",
+      "bytes": 4159,
+      "compressedBytes": 4159
+    },
+    {
+      "path": "res/Ut.png",
+      "bytes": 1927,
+      "compressedBytes": 1927
+    },
+    {
+      "path": "res/W5.png",
+      "bytes": 2655,
+      "compressedBytes": 2655
+    },
+    {
+      "path": "res/YA.png",
+      "bytes": 4159,
+      "compressedBytes": 4159
+    },
+    {
+      "path": "res/b2.png",
+      "bytes": 2655,
+      "compressedBytes": 2655
+    },
+    {
+      "path": "res/l4.png",
+      "bytes": 5709,
+      "compressedBytes": 5709
+    },
+    {
+      "path": "res/mG.png",
+      "bytes": 1927,
+      "compressedBytes": 1927
+    },
+    {
+      "path": "res/oj.png",
+      "bytes": 18834,
+      "compressedBytes": 18834
+    },
+    {
+      "path": "resources.arsc",
+      "bytes": 2876,
+      "compressedBytes": 2876
+    }
+  ]
+}

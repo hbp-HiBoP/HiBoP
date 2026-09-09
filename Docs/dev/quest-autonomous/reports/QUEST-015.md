@@ -1,6 +1,47 @@
 # Rapport QUEST-015 — Build natif Android reproductible et CI
 
-## Résultat
+## Livraison GitHub après la release 0.4.0 — 2026-09-09
+
+PowerShell 7.6.6 et GitHub CLI 2.100.0 ont été installés via WinGet officiel.
+Après authentification, `Tools/update-native-plugins.cmd` a déclenché les trois
+workflows sur les derniers commits de `master`, téléchargé les dix artefacts,
+vérifié leurs manifestes et installé l’ensemble avec sauvegarde et nouveau lock.
+La requête `hibop-native-20260909-101651-87c5056d` est terminée avec succès.
+
+- hbp_core : [ffb7686 / run 34339388439](https://github.com/hbp-HiBoP/hbp_core/actions/runs/34339388439), quatre plateformes.
+- EEGFormat : [run 34339376344](https://github.com/hbp-HiBoP/EEGFormat/actions/runs/34339376344), trois plateformes.
+- hbp_math : [run 34339402353](https://github.com/hbp-HiBoP/hbp_math/actions/runs/34339402353), trois plateformes.
+
+Le plugin Android installé provient désormais de GitHub : SHA-256
+`96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e`, 1,450,608 octets.
+Les logs authentifiés confirment la double compilation identique, les neuf
+contrôles de l’outillage Android et les 15 tests hbp_core sur chacun des trois OS
+Desktop. Une nouvelle inspection locale confirme 226 exports et l’alignement
+ELF 16 Kio. Les 16 fichiers des dix artefacts correspondent tous au lock.
+
+Les 25 tests Unity de configuration passent avec ces nouveaux plugins.
+Les builds Windows et Quest réussissent, avec zéro erreur. Le contenu de l’APK
+et des plugins Windows correspond aux nouveaux hashes du lock ; `zipalign`
+valide l’APK à 16 Kio. Les warnings existants sont détaillés dans les rapports.
+Les sorties sont sous `.artifacts/quest-015/ci-update`.
+
+Le premier build Quest a échoué à l’initialisation Gradle (connexion locale Java).
+La reprise utilise `JDK_JAVA_OPTIONS=-Djdk.net.unixdomain.tmpdir=...` avec le
+dossier court `.artifacts/quest-015/java`, comme les scripts Quest existants.
+Le chargement, la version, l’initialisation et la fermeture de la DLL Windows
+packagée ont également été vérifiés via ctypes, sans erreur native.
+
+Une correction de `.gitattributes` préserve les octets des payloads natifs lors
+des checkouts Git : `core.autocrlf=true` pouvait auparavant transformer les XML
+signés des bundles macOS. Les `.meta` Unity conservent leur traitement existant.
+
+[Preuve de cette livraison](../evidence/QUEST-015/ci-update.json).
+Les sections suivantes conservent la qualification initiale et la comparaison
+historique ; leurs anciens SHA et restrictions d’accès ne décrivent plus le
+plugin actuellement installé. Aucun test runtime sur casque ni ouverture
+interactive du Player Desktop n’a été effectué lors de cette livraison.
+
+## Qualification locale initiale
 
 Le `hbp_core` complet est compilé en Release Android ARM64 depuis le commit
 scientifique déjà épinglé sur Desktop, puis installé dans
@@ -197,19 +238,14 @@ depuis de vrais runs reste également distincte de cette comparaison hors ligne.
 
 ## Limites et suite
 
-- Lors de l’implémentation initiale, aucun commit, push ou dispatch distant
-  n’avait été effectué par l’agent. Le propriétaire a ensuite commité les outils
-  natifs et fourni l’artefact du run GitHub décrit ci-dessus. Sa comparaison
-  est réussie ; le statut et les logs privés restent non consultés.
-- Le plugin actuellement installé et son pin demeurent ceux du build local
-  initial. L’artefact GitHub est conservé séparément pour comparaison.
-- Reproductibilité vérifiée sur cet hôte et ce toolchain. Pas de promesse
-  d’identité binaire entre compilations Windows et Linux.
+- La livraison GitHub complète est maintenant vérifiée et installée ; le lock
+  indique le SHA exact résolu sur master pour chaque bibliothèque.
+- Les preuves de compilation locale initiale restent historiques. L’identité
+  binaire entre hôtes Windows et Linux n’est pas garantie.
 - Aucun chargement natif, allocation/libération, projection ou parité scientifique
   Android n’est qualifié ici. Ces vérifications relèvent de QUEST-016 puis QUEST-019.
-- Les scripts préexistants EEGFormat/hbp_math font encore confiance à `GITHUB_SHA`
-  pour leur manifeste. Si `master` bouge entre résolution et dispatch, le SHA peut
-  différer du checkout demandé et l’updater refusera le package. Leurs artefacts et
-  sources restent hors du changement présent ; la correction équivalente n’est
-  appliquée qu’au moteur hbp_core concerné par cette tâche.
+- Une ouverture interactive du Player Desktop reste à vérifier manuellement.
+- Les scripts EEGFormat/hbp_math utilisent encore GITHUB_SHA pour leur manifeste.
+  Si master bouge entre résolution et dispatch, l’updater refusera tout package
+  dont la provenance ne correspond pas. Les trois runs présents ont le bon SHA.
 - Prochaine tâche proposée : QUEST-016, sans exécution automatique.

@@ -1,0 +1,4 @@
+# Preserve CI artifact bytes, including signed XML files inside macOS bundles.
+/Assets/Plugins/Native/**/*.dll -text
+/Assets/Plugins/Native/**/*.so -text
+/Assets/Plugins/Native/**/*.bundle/** -text

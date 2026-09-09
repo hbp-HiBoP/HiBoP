@@ -415,9 +415,9 @@
     },
     {
       "id": "CI_REMOTE",
-      "result": "PARTIEL",
-      "exitCode": null,
-      "reason": "Owner supplied the artifact from run 34337066008. Independent archive, source, ABI, ELF and section comparisons passed. Private run API returned 404; run status/logs and two CI build hashes not observed. Automatic ten-artifact installation not executed."
+      "result": "REUSSI",
+      "exitCode": 0,
+      "reason": "Authenticated GitHub CLI dispatched three master workflows, downloaded and installed ten validated artifacts. Android double-build equality and nine tooling checks passed; 15 hbp_core tests passed on each Desktop OS. See ci-update.json."
     },
     {
       "id": "ANDROID_RUNTIME",
@@ -455,5 +455,10 @@
       "twoCiBuildHashesObserved": false
     },
     "installed": false
+  },
+  "ciFollowup": {
+    "evidence": "ci-update.json",
+    "requestId": "hibop-native-20260909-101651-87c5056d",
+    "note": "Earlier source/binary/build snapshots in this manifest describe the initial local qualification; current installed provenance is in NativePlugins.lock.json and ci-update.json."
   }
 }

@@ -1,0 +1,98 @@
+[
+  {
+    "path": "Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so",
+    "sha256": "a81e7d3ac1ab6bef5921e2d4656d08fb9ac4f84c962f0f0505ab3aff157d5074",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+    "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle/Contents/_CodeSignature/CodeResources",
+    "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle/Contents/Info.plist",
+    "sha256": "0da4164ae2156275b6b9b8a9f7589b5ba53f2283cf0a907cdedd11bcbcdcf3d9",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle/Contents/MacOS/libEEGFormat",
+    "sha256": "598aa66cedbc2e2e93e194a0b4838d6881e03d143064d5816bc0d9808eff2e2d",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so",
+    "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_core.so",
+    "sha256": "6ac03d016c2fba89ae35a26b5c14d9d8ccaa82e876345537d5cd28f16f2f1e90",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+    "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle/Contents/_CodeSignature/CodeResources",
+    "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle/Contents/Info.plist",
+    "sha256": "8bc6c425689af281a6403a8f54612fc7cef98c67e539fbeaf9af7a6c73d706ac",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle/Contents/MacOS/libhbp_core",
+    "sha256": "a1bce13a5c155a51138994b1a17e3999c3c1cf5eea7ddb4b0c1e02dabfbadb1d",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so",
+    "sha256": "95192df09d373343b28f20ecbef32bce04c0b29cc3a758c3a1241ba30725c34b",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+    "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle/Contents/_CodeSignature/CodeResources",
+    "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle/Contents/Info.plist",
+    "sha256": "c859897d9c2aaa61a2288f61ab843b660617306a09b8a0bd0bd8c6d753b336c9",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  },
+  {
+    "path": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle/Contents/MacOS/libhbp_math",
+    "sha256": "a78fe04c5163c50343da555e592f7ddf0431af89b95026428ebc1c74e1b38d20",
+    "committedBlob": "PASS",
+    "checkoutFilter": "PASS"
+  }
+]

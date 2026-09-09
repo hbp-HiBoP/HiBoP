@@ -1,0 +1,24 @@
+[
+  {
+    "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\ci-update\\DesktopWindows\\HiBoP.6.1.0.win64\\HiBoP_Data\\Plugins\\x86_64\\EEGFormat.dll",
+    "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec",
+    "result": "PASS"
+  },
+  {
+    "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\ci-update\\DesktopWindows\\HiBoP.6.1.0.win64\\HiBoP_Data\\Plugins\\x86_64\\hbp_core.dll",
+    "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278",
+    "result": "PASS",
+    "nativeSmoke": {
+      "version": "0.2.1",
+      "init": "PASS",
+      "lastError": "",
+      "shutdown": "PASS",
+      "host": "Python ctypes on Windows; not an interactive Player test"
+    }
+  },
+  {
+    "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\ci-update\\DesktopWindows\\HiBoP.6.1.0.win64\\HiBoP_Data\\Plugins\\x86_64\\hbp_math.dll",
+    "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa",
+    "result": "PASS"
+  }
+]
