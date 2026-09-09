@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "unity": "6000.5.2f1",
+  "graphics": "NVIDIA GeForce RTX 2070 SUPER",
+  "rows": [
+    {
+      "name": "density-0-15mm",
+      "distanceMm": 15.0,
+      "activityFieldVersion": 1,
+      "maxDensity": 1.34160924,
+      "vertices": 69104,
+      "uploadedExactly": true,
+      "seconds": 0.282968521,
+      "coverage": "Complete",
+      "validVertices": 69104,
+      "activeSites": 8
+    },
+    {
+      "name": "density-1-25mm",
+      "distanceMm": 25.0,
+      "activityFieldVersion": 2,
+      "maxDensity": 1.58352613,
+      "vertices": 69104,
+      "uploadedExactly": true,
+      "seconds": 0.2497096,
+      "coverage": "Complete",
+      "validVertices": 69104,
+      "activeSites": 8
+    },
+    {
+      "name": "density-2-15mm",
+      "distanceMm": 15.0,
+      "activityFieldVersion": 3,
+      "maxDensity": 1.34160924,
+      "vertices": 69104,
+      "uploadedExactly": true,
+      "seconds": 0.23042202,
+      "coverage": "Complete",
+      "validVertices": 69104,
+      "activeSites": 8
+    }
+  ]
+}

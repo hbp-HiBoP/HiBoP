@@ -46,6 +46,22 @@ namespace HBP.Core.DLL
             }
         }
 
+        /// <summary>Create an initialized grid owned by the caller, releasing it on initialization failure.</summary>
+        public static ActivityProjectionGrid Create(Volume volume, int maximumDimension, VolumeInterpolation interpolation)
+        {
+            var grid = new ActivityProjectionGrid();
+            try
+            {
+                grid.Initialize(volume, maximumDimension, interpolation);
+                return grid;
+            }
+            catch
+            {
+                grid.Dispose();
+                throw;
+            }
+        }
+
         public void Initialize(Volume volume, int maximumDimension)
         {
             Initialize(volume, maximumDimension, VolumeInterpolation.Nearest);

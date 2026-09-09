@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Events;
@@ -214,9 +215,22 @@ namespace HBP.Data.Module3D
 
         #region Private Methods
 
+        internal System.Threading.Tasks.Task GeneratorWork { get; set; } = System.Threading.Tasks.Task.CompletedTask;
+
         private void OnDestroy()
         {
             Core.Data.DataManager.UnregisterMemoryUsage(this);
+            ReleaseGeneratorResources().Forget();
+        }
+
+        private async UniTaskVoid ReleaseGeneratorResources()
+        {
+            await ReleaseGeneratorResourcesAsync();
+        }
+
+        private async UniTask ReleaseGeneratorResourcesAsync()
+        {
+            await GeneratorWork;
             RawElectrodes?.Dispose();
             SurfaceGenerator?.Dispose();
             ActivityGenerator?.Dispose();
@@ -515,8 +529,25 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
-        /// Update the sites mask of the DLL using the state of each site
+        /// Prepare on the Unity thread. Compute uses only captured inputs on a worker;
+        /// Publish runs on the Unity thread after success, while this column still exists.
+        /// Input buffers/handles are borrowed until Compute returns. Internal data builders
+        /// replace activity arrays rather than mutating arrays used by a pending computation.
         /// </summary>
+        public virtual (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            return (PrepareSitesMaskUpdate(roiActive), null);
+        }
+
+        protected System.Action PrepareSitesMaskUpdate(bool roiActive)
+        {
+            var masks = new bool[Sites.Count];
+            for (int i = 0; i < masks.Length; ++i) masks[i] = Sites[i].State.IsEffectivelyMasked(roiActive);
+            var sites = RawElectrodes;
+            return () => sites.UpdateMasks(masks);
+        }
+
+        /// <summary>Update the native sites mask from the current site states.</summary>
         public void UpdateDLLSitesMask(bool isROI)
         {
             for (int ii = 0; ii < Sites.Count; ++ii)

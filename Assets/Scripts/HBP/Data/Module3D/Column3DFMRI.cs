@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -88,6 +88,30 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Public Methods
+
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, Core.Enums.SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var generator = (Core.DLL.FMRIGenerator)ActivityGenerator;
+            var volumesAndMasks = new List<(Core.DLL.Volume, Core.DLL.Volume)>();
+            foreach (var item in ColumnFMRIData.Data.FMRIs)
+            foreach (var volume in item.Item1.Volumes)
+                volumesAndMasks.Add((volume, item.Item1.MaskVolume));
+            float negativeMin = FMRIParameters.FMRINegativeCalMinFactor;
+            float negativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
+            float positiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
+            float positiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
+            bool hideLower = FMRIParameters.HideLowerValues;
+            bool hideMiddle = FMRIParameters.HideMiddleValues;
+            bool hideHigher = FMRIParameters.HideHigherValues;
+            return (() =>
+            {
+                updateMasks();
+                generator.ComputeActivity(volumesAndMasks);
+                generator.AdjustValues(negativeMin, negativeMax, positiveMin, positiveMax);
+                generator.HideExtremeValues(hideLower, hideMiddle, hideHigher);
+            }, null);
+        }
 
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {

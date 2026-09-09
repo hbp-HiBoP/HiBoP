@@ -455,6 +455,21 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
+        protected override System.Action PrepareSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            if (!IsSourceMarsAtlasLabelSelected) return base.PrepareSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
+            if (!supportsMarsAtlas)
+            {
+                Debug.LogWarning("MarsAtlas CCEP projection was skipped because the selected mesh does not support MarsAtlas.");
+                return null;
+            }
+
+            var mask = AreaMask;
+            var atlas = Object3DManager.MarsAtlas;
+            return () => generator.ComputeActivityAtlas(values, length, mask, atlas);
+        }
+
+
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
         /// </summary>

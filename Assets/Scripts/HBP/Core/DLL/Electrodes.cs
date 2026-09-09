@@ -47,6 +47,14 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_raw_site_list_update_mask(_handle.Handle, idSite, mask ? 1 : 0));
         }
 
+        /// <summary>Apply effective masks in native site order, validating the full count before mutation.</summary>
+        public void UpdateMasks(IReadOnlyList<bool> effectiveMasks)
+        {
+            if (effectiveMasks == null) throw new ArgumentNullException(nameof(effectiveMasks));
+            if (effectiveMasks.Count != NumberOfSites) throw new ArgumentException("One effective mask per native site is required.", nameof(effectiveMasks));
+            for (int i = 0; i < effectiveMasks.Count; ++i) UpdateMask(i, effectiveMasks[i]);
+        }
+
         /// <summary>Copy native scientific coordinates without the Unity X reflection.</summary>
         public Vector3[] GetNativePositions()
         {

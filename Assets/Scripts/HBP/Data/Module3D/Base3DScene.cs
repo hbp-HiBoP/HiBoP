@@ -567,6 +567,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         private bool m_UpdatingGenerators = false;
 
+        private readonly List<Action> m_PendingGeneratorUpdates = new();
+        private System.Threading.Tasks.Task m_GeneratorWork = System.Threading.Tasks.Task.CompletedTask;
+
         private bool m_IsGeneratorUpToDate = false;
 
         /// <summary>
@@ -885,9 +888,21 @@ namespace HBP.Data.Module3D
 
         private void OnDestroy()
         {
+            m_DestroyRequested = true;
             m_SurfaceRepresentationLifetime.Cancel();
             m_SurfaceRepresentationLifetime.Dispose();
             Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
+            ReleaseProjectionResources().Forget();
+        }
+
+        private async UniTaskVoid ReleaseProjectionResources()
+        {
+            await ReleaseProjectionResourcesAsync();
+        }
+
+        private async UniTask ReleaseProjectionResourcesAsync()
+        {
+            await m_GeneratorWork;
             foreach (var dllMRIGeometryCutGenerator in CutGeometryGenerators) dllMRIGeometryCutGenerator.Dispose();
             m_ActivityProjectionGrid?.Dispose();
         }
@@ -1213,8 +1228,7 @@ namespace HBP.Data.Module3D
             if (SceneInformation.ProjectionGridNeedsUpdate)
             {
                 Core.DLL.ActivityProjectionGrid previousGrid = m_ActivityProjectionGrid;
-                Core.DLL.ActivityProjectionGrid projectionGrid = new();
-                projectionGrid.Initialize(m_MRIManager.SelectedMRI.Volume, Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Core.DLL.ActivityProjectionSettings.VolumeInterpolation);
+                Core.DLL.ActivityProjectionGrid projectionGrid = Core.DLL.ActivityProjectionGrid.Create(m_MRIManager.SelectedMRI.Volume, Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Core.DLL.ActivityProjectionSettings.VolumeInterpolation);
                 m_ActivityProjectionGrid = projectionGrid;
                 foreach (Column3D column in Columns)
                 {
@@ -1231,9 +1245,8 @@ namespace HBP.Data.Module3D
 
             foreach (Column3D column in Columns)
             {
-                column.SurfaceGenerator.Initialize(column.ActivityGenerator, m_MeshManager.ReferenceSurface);
-                column.SurfaceGenerator.ComputeMainUV(m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
-                column.SurfaceGenerator.ComputeNullUV();
+                column.SurfaceGenerator.Initialize(column.ActivityGenerator, m_MeshManager.ReferenceSurface, m_MRIManager.MRICalMinFactor, m_MRIManager.MRICalMaxFactor);
+
                 column.SurfaceNeedsUpdate = true;
             }
 
@@ -1380,7 +1393,7 @@ namespace HBP.Data.Module3D
             {
                 dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    ((Core.DLL.IEEGGenerator)dynamicColumn.ActivityGenerator).AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
+                    UpdateGeneratorParameters(() => ((Core.DLL.IEEGGenerator)dynamicColumn.ActivityGenerator).AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax));
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     dynamicColumn.SurfaceNeedsUpdate = true;
@@ -1408,7 +1421,7 @@ namespace HBP.Data.Module3D
             {
                 fmriColumn.FMRIParameters.OnUpdateCalValues.AddListener(() =>
                 {
-                    ((Core.DLL.FMRIGenerator)fmriColumn.ActivityGenerator).AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
+                    UpdateGeneratorParameters(() => ((Core.DLL.FMRIGenerator)fmriColumn.ActivityGenerator).AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor));
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
@@ -1416,7 +1429,7 @@ namespace HBP.Data.Module3D
                 });
                 fmriColumn.FMRIParameters.OnUpdateHideValues.AddListener(() =>
                 {
-                    ((Core.DLL.FMRIGenerator)fmriColumn.ActivityGenerator).HideExtremeValues(fmriColumn.FMRIParameters.HideLowerValues, fmriColumn.FMRIParameters.HideMiddleValues, fmriColumn.FMRIParameters.HideHigherValues);
+                    UpdateGeneratorParameters(() => ((Core.DLL.FMRIGenerator)fmriColumn.ActivityGenerator).HideExtremeValues(fmriColumn.FMRIParameters.HideLowerValues, fmriColumn.FMRIParameters.HideMiddleValues, fmriColumn.FMRIParameters.HideHigherValues));
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     fmriColumn.SurfaceNeedsUpdate = true;
@@ -1441,7 +1454,7 @@ namespace HBP.Data.Module3D
             {
                 megColumn.MEGParameters.OnUpdateCalValues.AddListener(() =>
                 {
-                    ((Core.DLL.MEGGenerator)megColumn.ActivityGenerator).AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
+                    UpdateGeneratorParameters(() => ((Core.DLL.MEGGenerator)megColumn.ActivityGenerator).AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor));
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     megColumn.SurfaceNeedsUpdate = true;
@@ -1449,7 +1462,7 @@ namespace HBP.Data.Module3D
                 });
                 megColumn.MEGParameters.OnUpdateHideValues.AddListener(() =>
                 {
-                    ((Core.DLL.MEGGenerator)megColumn.ActivityGenerator).HideExtremeValues(megColumn.MEGParameters.HideLowerValues, megColumn.MEGParameters.HideMiddleValues, megColumn.MEGParameters.HideHigherValues);
+                    UpdateGeneratorParameters(() => ((Core.DLL.MEGGenerator)megColumn.ActivityGenerator).HideExtremeValues(megColumn.MEGParameters.HideLowerValues, megColumn.MEGParameters.HideMiddleValues, megColumn.MEGParameters.HideHigherValues));
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     megColumn.SurfaceNeedsUpdate = true;
@@ -1474,7 +1487,7 @@ namespace HBP.Data.Module3D
             {
                 staticColumn.StaticParameters.OnUpdateSpanValues.AddListener(() =>
                 {
-                    ((Core.DLL.IEEGGenerator)staticColumn.ActivityGenerator).AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
+                    UpdateGeneratorParameters(() => ((Core.DLL.IEEGGenerator)staticColumn.ActivityGenerator).AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax));
                     SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                     SceneInformation.FunctionalSurfaceNeedsUpdate = true;
                     staticColumn.SurfaceNeedsUpdate = true;
@@ -2100,7 +2113,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateGenerator()
         {
-            if (m_UpdatingGenerators || !CanComputeFunctionalValues)
+            if (m_DestroyRequested || m_UpdatingGenerators || !CanComputeFunctionalValues)
                 return;
 
             OnIEEGOutdated.Invoke(false);
@@ -2742,23 +2755,57 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
-        /// Start the update of the generators for the iEEG signal on the brain
+        /// Apply native parameter changes after any active computation has returned.
         /// </summary>
-        /// <returns>Coroutine return</returns>
+        private void UpdateGeneratorParameters(Action update)
+        {
+            if (m_DestroyRequested) return;
+            if (m_UpdatingGenerators) m_PendingGeneratorUpdates.Add(update);
+            else update();
+        }
+
         private async UniTaskVoid ComputeGenerators()
         {
-            m_UpdatingGenerators = true;
-            OnUpdatingGenerators.Invoke(true);
-            await LoadActivityAsync();
-            m_UpdatingGenerators = false;
-            await UniTask.SwitchToMainThread();
-            OnUpdatingGenerators.Invoke(false);
+            await ComputeGeneratorsAsync();
+        }
 
-            if (!SceneInformation.GeneratorNeedsUpdate) FinalizeGeneratorsComputing();
+        private async UniTask ComputeGeneratorsAsync()
+        {
+            m_UpdatingGenerators = true;
+            var completion = new System.Threading.Tasks.TaskCompletionSource<bool>();
+            m_GeneratorWork = completion.Task;
+            foreach (var column in Columns) column.GeneratorWork = completion.Task;
+            bool succeeded = false;
+            try
+            {
+                OnUpdatingGenerators.Invoke(true);
+                await LoadActivityAsync();
+                succeeded = true;
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                try
+                {
+                    if (!m_DestroyRequested)
+                        foreach (var update in m_PendingGeneratorUpdates)
+                            update();
+                }
+                finally
+                {
+                    m_PendingGeneratorUpdates.Clear();
+                    m_UpdatingGenerators = false;
+                    // Complete only after the native worker and its progress monitor stop.
+                    completion.TrySetResult(true);
+                    if (!m_DestroyRequested) OnUpdatingGenerators.Invoke(false);
+                }
+            }
+
+            if (succeeded && !m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate) FinalizeGeneratorsComputing();
         }
 
         /// <summary>
-        /// Compute the iEEG values on the brain
+        /// Compute activity for every column using inputs prepared on the Unity thread
         /// </summary>
         /// <returns>Coroutine return</returns>
         private async UniTask LoadActivityAsync()
@@ -2766,13 +2813,19 @@ namespace HBP.Data.Module3D
             Core.DLL.ActivityGenerator currentGenerator = null;
             string currentMessage = "";
             int currentColumn = 0;
-            int numberOfColumns = Columns.Count;
+            var columns = Columns.ToArray();
+            int numberOfColumns = columns.Length;
+            // Freeze every column's inputs on the Unity thread before dispatching native work.
+            bool roiActive = m_ROIManager.SelectedROI != null;
+            var influenceRule = PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance;
+            bool supportsMarsAtlas = m_MeshManager.SelectedMesh.SupportsMarsAtlas;
+            var computations = columns.Select(column => (Column: column, column.Name, Generator: column.ActivityGenerator, Work: column.PrepareActivityComputation(roiActive, influenceRule, supportsMarsAtlas))).ToArray();
 
-            async UniTaskVoid checkProgress(CancellationToken cancellationToken)
+            async UniTask checkProgress(CancellationToken cancellationToken)
             {
                 while (true)
                 {
-                    if (cancellationToken.IsCancellationRequested) return;
+                    if (cancellationToken.IsCancellationRequested || m_DestroyRequested) return;
                     float currentProgress = 0;
                     if (currentGenerator != null)
                     {
@@ -2780,95 +2833,45 @@ namespace HBP.Data.Module3D
                     }
 
                     OnProgressUpdateGenerator.Invoke(currentProgress, currentMessage);
-                    await UniTask.WaitForSeconds(0.05f);
+                    await UniTask.WaitForSeconds(0.05f, cancellationToken: cancellationToken);
                 }
             }
 
-            CancellationTokenSource source = new();
-            checkProgress(source.Token).Forget();
+            using CancellationTokenSource source = new();
+            UniTask progress = checkProgress(source.Token);
 
-            await UniTask.SwitchToThreadPool();
-            currentMessage = "Initializing";
-            for (int i = 0; i < Columns.Count; i++)
+            try
             {
-                Column3D column = Columns[i];
-                currentColumn = i;
-                currentMessage = "Loading " + column.Name;
-                column.UpdateDLLSitesMask(m_ROIManager.SelectedROI != null);
-                if (SceneInformation.GeneratorNeedsUpdate) return;
-                if (column is Column3DAnatomy anatomyColumn)
+                currentMessage = "Initializing";
+                for (int i = 0; i < computations.Length; i++)
                 {
-                    Core.DLL.DensityGenerator generator = anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(anatomyColumn.RawElectrodes, anatomyColumn.AnatomyParameters.InfluenceDistance, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                }
-                else if (column is Column3DDynamic dynamicColumn)
-                {
-                    Core.DLL.IEEGGenerator generator = dynamicColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                    currentGenerator = generator;
-                    if (dynamicColumn is Column3DCCEP ccepColumn && ccepColumn.IsSourceMarsAtlasLabelSelected)
+                    if (m_DestroyRequested || SceneInformation.GeneratorNeedsUpdate) return;
+                    var computation = computations[i];
+                    if (!computation.Column) continue;
+                    currentColumn = i;
+                    currentMessage = "Loading " + computation.Name;
+                    currentGenerator = computation.Generator;
+                    try
                     {
-                        if (!m_MeshManager.SelectedMesh.SupportsMarsAtlas)
-                        {
-                            Debug.LogWarning("MarsAtlas CCEP projection was skipped because the selected mesh does not support MarsAtlas.");
-                            continue;
-                        }
-
-                        generator.ComputeActivityAtlas(ccepColumn.ActivityValues, ccepColumn.ProjectionTimeline.Length, ccepColumn.AreaMask, Object3DManager.MarsAtlas);
+                        await UniTask.SwitchToThreadPool();
+                        computation.Work.Compute();
                     }
-                    else
-                        generator.ComputeActivity(dynamicColumn.RawElectrodes, dynamicColumn.DynamicParameters.InfluenceDistance, dynamicColumn.ActivityValues, dynamicColumn.ProjectionTimeline.Length, dynamicColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-
-                    dynamicColumn.UpdateProjectionMemoryAccounting(generator.GetLastComputeMetrics());
-                    generator.AdjustValues(dynamicColumn.DynamicParameters.Middle, dynamicColumn.DynamicParameters.SpanMin, dynamicColumn.DynamicParameters.SpanMax);
-                }
-                else if (column is Column3DFMRI fmriColumn)
-                {
-                    Core.DLL.FMRIGenerator generator = fmriColumn.ActivityGenerator as Core.DLL.FMRIGenerator;
-                    currentGenerator = generator;
-                    // Generate pairs of (volume, mask) for each fmri and its corresponding mask (or null if none)
-                    List<(Core.DLL.Volume, Core.DLL.Volume)> volumesAndMasks = new();
-                    foreach (var fmri in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                    finally
                     {
-                        foreach (var volume in fmri.Item1.Volumes)
-                        {
-                            volumesAndMasks.Add((volume, fmri.Item1.MaskVolume));
-                        }
+                        await UniTask.SwitchToMainThread();
                     }
 
-                    generator.ComputeActivity(volumesAndMasks);
-                    generator.AdjustValues(fmriColumn.FMRIParameters.FMRINegativeCalMinFactor, fmriColumn.FMRIParameters.FMRINegativeCalMaxFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMinFactor, fmriColumn.FMRIParameters.FMRIPositiveCalMaxFactor);
-                }
-                else if (column is Column3DMEG megColumn)
-                {
-                    Core.DLL.MEGGenerator generator = megColumn.ActivityGenerator as Core.DLL.MEGGenerator;
-                    currentGenerator = generator;
-                    // Generate pairs of (volume, mask) for each fmri and its corresponding mask (or null if none)
-                    List<(Core.DLL.Volume, Core.DLL.Volume)> volumesAndMasks = new();
-                    foreach (var megItem in megColumn.ColumnMEGData.Data.MEGItems)
-                    {
-                        foreach (var volume in megItem.FMRI.Volumes)
-                        {
-                            volumesAndMasks.Add((volume, megItem.FMRI.MaskVolume));
-                        }
-                    }
-
-                    generator.ComputeActivity(volumesAndMasks);
-                    generator.AdjustValues(megColumn.MEGParameters.FMRINegativeCalMinFactor, megColumn.MEGParameters.FMRINegativeCalMaxFactor, megColumn.MEGParameters.FMRIPositiveCalMinFactor, megColumn.MEGParameters.FMRIPositiveCalMaxFactor);
-                }
-                else if (column is Column3DStatic staticColumn)
-                {
-                    Core.DLL.IEEGGenerator generator = staticColumn.ActivityGenerator as Core.DLL.IEEGGenerator;
-                    currentGenerator = generator;
-                    generator.ComputeActivity(staticColumn.RawElectrodes, staticColumn.StaticParameters.InfluenceDistance, staticColumn.ActivityValues, staticColumn.Labels.Length, staticColumn.RawElectrodes.NumberOfSites, PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance);
-                    generator.AdjustValues(staticColumn.StaticParameters.Middle, staticColumn.StaticParameters.SpanMin, staticColumn.StaticParameters.SpanMax);
+                    if (!m_DestroyRequested && computation.Column) computation.Work.Publish?.Invoke();
                 }
 
-                if (SceneInformation.GeneratorNeedsUpdate) return;
+                currentMessage = "Finalizing";
             }
-
-            currentMessage = "Finalizing";
-            source.Cancel();
+            finally
+            {
+                source.Cancel();
+                await progress.SuppressCancellationThrow();
+                await UniTask.SwitchToMainThread();
+            }
         }
 
         /// <summary>

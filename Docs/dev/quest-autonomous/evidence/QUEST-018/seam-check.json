@@ -1,0 +1,26 @@
+{
+  "commonSources": [
+    "Assets/Scripts/HBP/Core/DLL/Generators/ActivityProjectionGrid.cs",
+    "Assets/Scripts/HBP/Core/DLL/Generators/ActivityGenerator.cs",
+    "Assets/Scripts/HBP/Core/DLL/Generators/SurfaceGenerator.cs",
+    "Assets/Scripts/HBP/Core/DLL/Generators/DensityGenerator.cs",
+    "Assets/Scripts/HBP/Core/DLL/Electrodes.cs"
+  ],
+  "forbiddenDependenciesAbsent": true,
+  "checkedForbiddenDependencies": [
+    "HBP.Data",
+    "HBP.UI",
+    "HBP.Quest",
+    "HBP.Transfer",
+    "PersistentDataManager",
+    "Module3DMain",
+    "Camera.main"
+  ],
+  "densityProjectionClassRemoved": true,
+  "uniformColumnPreparation": true,
+  "desktopGridCallsGenericFactory": true,
+  "desktopBindingCallsExistingGenerators": true,
+  "nativeDiffEmpty": true,
+  "normalization": "hbp_core density_generator.cpp normalize_activity unchanged",
+  "scope": "Static dependency/caller inspection; no Android runtime qualification."
+}

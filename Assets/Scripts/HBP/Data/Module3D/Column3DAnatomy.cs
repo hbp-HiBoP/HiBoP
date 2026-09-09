@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.Data.Module3D
@@ -32,6 +32,19 @@ namespace HBP.Data.Module3D
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
 
             ActivityGenerator = new Core.DLL.DensityGenerator();
+        }
+
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, Core.Enums.SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var density = (Core.DLL.DensityGenerator)ActivityGenerator;
+            var sites = RawElectrodes;
+            float distance = AnatomyParameters.InfluenceDistance;
+            return (() =>
+            {
+                updateMasks();
+                density.ComputeActivity(sites, distance, influenceRule);
+            }, null);
         }
 
         /// <summary>

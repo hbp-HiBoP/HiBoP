@@ -141,6 +141,25 @@ technique ou le silence est une validation utilisateur.
 Les réglages UX provisoires sont à présenter pour essai ; les règles scientifiques
 ne changent pas sans justification et décision explicites.
 
+## Réutilisation du code Desktop dans les tâches Quest
+
+Retour d’expérience de [QUEST-018](reports/QUEST-018.md) : demander un chemin commun
+Desktop/Quest n’impose pas de créer une nouvelle classe.
+
+- Avant toute extraction, examiner les classes de base et wrappers existants.
+  Les appeler directement ou les compléter si la responsabilité leur appartient
+  déjà. Une nouvelle couche doit apporter une responsabilité distincte, expliquée
+  dans le rapport ; relayer quelques appels existants ne suffit pas.
+- Placer une opération au niveau de sa portée réelle : une création de grille ou
+  un binding générique ne doit pas dépendre d’une classe nommée pour la densité,
+  l’anatomie ou Quest. Réserver aux spécialisations les différences effectives.
+- Si une correction de préparation, de concurrence ou de durée de vie concerne
+  plusieurs colonnes, l’appliquer au chemin commun des colonnes concernées, avec
+  spécialisation au besoin et tests adaptés. Expliciter cette extension nécessaire
+  sans engager un refactor global anticipé.
+- Conserver les conventions existantes, notamment `UniTask` pour les opérations
+  attendues et `UniTaskVoid` pour les entrées détachées appelées avec `Forget()`.
+
 ## Exécution et contrôles
 
 Faire une annonce courte du résultat visé et de la vérification. Implémenter

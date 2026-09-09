@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Enums;
@@ -149,6 +149,36 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var generator = (Core.DLL.IEEGGenerator)ActivityGenerator;
+            var values = ActivityValues;
+            int length = ProjectionTimeline.Length;
+            var computeSignal = PrepareSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
+            if (computeSignal == null) return (updateMasks, null);
+            float middle = DynamicParameters.Middle;
+            float minimum = DynamicParameters.SpanMin;
+            float maximum = DynamicParameters.SpanMax;
+            Core.DLL.IEEGComputeMetrics metrics = default;
+            long valueCount = values.LongLength;
+            return (() =>
+            {
+                updateMasks();
+                computeSignal();
+                metrics = generator.GetLastComputeMetrics();
+                generator.AdjustValues(middle, minimum, maximum);
+            }, () => UpdateProjectionMemoryAccounting(metrics, valueCount));
+        }
+
+        protected virtual System.Action PrepareSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var sites = RawElectrodes;
+            int siteCount = sites.NumberOfSites;
+            float distance = DynamicParameters.InfluenceDistance;
+            return () => generator.ComputeActivity(sites, distance, values, length, siteCount, influenceRule);
+        }
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
@@ -280,9 +310,11 @@ namespace HBP.Data.Module3D
             return bins;
         }
 
-        public void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics)
+        public void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics) => UpdateProjectionMemoryAccounting(metrics, ActivityValues?.LongLength ?? 0);
+
+        private void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics, long valueCount)
         {
-            long managedBytes = ActivityValues?.LongLength * sizeof(float) ?? 0;
+            long managedBytes = valueCount * sizeof(float);
             long nativeBytes = (metrics.storedValueCount + metrics.storedWeightCount) * sizeof(float) + metrics.spatialIndexCacheBytes;
             DataManager.RegisterMemoryUsage(this, MemoryCacheCategory.NativeProjection, managedBytes + nativeBytes, true);
         }

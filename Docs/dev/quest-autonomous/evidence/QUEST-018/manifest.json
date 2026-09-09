@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "task": "QUEST-018",
+  "recordedAt": "2026-09-09T13:15:36.406201+00:00",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "head": "28e858495041217931e1d2b938b8d87ef6639b5b",
+    "initialWorkingTree": "clean",
+    "committed": false,
+    "files": [
+      {
+        "path": "Assets/Scripts/HBP/Core/DLL/Electrodes.cs",
+        "bytes": 8042,
+        "sha256": "cb448134c204aecdc0e2d91d8909336d1244a78e5d4349acae93028a05f14ec7"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Core/DLL/Electrodes.cs.meta",
+        "bytes": 274,
+        "sha256": "358085316e14b59f4b8a2cf0a877b0ebb99cfd6effdc5552a2678716d171ba0c"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Core/DLL/Generators/ActivityProjectionGrid.cs",
+        "bytes": 5769,
+        "sha256": "58158241c8117161c06d4ef4908de79f5346bfb890003bab7eb8e83988180939"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Core/DLL/Generators/ActivityProjectionGrid.cs.meta",
+        "bytes": 251,
+        "sha256": "22b9c06d29ebcafcc041229a85ea69bd113cea8976f4523fcaccecf31c626a0c"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Core/DLL/Generators/SurfaceGenerator.cs",
+        "bytes": 7177,
+        "sha256": "629628ffd415aa0cacec04450312614829dd34d1f6417c922b3d2260cf94f7cb"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Core/DLL/Generators/SurfaceGenerator.cs.meta",
+        "bytes": 254,
+        "sha256": "201f1e8e8087da1eadd6baee396eb231bbbd9b002d5e13e6bdbb4f01ae1a20a6"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs",
+        "bytes": 130995,
+        "sha256": "c528087093a4bafeb07f960e90e8ec0314a86f632f402f1fc903ce774a717e76"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs.meta",
+        "bytes": 256,
+        "sha256": "eac04e093943f02da114d9e58fc7cbfd9d441eb5b31e143630aab86d85a4dea5"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3D.cs",
+        "bytes": 24679,
+        "sha256": "e57a70a40443e43c5d0d73ad2814f7002695e4daf8626faecfbc3cd85da39a33"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3D.cs.meta",
+        "bytes": 277,
+        "sha256": "711ea1f18f7a184cf580b2d0d2c18a465415fc8951ff4df4347a46ec1632d32d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DAnatomy.cs",
+        "bytes": 1993,
+        "sha256": "7a1f4ac97f6186d48df3f9b3dc5ec85f2bbc13fd7a934dce41725c2b366d7b35"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DAnatomy.cs.meta",
+        "bytes": 277,
+        "sha256": "b43b9c5877917558bba66e1e0d537061e78e188af602de33c3c63a6f2d60152b"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DCCEP.cs",
+        "bytes": 24412,
+        "sha256": "ef6c962708b36023824c6022be3f867d0b9baf4f494eb5ad3805fa66cef78cd1"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DCCEP.cs.meta",
+        "bytes": 254,
+        "sha256": "ec22efc7ec718a30c8201939026abdcc08b3c42b0ce0fcdae65a1d41ecdc951c"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DDynamic.cs",
+        "bytes": 13485,
+        "sha256": "af536eb15d77e7abb74e01b311027413b193457ad5aa7b0977be26147d4b8273"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DDynamic.cs.meta",
+        "bytes": 277,
+        "sha256": "f817a12c5f7d3cd2cab231d42991897c099003b9dbeae7aea0aec8661a6333d6"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DFMRI.cs",
+        "bytes": 7303,
+        "sha256": "300d48e0e67c21870248264166d092864889bfe4ec9cc5394b7c30ba6cb6eaee"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DFMRI.cs.meta",
+        "bytes": 277,
+        "sha256": "34b3d4f10a0193793f472614d504fa2e255cfe653bc0dadc6104950cf8eff537"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DMEG.cs",
+        "bytes": 7372,
+        "sha256": "d83541d943b38bb6de8414fb822a65d63dac8c5f473e0ca30c98d8ff52ea5aef"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DMEG.cs.meta",
+        "bytes": 277,
+        "sha256": "f3b9821d42682374cdfe95b88824325a400973672efda55d6bdb8a295714250b"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DStatic.cs",
+        "bytes": 14091,
+        "sha256": "c00a111cbb937e517200ac060acfbffce424333632b1c43ca984138bad4511e4"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DStatic.cs.meta",
+        "bytes": 277,
+        "sha256": "3e8dd59d311065c04e952964afb4e2bdada7c62b495aaa1691e9b519a9c5667b"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopAnatomyCaptureTests.cs",
+        "bytes": 25371,
+        "sha256": "430f8fe422d8e5f1005c973944032c08a6e0e0ca876ad880fd36dd87eded1a56"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopAnatomyCaptureTests.cs.meta",
+        "bytes": 59,
+        "sha256": "d503d42ed0f0fa2fe4310023c6770f81d904c7683b1d4ec03b3ba0ec1b022173"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/DensityProjectionDiagnostic.cs",
+        "bytes": 6712,
+        "sha256": "8c6409ea9c97abd57bb0e6da5a23596307d3692cc9ff0bce34d1a7798849f382"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/DensityProjectionDiagnostic.cs.meta",
+        "bytes": 59,
+        "sha256": "05357609fec2af057feaa5fc47839a06fc6eb195dc45cdd21e30570ba468efa7"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DensityProjectionTests.cs",
+        "bytes": 22788,
+        "sha256": "4a3ff68badbccbf382c8adca3c518cfab6f00b3d414f8f03222020732438f0da"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DensityProjectionTests.cs.meta",
+        "bytes": 59,
+        "sha256": "643f09992fcb8b5951f0b68686e1835ca2c3c71671d5d3227d687dc39630bb5b"
+      }
+    ],
+    "revisionOfUncommittedImplementation": true
+  },
+  "environment": {
+    "unity": "6000.5.2f1",
+    "editorInitiallyOpen": false,
+    "workflow": "Unity CLI outside Windows sandbox",
+    "profile": "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+    "player": "Windows x86_64 IL2CPP",
+    "graphics": "NVIDIA GeForce RTX 2070 SUPER"
+  },
+  "native": {
+    "modified": false,
+    "lock": {
+      "path": "Tools/NativePlugins.lock.json",
+      "bytes": 8169,
+      "sha256": "3d96ef4de48733d846032b7210ae7850eac127950cd0bcb49ac59e778882f240"
+    },
+    "sources": [
+      {
+        "name": "EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd"
+      },
+      {
+        "name": "hbp_core",
+        "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1"
+      },
+      {
+        "name": "hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7"
+      }
+    ],
+    "windowsHbpCore": {
+      "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+      "bytes": 1378816,
+      "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+    }
+  },
+  "inputs": {
+    "preparedDesktopCapture": {
+      "path": ".artifacts/quest-017/captures/20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a/anatomy.hbna",
+      "bytes": 15532677,
+      "sha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26"
+    },
+    "volume": {
+      "path": "Assets/Data/IRM/MNI.nii",
+      "bytes": 11661664,
+      "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96"
+    },
+    "projectArchive": {
+      "path": ".artifacts/quest-018/fixture/quest-mni-contacts.hibop",
+      "bytes": 5068,
+      "sha256": "7e4f24e7cbc01c4f52316035fa15585f24f40f9ce796489039826d70e7f5d672"
+    },
+    "sensitiveData": "Repository MNI and synthetic contacts only"
+  },
+  "tests": [
+    {
+      "mode": "editmode",
+      "result": "Passed",
+      "total": 57,
+      "passed": 57,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "commandFile": "editmode-command.json",
+      "resultFile": "editmode.xml"
+    },
+    {
+      "mode": "playmode",
+      "result": "Passed",
+      "total": 45,
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "commandFile": "playmode-command.json",
+      "resultFile": "playmode.xml"
+    }
+  ],
+  "build": {
+    "command": "Tools/Build-QuestConnectionPlayers.ps1 -Target Windows -EvidenceId quest-018",
+    "exitCode": 0,
+    "log": ".test-results/quest-018/windows-build.log"
+  },
+  "player": {
+    "commandFile": "player-command.json",
+    "resultFile": "player-result.json",
+    "success": true,
+    "nativeProjectedVertices": 69104,
+    "influenceMm": [
+      15,
+      25,
+      15
+    ],
+    "meshUploadMatchesProjection": true,
+    "firstAndRestoredPngSha256Equal": true,
+    "completionEvidence": "Diagnostic JSON success, not process exit code",
+    "shutdownFile": "player-stop.json",
+    "previousReferencePngSha256Equal": true
+  },
+  "checks": {
+    "format": {
+      "command": "Tools/format-code.cmd",
+      "exitCode": 0,
+      "filesFormatted": 14,
+      "finalRunChangedContent": false
+    },
+    "gitDiffCheckExitCode": 0,
+    "reportLinksValidAfterManifestCreation": true,
+    "seam": "seam-check.json",
+    "independentReview": "Independent read-only concurrency/lifetime review of polymorphic preparation, main-thread publication, deferred calibration and real worker completion; no concrete defect identified."
+  },
+  "manual": [
+    {
+      "id": "M1",
+      "status": "VALIDE",
+      "description": "Compare Desktop density to supplied 15 mm reference",
+      "validatedOn": "2026-09-09",
+      "validatedBy": "owner",
+      "source": "Current conversation, after launching the QUEST-018 Windows Player on MNI Contacts",
+      "quote": "Je valide M1 et M2"
+    },
+    {
+      "id": "M2",
+      "status": "VALIDE",
+      "description": "Change then restore influence rule via existing preferences and recalculate",
+      "validatedOn": "2026-09-09",
+      "validatedBy": "owner",
+      "source": "Current conversation, after launching the QUEST-018 Windows Player on MNI Contacts",
+      "quote": "Je valide M1 et M2"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/editmode-command.json",
+      "bytes": 800,
+      "sha256": "ab93627645582b8a59f6011fd1d3dc345bab0240016635ef3bf39bc670ad306b"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/editmode.xml",
+      "bytes": 56286,
+      "sha256": "eb2c49fe18a8bfb1d7c1cac6f8254412b8a928054fc3fd3cedc11b68ef0b45b7"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/player-command.json",
+      "bytes": 408,
+      "sha256": "bdf40d92532d9af627ccebc0ff569440ff9f36dc60b1d6af6d15ba34c1e884cc"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/player-result.json",
+      "bytes": 1063,
+      "sha256": "25df26d69b7cafb345c9684f9fb009db994c75b6b7d837dd8a4c8fac1571e4d0"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/player-stop.json",
+      "bytes": 245,
+      "sha256": "876d5d5582da49f0908c3e1b7530150755ea1f872e6ed93c8c8e2d7fd04e7bfd"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/playmode-command.json",
+      "bytes": 464,
+      "sha256": "c2da4ea9379eadd1e2e83ac295514003226155a3a47fd0ef3399af26e8d1a611"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/playmode.xml",
+      "bytes": 47522,
+      "sha256": "92d5d07cd8ea700de352cd036a5a81fce285d41f7aa212223e72b72a08cd1b32"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/reference-15mm.png",
+      "bytes": 387991,
+      "sha256": "8e7f6048b015c0acf4db05b0bf78e8b3f180f42c474eda5b85231dbd7867c5be"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/reference-25mm.png",
+      "bytes": 396194,
+      "sha256": "8c021a454a36c0b84bfecd06423ff6411459c8b8fc517437e060ebfb47d8e200"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-018/seam-check.json",
+      "bytes": 950,
+      "sha256": "f15e7f5f37acfb441bd57576e222290b59252db9831c2c65ddbaf4e65af10f8b"
+    }
+  ],
+  "localArtifacts": [
+    {
+      "path": ".artifacts/quest-018/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    {
+      "path": ".artifacts/quest-018/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 63092224,
+      "sha256": "95886cd5071bc1db55f41eac488d238fea857712b1713151e83ff1cdd9b7c332"
+    },
+    {
+      "path": ".artifacts/quest-018/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Metadata/global-metadata.dat",
+      "bytes": 11868668,
+      "sha256": "f24767d68d34a9525edb07f44f575fc32975a8191f6fce37aceae47c94885418"
+    },
+    {
+      "path": ".artifacts/quest-018/fixture/quest-mni-contacts.hibop",
+      "bytes": 5068,
+      "sha256": "7e4f24e7cbc01c4f52316035fa15585f24f40f9ce796489039826d70e7f5d672"
+    },
+    {
+      "path": ".artifacts/quest-018/density-capture-revision/density-0-15mm.png",
+      "bytes": 387991,
+      "sha256": "8e7f6048b015c0acf4db05b0bf78e8b3f180f42c474eda5b85231dbd7867c5be"
+    },
+    {
+      "path": ".artifacts/quest-018/density-capture-revision/density-1-25mm.png",
+      "bytes": 396194,
+      "sha256": "8c021a454a36c0b84bfecd06423ff6411459c8b8fc517437e060ebfb47d8e200"
+    },
+    {
+      "path": ".artifacts/quest-018/density-capture-revision/density-2-15mm.png",
+      "bytes": 387991,
+      "sha256": "8e7f6048b015c0acf4db05b0bf78e8b3f180f42c474eda5b85231dbd7867c5be"
+    },
+    {
+      "path": ".test-results/quest-018/windows-build.log",
+      "bytes": 827398,
+      "sha256": "534c45bbecc4b1fe79c945ef98b05af7cdd32585be8404dc9ee81f85da9af3ce"
+    },
+    {
+      "path": ".test-results/quest-018/revision/editmode.log",
+      "bytes": 103107,
+      "sha256": "abb6e02efcf75aa10dc964ff6ff91dcd628266c16e5846d5bbd3fa0658463eb4"
+    },
+    {
+      "path": ".test-results/quest-018/revision/playmode.log",
+      "bytes": 96655,
+      "sha256": "fee74b117cbaaf6862b4ab25e1ff33daa6332fac60213e56a72c1648e49cfa04"
+    },
+    {
+      "path": ".test-results/quest-018/revision/player.log",
+      "bytes": 3717,
+      "sha256": "9cc39e35cf26da2ad78c018288a82231c51220e608e58810530d659d0f7e91c3"
+    },
+    {
+      "path": ".test-results/quest-018/revision/unity-generated.patch",
+      "bytes": 6640,
+      "sha256": "9d6e1b1fdb95cf6184525547ed86c935814f577dc42450f98f90e40040e7fb04"
+    },
+    {
+      "path": ".test-results/quest-018/revision/source-tracked.patch",
+      "bytes": 41746,
+      "sha256": "7dda50f9c3e1a8b473171f64abeae4c96ffd7aca2a1e97e2615d1f3e00c8d61a"
+    }
+  ],
+  "limitations": [
+    "No Android build or physical Quest density run in QUEST-018.",
+    "Visual references come from the rebuilt Player; they are byte-identical to the preceding implementation. Native numerical parity is verified in EditMode.",
+    "New preparation tests cover iEEG, CCEP sites, static, fMRI and MEG; atlas preparation was reviewed, without an added real atlas dataset test.",
+    "Player was stopped by verified PID after successful evidence collection; no successful natural Player exit is claimed."
+  ]
+}

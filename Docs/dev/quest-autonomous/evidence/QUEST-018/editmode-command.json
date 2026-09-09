@@ -1,0 +1,20 @@
+[
+  "-batchmode",
+  "-nographics",
+  "-projectPath",
+  "C:/HBP/Software/HiBoP",
+  "-activeBuildProfile",
+  "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+  "-runTests",
+  "-testPlatform",
+  "EditMode",
+  "-testFilter",
+  "HBP.Tests.Transfer.Anatomy.Desktop;HBP.Tests.Serialization.ActivityProjectionPhase3Tests;HBP.Tests.Serialization.Stage5ProjectionBufferTests;HBP.Tests.Serialization.ActivityProjectionSettingsTests",
+  "-questAnatomyFixture",
+  "C:/HBP/Software/HiBoP/.artifacts/quest-017/captures/20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a/anatomy.hbna",
+  "-testResults",
+  "C:/HBP/Software/HiBoP/.test-results/quest-018/revision/editmode.xml",
+  "-logFile",
+  "C:/HBP/Software/HiBoP/.test-results/quest-018/revision/editmode.log",
+  "-forgetProjectPath"
+]

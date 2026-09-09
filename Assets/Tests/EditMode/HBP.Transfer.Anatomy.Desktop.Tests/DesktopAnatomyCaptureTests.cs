@@ -47,6 +47,54 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
             Assert.That(offer.ContentHash, Is.EqualTo(new HBP.Transfer.Transport.DeliveryReceipt(HBP.Transfer.Transport.TransportIdentity.Hash(encoded), HBP.Transfer.Transport.DeliveryStatus.Published).ContentHash));
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task DensityWorkerCompletesLifetimeOnFailureOrInvalidation(bool invalidate)
+        {
+            SetField(m_Scene, "m_ROIManager", m_Root.AddComponent<ROIManager>());
+            typeof(Column3D).GetProperty("Sites").SetValue(m_Column, new List<HBP.Core.Object3D.Site>());
+            // Deliberately inconsistent count fails in the common path after dispatch.
+            m_Column.RawElectrodes.AddSite("S1", Vector3.zero, 0, 0);
+            using var density = new HBP.Core.DLL.DensityGenerator();
+            typeof(Column3D).GetProperty("ActivityGenerator").SetValue(m_Column, density);
+            m_Scene.SceneInformation.GeneratorNeedsUpdate = false;
+            var notifications = new List<bool>();
+            int progressCount = 0;
+            bool parameterApplied = false;
+            m_Scene.OnProgressUpdateGenerator.AddListener((_, _) => progressCount++);
+            m_Scene.OnUpdatingGenerators.AddListener(value =>
+            {
+                notifications.Add(value);
+                if (value)
+                {
+                    typeof(Base3DScene).GetMethod("UpdateGeneratorParameters", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(m_Scene, new object[] { (Action)(() => parameterApplied = true) });
+                    Assert.That(parameterApplied, Is.False, "Parameter writes must wait for the worker.");
+                }
+
+                if (value && invalidate) m_Scene.SceneInformation.GeneratorNeedsUpdate = true;
+            });
+            Exception error = null;
+            try
+            {
+                var operation = (Cysharp.Threading.Tasks.UniTask)typeof(Base3DScene).GetMethod("ComputeGeneratorsAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(m_Scene, null);
+                await operation;
+            }
+            catch (Exception exception)
+            {
+                error = exception;
+            }
+
+            Assert.That(error, invalidate ? Is.Null : Is.TypeOf<ArgumentException>());
+            Assert.That(typeof(Base3DScene).GetField("m_UpdatingGenerators", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(m_Scene), Is.False);
+            Assert.That(((Task)typeof(Base3DScene).GetField("m_GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(m_Scene)).IsCompleted, Is.True);
+            Assert.That(notifications, Is.EqualTo(new[] { true, false }));
+            Assert.That(parameterApplied, Is.True, "Deferred parameters apply even on failure/invalidation.");
+            Assert.That(m_Scene.IsGeneratorUpToDate, Is.False);
+            int completedProgressCount = progressCount;
+            await Task.Delay(150);
+            Assert.That(progressCount, Is.EqualTo(completedProgressCount), "The progress monitor must stop on every exit.");
+        }
+
         private GameObject m_Root;
         private Base3DScene m_Scene;
         private Column3DAnatomy m_Column;

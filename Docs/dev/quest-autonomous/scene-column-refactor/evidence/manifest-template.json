@@ -1,0 +1,33 @@
+{
+  "template": true,
+  "task": "SCENE-NNN",
+  "createdUtc": null,
+  "implementation": "A_FAIRE",
+  "technical": "NON_EXECUTE",
+  "manual": "NON_DEMANDE",
+  "report": null,
+  "baseline": {
+    "task": "QUEST-023",
+    "commit": null,
+    "evidence": []
+  },
+  "source": {
+    "branch": null,
+    "commit": null,
+    "uncommittedFiles": []
+  },
+  "environment": {
+    "unity": null,
+    "packages": [],
+    "nativeProvenance": [],
+    "players": []
+  },
+  "commands": [],
+  "artifacts": [],
+  "invariants": [],
+  "reusedEvidence": [],
+  "independentReview": null,
+  "manualReview": [],
+  "deviceStop": null,
+  "limitations": []
+}

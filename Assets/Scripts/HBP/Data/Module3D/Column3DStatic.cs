@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Enums;
@@ -193,6 +193,27 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Public Methods
+
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var generator = (Core.DLL.IEEGGenerator)ActivityGenerator;
+            var sites = RawElectrodes;
+            var values = ActivityValues;
+            int length = Labels.Length;
+            int siteCount = sites.NumberOfSites;
+            float distance = StaticParameters.InfluenceDistance;
+            float middle = StaticParameters.Middle;
+            float minimum = StaticParameters.SpanMin;
+            float maximum = StaticParameters.SpanMax;
+            return (() =>
+            {
+                updateMasks();
+                generator.ComputeActivity(sites, distance, values, length, siteCount, influenceRule);
+                generator.AdjustValues(middle, minimum, maximum);
+            }, null);
+        }
+
 
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
