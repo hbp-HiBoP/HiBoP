@@ -1,0 +1,286 @@
+{
+  "failure": null,
+  "apkSha256": "e035c6a16cf3507b4d83404a380b38323260fe7f77c34b1317c9d1dbca8dad39",
+  "completedRepetitions": 3,
+  "serial": "192.168.1.18:5555",
+  "results": [
+    {
+      "runId": "b9accdb78e52477095fb8e9892495c8a",
+      "startedUtc": "2026-09-09T10:47:57.773511Z",
+      "finishedUtc": "2026-09-09T10:48:09.944131Z",
+      "unity": "6000.5.2f1",
+      "backend": "IL2CPP",
+      "device": "Oculus Quest 3",
+      "os": "Android OS 14 / API-34 (UP1A.231005.007.A1/52433670036000520)",
+      "nativeVersion": "0.2.1",
+      "fixtureSha256": "4ec56fdd3f53c0f2caec05eed465f4e948c6ecd4fd7fa1ac9adf0a5542e8f396",
+      "controlledError": "hbp_core_set_log_file received an empty path",
+      "requestedCycles": 100,
+      "completedCycles": 100,
+      "releasedHandles": 600,
+      "callbackChecks": 100,
+      "nativeErrorChecks": 100,
+      "passed": true,
+      "failure": "",
+      "nativeMappings": [
+        "/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/lib/arm64/libil2cpp.so",
+        "/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/lib/arm64/libhbp_core.so"
+      ],
+      "memory": [
+        {
+          "completedCycles": 0,
+          "nativeHeapBytes": 26610944,
+          "unityAllocatedBytes": 103434199,
+          "managedBytes": 6885376
+        },
+        {
+          "completedCycles": 10,
+          "nativeHeapBytes": 26781160,
+          "unityAllocatedBytes": 103505191,
+          "managedBytes": 6975488
+        },
+        {
+          "completedCycles": 20,
+          "nativeHeapBytes": 26777592,
+          "unityAllocatedBytes": 103505191,
+          "managedBytes": 7073792
+        },
+        {
+          "completedCycles": 30,
+          "nativeHeapBytes": 26751624,
+          "unityAllocatedBytes": 103531439,
+          "managedBytes": 6262784
+        },
+        {
+          "completedCycles": 40,
+          "nativeHeapBytes": 26744912,
+          "unityAllocatedBytes": 103531967,
+          "managedBytes": 6287360
+        },
+        {
+          "completedCycles": 50,
+          "nativeHeapBytes": 26724568,
+          "unityAllocatedBytes": 103532007,
+          "managedBytes": 6316032
+        },
+        {
+          "completedCycles": 60,
+          "nativeHeapBytes": 26720968,
+          "unityAllocatedBytes": 103532071,
+          "managedBytes": 6381568
+        },
+        {
+          "completedCycles": 70,
+          "nativeHeapBytes": 26720936,
+          "unityAllocatedBytes": 103532223,
+          "managedBytes": 6475776
+        },
+        {
+          "completedCycles": 80,
+          "nativeHeapBytes": 26708584,
+          "unityAllocatedBytes": 103532263,
+          "managedBytes": 6590464
+        },
+        {
+          "completedCycles": 90,
+          "nativeHeapBytes": 26709672,
+          "unityAllocatedBytes": 103532655,
+          "managedBytes": 6709248
+        },
+        {
+          "completedCycles": 100,
+          "nativeHeapBytes": 26709208,
+          "unityAllocatedBytes": 103532887,
+          "managedBytes": 6832128
+        }
+      ]
+    },
+    {
+      "runId": "d9d0acd4d3044bf8b28c0e3dd8c4b985",
+      "startedUtc": "2026-09-09T10:48:17.528027Z",
+      "finishedUtc": "2026-09-09T10:48:29.698982Z",
+      "unity": "6000.5.2f1",
+      "backend": "IL2CPP",
+      "device": "Oculus Quest 3",
+      "os": "Android OS 14 / API-34 (UP1A.231005.007.A1/52433670036000520)",
+      "nativeVersion": "0.2.1",
+      "fixtureSha256": "4ec56fdd3f53c0f2caec05eed465f4e948c6ecd4fd7fa1ac9adf0a5542e8f396",
+      "controlledError": "hbp_core_set_log_file received an empty path",
+      "requestedCycles": 100,
+      "completedCycles": 100,
+      "releasedHandles": 600,
+      "callbackChecks": 100,
+      "nativeErrorChecks": 100,
+      "passed": true,
+      "failure": "",
+      "nativeMappings": [
+        "/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/lib/arm64/libhbp_core.so",
+        "/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/lib/arm64/libil2cpp.so"
+      ],
+      "memory": [
+        {
+          "completedCycles": 0,
+          "nativeHeapBytes": 26614936,
+          "unityAllocatedBytes": 103444654,
+          "managedBytes": 6340608
+        },
+        {
+          "completedCycles": 10,
+          "nativeHeapBytes": 26622880,
+          "unityAllocatedBytes": 103515886,
+          "managedBytes": 6422528
+        },
+        {
+          "completedCycles": 20,
+          "nativeHeapBytes": 26624448,
+          "unityAllocatedBytes": 103516382,
+          "managedBytes": 6508544
+        },
+        {
+          "completedCycles": 30,
+          "nativeHeapBytes": 26622984,
+          "unityAllocatedBytes": 103542430,
+          "managedBytes": 6631424
+        },
+        {
+          "completedCycles": 40,
+          "nativeHeapBytes": 26615880,
+          "unityAllocatedBytes": 103542430,
+          "managedBytes": 6729728
+        },
+        {
+          "completedCycles": 50,
+          "nativeHeapBytes": 26602744,
+          "unityAllocatedBytes": 103542430,
+          "managedBytes": 6844416
+        },
+        {
+          "completedCycles": 60,
+          "nativeHeapBytes": 26597560,
+          "unityAllocatedBytes": 103542670,
+          "managedBytes": 6971392
+        },
+        {
+          "completedCycles": 70,
+          "nativeHeapBytes": 26600808,
+          "unityAllocatedBytes": 103542846,
+          "managedBytes": 7090176
+        },
+        {
+          "completedCycles": 80,
+          "nativeHeapBytes": 26587624,
+          "unityAllocatedBytes": 103543110,
+          "managedBytes": 6369280
+        },
+        {
+          "completedCycles": 90,
+          "nativeHeapBytes": 26593544,
+          "unityAllocatedBytes": 103543150,
+          "managedBytes": 6397952
+        },
+        {
+          "completedCycles": 100,
+          "nativeHeapBytes": 26586152,
+          "unityAllocatedBytes": 103543430,
+          "managedBytes": 6438912
+        }
+      ]
+    },
+    {
+      "runId": "7013c26c906e4fa69d46c301903acedf",
+      "startedUtc": "2026-09-09T10:48:36.626586Z",
+      "finishedUtc": "2026-09-09T10:48:48.807302Z",
+      "unity": "6000.5.2f1",
+      "backend": "IL2CPP",
+      "device": "Oculus Quest 3",
+      "os": "Android OS 14 / API-34 (UP1A.231005.007.A1/52433670036000520)",
+      "nativeVersion": "0.2.1",
+      "fixtureSha256": "4ec56fdd3f53c0f2caec05eed465f4e948c6ecd4fd7fa1ac9adf0a5542e8f396",
+      "controlledError": "hbp_core_set_log_file received an empty path",
+      "requestedCycles": 100,
+      "completedCycles": 100,
+      "releasedHandles": 600,
+      "callbackChecks": 100,
+      "nativeErrorChecks": 100,
+      "passed": true,
+      "failure": "",
+      "nativeMappings": [
+        "/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/lib/arm64/libil2cpp.so",
+        "/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/lib/arm64/libhbp_core.so"
+      ],
+      "memory": [
+        {
+          "completedCycles": 0,
+          "nativeHeapBytes": 26524336,
+          "unityAllocatedBytes": 103376867,
+          "managedBytes": 6418432
+        },
+        {
+          "completedCycles": 10,
+          "nativeHeapBytes": 26525960,
+          "unityAllocatedBytes": 103448347,
+          "managedBytes": 6504448
+        },
+        {
+          "completedCycles": 20,
+          "nativeHeapBytes": 26519720,
+          "unityAllocatedBytes": 103448563,
+          "managedBytes": 6615040
+        },
+        {
+          "completedCycles": 30,
+          "nativeHeapBytes": 26507768,
+          "unityAllocatedBytes": 103474819,
+          "managedBytes": 6758400
+        },
+        {
+          "completedCycles": 40,
+          "nativeHeapBytes": 26492352,
+          "unityAllocatedBytes": 103474883,
+          "managedBytes": 6873088
+        },
+        {
+          "completedCycles": 50,
+          "nativeHeapBytes": 26488216,
+          "unityAllocatedBytes": 103475259,
+          "managedBytes": 6983680
+        },
+        {
+          "completedCycles": 60,
+          "nativeHeapBytes": 26486616,
+          "unityAllocatedBytes": 103475363,
+          "managedBytes": 7106560
+        },
+        {
+          "completedCycles": 70,
+          "nativeHeapBytes": 26487016,
+          "unityAllocatedBytes": 103475363,
+          "managedBytes": 6217728
+        },
+        {
+          "completedCycles": 80,
+          "nativeHeapBytes": 26488488,
+          "unityAllocatedBytes": 103475363,
+          "managedBytes": 6275072
+        },
+        {
+          "completedCycles": 90,
+          "nativeHeapBytes": 26488728,
+          "unityAllocatedBytes": 103475611,
+          "managedBytes": 6344704
+        },
+        {
+          "completedCycles": 100,
+          "nativeHeapBytes": 26491848,
+          "unityAllocatedBytes": 103476067,
+          "managedBytes": 6430720
+        }
+      ]
+    }
+  ],
+  "requestedRepetitions": 3,
+  "stopped": true,
+  "apk": "C:\\HBP\\Software\\HiBoP\\Tools/../.artifacts/quest-016/Android/HiBoP.Quest.apk",
+  "passed": true,
+  "installedApkSha256": "e035c6a16cf3507b4d83404a380b38323260fe7f77c34b1317c9d1dbca8dad39"
+}

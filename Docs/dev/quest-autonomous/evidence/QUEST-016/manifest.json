@@ -1,0 +1,467 @@
+{
+  "task": "QUEST-016",
+  "generatedUtc": "2026-09-09T10:53:10.7732491Z",
+  "status": {
+    "technical": "REUSSI",
+    "manual": "NON_REQUIS",
+    "implementation": "IMPLEMENTEE"
+  },
+  "source": {
+    "uncommitted": true,
+    "supportingFiles": [
+      {
+        "path": "C:/HBP/Software/HiBoP/Tools/NativePlugins.lock.json",
+        "bytes": 8169,
+        "sha256": "3d96ef4de48733d846032b7210ae7850eac127950cd0bcb49ac59e778882f240"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so.meta",
+        "bytes": 823,
+        "sha256": "bd17f84f4c0eb3ef7dd9051ccb1e7374f9f94cf0cb8a2e2d57d5dad802d4b8e3"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Core/DLL/HbpCore/HbpCoreRuntime.cs",
+        "bytes": 6836,
+        "sha256": "99650a1ffd1cc37b47008a967aa6afeb2bb3d28d772ae8cb91fa90b755d51717"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Core/DLL/HbpCoreLibrary.cs",
+        "bytes": 136,
+        "sha256": "080efd3ca7166ebe0b8a47d55e16f48e7f0e4073801ab15c0df2095c3ffdb97a"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Core/DLL/CppDLLImportBase.cs",
+        "bytes": 2912,
+        "sha256": "5b289770a50cbfd078fd20d793f6eb0669ba6e61d2236566b310aaf52779bcbf"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Core/DLL/Volume.cs",
+        "bytes": 15975,
+        "sha256": "83e1211db7effb66036bac718c584e077d0a80ceb2ed00f65641b67cb060ba20"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Core/DLL/Surface.cs",
+        "bytes": 41854,
+        "sha256": "0b5b3ef71b90dc5e740dc2af1311f58db2add3797afd0df7643aaec7672f0037"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Core/DLL/Electrodes.cs",
+        "bytes": 6282,
+        "sha256": "0640b2c63904506ec9a2dfe0bb81017205c55b579a77d15050f72d9e1c507ddb"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Core/DLL/Plane.cs",
+        "bytes": 5579,
+        "sha256": "25e24eb6c2407b996bb5d3290b108c6a3aa7dc5a6506033711699c065d301be4"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Tools/Test-QuestApk.ps1",
+        "bytes": 4153,
+        "sha256": "f49c84fdec13d73fe776ad290ca82185040850daa432d87ce6e5efbc9c3d1ed9"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Tools/Build-QuestConnectionPlayers.ps1",
+        "bytes": 1638,
+        "sha256": "357dfbb6ae156bd79d3a5fea4c04842472a79b9199b0312590f8f5659b83215e"
+      }
+    ],
+    "initialWorkingTree": "clean",
+    "head": "b021a023d5e55f156e1c3c0c9d1ad6edd5f3ef1b",
+    "unityGeneratedChangesRestored": true,
+    "unityGeneratedChangesSavedAt": "C:/HBP/Software/HiBoP/.test-results/quest-016/unity-generated.patch",
+    "changedFiles": [
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Quest/Runtime/QuestNativeDiagnostic.cs",
+        "bytes": 13072,
+        "sha256": "da87dee65c13f9279720eb5353773e03f106af628ece9fa49fc39f2d3a56d9cd"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Quest/Runtime/QuestNativeDiagnostic.cs.meta",
+        "bytes": 62,
+        "sha256": "a18ea9fe6a42eb8c2050af501be3dc3dc392d1fb4dfa9cfaab1010c4a4ec5472"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Assets/Scripts/HBP/Quest/Runtime/HBP.Quest.Runtime.asmdef",
+        "bytes": 392,
+        "sha256": "fbbe81cc056784809145d329141fcda07d57e07f09e334bdcab3cfe51eaa269c"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Tools/Run-QuestNativeProbe.ps1",
+        "bytes": 7178,
+        "sha256": "09de8f8165339c520eb675c3ea7dd4d2660bc1f5c5136ab4c26a995f1e19e200"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/reports/QUEST-016.md",
+        "bytes": 10192,
+        "sha256": "82aa13819ed45d8f4b6cb29ba2df3369ac5b05657a7c8d913ee268bf065a9c6c"
+      },
+      {
+        "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/TASK-STATUS.md",
+        "bytes": 9210,
+        "sha256": "89643c2e61a309497a89dcf51a7e4dba127e0be7bcc0fb2939837293ccdb792e"
+      }
+    ],
+    "branch": "feature/xr-autonomous"
+  },
+  "environment": {
+    "serial": "192.168.1.18:5555",
+    "architecture": "ARM64",
+    "backend": "IL2CPP",
+    "model": "Quest 3",
+    "nativeToolchain": {
+      "ndkVersion": "27.2.12479018",
+      "cmakeVersion": "3.22.1",
+      "ninjaVersion": "1.10.2",
+      "api": 32,
+      "abi": "arm64-v8a",
+      "stl": "c++_static",
+      "pageSize": 16384
+    },
+    "androidBuild": "oculus/eureka/eureka:14/UP1A.231005.007.A1/52433670036000520:user/abl_signing_keys:release,amss_signing_keys:release,release-keys",
+    "unity": "6000.5.2f1",
+    "deviceAbi": "arm64-v8a,armeabi-v7a,armeabi",
+    "platform": "Android",
+    "adb": "37.0.1-15733141",
+    "developmentBuild": true
+  },
+  "native": {
+    "import": {
+      "Editor": false,
+      "CPU": "ARM64",
+      "Android": true,
+      "Desktop": false,
+      "AnyPlatform": false
+    },
+    "exportCount": 226,
+    "dependencies": [
+      "libc.so",
+      "libdl.so",
+      "libm.so"
+    ],
+    "binary": {
+      "path": "C:/HBP/Software/HiBoP/Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so",
+      "bytes": 1450608,
+      "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e"
+    },
+    "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/34339388439",
+    "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1",
+    "runtimeVersion": "0.2.1",
+    "sourceTree": "53fa0fbfbdc6fccc279c57cc7a895f1d860fcae2"
+  },
+  "checks": [
+    {
+      "id": "T1",
+      "context": "Outside Windows sandbox; authorized Quest 3 already connected over Wi-Fi",
+      "result": "Passed",
+      "command": "adb devices -l; ./Tools/Connect-QuestAdbWifi.ps1 -KeepAwakeWhilePluggedIn",
+      "exitCode": 0
+    },
+    {
+      "passed": 25,
+      "failed": 0,
+      "command": "Unity.exe -batchmode -nographics -projectPath C:/HBP/Software/HiBoP -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -runTests -testPlatform EditMode -assemblyNames HBP.PlatformConfiguration.Tests -testResults .test-results/quest-016/platform-editmode.xml -logFile .test-results/quest-016/platform-editmode.log -forgetProjectPath",
+      "id": "T2",
+      "result": "Passed",
+      "exitCode": 0
+    },
+    {
+      "id": "T3",
+      "result": "Passed",
+      "command": "../hbp_core/tools/Test-HbpCoreAndroidArtifact.ps1 -LibraryPath Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so -ReadElfPath C:/Program Files/Unity/Hub/Editor/6000.5.2f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK/toolchains/llvm/prebuilt/windows-x86_64/bin/llvm-readelf.exe -ReportPath .test-results/quest-016/elf-inspection.json",
+      "exitCode": 0
+    },
+    {
+      "id": "T4",
+      "buildDurationMilliseconds": 325022,
+      "result": "Passed",
+      "command": "./Tools/Build-QuestConnectionPlayers.ps1 -Target Android -EvidenceId quest-016",
+      "exitCode": 0
+    },
+    {
+      "apkHashEqualsInstalledHash": true,
+      "command": "./Tools/Test-QuestApk.ps1 -Apk .artifacts/quest-016/Android/HiBoP.Quest.apk -ReportPath .test-results/quest-016/device-20260909-104737/apk-content.json; adb -s 192.168.1.18:5555 shell sha256sum <installed-base.apk>",
+      "nativeLibraries": [
+        "lib/arm64-v8a/libUnityARFoundationMeta.so",
+        "lib/arm64-v8a/libUnityOpenXR.so",
+        "lib/arm64-v8a/lib_burst_generated.so",
+        "lib/arm64-v8a/libhbp_core.so",
+        "lib/arm64-v8a/libil2cpp.so",
+        "lib/arm64-v8a/libmain.so",
+        "lib/arm64-v8a/libopenxr_loader.so",
+        "lib/arm64-v8a/libunity.so"
+      ],
+      "id": "T5",
+      "result": "Passed",
+      "exitCode": 0
+    },
+    {
+      "utf8CallbackChecks": 300,
+      "stopped": true,
+      "exitCode": 0,
+      "releasedHandles": 1800,
+      "memorySamples": 33,
+      "cycles": 300,
+      "repetitions": 3,
+      "result": "Passed",
+      "command": "./Tools/Run-QuestNativeProbe.ps1 -Serial 192.168.1.18:5555",
+      "controlledNativeErrorChecks": 300,
+      "id": "T6"
+    },
+    {
+      "evidence": "normal-start.json",
+      "command": "Verify absent quest016-native-probe marker; am start resolved Quest activity; observe 20 seconds; check no QUEST016 messages and unchanged result.json hash; am force-stop; pidof",
+      "details": "normal-start/launch.log and logcat.txt; shutdown pidof exit 1 is expected",
+      "id": "T7",
+      "result": "Passed",
+      "exitCode": 0
+    },
+    {
+      "id": "T8",
+      "notes": "Formatter rerun after NuGet restore outside sandbox and Unity project generation included the new file.",
+      "result": "Passed",
+      "command": "./Tools/format-code.cmd; PowerShell Parser.ParseFile(Tools/Run-QuestNativeProbe.ps1); git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "repositoryEvidence": [
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/apk-content.json",
+      "bytes": 6211,
+      "sha256": "f8d80f5896e23b53a09ca19f84376bfcab7e1c99e3e99b9f1ce033f834f476c3"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/device-commands.json",
+      "bytes": 19081,
+      "sha256": "70d54f3b872d6989585c258fa1dd9a21c09133e9b1ca9a2baf945b65f04614d0"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/device-results.json",
+      "bytes": 9416,
+      "sha256": "75f94b508de2435d414cc8467ef062c4fc8cecef00f6835c7f14237b1812bdbf"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/elf-summary.json",
+      "bytes": 382,
+      "sha256": "5d231ff8e5fe181b07ff6d69772799c47ffde200669359ee213506e6bbf41c37"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/normal-start-logcat.txt",
+      "bytes": 1282,
+      "sha256": "0e00265dbe135cbd13bc1e0443a3618c1d9472922a12d255a33a3bc25c870345"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/normal-start.json",
+      "bytes": 180,
+      "sha256": "4b4177cff004cc1a2277a8c13294b8a9278891f529494dc8821747741e32e92d"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/platform-editmode.xml",
+      "bytes": 27936,
+      "sha256": "98ac5930f041c235a960d2ef76926edffd6f2283090335846b25bc7f314bc2b5"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/run-1-logcat.txt",
+      "bytes": 2885,
+      "sha256": "889f7efb5f9b13fbf13ae27fc82c53de8bf57098e8f4560da692411d34062e51"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/run-2-logcat.txt",
+      "bytes": 2885,
+      "sha256": "24b6f8d3b3f77895fa1a45a65e2c367f3efea9593f59c6344c582ebc437f08ca"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/Docs/dev/quest-autonomous/evidence/QUEST-016/run-3-logcat.txt",
+      "bytes": 2885,
+      "sha256": "b129ef90866f1657cb6d39efdf91341e9d10c36a6339c48e6f6b3156db84fd7b"
+    }
+  ],
+  "localEvidence": [
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/android-build.log",
+      "bytes": 677780,
+      "sha256": "754ba158d88b389bf905c85f7f3dee0bcbc52d20e4996e7794711fac1c86d9f7"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/elf-inspection.json",
+      "bytes": 45319,
+      "sha256": "55b178cce275525e72f658931152e00c9644053994b6dd348d99af130b91dcee"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/platform-editmode.log",
+      "bytes": 90829,
+      "sha256": "6835fc6a5d958be892a0aedaaf972f984c4c91564d6fa119e2d99716f15dd0e6"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/platform-editmode.xml",
+      "bytes": 27936,
+      "sha256": "98ac5930f041c235a960d2ef76926edffd6f2283090335846b25bc7f314bc2b5"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/unity-generated.patch",
+      "bytes": 8005,
+      "sha256": "512e7bed7b4f56eea78219a894e96b370c137f5a1a3df947304f6eef11d5d538"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/apk-content.json",
+      "bytes": 6211,
+      "sha256": "f8d80f5896e23b53a09ca19f84376bfcab7e1c99e3e99b9f1ce033f834f476c3"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/commands.json",
+      "bytes": 19081,
+      "sha256": "70d54f3b872d6989585c258fa1dd9a21c09133e9b1ca9a2baf945b65f04614d0"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/device-abi.txt",
+      "bytes": 31,
+      "sha256": "cdd88508602b58eab46d0bb2fccbb3df401788d20b81c650391a9dbd3c8c1e10"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/device-build.txt",
+      "bytes": 131,
+      "sha256": "9f3762dd7c089e50370baccc9a24be376b881cf147f9a72c1c3511491c59afdb"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/result.json",
+      "bytes": 9416,
+      "sha256": "75f94b508de2435d414cc8467ef062c4fc8cecef00f6835c7f14237b1812bdbf"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-1/battery.txt",
+      "bytes": 369,
+      "sha256": "f27d0dee6dfb4c1d5b0dfb40fd080bea5cdba5dbaf84433501722239b3ca5804"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-1/launch.log",
+      "bytes": 227,
+      "sha256": "fc8961046b3625ebaa69da225876962432abc7f4786bb217399e8ab0e8d6256e"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-1/logcat.txt",
+      "bytes": 2885,
+      "sha256": "889f7efb5f9b13fbf13ae27fc82c53de8bf57098e8f4560da692411d34062e51"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-1/marker.txt",
+      "bytes": 32,
+      "sha256": "7057f48c45ec6ef98f7509f41f76c4a456c320373db4b036ffcaabb1f484058d"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-1/memory.txt",
+      "bytes": 3190,
+      "sha256": "7d44918029f1d368b45b1e0ff6061616404faecbadba1183ac4275f928ec51d7"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-1/result.json",
+      "bytes": 2936,
+      "sha256": "79071054f8fc5b0251648c45315ddf0598ce78c0998fb87e7dfc6263c4f8247c"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-1/synthetic-32x24x16.nii",
+      "bytes": 49504,
+      "sha256": "4ec56fdd3f53c0f2caec05eed465f4e948c6ecd4fd7fa1ac9adf0a5542e8f396"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-2/battery.txt",
+      "bytes": 369,
+      "sha256": "001826673ce31d38f3f6e00bc11496385430e30626ea40866eaff91d2f8ae855"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-2/launch.log",
+      "bytes": 227,
+      "sha256": "541d685a5447fcbd19adc6bfbdb517b8f9e61ee27d26ca6cc9ff38a3f4ce952f"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-2/logcat.txt",
+      "bytes": 2885,
+      "sha256": "24b6f8d3b3f77895fa1a45a65e2c367f3efea9593f59c6344c582ebc437f08ca"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-2/marker.txt",
+      "bytes": 32,
+      "sha256": "3eb533c2ecc96652388a2969607054233931480433b350d5184ff6461b051861"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-2/memory.txt",
+      "bytes": 3190,
+      "sha256": "0ce26acdc2d05c76fffe502d70cb155659d8bfb06bd962c0e0978dde042c6126"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-2/result.json",
+      "bytes": 2936,
+      "sha256": "05bc4e434a4785b8f921b78b197cf31d14feda4f158b614975eaac38cffced31"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-2/synthetic-32x24x16.nii",
+      "bytes": 49504,
+      "sha256": "4ec56fdd3f53c0f2caec05eed465f4e948c6ecd4fd7fa1ac9adf0a5542e8f396"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-3/battery.txt",
+      "bytes": 369,
+      "sha256": "4bd6b167014403d29e3136450357546f49519d38cfbd53a63dbc0f0a4f43f05b"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-3/launch.log",
+      "bytes": 227,
+      "sha256": "63e314335d6d026055b6dfd837d40aa3bed50a2d96dfce7c4940d39c1f107876"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-3/logcat.txt",
+      "bytes": 2885,
+      "sha256": "b129ef90866f1657cb6d39efdf91341e9d10c36a6339c48e6f6b3156db84fd7b"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-3/marker.txt",
+      "bytes": 32,
+      "sha256": "790c6ada0660daa337941e2566305876435cbc88c92948746ec1d62fd2fb418e"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-3/memory.txt",
+      "bytes": 3190,
+      "sha256": "5b7c4228ee7c197f615cda4e3e0fa292f431762836c3eb60e4982f2dfcd739fb"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-3/result.json",
+      "bytes": 2936,
+      "sha256": "8bd0c10408d06625bb2e90f7503df89fb735799b6fee4e46cd793fed6132affe"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/device-20260909-104737/run-3/synthetic-32x24x16.nii",
+      "bytes": 49504,
+      "sha256": "4ec56fdd3f53c0f2caec05eed465f4e948c6ecd4fd7fa1ac9adf0a5542e8f396"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/normal-start/launch.log",
+      "bytes": 227,
+      "sha256": "20f1df43897948ddcef4e2135aaacd5931a386434e19e0e40b2a3397e9634e2d"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/normal-start/logcat.txt",
+      "bytes": 1282,
+      "sha256": "0e00265dbe135cbd13bc1e0443a3618c1d9472922a12d255a33a3bc25c870345"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.test-results/quest-016/normal-start/result.json",
+      "bytes": 180,
+      "sha256": "4b4177cff004cc1a2277a8c13294b8a9278891f529494dc8821747741e32e92d"
+    },
+    {
+      "path": "C:/HBP/Software/HiBoP/.artifacts/quest-016/Android/HiBoP.Quest.apk",
+      "bytes": 162999143,
+      "sha256": "e035c6a16cf3507b4d83404a380b38323260fe7f77c34b1317c9d1dbca8dad39"
+    }
+  ],
+  "limitations": [
+    "Synthetic native lifecycle only; no density, transferred projection input reconstruction, scientific parity, Desktop Player or Release Player qualification.",
+    "Memory measurements include the XR Player; successful disposal and short repeat runs do not prove absence of all leaks.",
+    "Shutdown does not unload the shared library; process stop is checked separately.",
+    "Existing Google Play AssetPackManager and Meta OpenXR startup diagnostics remain present and are recorded in logcat."
+  ]
+}
+

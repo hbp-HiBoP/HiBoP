@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="25" result="Passed" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:40Z" duration="10,7493379">
+  <test-suite type="TestSuite" id="1000" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="801" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:40Z" duration="10.749338" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1050" name="HBP.PlatformConfiguration.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.PlatformConfiguration.Tests.dll" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:40Z" duration="10.735810" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="23132" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1051" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:40Z" duration="10.735062" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1052" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:40Z" duration="10.734484" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1053" name="PlatformConfiguration" fullname="HBP.Tests.PlatformConfiguration" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:40Z" duration="10.733749" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1018" name="BuildProfileConfigurationTests" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.229177" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1025" name="ActiveProfile_PassesBuildGuard" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.ActiveProfile_PassesBuildGuard" methodname="ActiveProfile_PassesBuildGuard" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="1314998019" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.141961" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1019" name="AndroidNativeCore_IsArm64OnlyAndExcludedFromDesktop" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.AndroidNativeCore_IsArm64OnlyAndExcludedFromDesktop" methodname="AndroidNativeCore_IsArm64OnlyAndExcludedFromDesktop" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="754033197" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.006716" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1026" name="BuildGuard_RejectsWrongSceneBeforeBuilding" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildGuard_RejectsWrongSceneBeforeBuilding" methodname="BuildGuard_RejectsWrongSceneBeforeBuilding" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="1657401856" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.002861" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1020" name="BuildWithoutXR_DropsOnlyOpenXRPreload" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildWithoutXR_DropsOnlyOpenXRPreload" methodname="BuildWithoutXR_DropsOnlyOpenXRPreload" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="1614565181" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.001521" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1023" name="Profiles_IsolateScenesDefinesAndPreserveNewInput" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.009471" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1021" name="Profiles_IsolateScenesDefinesAndPreserveNewInput(False)" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(False)" methodname="Profiles_IsolateScenesDefinesAndPreserveNewInput" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="150734419" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.006496" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1022" name="Profiles_IsolateScenesDefinesAndPreserveNewInput(True)" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(True)" methodname="Profiles_IsolateScenesDefinesAndPreserveNewInput" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="2044654570" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.000881" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1024" name="QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers" methodname="QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="167769304" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.014011" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1027" name="QuestBuildGuard_RejectsWrongArchitecture" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsWrongArchitecture" methodname="QuestBuildGuard_RejectsWrongArchitecture" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="2062605542" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:30Z" duration="0.040294" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1028" name="DesktopInputConfigurationTests" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:31Z" duration="0.797311" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1031" name="DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads" methodname="DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" seed="559511386" result="Passed" start-time="2026-09-09 10:40:30Z" end-time="2026-09-09 10:40:31Z" duration="0.790018" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1029" name="InputPrefab_SerializesAllUIActionsAndTextBackend" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputPrefab_SerializesAllUIActionsAndTextBackend" methodname="InputPrefab_SerializesAllUIActionsAndTextBackend" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" seed="1685903730" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.005424" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1030" name="InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel" methodname="InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" seed="1222144430" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.000570" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1032" name="QuestBootstrapTests" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.070563" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1035" name="AutomaticBoundarySuppression_IsRejectedBeforeBuild" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.AutomaticBoundarySuppression_IsRejectedBeforeBuild" methodname="AutomaticBoundarySuppression_IsRejectedBeforeBuild" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="1693234875" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.002572" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1038" name="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.053693" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1036" name="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationFocus&quot;,True)" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationFocus&quot;,True)" methodname="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="979103701" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.052423" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1037" name="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationPause&quot;,False)" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationPause&quot;,False)" methodname="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="1389487803" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.000630" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1034" name="BoundaryVisibility_IsContextualAndWiredToPassthrough" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryVisibility_IsContextualAndWiredToPassthrough" methodname="BoundaryVisibility_IsContextualAndWiredToPassthrough" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="314871016" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.000609" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="OpaqueCamera_IsRejectedBeforeBuild" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.OpaqueCamera_IsRejectedBeforeBuild" methodname="OpaqueCamera_IsRejectedBeforeBuild" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="1763801771" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.007293" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1033" name="QuestConfiguration_PassesGuard" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestConfiguration_PassesGuard" methodname="QuestConfiguration_PassesGuard" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="1195322732" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.000762" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1040" name="QuestPreload_IsPreservedWhenOpenXRIsActive" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestPreload_IsPreservedWhenOpenXRIsActive" methodname="QuestPreload_IsPreservedWhenOpenXRIsActive" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="2032251618" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.000411" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1041" name="Rig_SerializesFloorOriginAndIndependentControllerPoses" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.Rig_SerializesFloorOriginAndIndependentControllerPoses" methodname="Rig_SerializesFloorOriginAndIndependentControllerPoses" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="1367563047" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.003805" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1042" name="QuestConnectionLayoutTests" fullname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests" classname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.110003" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1043" name="MainMenuLayout_DoesNotMoveQuestPanelOutsideTheViewport" fullname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests.MainMenuLayout_DoesNotMoveQuestPanelOutsideTheViewport" methodname="MainMenuLayout_DoesNotMoveQuestPanelOutsideTheViewport" classname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests" runstate="Runnable" seed="1761395636" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.109068" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1044" name="QuestPackageConfigurationTests" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:40Z" duration="9.525254" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1047" name="Desktop_HasNoActiveXRLoader" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.Desktop_HasNoActiveXRLoader" methodname="Desktop_HasNoActiveXRLoader" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="548042594" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.000401" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1046" name="InputBackends_MatchActiveTargetAndCompiledPlayerDefines" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputBackends_MatchActiveTargetAndCompiledPlayerDefines" methodname="InputBackends_MatchActiveTargetAndCompiledPlayerDefines" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="1560608885" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.040096" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1048" name="InputSystem_XRSpatialActionBindsToController" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputSystem_XRSpatialActionBindsToController" methodname="InputSystem_XRSpatialActionBindsToController" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="646525933" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:31Z" duration="0.039800" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1049" name="PlayerScripts_CompileForActiveTargetWithoutChangingPackages" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.PlayerScripts_CompileForActiveTargetWithoutChangingPackages" methodname="PlayerScripts_CompileForActiveTargetWithoutChangingPackages" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="1392252173" result="Passed" start-time="2026-09-09 10:40:31Z" end-time="2026-09-09 10:40:40Z" duration="9.416358" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Assets\Scripts\HBP\Quest\Runtime\QuestDeliveryDiagnostic.cs(59,31): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Scripts\HBP\Quest\Runtime\QuestContactDiagnostic.cs(34,24): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Assets\Scripts\HBP\Quest\Runtime\QuestContactDiagnostic.cs(36,29): warning CS0618: 'Object.FindFirstObjectByType<T>()' is obsolete: 'FindFirstObjectByType has been deprecated because it relies on instance ID ordering. Use FindAnyObjectByType instead, which does not depend on ordering.'
+Compiled 65 player assemblies for Android into C:\HBP\Software\HiBoP\.test-results/quest-002-a/player-scripts\Android
+]]></output>
+              </test-case>
+              <test-case id="1045" name="UnifiedPackages_MatchManifestLockAndInstalledVersions" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.UnifiedPackages_MatchManifestLockAndInstalledVersions" methodname="UnifiedPackages_MatchManifestLockAndInstalledVersions" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="182634350" result="Passed" start-time="2026-09-09 10:40:40Z" end-time="2026-09-09 10:40:40Z" duration="0.026606" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[com.unity.2d.sprite=1.0.0
+com.unity.2d.tilemap=1.0.0
+com.unity.burst=1.8.29
+com.unity.collections=6.5.0
+com.unity.editorcoroutines=1.1.0
+com.unity.ext.nunit=2.1.0
+com.unity.ide.visualstudio=2.0.27
+com.unity.inputsystem=1.20.0
+com.unity.mathematics=1.4.0
+com.unity.multiplayer.center=1.0.1
+com.unity.nuget.mono-cecil=1.11.6
+com.unity.nuget.newtonsoft-json=3.2.2
+com.unity.render-pipelines.core=17.5.0
+com.unity.render-pipelines.universal=17.5.0
+com.unity.render-pipelines.universal-config=17.5.0
+com.unity.sdk.linux-x86_64=1.1.0
+com.unity.searcher=4.9.4
+com.unity.shadergraph=17.5.0
+com.unity.sysroot.base=1.1.0
+com.unity.test-framework=1.7.0
+com.unity.test-framework.performance=3.5.0
+com.unity.timeline=1.8.12
+com.unity.toolchain.win-x86_64-linux=1.1.0
+com.unity.ugui=2.5.0
+com.unity.xr.arfoundation=6.5.0
+com.unity.xr.compositionlayers=2.4.0
+com.unity.xr.core-utils=2.6.0
+com.unity.xr.interaction.toolkit=3.6.0
+com.unity.xr.legacyinputhelpers=3.0.1
+com.unity.xr.management=4.7.0
+com.unity.xr.meta-openxr=2.4.1
+com.unity.xr.openxr=1.18.0
+com.unity.modules.accessibility=1.0.0
+com.unity.modules.adaptiveperformance=1.0.0
+com.unity.modules.ai=1.0.0
+com.unity.modules.androidjni=1.0.0
+com.unity.modules.animation=1.0.0
+com.unity.modules.assetbundle=1.0.0
+com.unity.modules.audio=1.0.0
+com.unity.modules.cloth=1.0.0
+com.unity.modules.director=1.0.0
+com.unity.modules.hierarchycore=1.0.0
+com.unity.modules.imageconversion=1.0.0
+com.unity.modules.imgui=1.0.0
+com.unity.modules.jsonserialize=1.0.0
+com.unity.modules.particlesystem=1.0.0
+com.unity.modules.physics=1.0.0
+com.unity.modules.physics2d=1.0.0
+com.unity.modules.physicscore2d=1.0.0
+com.unity.modules.screencapture=1.0.0
+com.unity.modules.subsystems=1.0.0
+com.unity.modules.terrain=1.0.0
+com.unity.modules.terrainphysics=1.0.0
+com.unity.modules.tilemap=1.0.0
+com.unity.modules.ui=1.0.0
+com.unity.modules.uielements=1.0.0
+com.unity.modules.umbra=1.0.0
+com.unity.modules.unityanalytics=1.0.0
+com.unity.modules.unitywebrequest=1.0.0
+com.unity.modules.unitywebrequestassetbundle=1.0.0
+com.unity.modules.unitywebrequestaudio=1.0.0
+com.unity.modules.unitywebrequesttexture=1.0.0
+com.unity.modules.unitywebrequestwww=1.0.0
+com.unity.modules.vectorgraphics=1.0.0
+com.unity.modules.vehicles=1.0.0
+com.unity.modules.video=1.0.0
+com.unity.modules.wind=1.0.0
+com.unity.modules.xr=1.0.0
+<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Zigaroula/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

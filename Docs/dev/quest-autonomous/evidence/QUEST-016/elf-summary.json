@@ -1,0 +1,20 @@
+{
+  "result": "Passed",
+  "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+  "format": "ELF64",
+  "machine": "AArch64",
+  "soname": "libhbp_core.so",
+  "needed": [
+    "libc.so",
+    "libdl.so",
+    "libm.so"
+  ],
+  "loadAlignments": [
+    16384,
+    16384,
+    16384,
+    16384
+  ],
+  "exportCount": 226,
+  "runtimeTested": false
+}

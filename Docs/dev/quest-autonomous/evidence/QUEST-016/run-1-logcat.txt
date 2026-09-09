@@ -1,0 +1,16 @@
+09-09 12:47:51.558 29526 29561 E Unity   : java.lang.ClassNotFoundException: Didn't find class "com.google.android.play.core.assetpacks.AssetPackManager" on path: DexPathList[[zip file "/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/base.apk"],nativeLibraryDirectories=[/data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/lib/arm64, /data/app/~~VaXRzDCxDBPfTbggl9Bjwg==/fr.crnl.hibop.quest-5t5HaTfp8rkisIg39SngnQ==/base.apk!/lib/arm64-v8a, /apex/com.meta.xr/priv-app/VrDriver/VrDriver.apk!/lib/arm64-v8a, /system/lib64, /system_ext/lib64]]
+09-09 12:47:53.136 29526 29561 E Unity   : [XR] [OpenXR Meta] [XrFuncTable] Failed to look up xrDiscoverSpacesMETA
+09-09 12:47:57.757 29526 29561 E Unity   : [XR] [OpenXR Meta] No suitable capture camera found
+09-09 12:47:57.780 29526 29561 I Unity   : QUEST016_START runId=b9accdb78e52477095fb8e9892495c8a; native=0.2.1; cycles=100
+09-09 12:47:59.785 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":0,"nativeHeapBytes":26610944,"unityAllocatedBytes":103434199,"managedBytes":6885376}
+09-09 12:48:00.810 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":10,"nativeHeapBytes":26781160,"unityAllocatedBytes":103505191,"managedBytes":6975488}
+09-09 12:48:01.824 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":20,"nativeHeapBytes":26777592,"unityAllocatedBytes":103505191,"managedBytes":7073792}
+09-09 12:48:02.838 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":30,"nativeHeapBytes":26751624,"unityAllocatedBytes":103531439,"managedBytes":6262784}
+09-09 12:48:03.852 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":40,"nativeHeapBytes":26744912,"unityAllocatedBytes":103531967,"managedBytes":6287360}
+09-09 12:48:04.865 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":50,"nativeHeapBytes":26724568,"unityAllocatedBytes":103532007,"managedBytes":6316032}
+09-09 12:48:05.880 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":60,"nativeHeapBytes":26720968,"unityAllocatedBytes":103532071,"managedBytes":6381568}
+09-09 12:48:06.894 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":70,"nativeHeapBytes":26720936,"unityAllocatedBytes":103532223,"managedBytes":6475776}
+09-09 12:48:07.907 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":80,"nativeHeapBytes":26708584,"unityAllocatedBytes":103532263,"managedBytes":6590464}
+09-09 12:48:08.922 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":90,"nativeHeapBytes":26709672,"unityAllocatedBytes":103532655,"managedBytes":6709248}
+09-09 12:48:09.935 29526 29561 I Unity   : QUEST016_MEMORY {"completedCycles":100,"nativeHeapBytes":26709208,"unityAllocatedBytes":103532887,"managedBytes":6832128}
+09-09 12:48:09.945 29526 29561 I Unity   : QUEST016_PROBE_PASS runId=b9accdb78e52477095fb8e9892495c8a; cycles=100; handles=600
