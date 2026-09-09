@@ -1,0 +1,30 @@
+name: Test native plugin updater
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'Tools/*NativePlugin*'
+      - '.github/workflows/native-plugin-tools.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  updater:
+    runs-on: windows-2022
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test artifact validation, orchestration and rollback without network
+        shell: pwsh
+        run: |
+          ./Tools/Test-NativePluginUpdater.ps1
+          ./Tools/Test-NativePluginAndroidUpdater.ps1
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: native-plugin-updater-tests
+          path: .test-results/native-android-*/results.json
+          if-no-files-found: warn
+

@@ -71,7 +71,7 @@ namespace HBP.Dev
                 throw new BuildFailedException("Quest requires IL2CPP and ARM64 only.");
             foreach (var plugin in PluginImporter.GetAllImporters().Where(p => p.isNativePlugin && p.assetPath.StartsWith("Assets/")))
             {
-                if (plugin.GetCompatibleWithPlatform(BuildTarget.Android))
+                if (plugin.GetCompatibleWithPlatform(BuildTarget.Android) && (plugin.assetPath != "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so" || plugin.GetCompatibleWithAnyPlatform() || plugin.GetCompatibleWithEditor() || plugin.GetPlatformData(BuildTarget.Android, "CPU") != "ARM64"))
                     throw new BuildFailedException($"Quest bootstrap must not include Desktop native plugin: {plugin.assetPath}");
             }
         }

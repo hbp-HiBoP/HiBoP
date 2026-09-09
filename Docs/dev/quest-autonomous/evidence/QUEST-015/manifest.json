@@ -1,0 +1,459 @@
+{
+  "task": "QUEST-015",
+  "recordedAt": "2026-09-09T09:48:19.631439+00:00",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "NON_REQUIS"
+  },
+  "source": {
+    "repository": "HiBoP",
+    "branch": "feature/xr-autonomous",
+    "commit": "caa2c518209577359edf6712abe8c85c64e4b204",
+    "dirty": true,
+    "diffEvidence": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\HiBoP-delivery.patch",
+      "sizeBytes": 25626,
+      "sha256": "8538cc547851af42fa54e28ef5d470f50a47a236b2b2427915dfccbe27045970"
+    },
+    "files": [
+      {
+        "relativePath": ".github/workflows/README.md",
+        "path": "C:\\HBP\\Software\\HiBoP\\.github\\workflows\\README.md",
+        "sizeBytes": 8951,
+        "sha256": "accc53343c535ea7b8722ce8395420ebfac9df3d3e5265f7efcddadc48330386"
+      },
+      {
+        "relativePath": ".github/workflows/native-plugin-tools.yml",
+        "path": "C:\\HBP\\Software\\HiBoP\\.github\\workflows\\native-plugin-tools.yml",
+        "sizeBytes": 747,
+        "sha256": "bd5d9333e0dc27e1c1cc797ae5c98a45ef478339d3ab3220b545ed4bb18b1546"
+      },
+      {
+        "relativePath": "Assets/Plugins/Native/Android.meta",
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Plugins\\Native\\Android.meta",
+        "sizeBytes": 169,
+        "sha256": "5688275b49029dcc1a8314935d6f26c1f236d16358d459c71eb5830b1b06e57e"
+      },
+      {
+        "relativePath": "Assets/Plugins/Native/Android/arm64-v8a.meta",
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Plugins\\Native\\Android\\arm64-v8a.meta",
+        "sizeBytes": 169,
+        "sha256": "7520d27aacfcb106191c90544fc9285d44cf1c94fbb9703eef41ba17a0d1af33"
+      },
+      {
+        "relativePath": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so",
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Plugins\\Native\\Android\\arm64-v8a\\libhbp_core.so",
+        "sizeBytes": 1450768,
+        "sha256": "15a0029148c29b25f9b0fc7a89b3a2096a055e6bc7d3f641b3c5292ae9d2c501"
+      },
+      {
+        "relativePath": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so.meta",
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Plugins\\Native\\Android\\arm64-v8a\\libhbp_core.so.meta",
+        "sizeBytes": 823,
+        "sha256": "bd17f84f4c0eb3ef7dd9051ccb1e7374f9f94cf0cb8a2e2d57d5dad802d4b8e3"
+      },
+      {
+        "relativePath": "Assets/Scripts/HBP/Dev/Editor/HBPBuildProfiles.cs",
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Dev\\Editor\\HBPBuildProfiles.cs",
+        "sizeBytes": 6638,
+        "sha256": "6766a8b2163ae7c274c1faeb5aa527237b036e9ddb6009d8d363bf3b551e75c4"
+      },
+      {
+        "relativePath": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/BuildProfileConfigurationTests.cs",
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Tests\\EditMode\\HBP.PlatformConfiguration.Tests\\BuildProfileConfigurationTests.cs",
+        "sizeBytes": 5451,
+        "sha256": "b0a056b758a8d41f4f469076c9b888dd29c6b024a09c0d79f42aac69531eb35a"
+      },
+      {
+        "relativePath": "Tools/NativePlugins.json",
+        "path": "C:\\HBP\\Software\\HiBoP\\Tools\\NativePlugins.json",
+        "sizeBytes": 2672,
+        "sha256": "5f97b18b531b027c5ffa36d89640dd7f19b54738f36631e962be267456ef8f68"
+      },
+      {
+        "relativePath": "Tools/NativePlugins.lock.json",
+        "path": "C:\\HBP\\Software\\HiBoP\\Tools\\NativePlugins.lock.json",
+        "sizeBytes": 8252,
+        "sha256": "b26e789d86642ce1902e112aaae6b8de6c812eb7616153e98f763561e580f316"
+      },
+      {
+        "relativePath": "Tools/Test-NativePluginAndroidUpdater.ps1",
+        "path": "C:\\HBP\\Software\\HiBoP\\Tools\\Test-NativePluginAndroidUpdater.ps1",
+        "sizeBytes": 16322,
+        "sha256": "c6a1bbdf65ba39553bad6ab4b010360ba6554bf22ee828e78c9676439f9b833e"
+      },
+      {
+        "relativePath": "Tools/Test-QuestApk.ps1",
+        "path": "C:\\HBP\\Software\\HiBoP\\Tools\\Test-QuestApk.ps1",
+        "sizeBytes": 4153,
+        "sha256": "f49c84fdec13d73fe776ad290ca82185040850daa432d87ce6e5efbc9c3d1ed9"
+      },
+      {
+        "relativePath": "Tools/Update-NativePlugins.ps1",
+        "path": "C:\\HBP\\Software\\HiBoP\\Tools\\Update-NativePlugins.ps1",
+        "sizeBytes": 57357,
+        "sha256": "957c10a3e49c22d524d7e8115480b6a14c0e3e6cdae5f1756ee55303290615e5"
+      }
+    ]
+  },
+  "nativeSource": {
+    "repository": "hbp_core",
+    "branch": "develop",
+    "commit": "cf4400b168b120641aa69b7120e81a66a899cbd3",
+    "dirty": true,
+    "diffEvidence": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\hbp_core-delivery.patch",
+      "sizeBytes": 6680,
+      "sha256": "2fb12b26c4b03dc872a78670670c3c2bfc5f047e47fa5e991eccd2d29e8ee13b"
+    },
+    "files": [
+      {
+        "relativePath": ".github/workflows/native.yml",
+        "path": "C:\\HBP\\Software\\hbp_core\\.github\\workflows\\native.yml",
+        "sizeBytes": 6166,
+        "sha256": "17ad1c841969773973a03cf115814bb803de3f0710c8cd7c722f5df2a269b25f"
+      },
+      {
+        "relativePath": "docs/android-build.md",
+        "path": "C:\\HBP\\Software\\hbp_core\\docs\\android-build.md",
+        "sizeBytes": 2860,
+        "sha256": "3261c526cf801ffe8c8588cb14ff18ab9abad66ea0695decf125d7348e3e0dc6"
+      },
+      {
+        "relativePath": "tools/AndroidBuild.json",
+        "path": "C:\\HBP\\Software\\hbp_core\\tools\\AndroidBuild.json",
+        "sizeBytes": 171,
+        "sha256": "a85885d15ba5e8628a055ec844d44e7d31147b076aabc7136a35237af883d24b"
+      },
+      {
+        "relativePath": "tools/Invoke-HbpCoreAndroidBuild.ps1",
+        "path": "C:\\HBP\\Software\\hbp_core\\tools\\Invoke-HbpCoreAndroidBuild.ps1",
+        "sizeBytes": 6820,
+        "sha256": "f083c3e258835f33976c014e2c36c03760a06396cffcbce5ea735146b7481933"
+      },
+      {
+        "relativePath": "tools/Invoke-HbpCoreBuild.ps1",
+        "path": "C:\\HBP\\Software\\hbp_core\\tools\\Invoke-HbpCoreBuild.ps1",
+        "sizeBytes": 31086,
+        "sha256": "e5077344b7e5c16a56b2ac505d1aebff99564ea973fe09453a9d49aa5f1372c8"
+      },
+      {
+        "relativePath": "tools/Test-HbpCoreAbi.ps1",
+        "path": "C:\\HBP\\Software\\hbp_core\\tools\\Test-HbpCoreAbi.ps1",
+        "sizeBytes": 5453,
+        "sha256": "4c9332891f03da164b0760b84fbd6b99aa0a6d81a02946501d913fa4795d2c91"
+      },
+      {
+        "relativePath": "tools/Test-HbpCoreAndroidArtifact.ps1",
+        "path": "C:\\HBP\\Software\\hbp_core\\tools\\Test-HbpCoreAndroidArtifact.ps1",
+        "sizeBytes": 2419,
+        "sha256": "6668ddf4f3338d8449c6e8a996f40c57ebc142a5f811397b006ad9697e6ca64f"
+      },
+      {
+        "relativePath": "tools/Test-HbpCoreAndroidBuild.ps1",
+        "path": "C:\\HBP\\Software\\hbp_core\\tools\\Test-HbpCoreAndroidBuild.ps1",
+        "sizeBytes": 3820,
+        "sha256": "731f24512cd7492f2e242bd981d75393c01dcb11132f74c7abc01cc46b708500"
+      }
+    ]
+  },
+  "scientificSource": {
+    "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c",
+    "tree": "de89eb89fb1411fef741fe672233ff829e767e58",
+    "mode": "git-archive",
+    "sourceChanges": [],
+    "matchesInitialCheckoutTree": true
+  },
+  "environment": {
+    "unity": "6000.5.2f1",
+    "host": "Windows",
+    "ndkVersion": "27.2.12479018",
+    "cmakeVersion": "3.22.1",
+    "ninjaVersion": "1.10.2",
+    "api": 32,
+    "abi": "arm64-v8a",
+    "stl": "c++_static",
+    "pageSize": 16384,
+    "compiler": "Android (12470979, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)\r\nTarget: x86_64-w64-windows-gnu\r\nThread model: posix\r\nInstalledDir: C:/Program Files/Unity/Hub/Editor/6000.5.2f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK/toolchains/llvm/prebuilt/windows-x86_64/bin"
+  },
+  "nativeArtifacts": [
+    {
+      "origin": "local",
+      "runtimeTested": false,
+      "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Plugins\\Native\\Android\\arm64-v8a\\libhbp_core.so",
+      "sizeBytes": 1450768,
+      "sha256": "15a0029148c29b25f9b0fc7a89b3a2096a055e6bc7d3f641b3c5292ae9d2c501"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\Docs\\dev\\quest-autonomous\\evidence\\QUEST-015\\android-artifact-manifest.json",
+      "sizeBytes": 3815,
+      "sha256": "0e8f8645b544671fd1cdd27002259eb97b14718821cacbf88ba16cdd59012981"
+    }
+  ],
+  "installation": {
+    "command": "./Tools/Update-NativePlugins.ps1 -AndroidPackage C:\\HBP\\Software\\hbp_core\\out\\quest-015\\package-6",
+    "exitCode": 0,
+    "desktopPayloadsUnchanged": true
+  },
+  "unityGeneratedChanges": {
+    "restored": true,
+    "evidence": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\unity-generated.patch",
+      "sizeBytes": 7755,
+      "sha256": "cac0324222504bce257b2a4944ddfa8669aa4979719ff0d59c098694ecac76af"
+    }
+  },
+  "checks": [
+    {
+      "id": "T1",
+      "result": "REUSSI",
+      "exitCodes": [
+        0,
+        0
+      ],
+      "command": "../hbp_core/tools/Invoke-HbpCoreBuild.ps1 -Platform Android -SourceCommit 1f26946e4d4e95523e637a21be70db0d1af6db8c -AndroidNdk \"C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Data\\PlaybackEngines\\AndroidPlayer\\NDK\" -BuildDir ../hbp_core/out/quest-015/run-<5|6> -PackageDir ../hbp_core/out/quest-015/package-<5|6>",
+      "identicalSha256": "15a0029148c29b25f9b0fc7a89b3a2096a055e6bc7d3f641b3c5292ae9d2c501",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\native-build-5.log",
+          "sizeBytes": 9105,
+          "sha256": "2f796bd3ec83f58e921a30fac5d62d983d372e21ff53eaf951ecc6bf297c9b7b"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\native-build-6.log",
+          "sizeBytes": 9105,
+          "sha256": "0da3a287932380ea9129e6e7a59befb8aa034db52715623843224176ad468c96"
+        },
+        {
+          "path": "C:\\HBP\\Software\\hbp_core\\out\\quest-015\\package-5\\libhbp_core.so",
+          "sizeBytes": 1450768,
+          "sha256": "15a0029148c29b25f9b0fc7a89b3a2096a055e6bc7d3f641b3c5292ae9d2c501"
+        },
+        {
+          "path": "C:\\HBP\\Software\\hbp_core\\out\\quest-015\\package-6\\libhbp_core.so",
+          "sizeBytes": 1450768,
+          "sha256": "15a0029148c29b25f9b0fc7a89b3a2096a055e6bc7d3f641b3c5292ae9d2c501"
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "result": "REUSSI",
+      "exitCode": 0,
+      "publicExports": 226,
+      "dependencies": [
+        "libc.so",
+        "libdl.so",
+        "libm.so"
+      ],
+      "command": "../hbp_core/tools/Test-HbpCoreAbi.ps1 -LibraryPath Assets/Plugins/Native/Windows/x86_64/hbp_core.dll -Platform Windows -SourceRoot ../hbp_core/out/quest-015/run-6/source; Android ABI and ELF inspections executed by native build",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\windows-abi.log",
+          "sizeBytes": 70,
+          "sha256": "fd89a4c8d0b3a06138236a66fa65da2f41c80aa1f27d36b8c62967adadb97197"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Docs\\dev\\quest-autonomous\\evidence\\QUEST-015\\android-elf-report.json",
+          "sizeBytes": 45319,
+          "sha256": "fa23ba6a28f9f45119ffa2ff897da6b1f8dbea6b08f1cda8f77bd6ba0fd0bcdf"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Docs\\dev\\quest-autonomous\\evidence\\QUEST-015\\desktop-provenance.json",
+          "sizeBytes": 6834,
+          "sha256": "9e266c547516ae9f8b5f04996decb9810616f61debe5ee05c4988d71e4ce15d5"
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "result": "REUSSI",
+      "exitCode": 0,
+      "count": 9,
+      "command": "../hbp_core/tools/Test-HbpCoreAndroidBuild.ps1 -PackageDir ../hbp_core/out/quest-015/package-6 -SourceRoot ../hbp_core/out/quest-015/run-6/source -AndroidNdk \"C:\\Program Files\\Unity\\Hub\\Editor\\6000.5.2f1\\Editor\\Data\\PlaybackEngines\\AndroidPlayer\\NDK\"",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\native-tests-final.log",
+          "sizeBytes": 338,
+          "sha256": "903e7977eee72b4a3e7eb18981d18693101026427dc258540fdd9bfd52df38d2"
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "result": "REUSSI",
+      "exitCode": 0,
+      "command": "./Tools/Test-NativePluginUpdater.ps1",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\updater-existing-final.log",
+          "sizeBytes": 200,
+          "sha256": "98cd89aaa83d99e3c4006982468bc8af9c2415e6470e219faf1802273aa7b763"
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "result": "REUSSI",
+      "exitCode": 0,
+      "count": 39,
+      "command": "./Tools/Test-NativePluginAndroidUpdater.ps1",
+      "github": "mocked; filesystem validation/installation/rollback real in isolated fixtures",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\updater-android-final.log",
+          "sizeBytes": 3872,
+          "sha256": "5e508481d303503c777d1077afa3eb08c3b7a305f4e3b6714c8c6228cefdccc1"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Docs\\dev\\quest-autonomous\\evidence\\QUEST-015\\updater-tests.json",
+          "sizeBytes": 5096,
+          "sha256": "1bc4c35b36f5eb9c80ed948befba4914784b317ee4667f744319597d76d1e468"
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "result": "REUSSI",
+      "exitCode": 0,
+      "count": 9,
+      "command": "python .test-results/quest-015/validate-workflows.py",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\validate-workflows.py",
+          "sizeBytes": 2623,
+          "sha256": "85901d5865806507f94eae9cedcea894b3ebf313e95df99db7fbacf03f5a85d4"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Docs\\dev\\quest-autonomous\\evidence\\QUEST-015\\workflow-checks.json",
+          "sizeBytes": 551,
+          "sha256": "c9070783f4d16acd4b8fe99d15de78023807581e239fca6f827958d91cf9363a"
+        }
+      ]
+    },
+    {
+      "id": "T7",
+      "result": "REUSSI",
+      "exitCode": 0,
+      "passed": 25,
+      "failed": 0,
+      "command": "Unity.exe -batchmode -nographics -accept-apiupdate -projectPath C:\\HBP\\Software\\HiBoP -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -runTests -testPlatform EditMode -assemblyNames HBP.PlatformConfiguration.Tests -testResults C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\android-editmode.xml -logFile C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\android-editmode.log -forgetProjectPath",
+      "execution": "Start-Process -WindowStyle Hidden -Wait -PassThru, outside sandbox",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\android-editmode.xml",
+          "sizeBytes": 49904,
+          "sha256": "3d6f1a438257867dd13044f908dac4d145c9e639e3b093713a1e2791b2914ad9"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\android-editmode.log",
+          "sizeBytes": 428276,
+          "sha256": "d99271763d46d7b0de7544e5518e41f4cc81cbfb0cde5e41cba9586ca937d865"
+        }
+      ]
+    },
+    {
+      "id": "T8",
+      "result": "REUSSI",
+      "exitCodes": [
+        0,
+        0,
+        0
+      ],
+      "seconds": 314.7132656,
+      "warnings": 66,
+      "errors": 0,
+      "commands": [
+        "Unity.exe -batchmode -quit -nographics -projectPath C:\\HBP\\Software\\HiBoP -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -buildOutput C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\quest -logFile C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\build-quest.log",
+        "./Tools/Test-QuestApk.ps1 -Apk .artifacts/quest-015/quest/HiBoP.Quest.apk -ReportPath .artifacts/quest-015/quest/quest-apk-content.json",
+        "Android SDK/build-tools/36.0.0/zipalign.exe -c -P 16 -v 4 .artifacts/quest-015/quest/HiBoP.Quest.apk"
+      ],
+      "execution": "Unity via Start-Process -WindowStyle Hidden -Wait -PassThru outside sandbox, TEMP/TMP=.test-results/quest-015/tmp",
+      "evidence": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\build-quest.log",
+          "sizeBytes": 699490,
+          "sha256": "337c7637343b6c74f7f4baef3423ee6ca20d6e1884bd657f6ff2ad512b6fd841"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015\\zipalign.log",
+          "sizeBytes": 2420,
+          "sha256": "75f1671678d4875c258fc23e2f3917ac61a209704333996d4104c841728733b1"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\quest\\Quest.build-report.json",
+          "sizeBytes": 770082,
+          "sha256": "5d11028524421ca0113e288429a405f39426d674e4939cf9e8a59727d32cb549"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\quest\\HiBoP.Quest.apk",
+          "sizeBytes": 104902008,
+          "sha256": "74d3a65d89a8ecbd463c9a371177ed26b5677466701cc938b0e508ae92fdc8a6"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Docs\\dev\\quest-autonomous\\evidence\\QUEST-015\\apk-summary.json",
+          "sizeBytes": 846,
+          "sha256": "4d154d01d011ab8b3ff3183a7a97a965d6730622c34c757fc8cf15691a934710"
+        }
+      ]
+    },
+    {
+      "id": "T9",
+      "result": "REUSSI",
+      "exitCodes": [
+        0,
+        0,
+        0
+      ],
+      "commands": [
+        "./Tools/format-code.cmd",
+        "git diff --check",
+        "git -C ../hbp_core diff --check"
+      ],
+      "formatting": "NuGet restore failed inside sandbox; official formatter rerun outside sandbox exited 0; two C# files formatted"
+    },
+    {
+      "id": "CI_REMOTE",
+      "result": "PARTIEL",
+      "exitCode": null,
+      "reason": "Owner supplied the artifact from run 34337066008. Independent archive, source, ABI, ELF and section comparisons passed. Private run API returned 404; run status/logs and two CI build hashes not observed. Automatic ten-artifact installation not executed."
+    },
+    {
+      "id": "ANDROID_RUNTIME",
+      "result": "NON_EXECUTE",
+      "exitCode": null,
+      "reason": "Out of QUEST-015 scope; APK not installed or launched on headset."
+    }
+  ],
+  "manual": [
+    {
+      "id": "M1",
+      "result": "NON_REQUIS",
+      "reason": "Compilation and packaging only."
+    }
+  ],
+  "localArtifactRoots": [
+    "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-015",
+    "C:\\HBP\\Software\\hbp_core\\out\\quest-015",
+    "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015"
+  ],
+  "githubFollowUp": {
+    "recordedAt": "2026-09-09T10:01:56.254439+00:00",
+    "result": "ARTEFACT_VALIDE",
+    "comparison": {
+      "path": "C:\\HBP\\Software\\HiBoP\\Docs\\dev\\quest-autonomous\\evidence\\QUEST-015\\github-comparison.json",
+      "sha256": "0adc8cb19890ec642ad1b839fc5b86ad85812c2ec814971ee3ed7fcf93085a88"
+    },
+    "run": {
+      "url": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/34337066008",
+      "id": 34337066008,
+      "suppliedBy": "owner",
+      "apiAccess": "GitHub connector returned 404",
+      "logsObserved": false,
+      "conclusionObserved": false,
+      "twoCiBuildHashesObserved": false
+    },
+    "installed": false
+  }
+}

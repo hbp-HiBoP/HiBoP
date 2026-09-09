@@ -1,0 +1,302 @@
+{
+  "recordedAt": "2026-09-09T10:01:56.254439+00:00",
+  "run": {
+    "url": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/34337066008",
+    "id": 34337066008,
+    "suppliedBy": "owner",
+    "apiAccess": "GitHub connector returned 404",
+    "logsObserved": false,
+    "conclusionObserved": false,
+    "twoCiBuildHashesObserved": false
+  },
+  "archive": {
+    "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\github\\hbp_core-android-arm64-34337066008.zip",
+    "sizeBytes": 660217,
+    "sha256": "df1cd8e7e0d493fcce823401b9153b8102c3155a367baf58498b821a538c0168"
+  },
+  "localArtifact": {
+    "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Plugins\\Native\\Android\\arm64-v8a\\libhbp_core.so",
+    "sizeBytes": 1450768,
+    "sha256": "15a0029148c29b25f9b0fc7a89b3a2096a055e6bc7d3f641b3c5292ae9d2c501"
+  },
+  "ciArtifact": {
+    "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\github\\run-34337066008\\libhbp_core.so",
+    "sizeBytes": 1450608,
+    "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e"
+  },
+  "binaryIdentical": false,
+  "localCommit": "1f26946e4d4e95523e637a21be70db0d1af6db8c",
+  "ciCommit": "4e8255bc36ddab9e86f31d56452ab5346ea7315c",
+  "scientificTrees": [
+    {
+      "path": "CMakeLists.txt",
+      "localGitObject": "461c5a17d5e460c3d499ee1ec2fe30d8b4b9465e",
+      "ciGitObject": "461c5a17d5e460c3d499ee1ec2fe30d8b4b9465e",
+      "identical": true
+    },
+    {
+      "path": "src",
+      "localGitObject": "af92666874292c47ab5afe1e3ddb44ce6fd8acb2",
+      "ciGitObject": "af92666874292c47ab5afe1e3ddb44ce6fd8acb2",
+      "identical": true
+    },
+    {
+      "path": "include",
+      "localGitObject": "a2fd68a06c3752d021e33501770524875adebcb9",
+      "ciGitObject": "a2fd68a06c3752d021e33501770524875adebcb9",
+      "identical": true
+    },
+    {
+      "path": "third_party",
+      "localGitObject": "aec90327a86e23a59344f08ec6c939eb390108c7",
+      "ciGitObject": "aec90327a86e23a59344f08ec6c939eb390108c7",
+      "identical": true
+    },
+    {
+      "path": "baseline",
+      "localGitObject": "df0222dd3202545917f96aef37aa3ca1567033ef",
+      "ciGitObject": "df0222dd3202545917f96aef37aa3ca1567033ef",
+      "identical": true
+    }
+  ],
+  "commitDiff": [
+    ".github/workflows/native.yml",
+    "docs/android-build.md",
+    "tools/AndroidBuild.json",
+    "tools/Invoke-HbpCoreAndroidBuild.ps1",
+    "tools/Invoke-HbpCoreBuild.ps1",
+    "tools/Test-HbpCoreAbi.ps1",
+    "tools/Test-HbpCoreAndroidArtifact.ps1",
+    "tools/Test-HbpCoreAndroidBuild.ps1"
+  ],
+  "toolchainPinsIdentical": true,
+  "localCompiler": "Android (12470979, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)\r\nTarget: x86_64-w64-windows-gnu\r\nThread model: posix\r\nInstalledDir: C:/Program Files/Unity/Hub/Editor/6000.5.2f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK/toolchains/llvm/prebuilt/windows-x86_64/bin",
+  "ciCompiler": "Android (12470979, +pgo, +bolt, +lto, +mlgo, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /usr/local/lib/android/sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin",
+  "localSourceDateEpoch": "1787913130",
+  "ciSourceDateEpoch": "1788947440",
+  "checks": [
+    {
+      "check": "manifest file hash and size",
+      "file": "elf-report.json",
+      "result": "Passed"
+    },
+    {
+      "check": "manifest file hash and size",
+      "file": "hbp_core.spdx.json",
+      "result": "Passed"
+    },
+    {
+      "check": "manifest file hash and size",
+      "file": "libhbp_core.so",
+      "result": "Passed"
+    },
+    {
+      "check": "manifest file hash and size",
+      "file": "THIRD_PARTY_NOTICES.md",
+      "result": "Passed"
+    }
+  ],
+  "buildToolChecks": [
+    {
+      "path": "tools/Invoke-HbpCoreBuild.ps1",
+      "matchesCommittedTool": true,
+      "sha256": "246049c188685e3dbf662c4d2b4853ea96c2a474c1fefa254203462fa0f55ebb"
+    },
+    {
+      "path": "tools/Invoke-HbpCoreAndroidBuild.ps1",
+      "matchesCommittedTool": true,
+      "sha256": "f083c3e258835f33976c014e2c36c03760a06396cffcbce5ea735146b7481933"
+    },
+    {
+      "path": "tools/AndroidBuild.json",
+      "matchesCommittedTool": true,
+      "sha256": "a85885d15ba5e8628a055ec844d44e7d31147b076aabc7136a35237af883d24b"
+    },
+    {
+      "path": "tools/Test-HbpCoreAbi.ps1",
+      "matchesCommittedTool": true,
+      "sha256": "c05943a415c5ef6dd6feaf3a879918bd2a58bcb4ad154910ad581c1dae24eb87"
+    },
+    {
+      "path": "tools/Test-HbpCoreAndroidArtifact.ps1",
+      "matchesCommittedTool": true,
+      "sha256": "6668ddf4f3338d8449c6e8a996f40c57ebc142a5f811397b006ad9697e6ca64f"
+    }
+  ],
+  "sections": [
+    {
+      "section": "",
+      "identical": true,
+      "localBytes": 0,
+      "ciBytes": 0
+    },
+    {
+      "section": ".comment",
+      "identical": false,
+      "localBytes": 362,
+      "ciBytes": 204
+    },
+    {
+      "section": ".data",
+      "identical": true,
+      "localBytes": 656,
+      "ciBytes": 656
+    },
+    {
+      "section": ".data.rel.ro",
+      "identical": true,
+      "localBytes": 30832,
+      "ciBytes": 30832
+    },
+    {
+      "section": ".dynamic",
+      "identical": true,
+      "localBytes": 432,
+      "ciBytes": 432
+    },
+    {
+      "section": ".dynstr",
+      "identical": true,
+      "localBytes": 8406,
+      "ciBytes": 8406
+    },
+    {
+      "section": ".dynsym",
+      "identical": true,
+      "localBytes": 8664,
+      "ciBytes": 8664
+    },
+    {
+      "section": ".eh_frame",
+      "identical": true,
+      "localBytes": 137184,
+      "ciBytes": 137184
+    },
+    {
+      "section": ".eh_frame_hdr",
+      "identical": true,
+      "localBytes": 21340,
+      "ciBytes": 21340
+    },
+    {
+      "section": ".fini_array",
+      "identical": true,
+      "localBytes": 16,
+      "ciBytes": 16
+    },
+    {
+      "section": ".gcc_except_table",
+      "identical": true,
+      "localBytes": 27408,
+      "ciBytes": 27408
+    },
+    {
+      "section": ".gnu.hash",
+      "identical": true,
+      "localBytes": 1680,
+      "ciBytes": 1680
+    },
+    {
+      "section": ".gnu.version",
+      "identical": true,
+      "localBytes": 722,
+      "ciBytes": 722
+    },
+    {
+      "section": ".gnu.version_r",
+      "identical": true,
+      "localBytes": 112,
+      "ciBytes": 112
+    },
+    {
+      "section": ".got",
+      "identical": true,
+      "localBytes": 1232,
+      "ciBytes": 1232
+    },
+    {
+      "section": ".got.plt",
+      "identical": true,
+      "localBytes": 1032,
+      "ciBytes": 1032
+    },
+    {
+      "section": ".init_array",
+      "identical": true,
+      "localBytes": 32,
+      "ciBytes": 32
+    },
+    {
+      "section": ".note.android.ident",
+      "identical": true,
+      "localBytes": 152,
+      "ciBytes": 152
+    },
+    {
+      "section": ".note.gnu.build-id",
+      "identical": false,
+      "localBytes": 36,
+      "ciBytes": 36
+    },
+    {
+      "section": ".plt",
+      "identical": true,
+      "localBytes": 2048,
+      "ciBytes": 2048
+    },
+    {
+      "section": ".rela.dyn",
+      "identical": true,
+      "localBytes": 72024,
+      "ciBytes": 72024
+    },
+    {
+      "section": ".rela.plt",
+      "identical": true,
+      "localBytes": 3024,
+      "ciBytes": 3024
+    },
+    {
+      "section": ".rodata",
+      "identical": true,
+      "localBytes": 87440,
+      "ciBytes": 87440
+    },
+    {
+      "section": ".shstrtab",
+      "identical": true,
+      "localBytes": 281,
+      "ciBytes": 281
+    },
+    {
+      "section": ".text",
+      "identical": true,
+      "localBytes": 1043144,
+      "ciBytes": 1043144
+    }
+  ],
+  "exportedAbi": {
+    "count": 226,
+    "identical": true
+  },
+  "dependencies": [
+    "libc.so",
+    "libdl.so",
+    "libm.so"
+  ],
+  "loadAlignments": [
+    16384,
+    16384,
+    16384,
+    16384
+  ],
+  "independentAbiInspection": "Passed (Test-HbpCoreAbi against original Desktop-pinned header and baseline)",
+  "independentElfInspection": "Passed",
+  "updater": {
+    "acceptsCiPackageAtItsDeclaredCommit": true,
+    "rejectsAgainstExistingDesktopPin": true,
+    "installed": false
+  },
+  "runtimeTested": false,
+  "overall": "Archive validated; scientific inputs and ABI identical; existing exact-commit pin differs"
+}

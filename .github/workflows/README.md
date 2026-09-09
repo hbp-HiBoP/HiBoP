@@ -45,7 +45,8 @@ then run from the HiBoP checkout:
 
 The script resolves and pins the latest commit on GitHub `master` for
 `EEGFormat`, `hbp_core` and `hbp_math`. It dispatches the three native workflows,
-waits for all nine Windows x64, Linux x64 and macOS ARM64 artifacts, validates
+waits for ten artifacts (Windows x64, Linux x64 and macOS ARM64 for each library,
+plus Android ARM64 for `hbp_core`), validates
 their manifests and SHA-256 hashes, and only then replaces the Unity payloads.
 The existing Unity `.meta` files are never replaced.
 
@@ -63,13 +64,35 @@ validation fails. Before replacing files it saves all current payloads under
 `.native-plugin-update/<request-id>`, and restores them if installation fails.
 On success it writes `Tools/NativePlugins.lock.json` with the source commits,
 GitHub run URLs and installed hashes. Commit that lock file together with the
-nine native payloads, then run **Build HiBoP** with `platform: all`.
+ten native payloads, then run **Build HiBoP** with `platform: all` for Desktop
+and `platform: quest` for Android.
 
 The local validation suite does not use GitHub or modify the real plugins:
 
 ```powershell
 pwsh .\Tools\Test-NativePluginUpdater.ps1
+pwsh .\Tools\Test-NativePluginAndroidUpdater.ps1
 ```
+
+The `Test native plugin updater` workflow runs these network-free tests on PRs
+touching the native updater tools, or on manual dispatch. They simulate three
+GitHub dispatches and ten downloads, including missing/corrupt artifacts,
+installation/lock failures and interrupted recovery. They do not claim a real
+remote compilation. The native `hbp_core` workflow adds an `android` choice;
+`all` includes it. Android builds twice from the same immutable scientific Git
+archive and requires identical `.so` hashes, ABI/ELF inspection and tooling tests
+before uploading `hbp_core-android-arm64-<run-id>`. NDK, CMake and Ninja versions
+are pinned in `hbp_core/tools/AndroidBuild.json`.
+
+For the first local qualification only, an Android package built from the
+already-pinned Desktop commit can be imported with
+`pwsh ./Tools/Update-NativePlugins.ps1 -AndroidPackage <package-directory>`.
+It verifies the installed Desktop `hbp_core` binaries and the package's source,
+hash and Android metadata, preserves Desktop lock entries, and labels the new
+artifact `origin: local` with no GitHub run. The normal update command above
+continues to use GitHub for all ten artifacts. Neither mode modifies Unity
+`.meta` files. Integrate the native workflow changes into `hbp_core/master`
+before using the updated orchestrator; it refuses workflows without Android.
 
 The macOS runner validates the ARM64 binaries and recreates ad-hoc signatures
 before Unity imports the bundles. Consequently, copying the bundle through a

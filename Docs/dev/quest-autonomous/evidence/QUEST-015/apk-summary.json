@@ -1,0 +1,25 @@
+{
+  "apk": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-015\\quest\\HiBoP.Quest.apk",
+  "sha256": "74d3a65d89a8ecbd463c9a371177ed26b5677466701cc938b0e508ae92fdc8a6",
+  "bytes": 104902008,
+  "nativeLibraries": [
+    "lib/arm64-v8a/libUnityARFoundationMeta.so",
+    "lib/arm64-v8a/libUnityOpenXR.so",
+    "lib/arm64-v8a/lib_burst_generated.so",
+    "lib/arm64-v8a/libhbp_core.so",
+    "lib/arm64-v8a/libil2cpp.so",
+    "lib/arm64-v8a/libmain.so",
+    "lib/arm64-v8a/libopenxr_loader.so",
+    "lib/arm64-v8a/libunity.so"
+  ],
+  "symbolTables": [
+    "lib/arm64-v8a/libil2cpp.usym.so"
+  ],
+  "result": "Passed",
+  "hbpCore": {
+    "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c",
+    "sha256": "15a0029148c29b25f9b0fc7a89b3a2096a055e6bc7d3f641b3c5292ae9d2c501",
+    "matchesLock": true,
+    "runtimeTested": false
+  }
+}

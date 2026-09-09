@@ -1,0 +1,94 @@
+{
+  "repository": "hbp_core",
+  "commit": "4e8255bc36ddab9e86f31d56452ab5346ea7315c",
+  "sourceTree": "53fa0fbfbdc6fccc279c57cc7a895f1d860fcae2",
+  "sourceMode": "git-archive",
+  "sourceArchiveSha256": "3c549163d341ad6d368440b1a6b61f768fc1cc3e805d2a1ac21a3e0e6a06578c",
+  "sourceDateEpoch": "1788947440",
+  "platform": "Android",
+  "architecture": "arm64",
+  "configuration": "Release",
+  "cmakeGenerator": "Ninja",
+  "android": {
+    "ndkVersion": "27.2.12479018",
+    "cmakeVersion": "3.22.1",
+    "ninjaVersion": "1.10.2",
+    "api": 32,
+    "abi": "arm64-v8a",
+    "stl": "c++_static",
+    "pageSize": 16384
+  },
+  "compiler": "Android (12470979, +pgo, +bolt, +lto, +mlgo, based on r522817c) clang version 18.0.3 (https://android.googlesource.com/toolchain/llvm-project d8003a456d14a3deb8054cdaa529ffbf02d9b262)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /usr/local/lib/android/sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/linux-x86_64/bin",
+  "cmakeVersion": "cmake version 3.22.1-g37088a8\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+  "ninjaVersion": "1.10.2",
+  "configureArguments": [
+    "-S",
+    "/home/runner/work/hbp_core/hbp_core/out/android-first/source",
+    "-B",
+    "/home/runner/work/hbp_core/hbp_core/out/android-first/build",
+    "-G",
+    "Ninja",
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DCMAKE_TOOLCHAIN_FILE=/usr/local/lib/android/sdk/ndk/27.2.12479018/build/cmake/android.toolchain.cmake",
+    "-DANDROID_ABI=arm64-v8a",
+    "-DANDROID_PLATFORM=android-32",
+    "-DANDROID_STL=c++_static",
+    "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON",
+    "-DHBP_CORE_BUILD_TESTS=OFF",
+    "-DHBP_CORE_BUILD_TOOLS=OFF",
+    "-DCMAKE_C_FLAGS=-ffile-prefix-map=\"/home/runner/work/hbp_core/hbp_core/out/android-first/source\"=/hbp_core -fdebug-compilation-dir=/hbp_core/build",
+    "-DCMAKE_CXX_FLAGS=--driver-mode=g++ -ffile-prefix-map=\"/home/runner/work/hbp_core/hbp_core/out/android-first/source\"=/hbp_core -fdebug-compilation-dir=/hbp_core/build",
+    "-DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384 -Wl,--exclude-libs,ALL -Wl,--no-undefined"
+  ],
+  "runtimeDependencies": [
+    "libc.so",
+    "libdl.so",
+    "libm.so"
+  ],
+  "publicExportCount": 226,
+  "runtimeTested": false,
+  "buildTools": [
+    {
+      "path": "tools/Invoke-HbpCoreBuild.ps1",
+      "sha256": "246049c188685e3dbf662c4d2b4853ea96c2a474c1fefa254203462fa0f55ebb"
+    },
+    {
+      "path": "tools/Invoke-HbpCoreAndroidBuild.ps1",
+      "sha256": "f083c3e258835f33976c014e2c36c03760a06396cffcbce5ea735146b7481933"
+    },
+    {
+      "path": "tools/AndroidBuild.json",
+      "sha256": "a85885d15ba5e8628a055ec844d44e7d31147b076aabc7136a35237af883d24b"
+    },
+    {
+      "path": "tools/Test-HbpCoreAbi.ps1",
+      "sha256": "c05943a415c5ef6dd6feaf3a879918bd2a58bcb4ad154910ad581c1dae24eb87"
+    },
+    {
+      "path": "tools/Test-HbpCoreAndroidArtifact.ps1",
+      "sha256": "6668ddf4f3338d8449c6e8a996f40c57ebc142a5f811397b006ad9697e6ca64f"
+    }
+  ],
+  "files": [
+    {
+      "path": "elf-report.json",
+      "sizeBytes": 44176,
+      "sha256": "0e0237a39d24f2f9d793214363954f481c9ad59c7393a963b881fe7178d90dad"
+    },
+    {
+      "path": "hbp_core.spdx.json",
+      "sizeBytes": 7224,
+      "sha256": "6071702d703f3c430f79b1cf449d4bf1661ce2382911b2196e3f732dee7aa40d"
+    },
+    {
+      "path": "libhbp_core.so",
+      "sizeBytes": 1450608,
+      "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "sizeBytes": 8910,
+      "sha256": "0ab9e10e0668d8dd18015f3f88e6a77bf6aeebfaad45488cb866323160f1cdcd"
+    }
+  ]
+}

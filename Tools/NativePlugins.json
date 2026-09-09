@@ -34,6 +34,12 @@
       "manifestRepository": "hbp_core",
       "targets": [
         {
+          "platform": "Android",
+          "architecture": "arm64",
+          "payload": "libhbp_core.so",
+          "destination": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so"
+        },
+        {
           "platform": "Windows",
           "architecture": "x86_64",
           "payload": "hbp_core.dll",

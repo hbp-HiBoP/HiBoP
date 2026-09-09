@@ -16,7 +16,7 @@ try {
         if ($entry.FullName -notmatch '^lib/arm64-v8a/[^/]+\.so$') {
             throw "Unexpected native binary in Quest APK: $($entry.FullName)"
         }
-        if ($entry.Name -match '(?i)hbp_core|hbp_math|EEGFormat|hbp_export|opencv|boost') {
+        if ($entry.Name -ne 'libhbp_core.so' -and $entry.Name -match '(?i)hbp_core|hbp_math|EEGFormat|hbp_export|opencv|boost') {
             throw "Desktop scientific runtime is not part of Quest bootstrap: $($entry.FullName)"
         }
         $stream = $entry.Open()
@@ -45,9 +45,18 @@ try {
             }
         } finally { $stream.Dispose() }
     }
-    foreach ($required in @('lib/arm64-v8a/libil2cpp.so', 'lib/arm64-v8a/libunity.so', 'assets/bin/Data/boot.config')) {
+    foreach ($required in @('lib/arm64-v8a/libhbp_core.so', 'lib/arm64-v8a/libil2cpp.so', 'lib/arm64-v8a/libunity.so', 'assets/bin/Data/boot.config')) {
         if ($null -eq $archive.GetEntry($required)) { throw "Missing APK entry: $required" }
     }
+    $lockPath = Join-Path $PSScriptRoot 'NativePlugins.lock.json'
+    $lock = Get-Content $lockPath -Raw | ConvertFrom-Json
+    $core = @($lock.libraries | Where-Object name -eq 'hbp_core')[0]
+    $android = @($core.artifacts | Where-Object platform -eq 'Android')[0]
+    $stream = $archive.GetEntry('lib/arm64-v8a/libhbp_core.so').Open()
+    $sha = [Security.Cryptography.SHA256]::Create()
+    try { $nativeHash = [Convert]::ToHexString($sha.ComputeHash($stream)).ToLowerInvariant() }
+    finally { $stream.Dispose(); $sha.Dispose() }
+    if ($nativeHash -ne $android.files[0].sha256) { throw 'APK hbp_core does not match the Android pin.' }
     $report = [ordered]@{
         apk = [IO.Path]::GetFullPath($Apk)
         sha256 = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -55,6 +64,7 @@ try {
         nativeLibraries = @($libraries | Where-Object { $_.Name -ne 'libil2cpp.usym.so' } | ForEach-Object FullName)
         symbolTables = @($libraries | Where-Object { $_.Name -eq 'libil2cpp.usym.so' } | ForEach-Object FullName)
         result = 'Passed'
+        hbpCore = [ordered]@{ commit = $core.commit; sha256 = $nativeHash; matchesLock = $true; runtimeTested = $false }
         entries = $entries
     }
     $parent = Split-Path -Parent ([IO.Path]::GetFullPath($ReportPath))

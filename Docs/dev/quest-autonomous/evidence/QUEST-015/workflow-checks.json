@@ -1,0 +1,16 @@
+{
+  "result": "Passed",
+  "count": 9,
+  "checks": [
+    "windows job unchanged",
+    "linux job unchanged",
+    "macos job unchanged",
+    "Android choice added",
+    "Android all/individual selection and full immutable tooling checkout",
+    "Two fresh builds, same scientific SHA, equality gate and tooling tests",
+    "Single expected Android artifact name/path, missing output fails",
+    "NDK/CMake/Ninja/API/ABI/STL/page size pins",
+    "Read-only updater test workflow executes both local suites"
+  ],
+  "remoteExecuted": false
+}

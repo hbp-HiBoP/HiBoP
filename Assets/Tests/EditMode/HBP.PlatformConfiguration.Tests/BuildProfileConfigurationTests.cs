@@ -13,6 +13,19 @@ namespace HBP.Tests.PlatformConfiguration
     public class BuildProfileConfigurationTests
     {
         [Test]
+        public void AndroidNativeCore_IsArm64OnlyAndExcludedFromDesktop()
+        {
+            var plugin = AssetImporter.GetAtPath("Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so") as PluginImporter;
+            Assert.That(plugin, Is.Not.Null);
+            Assert.That(plugin.GetCompatibleWithAnyPlatform(), Is.False);
+            Assert.That(plugin.GetCompatibleWithEditor(), Is.False);
+            Assert.That(plugin.GetCompatibleWithPlatform(BuildTarget.Android), Is.True);
+            Assert.That(plugin.GetPlatformData(BuildTarget.Android, "CPU"), Is.EqualTo("ARM64"));
+            foreach (var target in new[] { BuildTarget.StandaloneWindows64, BuildTarget.StandaloneLinux64, BuildTarget.StandaloneOSX })
+                Assert.That(plugin.GetCompatibleWithPlatform(target), Is.False);
+        }
+
+        [Test]
         public void BuildWithoutXR_DropsOnlyOpenXRPreload()
         {
             var original = PlayerSettings.GetPreloadedAssets();
