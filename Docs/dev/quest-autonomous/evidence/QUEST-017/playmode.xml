@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="45" result="Skipped:Ignored" total="45" passed="42" failed="0" inconclusive="0" skipped="3" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-09 11:28:25Z" end-time="2026-09-09 11:28:43Z" duration="17,3588332">
+  <test-suite type="TestSuite" id="1223" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="161" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:25Z" end-time="2026-09-09 11:28:43Z" duration="17.358833" total="45" passed="42" failed="0" inconclusive="0" skipped="3" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <reason>
+      <message><![CDATA[One or more child tests were ignored]]></message>
+    </reason>
+    <test-suite type="Assembly" id="1110" name="HBP.Quest.PlayModeTests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Quest.PlayModeTests.dll" runstate="Runnable" testcasecount="45" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:25Z" end-time="2026-09-09 11:28:43Z" duration="17.351178" total="45" passed="42" failed="0" inconclusive="0" skipped="3" asserts="0">
+      <properties>
+        <property name="_PID" value="26708" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <reason>
+        <message><![CDATA[One or more child tests were ignored]]></message>
+      </reason>
+      <test-suite type="TestSuite" id="1111" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="45" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:25Z" end-time="2026-09-09 11:28:43Z" duration="17.350151" total="45" passed="42" failed="0" inconclusive="0" skipped="3" asserts="0">
+        <properties />
+        <reason>
+          <message><![CDATA[One or more child tests were ignored]]></message>
+        </reason>
+        <test-suite type="TestSuite" id="1112" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="45" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:25Z" end-time="2026-09-09 11:28:43Z" duration="17.349536" total="45" passed="42" failed="0" inconclusive="0" skipped="3" asserts="0">
+          <properties />
+          <reason>
+            <message><![CDATA[One or more child tests were ignored]]></message>
+          </reason>
+          <test-suite type="TestSuite" id="1114" name="Quest" fullname="HBP.Tests.Quest" runstate="Runnable" testcasecount="34" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:25Z" end-time="2026-09-09 11:28:43Z" duration="17.328022" total="34" passed="32" failed="0" inconclusive="0" skipped="2" asserts="0">
+            <properties />
+            <reason>
+              <message><![CDATA[One or more child tests were ignored]]></message>
+            </reason>
+            <test-suite type="TestFixture" id="1067" name="AnatomyDeliveryTests" fullname="HBP.Tests.Quest.AnatomyDeliveryTests" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" testcasecount="16" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:25Z" end-time="2026-09-09 11:28:35Z" duration="10.052760" total="16" passed="14" failed="0" inconclusive="0" skipped="2" asserts="0">
+              <properties />
+              <reason>
+                <message><![CDATA[One or more child tests were ignored]]></message>
+              </reason>
+              <test-suite type="ParameterizedMethod" id="1083" name="CancellationDuringReception_DoesNotPublishLate" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.CancellationDuringReception_DoesNotPublishLate" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:28:26Z" end-time="2026-09-09 11:28:26Z" duration="0.253299" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1081" name="CancellationDuringReception_DoesNotPublishLate(False)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.CancellationDuringReception_DoesNotPublishLate(False)" methodname="CancellationDuringReception_DoesNotPublishLate" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="849645703" result="Passed" start-time="2026-09-09 11:28:26Z" end-time="2026-09-09 11:28:26Z" duration="0.206299" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1082" name="CancellationDuringReception_DoesNotPublishLate(True)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.CancellationDuringReception_DoesNotPublishLate(True)" methodname="CancellationDuringReception_DoesNotPublishLate" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="2053340677" result="Passed" start-time="2026-09-09 11:28:26Z" end-time="2026-09-09 11:28:26Z" duration="0.037017" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1068" name="Contacts_CapturedMniPlayerPayloadReachesTheQuestSessionOverTls" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.Contacts_CapturedMniPlayerPayloadReachesTheQuestSessionOverTls" methodname="Contacts_CapturedMniPlayerPayloadReachesTheQuestSessionOverTls" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1034645607" result="Passed" start-time="2026-09-09 11:28:26Z" end-time="2026-09-09 11:28:29Z" duration="2.059472" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[QUEST-013 captured MNI: 15532677 bytes, 8 contacts, published hash 2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26
+]]></output>
+              </test-case>
+              <test-case id="1070" name="Contacts_RealTlsPreservesAssociationsAcrossRetryDisconnectAndAnatomyReplacement" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.Contacts_RealTlsPreservesAssociationsAcrossRetryDisconnectAndAnatomyReplacement" methodname="Contacts_RealTlsPreservesAssociationsAcrossRetryDisconnectAndAnatomyReplacement" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="545302054" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.081940" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1080" name="InvalidReplacement_PreservesPublishedMeshAndPresentation" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.326678" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1073" name="InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;chunk&quot;)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;chunk&quot;)" methodname="InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="687415376" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.053242" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1074" name="InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;truncated&quot;)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;truncated&quot;)" methodname="InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1372223884" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.044498" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1075" name="InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;transport-version&quot;)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;transport-version&quot;)" methodname="InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1598667120" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.043817" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1076" name="InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;schema-version&quot;)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;schema-version&quot;)" methodname="InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="445462317" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.044838" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1077" name="InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;incomplete-hbna&quot;)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;incomplete-hbna&quot;)" methodname="InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1611249400" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.047320" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1078" name="InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;prepare&quot;)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;prepare&quot;)" methodname="InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="154022130" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.045261" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1079" name="InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;identity-conflict&quot;)" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.InvalidReplacement_PreservesPublishedMeshAndPresentation(&quot;identity-conflict&quot;)" methodname="InvalidReplacement_PreservesPublishedMeshAndPresentation" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1227595502" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.046071" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1072" name="LostAck_RetryReturnsExistingPublication_ThenOldRetryCannotReplaceNewContent" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.LostAck_RetryReturnsExistingPublication_ThenOldRetryCannotReplaceNewContent" methodname="LostAck_RetryReturnsExistingPublication_ThenOldRetryCannotReplaceNewContent" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="30590711" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.080058" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1071" name="Offer_RealTlsPublishesAndAcknowledgesOnlyOnce" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.Offer_RealTlsPublishesAndAcknowledgesOnlyOnce" methodname="Offer_RealTlsPublishesAndAcknowledgesOnlyOnce" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1135457836" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:29Z" duration="0.039272" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1069" name="Projection_RealTlsPreservesNativeInputsOnCorruptionAndReleasesAfterReplacementAndClose" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.Projection_RealTlsPreservesNativeInputsOnCorruptionAndReleasesAfterReplacementAndClose" methodname="Projection_RealTlsPreservesNativeInputsOnCorruptionAndReleasesAfterReplacementAndClose" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1897202557" result="Passed" start-time="2026-09-09 11:28:29Z" end-time="2026-09-09 11:28:35Z" duration="6.332055" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[QUEST-017 TLS: 15532677 bytes; corrupt volume rejected; retries, native lifetime and release verified.
+]]></output>
+              </test-case>
+              <test-case id="1085" name="RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose" methodname="RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="324661047" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:35Z" duration="0.007910" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <reason>
+                  <message><![CDATA[Pass -questAnatomyFixture with the captured MNI HBNA.]]></message>
+                </reason>
+              </test-case>
+              <test-case id="1084" name="RealMniCaptureFixture_TravelsThroughTlsToRenderer" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.RealMniCaptureFixture_TravelsThroughTlsToRenderer" methodname="RealMniCaptureFixture_TravelsThroughTlsToRenderer" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="161849952" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:35Z" duration="0.002652" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <reason>
+                  <message><![CDATA[Pass -questAnatomyFixture with the captured MNI HBNA.]]></message>
+                </reason>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1086" name="QuestAnatomyLifetimeTests" fullname="HBP.Tests.Quest.QuestAnatomyLifetimeTests" classname="HBP.Tests.Quest.QuestAnatomyLifetimeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:35Z" duration="0.016648" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1087" name="ReplacementClearAndDestroy_ReleaseMeshesWithoutFrameRebuilds" fullname="HBP.Tests.Quest.QuestAnatomyLifetimeTests.ReplacementClearAndDestroy_ReleaseMeshesWithoutFrameRebuilds" methodname="ReplacementClearAndDestroy_ReleaseMeshesWithoutFrameRebuilds" classname="HBP.Tests.Quest.QuestAnatomyLifetimeTests" runstate="Runnable" seed="1380577356" result="Passed" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:35Z" duration="0.013089" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1088" name="WorkerDelivery_IsRejectedWithoutChangingTheView" fullname="HBP.Tests.Quest.QuestAnatomyLifetimeTests.WorkerDelivery_IsRejectedWithoutChangingTheView" methodname="WorkerDelivery_IsRejectedWithoutChangingTheView" classname="HBP.Tests.Quest.QuestAnatomyLifetimeTests" runstate="Runnable" seed="2088378239" result="Passed" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:35Z" duration="0.002521" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1089" name="QuestContactRenderingTests" fullname="HBP.Tests.Quest.QuestContactRenderingTests" classname="HBP.Tests.Quest.QuestContactRenderingTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:36Z" duration="0.399397" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1090" name="PreparedBuffer_PreservesCoordinatesColorOrderAndScientificMask_UsesOneSharedFrame" fullname="HBP.Tests.Quest.QuestContactRenderingTests.PreparedBuffer_PreservesCoordinatesColorOrderAndScientificMask_UsesOneSharedFrame" methodname="PreparedBuffer_PreservesCoordinatesColorOrderAndScientificMask_UsesOneSharedFrame" classname="HBP.Tests.Quest.QuestContactRenderingTests" runstate="Runnable" seed="1893207681" result="Passed" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:35Z" duration="0.009532" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1091" name="ReplaceFailureClearAndDestroy_ReleaseContactBuffersAndPreserveHiddenSurface" fullname="HBP.Tests.Quest.QuestContactRenderingTests.ReplaceFailureClearAndDestroy_ReleaseContactBuffersAndPreserveHiddenSurface" methodname="ReplaceFailureClearAndDestroy_ReleaseContactBuffersAndPreserveHiddenSurface" classname="HBP.Tests.Quest.QuestContactRenderingTests" runstate="Runnable" seed="777313051" result="Passed" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:35Z" duration="0.007691" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1092" name="Shader_RendersPreparedContactsBehindHiddenSurface_AndScalesTheirDiameter" fullname="HBP.Tests.Quest.QuestContactRenderingTests.Shader_RendersPreparedContactsBehindHiddenSurface_AndScalesTheirDiameter" methodname="Shader_RendersPreparedContactsBehindHiddenSurface_AndScalesTheirDiameter" classname="HBP.Tests.Quest.QuestContactRenderingTests" runstate="Runnable" seed="578550934" result="Passed" start-time="2026-09-09 11:28:35Z" end-time="2026-09-09 11:28:36Z" duration="0.380952" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Red contact pixels: scale1=208, scale2=812; area ratio=3,903846
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1093" name="QuestManipulationInputTests" fullname="HBP.Tests.Quest.QuestManipulationInputTests" classname="HBP.Tests.Quest.QuestManipulationInputTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-09 11:28:36Z" end-time="2026-09-09 11:28:36Z" duration="0.164124" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1094" name="SerializedRig_TriggerBindingsTrackingFocusReplacementAndXRecenter" fullname="HBP.Tests.Quest.QuestManipulationInputTests.SerializedRig_TriggerBindingsTrackingFocusReplacementAndXRecenter" methodname="SerializedRig_TriggerBindingsTrackingFocusReplacementAndXRecenter" classname="HBP.Tests.Quest.QuestManipulationInputTests" runstate="Runnable" seed="1926213659" result="Passed" start-time="2026-09-09 11:28:36Z" end-time="2026-09-09 11:28:36Z" duration="0.151872" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Head: tracked=True, position=(0.00, 0.00, 0.00)
+LeftController: tracked=True, position=(-0.10, -0.12, 0.65)
+RightController: tracked=True, position=(0.10, -0.12, 0.65)
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1095" name="QuestPairingTests" fullname="HBP.Tests.Quest.QuestPairingTests" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-09 11:28:36Z" end-time="2026-09-09 11:28:43Z" duration="6.684517" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1104" name="CloseWhileIncomingStreamWaits_CancelsPublicationWithoutBlockingFrames" fullname="HBP.Tests.Quest.QuestPairingTests.CloseWhileIncomingStreamWaits_CancelsPublicationWithoutBlockingFrames" methodname="CloseWhileIncomingStreamWaits_CancelsPublicationWithoutBlockingFrames" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="652190606" result="Passed" start-time="2026-09-09 11:28:36Z" end-time="2026-09-09 11:28:37Z" duration="0.599768" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1096" name="DesktopPrefab_InvalidSelectionAndDoubleClick_AreGuarded" fullname="HBP.Tests.Quest.QuestPairingTests.DesktopPrefab_InvalidSelectionAndDoubleClick_AreGuarded" methodname="DesktopPrefab_InvalidSelectionAndDoubleClick_AreGuarded" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="209608901" result="Passed" start-time="2026-09-09 11:28:37Z" end-time="2026-09-09 11:28:37Z" duration="0.475167" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1101" name="FifthCodeAttempt_CanStillPair" fullname="HBP.Tests.Quest.QuestPairingTests.FifthCodeAttempt_CanStillPair" methodname="FifthCodeAttempt_CanStillPair" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="671530555" result="Passed" start-time="2026-09-09 11:28:37Z" end-time="2026-09-09 11:28:37Z" duration="0.157950" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1102" name="FiveBadCodes_LockAcrossConnections" fullname="HBP.Tests.Quest.QuestPairingTests.FiveBadCodes_LockAcrossConnections" methodname="FiveBadCodes_LockAcrossConnections" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="1718776570" result="Passed" start-time="2026-09-09 11:28:37Z" end-time="2026-09-09 11:28:38Z" duration="0.343373" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1107" name="InvalidAddress_FailsBeforeNetwork" fullname="HBP.Tests.Quest.QuestPairingTests.InvalidAddress_FailsBeforeNetwork" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:28:38Z" end-time="2026-09-09 11:28:39Z" duration="1.235761" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1105" name="InvalidAddress_FailsBeforeNetwork(&quot;bad-address&quot;)" fullname="HBP.Tests.Quest.QuestPairingTests.InvalidAddress_FailsBeforeNetwork(&quot;bad-address&quot;)" methodname="InvalidAddress_FailsBeforeNetwork" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="1041860241" result="Passed" start-time="2026-09-09 11:28:38Z" end-time="2026-09-09 11:28:38Z" duration="0.542115" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1106" name="InvalidAddress_FailsBeforeNetwork(&quot;192.168.1.18:5555&quot;)" fullname="HBP.Tests.Quest.QuestPairingTests.InvalidAddress_FailsBeforeNetwork(&quot;192.168.1.18:5555&quot;)" methodname="InvalidAddress_FailsBeforeNetwork" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="297682241" result="Passed" start-time="2026-09-09 11:28:38Z" end-time="2026-09-09 11:28:39Z" duration="0.693074" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1103" name="InvalidCredential_PreservesContent_ThenCorrectRetryWorks" fullname="HBP.Tests.Quest.QuestPairingTests.InvalidCredential_PreservesContent_ThenCorrectRetryWorks" methodname="InvalidCredential_PreservesContent_ThenCorrectRetryWorks" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="2143933478" result="Passed" start-time="2026-09-09 11:28:39Z" end-time="2026-09-09 11:28:39Z" duration="0.480761" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1098" name="PairPushRetryAndClose_UseRealTlsAndPublicationOwner" fullname="HBP.Tests.Quest.QuestPairingTests.PairPushRetryAndClose_UseRealTlsAndPublicationOwner" methodname="PairPushRetryAndClose_UseRealTlsAndPublicationOwner" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="1082466707" result="Passed" start-time="2026-09-09 11:28:39Z" end-time="2026-09-09 11:28:40Z" duration="0.365813" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1097" name="QuestPrefab_UsesNetworkPanelAndDisablesFixtureInjection" fullname="HBP.Tests.Quest.QuestPairingTests.QuestPrefab_UsesNetworkPanelAndDisablesFixtureInjection" methodname="QuestPrefab_UsesNetworkPanelAndDisablesFixtureInjection" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="414610448" result="Passed" start-time="2026-09-09 11:28:40Z" end-time="2026-09-09 11:28:40Z" duration="0.671415" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1100" name="UnknownCommandAndCorruptPayload_DoNotStopListening" fullname="HBP.Tests.Quest.QuestPairingTests.UnknownCommandAndCorruptPayload_DoNotStopListening" methodname="UnknownCommandAndCorruptPayload_DoNotStopListening" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="1576933486" result="Passed" start-time="2026-09-09 11:28:40Z" end-time="2026-09-09 11:28:41Z" duration="0.883971" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1099" name="WrongPin_DoesNotSpendCodeAttempt_AndSecondPairIsRefused" fullname="HBP.Tests.Quest.QuestPairingTests.WrongPin_DoesNotSpendCodeAttempt_AndSecondPairIsRefused" methodname="WrongPin_DoesNotSpendCodeAttempt_AndSecondPairIsRefused" classname="HBP.Tests.Quest.QuestPairingTests" runstate="Runnable" seed="41203699" result="Passed" start-time="2026-09-09 11:28:41Z" end-time="2026-09-09 11:28:43Z" duration="1.465488" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1108" name="QuestTrackingTests" fullname="HBP.Tests.Quest.QuestTrackingTests" classname="HBP.Tests.Quest.QuestTrackingTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.008443" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1109" name="Controller_LostOrPartialTrackingHidesMarkerAndDoesNotMoveIt" fullname="HBP.Tests.Quest.QuestTrackingTests.Controller_LostOrPartialTrackingHidesMarkerAndDoesNotMoveIt" methodname="Controller_LostOrPartialTrackingHidesMarkerAndDoesNotMoveIt" classname="HBP.Tests.Quest.QuestTrackingTests" runstate="Runnable" seed="1553667698" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.007716" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1113" name="QuestAnatomy" fullname="HBP.Tests.QuestAnatomy" runstate="Runnable" testcasecount="11" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.020778" total="11" passed="10" failed="0" inconclusive="0" skipped="1" asserts="0">
+            <properties />
+            <reason>
+              <message><![CDATA[One or more child tests were ignored]]></message>
+            </reason>
+            <test-suite type="TestFixture" id="1054" name="AnatomyManipulationTests" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" testcasecount="11" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.019958" total="11" passed="10" failed="0" inconclusive="0" skipped="1" asserts="0">
+              <properties />
+              <reason>
+                <message><![CDATA[One or more child tests were ignored]]></message>
+              </reason>
+              <test-case id="1065" name="ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh" methodname="ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="1407896578" result="Skipped" label="Ignored" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.002765" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <reason>
+                  <message><![CDATA[Pass -questAnatomyFixture for the real Desktop MNI invariant check.]]></message>
+                </reason>
+              </test-case>
+              <test-case id="1063" name="CancelAndClear_ReleaseWithoutMovingOrReacquiringHeldGrips" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.CancelAndClear_ReleaseWithoutMovingOrReacquiringHeldGrips" methodname="CancelAndClear_ReleaseWithoutMovingOrReacquiringHeldGrips" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="2004328412" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.001258" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1062" name="CoincidentHands_FreezeAndRebaseWhenSeparated" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.CoincidentHands_FreezeAndRebaseWhenSeparated" methodname="CoincidentHands_FreezeAndRebaseWhenSeparated" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="1424337830" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.001067" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1059" name="HandTransitions_RebaseWithoutJump_ThenSurvivingHandContinues" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.HandTransitions_RebaseWithoutJump_ThenSurvivingHandContinues" methodname="HandTransitions_RebaseWithoutJump_ThenSurvivingHandContinues" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="1527754249" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.000871" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1061" name="NearGrab_RequiresFreshPressAndUsesRotatedScaledBounds" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.NearGrab_RequiresFreshPressAndUsesRotatedScaledBounds" methodname="NearGrab_RequiresFreshPressAndUsesRotatedScaledBounds" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="29946199" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.000915" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1066" name="Prefabs_SerializeManipulationSettingsAndRigReferences" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.Prefabs_SerializeManipulationSettingsAndRigReferences" methodname="Prefabs_SerializeManipulationSettingsAndRigReferences" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="1408130859" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.001542" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1064" name="Recenter_KeepsMeshScaleAndChildren_AndCancelsGrab" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.Recenter_KeepsMeshScaleAndChildren_AndCancelsGrab" methodname="Recenter_KeepsMeshScaleAndChildren_AndCancelsGrab" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="1469069971" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.002157" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1057" name="SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.004639" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1055" name="SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift(True)" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift(True)" methodname="SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="646287835" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.001548" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1056" name="SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift(False)" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift(False)" methodname="SingleGrab_PreservesOffsetAndRotatesWithoutSnapOrReleaseDrift" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="938616506" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.000677" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1060" name="TrackingLoss_FreezesAndRequiresReleaseBeforeRegrab" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.TrackingLoss_FreezesAndRequiresReleaseBeforeRegrab" methodname="TrackingLoss_FreezesAndRequiresReleaseBeforeRegrab" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="2005286509" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.000930" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1058" name="TwoHands_TransformAroundMidpointAndClampUniformPositiveScale" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.TwoHands_TransformAroundMidpointAndClampUniformPositiveScale" methodname="TwoHands_TransformAroundMidpointAndClampUniformPositiveScale" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="1125738601" result="Passed" start-time="2026-09-09 11:28:43Z" end-time="2026-09-09 11:28:43Z" duration="0.001260" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Zigaroula/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

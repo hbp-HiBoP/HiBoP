@@ -6,12 +6,12 @@ using System.Text;
 namespace HBP.Transfer.Anatomy
 {
     /// <summary>
-    /// Deterministic little-endian v1/v2 codec. Hashes detect corruption, not sender
+    /// Deterministic little-endian v1/v2/v3 codec. Hashes detect corruption, not sender
     /// authenticity. Numeric payloads remain float32/uint32. No transport dependency.
     /// </summary>
     public static class AnatomySnapshotCodec
     {
-        public const ushort SchemaVersion = 2;
+        public const ushort SchemaVersion = 3;
         public const int MaximumVertexCount = 2_000_000;
         public const int MaximumIndexCount = 12_000_000;
         public const int MaximumEncodedBytes = 128 * 1024 * 1024;
@@ -55,8 +55,9 @@ namespace HBP.Transfer.Anatomy
             };
             long contactBytes = snapshot.SchemaVersion == 1 ? 0 : AnatomyContactsCodec.Length(snapshot.Contacts);
             long length = FixedBytes + snapshot.SurfaceByteLength + (contactBytes == 0 ? 0 : 4 + contactBytes);
+            if (snapshot.Projection != null) length += 4 + AnatomyProjectionCodec.Length(snapshot.Projection);
             foreach (string value in texts) length += TextEncoding.GetByteCount(value);
-            if (length > MaximumEncodedBytes) throw new ArgumentException("Snapshot exceeds the encoded byte limit.");
+            if (length > MaximumEncodedBytes) throw new ArgumentException($"Snapshot requires {length} bytes (surface {snapshot.SurfaceByteLength}, volume {snapshot.Projection?.VolumeBytes.Count ?? 0}); codec limit is {MaximumEncodedBytes}. Keep all scientific inputs; choose a smaller source dataset or qualify a larger transport budget.");
             byte[] encoded = new byte[(int)length];
             using var stream = new MemoryStream(encoded, true);
             using var writer = new BinaryWriter(stream, TextEncoding, true);
@@ -95,6 +96,12 @@ namespace HBP.Transfer.Anatomy
                 AnatomyContactsCodec.Write(writer, snapshot.Contacts);
             }
 
+            if (snapshot.Projection != null)
+            {
+                writer.Write((int)AnatomyProjectionCodec.Length(snapshot.Projection));
+                AnatomyProjectionCodec.Write(writer, snapshot.Projection);
+            }
+
             if (stream.Position != length - HashBytes) throw new InvalidOperationException("Invalid codec layout.");
             using SHA256 sha = SHA256.Create();
             byte[] surfaceHash = sha.ComputeHash(encoded, surfaceOffset, (int)snapshot.SurfaceByteLength);
@@ -120,7 +127,7 @@ namespace HBP.Transfer.Anatomy
                 using var reader = new BinaryReader(stream, TextEncoding, true);
                 if (reader.ReadUInt32() != Magic) throw new InvalidDataException("Unknown snapshot magic.");
                 ushort version = reader.ReadUInt16();
-                if (version != 1 && version != SchemaVersion) throw new InvalidDataException("Unsupported snapshot schema version.");
+                if (version != 1 && version != 2 && version != SchemaVersion) throw new InvalidDataException("Unsupported snapshot schema version.");
                 if (reader.ReadInt64() != encoded.Length) throw new InvalidDataException("Snapshot length does not match its header.");
                 VerifyHash(encoded, 0, encoded.Length - HashBytes, encoded.Length - HashBytes);
                 string transferId = ReadText(reader);
@@ -153,9 +160,17 @@ namespace HBP.Transfer.Anatomy
                 if (version >= 2)
                 {
                     int contactBytes = reader.ReadInt32();
-                    if (contactBytes < 0 || stream.Position + contactBytes != encoded.Length - HashBytes) throw new InvalidDataException("Invalid contact section length.");
-                    contacts = AnatomyContactsCodec.Read(reader, encoded.Length - HashBytes);
+                    if (contactBytes < 0 || stream.Position + contactBytes > encoded.Length - HashBytes) throw new InvalidDataException("Invalid contact section length.");
+                    contacts = AnatomyContactsCodec.Read(reader, stream.Position + contactBytes);
                     contacts.ValidateCoordinates(coordinates);
+                }
+
+                AnatomyProjection projection = null;
+                if (version >= 3)
+                {
+                    int projectionBytes = reader.ReadInt32();
+                    if (projectionBytes < 56 || stream.Position + projectionBytes != encoded.Length - HashBytes) throw new InvalidDataException("Missing or invalid projection section.");
+                    projection = AnatomyProjectionCodec.Read(reader, encoded.Length - HashBytes);
                 }
 
                 if (stream.Position != encoded.Length - HashBytes) throw new InvalidDataException("Unexpected snapshot trailing bytes.");
@@ -165,7 +180,7 @@ namespace HBP.Transfer.Anatomy
                 uint[] triangles = new uint[indices];
                 for (int i = 0; i < triangles.Length; i++) triangles[i] = reader.ReadUInt32();
                 float[] textureCoordinates = ReadFloats(reader, uvs * 2);
-                return new AnatomySnapshot(transferId, sessionId, visualizationId, columnId, revision, coordinates, winding, visible == 1, color, positions, normals, triangles, textureCoordinates, contacts);
+                return new AnatomySnapshot(transferId, sessionId, visualizationId, columnId, revision, coordinates, winding, visible == 1, color, positions, normals, triangles, textureCoordinates, contacts, projection);
             }
             catch (EndOfStreamException exception)
             {

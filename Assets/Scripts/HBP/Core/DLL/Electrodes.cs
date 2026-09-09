@@ -47,6 +47,21 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_raw_site_list_update_mask(_handle.Handle, idSite, mask ? 1 : 0));
         }
 
+        /// <summary>Copy native scientific coordinates without the Unity X reflection.</summary>
+        public Vector3[] GetNativePositions()
+        {
+            var positions = new Vec3[NumberOfSites];
+            ThrowIfFailed(hbp_raw_site_list_copy_positions(_handle.Handle, positions, positions.Length));
+            return positions.Select(position => position.ToVector3(convertReferenceSystem: false)).ToArray();
+        }
+
+        public int[] GetMask()
+        {
+            var mask = new int[NumberOfSites];
+            ThrowIfFailed(hbp_raw_site_list_copy_mask(_handle.Handle, mask, mask.Length));
+            return mask;
+        }
+
         public void GetSitesOnPlane(Plane plane, float precision, out int[] result)
         {
             if (plane == null) throw new ArgumentNullException(nameof(plane));
@@ -120,6 +135,12 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_get_count", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_get_count(IntPtr list, out int count);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_copy_positions", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_raw_site_list_copy_positions(IntPtr list, [Out] Vec3[] positions, int positionCapacity);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_copy_mask", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_raw_site_list_copy_mask(IntPtr list, [Out] int[] mask, int maskCapacity);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_raw_site_list_copy_sites_on_plane", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_raw_site_list_copy_sites_on_plane(IntPtr list, IntPtr plane, float precision, [Out] int[] result, int resultCapacity);

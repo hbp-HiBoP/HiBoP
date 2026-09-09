@@ -1,0 +1,1058 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="136" result="Passed" total="136" passed="136" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:26:06Z" duration="25,9932494">
+  <test-suite type="TestSuite" id="1000" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="823" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:26:06Z" duration="25.993249" total="136" passed="136" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1050" name="HBP.PlatformConfiguration.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.PlatformConfiguration.Tests.dll" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:44Z" duration="3.535571" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="29932" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1051" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:44Z" duration="3.534520" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1052" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:44Z" duration="3.533695" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1053" name="PlatformConfiguration" fullname="HBP.Tests.PlatformConfiguration" runstate="Runnable" testcasecount="25" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:44Z" duration="3.532614" total="25" passed="25" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1018" name="BuildProfileConfigurationTests" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.164948" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1025" name="ActiveProfile_PassesBuildGuard" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.ActiveProfile_PassesBuildGuard" methodname="ActiveProfile_PassesBuildGuard" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="1174359416" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.073775" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1019" name="AndroidNativeCore_IsArm64OnlyAndExcludedFromDesktop" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.AndroidNativeCore_IsArm64OnlyAndExcludedFromDesktop" methodname="AndroidNativeCore_IsArm64OnlyAndExcludedFromDesktop" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="695417342" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.005017" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1026" name="BuildGuard_RejectsWrongSceneBeforeBuilding" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildGuard_RejectsWrongSceneBeforeBuilding" methodname="BuildGuard_RejectsWrongSceneBeforeBuilding" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="316682225" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.004381" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1020" name="BuildWithoutXR_DropsOnlyOpenXRPreload" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.BuildWithoutXR_DropsOnlyOpenXRPreload" methodname="BuildWithoutXR_DropsOnlyOpenXRPreload" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="886796677" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.001543" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1023" name="Profiles_IsolateScenesDefinesAndPreserveNewInput" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.010269" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1021" name="Profiles_IsolateScenesDefinesAndPreserveNewInput(False)" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(False)" methodname="Profiles_IsolateScenesDefinesAndPreserveNewInput" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="511712124" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.006888" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1022" name="Profiles_IsolateScenesDefinesAndPreserveNewInput(True)" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.Profiles_IsolateScenesDefinesAndPreserveNewInput(True)" methodname="Profiles_IsolateScenesDefinesAndPreserveNewInput" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="740243128" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.000929" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1024" name="QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers" methodname="QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="369625046" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.012847" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1027" name="QuestBuildGuard_RejectsWrongArchitecture" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsWrongArchitecture" methodname="QuestBuildGuard_RejectsWrongArchitecture" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="1879912657" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:40Z" duration="0.044346" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1028" name="DesktopInputConfigurationTests" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:41Z" duration="0.960066" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1031" name="DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads" methodname="DeliveredSceneAndResources_HaveNoLegacyModulesOrLegacyScriptReads" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" seed="210865718" result="Passed" start-time="2026-09-09 11:25:40Z" end-time="2026-09-09 11:25:41Z" duration="0.952247" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1029" name="InputPrefab_SerializesAllUIActionsAndTextBackend" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputPrefab_SerializesAllUIActionsAndTextBackend" methodname="InputPrefab_SerializesAllUIActionsAndTextBackend" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" seed="1755808973" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.005874" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1030" name="InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel" fullname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests.InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel" methodname="InputSettings_ResetAllDevicesOnFocusLoss_AndNormalizeWheel" classname="HBP.Tests.PlatformConfiguration.DesktopInputConfigurationTests" runstate="Runnable" seed="1579153646" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.000644" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1032" name="QuestBootstrapTests" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:42Z" duration="0.079188" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1035" name="AutomaticBoundarySuppression_IsRejectedBeforeBuild" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.AutomaticBoundarySuppression_IsRejectedBeforeBuild" methodname="AutomaticBoundarySuppression_IsRejectedBeforeBuild" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="793003760" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.003349" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1038" name="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.059919" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1036" name="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationFocus&quot;,True)" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationFocus&quot;,True)" methodname="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="1497422445" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.058025" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1037" name="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationPause&quot;,False)" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(&quot;OnApplicationPause&quot;,False)" methodname="BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="720023271" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.000625" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1034" name="BoundaryVisibility_IsContextualAndWiredToPassthrough" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.BoundaryVisibility_IsContextualAndWiredToPassthrough" methodname="BoundaryVisibility_IsContextualAndWiredToPassthrough" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="2061007409" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.000927" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="OpaqueCamera_IsRejectedBeforeBuild" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.OpaqueCamera_IsRejectedBeforeBuild" methodname="OpaqueCamera_IsRejectedBeforeBuild" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="526807311" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.007680" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1033" name="QuestConfiguration_PassesGuard" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestConfiguration_PassesGuard" methodname="QuestConfiguration_PassesGuard" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="418649368" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.000756" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1040" name="QuestPreload_IsPreservedWhenOpenXRIsActive" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.QuestPreload_IsPreservedWhenOpenXRIsActive" methodname="QuestPreload_IsPreservedWhenOpenXRIsActive" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="2031052250" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:41Z" duration="0.000426" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1041" name="Rig_SerializesFloorOriginAndIndependentControllerPoses" fullname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests.Rig_SerializesFloorOriginAndIndependentControllerPoses" methodname="Rig_SerializesFloorOriginAndIndependentControllerPoses" classname="HBP.Tests.PlatformConfiguration.QuestBootstrapTests" runstate="Runnable" seed="990535220" result="Passed" start-time="2026-09-09 11:25:41Z" end-time="2026-09-09 11:25:42Z" duration="0.004178" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1042" name="QuestConnectionLayoutTests" fullname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests" classname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-09 11:25:42Z" end-time="2026-09-09 11:25:42Z" duration="0.125055" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1043" name="MainMenuLayout_DoesNotMoveQuestPanelOutsideTheViewport" fullname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests.MainMenuLayout_DoesNotMoveQuestPanelOutsideTheViewport" methodname="MainMenuLayout_DoesNotMoveQuestPanelOutsideTheViewport" classname="HBP.Tests.PlatformConfiguration.QuestConnectionLayoutTests" runstate="Runnable" seed="253394650" result="Passed" start-time="2026-09-09 11:25:42Z" end-time="2026-09-09 11:25:42Z" duration="0.123848" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1044" name="QuestPackageConfigurationTests" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-09 11:25:42Z" end-time="2026-09-09 11:25:44Z" duration="2.201640" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1047" name="Desktop_HasNoActiveXRLoader" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.Desktop_HasNoActiveXRLoader" methodname="Desktop_HasNoActiveXRLoader" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="2053504488" result="Passed" start-time="2026-09-09 11:25:42Z" end-time="2026-09-09 11:25:42Z" duration="0.000503" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1046" name="InputBackends_MatchActiveTargetAndCompiledPlayerDefines" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputBackends_MatchActiveTargetAndCompiledPlayerDefines" methodname="InputBackends_MatchActiveTargetAndCompiledPlayerDefines" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="1490943887" result="Passed" start-time="2026-09-09 11:25:42Z" end-time="2026-09-09 11:25:42Z" duration="0.046446" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1048" name="InputSystem_XRSpatialActionBindsToController" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.InputSystem_XRSpatialActionBindsToController" methodname="InputSystem_XRSpatialActionBindsToController" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="1331116214" result="Passed" start-time="2026-09-09 11:25:42Z" end-time="2026-09-09 11:25:42Z" duration="0.046011" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1049" name="PlayerScripts_CompileForActiveTargetWithoutChangingPackages" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.PlayerScripts_CompileForActiveTargetWithoutChangingPackages" methodname="PlayerScripts_CompileForActiveTargetWithoutChangingPackages" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="271242274" result="Passed" start-time="2026-09-09 11:25:42Z" end-time="2026-09-09 11:25:44Z" duration="2.079967" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Compiled 66 player assemblies for Android into C:\HBP\Software\HiBoP\.test-results/quest-002-a/player-scripts\Android
+]]></output>
+              </test-case>
+              <test-case id="1045" name="UnifiedPackages_MatchManifestLockAndInstalledVersions" fullname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests.UnifiedPackages_MatchManifestLockAndInstalledVersions" methodname="UnifiedPackages_MatchManifestLockAndInstalledVersions" classname="HBP.Tests.PlatformConfiguration.QuestPackageConfigurationTests" runstate="Runnable" seed="1484446629" result="Passed" start-time="2026-09-09 11:25:44Z" end-time="2026-09-09 11:25:44Z" duration="0.025851" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[com.unity.2d.sprite=1.0.0
+com.unity.2d.tilemap=1.0.0
+com.unity.burst=1.8.29
+com.unity.collections=6.5.0
+com.unity.editorcoroutines=1.1.0
+com.unity.ext.nunit=2.1.0
+com.unity.ide.visualstudio=2.0.27
+com.unity.inputsystem=1.20.0
+com.unity.mathematics=1.4.0
+com.unity.multiplayer.center=1.0.1
+com.unity.nuget.mono-cecil=1.11.6
+com.unity.nuget.newtonsoft-json=3.2.2
+com.unity.render-pipelines.core=17.5.0
+com.unity.render-pipelines.universal=17.5.0
+com.unity.render-pipelines.universal-config=17.5.0
+com.unity.sdk.linux-x86_64=1.1.0
+com.unity.searcher=4.9.4
+com.unity.shadergraph=17.5.0
+com.unity.sysroot.base=1.1.0
+com.unity.test-framework=1.7.0
+com.unity.test-framework.performance=3.5.0
+com.unity.timeline=1.8.12
+com.unity.toolchain.win-x86_64-linux=1.1.0
+com.unity.ugui=2.5.0
+com.unity.xr.arfoundation=6.5.0
+com.unity.xr.compositionlayers=2.4.0
+com.unity.xr.core-utils=2.6.0
+com.unity.xr.interaction.toolkit=3.6.0
+com.unity.xr.legacyinputhelpers=3.0.1
+com.unity.xr.management=4.7.0
+com.unity.xr.meta-openxr=2.4.1
+com.unity.xr.openxr=1.18.0
+com.unity.modules.accessibility=1.0.0
+com.unity.modules.adaptiveperformance=1.0.0
+com.unity.modules.ai=1.0.0
+com.unity.modules.androidjni=1.0.0
+com.unity.modules.animation=1.0.0
+com.unity.modules.assetbundle=1.0.0
+com.unity.modules.audio=1.0.0
+com.unity.modules.cloth=1.0.0
+com.unity.modules.director=1.0.0
+com.unity.modules.hierarchycore=1.0.0
+com.unity.modules.imageconversion=1.0.0
+com.unity.modules.imgui=1.0.0
+com.unity.modules.jsonserialize=1.0.0
+com.unity.modules.particlesystem=1.0.0
+com.unity.modules.physics=1.0.0
+com.unity.modules.physics2d=1.0.0
+com.unity.modules.physicscore2d=1.0.0
+com.unity.modules.screencapture=1.0.0
+com.unity.modules.subsystems=1.0.0
+com.unity.modules.terrain=1.0.0
+com.unity.modules.terrainphysics=1.0.0
+com.unity.modules.tilemap=1.0.0
+com.unity.modules.ui=1.0.0
+com.unity.modules.uielements=1.0.0
+com.unity.modules.umbra=1.0.0
+com.unity.modules.unityanalytics=1.0.0
+com.unity.modules.unitywebrequest=1.0.0
+com.unity.modules.unitywebrequestassetbundle=1.0.0
+com.unity.modules.unitywebrequestaudio=1.0.0
+com.unity.modules.unitywebrequesttexture=1.0.0
+com.unity.modules.unitywebrequestwww=1.0.0
+com.unity.modules.vectorgraphics=1.0.0
+com.unity.modules.vehicles=1.0.0
+com.unity.modules.video=1.0.0
+com.unity.modules.wind=1.0.0
+com.unity.modules.xr=1.0.0
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1094" name="HBP.Quest.Anatomy.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Quest.Anatomy.Tests.dll" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-09-09 11:25:44Z" end-time="2026-09-09 11:25:59Z" duration="15.086994" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="29932" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1095" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-09-09 11:25:44Z" end-time="2026-09-09 11:25:59Z" duration="15.084753" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1096" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-09-09 11:25:44Z" end-time="2026-09-09 11:25:59Z" duration="15.083616" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1097" name="Quest" fullname="HBP.Tests.Quest" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-09 11:25:44Z" end-time="2026-09-09 11:25:51Z" duration="7.354760" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1077" name="NativeProjectionInputTests" fullname="HBP.Tests.Quest.NativeProjectionInputTests" classname="HBP.Tests.Quest.NativeProjectionInputTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-09 11:25:44Z" end-time="2026-09-09 11:25:51Z" duration="7.354227" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1080" name="FailedCandidateDoesNotReleasePreviousInputsOrFile" fullname="HBP.Tests.Quest.NativeProjectionInputTests.FailedCandidateDoesNotReleasePreviousInputsOrFile" methodname="FailedCandidateDoesNotReleasePreviousInputsOrFile" classname="HBP.Tests.Quest.NativeProjectionInputTests" runstate="Runnable" seed="1929500611" result="Passed" start-time="2026-09-09 11:25:44Z" end-time="2026-09-09 11:25:45Z" duration="0.661135" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1079" name="LockedVolumeReturnsFalseAndCanBeReloaded" fullname="HBP.Tests.Quest.NativeProjectionInputTests.LockedVolumeReturnsFalseAndCanBeReloaded" methodname="LockedVolumeReturnsFalseAndCanBeReloaded" classname="HBP.Tests.Quest.NativeProjectionInputTests" runstate="Runnable" seed="480863902" result="Passed" start-time="2026-09-09 11:25:45Z" end-time="2026-09-09 11:25:45Z" duration="0.280734" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1078" name="NativeRoundTripPreservesSurfaceWindingNormalsSitesAndMniVolume" fullname="HBP.Tests.Quest.NativeProjectionInputTests.NativeRoundTripPreservesSurfaceWindingNormalsSitesAndMniVolume" methodname="NativeRoundTripPreservesSurfaceWindingNormalsSitesAndMniVolume" classname="HBP.Tests.Quest.NativeProjectionInputTests" runstate="Runnable" seed="1595716008" result="Passed" start-time="2026-09-09 11:25:45Z" end-time="2026-09-09 11:25:51Z" duration="6.409581" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1098" name="QuestAnatomy" fullname="HBP.Tests.QuestAnatomy" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-09-09 11:25:51Z" end-time="2026-09-09 11:25:59Z" duration="7.727789" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1081" name="AnatomyMeshTests" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-09-09 11:25:51Z" end-time="2026-09-09 11:25:59Z" duration="7.726044" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1093" name="ActualDesktopFixture_PreservesEveryComponentAndFullSurface" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.ActualDesktopFixture_PreservesEveryComponentAndFullSurface" methodname="ActualDesktopFixture_PreservesEveryComponentAndFullSurface" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="1844930435" result="Passed" start-time="2026-09-09 11:25:51Z" end-time="2026-09-09 11:25:59Z" duration="7.716111" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[vertices=69104; triangles=138216; boundsMm=Center: (1.14, -16.67, 16.64), Extents: (71.04, 88.72, 66.70); surfaceBytes=3869920
+]]></output>
+              </test-case>
+              <test-case id="1092" name="Prefab_SerializesOneUnitConversionAndOpaqueMaterial" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.Prefab_SerializesOneUnitConversionAndOpaqueMaterial" methodname="Prefab_SerializesOneUnitConversionAndOpaqueMaterial" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="1271842794" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.002656" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1091" name="UnsupportedMetadata_IsRejectedBeforeAllocation" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.002714" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1085" name="UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;frame&quot;)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;frame&quot;)" methodname="UnsupportedMetadata_IsRejectedBeforeAllocation" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="710018385" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.001052" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1086" name="UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;handedness&quot;)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;handedness&quot;)" methodname="UnsupportedMetadata_IsRejectedBeforeAllocation" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="1762683656" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.000145" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1087" name="UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;unit&quot;)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;unit&quot;)" methodname="UnsupportedMetadata_IsRejectedBeforeAllocation" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="71522123" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.000077" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1088" name="UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;version&quot;)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;version&quot;)" methodname="UnsupportedMetadata_IsRejectedBeforeAllocation" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="2125388326" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.000060" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1089" name="UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;mapping&quot;)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;mapping&quot;)" methodname="UnsupportedMetadata_IsRejectedBeforeAllocation" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="1390069784" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.000057" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1090" name="UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;opacity&quot;)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.UnsupportedMetadata_IsRejectedBeforeAllocation(&quot;opacity&quot;)" methodname="UnsupportedMetadata_IsRejectedBeforeAllocation" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="889367268" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.000052" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1084" name="Upload_PreservesPreparedBuffersAndConvertsOnlyWinding" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.Upload_PreservesPreparedBuffersAndConvertsOnlyWinding" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.002529" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1082" name="Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(Clockwise)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(Clockwise)" methodname="Upload_PreservesPreparedBuffersAndConvertsOnlyWinding" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="1517500522" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.001421" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1083" name="Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(CounterClockwise)" fullname="HBP.Tests.QuestAnatomy.AnatomyMeshTests.Upload_PreservesPreparedBuffersAndConvertsOnlyWinding(CounterClockwise)" methodname="Upload_PreservesPreparedBuffersAndConvertsOnlyWinding" classname="HBP.Tests.QuestAnatomy.AnatomyMeshTests" runstate="Runnable" seed="2010243715" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.000475" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1890" name="HBP.Transfer.Anatomy.Desktop.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Transfer.Anatomy.Desktop.Tests.dll" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="1.396764" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="29932" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1891" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="1.396177" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1892" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="1.395785" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1893" name="Transfer" fullname="HBP.Tests.Transfer" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="1.395426" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1894" name="Anatomy" fullname="HBP.Tests.Transfer.Anatomy" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="1.395053" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestSuite" id="1895" name="Desktop" fullname="HBP.Tests.Transfer.Anatomy.Desktop" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="1.394595" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="TestFixture" id="1859" name="DesktopAnatomyCaptureTests" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" testcasecount="28" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="1.393873" total="28" passed="28" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1862" name="Capture_FreezesBuffersAndIdsBeforeReturningTask" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_FreezesBuffersAndIdsBeforeReturningTask" methodname="Capture_FreezesBuffersAndIdsBeforeReturningTask" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="564024435" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.098884" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-suite type="ParameterizedMethod" id="1877" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.074110" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+                    <properties />
+                    <test-case id="1864" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;selection&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;selection&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="538805527" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.006806" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1865" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;column-type&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;column-type&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="915810541" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.006802" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1866" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;geometry&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;geometry&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="583738180" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.004619" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1867" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;functional&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;functional&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="654725784" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.005256" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1868" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;transition&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;transition&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1108072865" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.005457" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1869" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;hemisphere&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;hemisphere&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1009006531" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.005114" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1870" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;erasure&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;erasure&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1155020444" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.004843" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1871" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;deformation&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;deformation&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1335554001" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.005227" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1872" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;density&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;density&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1380912988" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.005280" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1873" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;opacity-transform&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;opacity-transform&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="573914425" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.005282" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1874" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;palette&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;palette&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1711294316" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.006074" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1875" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;property-block&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;property-block&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="46696939" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.004863" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1876" name="Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;incomplete&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RefusesUnsupportedSelectionWithoutChangingIt(&quot;incomplete&quot;)" methodname="Capture_RefusesUnsupportedSelectionWithoutChangingIt" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1800048761" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.004691" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                  </test-suite>
+                  <test-case id="1879" name="Capture_RejectsCancellationBeforeReadingSelection" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RejectsCancellationBeforeReadingSelection" methodname="Capture_RejectsCancellationBeforeReadingSelection" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="773434379" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.005906" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1878" name="Capture_RejectsWorkerThread" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_RejectsWorkerThread" methodname="Capture_RejectsWorkerThread" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="682254531" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.056271" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1863" name="Capture_UnchangedContentIsBitExactAndAppearanceIsLinear" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Capture_UnchangedContentIsBitExactAndAppearanceIsLinear" methodname="Capture_UnchangedContentIsBitExactAndAppearanceIsLinear" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="55907673" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:25:59Z" duration="0.101247" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1886" name="Contacts_AllMaskFlagCombinationsUseTheSharedDesktopRule" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Contacts_AllMaskFlagCombinationsUseTheSharedDesktopRule" methodname="Contacts_AllMaskFlagCombinationsUseTheSharedDesktopRule" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1136477427" result="Passed" start-time="2026-09-09 11:25:59Z" end-time="2026-09-09 11:26:00Z" duration="0.798516" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1880" name="Contacts_CaptureUsesScientificPositionsAndFreezesAppearanceAndAssociations" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Contacts_CaptureUsesScientificPositionsAndFreezesAppearanceAndAssociations" methodname="Contacts_CaptureUsesScientificPositionsAndFreezesAppearanceAndAssociations" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="766663708" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.050095" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-suite type="ParameterizedMethod" id="1885" name="Contacts_RejectsInconsistentPreparedState" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Contacts_RejectsInconsistentPreparedState" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.023597" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                    <properties />
+                    <test-case id="1881" name="Contacts_RejectsInconsistentPreparedState(&quot;order&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Contacts_RejectsInconsistentPreparedState(&quot;order&quot;)" methodname="Contacts_RejectsInconsistentPreparedState" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="993835961" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.006355" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1882" name="Contacts_RejectsInconsistentPreparedState(&quot;association&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Contacts_RejectsInconsistentPreparedState(&quot;association&quot;)" methodname="Contacts_RejectsInconsistentPreparedState" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="578249158" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.005890" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1883" name="Contacts_RejectsInconsistentPreparedState(&quot;pending&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Contacts_RejectsInconsistentPreparedState(&quot;pending&quot;)" methodname="Contacts_RejectsInconsistentPreparedState" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1579424066" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.004586" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1884" name="Contacts_RejectsInconsistentPreparedState(&quot;frame&quot;)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Contacts_RejectsInconsistentPreparedState(&quot;frame&quot;)" methodname="Contacts_RejectsInconsistentPreparedState" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="106870446" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.005543" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                  </test-suite>
+                  <test-case id="1861" name="DeliveryOffer_FreezesTheSelectedCaptureAndKeepsItsIdentity" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.DeliveryOffer_FreezesTheSelectedCaptureAndKeepsItsIdentity" methodname="DeliveryOffer_FreezesTheSelectedCaptureAndKeepsItsIdentity" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1385444648" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.075698" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1889" name="Projection_CapturesActualSettingsAndImmutableBytes" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Projection_CapturesActualSettingsAndImmutableBytes" methodname="Projection_CapturesActualSettingsAndImmutableBytes" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1557470741" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.051884" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1887" name="Projection_MissingReferenceIsRejected" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Projection_MissingReferenceIsRejected" methodname="Projection_MissingReferenceIsRejected" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="583748817" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.005413" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1888" name="Projection_SourceChangesAreRejectedEvenWithIdenticalDimensions" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.Projection_SourceChangesAreRejectedEvenWithIdenticalDimensions" methodname="Projection_SourceChangesAreRejectedEvenWithIdenticalDimensions" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1138521723" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.043110" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1860" name="SelectionAvailability_UsesTheCaptureRules" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests.SelectionAvailability_UsesTheCaptureRules" methodname="SelectionAvailability_UsesTheCaptureRules" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopAnatomyCaptureTests" runstate="Runnable" seed="1253023557" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.005225" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1978" name="HBP.Transfer.Anatomy.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Transfer.Anatomy.Tests.dll" runstate="Runnable" testcasecount="70" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:06Z" duration="5.953597" total="70" passed="70" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="29932" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1979" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="70" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:06Z" duration="5.952545" total="70" passed="70" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1980" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="70" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:06Z" duration="5.951999" total="70" passed="70" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1981" name="Transfer" fullname="HBP.Tests.Transfer" runstate="Runnable" testcasecount="70" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:06Z" duration="5.951482" total="70" passed="70" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1982" name="Anatomy" fullname="HBP.Tests.Transfer.Anatomy" runstate="Runnable" testcasecount="70" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:06Z" duration="5.950873" total="70" passed="70" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1896" name="AnatomyContactsTests" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.024367" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1901" name="AnatomyOnly_RetainsV1WireBytesAndDecodesWithNoSites" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.AnatomyOnly_RetainsV1WireBytesAndDecodesWithNoSites" methodname="AnatomyOnly_RetainsV1WireBytesAndDecodesWithNoSites" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1144991433" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000784" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1906" name="ContactArraysAreCopiedAndCoveredByTheContentHash" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.ContactArraysAreCopiedAndCoveredByTheContentHash" methodname="ContactArraysAreCopiedAndCoveredByTheContentHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="380010578" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001080" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1913" name="InvalidContacts_AreRejected" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.InvalidContacts_AreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001696" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1907" name="InvalidContacts_AreRejected(&quot;id&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.InvalidContacts_AreRejected(&quot;id&quot;)" methodname="InvalidContacts_AreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="460261897" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000579" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1908" name="InvalidContacts_AreRejected(&quot;patient&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.InvalidContacts_AreRejected(&quot;patient&quot;)" methodname="InvalidContacts_AreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="424450853" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000104" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1909" name="InvalidContacts_AreRejected(&quot;order&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.InvalidContacts_AreRejected(&quot;order&quot;)" methodname="InvalidContacts_AreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1804031107" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000065" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1910" name="InvalidContacts_AreRejected(&quot;native-patient&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.InvalidContacts_AreRejected(&quot;native-patient&quot;)" methodname="InvalidContacts_AreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1589559736" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000052" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1911" name="InvalidContacts_AreRejected(&quot;world&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.InvalidContacts_AreRejected(&quot;world&quot;)" methodname="InvalidContacts_AreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1374421223" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000063" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1912" name="InvalidContacts_AreRejected(&quot;nan&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.InvalidContacts_AreRejected(&quot;nan&quot;)" methodname="InvalidContacts_AreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1022543668" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000049" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1918" name="MalformedContactPayload_RehashedStillRejected" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.MalformedContactPayload_RehashedStillRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001430" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1914" name="MalformedContactPayload_RehashedStillRejected(&quot;count&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.MalformedContactPayload_RehashedStillRejected(&quot;count&quot;)" methodname="MalformedContactPayload_RehashedStillRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="497181151" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000464" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1915" name="MalformedContactPayload_RehashedStillRejected(&quot;section&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.MalformedContactPayload_RehashedStillRejected(&quot;section&quot;)" methodname="MalformedContactPayload_RehashedStillRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="2032052061" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000104" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1916" name="MalformedContactPayload_RehashedStillRejected(&quot;boolean&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.MalformedContactPayload_RehashedStillRejected(&quot;boolean&quot;)" methodname="MalformedContactPayload_RehashedStillRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1451289913" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000086" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1917" name="MalformedContactPayload_RehashedStillRejected(&quot;position&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.MalformedContactPayload_RehashedStillRejected(&quot;position&quot;)" methodname="MalformedContactPayload_RehashedStillRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="2024792534" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000192" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1900" name="RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.014918" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1897" name="RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit(0)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit(0)" methodname="RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1431706115" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001689" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1898" name="RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit(8)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit(8)" methodname="RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="190432066" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001628" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1899" name="RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit(257)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit(257)" methodname="RoundTrip_PreservesAllRecordsAndAssociationsWithoutFixtureLimit" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="753620737" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.010974" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1904" name="SurfaceHashOffset_IsIndependentOfContactSuffix" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.SurfaceHashOffset_IsIndependentOfContactSuffix" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.002595" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1902" name="SurfaceHashOffset_IsIndependentOfContactSuffix(False)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.SurfaceHashOffset_IsIndependentOfContactSuffix(False)" methodname="SurfaceHashOffset_IsIndependentOfContactSuffix" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1856187037" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001591" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1903" name="SurfaceHashOffset_IsIndependentOfContactSuffix(True)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.SurfaceHashOffset_IsIndependentOfContactSuffix(True)" methodname="SurfaceHashOffset_IsIndependentOfContactSuffix" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="2035075473" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000343" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="1905" name="ZeroSites_PreservesNonDefaultImplantationMetadata" fullname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests.ZeroSites_PreservesNonDefaultImplantationMetadata" methodname="ZeroSites_PreservesNonDefaultImplantationMetadata" classname="HBP.Tests.Transfer.Anatomy.AnatomyContactsTests" runstate="Runnable" seed="1918972387" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000486" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1919" name="AnatomyProjectionTests" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.011180" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="ParameterizedMethod" id="1938" name="AllSourceMaskCombinationsArePreservedAndChecked" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.AllSourceMaskCombinationsArePreservedAndChecked" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.004092" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1936" name="AllSourceMaskCombinationsArePreservedAndChecked(False)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.AllSourceMaskCombinationsArePreservedAndChecked(False)" methodname="AllSourceMaskCombinationsArePreservedAndChecked" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="1202080677" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.002245" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1937" name="AllSourceMaskCombinationsArePreservedAndChecked(True)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.AllSourceMaskCombinationsArePreservedAndChecked(True)" methodname="AllSourceMaskCombinationsArePreservedAndChecked" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="1908582449" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001403" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1927" name="CorruptProjectionRejectedEvenWithValidEnvelopeHash" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.CorruptProjectionRejectedEvenWithValidEnvelopeHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.003412" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1921" name="CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;hash&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;hash&quot;)" methodname="CorruptProjectionRejectedEvenWithValidEnvelopeHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="1636065946" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000991" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1922" name="CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;length&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;length&quot;)" methodname="CorruptProjectionRejectedEvenWithValidEnvelopeHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="421814310" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000275" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1923" name="CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;missing&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;missing&quot;)" methodname="CorruptProjectionRejectedEvenWithValidEnvelopeHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="608368253" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000194" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1924" name="CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;grid&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;grid&quot;)" methodname="CorruptProjectionRejectedEvenWithValidEnvelopeHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="992853271" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000199" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1925" name="CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;interpolation&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;interpolation&quot;)" methodname="CorruptProjectionRejectedEvenWithValidEnvelopeHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="494797047" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000215" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1926" name="CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;influence&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.CorruptProjectionRejectedEvenWithValidEnvelopeHash(&quot;influence&quot;)" methodname="CorruptProjectionRejectedEvenWithValidEnvelopeHash" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="1639960697" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000146" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-suite type="ParameterizedMethod" id="1934" name="InvalidNiftiRejectedBeforeNativeLoading" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.InvalidNiftiRejectedBeforeNativeLoading" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001172" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1928" name="InvalidNiftiRejectedBeforeNativeLoading(40)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.InvalidNiftiRejectedBeforeNativeLoading(40)" methodname="InvalidNiftiRejectedBeforeNativeLoading" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="839885936" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000281" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1929" name="InvalidNiftiRejectedBeforeNativeLoading(42)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.InvalidNiftiRejectedBeforeNativeLoading(42)" methodname="InvalidNiftiRejectedBeforeNativeLoading" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="68470308" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000056" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1930" name="InvalidNiftiRejectedBeforeNativeLoading(70)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.InvalidNiftiRejectedBeforeNativeLoading(70)" methodname="InvalidNiftiRejectedBeforeNativeLoading" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="452385406" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000043" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1931" name="InvalidNiftiRejectedBeforeNativeLoading(72)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.InvalidNiftiRejectedBeforeNativeLoading(72)" methodname="InvalidNiftiRejectedBeforeNativeLoading" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="224371976" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000044" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1932" name="InvalidNiftiRejectedBeforeNativeLoading(108)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.InvalidNiftiRejectedBeforeNativeLoading(108)" methodname="InvalidNiftiRejectedBeforeNativeLoading" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="1556436014" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000045" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1933" name="InvalidNiftiRejectedBeforeNativeLoading(344)" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.InvalidNiftiRejectedBeforeNativeLoading(344)" methodname="InvalidNiftiRejectedBeforeNativeLoading" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="1069800963" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000046" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="1935" name="MissingVolumeRejected" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.MissingVolumeRejected" methodname="MissingVolumeRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="170623044" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000362" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1920" name="ProjectionRoundTripOwnsVolumeAndPreservesSettings" fullname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests.ProjectionRoundTripOwnsVolumeAndPreservesSettings" methodname="ProjectionRoundTripOwnsVolumeAndPreservesSettings" classname="HBP.Tests.Transfer.Anatomy.AnatomyProjectionTests" runstate="Runnable" seed="761432892" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000919" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="TestFixture" id="1939" name="AnatomySnapshotTests" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" testcasecount="36" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:06Z" duration="5.914180" total="36" passed="36" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1976" name="ContractAssemblyHasOnlySystemDependencies" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.ContractAssemblyHasOnlySystemDependencies" methodname="ContractAssemblyHasOnlySystemDependencies" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1633507312" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000628" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1973" name="CorruptHashesTruncationAndTrailingBytesAreRejected" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.CorruptHashesTruncationAndTrailingBytesAreRejected" methodname="CorruptHashesTruncationAndTrailingBytesAreRejected" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1498023816" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.004475" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1972" name="MalformedContentIsRejectedEvenWithRecomputedHashes" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.009634" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1945" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;magic&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;magic&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="975441433" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001824" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1946" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;version&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;version&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1996779772" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000257" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1947" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;totalLength&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;totalLength&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="2132033221" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000186" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1948" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;revision&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;revision&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1517791814" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000204" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1949" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;handedness&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;handedness&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="24229015" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000115" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1950" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;unit&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;unit&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="508677881" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000110" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1951" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;mappingVersion&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;mappingVersion&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="2053976510" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000171" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1952" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;affine&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;affine&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="379896746" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000150" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1953" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;singular&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;singular&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1194639697" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000113" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1954" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;matrixNan&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;matrixNan&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="376257070" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000100" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1955" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;winding&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;winding&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="933201327" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000097" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1956" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;visible&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;visible&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="334147716" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000093" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1957" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;color&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;color&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="210283591" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000096" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1958" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;colorNan&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;colorNan&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="32840503" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000101" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1959" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;verticesNegative&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;verticesNegative&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="986975734" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000122" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1960" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;verticesMaximum&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;verticesMaximum&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1883274019" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000107" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1961" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;indicesMaximum&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;indicesMaximum&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="692778768" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000103" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1962" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;indicesIncomplete&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;indicesIncomplete&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1173686101" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000106" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1963" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;uvCount&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;uvCount&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="573239388" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000103" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1964" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;surfaceLength&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;surfaceLength&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="193140162" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000100" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1965" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;indexOutOfRange&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;indexOutOfRange&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1593068942" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000113" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1966" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;positionNan&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;positionNan&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1420806431" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000106" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1967" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;normalInfinity&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;normalInfinity&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1266878131" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000104" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1968" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;uvNan&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;uvNan&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="887709969" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000110" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1969" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;textLength&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;textLength&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1042614796" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000097" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1970" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;textBlank&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;textBlank&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1833332314" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.000487" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1971" name="MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;textUtf8&quot;)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MalformedContentIsRejectedEvenWithRecomputedHashes(&quot;textUtf8&quot;)" methodname="MalformedContentIsRejectedEvenWithRecomputedHashes" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="2025026456" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:00Z" duration="0.001182" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="1975" name="MaximumVertexAndIndexCountsRoundTripWithoutTruncation" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.MaximumVertexAndIndexCountsRoundTripWithoutTruncation" methodname="MaximumVertexAndIndexCountsRoundTripWithoutTruncation" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1135935913" result="Passed" start-time="2026-09-09 11:26:00Z" end-time="2026-09-09 11:26:06Z" duration="5.888672" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1943" name="PublicConstructionAndDecodedSnapshotOwnTheirBuffers" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicConstructionAndDecodedSnapshotOwnTheirBuffers" methodname="PublicConstructionAndDecodedSnapshotOwnTheirBuffers" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="527422361" result="Passed" start-time="2026-09-09 11:26:06Z" end-time="2026-09-09 11:26:06Z" duration="0.001298" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1974" name="PublicFactoryRejectsInvalidDimensionsAndValues" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.PublicFactoryRejectsInvalidDimensionsAndValues" methodname="PublicFactoryRejectsInvalidDimensionsAndValues" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="357623166" result="Passed" start-time="2026-09-09 11:26:06Z" end-time="2026-09-09 11:26:06Z" duration="0.001168" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-suite type="ParameterizedMethod" id="1942" name="RoundTripPreservesEveryBitAndIdentity" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-09 11:26:06Z" end-time="2026-09-09 11:26:06Z" duration="0.003249" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-case id="1940" name="RoundTripPreservesEveryBitAndIdentity(True)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(True)" methodname="RoundTripPreservesEveryBitAndIdentity" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="160467876" result="Passed" start-time="2026-09-09 11:26:06Z" end-time="2026-09-09 11:26:06Z" duration="0.002178" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1941" name="RoundTripPreservesEveryBitAndIdentity(False)" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.RoundTripPreservesEveryBitAndIdentity(False)" methodname="RoundTripPreservesEveryBitAndIdentity" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="938795060" result="Passed" start-time="2026-09-09 11:26:06Z" end-time="2026-09-09 11:26:06Z" duration="0.000358" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                </test-suite>
+                <test-case id="1944" name="Utf8IdentifiersArePreservedWithoutGuidParsingOrNormalization" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.Utf8IdentifiersArePreservedWithoutGuidParsingOrNormalization" methodname="Utf8IdentifiersArePreservedWithoutGuidParsingOrNormalization" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="1390990049" result="Passed" start-time="2026-09-09 11:26:06Z" end-time="2026-09-09 11:26:06Z" duration="0.000417" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1977" name="WriteReviewExample" fullname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests.WriteReviewExample" methodname="WriteReviewExample" classname="HBP.Tests.Transfer.Anatomy.AnatomySnapshotTests" runstate="Runnable" seed="786862095" result="Passed" start-time="2026-09-09 11:26:06Z" end-time="2026-09-09 11:26:06Z" duration="0.001466" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Zigaroula/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,273 @@
+{
+  "Task": "QUEST-017",
+  "CreatedUtc": "2026-09-09T11:16:10.9095280Z",
+  "Unity": "6000.5.2f1",
+  "GraphicsDevice": "NVIDIA GeForce RTX 2070 SUPER",
+  "Projection": {
+    "VolumeBytes": 11661664,
+    "VolumeSha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96",
+    "Dimensions": [
+      208,
+      256,
+      219
+    ],
+    "GridDimension": 80,
+    "Interpolation": 1,
+    "InfluenceDistance": 15.0,
+    "InfluenceByDistance": 2,
+    "ActivityAlpha": 0.8
+  },
+  "VisualizationName": "MNI Contacts",
+  "ColumnName": "MNI Contacts",
+  "VisualizationId": "quest-013-visualization",
+  "ColumnId": "quest-013-column",
+  "SchemaVersion": 3,
+  "Implantation": "MNI",
+  "RoiActive": false,
+  "PatientIds": [
+    "quest-013-patient-left",
+    "quest-013-patient-right"
+  ],
+  "Sites": [
+    {
+      "Id": "quest-013-site-00",
+      "Name": "A1",
+      "Electrode": "A",
+      "Order": 0,
+      "PatientIndex": 0,
+      "SourceIndex": 0,
+      "Position": [
+        31.25,
+        -18.5,
+        26.75
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-01",
+      "Name": "A2",
+      "Electrode": "A",
+      "Order": 1,
+      "PatientIndex": 0,
+      "SourceIndex": 1,
+      "Position": [
+        27.5,
+        -15.25,
+        29.0
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-02",
+      "Name": "B1",
+      "Electrode": "B",
+      "Order": 2,
+      "PatientIndex": 0,
+      "SourceIndex": 2,
+      "Position": [
+        12.75,
+        21.5,
+        42.25
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-03",
+      "Name": "B2",
+      "Electrode": "B",
+      "Order": 3,
+      "PatientIndex": 0,
+      "SourceIndex": 3,
+      "Position": [
+        9.0,
+        24.25,
+        45.5
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-04",
+      "Name": "A1",
+      "Electrode": "A",
+      "Order": 4,
+      "PatientIndex": 1,
+      "SourceIndex": 0,
+      "Position": [
+        -22.5,
+        -34.75,
+        18.25
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-05",
+      "Name": "A2",
+      "Electrode": "A",
+      "Order": 5,
+      "PatientIndex": 1,
+      "SourceIndex": 1,
+      "Position": [
+        -26.25,
+        -31.0,
+        21.5
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-06",
+      "Name": "B1",
+      "Electrode": "B",
+      "Order": 6,
+      "PatientIndex": 1,
+      "SourceIndex": 2,
+      "Position": [
+        -38.75,
+        8.25,
+        -12.5
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-07",
+      "Name": "B2",
+      "Electrode": "B",
+      "Order": 7,
+      "PatientIndex": 1,
+      "SourceIndex": 3,
+      "Position": [
+        -42.0,
+        11.75,
+        -9.25
+      ],
+      "Color": [
+        0.2428668,
+        0.0196066462,
+        0.0196066462,
+        0.5
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    }
+  ],
+  "TransferId": "0c6c7cfd-cb1a-4477-b6d4-18243f162f1a",
+  "SessionId": "anatomy-diagnostic",
+  "ContentRevision": 1,
+  "FrameId": "hibop-mni-unity-mm-v1",
+  "Unit": "Millimeter",
+  "AssetToBrain": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "VertexCount": 69104,
+  "IndexCount": 414648,
+  "TriangleCount": 138216,
+  "UvCount": 69104,
+  "BoundsMin": [
+    -69.9079,
+    -105.3945,
+    -50.0656738
+  ],
+  "BoundsMax": [
+    72.17938,
+    72.04567,
+    83.34009
+  ],
+  "Color": [
+    0.830769956,
+    0.462077051,
+    0.187820762,
+    1.0
+  ],
+  "Visible": true,
+  "SurfaceByteLength": 3869920,
+  "EncodedBytes": 15532677,
+  "Sha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+  "SourceBuffersBitExact": true,
+  "RepeatedCaptureBitExact": true,
+  "RoundTripBitExact": true,
+  "CameraCount": 1,
+  "CameraUnchanged": false,
+  "PresentationUnchanged": true,
+  "MainThreadCopyMilliseconds": 12.8,
+  "EncodeTwiceAndRoundTripMilliseconds": 1200.4887,
+  "FramesDuringCapture": 20
+}

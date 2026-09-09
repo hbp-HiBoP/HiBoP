@@ -81,6 +81,47 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public async Task Projection_RealTlsPreservesNativeInputsOnCorruptionAndReleasesAfterReplacementAndClose()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            int argument = Array.IndexOf(args, "-questContactsFixture");
+            if (argument < 0) Assert.Ignore("Pass -questContactsFixture with the QUEST-017 HBNA v3 export.");
+            byte[] bytes = File.ReadAllBytes(args[argument + 1]);
+            var source = AnatomySnapshotCodec.Decode(bytes);
+            if (source.Projection == null) Assert.Ignore("This integration test requires the QUEST-017 v3 export.");
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            var first = view.ProjectionInputs;
+            Assert.That(first, Is.Not.Null);
+            Assert.That(first.Sites.GetMask(), Is.EqualTo(source.Contacts.Sites.Select(site => site.EffectiveMasked ? 1 : 0)));
+            session.Disconnect();
+            Assert.That(first.Volume.IsLoaded && File.Exists(first.VolumePath), Is.True);
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.AlreadyPublished));
+            Assert.That(view.ProjectionInputs, Is.SameAs(first));
+            byte[] corrupt = (byte[])bytes.Clone();
+            corrupt[bytes.Length - 32 - source.Projection.VolumeBytes.Count + 10] ^= 1;
+            byte[] envelopeHash = TransportIdentity.Hash(corrupt.Take(corrupt.Length - 32).ToArray());
+            Buffer.BlockCopy(envelopeHash, 0, corrupt, corrupt.Length - 32, 32);
+            Assert.That((await Transfer(corrupt)).ClientError, Is.Not.Null);
+            Assert.That(view.ProjectionInputs, Is.SameAs(first));
+            Assert.That(first.Surface.NumberOfVertices, Is.EqualTo(source.VertexCount));
+            Assert.That(File.Exists(first.VolumePath), Is.True);
+            var replacement = AnatomySnapshot.Create("projection-replacement", source.SessionId, source.VisualizationId, source.ColumnId, 2, source.Coordinates, source.Winding, source.Visible, source.Color.ToArray(), source.Positions.ToArray(), source.Normals.ToArray(), source.Indices.ToArray(), source.Uvs.ToArray(), source.Contacts, source.Projection);
+            Assert.That((await Transfer(AnatomySnapshotCodec.Encode(replacement))).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            Assert.That(first.Volume.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
+            Assert.That(first.Surface.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
+            Assert.That(first.Sites.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
+            Assert.That(File.Exists(first.VolumePath), Is.False);
+            var last = view.ProjectionInputs;
+            session.CloseSession();
+            Assert.That(view.ProjectionInputs, Is.Null);
+            Assert.That(last.Volume.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
+            Assert.That(last.Surface.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
+            Assert.That(last.Sites.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
+            Assert.That(File.Exists(last.VolumePath), Is.False);
+            TestContext.Out.WriteLine($"QUEST-017 TLS: {bytes.Length} bytes; corrupt volume rejected; retries, native lifetime and release verified.");
+        }
+
+        [Test]
         public async Task Contacts_RealTlsPreservesAssociationsAcrossRetryDisconnectAndAnatomyReplacement()
         {
             var original = Snapshot("contacts");

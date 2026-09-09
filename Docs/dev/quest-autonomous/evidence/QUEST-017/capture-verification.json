@@ -1,0 +1,17 @@
+{
+  "schema": 3,
+  "payloadBytes": 15532677,
+  "volumeBytes": 11661664,
+  "payloadSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+  "embeddedVolumeSha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96",
+  "sourceVolumeSha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96",
+  "volumeMatches": true,
+  "envelopeMatches": true,
+  "repeatMatches": true,
+  "reportHashMatches": true,
+  "sourceBuffersBitExact": true,
+  "roundTripBitExact": true,
+  "presentationUnchanged": true,
+  "cameraUnchanged": false,
+  "underTransportLimit": true
+}

@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -49,12 +51,29 @@ namespace HBP.Transfer.Anatomy.Desktop
             Vector2[] uvs = mesh.uv;
             int[] indices = mesh.triangles;
             AnatomyContacts contacts = DesktopContactsCapture.Capture(scene, column);
+            var mriManager = scene.MRIManager;
+            var mri = mriManager != null && mriManager.SelectedMRIID >= 0 && mriManager.SelectedMRIID < mriManager.MRIs.Count ? mriManager.SelectedMRI : null;
+            if (mri == null || !mri.IsLoaded) throw new InvalidOperationException("The selected projection reference volume is not loaded.");
+            var volume = mri.Volume;
+            string volumePath = volume.SourceFilePath, volumeHash = volume.SourceFileSha256;
+            if (volumePath == null || volumeHash == null) throw new InvalidOperationException("Reference volume provenance is unavailable. Reload a supported single-file .nii volume before transfer.");
+            int grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension;
+            int interpolation = (int)Core.DLL.ActivityProjectionSettings.VolumeInterpolation;
+            float influence = column.AnatomyParameters.InfluenceDistance, alpha = column.ActivityAlpha;
+            int rule = (int)Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance;
 
             return Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                using var source = new FileStream(volumePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                if (source.Length > AnatomySnapshotCodec.MaximumEncodedBytes) throw new InvalidOperationException($"Reference volume alone requires {source.Length} bytes, exceeding the {AnatomySnapshotCodec.MaximumEncodedBytes}-byte codec limit. Keep all scientific inputs; select a smaller source dataset or qualify a larger transport budget.");
+                byte[] volumeBytes = new byte[checked((int)source.Length)];
+                using (var reader = new BinaryReader(source, System.Text.Encoding.UTF8, true)) volumeBytes = reader.ReadBytes(volumeBytes.Length);
+                using var sha = SHA256.Create();
+                if (BitConverter.ToString(sha.ComputeHash(volumeBytes)) != volumeHash) throw new InvalidOperationException("The reference volume file changed since native loading. Reload the visualization before capture.");
+                var projection = new AnatomyProjection(volumeBytes, grid, interpolation, influence, rule, alpha);
                 AnatomyCoordinateSpace coordinates = new(FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 });
-                return AnatomySnapshot.Create(transferId, sessionId, visualizationId, columnId, revision, coordinates, AnatomyWinding.Clockwise, visible, color, Flatten(positions), Flatten(normals), Array.ConvertAll(indices, index => checked((uint)index)), Flatten(uvs), contacts);
+                return AnatomySnapshot.Create(transferId, sessionId, visualizationId, columnId, revision, coordinates, AnatomyWinding.Clockwise, visible, color, Flatten(positions), Flatten(normals), Array.ConvertAll(indices, index => checked((uint)index)), Flatten(uvs), contacts, projection);
             }, cancellationToken);
         }
 
@@ -78,7 +97,7 @@ namespace HBP.Transfer.Anatomy.Desktop
             if (scene == null || scene.SelectedColumn is not Column3DAnatomy)
                 throw new InvalidOperationException("Select an anatomical column to capture; the current selection is not supported.");
             column = (Column3DAnatomy)scene.SelectedColumn;
-            if (!scene.SceneInformation.CompletelyLoaded || scene.SceneInformation.GeometryNeedsUpdate || scene.SceneInformation.SitesNeedUpdate || scene.SceneInformation.CutsNeedUpdate || scene.SceneInformation.FunctionalSurfaceNeedsUpdate || scene.IsSurfaceRepresentationTransitioning)
+            if (!scene.SceneInformation.CompletelyLoaded || scene.SceneInformation.GeometryNeedsUpdate || scene.SceneInformation.ProjectionGridNeedsUpdate || scene.SceneInformation.SurfaceProjectionNeedsUpdate || scene.SceneInformation.SitesNeedUpdate || scene.SceneInformation.CutsNeedUpdate || scene.SceneInformation.FunctionalSurfaceNeedsUpdate || scene.IsSurfaceRepresentationTransitioning)
                 throw new InvalidOperationException("The selected visualization is still preparing its surface. Retry after the update finishes.");
             MeshManager manager = scene.MeshManager;
             if (manager == null || manager.Meshes.Count == 0 || manager.SelectedMesh.Type != MeshType.MNI || manager.MeshPartToDisplay != MeshPart.Both || manager.SelectedMesh.Representation != SurfaceRepresentation.Anatomical)

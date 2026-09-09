@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
@@ -69,6 +71,8 @@ namespace HBP.Core.DLL
     public class Volume : CppDLLImportBase
     {
         public bool IsLoaded { get; private set; }
+        public string SourceFilePath { get; private set; }
+        public string SourceFileSha256 { get; private set; }
 
         public Vector3 Center
         {
@@ -133,6 +137,39 @@ namespace HBP.Core.DLL
 
         public bool LoadNIFTIFile(string path)
         {
+            SourceFilePath = null;
+            SourceFileSha256 = null;
+            // Keep provenance for single-file projection transfer without retaining a second volume in RAM.
+            // Sharing permits the native reader but denies concurrent writers on Windows.
+            if (File.Exists(path) && string.Equals(Path.GetExtension(path), ".nii", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    using var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    using var sha = SHA256.Create();
+                    string hash = BitConverter.ToString(sha.ComputeHash(source));
+                    IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
+                    source.Position = 0;
+                    if (IsLoaded && hash == BitConverter.ToString(sha.ComputeHash(source)))
+                    {
+                        SourceFilePath = Path.GetFullPath(path);
+                        SourceFileSha256 = hash;
+                    }
+
+                    return IsLoaded;
+                }
+                catch (IOException)
+                {
+                    IsLoaded = false;
+                    return false;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    IsLoaded = false;
+                    return false;
+                }
+            }
+
             IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
             return IsLoaded;
         }

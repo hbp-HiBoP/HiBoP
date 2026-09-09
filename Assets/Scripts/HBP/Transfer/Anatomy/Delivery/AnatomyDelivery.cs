@@ -21,7 +21,7 @@ namespace HBP.Transfer.Anatomy.Delivery
         {
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             payload = AnatomySnapshotCodec.Encode(snapshot);
-            if (payload.Length > PinnedTlsTransfer.MaximumPayloadBytes) throw new ArgumentException("Delivery exceeds the transport limit of 64 MiB.");
+            if (payload.Length > PinnedTlsTransfer.MaximumPayloadBytes) throw new ArgumentException($"Delivery requires {payload.Length} bytes (surface {snapshot.SurfaceByteLength}, volume {snapshot.Projection?.VolumeBytes.Count ?? 0}); transport limit is {PinnedTlsTransfer.MaximumPayloadBytes} bytes (64 MiB). Keep all scientific inputs; select a smaller source dataset or qualify a larger transfer/memory budget.");
             TransferId = snapshot.TransferId;
             SessionId = snapshot.SessionId;
             ContentHash = new DeliveryReceipt(TransportIdentity.Hash(payload), DeliveryStatus.Published).ContentHash;

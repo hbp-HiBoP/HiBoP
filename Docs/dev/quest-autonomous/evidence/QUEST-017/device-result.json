@@ -1,0 +1,41 @@
+{
+    "runId": "43e62b06eae84875952371718aa02f87",
+    "snapshotSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+    "volumeSha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96",
+    "privateVolumePath": "/data/data/fr.crnl.hibop.quest/files/projection-sessions/bb3e21c49cf9420a80aefd9fbc8321f9/reference.nii",
+    "failure": "",
+    "unity": "6000.5.2f1",
+    "device": "Oculus Quest 3",
+    "nativeVersion": "0.2.1",
+    "volumeBytes": 11661664,
+    "vertices": 69104,
+    "sites": 8,
+    "maskedSites": 0,
+    "cycles": 3,
+    "dimensions": {
+        "x": 208,
+        "y": 256,
+        "z": 219
+    },
+    "spacing": {
+        "x": 0.7200000286102295,
+        "y": 0.7200000286102295,
+        "z": 0.7200000286102295
+    },
+    "center": {
+        "x": 0.4799957275390625,
+        "y": -15.199996948242188,
+        "z": 8.980003356933594
+    },
+    "grid": 80,
+    "interpolation": 1,
+    "influenceRule": 2,
+    "influenceDistance": 15.0,
+    "passed": true,
+    "surfaceRoundTrip": true,
+    "sitePositions": true,
+    "nativeMasks": true,
+    "replacementRelease": true,
+    "failedReplacementPreserved": true,
+    "closeRelease": true
+}

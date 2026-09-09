@@ -1,5 +1,6 @@
 using System;
 using HBP.Transfer.Anatomy;
+using HBP.Transfer.Projection;
 using UnityEngine;
 
 namespace HBP.Quest
@@ -18,6 +19,7 @@ namespace HBP.Quest
         private int mainThread;
 
         public Mesh SharedMesh => ownedMesh;
+        public NativeProjectionInputs ProjectionInputs { get; private set; }
         public AnatomyContacts Contacts { get; private set; } = AnatomyContacts.Empty;
         public string TransferId { get; private set; }
         public long BufferBytes { get; private set; }
@@ -48,6 +50,7 @@ namespace HBP.Quest
             MaterialPropertyBlock nextProperties;
             long nextBufferBytes;
             QuestContactRenderer.Frame nextContacts = null;
+            NativeProjectionInputs nextProjection = null;
             try
             {
                 next.UploadMeshData(true); // Release the CPU mesh copy; Mesh owns its GPU buffers.
@@ -56,10 +59,13 @@ namespace HBP.Quest
                 nextProperties.SetVector(BaseColorId, new Vector4(snapshot.Color[0], snapshot.Color[1], snapshot.Color[2], 1));
                 nextBufferBytes = 24L * snapshot.VertexCount + snapshot.Uvs.Count * 4L + snapshot.Indices.Count * (next.indexFormat == UnityEngine.Rendering.IndexFormat.UInt32 ? 4L : 2L);
                 nextContacts = contactRenderer.Prepare(snapshot.Contacts);
+                if (snapshot.Projection != null) nextProjection = NativeProjectionInputs.Create(snapshot, PrivateProjectionRoot());
             }
             catch
             {
                 AnatomyMeshUploader.Release(next);
+                nextContacts?.Dispose();
+                nextProjection?.Dispose();
                 throw;
             }
 
@@ -81,11 +87,14 @@ namespace HBP.Quest
                 meshRenderer.enabled = previousEnabled;
                 AnatomyMeshUploader.Release(next);
                 nextContacts.Dispose();
+                nextProjection?.Dispose();
                 throw;
             }
 
             Mesh previous = ownedMesh;
+            NativeProjectionInputs previousProjection = ProjectionInputs;
             ownedMesh = next;
+            ProjectionInputs = nextProjection;
             properties = nextProperties;
             TransferId = snapshot.TransferId;
             Contacts = snapshot.Contacts;
@@ -94,6 +103,19 @@ namespace HBP.Quest
             BufferBytes = nextBufferBytes + contactRenderer.BufferBytes;
             UploadCount++;
             AnatomyMeshUploader.Release(previous);
+            previousProjection?.Dispose();
+        }
+
+        private static string PrivateProjectionRoot()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+            using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
+            using var files = activity.Call<AndroidJavaObject>("getFilesDir");
+            return System.IO.Path.Combine(files.Call<string>("getCanonicalPath"), "projection-sessions");
+#else
+            return System.IO.Path.Combine(Application.persistentDataPath, "projection-sessions");
+#endif
         }
 
         public void Clear()
@@ -112,6 +134,8 @@ namespace HBP.Quest
             preparedSurfaceVisible = false;
             AnatomyMeshUploader.Release(ownedMesh);
             ownedMesh = null;
+            ProjectionInputs?.Dispose();
+            ProjectionInputs = null;
             TransferId = null;
             Contacts = AnatomyContacts.Empty;
             BufferBytes = 0;

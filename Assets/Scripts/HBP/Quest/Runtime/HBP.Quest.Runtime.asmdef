@@ -1,5 +1,5 @@
 {
     "name": "HBP.Quest.Runtime",
-    "references": ["HBP.Core.Runtime", "HBP.Transfer.Anatomy.Contracts", "HBP.Transfer.Transport", "Unity.InputSystem", "Unity.XR.Management", "Unity.XR.OpenXR", "Unity.XR.MetaOpenXR", "Unity.XR.ARFoundation", "Unity.XR.ARSubsystems", "Unity.XR.CompositionLayers", "Unity.RenderPipelines.Universal.Runtime"],
+    "references": ["HBP.Core.Runtime", "HBP.Transfer.Projection", "HBP.Transfer.Anatomy.Contracts", "HBP.Transfer.Transport", "Unity.InputSystem", "Unity.XR.Management", "Unity.XR.OpenXR", "Unity.XR.MetaOpenXR", "Unity.XR.ARFoundation", "Unity.XR.ARSubsystems", "Unity.XR.CompositionLayers", "Unity.RenderPipelines.Universal.Runtime"],
     "includePlatforms": ["Android", "Editor"]
 }

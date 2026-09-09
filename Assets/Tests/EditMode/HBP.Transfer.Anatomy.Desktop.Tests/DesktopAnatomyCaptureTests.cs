@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
+using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Transfer.Anatomy;
@@ -53,6 +55,9 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
         private BrainMaterials m_Materials;
         private HBP.Core.DLL.Surface m_Surface;
         private object m_PreviousModule;
+        private object m_PreviousPreferences;
+        private HBP.Core.DLL.Volume m_Volume;
+        private string m_VolumePath;
 
         [SetUp]
         public void SetUp()
@@ -60,6 +65,11 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
             m_PreviousModule = typeof(Singleton<Module3DMain>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
             m_Root = new GameObject("Anatomy capture test");
             m_Root.SetActive(false);
+            var preferencesField = typeof(Singleton<PersistentDataManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            m_PreviousPreferences = preferencesField.GetValue(null);
+            var preferences = m_Root.AddComponent<PersistentDataManager>();
+            preferencesField.SetValue(null, preferences);
+            SetField(preferences, "m_UserPreferences", new UserPreferences());
             Module3DMain module = m_Root.AddComponent<Module3DMain>();
             typeof(Singleton<Module3DMain>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, module);
             m_Scene = m_Root.AddComponent<Base3DScene>();
@@ -71,6 +81,39 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
             SetField(m_Scene, "<Visualization>k__BackingField", new Visualization { ID = "viz opaque" });
             SetField(m_Column, "<ColumnData>k__BackingField", new AnatomicColumn("Selected anatomy", new BaseConfiguration(), new AnatomicConfiguration(), "column opaque"));
             m_Scene.SceneInformation.CompletelyLoaded = true;
+            m_Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+            m_Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            var mriManager = m_Root.AddComponent<MRIManager>();
+            SetField(m_Scene, "m_MRIManager", mriManager);
+            m_VolumePath = Path.Combine(Application.temporaryCachePath, "quest017-capture-" + Guid.NewGuid().ToString("N") + ".nii");
+            using (var stream = new FileStream(m_VolumePath, FileMode.CreateNew))
+            using (var writer = new BinaryWriter(stream))
+            {
+                stream.SetLength(376);
+                writer.Write(348);
+                stream.Position = 40;
+                writer.Write((short)3);
+                writer.Write((short)2);
+                writer.Write((short)3);
+                writer.Write((short)4);
+                stream.Position = 70;
+                writer.Write((short)2);
+                writer.Write((short)8);
+                stream.Position = 80;
+                writer.Write(1f);
+                writer.Write(2f);
+                writer.Write(3f);
+                stream.Position = 108;
+                writer.Write(352f);
+                stream.Position = 344;
+                writer.Write(new byte[] { (byte)'n', (byte)'+', (byte)'1', 0 });
+                stream.Position = 352;
+                writer.Write(Enumerable.Range(0, 24).Select(i => (byte)i).ToArray());
+            }
+
+            m_Volume = new HBP.Core.DLL.Volume();
+            Assert.That(m_Volume.LoadNIFTIFile(m_VolumePath), Is.True);
+            mriManager.MRIs.Add(new MRI3D("MNI", m_Volume));
             MeshManager manager = m_Root.AddComponent<MeshManager>();
             SetField(m_Scene, "m_MeshManager", manager);
             SetField(m_Scene, "m_TriangleEraser", m_Root.AddComponent<TriangleEraser>());
@@ -112,6 +155,9 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
                 if (field.GetValue(m_Materials) is Material material)
                     Object.DestroyImmediate(material);
             m_Surface.Dispose();
+            m_Volume.Dispose();
+            File.Delete(m_VolumePath);
+            typeof(Singleton<PersistentDataManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, m_PreviousPreferences);
             typeof(Singleton<Module3DMain>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, m_PreviousModule);
         }
 
@@ -323,6 +369,48 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
             {
                 implantation.Clean();
             }
+        }
+
+        [Test]
+        public void Projection_MissingReferenceIsRejected()
+        {
+            m_Scene.MRIManager.MRIs.Clear();
+            Assert.Throws<InvalidOperationException>(() => Capture());
+        }
+
+        [Test]
+        public async Task Projection_SourceChangesAreRejectedEvenWithIdenticalDimensions()
+        {
+            byte[] changed = File.ReadAllBytes(m_VolumePath);
+            changed[352] ^= 1;
+            File.WriteAllBytes(m_VolumePath, changed);
+            Exception caught = null;
+            try
+            {
+                await Capture();
+            }
+            catch (Exception exception)
+            {
+                caught = exception;
+            }
+
+            Assert.That(caught, Is.TypeOf<InvalidOperationException>());
+            Assert.That(caught.Message, Does.Contain("changed since native loading"));
+        }
+
+        [Test]
+        public async Task Projection_CapturesActualSettingsAndImmutableBytes()
+        {
+            m_Column.AnatomyParameters.InfluenceDistance = 23.5f;
+            m_Column.ActivityAlpha = .25f;
+            var snapshot = await Capture();
+            Assert.That(snapshot.SchemaVersion, Is.EqualTo(3));
+            Assert.That(snapshot.Projection.VolumeBytes.ToArray(), Is.EqualTo(File.ReadAllBytes(m_VolumePath)));
+            Assert.That(snapshot.Projection.InfluenceDistance, Is.EqualTo(23.5f));
+            Assert.That(snapshot.Projection.ActivityAlpha, Is.EqualTo(.25f));
+            Assert.That(snapshot.Projection.GridDimension, Is.EqualTo(HBP.Core.DLL.ActivityProjectionSettings.VolumeGridDimension));
+            Assert.That(snapshot.Projection.Interpolation, Is.EqualTo((int)HBP.Core.DLL.ActivityProjectionSettings.VolumeInterpolation));
+            Assert.That(snapshot.Projection.InfluenceByDistance, Is.EqualTo((int)PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance));
         }
 
         private static Task<AnatomySnapshot> Capture() => DesktopAnatomyCapture.CaptureSelectedAsync("transfer", "session", 1);

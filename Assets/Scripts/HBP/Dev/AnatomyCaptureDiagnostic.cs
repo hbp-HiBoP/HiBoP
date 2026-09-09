@@ -111,7 +111,14 @@ namespace HBP.Dev
                 // Explicit tokens survive IL2CPP stripping; anonymous reflected properties do not.
                 JObject report = new()
                 {
-                    ["Task"] = first.Contacts.Sites.Count == 0 ? "QUEST-006" : "QUEST-013", ["CreatedUtc"] = DateTime.UtcNow.ToString("O"), ["Unity"] = unityVersion, ["GraphicsDevice"] = graphicsDevice,
+                    ["Task"] = first.Projection != null ? "QUEST-017" : first.Contacts.Sites.Count == 0 ? "QUEST-006" : "QUEST-013", ["CreatedUtc"] = DateTime.UtcNow.ToString("O"), ["Unity"] = unityVersion, ["GraphicsDevice"] = graphicsDevice,
+                    ["Projection"] = first.Projection == null ? null : new JObject
+                    {
+                        ["VolumeBytes"] = first.Projection.VolumeBytes.Count, ["VolumeSha256"] = BitConverter.ToString(first.Projection.VolumeHash.ToArray()).Replace("-", "").ToLowerInvariant(),
+                        ["Dimensions"] = new JArray(first.Projection.Dimensions), ["GridDimension"] = first.Projection.GridDimension,
+                        ["Interpolation"] = first.Projection.Interpolation, ["InfluenceDistance"] = first.Projection.InfluenceDistance,
+                        ["InfluenceByDistance"] = first.Projection.InfluenceByDistance, ["ActivityAlpha"] = first.Projection.ActivityAlpha
+                    },
                     ["VisualizationName"] = visualizationName, ["ColumnName"] = columnName,
                     ["VisualizationId"] = first.VisualizationId, ["ColumnId"] = first.ColumnId,
                     ["SchemaVersion"] = first.SchemaVersion, ["Implantation"] = first.Contacts.Implantation, ["RoiActive"] = first.Contacts.RoiActive,

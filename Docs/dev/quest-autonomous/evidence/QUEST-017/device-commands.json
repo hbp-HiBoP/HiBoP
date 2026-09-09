@@ -1,0 +1,280 @@
+{
+  "commands": [
+    {
+      "arguments": [
+        "get-state"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:43.4683884Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "getprop",
+        "ro.product.model"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:43.5138268Z"
+    },
+    {
+      "arguments": [
+        "install",
+        "-r",
+        "C:\\HBP\\Software\\HiBoP\\Tools/../.artifacts/quest-017/Android/HiBoP.Quest.apk"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:56.2138601Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pm",
+        "path",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:56.2748721Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "sha256sum",
+        "/data/app/~~HV7tUQ1iP67KWzsnHdvr3Q==/fr.crnl.hibop.quest-qB9r0z-sW3CRY_QxwoZZ7g==/base.apk"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:56.6689241Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "am",
+        "force-stop",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:56.7222400Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "mkdir",
+        "-p",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:56.7650749Z"
+    },
+    {
+      "arguments": [
+        "push",
+        "C:/HBP/Software/HiBoP/.artifacts/quest-017/captures/20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a/anatomy.hbna",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest017-projection.hbna"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:57.0403897Z"
+    },
+    {
+      "arguments": [
+        "push",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-017/device-20260909-112443/marker.txt",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest017-projection-probe"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:57.0826367Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "cmd",
+        "package",
+        "resolve-activity",
+        "--brief",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:57.1220470Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "am",
+        "start",
+        "-W",
+        "-n",
+        "fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:57.5612435Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:59.7105449Z"
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=4100"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:24:59.7845776Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:01.9575050Z"
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=4100"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:02.0266188Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:04.2107812Z"
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=4100"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:04.2872505Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:06.3325799Z"
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=4100"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:06.3959284Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:08.4572047Z"
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=4100"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:08.5273759Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:10.6573428Z"
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=4100"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:10.7269999Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:12.8071556Z"
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=4100"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:12.8784018Z"
+    },
+    {
+      "arguments": [
+        "pull",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest017-result.json",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-017/device-20260909-112443/device-result.json"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:12.9370708Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "meminfo",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:13.0682325Z"
+    },
+    {
+      "arguments": [
+        "shell",
+        "am",
+        "force-stop",
+        "fr.crnl.hibop.quest"
+      ],
+      "exitCode": 0,
+      "utc": "2026-09-09T11:25:13.1668967Z"
+    }
+  ],
+  "stopped": true
+}

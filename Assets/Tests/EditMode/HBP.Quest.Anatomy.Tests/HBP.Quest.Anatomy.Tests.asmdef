@@ -1,6 +1,6 @@
 {
     "name": "HBP.Quest.Anatomy.Tests",
-    "references": ["HBP.Quest.Runtime", "HBP.Transfer.Anatomy.Contracts"],
+    "references": ["HBP.Quest.Runtime", "HBP.Transfer.Anatomy.Contracts", "HBP.Transfer.Projection", "HBP.Core.Runtime"],
     "includePlatforms": ["Editor"],
     "optionalUnityReferences": ["TestAssemblies"]
 }
