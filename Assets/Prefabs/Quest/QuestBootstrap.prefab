@@ -571,6 +571,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestConnectionPanel
   session: {fileID: 3281140389832051285}
+  view: {fileID: 2346278702263725147}
   statusText: {fileID: 5744230379228509052}
 --- !u!1 &5841452900093565188
 GameObject:

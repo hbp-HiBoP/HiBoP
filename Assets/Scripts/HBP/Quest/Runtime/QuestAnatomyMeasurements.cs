@@ -30,6 +30,8 @@ namespace HBP.Quest
                 bufferBytesEstimate = view.BufferBytes, unityAllocatedBytes = Profiler.GetTotalAllocatedMemoryLong(),
                 unityReservedBytes = Profiler.GetTotalReservedMemoryLong(), managedBytes = GC.GetTotalMemory(false),
                 gen0Collections = GC.CollectionCount(0), position = view.transform.position,
+                contacts = view.Contacts.Sites.Count, surfaceVisible = view.SurfaceVisible, surfaceHidden = view.SurfaceHidden,
+                contactBufferBytes = view.GetComponentInChildren<QuestContactRenderer>().BufferBytes,
                 rotation = view.transform.rotation, scale = view.transform.localScale
             }));
             started = now;
@@ -58,9 +60,9 @@ namespace HBP.Quest
         {
             public string utc, hash;
             public double uptimeSeconds, windowSeconds, meanFrameIntervalMs, maxFrameIntervalMs;
-            public int frames, uploads, vertices, gen0Collections;
-            public bool ready;
-            public long bufferBytesEstimate, unityAllocatedBytes, unityReservedBytes, managedBytes;
+            public int frames, uploads, vertices, gen0Collections, contacts;
+            public bool ready, surfaceVisible, surfaceHidden;
+            public long bufferBytesEstimate, unityAllocatedBytes, unityReservedBytes, managedBytes, contactBufferBytes;
             public Vector3 position, scale;
             public Quaternion rotation;
         }

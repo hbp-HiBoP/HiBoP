@@ -77,6 +77,7 @@ namespace HBP.Quest.Editor
                 text.text = "HiBoP | Quest connection\nPreparing secure pairing...";
                 var serialized = new SerializedObject(panel.AddComponent<QuestConnectionPanel>());
                 Set(serialized, "session", root.GetComponentInChildren<QuestAnatomySession>(true));
+                Set(serialized, "view", root.GetComponentInChildren<QuestAnatomyView>(true));
                 Set(serialized, "statusText", text);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
                 PrefabUtility.SaveAsPrefabAsset(root, QuestBootstrapSetup.PrefabPath);

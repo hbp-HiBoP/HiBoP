@@ -10,6 +10,70 @@ namespace HBP.Quest.Editor
     {
         public const string ViewPath = "Assets/Prefabs/Quest/QuestAnatomy.prefab";
         public const string MaterialPath = "Assets/Prefabs/Quest/AnatomyOpaque.mat";
+        public const string ContactMeshPath = "Assets/Prefabs/Quest/ContactQuad.asset";
+        public const string ContactMaterialPath = "Assets/Prefabs/Quest/ContactsOpaque.mat";
+
+        [MenuItem("Tools/Quest/Update Contact Assets")]
+        public static void ApplyContacts()
+        {
+            var root = PrefabUtility.LoadPrefabContents(ViewPath);
+            try
+            {
+                ConfigureContacts(root.GetComponent<QuestAnatomyView>());
+                PrefabUtility.SaveAsPrefabAsset(root, ViewPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+
+            var bootstrap = PrefabUtility.LoadPrefabContents(QuestBootstrapSetup.PrefabPath);
+            try
+            {
+                var panel = new SerializedObject(bootstrap.GetComponentInChildren<QuestConnectionPanel>(true));
+                Set(panel, "view", bootstrap.GetComponentInChildren<QuestAnatomyView>(true));
+                panel.ApplyModifiedPropertiesWithoutUndo();
+                PrefabUtility.SaveAsPrefabAsset(bootstrap, QuestBootstrapSetup.PrefabPath);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(bootstrap);
+            }
+
+            AssetDatabase.SaveAssets();
+        }
+
+        private static void ConfigureContacts(QuestAnatomyView view)
+        {
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(ContactMeshPath);
+            if (mesh == null)
+            {
+                mesh = new Mesh { name = "Contact Unit Radius Quad" };
+                mesh.vertices = new[] { new Vector3(-1, -1, 0), new Vector3(1, -1, 0), new Vector3(1, 1, 0), new Vector3(-1, 1, 0) };
+                mesh.triangles = new[] { 0, 2, 1, 0, 3, 2 };
+                mesh.RecalculateBounds();
+                AssetDatabase.CreateAsset(mesh, ContactMeshPath);
+            }
+
+            var material = AssetDatabase.LoadAssetAtPath<Material>(ContactMaterialPath);
+            if (material == null)
+            {
+                var shader = Shader.Find("HiBoP Quest/Buffered Contacts");
+                if (shader == null) throw new InvalidOperationException("Missing contacts shader.");
+                material = new Material(shader) { enableInstancing = true };
+                AssetDatabase.CreateAsset(material, ContactMaterialPath);
+            }
+
+            var serialized = new SerializedObject(view);
+            var frame = (Transform)serialized.FindProperty("millimeterFrame").objectReferenceValue;
+            var renderer = frame.GetComponent<QuestContactRenderer>() ?? frame.gameObject.AddComponent<QuestContactRenderer>();
+            var contacts = new SerializedObject(renderer);
+            Set(contacts, "siteMesh", mesh);
+            Set(contacts, "siteMaterial", material);
+            contacts.ApplyModifiedPropertiesWithoutUndo();
+            Set(serialized, "contactRenderer", renderer);
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
 
         [MenuItem("Tools/Quest/Rebuild Anatomy Assets")]
         public static void Apply()
@@ -43,6 +107,7 @@ namespace HBP.Quest.Editor
                 Set(serialized, "meshRenderer", renderer);
                 Set(serialized, "opaqueMaterial", material);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
+                ConfigureContacts(root.GetComponent<QuestAnatomyView>());
                 var session = new SerializedObject(root.AddComponent<QuestAnatomySession>());
                 Set(session, "view", root.GetComponent<QuestAnatomyView>());
                 session.ApplyModifiedPropertiesWithoutUndo();

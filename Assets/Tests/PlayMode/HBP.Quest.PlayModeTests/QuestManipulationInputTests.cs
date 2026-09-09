@@ -55,6 +55,15 @@ namespace HBP.Tests.Quest
                 foreach (var tracker in root.GetComponentsInChildren<QuestDevicePoseTracker>())
                     TestContext.Out.WriteLine($"{tracker.Role}: tracked={tracker.IsTracked}, position={tracker.transform.position}");
                 Assert.That(manipulation.IsGrabbed, Is.True, $"left trigger={left.GetChildControl<ButtonControl>("triggerPressed").ReadValue()}, group={view.transform.position}, initial={initial}");
+                Mesh grabbedMesh = view.SharedMesh;
+                Button(right, "primaryButton", true);
+                Tick(root, input);
+                Assert.That(view.SurfaceHidden, Is.True, "Right A hides only the surface.");
+                Assert.That(view.SurfaceVisible, Is.False);
+                Assert.That(view.SharedMesh, Is.SameAs(grabbedMesh));
+                Assert.That(manipulation.IsGrabbed, Is.True, "Hiding the surface must keep the current grab.");
+                Button(right, "primaryButton", false);
+                Tick(root, input);
                 Track(left, new Vector3(-0.1f, 0.08f, 0.65f));
                 Tick(root, input);
                 Assert.That(Vector3.Distance(view.transform.position, initial + Vector3.up * 0.2f), Is.LessThan(0.0001f));
@@ -63,6 +72,13 @@ namespace HBP.Tests.Quest
                 Track(right, new Vector3(0.5f, -0.12f, 0.65f));
                 Tick(root, input);
                 Assert.That(view.transform.localScale.x, Is.GreaterThan(1));
+                Assert.That(view.SurfaceHidden, Is.True, "The hidden group still moves and scales.");
+                Button(right, "primaryButton", true);
+                Tick(root, input);
+                Assert.That(view.SurfaceVisible, Is.True);
+                Assert.That(manipulation.IsGrabbed, Is.True);
+                Button(right, "primaryButton", false);
+                Tick(root, input);
                 Vector3 beforeLoss = view.transform.position;
                 input.SendMessage("OnApplicationFocus", false);
                 Track(left, Vector3.one * 5);

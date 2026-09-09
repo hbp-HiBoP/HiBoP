@@ -15,6 +15,7 @@ namespace HBP.Quest
     public sealed class QuestConnectionPanel : MonoBehaviour
     {
         [SerializeField] private QuestAnatomySession session;
+        [SerializeField] private QuestAnatomyView view;
         [SerializeField] private TextMesh statusText;
         private InputAction restart, toggle;
         private CancellationTokenSource lifetime;
@@ -103,15 +104,16 @@ namespace HBP.Quest
                 AnatomyReceptionState.Preparing => "Preparing anatomy...",
                 _ => status
             };
-            string content = session.IsReady ? "Anatomy ready (available offline)" : "No anatomy received";
+            string content = session.IsReady ? $"Anatomy ready | {view.Contacts.Sites.Count} contacts\nAvailable offline" : "No anatomy received";
+            string surface = view.SurfaceHidden ? "A: show brain" : "A: hide brain";
             if (!details && session.IsReady)
             {
-                statusText.text = "B: connection panel | X: recenter";
+                statusText.text = $"B: connection panel | X: recenter\n{surface}";
                 return;
             }
 
             string credentials = pairing == null ? "" : pairing.IsPaired ? "Paired with Desktop" : pairing.IsLocked ? "Pairing expired/locked. Y: new code" : $"Code: {pairing.Code}\nCompare ALL fingerprint groups on Desktop:\n{pairing.Fingerprint}";
-            statusText.text = Wrap($"HiBoP | Quest connection\n{address}\n{credentials}\n\n{progress}\n{content}\nY: restart pairing | B: hide/show panel\nIndex triggers: move / rotate / scale\nX: recenter");
+            statusText.text = Wrap($"HiBoP | Quest connection\n{address}\n{credentials}\n\n{progress}\n{content}\nY: restart pairing | B: hide/show panel\nIndex triggers: move / rotate / scale\nX: recenter | {surface}");
         }
 
         private static string Wrap(string value)

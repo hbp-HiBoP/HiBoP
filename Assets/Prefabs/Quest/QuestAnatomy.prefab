@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1151217058721067616}
   - component: {fileID: 222842286883896084}
   - component: {fileID: 6201878218899059889}
+  - component: {fileID: 3299490874782432034}
   m_Layer: 0
   m_Name: Anatomical Frame (mm to m)
   m_TagString: Untagged
@@ -90,6 +91,20 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &3299490874782432034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4467390459586000489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5df444d67a5c7ed44a5d24d756f429d6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestContactRenderer
+  siteMesh: {fileID: 4300000, guid: 837bc6cb2c5438348b23fca6a2236d95, type: 2}
+  siteMaterial: {fileID: 2100000, guid: 598a67770e118da4fa39586422cc28e5, type: 2}
 --- !u!1 &5633916839406821509
 GameObject:
   m_ObjectHideFlags: 0
@@ -141,6 +156,7 @@ MonoBehaviour:
   meshFilter: {fileID: 222842286883896084}
   meshRenderer: {fileID: 6201878218899059889}
   opaqueMaterial: {fileID: 2100000, guid: 5ed04141661bef74d83f442ac11b2694, type: 2}
+  contactRenderer: {fileID: 3299490874782432034}
 --- !u!114 &2926650362359151247
 MonoBehaviour:
   m_ObjectHideFlags: 0

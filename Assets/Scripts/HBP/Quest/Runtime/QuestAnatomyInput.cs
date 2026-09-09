@@ -11,7 +11,7 @@ namespace HBP.Quest
         [SerializeField] private QuestDevicePoseTracker head;
         [SerializeField] private QuestDevicePoseTracker left;
         [SerializeField] private QuestDevicePoseTracker right;
-        private InputAction leftTrigger, rightTrigger, recenter;
+        private InputAction leftTrigger, rightTrigger, recenter, toggleSurface;
         private Mesh previousMesh;
         private bool placed;
         private bool focused = true;
@@ -22,9 +22,11 @@ namespace HBP.Quest
             leftTrigger = new InputAction("Grab left", InputActionType.Button, "<XRController>{LeftHand}/triggerPressed");
             rightTrigger = new InputAction("Grab right", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
             recenter = new InputAction("Recenter anatomy (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
+            toggleSurface = new InputAction("Hide/show brain (A)", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
             leftTrigger.Enable();
             rightTrigger.Enable();
             recenter.Enable();
+            toggleSurface.Enable();
         }
 
         private void LateUpdate()
@@ -41,6 +43,8 @@ namespace HBP.Quest
                 manipulator.CancelGrab();
                 previousMesh = view.SharedMesh;
             }
+
+            if (right.IsTracked && toggleSurface.WasPressedThisFrame()) view.ToggleSurface();
 
             if (view.SharedMesh != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))
             {
@@ -71,7 +75,8 @@ namespace HBP.Quest
             leftTrigger?.Dispose();
             rightTrigger?.Dispose();
             recenter?.Dispose();
-            leftTrigger = rightTrigger = recenter = null;
+            toggleSurface?.Dispose();
+            leftTrigger = rightTrigger = recenter = toggleSurface = null;
             if (manipulator != null) manipulator.CancelGrab();
         }
     }

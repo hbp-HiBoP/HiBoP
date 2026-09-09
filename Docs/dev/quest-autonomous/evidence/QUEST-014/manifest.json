@@ -1,0 +1,1537 @@
+{
+  "task": "QUEST-014",
+  "collectedAt": "2026-09-09T08:42:29.756695+00:00",
+  "implementation": "IMPLEMENTEE",
+  "technical": "REUSSI",
+  "manual": "VALIDE",
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "head": "629996e4d7ed82c5a44ab7aa5903f1acd9bcbd2d",
+    "initialCheckout": "clean",
+    "committed": false,
+    "inputs": [
+      {
+        "path": "Assets/Prefabs/Quest/ContactQuad.asset",
+        "bytes": 3513,
+        "sha256": "0541da9d47528381e0a4cc4c10a4405dae1580f78838927625a717d695278333"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/ContactQuad.asset.meta",
+        "bytes": 188,
+        "sha256": "ad2cf4a72c5c6c16100a0c389a4df17a20ac21d1bf34886ccfe896a097c75c84"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/ContactsOpaque.mat",
+        "bytes": 777,
+        "sha256": "6cef9f817f3f6be00aefd20122406a37f56d5b1e3fe7020e8f8e81d5ac6ecd41"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/ContactsOpaque.mat.meta",
+        "bytes": 188,
+        "sha256": "e49516d473dd318d5008275195e88af51fe6b656477e70d9074b51f4f0c31e11"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestAnatomy.prefab",
+        "bytes": 6057,
+        "sha256": "27ae683748378ff9b6533203664cd74f8afbd95f3097f937c9691f16ea63092d"
+      },
+      {
+        "path": "Assets/Prefabs/Quest/QuestBootstrap.prefab",
+        "bytes": 32928,
+        "sha256": "4dc04faf0b371fd4281fd32a35990fb2206fdc9b7d416904f07062f56ba94a50"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestAnatomySetup.cs",
+        "bytes": 10307,
+        "sha256": "33cb9bcd08ca1842d02ada2fbf7145e6b8f29adf65f23f4d5ac7ca431653d48d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestConnectionSetup.cs",
+        "bytes": 11754,
+        "sha256": "044e95a13c2020d57830a60f6c017af24401cce483b15b47270e075d4e03d1c0"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyInput.cs",
+        "bytes": 3326,
+        "sha256": "22bb3bb7f4f332151ab1e3c3db50722804884cc3b60a0d468f57e444b455aba4"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyMeasurements.cs",
+        "bytes": 4485,
+        "sha256": "1635ab9943f772c50a4fc2436e4e8654bea06fe47b0a27018905749a3f2b1dbc"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyView.cs",
+        "bytes": 6007,
+        "sha256": "5de33399efa7451801ba3d7233b0696ec8cfa0f562be20502a561cc1e20bffcb"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestConnectionPanel.cs",
+        "bytes": 6546,
+        "sha256": "8a96b1a46a41703022b38181f5b3135a6eddef23a17118680913881e751b5d28"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestContactDiagnostic.cs",
+        "bytes": 5943,
+        "sha256": "5ec433d5bf6516a5e48ffb49bc730af674fec1a346a4c491a52759dda5b7ad63"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestContactDiagnostic.cs.meta",
+        "bytes": 59,
+        "sha256": "5d3db3fc994b0a0724b49124d5c89bf62ae89965579bf65e4c38512dbd54f0ef"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestContactRenderer.cs",
+        "bytes": 5197,
+        "sha256": "e1366ab078b2d52b50b1a377146b98e45b271595cbc2f45dec8efdbb1e4d1c46"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestContactRenderer.cs.meta",
+        "bytes": 59,
+        "sha256": "d5acc2b29c840b820f1f7186a0363dbedca496ab3b2b4878fd7697a5d43857aa"
+      },
+      {
+        "path": "Assets/Shaders/Quest/BufferedContacts.shader",
+        "bytes": 3932,
+        "sha256": "72811ead09e0849691bbe07c1efe3b6ecda2d3eaf11610e2e7ab0eecc7790438"
+      },
+      {
+        "path": "Assets/Shaders/Quest/BufferedContacts.shader.meta",
+        "bytes": 204,
+        "sha256": "07eaa387748a355dfb41cfb31573552313fe3d4faa26148281d0f192f8b7f864"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestContactRenderingTests.cs",
+        "bytes": 16004,
+        "sha256": "049b908edd308c7159fe28ccb6cc80a5b23867221d9e66799ec75ff4fa543035"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestContactRenderingTests.cs.meta",
+        "bytes": 59,
+        "sha256": "db85dd538a32cd9ebd62e054b796efc6267e3e77b9bfc96849a03fcb589f0593"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestManipulationInputTests.cs",
+        "bytes": 9389,
+        "sha256": "3957e8509f048c831f6ef872e5e09d373b0894396aa02a0eab10b686a11b37b2"
+      },
+      {
+        "path": "Tools/Run-QuestContactProbe.ps1",
+        "bytes": 4728,
+        "sha256": "7d21b23ced970d46c67824a1806d28781cc8b8544a8a1e9ef763f5f3dc88b5fb"
+      }
+    ]
+  },
+  "versions": {
+    "unity": "6000.5.2f1",
+    "urp": "17.5.0",
+    "openxr": "1.18.0",
+    "metaOpenxr": "2.4.1",
+    "inputSystem": "1.20.0"
+  },
+  "nativeReferences": {
+    "hbp_core": "cf4400b168b120641aa69b7120e81a66a899cbd3",
+    "hbp_math": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7",
+    "EEGFormat": "99b54e9faf607973451233c069315978d3c6bffd"
+  },
+  "historicalSource": {
+    "commit": "eb26c323e",
+    "files": [
+      "XR/Assets/HiBoPXR/Sites/Runtime/P10SiteRenderer.cs",
+      "XR/Assets/HiBoPXR/Sites/Shaders/P10BufferedSites.shader",
+      "XR/Assets/HiBoPXR/Sites/Editor/P10ProjectSetup.cs"
+    ]
+  },
+  "tests": [
+    {
+      "name": "editmode",
+      "counts": {
+        "result": "Skipped:Ignored",
+        "total": "113",
+        "passed": "112",
+        "failed": "0",
+        "skipped": "1",
+        "duration": "15,4223291"
+      },
+      "file": {
+        "path": ".test-results/quest-014/editmode.xml",
+        "bytes": 108534,
+        "sha256": "69dfe54a3e13064610f920a0b86a406bd5e2e140424c34e9e4569b1684744f74"
+      },
+      "nonPassed": [
+        {
+          "name": "HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsWrongArchitecture",
+          "result": "Skipped",
+          "message": "Android profile only."
+        }
+      ]
+    },
+    {
+      "name": "playmode",
+      "counts": {
+        "result": "Passed",
+        "total": "44",
+        "passed": "44",
+        "failed": "0",
+        "skipped": "0",
+        "duration": "72,3891173"
+      },
+      "file": {
+        "path": ".test-results/quest-014/playmode.xml",
+        "bytes": 41046,
+        "sha256": "866983dbe6accfa61f5a3074ea4e33c63b89bbe137c0cd997cfb425cf6f8f33a"
+      },
+      "nonPassed": []
+    },
+    {
+      "name": "android-guard",
+      "counts": {
+        "result": "Passed",
+        "total": "1",
+        "passed": "1",
+        "failed": "0",
+        "skipped": "0",
+        "duration": "0,1047131"
+      },
+      "file": {
+        "path": ".test-results/quest-014/android-guard.xml",
+        "bytes": 3912,
+        "sha256": "ebff9f32e3ae71e996e3572c6bad68a13ea8b2bef8d8b7726781b6afd6730b4d"
+      },
+      "nonPassed": []
+    }
+  ],
+  "devices": [
+    {
+      "passed": false,
+      "error": "Quest launch intercepted by LaunchCheckControllerRequiredDialogActivity; owner reports recurring controller connection failure, unrecovered by buttons or battery removal.",
+      "scope": "local-render-only",
+      "serial": "192.168.1.18:5555",
+      "evidence": {
+        "path": ".test-results/quest-014/device-20260909-073755/result.json",
+        "bytes": 278,
+        "sha256": "05fed1af93adde13b2fce68286b7db9e7f214c521483313226ea7a00443dfcfc"
+      }
+    },
+    {
+      "passed": false,
+      "error": "ADB pull failed: adb: error: failed to stat remote object '/sdcard/Android/data/fr.crnl.hibop.quest/files/quest014-surface-visible.png': No such file or directory",
+      "scope": "local-render-only",
+      "serial": "192.168.1.18:5555",
+      "evidence": {
+        "path": ".test-results/quest-014/device-20260909-080358/result.json",
+        "bytes": 270,
+        "sha256": "ed7d987034a052d2d98fffd10af7b6900bbc63771a1c552e3b03db5ff25f7329"
+      }
+    },
+    {
+      "scope": "local-render-only",
+      "passed": true,
+      "apkSha256": "ca588ca9331dc0f38c188dda4ce190c9aa2774ca35e67e13878ff80deeddd59b",
+      "serial": "192.168.1.18:5555",
+      "fixture": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-014\\captures-final\\20260909-081217-27b44604-49f2-4463-a630-e3cf6a4e2dc0\\anatomy.hbna",
+      "apk": "C:\\HBP\\Software\\HiBoP/.artifacts/quest-014/Android/HiBoP.Quest.apk",
+      "fixtureSha256": "fa61d4a2ed66bde41f5f1a6e13f61ad928788be74ac1113852a35f4b5e19393d",
+      "evidence": {
+        "path": ".test-results/quest-014/device-20260909-081629/result.json",
+        "bytes": 495,
+        "sha256": "ed548aa48f95b203672e28c9de0a7116339e4271aaa7ab4aea446bb6446c45a3"
+      }
+    },
+    {
+      "apk": "C:\\HBP\\Software\\HiBoP/.artifacts/quest-014/Android/HiBoP.Quest.apk",
+      "fixtureSha256": "fa61d4a2ed66bde41f5f1a6e13f61ad928788be74ac1113852a35f4b5e19393d",
+      "apkSha256": "ccb40eb4323dfe20d65882830034c08cd92f89ab952e9275555f2a06d9b250bc",
+      "serial": "192.168.1.18:5555",
+      "scope": "local-render-only",
+      "passed": false,
+      "fixture": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-014\\captures-final\\20260909-081217-27b44604-49f2-4463-a630-e3cf6a4e2dc0\\anatomy.hbna",
+      "probeChecksPassed": true,
+      "visualQualificationPassed": false,
+      "qualificationNote": "All three screenshots are black; no visible anatomy, so this run does not qualify rendering performance. Owner asked to wear headset for another run.",
+      "evidence": {
+        "path": ".test-results/quest-014/device-20260909-083047/result.json",
+        "bytes": 742,
+        "sha256": "8427014aa2b33df4bbd4e83de4596bf1409f07bc643e11c641bbe41c20da17e7"
+      }
+    },
+    {
+      "scope": "local-render-only",
+      "fixtureSha256": "fa61d4a2ed66bde41f5f1a6e13f61ad928788be74ac1113852a35f4b5e19393d",
+      "apkSha256": "ccb40eb4323dfe20d65882830034c08cd92f89ab952e9275555f2a06d9b250bc",
+      "serial": "192.168.1.18:5555",
+      "fixture": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-014\\captures-final\\20260909-081217-27b44604-49f2-4463-a630-e3cf6a4e2dc0\\anatomy.hbna",
+      "apk": "C:\\HBP\\Software\\HiBoP/.artifacts/quest-014/Android/HiBoP.Quest.apk",
+      "passed": true,
+      "visualQualificationPassed": true,
+      "visualQualificationNote": "All three captures inspected; brain visible, then eight red contact components with surface hidden at both scales.",
+      "evidence": {
+        "path": ".test-results/quest-014/device-20260909-083327/result.json",
+        "bytes": 681,
+        "sha256": "d8b0325cdcc83159f394a09fb817c284af89baddc89b5251fec013f79dbbdf20"
+      }
+    }
+  ],
+  "physicalSummary": {
+    "run": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-014\\device-20260909-083327",
+    "scope": "local-render-only",
+    "resources": [
+      {
+        "stage": "baseline",
+        "contacts": "0",
+        "visible": "0",
+        "contactBytes": "0",
+        "allBufferBytes": "0",
+        "unityAllocatedBytes": "102248839",
+        "managedBytes": "13193216",
+        "uploads": "0"
+      },
+      {
+        "stage": "loaded-0",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "103059991",
+        "managedBytes": "14950400",
+        "uploads": "1"
+      },
+      {
+        "stage": "replaced-0",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "103127183",
+        "managedBytes": "14733312",
+        "uploads": "2"
+      },
+      {
+        "stage": "cleared-0",
+        "contacts": "0",
+        "visible": "0",
+        "contactBytes": "0",
+        "allBufferBytes": "0",
+        "unityAllocatedBytes": "103123391",
+        "managedBytes": "14741504",
+        "uploads": "2"
+      },
+      {
+        "stage": "loaded-1",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "103128711",
+        "managedBytes": "18608128",
+        "uploads": "3"
+      },
+      {
+        "stage": "replaced-1",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "103128199",
+        "managedBytes": "13799424",
+        "uploads": "4"
+      },
+      {
+        "stage": "cleared-1",
+        "contacts": "0",
+        "visible": "0",
+        "contactBytes": "0",
+        "allBufferBytes": "0",
+        "unityAllocatedBytes": "103124383",
+        "managedBytes": "12148736",
+        "uploads": "4"
+      },
+      {
+        "stage": "loaded-2",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "103129051",
+        "managedBytes": "16019456",
+        "uploads": "5"
+      },
+      {
+        "stage": "replaced-2",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "103128123",
+        "managedBytes": "12079104",
+        "uploads": "6"
+      },
+      {
+        "stage": "cleared-2",
+        "contacts": "0",
+        "visible": "0",
+        "contactBytes": "0",
+        "allBufferBytes": "0",
+        "unityAllocatedBytes": "103124387",
+        "managedBytes": "12087296",
+        "uploads": "6"
+      },
+      {
+        "stage": "surface-visible",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "105301179",
+        "managedBytes": "16162816",
+        "uploads": "7"
+      },
+      {
+        "stage": "surface-hidden",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "106890931",
+        "managedBytes": "16412672",
+        "uploads": "7"
+      },
+      {
+        "stage": "surface-hidden-scale-2",
+        "contacts": "8",
+        "visible": "8",
+        "contactBytes": "256",
+        "allBufferBytes": "3870176",
+        "unityAllocatedBytes": "106890659",
+        "managedBytes": "16711680",
+        "uploads": "7"
+      },
+      {
+        "stage": "complete",
+        "contacts": "0",
+        "visible": "0",
+        "contactBytes": "0",
+        "allBufferBytes": "0",
+        "unityAllocatedBytes": "106886899",
+        "managedBytes": "16744448",
+        "uploads": "7"
+      }
+    ],
+    "stages": {
+      "surface-visible": {
+        "completeWindows": 2,
+        "frames": 722,
+        "meanFrameIntervalMs": 13.887816934312314,
+        "maxFrameIntervalMs": 13.892042450606823,
+        "unityAllocatedBytesRange": [
+          105301179,
+          105318571
+        ],
+        "managedBytesRange": [
+          16048128,
+          16142336
+        ],
+        "contactBufferBytes": [
+          256
+        ],
+        "contacts": [
+          8
+        ],
+        "pssKiBAtStageStart": 823850,
+        "samples": [
+          {
+            "utc": "2026-09-09T08:33:44.3485540Z",
+            "hash": "",
+            "uptimeSeconds": 14.745746367852602,
+            "windowSeconds": 5.0143191980000665,
+            "meanFrameIntervalMs": 13.887831626506394,
+            "maxFrameIntervalMs": 13.892042450606823,
+            "frames": 361,
+            "uploads": 7,
+            "vertices": 69104,
+            "gen0Collections": 42,
+            "contacts": 8,
+            "ready": false,
+            "surfaceVisible": true,
+            "surfaceHidden": false,
+            "bufferBytesEstimate": 3870176,
+            "unityAllocatedBytes": 105318571,
+            "unityReservedBytes": 238755840,
+            "managedBytes": 16048128,
+            "contactBufferBytes": 256,
+            "position": {
+              "x": 0.5717173218727112,
+              "y": 0.9504146575927734,
+              "z": 0.6889267563819885
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": -0.6980830430984497,
+              "y": -0.11260586231946945,
+              "z": -0.11260586231946945,
+              "w": 0.6980830430984497
+            }
+          },
+          {
+            "utc": "2026-09-09T08:33:49.3617190Z",
+            "hash": "",
+            "uptimeSeconds": 19.758912960852424,
+            "windowSeconds": 5.013166592999822,
+            "meanFrameIntervalMs": 13.887802242118235,
+            "maxFrameIntervalMs": 13.887917622923851,
+            "frames": 361,
+            "uploads": 7,
+            "vertices": 69104,
+            "gen0Collections": 42,
+            "contacts": 8,
+            "ready": false,
+            "surfaceVisible": true,
+            "surfaceHidden": false,
+            "bufferBytesEstimate": 3870176,
+            "unityAllocatedBytes": 105301179,
+            "unityReservedBytes": 238755840,
+            "managedBytes": 16142336,
+            "contactBufferBytes": 256,
+            "position": {
+              "x": 0.5717173218727112,
+              "y": 0.9504146575927734,
+              "z": 0.6889267563819885
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": -0.6980830430984497,
+              "y": -0.11260586231946945,
+              "z": -0.11260586231946945,
+              "w": 0.6980830430984497
+            }
+          }
+        ]
+      },
+      "surface-hidden": {
+        "completeWindows": 1,
+        "frames": 361,
+        "meanFrameIntervalMs": 13.887801937697006,
+        "maxFrameIntervalMs": 13.888959772884846,
+        "unityAllocatedBytesRange": [
+          106890931,
+          106890931
+        ],
+        "managedBytesRange": [
+          16351232,
+          16351232
+        ],
+        "contactBufferBytes": [
+          256
+        ],
+        "contacts": [
+          8
+        ],
+        "pssKiBAtStageStart": 834098,
+        "samples": [
+          {
+            "utc": "2026-09-09T08:33:59.3759570Z",
+            "hash": "",
+            "uptimeSeconds": 29.773151093852587,
+            "windowSeconds": 5.01380680200009,
+            "meanFrameIntervalMs": 13.887801937697006,
+            "maxFrameIntervalMs": 13.888959772884846,
+            "frames": 361,
+            "uploads": 7,
+            "vertices": 69104,
+            "gen0Collections": 42,
+            "contacts": 8,
+            "ready": false,
+            "surfaceVisible": false,
+            "surfaceHidden": true,
+            "bufferBytesEstimate": 3870176,
+            "unityAllocatedBytes": 106890931,
+            "unityReservedBytes": 238764032,
+            "managedBytes": 16351232,
+            "contactBufferBytes": 256,
+            "position": {
+              "x": 0.5717173218727112,
+              "y": 0.9504146575927734,
+              "z": 0.6889267563819885
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": -0.6980830430984497,
+              "y": -0.11260586231946945,
+              "z": -0.11260586231946945,
+              "w": 0.6980830430984497
+            }
+          }
+        ]
+      },
+      "surface-hidden-scale-2": {
+        "completeWindows": 2,
+        "frames": 721,
+        "meanFrameIntervalMs": 13.887816961291511,
+        "maxFrameIntervalMs": 13.889973051846027,
+        "unityAllocatedBytesRange": [
+          106873267,
+          106890659
+        ],
+        "managedBytesRange": [
+          16580608,
+          16678912
+        ],
+        "contactBufferBytes": [
+          256
+        ],
+        "contacts": [
+          8
+        ],
+        "pssKiBAtStageStart": 834833,
+        "samples": [
+          {
+            "utc": "2026-09-09T08:34:09.4023660Z",
+            "hash": "",
+            "uptimeSeconds": 39.79955948885268,
+            "windowSeconds": 5.012760655999955,
+            "meanFrameIntervalMs": 13.887820001743176,
+            "maxFrameIntervalMs": 13.889973051846027,
+            "frames": 361,
+            "uploads": 7,
+            "vertices": 69104,
+            "gen0Collections": 42,
+            "contacts": 8,
+            "ready": false,
+            "surfaceVisible": false,
+            "surfaceHidden": true,
+            "bufferBytesEstimate": 3870176,
+            "unityAllocatedBytes": 106890659,
+            "unityReservedBytes": 238764032,
+            "managedBytes": 16580608,
+            "contactBufferBytes": 256,
+            "position": {
+              "x": 0.5717173218727112,
+              "y": 0.9504146575927734,
+              "z": 0.6889267563819885
+            },
+            "scale": {
+              "x": 2.0,
+              "y": 2.0,
+              "z": 2.0
+            },
+            "rotation": {
+              "x": -0.6980830430984497,
+              "y": -0.11260586231946945,
+              "z": -0.11260586231946945,
+              "w": 0.6980830430984497
+            }
+          },
+          {
+            "utc": "2026-09-09T08:34:14.4026910Z",
+            "hash": "",
+            "uptimeSeconds": 44.79988462185261,
+            "windowSeconds": 5.000325132999933,
+            "meanFrameIntervalMs": 13.887813912394146,
+            "maxFrameIntervalMs": 13.887917622923851,
+            "frames": 360,
+            "uploads": 7,
+            "vertices": 69104,
+            "gen0Collections": 42,
+            "contacts": 8,
+            "ready": false,
+            "surfaceVisible": false,
+            "surfaceHidden": true,
+            "bufferBytesEstimate": 3870176,
+            "unityAllocatedBytes": 106873267,
+            "unityReservedBytes": 238764032,
+            "managedBytes": 16678912,
+            "contactBufferBytes": 256,
+            "position": {
+              "x": 0.5717173218727112,
+              "y": 0.9504146575927734,
+              "z": 0.6889267563819885
+            },
+            "scale": {
+              "x": 2.0,
+              "y": 2.0,
+              "z": 2.0
+            },
+            "rotation": {
+              "x": -0.6980830430984497,
+              "y": -0.11260586231946945,
+              "z": -0.11260586231946945,
+              "w": 0.6980830430984497
+            }
+          }
+        ]
+      }
+    },
+    "notes": [
+      "Frame intervals are not GPU times.",
+      "First sample after each stage change excluded because its window overlaps the transition.",
+      "PSS is sampled separately at the start of each stage."
+    ]
+  },
+  "files": [
+    {
+      "path": ".test-results/quest-014/analyze-physical-images.py",
+      "bytes": 1246,
+      "sha256": "56799712f6d72a6cdbafde394fbc4654a8689bc6aaf3708c2ffc2705e26078b9"
+    },
+    {
+      "path": ".test-results/quest-014/android-build-initial-report.json",
+      "bytes": 775751,
+      "sha256": "ab891098d4d6e7d0a790a35930068d0b125d9225371d798259e81300535b7d3c"
+    },
+    {
+      "path": ".test-results/quest-014/android-build-initial.log",
+      "bytes": 951422,
+      "sha256": "1e94231071b0ece23783639c96cdf896e9078178e4896101e7366fa8da8f407c"
+    },
+    {
+      "path": ".test-results/quest-014/android-build.log",
+      "bytes": 925934,
+      "sha256": "34d04f21b9132f32d349b48077253a999cf4c2fc245c76b61c045015ae1d4a23"
+    },
+    {
+      "path": ".test-results/quest-014/android-guard-command.json",
+      "bytes": 690,
+      "sha256": "aae30e44bf480d18ada9ac0fa6042bbc1d591191aa0218e8f04dc6c76ed850a8"
+    },
+    {
+      "path": ".test-results/quest-014/android-guard.log",
+      "bytes": 133317,
+      "sha256": "91cd019616c2846415889c3a37bcde7643f28b5443fcadb2b12d539d4749e9cb"
+    },
+    {
+      "path": ".test-results/quest-014/android-guard.xml",
+      "bytes": 3912,
+      "sha256": "ebff9f32e3ae71e996e3572c6bad68a13ea8b2bef8d8b7726781b6afd6730b4d"
+    },
+    {
+      "path": ".test-results/quest-014/apk-inspection.json",
+      "bytes": 5836,
+      "sha256": "c8fe9ce480d58cd0d2f3e7e50f021632d637b6b04e9b41942745107aa13f2334"
+    },
+    {
+      "path": ".test-results/quest-014/before-lag-fix/android-build-report.json",
+      "bytes": 775589,
+      "sha256": "24d23a27dac0bb6123ca58ce07b86bd210d70760db34170e3f88582646369929"
+    },
+    {
+      "path": ".test-results/quest-014/before-lag-fix/android-build.log",
+      "bytes": 926733,
+      "sha256": "d6a5381c3fb9e912729bf5dc5130652452c4941a098ced14bdf9cb80b2ac4eb4"
+    },
+    {
+      "path": ".test-results/quest-014/before-lag-fix/manifest.json",
+      "bytes": 41633,
+      "sha256": "f686ca794fcee7e67b869a6818f96d748c0d09b853873cad742e851a27e5e3a5"
+    },
+    {
+      "path": ".test-results/quest-014/before-lag-fix/physical-images.json",
+      "bytes": 715,
+      "sha256": "8d6369c9b8cc664e2f9745260b4cacb32dc15bee85ca7236158edde5717dceb0"
+    },
+    {
+      "path": ".test-results/quest-014/before-lag-fix/physical-summary.json",
+      "bytes": 11455,
+      "sha256": "46b8e621136ceb92b519f6fad4ca4242276f82d4240a4b381f1c37ab3ead735c"
+    },
+    {
+      "path": ".test-results/quest-014/before-lag-fix/windows-build-report.json",
+      "bytes": 822201,
+      "sha256": "91e3f5baa7f6b5923cd234914b4f0e96cf7f72c0b547cc46ee616a60508a683e"
+    },
+    {
+      "path": ".test-results/quest-014/before-lag-fix/windows-build.log",
+      "bytes": 760609,
+      "sha256": "c9cd276ab4e3eec29e8e8507e7979cdc21b6324e2ca81bf32773e9765a0459df"
+    },
+    {
+      "path": ".test-results/quest-014/capture-verification.json",
+      "bytes": 6653,
+      "sha256": "117e8e3e66b50bfb8aaef58dac8093cb7d87dba7e81f8300c709c7b759cf6c60"
+    },
+    {
+      "path": ".test-results/quest-014/contacts.log",
+      "bytes": 76745,
+      "sha256": "7ea561e940ce08cbb7d3fee991587f6bf64dcfec91079f4dda0a35a3606b0e8b"
+    },
+    {
+      "path": ".test-results/quest-014/contacts.xml",
+      "bytes": 5640,
+      "sha256": "9e812f3ea37b168cb95c2ede4f20eb7376bffbcbc15b2874f0bfaba21e58d8bf"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/activities-home.txt",
+      "bytes": 106193,
+      "sha256": "08a72b86efb4246a0061af4eb2909c585ca8c045f5fb2bf2a9887689adef7601"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/activities-settings.txt",
+      "bytes": 117721,
+      "sha256": "8a5ce599bb2950ec0bed0328f72fdb61cd680c9fe9728671b9c9139cdd2dc694"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/bluetooth.txt",
+      "bytes": 135028,
+      "sha256": "74173c75d49954832a1c6719d6173a05de2f204c04c12e326107f39fd936302c"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/controller-tracking.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/focus-home.txt",
+      "bytes": 1598,
+      "sha256": "08259b44c725103c25d39e52e8e915b9c8664e60ab4156ebfb37a6ba120d9fcc"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/focus-settings.txt",
+      "bytes": 1598,
+      "sha256": "08259b44c725103c25d39e52e8e915b9c8664e60ab4156ebfb37a6ba120d9fcc"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/hand-tracking-recovery.json",
+      "bytes": 474,
+      "sha256": "46c6fdec42a0a4eb7aa5f0e5cfdd471091a8bfc9c64858b5f24d0cb6b6de6907"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/launch-ui.xml",
+      "bytes": 1389,
+      "sha256": "7705a854a6806a9b0c0d0699f4d481c14d20f962526767a8cc373e3fdb1f45ae"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/launch.png",
+      "bytes": 8332921,
+      "sha256": "9bc01456db69d2ee8af0d9ec743dbe42c59907a82edf5ea9d9ce2e172de3d53d"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/logcat.txt",
+      "bytes": 1057952,
+      "sha256": "1118bb593578bceccf053280b0aaf5137f872fd7069cbb82c0aafc0a088bd449"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/power.txt",
+      "bytes": 15926,
+      "sha256": "500e10c9a3b7c93058dec3ab6beb2af231e5f8f70c51165a4a8d3634c52644a7"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/processes.txt",
+      "bytes": 52833,
+      "sha256": "348bc121f8fbfbf858b89106614bfc38a7b05fde0f14d1fbc76cb7e225fc7d5d"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/remotes-after-hands.txt",
+      "bytes": 11181,
+      "sha256": "ff9d89719a54aeb78f5d83591a0a0636ea306a2ad42d63a9acb0e80efef2c886"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/remotes-help.txt",
+      "bytes": 9828,
+      "sha256": "eec53d74cc0d7e8c222e9fe2de12adb0681149a1fb89ce2afadb049ea06f5b13"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/remotes.txt",
+      "bytes": 9828,
+      "sha256": "58b2316b9fe8b4242f206174a6553a7693ac42f58e9e3117584cdaed31b6b4d6"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/services.txt",
+      "bytes": 24808,
+      "sha256": "2b5638d8947298d5bbd3ae14d719b29c8bf0da9ebd082caf3ba8dc5e56d3e0b6"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/settings-ui-after.xml",
+      "bytes": 33362,
+      "sha256": "2319ef95dfa8315bf66c182f3e635df5fc8734ff836f68c3ace12eac43feaad9"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/settings-ui.xml",
+      "bytes": 19425,
+      "sha256": "59f58709d750ea89d542c7bfdab85fad1d5bb82b8fe2a419022cd93bf519a649"
+    },
+    {
+      "path": ".test-results/quest-014/controller-diagnostic/tracking.txt",
+      "bytes": 145727,
+      "sha256": "e0b7be3fceb577d59b48cf25d710b2e777e6e7f124d606248830670a77f6e1fe"
+    },
+    {
+      "path": ".test-results/quest-014/desktop-capture-stopped.json",
+      "bytes": 136,
+      "sha256": "c64b6fd794e06d49cd94fafbf148124bc048965bdd31fcf5ce4cb5456462d0ce"
+    },
+    {
+      "path": ".test-results/quest-014/desktop-final-launch.json",
+      "bytes": 566,
+      "sha256": "1c60c5798f5eaefda50db30c2615fbc56a57c015e7af82ece30607aaba34850e"
+    },
+    {
+      "path": ".test-results/quest-014/desktop-final.log",
+      "bytes": 7250,
+      "sha256": "5df6b553955f79f025c2ae64935eb0e4024854b681246b8570d3ec2b26001c03"
+    },
+    {
+      "path": ".test-results/quest-014/desktop-lag-fixed-launch.json",
+      "bytes": 474,
+      "sha256": "8eb55d73fe6074e607d1ecd4ab348371451b43ff184c62dc5223fd99e6138bc9"
+    },
+    {
+      "path": ".test-results/quest-014/desktop-lag-fixed.log",
+      "bytes": 45675,
+      "sha256": "0ae7f323b1b8e9f3bc60e263630171fb665c64feac95959834f10259ac9d6ef8"
+    },
+    {
+      "path": ".test-results/quest-014/desktop-launch.json",
+      "bytes": 560,
+      "sha256": "a08b944ef877c7fbeb86d7328591a3544e855d8a5c2cfe909c356afa43e3d15d"
+    },
+    {
+      "path": ".test-results/quest-014/desktop-player.log",
+      "bytes": 4557,
+      "sha256": "8f0a35ddee62cf64349202105fa002ea620cee6ee879fa996e99abd0dbc636ea"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-073755/commands.json",
+      "bytes": 2207,
+      "sha256": "3603c2313e0a0ecc9e9c60b9871f11db5cf41051e5b6eca991c0380a3235641f"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-073755/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-073755/launch.log",
+      "bytes": 256,
+      "sha256": "ad4991d47d8ec03cc8044285cb88e7d00f816701569a802809bd1d6fae84d5a5"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-073755/result.json",
+      "bytes": 278,
+      "sha256": "05fed1af93adde13b2fce68286b7db9e7f214c521483313226ea7a00443dfcfc"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-080358/commands.json",
+      "bytes": 12104,
+      "sha256": "061de1b02463da9f4d84090418c721f0a5709a8afb16e15ed6a28a4d2b2af6ce"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-080358/launch.log",
+      "bytes": 230,
+      "sha256": "5147b313c1281e7f868b5e2f8e16e6ab6394dda2bf238f0951e8d331a7faa0da"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-080358/quest.log",
+      "bytes": 295918,
+      "sha256": "ea3098f59c438d1957a1747e452bbc146296f28171cd5f7d6d8b1f80b415787c"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-080358/result.json",
+      "bytes": 270,
+      "sha256": "ed7d987034a052d2d98fffd10af7b6900bbc63771a1c552e3b03db5ff25f7329"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-080358/surface-hidden-memory.txt",
+      "bytes": 3186,
+      "sha256": "a659ec53e0fd0b1f28dc8f90301625ae80f9eebe6cdc683a6f8d03d1fff37386"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-080358/surface-hidden-scale-2-memory.txt",
+      "bytes": 3186,
+      "sha256": "35cb4f9a9c65c494a15db87068b0f0a377b7d4b603473cad9110c2d99ae08058"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-080358/surface-visible-memory.txt",
+      "bytes": 3186,
+      "sha256": "584c07b7b1245c5b0cb356bdabba93055c2db4dbc3dc0eb466b555196120d529"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/battery.txt",
+      "bytes": 358,
+      "sha256": "5d0e4db554a26522bf085b5dfefbde4f83542afacfb9ea8333894c6ba0cd4f44"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/cleared-memory.txt",
+      "bytes": 3188,
+      "sha256": "597a6c66fde8681fa4a025afc549a4af2f5f3044275dc614758e4691f26f1b7c"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/commands.json",
+      "bytes": 13339,
+      "sha256": "ecda2f9a3e5cdfec9c4e8b5bd82727f2305462e0c21fbae8102738ffb7c25a32"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/launch.log",
+      "bytes": 227,
+      "sha256": "345656e2a853eb8843a908f631e14e86c77a59e75bc42b080e0a35a3f9b722b6"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/quest.log",
+      "bytes": 291330,
+      "sha256": "4d62e19cd9a06cb8880ae3f6d35d843f31b55f3ecc9680256264740e06362621"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/result.json",
+      "bytes": 495,
+      "sha256": "ed548aa48f95b203672e28c9de0a7116339e4271aaa7ab4aea446bb6446c45a3"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/surface-hidden-memory.txt",
+      "bytes": 3188,
+      "sha256": "d8385d49e5579bb06a9c0f746952626e7624a2e8a07283520304164af2ec2fea"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/surface-hidden-scale-2-memory.txt",
+      "bytes": 3188,
+      "sha256": "429d8cd1e514191fc81ee2a6b2d8fdfcbdd90041744ac2595d833976a41eacdb"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/surface-hidden-scale-2.png",
+      "bytes": 127675,
+      "sha256": "77e8f57afc071aba91db18d349f5a26ad04b0651a313fff7462211d3860b8f7c"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/surface-hidden.png",
+      "bytes": 122885,
+      "sha256": "8d70f95f1d533d02d811cc2829916b00cdfa5c075d4d3faff26af6cd9965e6ff"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/surface-visible-memory.txt",
+      "bytes": 3188,
+      "sha256": "bd52588e11a37e808f474a60f2cfe4d14c83f69d0633c3e205b6ba02f5a82a07"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/surface-visible.png",
+      "bytes": 516840,
+      "sha256": "4680927ebaef988736b3c9845a539bcb63277abd16bc68fd02ac2872e880e31d"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-081629/thermal.txt",
+      "bytes": 17022,
+      "sha256": "4f706cc85a4f757c2d8ccd20dc00a32765364ab7f899f515c37bc9e35de7e033"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/battery.txt",
+      "bytes": 358,
+      "sha256": "9e1b2bbaacf32870e958357433cdf5190c2a2f6351757a5427ae769f8c48a51e"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/cleared-memory.txt",
+      "bytes": 3188,
+      "sha256": "0a8f8ec11e41291f3b5782c475a8000dbf791d86bf5ab1b484137a725041702d"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/commands.json",
+      "bytes": 13339,
+      "sha256": "d97e1232ffbec85f0de8ce3fe1e6e0d56971ef170a9427894fdd81419e21c7f8"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/launch.log",
+      "bytes": 227,
+      "sha256": "8c0a33f80c3c05a1829d268832c752bfdaa096a18344268e82ddcf6d5687900d"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/quest.log",
+      "bytes": 289590,
+      "sha256": "8d2e6f5523b2979b7bb682007ef076dd5bc4496c03b40844ddb844b803663f55"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/result.json",
+      "bytes": 742,
+      "sha256": "8427014aa2b33df4bbd4e83de4596bf1409f07bc643e11c641bbe41c20da17e7"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/surface-hidden-memory.txt",
+      "bytes": 3188,
+      "sha256": "13ecdfffe239d95399b65ce3c47b6f2cbc64fcc56ea8f17519f1a371be339e9d"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/surface-hidden-scale-2-memory.txt",
+      "bytes": 3188,
+      "sha256": "7de4cfccef649a3136b83425983266faa6494ef1b4778bf7308666da0aad0459"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/surface-hidden-scale-2.png",
+      "bytes": 119571,
+      "sha256": "9b6922ff511b5d29345d4fad7be6e43cf98052cf24ca501403762b4dac852c06"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/surface-hidden.png",
+      "bytes": 119571,
+      "sha256": "9b6922ff511b5d29345d4fad7be6e43cf98052cf24ca501403762b4dac852c06"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/surface-visible-memory.txt",
+      "bytes": 3188,
+      "sha256": "cbe775b8d8b6271f1fc016ef80b65e3ea77a6c6c9c04ed8e28606dde9634643a"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/surface-visible.png",
+      "bytes": 119571,
+      "sha256": "9b6922ff511b5d29345d4fad7be6e43cf98052cf24ca501403762b4dac852c06"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083047/thermal.txt",
+      "bytes": 17009,
+      "sha256": "baf9d6d773ae5ccc03ef0f991d027db1920bb7a0eb03cf272e6d62a97076804b"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/battery.txt",
+      "bytes": 358,
+      "sha256": "ff3d2e931a259828f8da977b1170ba0227de5577d1e5522a301c8d62ec59bff6"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/cleared-memory.txt",
+      "bytes": 3188,
+      "sha256": "a0d4996bf4616f092516033ef90d79ba3eebe71ba6f3087ee168ab89e2e352c0"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/commands.json",
+      "bytes": 13109,
+      "sha256": "0009f1fe91ec41281679e79f060c0c0aed297c57ee85a941e8aaa7cb02f0081b"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/launch.log",
+      "bytes": 227,
+      "sha256": "83106aedc770b79b01913f26beb9d000f130dba8be749573c7618f60c22dc270"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/quest.log",
+      "bytes": 292598,
+      "sha256": "faeb50e108ad3e125ae5890697087092c57794922ed6e4e1ef3a491d89f4cbba"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/result.json",
+      "bytes": 681,
+      "sha256": "d8b0325cdcc83159f394a09fb817c284af89baddc89b5251fec013f79dbbdf20"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/surface-hidden-memory.txt",
+      "bytes": 3188,
+      "sha256": "ec253dead5f01b648fa8db591182ab32efc72d0245ab1f42a40544d1d04d405e"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/surface-hidden-scale-2-memory.txt",
+      "bytes": 3188,
+      "sha256": "9be836b73c80ed96657334a51e7336b4ead7f61ded65ab782534bd0956364284"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/surface-hidden-scale-2.png",
+      "bytes": 128358,
+      "sha256": "44785db8bf045ace55a8070e10a3d08622185cd2ee420c13d490eba2456b3345"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/surface-hidden.png",
+      "bytes": 122924,
+      "sha256": "57e8a9d37c460dc5e9f5ed37f2568139fcd2474a59afbc9dba78db4fc3ef229c"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/surface-visible-memory.txt",
+      "bytes": 3188,
+      "sha256": "2928859a58c8794ad885a54f77f5a83827ff2ae5cefdf9fcd95ec4bbac3e2b0a"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/surface-visible.png",
+      "bytes": 561785,
+      "sha256": "3dc366e193ea2c1005cdc6e28babe46e772456fc500f246e017cecec2a4c96b7"
+    },
+    {
+      "path": ".test-results/quest-014/device-20260909-083327/thermal.txt",
+      "bytes": 17015,
+      "sha256": "77504545f148071e5625b97443d6360e416974f857ec7ad8626b45431dca5c1c"
+    },
+    {
+      "path": ".test-results/quest-014/editmode-command.json",
+      "bytes": 958,
+      "sha256": "fa2f8c654a671edb96bbdd38b0c03d0eb8c4a734d4533bca40570795362d18c3"
+    },
+    {
+      "path": ".test-results/quest-014/editmode.log",
+      "bytes": 100401,
+      "sha256": "b6d859d64b6285c5630f4e9ea931250f84787e3e1783b9fbd12cece43907253f"
+    },
+    {
+      "path": ".test-results/quest-014/editmode.xml",
+      "bytes": 108534,
+      "sha256": "69dfe54a3e13064610f920a0b86a406bd5e2e140424c34e9e4569b1684744f74"
+    },
+    {
+      "path": ".test-results/quest-014/format.log",
+      "bytes": 171,
+      "sha256": "439953bba4c0c1f3219b79b686e100afe6e5784d92f4000735728e35e48b80f6"
+    },
+    {
+      "path": ".test-results/quest-014/generated-settings-after-lag.diff",
+      "bytes": 8004,
+      "sha256": "c6d65b59ec912d772ca44fc5f270a707770a11d9328918608a9ff99ee637dddf"
+    },
+    {
+      "path": ".test-results/quest-014/generated-settings-final.diff",
+      "bytes": 4004,
+      "sha256": "aa81ae35c891630b43314d34e6582ca9f1592f79658cdc564998f1dbed0a2b3a"
+    },
+    {
+      "path": ".test-results/quest-014/generated-settings.diff",
+      "bytes": 7956,
+      "sha256": "f31dd172568cdd7ba13efaae3aa3c17c61a03626cf104f8c285320d52ae5be39"
+    },
+    {
+      "path": ".test-results/quest-014/lag-before-images/late-pose-0.png",
+      "bytes": 1479,
+      "sha256": "f4d5d73e44fcdc179111f66708ad1ed055e8897c519703595b003e2629b9e24e"
+    },
+    {
+      "path": ".test-results/quest-014/lag-before-images/surface-hidden-scale-2.png",
+      "bytes": 2384,
+      "sha256": "f8cb431e0b347791a2dab5af7ee92420866ba55e38304dfc168d1db72e8f3a77"
+    },
+    {
+      "path": ".test-results/quest-014/lag-before-images/surface-hidden.png",
+      "bytes": 1479,
+      "sha256": "f4d5d73e44fcdc179111f66708ad1ed055e8897c519703595b003e2629b9e24e"
+    },
+    {
+      "path": ".test-results/quest-014/lag-before-images/surface-visible.png",
+      "bytes": 2498,
+      "sha256": "7f0e33a6db44552e95ca56e4bdd65d76e28181a112974c901fcdede9364a6c9c"
+    },
+    {
+      "path": ".test-results/quest-014/lag-before.log",
+      "bytes": 97031,
+      "sha256": "4b20cce28aa00075546dca4e4938f71eea96faedb28be7d138aa17e4395e87d7"
+    },
+    {
+      "path": ".test-results/quest-014/lag-before.xml",
+      "bytes": 5787,
+      "sha256": "0de20414c37acae3f7d13e61e66a80ab0cef2d166812eaed5acd7bcfbd70241c"
+    },
+    {
+      "path": ".test-results/quest-014/manual/desktop-stopped.json",
+      "bytes": 112,
+      "sha256": "96fbee790b16617288f5c3bb591092a823ad798af5bde7748e8e608b82e15703"
+    },
+    {
+      "path": ".test-results/quest-014/manual/measurements.log",
+      "bytes": 31698,
+      "sha256": "b3c0c9483a5a9bf530f6db5621833752d999567f605290ce558308556d040bd0"
+    },
+    {
+      "path": ".test-results/quest-014/manual/owner-feedback.json",
+      "bytes": 372,
+      "sha256": "f22f650040bb92bc1ce6a4aad0eb99cb8a8e92f6224ee5daf6016b4deb874c1d"
+    },
+    {
+      "path": ".test-results/quest-014/manual/stopped.json",
+      "bytes": 194,
+      "sha256": "77eef31ef5fbe713af8d2dfc4fa5954919b3066310ab98810cc2d8a97dae43b4"
+    },
+    {
+      "path": ".test-results/quest-014/manual-lag-fixed/measurements.log",
+      "bytes": 3462,
+      "sha256": "d6857c8f586bd21c642d47bb8f247f8f1293256d4c5bd53ae742afcd52ddb80e"
+    },
+    {
+      "path": ".test-results/quest-014/manual-lag-fixed/owner-feedback.json",
+      "bytes": 648,
+      "sha256": "1ebe498a2ef3a066e7c4af2a5b273a9d29cc78bd2b058c905509f801d5525a76"
+    },
+    {
+      "path": ".test-results/quest-014/manual-lag-fixed/stopped.json",
+      "bytes": 154,
+      "sha256": "79c90bb9496e4d98138059c2fb894bbc3a0e3208e0947b0fef82e74fcc782ebb"
+    },
+    {
+      "path": ".test-results/quest-014/physical-images.json",
+      "bytes": 717,
+      "sha256": "5b7761e185ff087a9ea4757b4ef7361ab1ce78cb01caa84e23e69db7f8a56420"
+    },
+    {
+      "path": ".test-results/quest-014/physical-summary.json",
+      "bytes": 11464,
+      "sha256": "c180c23040d0e30367be0c43f7f8a56d40fb00160a3b150216afb6b9ae5168d8"
+    },
+    {
+      "path": ".test-results/quest-014/playmode-before-lag.log",
+      "bytes": 92736,
+      "sha256": "f86b979b44f88de439bd6037360ced8321b294caf8747e7e2af0652c2e1d735b"
+    },
+    {
+      "path": ".test-results/quest-014/playmode-before-lag.xml",
+      "bytes": 41046,
+      "sha256": "1c288d6c0e3825df201ecf0b09dec0c03b33e2d56a3a60913dc7b4e5a0313d72"
+    },
+    {
+      "path": ".test-results/quest-014/playmode-command.json",
+      "bytes": 994,
+      "sha256": "5ad10b0640978e9f92b0abec065c26bc7dd8ab1123260f0a13d67b2732f8b12b"
+    },
+    {
+      "path": ".test-results/quest-014/playmode-initial.log",
+      "bytes": 92793,
+      "sha256": "26a2a606af91ecba51ec5191aa74b0d1fecb59a8e7e18c68b7b2add0399785f7"
+    },
+    {
+      "path": ".test-results/quest-014/playmode-initial.xml",
+      "bytes": 42451,
+      "sha256": "a2146824fbac4364ee42c54618df7aca81caf5d1e32988fc3cfbbabcba126460"
+    },
+    {
+      "path": ".test-results/quest-014/playmode.log",
+      "bytes": 81796,
+      "sha256": "3904dc07c33693f4c085375181f38503d5f7bcde1be90a0ca9ae22605de592e0"
+    },
+    {
+      "path": ".test-results/quest-014/playmode.xml",
+      "bytes": 41046,
+      "sha256": "866983dbe6accfa61f5a3074ea4e33c63b89bbe137c0cd997cfb425cf6f8f33a"
+    },
+    {
+      "path": ".test-results/quest-014/render/late-pose-0.png",
+      "bytes": 1643,
+      "sha256": "53680612eb8f4b4df4fc42484ba85540809f28c0c1ffbb0eeb41fedcd7b0993c"
+    },
+    {
+      "path": ".test-results/quest-014/render/late-pose-1.png",
+      "bytes": 1611,
+      "sha256": "e7517d2bbef7cd44f4f7e9ef4fbf3b954d372dc00882b8833721cb7f94b8abc0"
+    },
+    {
+      "path": ".test-results/quest-014/render/late-pose-2.png",
+      "bytes": 1643,
+      "sha256": "53680612eb8f4b4df4fc42484ba85540809f28c0c1ffbb0eeb41fedcd7b0993c"
+    },
+    {
+      "path": ".test-results/quest-014/render/late-pose-3.png",
+      "bytes": 1611,
+      "sha256": "e7517d2bbef7cd44f4f7e9ef4fbf3b954d372dc00882b8833721cb7f94b8abc0"
+    },
+    {
+      "path": ".test-results/quest-014/render/late-pose-4.png",
+      "bytes": 1643,
+      "sha256": "53680612eb8f4b4df4fc42484ba85540809f28c0c1ffbb0eeb41fedcd7b0993c"
+    },
+    {
+      "path": ".test-results/quest-014/render/late-pose-5.png",
+      "bytes": 1611,
+      "sha256": "e7517d2bbef7cd44f4f7e9ef4fbf3b954d372dc00882b8833721cb7f94b8abc0"
+    },
+    {
+      "path": ".test-results/quest-014/render/surface-hidden-scale-2.png",
+      "bytes": 2384,
+      "sha256": "f8cb431e0b347791a2dab5af7ee92420866ba55e38304dfc168d1db72e8f3a77"
+    },
+    {
+      "path": ".test-results/quest-014/render/surface-hidden.png",
+      "bytes": 1479,
+      "sha256": "f4d5d73e44fcdc179111f66708ad1ed055e8897c519703595b003e2629b9e24e"
+    },
+    {
+      "path": ".test-results/quest-014/render/surface-visible.png",
+      "bytes": 2498,
+      "sha256": "7f0e33a6db44552e95ca56e4bdd65d76e28181a112974c901fcdede9364a6c9c"
+    },
+    {
+      "path": ".test-results/quest-014/restore-desktop-after-lag.log",
+      "bytes": 318193,
+      "sha256": "49dfc97515513acf6b5df32428b0f4de11f24d127bf918712106c2d4e124f525"
+    },
+    {
+      "path": ".test-results/quest-014/restore-desktop-profile-final.log",
+      "bytes": 318190,
+      "sha256": "b03590108489cbbdd1e9d11bf3ddeb2c87a50d3e50a481801bda21d688ba5d4e"
+    },
+    {
+      "path": ".test-results/quest-014/restore-desktop-profile.log",
+      "bytes": 318918,
+      "sha256": "f6324ed52455af6697923732f0fd41a7b6087b2f3793f36d3b244e6d1eaee0d2"
+    },
+    {
+      "path": ".test-results/quest-014/run-checks.ps1",
+      "bytes": 2286,
+      "sha256": "9ee004a4d3549d85dff0a521160a54628f52f35be6c1079ca8d1dc8470def1e6"
+    },
+    {
+      "path": ".test-results/quest-014/setup.log",
+      "bytes": 77527,
+      "sha256": "9649ca62ea8e31f772f628e165212903986e3290708044a532900c13158f59f3"
+    },
+    {
+      "path": ".test-results/quest-014/summarize-physical.py",
+      "bytes": 2638,
+      "sha256": "dfbca48cb15b07203affc059daf5ea1ac434b0b285d7aaeb13256b9576938b20"
+    },
+    {
+      "path": ".test-results/quest-014/verify-capture.py",
+      "bytes": 2410,
+      "sha256": "d694aa9321ec4c8ec64628ca947827fa4e4ce455ee4ef5d7f00aa999a5e6dffc"
+    },
+    {
+      "path": ".test-results/quest-014/windows-build-initial-report.json",
+      "bytes": 822201,
+      "sha256": "7486eb5032cb036f6b0813b6aa7136eeb8876e10b994c9650b764ebe999d420b"
+    },
+    {
+      "path": ".test-results/quest-014/windows-build-initial.log",
+      "bytes": 775152,
+      "sha256": "b5af71a1d5784a061b33f29a6ee7d72a0dae6ea7a96c70707c706c110fed17f3"
+    },
+    {
+      "path": ".test-results/quest-014/windows-build.log",
+      "bytes": 769406,
+      "sha256": "fcdfa4146933d4d9d37f9047bc6a6bf6516400f09075545f884b572a0a519cb1"
+    },
+    {
+      "path": ".test-results/quest-014/write-manifest.py",
+      "bytes": 4884,
+      "sha256": "dc0b61fcdd9b5f22111df3fb2af8c592a08401b68345f34929f41c454dbcd1f9"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": ".artifacts/quest-014/Android/HiBoP.Quest.apk",
+      "bytes": 162999056,
+      "sha256": "ccb40eb4323dfe20d65882830034c08cd92f89ab952e9275555f2a06d9b250bc"
+    },
+    {
+      "path": ".artifacts/quest-014/Android/Quest.build-report.json",
+      "bytes": 775582,
+      "sha256": "974834a6c256041023d1bf69b2c48216fb7e41c026c9e50ea19286e4be35dc07"
+    },
+    {
+      "path": ".artifacts/quest-014/captures/20260909-073324-f0b74843-e646-47b8-ba04-e692c660e0c6/anatomy-repeat.hbna",
+      "bytes": 3870953,
+      "sha256": "aa2495a5e8f0f14d7b36f0ad4cc12d0804534fd8224742d4adb167ab86c6056e"
+    },
+    {
+      "path": ".artifacts/quest-014/captures/20260909-073324-f0b74843-e646-47b8-ba04-e692c660e0c6/anatomy.hbna",
+      "bytes": 3870953,
+      "sha256": "aa2495a5e8f0f14d7b36f0ad4cc12d0804534fd8224742d4adb167ab86c6056e"
+    },
+    {
+      "path": ".artifacts/quest-014/captures/20260909-073324-f0b74843-e646-47b8-ba04-e692c660e0c6/capture.json",
+      "bytes": 5347,
+      "sha256": "52255808ed37dd6d4b39eddaea72670055f0188ca9f4a64411ec46b2d9d76665"
+    },
+    {
+      "path": ".artifacts/quest-014/captures-final/20260909-081217-27b44604-49f2-4463-a630-e3cf6a4e2dc0/anatomy-repeat.hbna",
+      "bytes": 3870953,
+      "sha256": "fa61d4a2ed66bde41f5f1a6e13f61ad928788be74ac1113852a35f4b5e19393d"
+    },
+    {
+      "path": ".artifacts/quest-014/captures-final/20260909-081217-27b44604-49f2-4463-a630-e3cf6a4e2dc0/anatomy.hbna",
+      "bytes": 3870953,
+      "sha256": "fa61d4a2ed66bde41f5f1a6e13f61ad928788be74ac1113852a35f4b5e19393d"
+    },
+    {
+      "path": ".artifacts/quest-014/captures-final/20260909-081217-27b44604-49f2-4463-a630-e3cf6a4e2dc0/capture.json",
+      "bytes": 5335,
+      "sha256": "144418dac6975171af341de3d4fdce54fc120925e6b6ccc8edb952bedf514e6c"
+    },
+    {
+      "path": ".artifacts/quest-014/fixture/quest-mni-contacts.hibop",
+      "bytes": 5068,
+      "sha256": "7e4f24e7cbc01c4f52316035fa15585f24f40f9ce796489039826d70e7f5d672"
+    },
+    {
+      "path": ".artifacts/quest-014/Windows/DesktopWindows.build-report.json",
+      "bytes": 822201,
+      "sha256": "08ed5420dbf93c6e11eb598c9f7d285e5b93b6b93ea0bc1dfc9440cc1a1474ea"
+    },
+    {
+      "path": ".artifacts/quest-014/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 62913024,
+      "sha256": "a226b3c063f29d52193e6d49d92613e1bd41fb57aa9fc913565e4eb4fc7653d0"
+    },
+    {
+      "path": ".artifacts/quest-014/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    {
+      "path": ".artifacts/quest-014/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Metadata/global-metadata.dat",
+      "bytes": 11853364,
+      "sha256": "d9b89c7bab3c6fd0e1259b7bf521ad44fd40b2f0a109598a207f6a6153b75bd7"
+    }
+  ],
+  "manualChecks": [
+    {
+      "id": "M1",
+      "status": "VALIDE",
+      "action": "A hides/restores the surface; internal contacts stay visible and the group remains grabbable.",
+      "qualification": "Owner validated these gestures before the late-pose correction; see M3 for the fast-motion follow-up."
+    },
+    {
+      "id": "M2",
+      "status": "VALIDE",
+      "action": "Two index triggers scale the group; asymmetric contact positions and relative diameters follow.",
+      "qualification": "Owner validated these gestures before the late-pose correction; see M3 for the fast-motion follow-up."
+    },
+    {
+      "id": "M3",
+      "status": "VALIDE",
+      "action": "Abrupt translations/rotations keep surface and contacts synchronized after the LateUpdate ordering fix."
+    }
+  ],
+  "limitations": [
+    "Device probe injects a real Desktop HBNA locally; it is not evidence of product network transfer or owner gestures.",
+    "Physical frame intervals are not GPU timings or a general performance threshold.",
+    "Initial Desktop diagnostic reports CameraUnchanged=false; no Player camera invariance is claimed by that capture.",
+    "No native scientific code changed or loaded on Quest."
+  ],
+  "manualFeedback": [
+    {
+      "result": {
+        "M1": "OK",
+        "M2": "OK",
+        "additionalDefect": "Sites lag behind the brain during abrupt movements; can briefly appear outside the surface.",
+        "resolution": "Under correction; rendering submission must follow group manipulation LateUpdate.",
+        "originalApkSha256": "ca588ca9331dc0f38c188dda4ce190c9aa2774ca35e67e13878ff80deeddd59b",
+        "date": "2026-09-09"
+      },
+      "evidence": {
+        "path": ".test-results/quest-014/manual/owner-feedback.json",
+        "bytes": 372,
+        "sha256": "f22f650040bb92bc1ce6a4aad0eb99cb8a8e92f6224ee5daf6016b4deb874c1d"
+      }
+    },
+    {
+      "result": {
+        "task": "QUEST-014",
+        "date": "2026-09-09",
+        "source": "Owner response in this task",
+        "response": "Tout est bon !",
+        "lagResolved": true,
+        "validatedAction": "After pairing and sending from the Windows Player, abrupt translations and rotations keep the contacts attached to the brain, with the surface visible and hidden.",
+        "priorChecks": "M1 and M2 were explicitly validated before the late-pose correction; see manual/owner-feedback.json.",
+        "apkSha256": "ccb40eb4323dfe20d65882830034c08cd92f89ab952e9275555f2a06d9b250bc",
+        "networkEvidence": "manual-lag-fixed/measurements.log",
+        "stopEvidence": "manual-lag-fixed/stopped.json"
+      },
+      "evidence": {
+        "path": ".test-results/quest-014/manual-lag-fixed/owner-feedback.json",
+        "bytes": 648,
+        "sha256": "1ebe498a2ef3a066e7c4af2a5b273a9d29cc78bd2b058c905509f801d5525a76"
+      }
+    }
+  ]
+}
