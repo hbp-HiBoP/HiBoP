@@ -36,7 +36,7 @@ namespace HBP.Dev
         private static async UniTask RunAsync(string directory, CancellationToken token)
         {
             float deadline = Time.realtimeSinceStartup + 120;
-            while (!Module3DMain.IsInitialized || Module3DMain.SelectedScene == null || !Module3DMain.SelectedScene.SceneInformation.CompletelyLoaded || Module3DMain.SelectedScene.SceneInformation.FunctionalSurfaceNeedsUpdate || Module3DMain.SelectedScene.SceneInformation.CutsNeedUpdate)
+            while (!Module3DMain.IsInitialized || Module3DMain.SelectedScene == null || !Module3DMain.SelectedScene.SceneInformation.CompletelyLoaded || Module3DMain.SelectedScene.SceneInformation.FunctionalSurfaceNeedsUpdate || Module3DMain.SelectedScene.SceneInformation.CutsNeedUpdate || Module3DMain.SelectedScene.SceneInformation.SitesNeedUpdate)
             {
                 if (Time.realtimeSinceStartup > deadline) throw new TimeoutException("Anatomy diagnostic: no selected visualization became ready within 120 seconds.");
                 await UniTask.NextFrame(cancellationToken: token);
@@ -111,9 +111,19 @@ namespace HBP.Dev
                 // Explicit tokens survive IL2CPP stripping; anonymous reflected properties do not.
                 JObject report = new()
                 {
-                    ["Task"] = "QUEST-006", ["CreatedUtc"] = DateTime.UtcNow.ToString("O"), ["Unity"] = unityVersion, ["GraphicsDevice"] = graphicsDevice,
+                    ["Task"] = first.Contacts.Sites.Count == 0 ? "QUEST-006" : "QUEST-013", ["CreatedUtc"] = DateTime.UtcNow.ToString("O"), ["Unity"] = unityVersion, ["GraphicsDevice"] = graphicsDevice,
                     ["VisualizationName"] = visualizationName, ["ColumnName"] = columnName,
                     ["VisualizationId"] = first.VisualizationId, ["ColumnId"] = first.ColumnId,
+                    ["SchemaVersion"] = first.SchemaVersion, ["Implantation"] = first.Contacts.Implantation, ["RoiActive"] = first.Contacts.RoiActive,
+                    ["PatientIds"] = new JArray(first.Contacts.PatientIds),
+                    ["Sites"] = new JArray(first.Contacts.Sites.Select(site => new JObject
+                    {
+                        ["Id"] = site.Id, ["Name"] = site.Name, ["Electrode"] = site.Electrode, ["Order"] = site.Order,
+                        ["PatientIndex"] = site.PatientIndex, ["SourceIndex"] = site.SourceIndex,
+                        ["Position"] = new JArray(site.Position.ToArray()), ["Color"] = new JArray(site.Color.ToArray()),
+                        ["DiameterMillimeters"] = site.Diameter, ["Visible"] = site.Visible,
+                        ["Flags"] = (byte)site.Flags, ["EffectiveMasked"] = site.EffectiveMasked
+                    })),
                     ["TransferId"] = first.TransferId, ["SessionId"] = first.SessionId, ["ContentRevision"] = first.ContentRevision,
                     ["FrameId"] = first.Coordinates.FrameId, ["Unit"] = first.Coordinates.Unit.ToString(), ["AssetToBrain"] = new JArray(first.Coordinates.AssetToBrain.ToArray()),
                     ["VertexCount"] = first.VertexCount, ["IndexCount"] = first.Indices.Count, ["TriangleCount"] = first.Indices.Count / 3, ["UvCount"] = first.Uvs.Count / 2,

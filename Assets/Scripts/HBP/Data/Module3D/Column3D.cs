@@ -521,7 +521,7 @@ namespace HBP.Data.Module3D
         {
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
+                RawElectrodes.UpdateMask(ii, Sites[ii].State.IsEffectivelyMasked(isROI));
             }
         }
 

@@ -91,6 +91,9 @@ namespace HBP.Core.Object3D
         /// </summary>
         public static Color DefaultColor = new(0.53f, 0.15f, 0.15f);
 
+        /// <summary>Prepared scientific exclusion shared by native updates and snapshot capture.</summary>
+        public bool IsEffectivelyMasked(bool roiActive) => IsMasked || IsBlackListed || (IsOutOfROI && roiActive) || !IsFiltered;
+
         /// <summary>
         /// Is the site completely masked ?
         /// </summary>

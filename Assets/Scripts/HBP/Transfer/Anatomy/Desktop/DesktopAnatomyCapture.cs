@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace HBP.Transfer.Anatomy.Desktop
 {
-    /// <summary>Copies only the selected column's already prepared Unity surface. Never loads anatomy.</summary>
+    /// <summary>Copies the selected column's already prepared surface and contacts. Never loads anatomy.</summary>
     public static class DesktopAnatomyCapture
     {
         /// <summary>Capture once, then retain the offer for every retry. IDs must not change after an ACK is lost.</summary>
@@ -23,7 +23,7 @@ namespace HBP.Transfer.Anatomy.Desktop
         // The native-to-Unity X reflection and winding conversion have already been
         // applied by Surface.UpdateMesh. This is the local brain frame, in mm;
         // scene spacing, parent transforms and camera framing are presentation only.
-        public const string FrameId = "hibop-mni-unity-mm-v1";
+        public const string FrameId = AnatomyContacts.FrameId;
 
         /// <summary>
         /// Call on Unity's main thread. All Unity reads finish before this method returns
@@ -48,12 +48,13 @@ namespace HBP.Transfer.Anatomy.Desktop
             Vector3[] normals = mesh.normals;
             Vector2[] uvs = mesh.uv;
             int[] indices = mesh.triangles;
+            AnatomyContacts contacts = DesktopContactsCapture.Capture(scene, column);
 
             return Task.Run(() =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 AnatomyCoordinateSpace coordinates = new(FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 });
-                return AnatomySnapshot.Create(transferId, sessionId, visualizationId, columnId, revision, coordinates, AnatomyWinding.Clockwise, visible, color, Flatten(positions), Flatten(normals), Array.ConvertAll(indices, index => checked((uint)index)), Flatten(uvs));
+                return AnatomySnapshot.Create(transferId, sessionId, visualizationId, columnId, revision, coordinates, AnatomyWinding.Clockwise, visible, color, Flatten(positions), Flatten(normals), Array.ConvertAll(indices, index => checked((uint)index)), Flatten(uvs), contacts);
             }, cancellationToken);
         }
 
@@ -77,7 +78,7 @@ namespace HBP.Transfer.Anatomy.Desktop
             if (scene == null || scene.SelectedColumn is not Column3DAnatomy)
                 throw new InvalidOperationException("Select an anatomical column to capture; the current selection is not supported.");
             column = (Column3DAnatomy)scene.SelectedColumn;
-            if (!scene.SceneInformation.CompletelyLoaded || scene.SceneInformation.GeometryNeedsUpdate || scene.SceneInformation.CutsNeedUpdate || scene.SceneInformation.FunctionalSurfaceNeedsUpdate || scene.IsSurfaceRepresentationTransitioning)
+            if (!scene.SceneInformation.CompletelyLoaded || scene.SceneInformation.GeometryNeedsUpdate || scene.SceneInformation.SitesNeedUpdate || scene.SceneInformation.CutsNeedUpdate || scene.SceneInformation.FunctionalSurfaceNeedsUpdate || scene.IsSurfaceRepresentationTransitioning)
                 throw new InvalidOperationException("The selected visualization is still preparing its surface. Retry after the update finishes.");
             MeshManager manager = scene.MeshManager;
             if (manager == null || manager.Meshes.Count == 0 || manager.SelectedMesh.Type != MeshType.MNI || manager.MeshPartToDisplay != MeshPart.Both || manager.SelectedMesh.Representation != SurfaceRepresentation.Anatomical)

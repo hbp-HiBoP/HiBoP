@@ -17,6 +17,7 @@ namespace HBP.Quest
         private int mainThread;
 
         public Mesh SharedMesh => ownedMesh;
+        public AnatomyContacts Contacts { get; private set; } = AnatomyContacts.Empty;
         public string TransferId { get; private set; }
         public long BufferBytes { get; private set; }
         public int UploadCount { get; private set; }
@@ -72,6 +73,7 @@ namespace HBP.Quest
             ownedMesh = next;
             properties = nextProperties;
             TransferId = snapshot.TransferId;
+            Contacts = snapshot.Contacts;
             BufferBytes = nextBufferBytes;
             UploadCount++;
             AnatomyMeshUploader.Release(previous);
@@ -91,6 +93,7 @@ namespace HBP.Quest
             AnatomyMeshUploader.Release(ownedMesh);
             ownedMesh = null;
             TransferId = null;
+            Contacts = AnatomyContacts.Empty;
             BufferBytes = 0;
         }
 

@@ -1,0 +1,159 @@
+{
+  "fixtureId": "quest-013-mni-contacts",
+  "frameId": "hibop-mni-unity-mm-v1",
+  "description": "Eight synthetic contacts, two patients, two electrodes each. Count is fixture data, not a product limit. Native MNI XYZ millimeters; Unity reflects X once.",
+  "sites": [
+    {
+      "order": 0,
+      "siteId": "quest-013-site-00",
+      "patientId": "quest-013-patient-left",
+      "patientIndex": 0,
+      "sourceIndex": 0,
+      "name": "A1",
+      "electrode": "A",
+      "nativeMillimeters": [
+        -31.25,
+        -18.5,
+        26.75
+      ],
+      "unityMillimeters": [
+        31.25,
+        -18.5,
+        26.75
+      ]
+    },
+    {
+      "order": 1,
+      "siteId": "quest-013-site-01",
+      "patientId": "quest-013-patient-left",
+      "patientIndex": 0,
+      "sourceIndex": 1,
+      "name": "A2",
+      "electrode": "A",
+      "nativeMillimeters": [
+        -27.5,
+        -15.25,
+        29.0
+      ],
+      "unityMillimeters": [
+        27.5,
+        -15.25,
+        29.0
+      ]
+    },
+    {
+      "order": 2,
+      "siteId": "quest-013-site-02",
+      "patientId": "quest-013-patient-left",
+      "patientIndex": 0,
+      "sourceIndex": 2,
+      "name": "B1",
+      "electrode": "B",
+      "nativeMillimeters": [
+        -12.75,
+        21.5,
+        42.25
+      ],
+      "unityMillimeters": [
+        12.75,
+        21.5,
+        42.25
+      ]
+    },
+    {
+      "order": 3,
+      "siteId": "quest-013-site-03",
+      "patientId": "quest-013-patient-left",
+      "patientIndex": 0,
+      "sourceIndex": 3,
+      "name": "B2",
+      "electrode": "B",
+      "nativeMillimeters": [
+        -9.0,
+        24.25,
+        45.5
+      ],
+      "unityMillimeters": [
+        9.0,
+        24.25,
+        45.5
+      ]
+    },
+    {
+      "order": 4,
+      "siteId": "quest-013-site-04",
+      "patientId": "quest-013-patient-right",
+      "patientIndex": 1,
+      "sourceIndex": 0,
+      "name": "A1",
+      "electrode": "A",
+      "nativeMillimeters": [
+        22.5,
+        -34.75,
+        18.25
+      ],
+      "unityMillimeters": [
+        -22.5,
+        -34.75,
+        18.25
+      ]
+    },
+    {
+      "order": 5,
+      "siteId": "quest-013-site-05",
+      "patientId": "quest-013-patient-right",
+      "patientIndex": 1,
+      "sourceIndex": 1,
+      "name": "A2",
+      "electrode": "A",
+      "nativeMillimeters": [
+        26.25,
+        -31.0,
+        21.5
+      ],
+      "unityMillimeters": [
+        -26.25,
+        -31.0,
+        21.5
+      ]
+    },
+    {
+      "order": 6,
+      "siteId": "quest-013-site-06",
+      "patientId": "quest-013-patient-right",
+      "patientIndex": 1,
+      "sourceIndex": 2,
+      "name": "B1",
+      "electrode": "B",
+      "nativeMillimeters": [
+        38.75,
+        8.25,
+        -12.5
+      ],
+      "unityMillimeters": [
+        -38.75,
+        8.25,
+        -12.5
+      ]
+    },
+    {
+      "order": 7,
+      "siteId": "quest-013-site-07",
+      "patientId": "quest-013-patient-right",
+      "patientIndex": 1,
+      "sourceIndex": 3,
+      "name": "B2",
+      "electrode": "B",
+      "nativeMillimeters": [
+        42.0,
+        11.75,
+        -9.25
+      ],
+      "unityMillimeters": [
+        -42.0,
+        11.75,
+        -9.25
+      ]
+    }
+  ]
+}

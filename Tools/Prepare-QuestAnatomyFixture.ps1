@@ -1,10 +1,13 @@
 # Rebuild the small project archive; anatomy is resolved by HiBoP's MNIObjects.
 [CmdletBinding()]
-param([string]$OutputDirectory = '.artifacts/quest-001/fixture')
+param(
+    [string]$OutputDirectory = '.artifacts/quest-001/fixture',
+    [ValidateSet('mni-anatomy', 'mni-contacts')][string]$Fixture = 'mni-anatomy'
+)
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$fixtureRoot = Join-Path $repositoryRoot 'Docs/dev/quest-autonomous/fixtures/mni-anatomy'
+$fixtureRoot = Join-Path $repositoryRoot "Docs/dev/quest-autonomous/fixtures/$Fixture"
 $manifest = Get-Content -LiteralPath (Join-Path $fixtureRoot 'manifest.json') -Raw | ConvertFrom-Json
 foreach ($source in $manifest.sources) {
     $sourcePath = Join-Path $repositoryRoot $source.path
@@ -24,7 +27,7 @@ if (-not [IO.Path]::IsPathRooted($OutputDirectory)) {
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 [IO.Directory]::CreateDirectory($OutputDirectory) | Out-Null
-$outputPath = Join-Path $OutputDirectory 'quest-mni-anatomy.hibop'
+$outputPath = Join-Path $OutputDirectory "quest-$Fixture.hibop"
 Add-Type -AssemblyName System.IO.Compression
 $stream = [IO.File]::Open($outputPath, [IO.FileMode]::Create)
 try {

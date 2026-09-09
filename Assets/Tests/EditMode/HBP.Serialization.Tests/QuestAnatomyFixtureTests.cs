@@ -11,6 +11,7 @@ using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace HBP.Tests.Serialization
@@ -100,6 +101,56 @@ namespace HBP.Tests.Serialization
                 await UniTask.SwitchToMainThread();
                 mni.Clean();
             }
+        }
+
+        [Test]
+        public async Task ContactsArchive_LoadsStableSyntheticPatientsAndMniAssociations()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+            string sources = Path.Combine(RepositoryRoot, "Docs/dev/quest-autonomous/fixtures/mni-contacts");
+            string archivePath = Path.Combine(temp.Path, "quest-mni-contacts.hibop");
+            using (ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
+            {
+                foreach (string directory in new[] { "Patients/", "Groups/", "Datasets/", "Visualizations/" }) archive.CreateEntry(directory);
+                foreach (string file in Directory.GetFiles(sources))
+                {
+                    string extension = Path.GetExtension(file);
+                    string prefix = extension == ".patient" ? "Patients/" : extension == ".visualization" ? "Visualizations/" : "";
+                    if (extension == ".patient" || extension == ".visualization" || extension == ".settings") archive.CreateEntryFromFile(file, prefix + Path.GetFileName(file));
+                }
+            }
+
+            ProjectInfo info = new(archivePath);
+            Project project = new(info.Name, new ProjectPreferences("fixture-placeholder"));
+            ApplicationState.LoadedProject = project;
+            ApplicationState.LoadedProjectLocation = temp.Path;
+            await project.LoadAsync(info, NoProgress, CancellationToken.None);
+            await project.CurrentLoadingOperation.Validated;
+            Assert.That(project.StructuralRecoveryReport.HasIssues, Is.False);
+            Assert.That(project.Patients.Count, Is.EqualTo(2));
+            var visualization = project.Visualizations.Single();
+            Assert.That(visualization.IsVisualizable, Is.True);
+            Assert.That(visualization.Configuration.ImplantationName, Is.EqualTo("MNI"));
+            Assert.That(visualization.Configuration.ShowAllSites, Is.True);
+            Assert.That(visualization.Configuration.MeshName, Is.EqualTo("MNI Grey matter"));
+            var expected = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(Path.Combine(sources, "contacts.json")));
+            var patients = visualization.Patients;
+            for (int i = 0; i < 8; i++)
+            {
+                var row = expected["sites"][i];
+                var patient = patients[i / 4];
+                var site = patient.Sites[i % 4];
+                Assert.That(patient.ID, Is.EqualTo((string)row["patientId"]));
+                Assert.That(site.ID, Is.EqualTo((string)row["siteId"]));
+                Assert.That(site.Name, Is.EqualTo((string)row["name"]));
+                var coordinate = site.Coordinates.Single();
+                Assert.That(coordinate.ReferenceSystem, Is.EqualTo("MNI"));
+                Assert.That(new[] { coordinate.Position.x, coordinate.Position.y, coordinate.Position.z }, Is.EqualTo(row["nativeMillimeters"].Values<float>().ToArray()));
+            }
+
+            Assert.That(project.Datasets, Is.Empty);
         }
 
         private static void NoProgress(float progress, float duration, LoadingText text)

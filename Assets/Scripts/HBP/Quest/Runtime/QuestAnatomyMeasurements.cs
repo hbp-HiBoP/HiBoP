@@ -41,7 +41,7 @@ namespace HBP.Quest
         {
             // HBNA ends in [surface SHA-256][surface buffers][content SHA-256].
             // Decode already checked both hashes; reading the stored digest makes no extra buffer copy.
-            string surfaceHash = BitConverter.ToString(bytes, checked(bytes.Length - 64 - (int)snapshot.SurfaceByteLength), 32).Replace("-", "").ToLowerInvariant();
+            string surfaceHash = BitConverter.ToString(bytes, AnatomySnapshotCodec.GetSurfaceHashOffset(snapshot), 32).Replace("-", "").ToLowerInvariant();
             Debug.Log("QUEST012_PUBLISH " + JsonUtility.ToJson(new PublicationRecord
             {
                 utc = DateTime.UtcNow.ToString("O"), transfer = snapshot.TransferId, hash = session.ContentHash,

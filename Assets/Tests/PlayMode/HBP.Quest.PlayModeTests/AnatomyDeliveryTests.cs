@@ -48,6 +48,65 @@ namespace HBP.Tests.Quest
         private static AnatomySnapshot Snapshot(string id, float alpha = 1) => AnatomySnapshot.Create(id, "session", "visualization", "column", 1, new AnatomyCoordinateSpace(AnatomyMeshUploader.FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }), AnatomyWinding.Clockwise, true, new[] { 0.2f, 0.4f, 0.7f, alpha }, new float[] { 0, 0, 0, 100, 0, 0, 0, 100, 0 }, new float[] { 0, 0, -1, 0, 0, -1, 0, 0, -1 }, new uint[] { 0, 1, 2 }, Array.Empty<float>());
 
         [Test]
+        public async Task Contacts_CapturedMniPlayerPayloadReachesTheQuestSessionOverTls()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            int argument = Array.IndexOf(args, "-questContactsFixture");
+            if (argument < 0) Assert.Ignore("Pass -questContactsFixture with the QUEST-013 Player capture.");
+            byte[] bytes = File.ReadAllBytes(args[argument + 1]);
+            var source = AnatomySnapshotCodec.Decode(bytes);
+            Assert.That(source.VertexCount, Is.EqualTo(69104));
+            Assert.That(source.Contacts.Sites.Count, Is.EqualTo(8));
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            Assert.That(view.Contacts.PatientIds, Is.EqualTo(source.Contacts.PatientIds));
+            for (int i = 0; i < 8; i++)
+            {
+                var expected = source.Contacts.Sites[i];
+                var received = view.Contacts.Sites[i];
+                Assert.That(received.Id, Is.EqualTo("quest-013-site-" + i.ToString("D2")));
+                Assert.That(received.Order, Is.EqualTo(i));
+                Assert.That(received.PatientIndex, Is.EqualTo(i / 4));
+                Assert.That(received.SourceIndex, Is.EqualTo(i % 4));
+                Assert.That(received.Position.ToArray(), Is.EqualTo(expected.Position.ToArray()));
+                Assert.That(received.Color.ToArray(), Is.EqualTo(expected.Color.ToArray()));
+                Assert.That(received.Name, Is.EqualTo(expected.Name));
+                Assert.That(received.Electrode, Is.EqualTo(expected.Electrode));
+                Assert.That(received.Flags, Is.EqualTo(expected.Flags));
+                Assert.That(received.Diameter, Is.EqualTo(2));
+                Assert.That(received.Visible, Is.True);
+                Assert.That(received.EffectiveMasked, Is.False);
+            }
+
+            TestContext.Out.WriteLine($"QUEST-013 captured MNI: {bytes.Length} bytes, {view.Contacts.Sites.Count} contacts, published hash {session.ContentHash}");
+        }
+
+        [Test]
+        public async Task Contacts_RealTlsPreservesAssociationsAcrossRetryDisconnectAndAnatomyReplacement()
+        {
+            var original = Snapshot("contacts");
+            var contacts = new AnatomyContacts("MNI", false, new[] { "patient-left", "patient-right" }, Enumerable.Range(0, 8).Select(i => new AnatomySite("site-" + i, "A" + i, "A", i, i / 4, i % 4, new[] { -31.25f + i, -18.5f, 26.75f }, new[] { .25f, .5f, .75f, 1f }, 2, i != 2, AnatomySiteFlags.Filtered, i == 3)).ToArray());
+            var snapshot = AnatomySnapshot.Create(original.TransferId, original.SessionId, original.VisualizationId, original.ColumnId, 1, original.Coordinates, original.Winding, original.Visible, original.Color.ToArray(), original.Positions.ToArray(), original.Normals.ToArray(), original.Indices.ToArray(), original.Uvs.ToArray(), contacts);
+            byte[] bytes = AnatomySnapshotCodec.Encode(snapshot);
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            var received = view.Contacts;
+            Assert.That(received.PatientIds, Is.EqualTo(contacts.PatientIds));
+            Assert.That(received.Sites.Select(site => site.Id), Is.EqualTo(contacts.Sites.Select(site => site.Id)));
+            Assert.That(received.Sites[7].Position.ToArray(), Is.EqualTo(contacts.Sites[7].Position.ToArray()));
+            session.Disconnect();
+            Assert.That(view.Contacts, Is.SameAs(received));
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.AlreadyPublished));
+            Assert.That(view.Contacts, Is.SameAs(received));
+            byte[] invalid = AnatomySnapshotCodec.Encode(Snapshot("invalid", .5f));
+            Assert.That((await Transfer(invalid)).ClientError, Is.Not.Null);
+            Assert.That(view.Contacts, Is.SameAs(received));
+            Assert.That((await Transfer(AnatomySnapshotCodec.Encode(Snapshot("anatomy-only")))).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            Assert.That(view.Contacts.Sites, Is.Empty);
+            await Transfer(AnatomySnapshotCodec.Encode(AnatomySnapshot.Create("contacts-again", snapshot.SessionId, snapshot.VisualizationId, snapshot.ColumnId, 1, snapshot.Coordinates, snapshot.Winding, true, snapshot.Color.ToArray(), snapshot.Positions.ToArray(), snapshot.Normals.ToArray(), snapshot.Indices.ToArray(), snapshot.Uvs.ToArray(), contacts)));
+            session.CloseSession();
+            Assert.That(view.Contacts.Sites, Is.Empty);
+        }
+
+        [Test]
         public async Task Offer_RealTlsPublishesAndAcknowledgesOnlyOnce()
         {
             var offer = new AnatomyDelivery(Snapshot("offer"));

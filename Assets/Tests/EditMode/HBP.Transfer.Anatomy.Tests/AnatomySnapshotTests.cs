@@ -111,7 +111,7 @@ namespace HBP.Tests.Transfer.Anatomy
             switch (corruption)
             {
                 case "magic": bytes[0] ^= 1; break;
-                case "version": bytes[4] = 2; break;
+                case "version": bytes[4] = 99; break;
                 case "totalLength": Put(bytes, 6, bytes.Length + 1L); break;
                 case "revision": Put(bytes, offsets["revision"], 0L); break;
                 case "handedness": bytes[offsets["handedness"]] = 255; break;

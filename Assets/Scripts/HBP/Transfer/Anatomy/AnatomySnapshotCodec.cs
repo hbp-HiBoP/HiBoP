@@ -6,12 +6,12 @@ using System.Text;
 namespace HBP.Transfer.Anatomy
 {
     /// <summary>
-    /// Deterministic little-endian v1 codec. Hashes detect corruption, not sender
+    /// Deterministic little-endian v1/v2 codec. Hashes detect corruption, not sender
     /// authenticity. Numeric payloads remain float32/uint32. No transport dependency.
     /// </summary>
     public static class AnatomySnapshotCodec
     {
-        public const ushort SchemaVersion = 1;
+        public const ushort SchemaVersion = 2;
         public const int MaximumVertexCount = 2_000_000;
         public const int MaximumIndexCount = 12_000_000;
         public const int MaximumEncodedBytes = 128 * 1024 * 1024;
@@ -23,6 +23,14 @@ namespace HBP.Transfer.Anatomy
         // Fixed fields including five string length prefixes and both SHA-256 hashes.
         private const int FixedBytes = 214;
         private static readonly UTF8Encoding TextEncoding = new UTF8Encoding(false, true);
+
+        /// <summary>Location of the stored surface hash in the matching encoded snapshot.
+        /// Use only after Decode verified that payload; the v2 contact suffix changes its distance from the end.</summary>
+        public static int GetSurfaceHashOffset(AnatomySnapshot snapshot)
+        {
+            if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+            return FixedBytes - 2 * HashBytes + TextEncoding.GetByteCount(snapshot.TransferId) + TextEncoding.GetByteCount(snapshot.SessionId) + TextEncoding.GetByteCount(snapshot.VisualizationId) + TextEncoding.GetByteCount(snapshot.ColumnId) + TextEncoding.GetByteCount(snapshot.Coordinates.FrameId);
+        }
 
         internal static void ValidateText(string value)
         {
@@ -45,14 +53,15 @@ namespace HBP.Transfer.Anatomy
                 snapshot.TransferId, snapshot.SessionId, snapshot.VisualizationId,
                 snapshot.ColumnId, snapshot.Coordinates.FrameId
             };
-            long length = FixedBytes + snapshot.SurfaceByteLength;
+            long contactBytes = snapshot.SchemaVersion == 1 ? 0 : AnatomyContactsCodec.Length(snapshot.Contacts);
+            long length = FixedBytes + snapshot.SurfaceByteLength + (contactBytes == 0 ? 0 : 4 + contactBytes);
             foreach (string value in texts) length += TextEncoding.GetByteCount(value);
             if (length > MaximumEncodedBytes) throw new ArgumentException("Snapshot exceeds the encoded byte limit.");
             byte[] encoded = new byte[(int)length];
             using var stream = new MemoryStream(encoded, true);
             using var writer = new BinaryWriter(stream, TextEncoding, true);
             writer.Write(Magic);
-            writer.Write(SchemaVersion);
+            writer.Write(snapshot.SchemaVersion);
             writer.Write(length);
             foreach (string value in texts)
             {
@@ -80,6 +89,12 @@ namespace HBP.Transfer.Anatomy
             Write(writer, snapshot.Normals);
             foreach (uint index in snapshot.Indices.AsReadOnlySpan()) writer.Write(index);
             Write(writer, snapshot.Uvs);
+            if (snapshot.SchemaVersion >= 2)
+            {
+                writer.Write((int)contactBytes);
+                AnatomyContactsCodec.Write(writer, snapshot.Contacts);
+            }
+
             if (stream.Position != length - HashBytes) throw new InvalidOperationException("Invalid codec layout.");
             using SHA256 sha = SHA256.Create();
             byte[] surfaceHash = sha.ComputeHash(encoded, surfaceOffset, (int)snapshot.SurfaceByteLength);
@@ -104,7 +119,8 @@ namespace HBP.Transfer.Anatomy
                 using var stream = new MemoryStream(encoded, false);
                 using var reader = new BinaryReader(stream, TextEncoding, true);
                 if (reader.ReadUInt32() != Magic) throw new InvalidDataException("Unknown snapshot magic.");
-                if (reader.ReadUInt16() != SchemaVersion) throw new InvalidDataException("Unsupported snapshot schema version.");
+                ushort version = reader.ReadUInt16();
+                if (version != 1 && version != SchemaVersion) throw new InvalidDataException("Unsupported snapshot schema version.");
                 if (reader.ReadInt64() != encoded.Length) throw new InvalidDataException("Snapshot length does not match its header.");
                 VerifyHash(encoded, 0, encoded.Length - HashBytes, encoded.Length - HashBytes);
                 string transferId = ReadText(reader);
@@ -126,17 +142,30 @@ namespace HBP.Transfer.Anatomy
                 int indices = reader.ReadInt32();
                 int uvs = reader.ReadInt32();
                 long surfaceBytes = ValidateCounts(vertices, indices, uvs);
-                if (reader.ReadInt64() != surfaceBytes || stream.Position + HashBytes + surfaceBytes + HashBytes != encoded.Length)
+                if (reader.ReadInt64() != surfaceBytes || stream.Position + HashBytes + surfaceBytes + HashBytes > encoded.Length)
                     throw new InvalidDataException("Surface dimensions do not match the exact encoded length.");
                 int hashOffset = (int)stream.Position;
                 stream.Position += HashBytes;
                 VerifyHash(encoded, (int)stream.Position, (int)surfaceBytes, hashOffset);
+                long surfaceStart = stream.Position;
+                stream.Position += surfaceBytes;
+                AnatomyContacts contacts = AnatomyContacts.Empty;
+                if (version >= 2)
+                {
+                    int contactBytes = reader.ReadInt32();
+                    if (contactBytes < 0 || stream.Position + contactBytes != encoded.Length - HashBytes) throw new InvalidDataException("Invalid contact section length.");
+                    contacts = AnatomyContactsCodec.Read(reader, encoded.Length - HashBytes);
+                    contacts.ValidateCoordinates(coordinates);
+                }
+
+                if (stream.Position != encoded.Length - HashBytes) throw new InvalidDataException("Unexpected snapshot trailing bytes.");
+                stream.Position = surfaceStart;
                 float[] positions = ReadFloats(reader, vertices * 3);
                 float[] normals = ReadFloats(reader, vertices * 3);
                 uint[] triangles = new uint[indices];
                 for (int i = 0; i < triangles.Length; i++) triangles[i] = reader.ReadUInt32();
                 float[] textureCoordinates = ReadFloats(reader, uvs * 2);
-                return new AnatomySnapshot(transferId, sessionId, visualizationId, columnId, revision, coordinates, winding, visible == 1, color, positions, normals, triangles, textureCoordinates);
+                return new AnatomySnapshot(transferId, sessionId, visualizationId, columnId, revision, coordinates, winding, visible == 1, color, positions, normals, triangles, textureCoordinates, contacts);
             }
             catch (EndOfStreamException exception)
             {

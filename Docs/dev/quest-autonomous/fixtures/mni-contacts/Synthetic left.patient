@@ -1,0 +1,74 @@
+{
+  "ID": "quest-013-patient-left",
+  "Name": "Synthetic left",
+  "Meshes": [],
+  "MRIs": [],
+  "Sites": [
+    {
+      "ID": "quest-013-site-00",
+      "Name": "A1",
+      "Coordinates": [
+        {
+          "ID": "quest-013-site-00-mni",
+          "ReferenceSystem": "MNI",
+          "Position": {
+            "x": -31.25,
+            "y": -18.5,
+            "z": 26.75
+          }
+        }
+      ],
+      "Tags": []
+    },
+    {
+      "ID": "quest-013-site-01",
+      "Name": "A2",
+      "Coordinates": [
+        {
+          "ID": "quest-013-site-01-mni",
+          "ReferenceSystem": "MNI",
+          "Position": {
+            "x": -27.5,
+            "y": -15.25,
+            "z": 29.0
+          }
+        }
+      ],
+      "Tags": []
+    },
+    {
+      "ID": "quest-013-site-02",
+      "Name": "B1",
+      "Coordinates": [
+        {
+          "ID": "quest-013-site-02-mni",
+          "ReferenceSystem": "MNI",
+          "Position": {
+            "x": -12.75,
+            "y": 21.5,
+            "z": 42.25
+          }
+        }
+      ],
+      "Tags": []
+    },
+    {
+      "ID": "quest-013-site-03",
+      "Name": "B2",
+      "Coordinates": [
+        {
+          "ID": "quest-013-site-03-mni",
+          "ReferenceSystem": "MNI",
+          "Position": {
+            "x": -9.0,
+            "y": 24.25,
+            "z": 45.5
+          }
+        }
+      ],
+      "Tags": []
+    }
+  ],
+  "Tags": [],
+  "CorrespondingDatabaseID": ""
+}

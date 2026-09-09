@@ -219,6 +219,112 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
             Assert.Throws<OperationCanceledException>(() => DesktopAnatomyCapture.CaptureSelectedAsync("transfer", "session", 1, new CancellationToken(true)));
         }
 
+        private Implantation3D AddContacts()
+        {
+            var patient = new Patient { ID = "patient-stable", Name = "Synthetic" };
+            var data = new HBP.Core.Data.Site { ID = "site-stable", Name = "A1" };
+            patient.Sites.Add(data);
+            m_Scene.Visualization.Patients = new List<Patient> { patient };
+            var source = new Implantation3D.SiteInfo { Patient = patient, PatientIndex = 0, SiteData = data, Name = "A1", Electrode = "A", Index = 0, NativePosition = new Vector3(31.25f, -18.5f, 26.75f) };
+            var implantation = new Implantation3D("MNI", new List<Implantation3D.SiteInfo> { source }, new[] { patient });
+            var manager = m_Root.AddComponent<ImplantationManager>();
+            manager.Implantations.Add(implantation);
+            SetField(m_Scene, "m_ImplantationManager", manager);
+            var go = new GameObject("Prepared contact");
+            go.transform.SetParent(m_Root.transform);
+            var site = go.AddComponent<HBP.Core.Object3D.Site>();
+            site.Information = new SiteInformation { Patient = patient, SiteData = data, Name = "A1", Index = 0, DefaultPosition = source.UnityPosition };
+            site.State = new SiteState { Color = new Color(.5f, .25f, .75f), IsFiltered = true };
+            site.IsActive = true;
+            go.AddComponent<MeshFilter>().sharedMesh = SharedMeshes.Site;
+            go.AddComponent<MeshRenderer>().sharedMaterial = m_Materials.BrainMaterial;
+            SetField(m_Column, "<Sites>k__BackingField", new List<HBP.Core.Object3D.Site> { site });
+            m_Column.RawElectrodes.Dispose();
+            SetField(m_Column, "<RawElectrodes>k__BackingField", new HBP.Core.DLL.RawSiteList(implantation.RawSiteList));
+            return implantation;
+        }
+
+        [Test]
+        public async Task Contacts_CaptureUsesScientificPositionsAndFreezesAppearanceAndAssociations()
+        {
+            var implantation = AddContacts();
+            try
+            {
+                var site = m_Column.Sites[0];
+                site.transform.localPosition = new Vector3(999, 888, 777);
+                site.transform.localScale = Vector3.one * 3;
+                m_Root.transform.SetPositionAndRotation(new Vector3(9000, -100, 40), Quaternion.Euler(15, 30, 60));
+                Task<AnatomySnapshot> pending = Capture();
+                site.Information.SiteData.ID = "edited";
+                site.Information.DefaultPosition = Vector3.zero;
+                site.State.IsBlackListed = true;
+                site.transform.localScale = Vector3.one * 10;
+                var contacts = (await pending).Contacts;
+                Assert.That(contacts.Sites[0].Id, Is.EqualTo("site-stable"));
+                Assert.That(contacts.Sites[0].Position.ToArray(), Is.EqualTo(new[] { -31.25f, -18.5f, 26.75f }));
+                Assert.That(contacts.Sites[0].Diameter, Is.EqualTo(6));
+                Assert.That(contacts.Sites[0].EffectiveMasked, Is.False);
+                Assert.That(contacts.PatientIds, Is.EqualTo(new[] { "patient-stable" }));
+                var position = contacts.Sites[0].Position;
+                var native = new Vector3(HBP.Core.DLL.ReferenceSystemConversion.ConvertX(position[0]), position[1], position[2]);
+                Assert.That(native, Is.EqualTo(implantation.SiteInfos[0].NativePosition));
+                using var reconstructed = new HBP.Core.DLL.RawSiteList();
+                reconstructed.SetPatients(new[] { new Patient { ID = contacts.PatientIds[0] } });
+                reconstructed.AddSite(contacts.Sites[0].Name, native, contacts.Sites[0].PatientIndex, contacts.Sites[0].SourceIndex);
+                Assert.That(reconstructed.NumberOfSites, Is.EqualTo(1));
+            }
+            finally
+            {
+                implantation.Clean();
+            }
+        }
+
+        [TestCase("order")]
+        [TestCase("association")]
+        [TestCase("pending")]
+        [TestCase("frame")]
+        public void Contacts_RejectsInconsistentPreparedState(string scenario)
+        {
+            var implantation = AddContacts();
+            try
+            {
+                if (scenario == "order") m_Column.Sites[0].Information.Index = 1;
+                if (scenario == "association") implantation.SiteInfos[0].PatientIndex = 1;
+                if (scenario == "pending") m_Scene.SceneInformation.SitesNeedUpdate = true;
+                if (scenario == "frame") implantation.Name = "Patient";
+                Assert.Throws<InvalidOperationException>(() => Capture());
+            }
+            finally
+            {
+                implantation.Clean();
+            }
+        }
+
+        [Test]
+        public async Task Contacts_AllMaskFlagCombinationsUseTheSharedDesktopRule()
+        {
+            var implantation = AddContacts();
+            try
+            {
+                var state = m_Column.Sites[0].State;
+                for (int bits = 0; bits < 16; bits++)
+                {
+                    state.IsMasked = (bits & 1) != 0;
+                    state.IsBlackListed = (bits & 2) != 0;
+                    state.IsOutOfROI = (bits & 4) != 0;
+                    state.IsFiltered = (bits & 8) != 0;
+                    var site = (await Capture()).Contacts.Sites[0];
+                    Assert.That((byte)site.Flags, Is.EqualTo(bits));
+                    Assert.That(site.EffectiveMasked, Is.EqualTo((bits & 1) != 0 || (bits & 2) != 0 || (bits & 8) == 0));
+                    Assert.That(state.IsEffectivelyMasked(true), Is.EqualTo((bits & 1) != 0 || (bits & 2) != 0 || (bits & 4) != 0 || (bits & 8) == 0));
+                }
+            }
+            finally
+            {
+                implantation.Clean();
+            }
+        }
+
         private static Task<AnatomySnapshot> Capture() => DesktopAnatomyCapture.CaptureSelectedAsync("transfer", "session", 1);
 
         private static void SetField(object target, string name, object value)
