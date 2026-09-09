@@ -1,0 +1,13 @@
+[
+  "-densityBenchmark",
+  "C:/HBP/Software/HiBoP/.artifacts/quest-017/captures/20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a/anatomy.hbna",
+  "C:/HBP/Software/HiBoP/.test-results/quest-019/benchmark-windows-final",
+  "-screen-fullscreen",
+  "0",
+  "-screen-width",
+  "800",
+  "-screen-height",
+  "600",
+  "-logFile",
+  "C:/HBP/Software/HiBoP/.test-results/quest-019/benchmark-windows-final/player.log"
+]

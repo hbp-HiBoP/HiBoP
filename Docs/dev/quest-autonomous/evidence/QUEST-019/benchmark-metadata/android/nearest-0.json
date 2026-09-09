@@ -1,0 +1,38 @@
+{
+    "name": "nearest-0",
+    "inputSha256": "164fb773819aa714cd207b3f81f6f4e5ad4d836a24d648a71761f21ef8329f02",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "Android",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 1.341609239578247,
+    "preparationMs": 8.3177,
+    "computeMs": 11.8087,
+    "projectionAndCopyMs": 5.1362000000000009,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 58068992,
+    "managedAfter": 58081280
+}

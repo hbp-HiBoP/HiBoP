@@ -1,0 +1,1945 @@
+{
+  "schemaVersion": 1,
+  "task": "QUEST-019",
+  "recordedAt": "2026-09-09T14:20:00.393132+00:00",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "scientific": "ACCEPTEE_D30",
+    "manual": "VALIDE"
+  },
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "head": "dd1f8400dc456b0f5ddfe5489e4b86978032656f",
+    "initialWorkingTree": "clean",
+    "committed": false,
+    "files": [
+      {
+        "path": "Assets/Prefabs/Quest/AnatomyOpaque.mat",
+        "bytes": 1107,
+        "sha256": "5e045b312ce85a3560ff374a131a5104c232ce3d53168f2e31f056528ae243aa"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/HBP.Quest.Runtime.asmdef",
+        "bytes": 435,
+        "sha256": "887655d0b360e669474e1ce59061720928ae8a804fb9d52e0107e8b49e2a8b41"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyInput.cs",
+        "bytes": 3647,
+        "sha256": "96020521cc82ca3c473508738a689aa42e35bfff161172d3a0f123c5f8790011"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyView.cs",
+        "bytes": 10236,
+        "sha256": "1517bfb22a299b078c7b36f2cad878349aae09d929f4c80a37c89f888060a55d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestConnectionPanel.cs",
+        "bytes": 6883,
+        "sha256": "60089a4e7880bf2166177f04b1fde9b607bb862102677957ac28ab653d9f1c44"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestDensityDiagnostic.cs",
+        "bytes": 5073,
+        "sha256": "24e9649af79499338cd577029b234c5261b87f5eaa3652e0c180bd09635c99c0"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestDensityDiagnostic.cs.meta",
+        "bytes": 62,
+        "sha256": "caa9cc51693aafa2179432b502e25e0c44a4851ea147ddf509f0801fef3d3395"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestProjectionDiagnostic.cs",
+        "bytes": 9114,
+        "sha256": "8312805cb80adea19b6e6c44836277f2866e31b2780ad586a0f7e3d890b47efe"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DensityDeliveryDiagnostic.cs",
+        "bytes": 3937,
+        "sha256": "f7ff819ca8d70881c679e0c3331d5c86bec3f21baad74d766a03f35a1ff7bcdd"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DensityDeliveryDiagnostic.cs.meta",
+        "bytes": 62,
+        "sha256": "8dd6cf6263d5a1fa5b3fa7829e2cf2441812d4e28e3dec6e0f32a3e6b4928c26"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopAnatomyCapture.cs",
+        "bytes": 11980,
+        "sha256": "a32d17625d3e5bed1f2fc10928967fb2b7ad046bc7a3fab846f05e3953a7b36e"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/HBP.Transfer.Anatomy.Desktop.asmdef",
+        "bytes": 272,
+        "sha256": "d803fcff13cb43ef27c6147c224d6575f0226fb6502a0a6beedf0a0b1288419b"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Projection/DensityBenchmark.cs",
+        "bytes": 7917,
+        "sha256": "cf5f793ae9e3805096b93beb80d7dc9c5362c34536fc9fc43a41ca9fa5b12e3e"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Projection/DensityBenchmark.cs.meta",
+        "bytes": 62,
+        "sha256": "18c25ac765d5802f1502ba4e0c54d22aa7b3ee8e983c87807b23f5c799c9d35e"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Projection/NativeProjectionInputs.cs",
+        "bytes": 10002,
+        "sha256": "445293b6d8c3ba7c063f6a5e740aec49b596b6e86b032cef4702c00a1620e00d"
+      },
+      {
+        "path": "Assets/Shaders/Quest/AnatomySurfaceCommon.hlsl",
+        "bytes": 2776,
+        "sha256": "ff79dc32af9e87a1220f5eda2d94a6a09e385a1ae4c72e392ed9b18d9dd589a2"
+      },
+      {
+        "path": "Assets/Shaders/Quest/AnatomySurfaceOpaque.shader",
+        "bytes": 1225,
+        "sha256": "bcd69a0cef7c53469ead013ece0a421f7fb464e743d10faf79420a9e995451aa"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/DensityCalculationTests.cs",
+        "bytes": 6789,
+        "sha256": "fb85b92aba01fe9eeaab205dcf18586203efea471e9c28531d63027cc1854662"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/DensityCalculationTests.cs.meta",
+        "bytes": 62,
+        "sha256": "3c3dde7d89797cbff9a8ee04d883f30dfedbb52f46bf676f9e706d963845f848"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/NativeProjectionInputTests.cs",
+        "bytes": 7103,
+        "sha256": "3edac3bbdb0db6ecccbd0cc11168e5fb97aa1c6b9592d5d455de5ccb41081dc3"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopAnatomyCaptureTests.cs",
+        "bytes": 26066,
+        "sha256": "78f099c4e521b6444622442825c98709d5ac7ab5ab1d69c4f8fa47f1863a0f7f"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyDeliveryTests.cs",
+        "bytes": 29434,
+        "sha256": "a7a1e9f7a22f6508ce7796498ce4a592ca36f2e0dbd0bb78331d76514431dcf8"
+      },
+      {
+        "path": "Tools/Compare-QuestDensity.py",
+        "bytes": 4727,
+        "sha256": "0f2317b3b2bc73739492c554c16c061a14e027595b2392d0432c4cbb4ea9332a"
+      },
+      {
+        "path": "Tools/Run-QuestDensityBenchmark.ps1",
+        "bytes": 4455,
+        "sha256": "7768a3f277de3191437b1055e0bc150488c8581734cd86fc6e0c716fcc19316b"
+      },
+      {
+        "path": "Tools/Run-QuestDensityDelivery.ps1",
+        "bytes": 6391,
+        "sha256": "d3b740976844c52097f21ccce533dea296eff4d8dfa026c92a23deb21b5cb4bb"
+      }
+    ]
+  },
+  "environment": {
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "nativeHead": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1",
+    "device": "Quest 3",
+    "adbSerial": "192.168.1.18:5555",
+    "backends": [
+      "Windows x64 IL2CPP Development",
+      "Android ARM64 IL2CPP Development"
+    ],
+    "locks": [
+      {
+        "path": "Packages/manifest.json",
+        "bytes": 2605,
+        "sha256": "c962cea53601a70c1a38ede220b1e0e9c2b6a008b740e00058055faba4d59652"
+      },
+      {
+        "path": "Packages/packages-lock.json",
+        "bytes": 17988,
+        "sha256": "c5f3d1c413ee802e90ab68a618fc5a3e9bd93b248a6959ed8ff01416bf4906c5"
+      },
+      {
+        "path": "Tools/NativePlugins.lock.json",
+        "bytes": 8169,
+        "sha256": "3d96ef4de48733d846032b7210ae7850eac127950cd0bcb49ac59e778882f240"
+      },
+      {
+        "path": "ProjectSettings/ProjectVersion.txt",
+        "bytes": 85,
+        "sha256": "37b79852fe632bb6d17f4a144fcc583bc700eff2aab10d2a3140e516c4391965"
+      }
+    ],
+    "nativePlugins": [
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+        "bytes": 1005056,
+        "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+        "bytes": 1378816,
+        "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+      },
+      {
+        "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+        "bytes": 246784,
+        "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa"
+      },
+      {
+        "path": "Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so",
+        "bytes": 921304,
+        "sha256": "a81e7d3ac1ab6bef5921e2d4656d08fb9ac4f84c962f0f0505ab3aff157d5074"
+      },
+      {
+        "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_core.so",
+        "bytes": 1535512,
+        "sha256": "6ac03d016c2fba89ae35a26b5c14d9d8ccaa82e876345537d5cd28f16f2f1e90"
+      },
+      {
+        "path": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so",
+        "bytes": 50400,
+        "sha256": "95192df09d373343b28f20ecbef32bce04c0b29cc3a758c3a1241ba30725c34b"
+      },
+      {
+        "path": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so",
+        "bytes": 1450608,
+        "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e"
+      },
+      {
+        "path": "Assets/Plugins/Editor/LegacyNative/Windows/x86_64/hbp_export.dll",
+        "bytes": 976384,
+        "sha256": "723e022a3cff85f3759f104b8ed631db2a819c38caade9934926a5b8c483d472"
+      },
+      {
+        "path": "Assets/Plugins/Editor/LegacyNative/Linux/x86_64/libhbp_export.so",
+        "bytes": 1685552,
+        "sha256": "a1b1f6a229bfcb5ffbf616fbcdb0a79996facc2f84526b7269c223bfc733f6d9"
+      }
+    ]
+  },
+  "fixtures": [
+    {
+      "path": ".artifacts/quest-017/captures/20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a/anatomy.hbna",
+      "bytes": 15532677,
+      "sha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26"
+    },
+    {
+      "path": ".artifacts/quest-018/fixture/quest-mni-contacts.hibop",
+      "bytes": 5068,
+      "sha256": "7e4f24e7cbc01c4f52316035fa15585f24f40f9ce796489039826d70e7f5d672"
+    },
+    {
+      "path": ".artifacts/quest-008/fixture/quest-anatomy.hbna",
+      "bytes": 3870248,
+      "sha256": "065309ca8cc4babe9f8c2cd9f08bb7f6ae97b1e11374e1299e0f4a416e5ada12"
+    }
+  ],
+  "binaries": [
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/baselib.dll",
+      "bytes": 238504,
+      "sha256": "6d32e03bd97e1971ecc6ddc1264fd21ff137415b1416c812e24d6d569db76413"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/dstorage.dll",
+      "bytes": 206904,
+      "sha256": "cae65787f61514bec6f012f44546e68b19e39d8854a9ab52af813370d44b272a"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/dstoragecore.dll",
+      "bytes": 1482784,
+      "sha256": "cf85b19a92a8276f8baca0db9bbcd60735bad50768deb303d310e84d5f4fdd11"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 66024448,
+      "sha256": "aad7e0405de00a1969b9520a4e0c22b3d6c9d2e2e7b0163259f35b2f711349fb"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_user_manual.pdf",
+      "bytes": 2402716,
+      "sha256": "c5f164e0659c8ce5555568d7734afcae601ecf985b8f056949a7b66cccc15b66"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/README.md",
+      "bytes": 4215,
+      "sha256": "67e060ff28fbd872ae48448f523b70d4ef47557eee4e17fa076fcc60a3689f84"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/UnityCrashHandler64.exe",
+      "bytes": 1806760,
+      "sha256": "33f6fa4501f0cb4e7fd8823b143f44b999356ace6971500e223b6953a300903a"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/UnityPlayer.dll",
+      "bytes": 88157104,
+      "sha256": "b9991f8b5d64e9f5d1c8d056f22a2688076df56d29fe281e018d94f90903dbd4"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/WinPixEventRuntime.dll",
+      "bytes": 58368,
+      "sha256": "81adcfd8253c3489be720da7e30f16004dc9a1f02a8b418c6c3aef4993032e6d"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/D3D12/D3D12Core.dll",
+      "bytes": 4725304,
+      "sha256": "625bd40005b1c3708695d5256ecf230d278e6b8edba5a88af70f3d91324f3052"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/D3D12/d3d12SDKLayers.dll",
+      "bytes": 4930104,
+      "sha256": "c0730cc70d3250d3de19c04c17845ba9e70eecaf502d684d1409195ebc5b5959"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/app.info",
+      "bytes": 10,
+      "sha256": "ea353721778c32e55ccb47a2a205eb64647a5aee2baa1b359f13d7e727ea39a7"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/boot.config",
+      "bytes": 382,
+      "sha256": "ac576819259fd7fc383c00158429183fe3a9cae46f6c1a1b12ad1b360a12ca6a"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/globalgamemanagers",
+      "bytes": 2969396,
+      "sha256": "5e58cdfe5d29d1d3eea7ca9469229345080bb54f1c3f326b4a5dee2410a5aea9"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/globalgamemanagers.assets",
+      "bytes": 839476,
+      "sha256": "5eb7045263845a806adf2c2e0316ab96b519a3369f0777cd905ca03a4312d5e0"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/globalgamemanagers.assets.resS",
+      "bytes": 4216848,
+      "sha256": "9fc66fc410a01493cc9e93997a94772aa8620bfca7c8faa15d9ea719a2588d7b"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/level0",
+      "bytes": 782624,
+      "sha256": "2ea443272f177e6634d0b62c0b2ae549364f9e09a04fed9a3ae880362ecf4b35"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/resources.assets",
+      "bytes": 11422636,
+      "sha256": "fed12026043148f17712b38d1e947e81b802015db740931d5677d62ea74bc928"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/resources.assets.resS",
+      "bytes": 145336384,
+      "sha256": "75679e93a96a5a995325bebacb4faeb8ebd28c88b0c911f609fabe2e7436456b"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/RuntimeInitializeOnLoads.json",
+      "bytes": 13495,
+      "sha256": "2a824db0cc25ea5ba554058b23def83d794673ac3cf5ee3e402f9a364e054508"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/ScriptingAssemblies.json",
+      "bytes": 6083,
+      "sha256": "904ca98ce21be8d1cdbff1e416e35b183dcf821e87f8146a172c82913651dddc"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/sharedassets0.assets",
+      "bytes": 2716540,
+      "sha256": "ef4e2baea4c4cdf2289fc5ba55bb5b32d4d0c2a472475377d45be08a153a7761"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/sharedassets0.assets.resS",
+      "bytes": 12580736,
+      "sha256": "8f8464039be3e3470b3496b3fb8f2d43499de8d76a223f1927ad15bf5cd1e7fd"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/il2cpp.usym",
+      "bytes": 95797738,
+      "sha256": "8927be122419e73c8668ed91d3356d3376c229dcc44688614ecdc8cb8d6e5fb9"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Resources/unity default resources",
+      "bytes": 5881648,
+      "sha256": "8a2af10a03beff92706eddcd6a8dbac8abddbee6866849123a79c21a03992661"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Resources/unity_builtin_extra",
+      "bytes": 449932,
+      "sha256": "21f7f4bc7b6c1432902ae6356560b28eb8e26a8110b6385aaa5ae5c9144bfa95"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/UnitySubsystems/libUnityARFoundationMeta/UnitySubsystemsManifest.json",
+      "bytes": 181,
+      "sha256": "1b948c6cf83c2b90b1e8f217d83ed17d8f4761702f6204e75dbeca698572aed2"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json",
+      "bytes": 250,
+      "sha256": "2528d0caa5fb4c4ea91ed74fb88315fca934158314bcec29d12fbeaac8e7cfd6"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/ARM64/XRSimulationSubsystem.dll",
+      "bytes": 214528,
+      "sha256": "112dcf44cf903949cf21c04dcda8a41943105aa5bf8c30e0833d9173b45d9226"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/EEGFormat.dll",
+      "bytes": 1005056,
+      "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_core.dll",
+      "bytes": 1378816,
+      "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_math.dll",
+      "bytes": 246784,
+      "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/lib_burst_generated.dll",
+      "bytes": 480256,
+      "sha256": "d3d85c1196a491b65302fd846a690e7047683800cd0d145df08585d8757455a0"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/lib_burst_generated.pdb",
+      "bytes": 3137536,
+      "sha256": "524ca39009cb93f943191941bf70cb8656d5a0968af722a4cfe8d96e77ece778"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/XRSimulationSubsystem.dll",
+      "bytes": 255488,
+      "sha256": "39c1de1b5222027b2db11b4e1dab95575784cc5d7a1c9deb902b6d0db1db1f26"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Metadata/global-metadata.dat",
+      "bytes": 12627644,
+      "sha256": "610658cad1bdb87146c2968ce4fb497097134183699dab7a097126f01d51a7eb"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/I18N.CJK.dll-resources.dat",
+      "bytes": 641770,
+      "sha256": "63a848c14c41b4d34633aca7581b1d207064c6230bee84a349ff00c7bc24553f"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/Ionic.Zip.dll-resources.dat",
+      "bytes": 209043,
+      "sha256": "fc4f3aabccbcebcbf273697784c8d7b7a3d7b586e8c1e3769da7d71e8531faaf"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/mscorlib.dll-resources.dat",
+      "bytes": 337563,
+      "sha256": "c5baa176a5b72cd545266340e42102d393a5e43d38c95796bc828918bb95277f"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/System.Data.dll-resources.dat",
+      "bytes": 93718,
+      "sha256": "98a7950ec6de3242c2e190dfa630188dfa32511a125542b94baa952d1c757d49"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/System.Drawing.dll-resources.dat",
+      "bytes": 25453,
+      "sha256": "7c33aa707bc3fdc83991b81a97d6fc622b140762a767300f08f616c2c0a91255"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/BIDS/example_bids_config.json",
+      "bytes": 664,
+      "sha256": "cb108409999a247364f9fc9af358b428e856ce7b3c95bf7efd36928787b41d8d"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/IRM/MNI.nii",
+      "bytes": 11661664,
+      "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI.trm",
+      "bytes": 57,
+      "sha256": "1a99d0241b7809d1e3d0410687f001e84f2dc19e60381f1547da1e2fc464c3ee"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Lhemi.gii",
+      "bytes": 1668484,
+      "sha256": "1e5c67969dbea35e1316c9b0a16e098179be4629a91c6cd60e4852892554a348"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Lwhite.gii",
+      "bytes": 1586900,
+      "sha256": "67288f09ccd760eac9626e4ed5a1a48405d40e0613dad62a85742eee3233a224"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Lwhite_inflated.gii",
+      "bytes": 1586900,
+      "sha256": "05fd152d02aacfd466240246967bdc9db39c9a579fb862a0f99c9f21cbf905b8"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Rhemi.gii",
+      "bytes": 1651108,
+      "sha256": "3aab5ac60f7c179a5b67d8d09e47c5f38c76b4a8e9e1560d0a5cee98c73a9fd6"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Rwhite.gii",
+      "bytes": 1597796,
+      "sha256": "7fa5c371eb4dbbe6f7104b77bf105a8f80453b02e0b509d03a61adffc86d0beb"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Rwhite_inflated.gii",
+      "bytes": 1597796,
+      "sha256": "49a9405935b484582b9b141e0c22270808b68adfea900627218d62c86d6c29dc"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Meshes/Materials/defaultMat.mat",
+      "bytes": 3878,
+      "sha256": "75396091c654f4a6db9daf65fbfc89c40f7a922bbc2d7443df346e58c9677152"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC1_CONS.jpg",
+      "bytes": 20428,
+      "sha256": "9ed424acf9908364b4a48c902d593594f9410fdb3198dfe711dfd8581e95628d"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC1_PHO.jpg",
+      "bytes": 18764,
+      "sha256": "ec34a61e904bc203885f82eb1f23d0f8bdeafa09449e1338bc5cfafb1397d1bf"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC1_SEM.jpg",
+      "bytes": 18917,
+      "sha256": "9598fee760fe5220faabd29171eb08bd0c076b782b76ac583f7096c6c83b139d"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC2_ATT.jpg",
+      "bytes": 28186,
+      "sha256": "e36a92b3bd2f80561dde7133fad837b4747e22d83f9cb8758f4b99567966f1f2"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC2_IGN.jpg",
+      "bytes": 28589,
+      "sha256": "85a1dacc41f5d8346abb23809d7344b05b0274064519299cc28d6d7a99cee96a"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MCSE_EASY.jpg",
+      "bytes": 19611,
+      "sha256": "b5352de62602604873bcc2f6d212d40aad4d38d409eb6f9c6bb19d820c980120"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MCSE_HARD.jpg",
+      "bytes": 18239,
+      "sha256": "b5b55bba10dc80affaaf6fdf11653a5176f9b54493c7fb615ed098e28efd679f"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_CONT.jpg",
+      "bytes": 21501,
+      "sha256": "0e4ddd56aeead71a47ab9c147d9b71c284c898a8db4c56ffc0d63a66058f818d"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_LOAD2.jpg",
+      "bytes": 21814,
+      "sha256": "bda2f5538f5e7e62234f0ada246e301657c543eebae1bd15e3a49d9b25344226"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_LOAD4.jpg",
+      "bytes": 20708,
+      "sha256": "8fd6926c57cced25eaaae3388c11cd45e40408084b248cc315a6cfea0b82a0e4"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_LOAD6.jpg",
+      "bytes": 20529,
+      "sha256": "8ba50878353db6eed57392d293afde50aa4a2048a6a0100b8e3c091ce5a6060c"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_CONT.jpg",
+      "bytes": 21888,
+      "sha256": "1c6b3789415cc7a03f09a5b5326344d1ea63b0a85c70d1ba328a27e6cb8d5a3f"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_LOAD2.jpg",
+      "bytes": 22848,
+      "sha256": "f16283322c1a6bd26f29f993e940ed879854d43e27623c94d4392887eb0101e2"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_LOAD4.jpg",
+      "bytes": 25470,
+      "sha256": "658b2f1356568da0508765daa8f63311cf91712203e132f71c05966c4c246d11"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_LOAD6.jpg",
+      "bytes": 28257,
+      "sha256": "b6fd7c1c52683e6f67e7366ae579798cbd1edb2398c5be6d36a9be51f383450e"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_ANIMAL.jpg",
+      "bytes": 27204,
+      "sha256": "6b6626cb098cb6de73a4e6e931cb10ccb97c8ce2ad4eb8b2b637183c8b32bc62"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_CONSON.jpg",
+      "bytes": 20428,
+      "sha256": "9ed424acf9908364b4a48c902d593594f9410fdb3198dfe711dfd8581e95628d"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_FACE.jpg",
+      "bytes": 27884,
+      "sha256": "2bd31f28ee1439b50224ab4835c447fc38c3f2a6778e01b1bf711e3dbc67e622"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_FRUIT.jpg",
+      "bytes": 34236,
+      "sha256": "58ad329e140c78aebf2f22e2f3941e03f1f7b0ff88434ba8a6cd760ffed7253b"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_HOUSE.jpg",
+      "bytes": 28199,
+      "sha256": "cc94ff3c04c80676dee6850352feec654bdeb8393cdee5f2b10dfd75db0b8530"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_LANDSCAPE.jpg",
+      "bytes": 35097,
+      "sha256": "2ce7a4e8a027e8023cee6ae832c74dc9ff76aebe8ff83f5880e14bc5fc2a0b57"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_OBJECT.jpg",
+      "bytes": 24389,
+      "sha256": "10bfcec68cf4932cfbae7f1012e34c12fcf71d8be6e43f62023057c3387fbdcc"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_PWORD.jpg",
+      "bytes": 18764,
+      "sha256": "ec34a61e904bc203885f82eb1f23d0f8bdeafa09449e1338bc5cfafb1397d1bf"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_SCRAMB.jpg",
+      "bytes": 89877,
+      "sha256": "f30b86faea6f06487e7b81f3bf7f55070af7fb87d3f593ef6d80157c47090fe2"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/AUDI.prov",
+      "bytes": 10982,
+      "sha256": "29d0b95bd9a023ca93408d66b3cc4ea70f205f279d4297ce424b27aea940e61f"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/LEC1.prov",
+      "bytes": 3511,
+      "sha256": "3078b553425a03804be2f7052c6b0314c94df300a954164b3ed218d9dca14a3f"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/LEC2.prov",
+      "bytes": 1848,
+      "sha256": "3989c48102d7af1a91cc2d35b1ca090f02b1d57a8c7fa3d1fdb700dfb2190271"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MCSE.prov",
+      "bytes": 2381,
+      "sha256": "65a4fe0783074a00b9e88141c8e96e4cbc8bc10d6a7eb66a62a5f41b79ae2103"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MOTO.prov",
+      "bytes": 13763,
+      "sha256": "e2df37b3688dba07c41b17e1b93bfd84af59bb45fdd8f068928e7d5a2831a272"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MVEB.prov",
+      "bytes": 4635,
+      "sha256": "51ae38ff63ea094710d117840deb1148a20f684c7fc685e987c463b9e2da3e91"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MVIS.prov",
+      "bytes": 4635,
+      "sha256": "e199f0917152eaa56856f0a09b9e0a663a06b5400cd7b5eea225f53b8056b0a3"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/VISU.prov",
+      "bytes": 8290,
+      "sha256": "b1422752c7ac3408e7402d63ff6b3c651a03dce0e2e1a30c532e01c490e32d82"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/IBC/all_maps.nii.gz",
+      "bytes": 46868191,
+      "sha256": "0915eb6f1fa702230300acc66722123fc438eb9b8af2129deed3e2b3333651c6"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/IBC/gm_mask_3mm.nii.gz",
+      "bytes": 17033,
+      "sha256": "4c701b986c19a7b48a7cf225078e801f02c3fa5c4f938e83e6bbe490e0718a64"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/IBC/map_labels.csv",
+      "bytes": 17444,
+      "sha256": "c3928cb375ebe09ca50ec46cd58d99d5c120083f9f3430736c78984346f8b071"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/JuBrain/jubrain_labels_3.1.json",
+      "bytes": 38448,
+      "sha256": "205a78674303de2c4c9fb05fa0aee0635850977baf630160258b143decea3f5b"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz",
+      "bytes": 169134,
+      "sha256": "070589c1f730ddaabc672c1e7318fb6456d497235c059ad801ecaa95a32818f7"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz",
+      "bytes": 176444,
+      "sha256": "01668905d74f184888a17bcc3a96c777b77a54a70a17d29f542378b12f41a419"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/MarsAtlas/brodmann_areas.txt",
+      "bytes": 1281,
+      "sha256": "6896a9f8546a8da3f835c0516e712451f3ccd11c370c1b3e83710edd1002aae3"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii",
+      "bytes": 28436900,
+      "sha256": "d14331ff2a133483adbd9db0438683b447c65559cbad9ea721c8de749a02449c"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/MarsAtlas/mars_atlas_index.csv",
+      "bytes": 7503,
+      "sha256": "4a8b445d1c8139611119b02248c21190ff76b0f2cf1b98dd3cfd99c0cbc064a2"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/labels_1024_dictionary.csv",
+      "bytes": 120595,
+      "sha256": "8fb32a81ce9d568206c2959da07da9544a23dfbfa86dd3a7af25fb3515fa8198"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/128/labels_128_dictionary.csv",
+      "bytes": 14316,
+      "sha256": "d9e335c5aed0155e8beb43818e006fcfa8499459c853ee16dcaf966b84c94ab2"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/256/labels_256_dictionary.csv",
+      "bytes": 27959,
+      "sha256": "31088bfbd1fa12d286eb1e44cb91faf38012e503bedba90e526268e7ebb2a3b4"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/512/labels_512_dictionary.csv",
+      "bytes": 57321,
+      "sha256": "8eac47588c77044bc8161025ced9b0017eac56877c0692eae15681e5cd2d6ddb"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/64/labels_64_dictionary.csv",
+      "bytes": 6802,
+      "sha256": "5585f75c49d727a63db31feb90467d02ee04288eedb2708be896c374017363b5"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/64/2mm/maps.nii.gz",
+      "bytes": 2247088,
+      "sha256": "c16cd4d84d648be1d6c09719def825fc0028d852b4302e2e4784739f3ee0f0f5"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/64/3mm/maps.nii.gz",
+      "bytes": 1726795,
+      "sha256": "5dfc063e7d50104cdb88585afe437c808dc3d90a32987b8837409badbc90c634"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/512/2mm/maps.nii.gz",
+      "bytes": 14359345,
+      "sha256": "1de41df48d726d43c70e420b6a7a98b57e18f65768c9224bb6b057f329de9238"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/512/3mm/maps.nii.gz",
+      "bytes": 12690218,
+      "sha256": "8e5036f58fb935ed6e41af65fe0575ea6d271ab7f08ca8888cf7f02c0ee1cda8"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/256/2mm/maps.nii.gz",
+      "bytes": 7715436,
+      "sha256": "c9f5b7f2a8da4b41c7a42e850dfcfcba5327e7eee2ef61650041a0183f651b3a"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/256/3mm/maps.nii.gz",
+      "bytes": 6512295,
+      "sha256": "41fd2b94d5ef33373607e9e42ff59a3223e15f0daaabac5ec877eb5818e3c66c"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/128/2mm/maps.nii.gz",
+      "bytes": 4115835,
+      "sha256": "bf11058c79ad07a74aef955a5cf6147e645b24ecf5d47ffc54160abb5fd6eb6c"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/128/3mm/maps.nii.gz",
+      "bytes": 3336160,
+      "sha256": "decadcb092d3a08311df125caa50f06b5495962b0a36509461ba0f605f2e84aa"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/2mm/maps.nii.gz",
+      "bytes": 27344598,
+      "sha256": "37d7da8d1b6fdf57f9d9edda4fea8d97665f616690407ff2a3b679d519e12b67"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/2mm/resampled_maps.nii.gz",
+      "bytes": 30973856,
+      "sha256": "f5bc6a2b2d83a3cca59017a73ba49ab2a6bbfa69e9bc51407602b8a8ade279aa"
+    },
+    {
+      "path": ".artifacts/quest-019/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/3mm/maps.nii.gz",
+      "bytes": 24948809,
+      "sha256": "97f194a8fb09bf0e332e8233274514a1e8409ccd0893abbaa0b15348c7205064"
+    },
+    {
+      "path": ".artifacts/quest-019/Android/HiBoP.Quest.apk",
+      "bytes": 163030197,
+      "sha256": "84da8a239919d9aded21b2b3fc842045c47b697fb18e27f9e3552b4626db95d4"
+    }
+  ],
+  "commands": {
+    "formatter": {
+      "command": ".\\Tools\\format-code.cmd",
+      "exitCode": 0
+    },
+    "builds": [
+      {
+        "command": ".\\Tools\\Build-QuestConnectionPlayers.ps1 -Target Android -EvidenceId quest-019",
+        "exitCode": 0
+      },
+      {
+        "command": ".\\Tools\\Build-QuestConnectionPlayers.ps1 -Target Windows -EvidenceId quest-019",
+        "exitCode": 0
+      }
+    ],
+    "comparator": {
+      "command": "python Tools/Compare-QuestDensity.py .test-results/quest-019/benchmark-windows-final .test-results/quest-019/benchmark-20260909-140740/Android .test-results/quest-019/parity-final.json",
+      "exitCode": 0
+    },
+    "delivery": {
+      "command": ".\\Tools\\Run-QuestDensityDelivery.ps1 -Serial 192.168.1.18:5555 -HostAddress 192.168.1.14",
+      "exitCode": 0
+    }
+  },
+  "scientificAcceptance": {
+    "decision": "D30",
+    "ownerReply": "Accepter pour ce banc et ces versions",
+    "date": "2026-09-09",
+    "scope": "Only the 18 runs, inputs and final binary versions recorded in this manifest",
+    "absoluteLimits": {
+      "activity": 5e-07,
+      "alpha": 2e-07,
+      "grid": 0,
+      "maximum": 0
+    },
+    "exactRequired": [
+      "coverage",
+      "masks",
+      "positions",
+      "categories",
+      "sentinelTuples"
+    ],
+    "rms": "descriptive; no threshold",
+    "rawComparison": {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/parity-final.json",
+      "bytes": 76191,
+      "sha256": "9990d0848e2433e5812694c93f22ce79b43665d847fc26293a0fe5ec6ee57ece"
+    },
+    "accepted": true,
+    "evaluations": {
+      "boundary-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "boundary-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "constant-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "constant-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "linear-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "linear-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "masked-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "masked-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "mni-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "mni-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "nearest-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "nearest-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "none-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "none-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "radius25-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "radius25-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "single-0": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      },
+      "single-1": {
+        "exact": true,
+        "maximumExact": true,
+        "gridExact": true,
+        "activityWithinLimit": true,
+        "alphaWithinLimit": true
+      }
+    }
+  },
+  "manual": {
+    "date": "2026-09-09",
+    "M1": {
+      "status": "VALIDE",
+      "reply": "M1 validée, prêt pour l’essai manuel hors ligne",
+      "scope": "Projection visible, manipulation and hide/show on the real automatic TLS delivery; no new manual click on Desktop send claimed"
+    },
+    "M2": {
+      "status": "VALIDE",
+      "reply": "M2 validée",
+      "scope": "Right stick recalculation and manipulation/hide-show during requested radio outage"
+    },
+    "scientific": {
+      "decision": "D30",
+      "reply": "Accepter pour ce banc et ces versions"
+    },
+    "outage": {
+      "startUptimeSeconds": 22730.58,
+      "restoreUptimeSeconds": 22790.6,
+      "disabledSeconds": 60.02,
+      "samePid": 24710,
+      "complete": true,
+      "wifiRestored": true
+    },
+    "finalQuestStopped": true,
+    "adbPreserved": true
+  },
+  "evidencePolicy": "Small result/command/test files preserved here; full arrays, logs, images and binaries kept locally and SHA-256 indexed. No ephemeral pairing secret copied. Re-run artifacts must use fresh completion markers.",
+  "rawLocalArtifacts": [
+    {
+      "path": ".test-results/quest-019/android-build.log",
+      "bytes": 792022,
+      "sha256": "8ba1e3edb7ee79458bcb57394fd54def73a63b3052027baf9ce5b65586d7b663"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/boundary-0.bin",
+      "bytes": 4243316,
+      "sha256": "121cb7a6e2a8cd4cf7af362fd5c080fc89b6b5f04a1da52143f347b8ba9a8841"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/boundary-0.json",
+      "bytes": 710,
+      "sha256": "922d2f98e51578474385df53142e834aa769214609f818953e2f7a3c7c0ddd18"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/boundary-1.bin",
+      "bytes": 4243316,
+      "sha256": "121cb7a6e2a8cd4cf7af362fd5c080fc89b6b5f04a1da52143f347b8ba9a8841"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/boundary-1.json",
+      "bytes": 733,
+      "sha256": "f8d824ea0cb845d2ab5147a558a63cf0ac158f2d40bc5e54deb99ab7ad76dceb"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/complete.json",
+      "bytes": 28,
+      "sha256": "1c0a3e4a814500b2ef368f43781a9a35a2a0e65bfa4c067390b268e7a193c4a1"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/constant-0.bin",
+      "bytes": 6178116,
+      "sha256": "0b0cbdc80d0d3b51b2f927ca2bbe3cb423e2c9ac58a8fe32b033965e0f1358d3"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/constant-0.json",
+      "bytes": 714,
+      "sha256": "20681218c82ce5c350e60268aa3d50903ff515731753ad41ff55f9a11a2e9612"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/constant-1.bin",
+      "bytes": 6178116,
+      "sha256": "0b0cbdc80d0d3b51b2f927ca2bbe3cb423e2c9ac58a8fe32b033965e0f1358d3"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/constant-1.json",
+      "bytes": 714,
+      "sha256": "cc659090d8431a9131ea5ab60426e659e2f189f2696e3f8baa50c260e3a3e4ad"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/linear-0.bin",
+      "bytes": 6178116,
+      "sha256": "d68685a3a3f912d4f70e3f757ce29d1d1325f097ae17907133d48f355948d2d1"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/linear-0.json",
+      "bytes": 727,
+      "sha256": "0664c738ad37f43bf0aecba05fc76383a34d5aa318cbce5e30ae482642f52480"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/linear-1.bin",
+      "bytes": 6178116,
+      "sha256": "d68685a3a3f912d4f70e3f757ce29d1d1325f097ae17907133d48f355948d2d1"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/linear-1.json",
+      "bytes": 727,
+      "sha256": "db8687c69ccd8616844dc94cbb2877cd393900e5f1e49f078d8e7d58de88d441"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/masked-0.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/masked-0.json",
+      "bytes": 745,
+      "sha256": "84cd0352c78060508c296a9daea9d78903bd2417fcb4c4c0b9700b24c6931a77"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/masked-1.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/masked-1.json",
+      "bytes": 723,
+      "sha256": "688628564c8f37230a6b7cfeea57030f381e6ca56fd065970dd694158789a3e1"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/mni-0.bin",
+      "bytes": 6178116,
+      "sha256": "f149ffa42223a0ecc51c4fbbfa8934efe2a0797710065f838150e734b80dc3dc"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/mni-0.json",
+      "bytes": 746,
+      "sha256": "be9869e65bc0bc4e8e7507e1f297d0b8c397ced1cfddc82af1342897b57c38d4"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/mni-1.bin",
+      "bytes": 6178116,
+      "sha256": "f149ffa42223a0ecc51c4fbbfa8934efe2a0797710065f838150e734b80dc3dc"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/mni-1.json",
+      "bytes": 733,
+      "sha256": "479400270e4e5a9d57d2b738bf60954bc40dabe7bdefe05b6ce7de4c6ccbd200"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/native/42eac6c42bac44b4b9e2b531b76edd69/reference.nii",
+      "bytes": 11661664,
+      "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/nearest-0.bin",
+      "bytes": 6178116,
+      "sha256": "25c7c7b36cd8a7a3013bfa189a60bab9b38c36d542ea10a97f07175dc2a6debf"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/nearest-0.json",
+      "bytes": 738,
+      "sha256": "dbae318160b410bce156b4995482e44e31a3fcdfc8ac8002d030affaad697620"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/nearest-1.bin",
+      "bytes": 6178116,
+      "sha256": "25c7c7b36cd8a7a3013bfa189a60bab9b38c36d542ea10a97f07175dc2a6debf"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/nearest-1.json",
+      "bytes": 738,
+      "sha256": "b6e5a930d1cc42dddc763427992ac7a87d9d42df1e175104b87ccaa22c48c779"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/none-0.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/none-0.json",
+      "bytes": 618,
+      "sha256": "1057839ff60a8cb475a34780bc8148fbe60221de7ac4f544af323bb3ef8d5f72"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/none-1.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/none-1.json",
+      "bytes": 640,
+      "sha256": "6484e072eb12c2440b65c4c6c558a6022443c022036b0d37e04ec26da2b13bf7"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/radius25-0.bin",
+      "bytes": 6178116,
+      "sha256": "8b0b279b2c78a2d8df975e5e41a4239228e084443a018f9c448ea49c417cb85d"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/radius25-0.json",
+      "bytes": 730,
+      "sha256": "8fba442baaab3d798d15b6f728cdc1da4304394320601f4dde8342cf1ba5c414"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/radius25-1.bin",
+      "bytes": 6178116,
+      "sha256": "8b0b279b2c78a2d8df975e5e41a4239228e084443a018f9c448ea49c417cb85d"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/radius25-1.json",
+      "bytes": 728,
+      "sha256": "cba99fc47a21efe8a02f938bdc0e49f370f7a7fd25f3715a415d561cc0131258"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/single-0.bin",
+      "bytes": 6178116,
+      "sha256": "b8d51c97fa044ed7b5c93cb02634f1c786277951b6ee83657fd7e0d1d76d7aab"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/single-0.json",
+      "bytes": 651,
+      "sha256": "4c50cc30efe18a994d208c1c8f67e9b4eb30384222b9d75a0909bb1c1df121bc"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/single-1.bin",
+      "bytes": 6178116,
+      "sha256": "b8d51c97fa044ed7b5c93cb02634f1c786277951b6ee83657fd7e0d1d76d7aab"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/Android/single-1.json",
+      "bytes": 662,
+      "sha256": "f3248f1f1a2655dff9ce65960fe20f74801bba39f91c549cd9fd74a600c937f0"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/apk-content.json",
+      "bytes": 6211,
+      "sha256": "c9eb8388aa68b404bbbd4075bd8bb39d6e91aa02254f4f9d106124c3a3f35f16"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/battery.txt",
+      "bytes": 358,
+      "sha256": "0007fd68a690380ca11f14c7d196313cc235d823d3b7c5704ae9b58552053538"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/commands.json",
+      "bytes": 7967,
+      "sha256": "a6a32fc136822ed0442356062947116372a18eb7dabb981fe30d935a32ae4b7c"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/install.log",
+      "bytes": 38,
+      "sha256": "c4aa470acafcf8576c15b0f0b5ae7e852d1ec5413372d0e6a9272e788e1306d3"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/launch.log",
+      "bytes": 227,
+      "sha256": "a74479ad499c3881458f78d00ababa9a22df7de7e50a0c2b1dd3bcf4412cbaa0"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/marker",
+      "bytes": 32,
+      "sha256": "9a0191e460d5812679e11c9f3c741ad0b8253055de71a88f8d6cf9e205e9987c"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/memory.txt",
+      "bytes": 3190,
+      "sha256": "b558a70be670e8a807ddd9598ae5359a312d7cb848dccde44a890b0fda427e82"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/quest.log",
+      "bytes": 206790,
+      "sha256": "7393cf69b299149de4f1f5a398534d88bcc7fbe293dbe483b24fa181aa613677"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-20260909-140740/result.json",
+      "bytes": 540,
+      "sha256": "13f0c0c3558625b4964146f04b7d0295859a4ae87e50846483f41cf42018b8f7"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/boundary-0.bin",
+      "bytes": 4243316,
+      "sha256": "121cb7a6e2a8cd4cf7af362fd5c080fc89b6b5f04a1da52143f347b8ba9a8841"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/boundary-0.json",
+      "bytes": 729,
+      "sha256": "2f7554b636ecbe17b265f5a082300ea1968f725f22251c0fdab27274681c5192"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/boundary-1.bin",
+      "bytes": 4243316,
+      "sha256": "121cb7a6e2a8cd4cf7af362fd5c080fc89b6b5f04a1da52143f347b8ba9a8841"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/boundary-1.json",
+      "bytes": 716,
+      "sha256": "3a68d0b607d1ceb9ccbf5701bf331c20b355619eee13da6e0692d04b44365695"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/command.json",
+      "bytes": 425,
+      "sha256": "4c2611febb174c9decdba20223fcf43fdc3023df8aa1e3db14140d4401ba0e75"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/complete.json",
+      "bytes": 28,
+      "sha256": "1c0a3e4a814500b2ef368f43781a9a35a2a0e65bfa4c067390b268e7a193c4a1"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/constant-0.bin",
+      "bytes": 6178116,
+      "sha256": "6e3d599af8b452c5c1a2d3c97301d12bed13c4e847905fa81650c1b930609a4c"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/constant-0.json",
+      "bytes": 718,
+      "sha256": "ad810b9eb6dd66e15ca7297750964cf9617b1fcca86d066851f68301787e563a"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/constant-1.bin",
+      "bytes": 6178116,
+      "sha256": "6e3d599af8b452c5c1a2d3c97301d12bed13c4e847905fa81650c1b930609a4c"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/constant-1.json",
+      "bytes": 741,
+      "sha256": "8f182d9c366ea34d99412a37fe8573e893f62891604b1dce9e564a6ab40e662e"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/linear-0.bin",
+      "bytes": 6178116,
+      "sha256": "0d6e2b44db3f43b7757dc26cca395616fa2f08ebe3d8a54dab69700bcd6b0916"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/linear-0.json",
+      "bytes": 742,
+      "sha256": "681400cf86f19ba824ede7dedb65307dfb833c25a5caeafb6ef0333b10adcac4"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/linear-1.bin",
+      "bytes": 6178116,
+      "sha256": "0d6e2b44db3f43b7757dc26cca395616fa2f08ebe3d8a54dab69700bcd6b0916"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/linear-1.json",
+      "bytes": 753,
+      "sha256": "6d7ed02918cf38c1069e5c3bacc2c68471df6bbd09960ac18b28e12a4ac69933"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/masked-0.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/masked-0.json",
+      "bytes": 715,
+      "sha256": "c428bb1b6018e6087a5f903b6dd24fb7c265efde3df1bd212049616718faa0de"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/masked-1.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/masked-1.json",
+      "bytes": 738,
+      "sha256": "1f5a9192575bb06437937cbb1c0dce9df5379542c633a0a585283dfda3c812f9"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/mni-0.bin",
+      "bytes": 6178116,
+      "sha256": "ae188cecbbaeec8bfe87bd1e02c375792b77ae44e3bbc8ed8ae5a9a1ae914ded"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/mni-0.json",
+      "bytes": 738,
+      "sha256": "71a78f80cf15f26118a1b1e12e586f76d87d7e45689d7a52d9b93dc7e1e2c7d5"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/mni-1.bin",
+      "bytes": 6178116,
+      "sha256": "ae188cecbbaeec8bfe87bd1e02c375792b77ae44e3bbc8ed8ae5a9a1ae914ded"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/mni-1.json",
+      "bytes": 727,
+      "sha256": "316973aebed88374dcf472b1b8e322ee8ee5311616425a480d57691c028a8a44"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/nearest-0.bin",
+      "bytes": 6178116,
+      "sha256": "f54dc5aac6bba31035e8b0f599a7fb1360d04d78193f73ce7800f27f67e55689"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/nearest-0.json",
+      "bytes": 730,
+      "sha256": "cae34061be1c8aea8cae6c5df615bbe8a5bd5ffe1cfa2a97a6bf28f6c6ffd9c8"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/nearest-1.bin",
+      "bytes": 6178116,
+      "sha256": "f54dc5aac6bba31035e8b0f599a7fb1360d04d78193f73ce7800f27f67e55689"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/nearest-1.json",
+      "bytes": 741,
+      "sha256": "06f5556bbd96091441439a89c9258e7d1c859eb6b1b176639adde15a2743c0b9"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/none-0.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/none-0.json",
+      "bytes": 633,
+      "sha256": "97be589dfa5b65e529c96348dc87cc2a66db9d94400efd99eae0945b6d6e463e"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/none-1.bin",
+      "bytes": 6178116,
+      "sha256": "f20805c653a120b30052c0091d2a487ec551417e6cf1ff8e87d99e37b5c14f78"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/none-1.json",
+      "bytes": 623,
+      "sha256": "5fb806b67719b8c68f16419acc5fe69f4d5348c5cbbf7c40d7941714e8baf92e"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/player.log",
+      "bytes": 4033,
+      "sha256": "178488ecc914579abb89fd850582dcbe135e82762a258b073670d427b2716bf5"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/process.json",
+      "bytes": 169,
+      "sha256": "46f86b28ec3ced25e729b958b24458bcc594d751186bd7be94f64aef9d0fd25e"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/radius25-0.bin",
+      "bytes": 6178116,
+      "sha256": "696a2f70a5e473560ae4e248ed08df3159ca1488258fe055a24a8e08d72a6909"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/radius25-0.json",
+      "bytes": 745,
+      "sha256": "74545b1a22f51153691428ee5f3c096a3db2df9cd689e3ba5b497806b3aa303b"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/radius25-1.bin",
+      "bytes": 6178116,
+      "sha256": "696a2f70a5e473560ae4e248ed08df3159ca1488258fe055a24a8e08d72a6909"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/radius25-1.json",
+      "bytes": 745,
+      "sha256": "d047f059358385867905fb0342068675d1c41ebfca58beddcc3a7f4617fb2fbd"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/single-0.bin",
+      "bytes": 6178116,
+      "sha256": "3bee159395fa77c340c373b1759520e2c836463dbe9390c6e99228b292015140"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/single-0.json",
+      "bytes": 665,
+      "sha256": "dbd9b029f5fe93f76b160e21084871ec6eaee76e3e102207e80dc22bb25b6f45"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/single-1.bin",
+      "bytes": 6178116,
+      "sha256": "3bee159395fa77c340c373b1759520e2c836463dbe9390c6e99228b292015140"
+    },
+    {
+      "path": ".test-results/quest-019/benchmark-windows-final/single-1.json",
+      "bytes": 676,
+      "sha256": "2e8fe03317f31b40b48fe683ea97be93b6043dbf2dc040f5faffed1ae4136301"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/battery.txt",
+      "bytes": 358,
+      "sha256": "1eefb86a690f4add74cc6ba1715bc2f6b46efc76d05ae909b63cf48fd3f454d6"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/commands.json",
+      "bytes": 4322,
+      "sha256": "7788409a28f75604124660a79e1a6d4793a6479251f2e1981b53dfcbf6b03466"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/device-result.json",
+      "bytes": 544,
+      "sha256": "b903a762721c1b5704678b94dd332181379fc942969ac70e179c34c41ca0419e"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/launch.log",
+      "bytes": 227,
+      "sha256": "72f98ce3f2d3155c9a32d88ecc25144db8623adb2d671fb5fa353d48e57168da"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/manual-quest.log",
+      "bytes": 117289,
+      "sha256": "52697035ec7b81b0f75f229832a02cce0974ed8084febcbf1fa2a700986e99a1"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/memory-after.txt",
+      "bytes": 3190,
+      "sha256": "c4adfcc52e1c6a0c9c57d7ce86387e433498e6f0f7b629ca77c2e177207ba3b6"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/memory-before.txt",
+      "bytes": 3190,
+      "sha256": "b8b07b98e0c5817f732f0a3780e2c9e6b0ef0467a7e2322aa2f8abeca2da1f49"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/quest-final-preview.png",
+      "bytes": 2037096,
+      "sha256": "e212a3fde3efa1277dc3e54aff1857cd57b860cf6f9ac96bf711ac089e893a5c"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/quest-final.png",
+      "bytes": 11448412,
+      "sha256": "81db2bcb0fda4630d1aee63cf800873fac17d86074e91284521c57d8654ee610"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/quest.log",
+      "bytes": 295598,
+      "sha256": "a1760e6627c82b3e2a1d074c641230d3a2946eb0b5ea4af445fa911210b8b13b"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/radio.log",
+      "bytes": 1357,
+      "sha256": "ca71e83f58ead51407c7f25443a41c989f5210f814386aa79de39bbda238d819"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/radio.sh",
+      "bytes": 241,
+      "sha256": "2c9f8a514f5cf8c837de30529c07d8f8f88f6c1030c750f39258ccb919f7687a"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/ready.json",
+      "bytes": 141,
+      "sha256": "25f81efc574fd4f88843142b3859af36583eb39f73588120fc3af7b15b769fb7"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/receipt.json",
+      "bytes": 18,
+      "sha256": "185ac88c7e9f521aba6b3c9ca59aaeb17aace3989fb80f17bea50fa1534fa3ad"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/received-source.hbna",
+      "bytes": 15532667,
+      "sha256": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/result.json",
+      "bytes": 353,
+      "sha256": "5afb0809abca4ebffc4f34e1b8c495826311be4e9d907ffda6aa25446d1dac3e"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/thermal.txt",
+      "bytes": 17016,
+      "sha256": "cc310f1756443fd576810c427a98af38d14285a992cfa3ce300ef09d70831d9d"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/windows-command.json",
+      "bytes": 407,
+      "sha256": "10af1a55a505eb7f64772032533dc392e63c40223fcc0ae7de05b714675318bf"
+    },
+    {
+      "path": ".test-results/quest-019/delivery-20260909-140855/windows.log",
+      "bytes": 3007,
+      "sha256": "f32c3000ef211a55a4b6b98e52bd475ccda9638275271a4f6ea5c0db61a1b340"
+    },
+    {
+      "path": ".test-results/quest-019/editmode.log",
+      "bytes": 87040,
+      "sha256": "7a60b3055a6b7ef87b0c7f6a0ac21ada4b52bcef61b1dd545022fd7fcd536253"
+    },
+    {
+      "path": ".test-results/quest-019/playmode-mni.log",
+      "bytes": 93384,
+      "sha256": "1f02bdbea97ea2d80f011d2fd3729d176607dc7ff6818cc179e80b029ab3a4aa"
+    },
+    {
+      "path": ".test-results/quest-019/playmode.log",
+      "bytes": 92413,
+      "sha256": "28b208ae3bc4af677c454618e793e0b6a619f91ddc45374ebe0ff175a21bbf11"
+    },
+    {
+      "path": ".test-results/quest-019/unity-generated.patch",
+      "bytes": 7159,
+      "sha256": "51ca3003aad25b964a83a3cfbe46a9e641f7f10c3fc14f9e0809e13f9d3b2cef"
+    },
+    {
+      "path": ".test-results/quest-019/windows-build.log",
+      "bytes": 1027190,
+      "sha256": "ef6cda31e8a86679bb175edef9239a6acc751e2e1430a84b520c9d72faa7756b"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-android/apk-content.json",
+      "bytes": 6211,
+      "sha256": "c9eb8388aa68b404bbbd4075bd8bb39d6e91aa02254f4f9d106124c3a3f35f16"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-android/commands.json",
+      "bytes": 7967,
+      "sha256": "a6a32fc136822ed0442356062947116372a18eb7dabb981fe30d935a32ae4b7c"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-android/result.json",
+      "bytes": 540,
+      "sha256": "13f0c0c3558625b4964146f04b7d0295859a4ae87e50846483f41cf42018b8f7"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/boundary-0.json",
+      "bytes": 710,
+      "sha256": "922d2f98e51578474385df53142e834aa769214609f818953e2f7a3c7c0ddd18"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/boundary-1.json",
+      "bytes": 733,
+      "sha256": "f8d824ea0cb845d2ab5147a558a63cf0ac158f2d40bc5e54deb99ab7ad76dceb"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/complete.json",
+      "bytes": 28,
+      "sha256": "1c0a3e4a814500b2ef368f43781a9a35a2a0e65bfa4c067390b268e7a193c4a1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/constant-0.json",
+      "bytes": 714,
+      "sha256": "20681218c82ce5c350e60268aa3d50903ff515731753ad41ff55f9a11a2e9612"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/constant-1.json",
+      "bytes": 714,
+      "sha256": "cc659090d8431a9131ea5ab60426e659e2f189f2696e3f8baa50c260e3a3e4ad"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/linear-0.json",
+      "bytes": 727,
+      "sha256": "0664c738ad37f43bf0aecba05fc76383a34d5aa318cbce5e30ae482642f52480"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/linear-1.json",
+      "bytes": 727,
+      "sha256": "db8687c69ccd8616844dc94cbb2877cd393900e5f1e49f078d8e7d58de88d441"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/masked-0.json",
+      "bytes": 745,
+      "sha256": "84cd0352c78060508c296a9daea9d78903bd2417fcb4c4c0b9700b24c6931a77"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/masked-1.json",
+      "bytes": 723,
+      "sha256": "688628564c8f37230a6b7cfeea57030f381e6ca56fd065970dd694158789a3e1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/mni-0.json",
+      "bytes": 746,
+      "sha256": "be9869e65bc0bc4e8e7507e1f297d0b8c397ced1cfddc82af1342897b57c38d4"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/mni-1.json",
+      "bytes": 733,
+      "sha256": "479400270e4e5a9d57d2b738bf60954bc40dabe7bdefe05b6ce7de4c6ccbd200"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/nearest-0.json",
+      "bytes": 738,
+      "sha256": "dbae318160b410bce156b4995482e44e31a3fcdfc8ac8002d030affaad697620"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/nearest-1.json",
+      "bytes": 738,
+      "sha256": "b6e5a930d1cc42dddc763427992ac7a87d9d42df1e175104b87ccaa22c48c779"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/none-0.json",
+      "bytes": 618,
+      "sha256": "1057839ff60a8cb475a34780bc8148fbe60221de7ac4f544af323bb3ef8d5f72"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/none-1.json",
+      "bytes": 640,
+      "sha256": "6484e072eb12c2440b65c4c6c558a6022443c022036b0d37e04ec26da2b13bf7"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/radius25-0.json",
+      "bytes": 730,
+      "sha256": "8fba442baaab3d798d15b6f728cdc1da4304394320601f4dde8342cf1ba5c414"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/radius25-1.json",
+      "bytes": 728,
+      "sha256": "cba99fc47a21efe8a02f938bdc0e49f370f7a7fd25f3715a415d561cc0131258"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/single-0.json",
+      "bytes": 651,
+      "sha256": "4c50cc30efe18a994d208c1c8f67e9b4eb30384222b9d75a0909bb1c1df121bc"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/android/single-1.json",
+      "bytes": 662,
+      "sha256": "f3248f1f1a2655dff9ce65960fe20f74801bba39f91c549cd9fd74a600c937f0"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/boundary-0.json",
+      "bytes": 729,
+      "sha256": "2f7554b636ecbe17b265f5a082300ea1968f725f22251c0fdab27274681c5192"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/boundary-1.json",
+      "bytes": 716,
+      "sha256": "3a68d0b607d1ceb9ccbf5701bf331c20b355619eee13da6e0692d04b44365695"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/command.json",
+      "bytes": 425,
+      "sha256": "4c2611febb174c9decdba20223fcf43fdc3023df8aa1e3db14140d4401ba0e75"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/complete.json",
+      "bytes": 28,
+      "sha256": "1c0a3e4a814500b2ef368f43781a9a35a2a0e65bfa4c067390b268e7a193c4a1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/constant-0.json",
+      "bytes": 718,
+      "sha256": "ad810b9eb6dd66e15ca7297750964cf9617b1fcca86d066851f68301787e563a"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/constant-1.json",
+      "bytes": 741,
+      "sha256": "8f182d9c366ea34d99412a37fe8573e893f62891604b1dce9e564a6ab40e662e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/linear-0.json",
+      "bytes": 742,
+      "sha256": "681400cf86f19ba824ede7dedb65307dfb833c25a5caeafb6ef0333b10adcac4"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/linear-1.json",
+      "bytes": 753,
+      "sha256": "6d7ed02918cf38c1069e5c3bacc2c68471df6bbd09960ac18b28e12a4ac69933"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/masked-0.json",
+      "bytes": 715,
+      "sha256": "c428bb1b6018e6087a5f903b6dd24fb7c265efde3df1bd212049616718faa0de"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/masked-1.json",
+      "bytes": 738,
+      "sha256": "1f5a9192575bb06437937cbb1c0dce9df5379542c633a0a585283dfda3c812f9"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/mni-0.json",
+      "bytes": 738,
+      "sha256": "71a78f80cf15f26118a1b1e12e586f76d87d7e45689d7a52d9b93dc7e1e2c7d5"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/mni-1.json",
+      "bytes": 727,
+      "sha256": "316973aebed88374dcf472b1b8e322ee8ee5311616425a480d57691c028a8a44"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/nearest-0.json",
+      "bytes": 730,
+      "sha256": "cae34061be1c8aea8cae6c5df615bbe8a5bd5ffe1cfa2a97a6bf28f6c6ffd9c8"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/nearest-1.json",
+      "bytes": 741,
+      "sha256": "06f5556bbd96091441439a89c9258e7d1c859eb6b1b176639adde15a2743c0b9"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/none-0.json",
+      "bytes": 633,
+      "sha256": "97be589dfa5b65e529c96348dc87cc2a66db9d94400efd99eae0945b6d6e463e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/none-1.json",
+      "bytes": 623,
+      "sha256": "5fb806b67719b8c68f16419acc5fe69f4d5348c5cbbf7c40d7941714e8baf92e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/process.json",
+      "bytes": 169,
+      "sha256": "46f86b28ec3ced25e729b958b24458bcc594d751186bd7be94f64aef9d0fd25e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/radius25-0.json",
+      "bytes": 745,
+      "sha256": "74545b1a22f51153691428ee5f3c096a3db2df9cd689e3ba5b497806b3aa303b"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/radius25-1.json",
+      "bytes": 745,
+      "sha256": "d047f059358385867905fb0342068675d1c41ebfca58beddcc3a7f4617fb2fbd"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/single-0.json",
+      "bytes": 665,
+      "sha256": "dbd9b029f5fe93f76b160e21084871ec6eaee76e3e102207e80dc22bb25b6f45"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-metadata/windows/single-1.json",
+      "bytes": 676,
+      "sha256": "2e8fe03317f31b40b48fe683ea97be93b6043dbf2dc040f5faffed1ae4136301"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-windows/command.json",
+      "bytes": 425,
+      "sha256": "4c2611febb174c9decdba20223fcf43fdc3023df8aa1e3db14140d4401ba0e75"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/benchmark-windows/process.json",
+      "bytes": 169,
+      "sha256": "46f86b28ec3ced25e729b958b24458bcc594d751186bd7be94f64aef9d0fd25e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/comparator-negative.json",
+      "bytes": 157,
+      "sha256": "1818aaa187b9d986656261d27422fef0704cea450813ce28cf9b63d1902e9ba3"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/battery.txt",
+      "bytes": 358,
+      "sha256": "1eefb86a690f4add74cc6ba1715bc2f6b46efc76d05ae909b63cf48fd3f454d6"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/commands.json",
+      "bytes": 4322,
+      "sha256": "7788409a28f75604124660a79e1a6d4793a6479251f2e1981b53dfcbf6b03466"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/device-result.json",
+      "bytes": 544,
+      "sha256": "b903a762721c1b5704678b94dd332181379fc942969ac70e179c34c41ca0419e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/launch.log",
+      "bytes": 227,
+      "sha256": "72f98ce3f2d3155c9a32d88ecc25144db8623adb2d671fb5fa353d48e57168da"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/memory-after.txt",
+      "bytes": 3190,
+      "sha256": "c4adfcc52e1c6a0c9c57d7ce86387e433498e6f0f7b629ca77c2e177207ba3b6"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/memory-before.txt",
+      "bytes": 3190,
+      "sha256": "b8b07b98e0c5817f732f0a3780e2c9e6b0ef0467a7e2322aa2f8abeca2da1f49"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/radio.log",
+      "bytes": 1357,
+      "sha256": "ca71e83f58ead51407c7f25443a41c989f5210f814386aa79de39bbda238d819"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/ready.json",
+      "bytes": 141,
+      "sha256": "25f81efc574fd4f88843142b3859af36583eb39f73588120fc3af7b15b769fb7"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/receipt.json",
+      "bytes": 18,
+      "sha256": "185ac88c7e9f521aba6b3c9ca59aaeb17aace3989fb80f17bea50fa1534fa3ad"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/result.json",
+      "bytes": 353,
+      "sha256": "5afb0809abca4ebffc4f34e1b8c495826311be4e9d907ffda6aa25446d1dac3e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/samples.json",
+      "bytes": 18835,
+      "sha256": "11a4e25ffd6e0bfacd1bfe0ccbe31a515356acc68c484542c461512bd56ef5e3"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/thermal.txt",
+      "bytes": 17016,
+      "sha256": "cc310f1756443fd576810c427a98af38d14285a992cfa3ce300ef09d70831d9d"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/delivery/windows-command.json",
+      "bytes": 407,
+      "sha256": "10af1a55a505eb7f64772032533dc392e63c40223fcc0ae7de05b714675318bf"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/editmode-command.json",
+      "bytes": 674,
+      "sha256": "c269df5672f0eb06622cd551f056c81d1a9c70694519986a2ad3caac6b9a9263"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/editmode.xml",
+      "bytes": 120816,
+      "sha256": "a12ed48f7d3eb7a2750b480beebcde57c8854d24049cdfd3adbabc619d318903"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/manual-dispatch.json",
+      "bytes": 324,
+      "sha256": "56e504187c70dfaa00b9051d375133dbf08d34c8e7d83d3015e5512db3e20646"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/manual-outage.log",
+      "bytes": 1415,
+      "sha256": "a363d3dcd112804fc112e6b5f48c3df9b55e2dcb5541f327c6ea3c80de307784"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/manual-outage.sh",
+      "bytes": 407,
+      "sha256": "7ae867caae2fc033419ddd7f829cd3a6ad0b46f02639ed3ed3d72fcc12868ba5"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/manual-validation.json",
+      "bytes": 811,
+      "sha256": "acd633256ede80fc7a0ebe90165240b33e83ab63039a081d575c6c79a1c316b5"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/parity-final.json",
+      "bytes": 76191,
+      "sha256": "9990d0848e2433e5812694c93f22ce79b43665d847fc26293a0fe5ec6ee57ece"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/playmode-command.json",
+      "bytes": 595,
+      "sha256": "f6631e14a80ff63b15e8dbeea9232d164436c4fdc99a927cf668dba22e428149"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/playmode-mni-command.json",
+      "bytes": 1063,
+      "sha256": "94894fc1496295271f912d1caf1c5b68e8fd5016bf36d806ced54e30000f190b"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/playmode-mni.xml",
+      "bytes": 6462,
+      "sha256": "8c8b68f288757a67b46dfa6a798cc6843a573d93fb66684c3514b181ca66b6a9"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/playmode.xml",
+      "bytes": 43322,
+      "sha256": "af63bcb50563ca7874ac3cfbf91e9858868499ec0bfafc9888d26802da98fc32"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/quest-stop.json",
+      "bytes": 313,
+      "sha256": "2162052f36bb87f5b5e1d0e21cab225c47cd10aed352a72796141f8868684b82"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/scientific-acceptance.json",
+      "bytes": 3823,
+      "sha256": "833305bd1de851d1cebf8b8cb5f051f3ef9e2b75654c3f8ce8af01274b01fbcd"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/summary.json",
+      "bytes": 3218,
+      "sha256": "36411ae7bad3dc5aa7255439c2ef8bd5efcdf7328e806855aecefa92fbcda9a8"
+    }
+  ],
+  "documentation": [
+    {
+      "path": "Docs/dev/quest-autonomous/reports/QUEST-019.md",
+      "bytes": 19723,
+      "sha256": "661efd97ba581435e94ead7acd04442ce25cf510a7c498d834cbc52b75d10edb"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/01-decisions-and-open-questions.md",
+      "bytes": 14823,
+      "sha256": "6b8ce433341aef094f3a074cb1035760bed1940efa16224e244e377d42f31585"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+      "bytes": 10419,
+      "sha256": "28001ee5634b7f0e9d2d8212a375ac1c456662f415455c7ad78ad45689cdb20a"
+    }
+  ]
+}

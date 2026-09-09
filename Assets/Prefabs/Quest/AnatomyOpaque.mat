@@ -22,9 +22,14 @@ Material:
   m_LockedProperties:
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _AoTex:
+        m_Texture: {fileID: 2800000, guid: 3a3afdb779bc4ce408f2459e958b48e0, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _DensityEnabled: 0
     - _AmbientStrength: 0.35
     - _DiffuseStrength: 0.65
     - _Smoothness: 0.45

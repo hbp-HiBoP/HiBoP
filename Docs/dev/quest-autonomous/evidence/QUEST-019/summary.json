@@ -1,0 +1,134 @@
+{
+  "worst": {
+    "maximum": {
+      "name": "boundary-0",
+      "maxAbsolute": 0.0,
+      "rms": 0.0,
+      "differentComponents": 0,
+      "worstIndex": [
+        0
+      ],
+      "windows": 1.341609239578247,
+      "android": 1.341609239578247
+    },
+    "grid": {
+      "name": "boundary-0",
+      "maxAbsolute": 0.0,
+      "rms": 0.0,
+      "differentComponents": 0,
+      "worstIndex": [
+        0,
+        0
+      ],
+      "windows": 75.0,
+      "android": 75.0,
+      "gridPointMm": [
+        75.0,
+        -107.0,
+        -69.5
+      ]
+    },
+    "activity": {
+      "name": "constant-0",
+      "maxAbsolute": 2.980232238769531e-07,
+      "rms": 1.3842878707934336e-08,
+      "differentComponents": 4702,
+      "worstIndex": [
+        4497,
+        0
+      ],
+      "windows": 0.8473547101020813,
+      "android": 0.8473544120788574,
+      "vertexPositionMm": [
+        3.15545654296875,
+        10.084648132324219,
+        41.940773010253906
+      ]
+    },
+    "alpha": {
+      "name": "constant-0",
+      "maxAbsolute": 1.1920928955078125e-07,
+      "rms": 3.931518142142266e-09,
+      "differentComponents": 2966,
+      "worstIndex": [
+        1627,
+        0
+      ],
+      "windows": 0.8135561943054199,
+      "android": 0.8135563135147095,
+      "vertexPositionMm": [
+        19.890769958496094,
+        22.98149871826172,
+        46.29025650024414
+      ]
+    }
+  },
+  "tests": {
+    "editmode.xml": {
+      "id": "2",
+      "testcasecount": "132",
+      "result": "Passed",
+      "total": "132",
+      "passed": "132",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-09-09 13:46:49Z",
+      "end-time": "2026-09-09 13:47:20Z",
+      "duration": "31,4648906"
+    },
+    "playmode.xml": {
+      "id": "2",
+      "testcasecount": "45",
+      "result": "Skipped:Ignored",
+      "total": "45",
+      "passed": "42",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "3",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-09-09 13:47:40Z",
+      "end-time": "2026-09-09 13:47:55Z",
+      "duration": "15,4392115"
+    },
+    "playmode-mni.xml": {
+      "id": "2",
+      "testcasecount": "3",
+      "result": "Passed",
+      "total": "3",
+      "passed": "3",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-09-09 13:50:55Z",
+      "end-time": "2026-09-09 13:51:59Z",
+      "duration": "63,551989"
+    }
+  },
+  "steady": {
+    "windows": 11,
+    "startUptimeSeconds": 34.76886555101619,
+    "endUptimeSeconds": 84.8243976730143,
+    "meanFrameIntervalMs": [
+      13.888879102240834,
+      13.888896877566973
+    ],
+    "maxFrameIntervalMs": 13.891085982322693,
+    "unityAllocatedBytes": [
+      111451419,
+      111501147
+    ],
+    "managedBytes": [
+      39817216,
+      48361472
+    ]
+  }
+}

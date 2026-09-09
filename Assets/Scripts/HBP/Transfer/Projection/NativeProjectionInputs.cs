@@ -2,13 +2,15 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
+using HBP.Core.Enums;
 using HBP.Core.DLL;
 using HBP.Transfer.Anatomy;
 using UnityEngine;
 
 namespace HBP.Transfer.Projection
 {
-    /// <summary>Session-owned native inputs, borrowed until replacement/close. No density work or global shutdown.</summary>
+    /// <summary>Session-owned inputs. Retirement defers release until the current native calculation finishes.</summary>
     public sealed class NativeProjectionInputs : IDisposable
     {
         public Volume Volume { get; private set; }
@@ -19,6 +21,81 @@ namespace HBP.Transfer.Projection
         public string CleanupError { get; private set; }
         private string directory;
         private bool disposed;
+        private readonly object lifetime = new object();
+        private bool computing;
+
+        public sealed class DensityResult
+        {
+            public Vector2[] ActivityUV, AlphaUV;
+            public Vector3[] GridPoints;
+            public Vector3Int GridDimensions;
+            public int[] SiteMasks;
+            public SurfaceProjectionCoverage Coverage;
+            public float MaxDensity;
+            public double PreparationMs, ComputeMs, ProjectionAndCopyMs;
+            public long UvCopyBytes;
+        }
+
+        /// <summary>Reserve inputs before scheduling. No cancellation of native work; callers may discard its result.</summary>
+        public Task<DensityResult> ComputeDensityAsync(bool captureGrid = false)
+        {
+            lock (lifetime)
+            {
+                if (disposed) throw new ObjectDisposedException(nameof(NativeProjectionInputs));
+                if (computing) throw new InvalidOperationException("Density is already computing.");
+                computing = true;
+            }
+
+            try
+            {
+                return Task.Run(() =>
+                {
+                    try
+                    {
+                        var watch = System.Diagnostics.Stopwatch.StartNew();
+                        // These are the same wrappers used by Base3DScene and Column3DAnatomy.
+                        using var grid = ActivityProjectionGrid.Create(Volume, Settings.GridDimension, (VolumeInterpolation)Settings.Interpolation);
+                        using var density = new DensityGenerator();
+                        density.Initialize(grid);
+                        using var projection = new SurfaceGenerator();
+                        projection.Initialize(density, Surface, 0, 1);
+                        var result = new DensityResult { PreparationMs = watch.Elapsed.TotalMilliseconds, GridDimensions = grid.Dimensions };
+                        watch.Restart();
+                        density.ComputeActivity(Sites, Settings.InfluenceDistance, (SiteInfluenceByDistanceType)Settings.InfluenceByDistance);
+                        result.ComputeMs = watch.Elapsed.TotalMilliseconds;
+                        watch.Restart();
+                        projection.ComputeActivityUV(0, Settings.ActivityAlpha);
+                        result.ActivityUV = projection.ActivityUV;
+                        result.AlphaUV = projection.AlphaUV;
+                        result.MaxDensity = density.MaxDensity;
+                        result.Coverage = projection.ProjectionCoverage;
+                        result.ProjectionAndCopyMs = watch.Elapsed.TotalMilliseconds;
+                        result.UvCopyBytes = 16L * result.ActivityUV.Length;
+                        if (captureGrid) result.GridPoints = grid.Points;
+                        result.SiteMasks = Sites.GetMask();
+                        return result;
+                    }
+                    finally
+                    {
+                        FinishComputation();
+                    }
+                });
+            }
+            catch
+            {
+                FinishComputation();
+                throw;
+            }
+        }
+
+        private void FinishComputation()
+        {
+            lock (lifetime)
+            {
+                computing = false;
+                if (disposed) ReleaseResources();
+            }
+        }
 
         public static Vector3 TransportToNativeSite(AnatomyBuffer<float> position) => new Vector3(ReferenceSystemConversion.ConvertX(position[0]), position[1], position[2]);
 
@@ -89,9 +166,16 @@ namespace HBP.Transfer.Projection
 
         public void Dispose()
         {
-            if (disposed) return;
-            disposed = true;
+            lock (lifetime)
+            {
+                if (disposed) return;
+                disposed = true;
+                if (!computing) ReleaseResources();
+            }
+        }
 
+        private void ReleaseResources()
+        {
             // Attempt every release. Cleanup after publication must not turn an effective commit into a rejection.
             void Release(Action action)
             {

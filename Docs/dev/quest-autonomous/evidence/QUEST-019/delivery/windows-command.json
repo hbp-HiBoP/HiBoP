@@ -1,0 +1,12 @@
+[
+  "-pf",
+  "\"C:\\HBP\\Software\\HiBoP/.artifacts/quest-018/fixture/quest-mni-contacts.hibop\"",
+  "-v",
+  "\"MNI Contacts\"",
+  "-screen-fullscreen",
+  "0",
+  "-densityDelivery",
+  "\"C:\\HBP\\Software\\HiBoP/.test-results/quest-019/delivery-20260909-140855/server-private.json\"",
+  "-logFile",
+  "\"C:\\HBP\\Software\\HiBoP/.test-results/quest-019/delivery-20260909-140855/windows.log\""
+]

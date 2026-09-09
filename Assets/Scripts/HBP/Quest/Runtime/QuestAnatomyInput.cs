@@ -11,7 +11,7 @@ namespace HBP.Quest
         [SerializeField] private QuestDevicePoseTracker head;
         [SerializeField] private QuestDevicePoseTracker left;
         [SerializeField] private QuestDevicePoseTracker right;
-        private InputAction leftTrigger, rightTrigger, recenter, toggleSurface;
+        private InputAction leftTrigger, rightTrigger, recenter, toggleSurface, recalculate;
         private Mesh previousMesh;
         private bool placed;
         private bool focused = true;
@@ -23,6 +23,8 @@ namespace HBP.Quest
             rightTrigger = new InputAction("Grab right", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
             recenter = new InputAction("Recenter anatomy (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
             toggleSurface = new InputAction("Hide/show brain (A)", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
+            recalculate = new InputAction("Recalculate density", InputActionType.Button, "<XRController>{RightHand}/thumbstickClicked");
+            recalculate.Enable();
             leftTrigger.Enable();
             rightTrigger.Enable();
             recenter.Enable();
@@ -44,6 +46,7 @@ namespace HBP.Quest
                 previousMesh = view.SharedMesh;
             }
 
+            if (right.IsTracked && recalculate.WasPressedThisFrame()) view.RecalculateDensity();
             if (right.IsTracked && toggleSurface.WasPressedThisFrame()) view.ToggleSurface();
 
             if (view.SharedMesh != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))
@@ -76,6 +79,7 @@ namespace HBP.Quest
             rightTrigger?.Dispose();
             recenter?.Dispose();
             toggleSurface?.Dispose();
+            recalculate?.Dispose();
             leftTrigger = rightTrigger = recenter = toggleSurface = null;
             if (manipulator != null) manipulator.CancelGrab();
         }

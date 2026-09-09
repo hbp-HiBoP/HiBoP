@@ -1,0 +1,23 @@
+[
+  "-batchmode",
+  "-projectPath",
+  "C:/HBP/Software/HiBoP",
+  "-activeBuildProfile",
+  "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+  "-runTests",
+  "-testPlatform",
+  "PlayMode",
+  "-assemblyNames",
+  "HBP.Quest.PlayModeTests",
+  "-questContactsFixture",
+  "C:/HBP/Software/HiBoP/.artifacts/quest-017/captures/20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a/anatomy.hbna",
+  "-questAnatomyFixture",
+  "C:/HBP/Software/HiBoP/.artifacts/quest-008/fixture/quest-anatomy.hbna",
+  "-testFilter",
+  "HBP.Tests.Quest.AnatomyDeliveryTests.RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose;HBP.Tests.Quest.AnatomyDeliveryTests.RealMniCaptureFixture_TravelsThroughTlsToRenderer;HBP.Tests.QuestAnatomy.AnatomyManipulationTests.ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh",
+  "-testResults",
+  "C:/HBP/Software/HiBoP/.test-results/quest-019/playmode-mni.xml",
+  "-logFile",
+  "C:/HBP/Software/HiBoP/.test-results/quest-019/playmode-mni.log",
+  "-forgetProjectPath"
+]

@@ -24,7 +24,7 @@ namespace HBP.Tests.Quest
             if (Directory.Exists(root)) Directory.Delete(root);
         }
 
-        private static AnatomySnapshot Snapshot()
+        internal static AnatomySnapshot Snapshot()
         {
             var sites = new[]
             {

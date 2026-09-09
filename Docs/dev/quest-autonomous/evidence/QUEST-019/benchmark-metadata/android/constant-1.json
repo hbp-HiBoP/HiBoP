@@ -1,0 +1,38 @@
+{
+    "name": "constant-1",
+    "inputSha256": "40fad299e00bc43d3a0aa9abf4e2194e1d74db20763543493e108d48254f3ea8",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "Android",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 2.0,
+    "preparationMs": 8.5418,
+    "computeMs": 11.3298,
+    "projectionAndCopyMs": 18.5545,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 43323392,
+    "managedAfter": 58077184
+}

@@ -1,0 +1,643 @@
+{
+  "samples": [
+    {
+      "utc": "2026-09-09T14:09:13.7939990Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 9.727230816016077,
+      "windowSeconds": 5.002552165002272,
+      "meanFrameIntervalMs": 17.0105262522977,
+      "maxFrameIntervalMs": 708.3336114883423,
+      "frames": 307,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 62,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 109312699,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 51048448,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:18.7942720Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 14.727504752014925,
+      "windowSeconds": 5.000273935998848,
+      "meanFrameIntervalMs": 13.888951207304167,
+      "maxFrameIntervalMs": 13.899673707783222,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 62,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111502243,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 51363840,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:23.8075670Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 19.740796710014095,
+      "windowSeconds": 5.01329195799917,
+      "meanFrameIntervalMs": 13.888902662946247,
+      "maxFrameIntervalMs": 13.891085982322693,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 63,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111485203,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 51060736,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:28.8217510Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 24.754984449015595,
+      "windowSeconds": 5.0141877390015,
+      "meanFrameIntervalMs": 13.88888522322158,
+      "maxFrameIntervalMs": 13.890978880226612,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 63,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111485203,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 51314688,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:33.8353250Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 29.76855411501556,
+      "windowSeconds": 5.013569665999967,
+      "meanFrameIntervalMs": 13.888891007224938,
+      "maxFrameIntervalMs": 13.8932466506958,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 66,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111500275,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 48050176,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:38.8356330Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 34.76886555101619,
+      "windowSeconds": 5.000311436000629,
+      "meanFrameIntervalMs": 13.888879102240834,
+      "maxFrameIntervalMs": 13.891085982322693,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 66,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111500299,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 48361472,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:43.8359020Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 39.76912969501309,
+      "windowSeconds": 5.000264143996901,
+      "meanFrameIntervalMs": 13.888896877566973,
+      "maxFrameIntervalMs": 13.891064561903477,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111501147,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 39817216,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:48.8359280Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 44.769161026014174,
+      "windowSeconds": 5.000031331001082,
+      "meanFrameIntervalMs": 13.888885171359611,
+      "maxFrameIntervalMs": 13.8890091329813,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111484747,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 40136704,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:53.8492520Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 49.78248433801373,
+      "windowSeconds": 5.013323311999557,
+      "meanFrameIntervalMs": 13.888890922090189,
+      "maxFrameIntervalMs": 13.891085982322693,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111484811,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 40570880,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:09:58.8493990Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 54.78263254401345,
+      "windowSeconds": 5.0001482059997215,
+      "meanFrameIntervalMs": 13.888879190199077,
+      "maxFrameIntervalMs": 13.889038003981113,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111484811,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 41046016,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:10:03.8629820Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 59.79621544001448,
+      "windowSeconds": 5.013582896001026,
+      "meanFrameIntervalMs": 13.888884882682579,
+      "maxFrameIntervalMs": 13.8890091329813,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111484811,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 41529344,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:10:08.8632610Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 64.79649369801582,
+      "windowSeconds": 5.0002782580013445,
+      "meanFrameIntervalMs": 13.888885197229683,
+      "maxFrameIntervalMs": 13.889030553400517,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111485115,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 42012672,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:10:13.8767090Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 69.80993841601476,
+      "windowSeconds": 5.0134447179989365,
+      "meanFrameIntervalMs": 13.888890989166052,
+      "maxFrameIntervalMs": 13.890986330807209,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 68,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111468315,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 39854080,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:10:18.8773500Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 74.8105829770163,
+      "windowSeconds": 5.000644561001536,
+      "meanFrameIntervalMs": 13.888891160281169,
+      "maxFrameIntervalMs": 13.891085982322693,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 68,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111468723,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 40189952,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:10:23.8908330Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 79.82406691401657,
+      "windowSeconds": 5.013483937000274,
+      "meanFrameIntervalMs": 13.888884887842261,
+      "maxFrameIntervalMs": 13.8890091329813,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 68,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111451419,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 40628224,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    },
+    {
+      "utc": "2026-09-09T14:10:28.8911650Z",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "uptimeSeconds": 84.8243976730143,
+      "windowSeconds": 5.000330758997734,
+      "meanFrameIntervalMs": 13.888879482530886,
+      "maxFrameIntervalMs": 13.889065943658352,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 68,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111451419,
+      "unityReservedBytes": 238755840,
+      "managedBytes": 41107456,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.47597822546958923,
+        "y": 0.6349465847015381,
+        "z": 0.8906931281089783
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5871621370315552,
+        "y": -0.3940058946609497,
+        "z": -0.3940058946609497,
+        "w": 0.5871621370315552
+      }
+    }
+  ],
+  "publications": [
+    {
+      "utc": "2026-09-09T14:09:12.1455490Z",
+      "transfer": "d5c22d96-0798-4219-bac7-75ce997736c7",
+      "hash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+      "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+      "status": "Published",
+      "bytes": 15532667,
+      "vertices": 69104,
+      "indices": 414648,
+      "uploads": 1,
+      "decodeAndHashMs": 814.1589,
+      "meshPrepareAndUploadSubmissionMs": 698.0181,
+      "positionBefore": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleBefore": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "positionAfter": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleAfter": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotationBefore": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "rotationAfter": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    }
+  ]
+}

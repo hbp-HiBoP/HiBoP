@@ -1,0 +1,26 @@
+{
+    "passed": true,
+    "networkUnavailable": true,
+    "published": true,
+    "exactRecalculation": true,
+    "buffersUploaded": true,
+    "failure": "",
+    "contentHash": "3690428569930978e96f3b5d25c3a826bc3bd51dced9bd15fb1117c826f0f3c8",
+    "cycles": 3,
+    "vertices": 69104,
+    "memory": [
+        101659171,
+        109311387,
+        111525307
+    ],
+    "computeMs": [
+        11.8926,
+        9.652000000000001,
+        9.3734
+    ],
+    "uploadMs": [
+        2.2433,
+        1.7039000000000003,
+        0.9690000000000001
+    ]
+}

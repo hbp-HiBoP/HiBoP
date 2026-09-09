@@ -105,6 +105,9 @@ namespace HBP.Quest
                 _ => status
             };
             string content = session.IsReady ? $"Anatomy ready | {view.Contacts.Sites.Count} contacts\nAvailable offline" : "No anatomy received";
+            if (view.DensityComputing) content += "\nCalculating local density...";
+            else if (view.DensityError != null) content += "\nDensity failed: " + view.DensityError;
+            else if (view.Density != null) content += $"\nDensity ready | max {view.Density.MaxDensity:G5}\nRight stick click: recalculate offline";
             string surface = view.SurfaceHidden ? "A: show brain" : "A: hide brain";
             if (!details && session.IsReady)
             {

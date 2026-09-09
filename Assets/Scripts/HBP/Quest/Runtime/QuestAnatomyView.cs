@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Transfer.Anatomy;
 using HBP.Transfer.Projection;
 using UnityEngine;
@@ -17,6 +19,13 @@ namespace HBP.Quest
         private MaterialPropertyBlock properties;
         private Mesh ownedMesh;
         private int mainThread;
+        private Texture2D densityColors;
+        private int generation;
+        public bool DensityComputing { get; private set; }
+        public string DensityError { get; private set; }
+        public NativeProjectionInputs.DensityResult Density { get; private set; }
+        public Task DensityCompletion { get; private set; } = Task.CompletedTask;
+        public double DensityUploadMs { get; private set; }
 
         public Mesh SharedMesh => ownedMesh;
         public NativeProjectionInputs ProjectionInputs { get; private set; }
@@ -53,7 +62,7 @@ namespace HBP.Quest
             NativeProjectionInputs nextProjection = null;
             try
             {
-                next.UploadMeshData(true); // Release the CPU mesh copy; Mesh owns its GPU buffers.
+                next.UploadMeshData(snapshot.Projection == null); // Keep projection UVs writable for offline recalculation.
                 nextProperties = new MaterialPropertyBlock();
                 // HBNA RGB is already linear: SetVector avoids a second color-space conversion.
                 nextProperties.SetVector(BaseColorId, new Vector4(snapshot.Color[0], snapshot.Color[1], snapshot.Color[2], 1));
@@ -95,6 +104,10 @@ namespace HBP.Quest
             NativeProjectionInputs previousProjection = ProjectionInputs;
             ownedMesh = next;
             ProjectionInputs = nextProjection;
+            generation++;
+            DensityComputing = false;
+            Density = null;
+            DensityError = null;
             properties = nextProperties;
             TransferId = snapshot.TransferId;
             Contacts = snapshot.Contacts;
@@ -104,6 +117,46 @@ namespace HBP.Quest
             UploadCount++;
             AnatomyMeshUploader.Release(previous);
             previousProjection?.Dispose();
+            RecalculateDensity();
+        }
+
+        public void RecalculateDensity(bool captureGrid = false)
+        {
+            RequireMainThread();
+            if (ProjectionInputs == null || DensityComputing) return;
+            DensityCompletion = ComputeAndPublishAsync(ProjectionInputs, ownedMesh, generation, captureGrid).AsTask();
+        }
+
+        private async UniTask ComputeAndPublishAsync(NativeProjectionInputs inputs, Mesh mesh, int version, bool captureGrid)
+        {
+            DensityComputing = true;
+            DensityError = null;
+            try
+            {
+                var result = await inputs.ComputeDensityAsync(captureGrid);
+                // Replacement/close retires publication, never the worker's input lease.
+                if (!this || generation != version || ProjectionInputs != inputs) return;
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                mesh.uv3 = result.ActivityUV;
+                mesh.uv2 = result.AlphaUV;
+                mesh.UploadMeshData(false);
+                if (densityColors == null) densityColors = Core.Tools.UnityTextureFactory.Generate1DColorTexture(Core.Enums.ColorType.MatLab);
+                properties.SetTexture("_ColorTex", densityColors);
+                properties.SetFloat("_DensityEnabled", 1);
+                meshRenderer.SetPropertyBlock(properties);
+                DensityUploadMs = watch.Elapsed.TotalMilliseconds;
+                Density = result;
+            }
+            catch (Exception exception)
+            {
+                if (!this || generation != version || ProjectionInputs != inputs) return;
+                DensityError = exception.Message;
+                Debug.LogWarning("Quest density failed: " + exception);
+            }
+            finally
+            {
+                if (this && generation == version && ProjectionInputs == inputs) DensityComputing = false;
+            }
         }
 
         private static string PrivateProjectionRoot()
@@ -121,6 +174,10 @@ namespace HBP.Quest
         public void Clear()
         {
             RequireMainThread();
+            generation++;
+            DensityComputing = false;
+            Density = null;
+            DensityError = null;
             if (meshFilter != null) meshFilter.sharedMesh = null;
             if (meshRenderer != null)
             {
@@ -147,6 +204,14 @@ namespace HBP.Quest
                 throw new InvalidOperationException("Dispatch anatomy deliveries to Unity's main thread.");
         }
 
-        private void OnDestroy() => Clear();
+        private void OnDestroy()
+        {
+            Clear();
+            if (densityColors != null)
+            {
+                if (Application.isPlaying) Destroy(densityColors);
+                else DestroyImmediate(densityColors);
+            }
+        }
     }
 }

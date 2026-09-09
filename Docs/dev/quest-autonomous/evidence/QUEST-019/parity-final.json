@@ -1,0 +1,3019 @@
+{
+  "inputsAndCategoriesMatch": true,
+  "scientificAcceptance": "PENDING_OWNER_REVIEW",
+  "tolerancesApplied": null,
+  "runs": {
+    "boundary-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsOutsideVolume": true,
+        "androidOutsideVolume": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.341609239578247,
+          "android": 1.341609239578247
+        },
+        "activity": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.5,
+          "android": 0.5,
+          "vertexPositionMm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.0,
+          "android": 0.0
+        }
+      },
+      "windows": {
+        "name": "boundary-0",
+        "inputSha256": "becc21b5b0aa0f059d8626dcc02ff56c32d63969e4c95d634eb805b844e12944",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 4,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          4,
+          3,
+          1,
+          2
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 2.7944,
+        "computeMs": 8.2317,
+        "projectionAndCopyMs": 4.3378000000000005,
+        "uvCopyBytes": 64,
+        "managedBefore": 121741312,
+        "managedAfter": 118198272
+      },
+      "android": {
+        "name": "boundary-0",
+        "inputSha256": "becc21b5b0aa0f059d8626dcc02ff56c32d63969e4c95d634eb805b844e12944",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 4,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          4,
+          3,
+          1,
+          2
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 1.5521,
+        "computeMs": 11.0744,
+        "projectionAndCopyMs": 9.9624,
+        "uvCopyBytes": 64,
+        "managedBefore": 65933312,
+        "managedAfter": 60915712
+      }
+    },
+    "boundary-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsOutsideVolume": true,
+        "androidOutsideVolume": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.341609239578247,
+          "android": 1.341609239578247
+        },
+        "activity": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.5,
+          "android": 0.5,
+          "vertexPositionMm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.0,
+          "android": 0.0
+        }
+      },
+      "windows": {
+        "name": "boundary-1",
+        "inputSha256": "becc21b5b0aa0f059d8626dcc02ff56c32d63969e4c95d634eb805b844e12944",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 4,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          4,
+          3,
+          1,
+          2
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 2.3092,
+        "computeMs": 5.6512,
+        "projectionAndCopyMs": 3.2568,
+        "uvCopyBytes": 64,
+        "managedBefore": 90513408,
+        "managedAfter": 117116928
+      },
+      "android": {
+        "name": "boundary-1",
+        "inputSha256": "becc21b5b0aa0f059d8626dcc02ff56c32d63969e4c95d634eb805b844e12944",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 4,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          4,
+          3,
+          1,
+          2
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 1.5727,
+        "computeMs": 11.107700000000001,
+        "projectionAndCopyMs": 10.755600000000001,
+        "uvCopyBytes": 64,
+        "managedBefore": 50917376,
+        "managedAfter": 60919808
+      }
+    },
+    "constant-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 2.0,
+          "android": 2.0
+        },
+        "activity": {
+          "maxAbsolute": 2.980232238769531e-07,
+          "rms": 1.3842878707934336e-08,
+          "differentComponents": 4702,
+          "worstIndex": [
+            4497,
+            0
+          ],
+          "windows": 0.8473547101020813,
+          "android": 0.8473544120788574,
+          "vertexPositionMm": [
+            3.15545654296875,
+            10.084648132324219,
+            41.940773010253906
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.931518142142266e-09,
+          "differentComponents": 2966,
+          "worstIndex": [
+            1627,
+            0
+          ],
+          "windows": 0.8135561943054199,
+          "android": 0.8135563135147095,
+          "vertexPositionMm": [
+            19.890769958496094,
+            22.98149871826172,
+            46.29025650024414
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "constant-0",
+        "inputSha256": "40fad299e00bc43d3a0aa9abf4e2194e1d74db20763543493e108d48254f3ea8",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 2.0,
+        "preparationMs": 5.9797,
+        "computeMs": 7.1597,
+        "projectionAndCopyMs": 9.3942,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98344960,
+        "managedAfter": 98349056
+      },
+      "android": {
+        "name": "constant-0",
+        "inputSha256": "40fad299e00bc43d3a0aa9abf4e2194e1d74db20763543493e108d48254f3ea8",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 2.0,
+        "preparationMs": 8.7784,
+        "computeMs": 12.0951,
+        "projectionAndCopyMs": 23.9785,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 58073088,
+        "managedAfter": 58085376
+      }
+    },
+    "constant-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 2.0,
+          "android": 2.0
+        },
+        "activity": {
+          "maxAbsolute": 2.980232238769531e-07,
+          "rms": 1.3842878707934336e-08,
+          "differentComponents": 4702,
+          "worstIndex": [
+            4497,
+            0
+          ],
+          "windows": 0.8473547101020813,
+          "android": 0.8473544120788574,
+          "vertexPositionMm": [
+            3.15545654296875,
+            10.084648132324219,
+            41.940773010253906
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.931518142142266e-09,
+          "differentComponents": 2966,
+          "worstIndex": [
+            1627,
+            0
+          ],
+          "windows": 0.8135561943054199,
+          "android": 0.8135563135147095,
+          "vertexPositionMm": [
+            19.890769958496094,
+            22.98149871826172,
+            46.29025650024414
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "constant-1",
+        "inputSha256": "40fad299e00bc43d3a0aa9abf4e2194e1d74db20763543493e108d48254f3ea8",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 2.0,
+        "preparationMs": 7.468500000000001,
+        "computeMs": 7.4424,
+        "projectionAndCopyMs": 7.9289000000000005,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98697216,
+        "managedAfter": 98340864
+      },
+      "android": {
+        "name": "constant-1",
+        "inputSha256": "40fad299e00bc43d3a0aa9abf4e2194e1d74db20763543493e108d48254f3ea8",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 2.0,
+        "preparationMs": 8.5418,
+        "computeMs": 11.3298,
+        "projectionAndCopyMs": 18.5545,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 43323392,
+        "managedAfter": 58077184
+      }
+    },
+    "linear-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.6272757053375244,
+          "android": 1.6272757053375244
+        },
+        "activity": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.304497066582714e-09,
+          "differentComponents": 6801,
+          "worstIndex": [
+            4563,
+            0
+          ],
+          "windows": 0.517002284526825,
+          "android": 0.5170021653175354,
+          "vertexPositionMm": [
+            7.056671142578125,
+            19.771465301513672,
+            39.56720733642578
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.931518142142266e-09,
+          "differentComponents": 2966,
+          "worstIndex": [
+            1627,
+            0
+          ],
+          "windows": 0.8135561943054199,
+          "android": 0.8135563135147095,
+          "vertexPositionMm": [
+            19.890769958496094,
+            22.98149871826172,
+            46.29025650024414
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "linear-0",
+        "inputSha256": "c95906fc23d338d5d7271ffe5849e49e83be455e193fc956f4ca3d5f4876de9e",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.6272757053375244,
+        "preparationMs": 6.6059,
+        "computeMs": 5.7203,
+        "projectionAndCopyMs": 7.099200000000001,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98344960,
+        "managedAfter": 98349056
+      },
+      "android": {
+        "name": "linear-0",
+        "inputSha256": "c95906fc23d338d5d7271ffe5849e49e83be455e193fc956f4ca3d5f4876de9e",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.6272757053375244,
+        "preparationMs": 9.2491,
+        "computeMs": 11.5641,
+        "projectionAndCopyMs": 20.3965,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 58068992,
+        "managedAfter": 58081280
+      }
+    },
+    "linear-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.6272757053375244,
+          "android": 1.6272757053375244
+        },
+        "activity": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.304497066582714e-09,
+          "differentComponents": 6801,
+          "worstIndex": [
+            4563,
+            0
+          ],
+          "windows": 0.517002284526825,
+          "android": 0.5170021653175354,
+          "vertexPositionMm": [
+            7.056671142578125,
+            19.771465301513672,
+            39.56720733642578
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.931518142142266e-09,
+          "differentComponents": 2966,
+          "worstIndex": [
+            1627,
+            0
+          ],
+          "windows": 0.8135561943054199,
+          "android": 0.8135563135147095,
+          "vertexPositionMm": [
+            19.890769958496094,
+            22.98149871826172,
+            46.29025650024414
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "linear-1",
+        "inputSha256": "c95906fc23d338d5d7271ffe5849e49e83be455e193fc956f4ca3d5f4876de9e",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.6272757053375244,
+        "preparationMs": 5.797000000000001,
+        "computeMs": 5.7986,
+        "projectionAndCopyMs": 7.430300000000001,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98697216,
+        "managedAfter": 98340864
+      },
+      "android": {
+        "name": "linear-1",
+        "inputSha256": "c95906fc23d338d5d7271ffe5849e49e83be455e193fc956f4ca3d5f4876de9e",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.6272757053375244,
+        "preparationMs": 7.7123,
+        "computeMs": 11.3648,
+        "projectionAndCopyMs": 21.6319,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 42541056,
+        "managedAfter": 58064896
+      }
+    },
+    "masked-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsEmptyDensity": true,
+        "androidEmptyDensity": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 0.0,
+          "android": 0.0
+        },
+        "activity": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.5,
+          "android": 0.5,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "masked-0",
+        "inputSha256": "ecbac9a27e2963add1511ddd2f5e2ebce6ff8e1e07ccc1658ab8e14ac33d0194",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 5.5038,
+        "computeMs": 6.503,
+        "projectionAndCopyMs": 8.0253,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98349056,
+        "managedAfter": 98353152
+      },
+      "android": {
+        "name": "masked-0",
+        "inputSha256": "ecbac9a27e2963add1511ddd2f5e2ebce6ff8e1e07ccc1658ab8e14ac33d0194",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 8.674800000000001,
+        "computeMs": 10.461400000000001,
+        "projectionAndCopyMs": 22.311500000000002,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 58077184,
+        "managedAfter": 58081280
+      }
+    },
+    "masked-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsEmptyDensity": true,
+        "androidEmptyDensity": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 0.0,
+          "android": 0.0
+        },
+        "activity": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.5,
+          "android": 0.5,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "masked-1",
+        "inputSha256": "ecbac9a27e2963add1511ddd2f5e2ebce6ff8e1e07ccc1658ab8e14ac33d0194",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 5.4164,
+        "computeMs": 5.502000000000001,
+        "projectionAndCopyMs": 7.383900000000001,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98701312,
+        "managedAfter": 98344960
+      },
+      "android": {
+        "name": "masked-1",
+        "inputSha256": "ecbac9a27e2963add1511ddd2f5e2ebce6ff8e1e07ccc1658ab8e14ac33d0194",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 8.326500000000001,
+        "computeMs": 11.2806,
+        "projectionAndCopyMs": 19.1508,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 42549248,
+        "managedAfter": 58064896
+      }
+    },
+    "mni-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.341609239578247,
+          "android": 1.341609239578247
+        },
+        "activity": {
+          "maxAbsolute": 8.940696716308594e-08,
+          "rms": 1.4130548661356558e-09,
+          "differentComponents": 6816,
+          "worstIndex": [
+            24463,
+            0
+          ],
+          "windows": 0.27362847328186035,
+          "android": 0.2736285626888275,
+          "vertexPositionMm": [
+            4.8478546142578125,
+            23.742691040039062,
+            39.51707077026367
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.931518142142266e-09,
+          "differentComponents": 2966,
+          "worstIndex": [
+            1627,
+            0
+          ],
+          "windows": 0.8135561943054199,
+          "android": 0.8135563135147095,
+          "vertexPositionMm": [
+            19.890769958496094,
+            22.98149871826172,
+            46.29025650024414
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "mni-0",
+        "inputSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 5.966600000000001,
+        "computeMs": 5.5475,
+        "projectionAndCopyMs": 9.1456,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 85913600,
+        "managedAfter": 76472320
+      },
+      "android": {
+        "name": "mni-0",
+        "inputSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 14.666500000000001,
+        "computeMs": 12.1929,
+        "projectionAndCopyMs": 22.358800000000002,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 40968192,
+        "managedAfter": 58048512
+      }
+    },
+    "mni-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.341609239578247,
+          "android": 1.341609239578247
+        },
+        "activity": {
+          "maxAbsolute": 8.940696716308594e-08,
+          "rms": 1.4130548661356558e-09,
+          "differentComponents": 6816,
+          "worstIndex": [
+            24463,
+            0
+          ],
+          "windows": 0.27362847328186035,
+          "android": 0.2736285626888275,
+          "vertexPositionMm": [
+            4.8478546142578125,
+            23.742691040039062,
+            39.51707077026367
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.931518142142266e-09,
+          "differentComponents": 2966,
+          "worstIndex": [
+            1627,
+            0
+          ],
+          "windows": 0.8135561943054199,
+          "android": 0.8135563135147095,
+          "vertexPositionMm": [
+            19.890769958496094,
+            22.98149871826172,
+            46.29025650024414
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "mni-1",
+        "inputSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 5.4926,
+        "computeMs": 5.5145,
+        "projectionAndCopyMs": 8.1333,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 83591168,
+        "managedAfter": 77631488
+      },
+      "android": {
+        "name": "mni-1",
+        "inputSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 10.0425,
+        "computeMs": 9.182500000000001,
+        "projectionAndCopyMs": 19.479,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 42508288,
+        "managedAfter": 58056704
+      }
+    },
+    "nearest-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.341609239578247,
+          "android": 1.341609239578247
+        },
+        "activity": {
+          "maxAbsolute": 5.960464477539063e-08,
+          "rms": 1.043891048921719e-09,
+          "differentComponents": 273,
+          "worstIndex": [
+            37121,
+            0
+          ],
+          "windows": 0.40344923734664917,
+          "android": 0.4034491777420044,
+          "vertexPositionMm": [
+            -20.630455017089844,
+            -27.6729736328125,
+            22.33649444580078
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "nearest-0",
+        "inputSha256": "164fb773819aa714cd207b3f81f6f4e5ad4d836a24d648a71761f21ef8329f02",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 5.283,
+        "computeMs": 5.7165,
+        "projectionAndCopyMs": 1.9892,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98344960,
+        "managedAfter": 98336768
+      },
+      "android": {
+        "name": "nearest-0",
+        "inputSha256": "164fb773819aa714cd207b3f81f6f4e5ad4d836a24d648a71761f21ef8329f02",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 8.3177,
+        "computeMs": 11.8087,
+        "projectionAndCopyMs": 5.1362000000000005,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 58068992,
+        "managedAfter": 58081280
+      }
+    },
+    "nearest-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.341609239578247,
+          "android": 1.341609239578247
+        },
+        "activity": {
+          "maxAbsolute": 5.960464477539063e-08,
+          "rms": 1.043891048921719e-09,
+          "differentComponents": 273,
+          "worstIndex": [
+            37121,
+            0
+          ],
+          "windows": 0.40344923734664917,
+          "android": 0.4034491777420044,
+          "vertexPositionMm": [
+            -20.630455017089844,
+            -27.6729736328125,
+            22.33649444580078
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "nearest-1",
+        "inputSha256": "164fb773819aa714cd207b3f81f6f4e5ad4d836a24d648a71761f21ef8329f02",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 5.340800000000001,
+        "computeMs": 5.7784,
+        "projectionAndCopyMs": 1.983,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98684928,
+        "managedAfter": 98328576
+      },
+      "android": {
+        "name": "nearest-1",
+        "inputSha256": "164fb773819aa714cd207b3f81f6f4e5ad4d836a24d648a71761f21ef8329f02",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.341609239578247,
+        "preparationMs": 8.3552,
+        "computeMs": 11.3614,
+        "projectionAndCopyMs": 3.7222000000000004,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 42541056,
+        "managedAfter": 58060800
+      }
+    },
+    "none-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsEmptyDensity": true,
+        "androidEmptyDensity": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 0.0,
+          "android": 0.0
+        },
+        "activity": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.5,
+          "android": 0.5,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "none-0",
+        "inputSha256": "f862b2346b6d31e0d8a6dd680ef805617a596a5baba2f6b9ba6b678062edc197",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 0,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 5.4751,
+        "computeMs": 5.5766,
+        "projectionAndCopyMs": 7.339600000000001,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98340864,
+        "managedAfter": 98349056
+      },
+      "android": {
+        "name": "none-0",
+        "inputSha256": "f862b2346b6d31e0d8a6dd680ef805617a596a5baba2f6b9ba6b678062edc197",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 0,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 8.0919,
+        "computeMs": 11.5015,
+        "projectionAndCopyMs": 19.5999,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 58077184,
+        "managedAfter": 58073088
+      }
+    },
+    "none-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsEmptyDensity": true,
+        "androidEmptyDensity": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 0.0,
+          "android": 0.0
+        },
+        "activity": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.5,
+          "android": 0.5,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 0.009999999776482582,
+          "android": 0.009999999776482582,
+          "vertexPositionMm": [
+            13.680290222167969,
+            -49.42736053466797,
+            77.64081573486328
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "none-1",
+        "inputSha256": "f862b2346b6d31e0d8a6dd680ef805617a596a5baba2f6b9ba6b678062edc197",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 0,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 6.0858,
+        "computeMs": 6.4976,
+        "projectionAndCopyMs": 8.6686,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98693120,
+        "managedAfter": 110006272
+      },
+      "android": {
+        "name": "none-1",
+        "inputSha256": "f862b2346b6d31e0d8a6dd680ef805617a596a5baba2f6b9ba6b678062edc197",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 0,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.0,
+        "preparationMs": 8.560500000000001,
+        "computeMs": 11.001700000000001,
+        "projectionAndCopyMs": 18.5857,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 43352064,
+        "managedAfter": 58073088
+      }
+    },
+    "radius25-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.5835261344909668,
+          "android": 1.5835261344909668
+        },
+        "activity": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.2558607903560818e-09,
+          "differentComponents": 17232,
+          "worstIndex": [
+            24464,
+            0
+          ],
+          "windows": 0.536963164806366,
+          "android": 0.5369630455970764,
+          "vertexPositionMm": [
+            5.986030578613281,
+            22.83614730834961,
+            39.10365676879883
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 7.538859779568176e-09,
+          "differentComponents": 6637,
+          "worstIndex": [
+            1288,
+            0
+          ],
+          "windows": 0.6918806433677673,
+          "android": 0.6918805241584778,
+          "vertexPositionMm": [
+            25.372085571289062,
+            17.87479019165039,
+            59.980648040771484
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "radius25-0",
+        "inputSha256": "ff59cf972a64aece0951b921a592db4ac58625c883471ac241874923162da840",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.5835261344909668,
+        "preparationMs": 5.3944,
+        "computeMs": 5.687200000000001,
+        "projectionAndCopyMs": 7.2274,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 77615104,
+        "managedAfter": 100012032
+      },
+      "android": {
+        "name": "radius25-0",
+        "inputSha256": "ff59cf972a64aece0951b921a592db4ac58625c883471ac241874923162da840",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.5835261344909668,
+        "preparationMs": 11.1386,
+        "computeMs": 12.1866,
+        "projectionAndCopyMs": 20.9149,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 58077184,
+        "managedAfter": 59727872
+      }
+    },
+    "radius25-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 1.5835261344909668,
+          "android": 1.5835261344909668
+        },
+        "activity": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 3.2558607903560818e-09,
+          "differentComponents": 17232,
+          "worstIndex": [
+            24464,
+            0
+          ],
+          "windows": 0.536963164806366,
+          "android": 0.5369630455970764,
+          "vertexPositionMm": [
+            5.986030578613281,
+            22.83614730834961,
+            39.10365676879883
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 1.1920928955078125e-07,
+          "rms": 7.538859779568176e-09,
+          "differentComponents": 6637,
+          "worstIndex": [
+            1288,
+            0
+          ],
+          "windows": 0.6918806433677673,
+          "android": 0.6918805241584778,
+          "vertexPositionMm": [
+            25.372085571289062,
+            17.87479019165039,
+            59.980648040771484
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "radius25-1",
+        "inputSha256": "ff59cf972a64aece0951b921a592db4ac58625c883471ac241874923162da840",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.5835261344909668,
+        "preparationMs": 5.4341,
+        "computeMs": 5.7636,
+        "projectionAndCopyMs": 7.164300000000001,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 101371904,
+        "managedAfter": 98332672
+      },
+      "android": {
+        "name": "radius25-1",
+        "inputSha256": "ff59cf972a64aece0951b921a592db4ac58625c883471ac241874923162da840",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 8,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 1.5835261344909668,
+        "preparationMs": 10.994,
+        "computeMs": 13.3649,
+        "projectionAndCopyMs": 20.696,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 46460928,
+        "managedAfter": 58060800
+      }
+    },
+    "single-0": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsSingleSiteBound": true,
+        "androidSingleSiteBound": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 0.9259036183357239,
+          "android": 0.9259036183357239
+        },
+        "activity": {
+          "maxAbsolute": 2.2351741790771484e-08,
+          "rms": 2.976828402886558e-10,
+          "differentComponents": 1095,
+          "worstIndex": [
+            4916,
+            0
+          ],
+          "windows": 0.11777722835540771,
+          "android": 0.1177772507071495,
+          "vertexPositionMm": [
+            21.090843200683594,
+            -21.06169891357422,
+            27.845001220703125
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 5.960464477539063e-08,
+          "rms": 1.1006331732015124e-09,
+          "differentComponents": 479,
+          "worstIndex": [
+            570,
+            0
+          ],
+          "windows": 0.5359808802604675,
+          "android": 0.5359808206558228,
+          "vertexPositionMm": [
+            39.76860809326172,
+            -12.520500183105469,
+            18.02916717529297
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "single-0",
+        "inputSha256": "d4c91c040726bbeaa82d39e15b33ce271becc26806cb5661dbd9188d73d10960",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 1,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.9259036183357239,
+        "preparationMs": 5.4191,
+        "computeMs": 5.9451,
+        "projectionAndCopyMs": 6.849200000000001,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98349056,
+        "managedAfter": 98353152
+      },
+      "android": {
+        "name": "single-0",
+        "inputSha256": "d4c91c040726bbeaa82d39e15b33ce271becc26806cb5661dbd9188d73d10960",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 1,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.9259036183357239,
+        "preparationMs": 11.8535,
+        "computeMs": 10.5021,
+        "projectionAndCopyMs": 20.4881,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 58077184,
+        "managedAfter": 58097664
+      }
+    },
+    "single-1": {
+      "exactChecks": {
+        "inputSha256": true,
+        "unity": true,
+        "nativeVersion": true,
+        "vertices": true,
+        "gridPoints": true,
+        "sites": true,
+        "dimensions": true,
+        "masks": true,
+        "coverage": true,
+        "windowsSingleSiteBound": true,
+        "androidSingleSiteBound": true,
+        "maximumFinite": true,
+        "activityFinite": true,
+        "activityCategories": true,
+        "activitySentinels": true,
+        "alphaFinite": true,
+        "alphaCategories": true,
+        "alphaSentinels": true,
+        "gridFinite": true,
+        "positionsFinite": true,
+        "positions": true
+      },
+      "errors": {
+        "maximum": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0
+          ],
+          "windows": 0.9259036183357239,
+          "android": 0.9259036183357239
+        },
+        "activity": {
+          "maxAbsolute": 2.2351741790771484e-08,
+          "rms": 2.976828402886558e-10,
+          "differentComponents": 1095,
+          "worstIndex": [
+            4916,
+            0
+          ],
+          "windows": 0.11777722835540771,
+          "android": 0.1177772507071495,
+          "vertexPositionMm": [
+            21.090843200683594,
+            -21.06169891357422,
+            27.845001220703125
+          ]
+        },
+        "alpha": {
+          "maxAbsolute": 5.960464477539063e-08,
+          "rms": 1.1006331732015124e-09,
+          "differentComponents": 479,
+          "worstIndex": [
+            570,
+            0
+          ],
+          "windows": 0.5359808802604675,
+          "android": 0.5359808206558228,
+          "vertexPositionMm": [
+            39.76860809326172,
+            -12.520500183105469,
+            18.02916717529297
+          ]
+        },
+        "grid": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 75.0,
+          "android": 75.0,
+          "gridPointMm": [
+            75.0,
+            -107.0,
+            -69.5
+          ]
+        },
+        "positions": {
+          "maxAbsolute": 0.0,
+          "rms": 0.0,
+          "differentComponents": 0,
+          "worstIndex": [
+            0,
+            0
+          ],
+          "windows": 13.680290222167969,
+          "android": 13.680290222167969
+        }
+      },
+      "windows": {
+        "name": "single-1",
+        "inputSha256": "d4c91c040726bbeaa82d39e15b33ce271becc26806cb5661dbd9188d73d10960",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "WindowsPlayer",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 1,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.9259036183357239,
+        "preparationMs": 5.385000000000001,
+        "computeMs": 5.4669,
+        "projectionAndCopyMs": 7.291600000000001,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 98697216,
+        "managedAfter": 98344960
+      },
+      "android": {
+        "name": "single-1",
+        "inputSha256": "d4c91c040726bbeaa82d39e15b33ce271becc26806cb5661dbd9188d73d10960",
+        "unity": "6000.5.2f1",
+        "nativeVersion": "0.2.1",
+        "platform": "Android",
+        "vertices": 69104,
+        "gridPoints": 353600,
+        "sites": 1,
+        "dimensions": [
+          65,
+          80,
+          68
+        ],
+        "masks": [
+          0
+        ],
+        "coverage": [
+          69104,
+          69104,
+          0,
+          3
+        ],
+        "maxDensity": 0.9259036183357239,
+        "preparationMs": 7.6404000000000005,
+        "computeMs": 11.3725,
+        "projectionAndCopyMs": 20.0867,
+        "uvCopyBytes": 1105664,
+        "managedBefore": 42553344,
+        "managedAfter": 58085376
+      }
+    }
+  }
+}

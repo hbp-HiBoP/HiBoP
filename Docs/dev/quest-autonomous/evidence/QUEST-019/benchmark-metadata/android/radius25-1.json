@@ -1,0 +1,38 @@
+{
+    "name": "radius25-1",
+    "inputSha256": "ff59cf972a64aece0951b921a592db4ac58625c883471ac241874923162da840",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "Android",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 1.5835261344909669,
+    "preparationMs": 10.994,
+    "computeMs": 13.3649,
+    "projectionAndCopyMs": 20.696,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 46460928,
+    "managedAfter": 58060800
+}

@@ -3,6 +3,9 @@ Shader "HiBoP Quest/Anatomy Opaque"
     Properties
     {
         [MainColor] _BaseColor("Surface Color", Color) = (0.72, 0.72, 0.74, 1)
+        [NoScaleOffset] _ColorTex("Density colormap", 2D) = "white" {}
+        [NoScaleOffset] _AoTex("Scientific opacity", 2D) = "white" {}
+        _DensityEnabled("Density enabled", Float) = 0
         _AmbientStrength("Ambient", Range(0, 1)) = 0.35
         _DiffuseStrength("Diffuse", Range(0, 1)) = 0.65
         _Smoothness("Smoothness", Range(0, 1)) = 0.45

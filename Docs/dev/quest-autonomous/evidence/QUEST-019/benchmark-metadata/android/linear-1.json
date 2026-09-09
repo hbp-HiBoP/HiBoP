@@ -1,0 +1,38 @@
+{
+    "name": "linear-1",
+    "inputSha256": "c95906fc23d338d5d7271ffe5849e49e83be455e193fc956f4ca3d5f4876de9e",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "Android",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 1.6272757053375245,
+    "preparationMs": 7.7123,
+    "computeMs": 11.3648,
+    "projectionAndCopyMs": 21.6319,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 42541056,
+    "managedAfter": 58064896
+}

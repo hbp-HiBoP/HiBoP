@@ -51,6 +51,19 @@ ajouté au AGENTS.md global a été retiré. Les fiches renvoient directement au
 contrat d'exécution ; l'invocation recommandée peut préciser leur chemin. Aucun
 nettoyage de consigne globale n'est reporté à une dernière tâche optionnelle.
 
+## D30 — Parité densité QUEST-019 (2026-09-09)
+
+Le propriétaire accepte explicitement (« Accepter pour ce banc et ces versions »)
+les critères soumis après les 18 comparaisons complètes Windows/Quest : écart
+absolu maximal de **5 × 10⁻⁷** pour les UV activité et **2 × 10⁻⁷** pour les UV
+alpha ; égalité stricte des grilles, maxima, couvertures, masques, catégories et
+sentinelles. Les maxima observés sont respectivement 2,980232238769531 × 10⁻⁷
+et 1,1920928955078125 × 10⁻⁷. Cette acceptation concerne uniquement les fixtures,
+paramètres et binaires identifiés dans le [rapport QUEST-019](reports/QUEST-019.md)
+et son manifeste, avec Unity 6000.5.2f1 et hbp_core 0.2.1. Elle ne crée aucun
+seuil universel pour d'autres données, versions, algorithmes ou modalités ; les
+mesures RMS restent descriptives. La validation des gestes au casque reste distincte.
+
 ## Orientations ultérieures, non figées
 
 - Permettre de modifier des données ou paramètres scientifiques (coupes,

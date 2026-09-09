@@ -1,0 +1,38 @@
+{
+    "name": "mni-1",
+    "inputSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "WindowsPlayer",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 1.341609239578247,
+    "preparationMs": 5.4926,
+    "computeMs": 5.5145,
+    "projectionAndCopyMs": 8.1333,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 83591168,
+    "managedAfter": 77631488
+}

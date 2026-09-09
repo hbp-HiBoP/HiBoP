@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-09 13:50:55Z" end-time="2026-09-09 13:51:59Z" duration="63,551989">
+  <test-suite type="TestSuite" id="1223" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="161" result="Passed" start-time="2026-09-09 13:50:55Z" end-time="2026-09-09 13:51:59Z" duration="63.551989" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1110" name="HBP.Quest.PlayModeTests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Quest.PlayModeTests.dll" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 13:50:55Z" end-time="2026-09-09 13:51:59Z" duration="63.541974" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="21820" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1111" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 13:50:55Z" end-time="2026-09-09 13:51:59Z" duration="63.540964" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1112" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="45" result="Passed" start-time="2026-09-09 13:50:55Z" end-time="2026-09-09 13:51:59Z" duration="63.540287" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1114" name="Quest" fullname="HBP.Tests.Quest" runstate="Runnable" testcasecount="34" result="Passed" start-time="2026-09-09 13:50:55Z" end-time="2026-09-09 13:51:57Z" duration="61.928444" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1067" name="AnatomyDeliveryTests" fullname="HBP.Tests.Quest.AnatomyDeliveryTests" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" testcasecount="16" result="Passed" start-time="2026-09-09 13:50:55Z" end-time="2026-09-09 13:51:57Z" duration="61.925781" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1085" name="RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose" methodname="RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="1725039334" result="Passed" start-time="2026-09-09 13:50:56Z" end-time="2026-09-09 13:51:57Z" duration="61.237797" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Offline manipulation seconds=60,828939; PlayerLoop frames=591431; exact retry then replacement preserved pose/scale.
+]]></output>
+              </test-case>
+              <test-case id="1084" name="RealMniCaptureFixture_TravelsThroughTlsToRenderer" fullname="HBP.Tests.Quest.AnatomyDeliveryTests.RealMniCaptureFixture_TravelsThroughTlsToRenderer" methodname="RealMniCaptureFixture_TravelsThroughTlsToRenderer" classname="HBP.Tests.Quest.AnatomyDeliveryTests" runstate="Runnable" seed="858562774" result="Passed" start-time="2026-09-09 13:51:57Z" end-time="2026-09-09 13:51:57Z" duration="0.311050" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+          <test-suite type="TestSuite" id="1113" name="QuestAnatomy" fullname="HBP.Tests.QuestAnatomy" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-09 13:51:57Z" end-time="2026-09-09 13:51:59Z" duration="1.610782" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1054" name="AnatomyManipulationTests" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-09-09 13:51:57Z" end-time="2026-09-09 13:51:59Z" duration="1.609946" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1065" name="ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh" fullname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests.ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh" methodname="ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh" classname="HBP.Tests.QuestAnatomy.AnatomyManipulationTests" runstate="Runnable" seed="533256888" result="Passed" start-time="2026-09-09 13:51:57Z" end-time="2026-09-09 13:51:59Z" duration="1.607521" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[MNI vertices=69104; unchanged pair distance=3,84311461 mm; encoded bytes=3870248; presentation scale=1,196951
+<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Zigaroula/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

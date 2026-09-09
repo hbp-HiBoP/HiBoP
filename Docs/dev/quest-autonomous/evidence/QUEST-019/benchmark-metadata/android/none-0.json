@@ -1,0 +1,29 @@
+{
+    "name": "none-0",
+    "inputSha256": "f862b2346b6d31e0d8a6dd680ef805617a596a5baba2f6b9ba6b678062edc197",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "Android",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 0,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 0.0,
+    "preparationMs": 8.0919,
+    "computeMs": 11.5015,
+    "projectionAndCopyMs": 19.5999,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 58077184,
+    "managedAfter": 58073088
+}

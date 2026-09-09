@@ -308,6 +308,23 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
         }
 
         [Test]
+        public void Capture_RejectsUnrepresentedBoundarySetting()
+        {
+            var preferences = HBP.Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D;
+            bool previous = preferences.SmoothActivityBoundaries;
+            try
+            {
+                preferences.SmoothActivityBoundaries = false;
+                var exception = Assert.Throws<InvalidOperationException>(() => Capture());
+                Assert.That(exception.Message, Does.Contain("Smooth activity boundaries"));
+            }
+            finally
+            {
+                preferences.SmoothActivityBoundaries = previous;
+            }
+        }
+
+        [Test]
         public void Capture_RejectsCancellationBeforeReadingSelection()
         {
             Assert.Throws<OperationCanceledException>(() => DesktopAnatomyCapture.CaptureSelectedAsync("transfer", "session", 1, new CancellationToken(true)));

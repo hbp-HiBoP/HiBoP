@@ -61,6 +61,7 @@ namespace HBP.Quest
                 for (int cycle = 0; cycle < 3; cycle++)
                 {
                     view.ApplySnapshot(snapshot);
+                    await view.DensityCompletion;
                     var first = view.ProjectionInputs;
                     report.privateVolumePath = first.VolumePath;
                     Require(first.VolumePath.StartsWith("/data/", StringComparison.Ordinal), "Volume must be in Android internal private storage");
@@ -104,6 +105,7 @@ namespace HBP.Quest
                     await Task.Delay(1000, Application.exitCancellationToken);
                     Require(first.Volume.IsLoaded && first.Sites.NumberOfSites == report.sites, "Independent session lifetime");
                     view.ApplySnapshot(snapshot);
+                    await view.DensityCompletion;
                     Require(first.Volume.getHandle().Handle == IntPtr.Zero && first.Surface.getHandle().Handle == IntPtr.Zero && first.Sites.getHandle().Handle == IntPtr.Zero && !File.Exists(first.VolumePath) && first.CleanupError == null, "Replacement release");
                     report.replacementRelease = true;
                     var last = view.ProjectionInputs;

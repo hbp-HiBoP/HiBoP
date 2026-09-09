@@ -1,0 +1,38 @@
+{
+    "name": "radius25-0",
+    "inputSha256": "ff59cf972a64aece0951b921a592db4ac58625c883471ac241874923162da840",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "WindowsPlayer",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 1.5835261344909669,
+    "preparationMs": 5.3944,
+    "computeMs": 5.687200000000001,
+    "projectionAndCopyMs": 7.2274,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 77615104,
+    "managedAfter": 100012032
+}

@@ -1,0 +1,52 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 22392790 Realtime: 22392790
+
+** MEMINFO in pid 24710 [fr.crnl.hibop.quest] **
+                   Pss  Private  Private     Swap      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap    78629    77496        0        0    80864    35424    34587      836
+  Dalvik Heap     4343     1624        0        0     9712     5244     2622     2622
+ Dalvik Other     4358     1264        0        0     7628                           
+        Stack     2298     2296        0        0     2304                           
+       Ashmem      248        0        0        0     1212                           
+      Gfx dev    25052    25052        0        0    25056                           
+    Other dev       32        4       24       28      444                           
+     .so mmap   113641    18272    85460        0   176892                           
+    .jar mmap     2873        0      168        0    41616                           
+    .apk mmap     2318      464      588        0     8748                           
+    .dex mmap      222       28        0        0     1884                           
+    .oat mmap       39        0        0        0     1236                           
+    .art mmap    15170     8864       40        0    27884                           
+   Other mmap    20195        4    20120        0    20944                           
+   EGL mtrack    35820    35820        0        0    35820                           
+    GL mtrack    44256    44256        0        0    44256                           
+      Unknown   198120   197748       96        0   198704                           
+        TOTAL   547614   413192   106496       28   685204    40668    37209     3458
+ 
+ App Summary for pid : 24710, and process : fr.crnl.hibop.quest
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:    10528                          37596
+         Native Heap:    77496                          80864
+                Code:   104980                         236240
+               Stack:     2296                           2304
+            Graphics:   105128                         105132
+       Private Other:   219260
+              System:    27926
+             Unknown:                                  223068
+ 
+           TOTAL PSS:   547614            TOTAL RSS:   685204      TOTAL SWAP (KB):       28
+ 
+ Objects
+               Views:        7         ViewRootImpl:        1
+         AppContexts:        9           Activities:        1
+              Assets:        6        AssetManagers:        0
+       Local Binders:       27        Proxy Binders:       44
+       Parcel memory:        9         Parcel count:       40
+    Death Recipients:        0             WebViews:        0
+ 
+ SQL
+         MEMORY_USED:        0
+  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+ 

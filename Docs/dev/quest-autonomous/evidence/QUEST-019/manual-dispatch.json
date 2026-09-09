@@ -1,0 +1,9 @@
+{
+  "processId": "24710",
+  "serial": "192.168.1.18:5555",
+  "deviceLog": "/data/local/tmp/quest012-outage-20260909-141602-203.log",
+  "deviceScript": "/data/local/tmp/quest012-outage-20260909-141602-203.sh",
+  "result": "PENDING",
+  "minimumDisabledSeconds": 60,
+  "dispatchedAt": "2026-09-09T14:16:02.5554864Z"
+}

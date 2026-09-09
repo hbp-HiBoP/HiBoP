@@ -1,0 +1,38 @@
+{
+    "name": "boundary-0",
+    "inputSha256": "becc21b5b0aa0f059d8626dcc02ff56c32d63969e4c95d634eb805b844e12944",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "Android",
+    "vertices": 4,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        4,
+        3,
+        1,
+        2
+    ],
+    "maxDensity": 1.341609239578247,
+    "preparationMs": 1.5521,
+    "computeMs": 11.0744,
+    "projectionAndCopyMs": 9.9624,
+    "uvCopyBytes": 64,
+    "managedBefore": 65933312,
+    "managedAfter": 60915712
+}

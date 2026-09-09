@@ -1,0 +1,38 @@
+{
+    "name": "mni-1",
+    "inputSha256": "2cd71c1236a6e43793b036bfe1500aceca744d13a405b75165d72350df775a26",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "Android",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 1.341609239578247,
+    "preparationMs": 10.0425,
+    "computeMs": 9.182500000000001,
+    "projectionAndCopyMs": 19.479,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 42508288,
+    "managedAfter": 58056704
+}

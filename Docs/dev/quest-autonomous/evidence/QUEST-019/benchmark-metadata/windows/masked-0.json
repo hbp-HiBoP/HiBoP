@@ -1,0 +1,38 @@
+{
+    "name": "masked-0",
+    "inputSha256": "ecbac9a27e2963add1511ddd2f5e2ebce6ff8e1e07ccc1658ab8e14ac33d0194",
+    "unity": "6000.5.2f1",
+    "nativeVersion": "0.2.1",
+    "platform": "WindowsPlayer",
+    "vertices": 69104,
+    "gridPoints": 353600,
+    "sites": 8,
+    "dimensions": [
+        65,
+        80,
+        68
+    ],
+    "masks": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    "coverage": [
+        69104,
+        69104,
+        0,
+        3
+    ],
+    "maxDensity": 0.0,
+    "preparationMs": 5.5038,
+    "computeMs": 6.503,
+    "projectionAndCopyMs": 8.0253,
+    "uvCopyBytes": 1105664,
+    "managedBefore": 98349056,
+    "managedAfter": 98353152
+}

@@ -1,0 +1,20 @@
+Wifi is disabled
+Wifi scanning is only available when wifi is enabled
+DISABLED
+22319.60 90473.63
+RESTORING
+22379.61 90735.35
+Wifi is enabled
+Wifi scanning is only available when wifi is enabled
+==== Primary ClientModeManager instance ====
+Wifi is connected to "Livebox-DBC6"
+WifiInfo: SSID: "Livebox-DBC6", BSSID: 10:06:45:d5:59:ad, MAC: 1a:45:ac:e2:ad:56, IP: /192.168.1.18, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 5, RSSI: -43, Link speed: 866Mbps, Tx Link speed: 866Mbps, Max Supported Tx Link speed: 866Mbps, Rx Link speed: 866Mbps, Max Supported Rx Link speed: 866Mbps, Frequency: 5260MHz, Net ID: 0, Metered hint: false, score: 60, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"Livebox-DBC6"wpa2-pskMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>
+successfulTxPackets: 183
+successfulTxPacketsPerSecond: 16.461351137469045
+retriedTxPackets: 18
+retriedTxPacketsPerSecond: 1.53696613088857
+lostTxPackets: 0
+lostTxPacketsPerSecond: 0.0
+successfulRxPackets: 143
+successfulRxPacketsPerSecond: 12.875765362206995
+COMPLETE

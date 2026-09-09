@@ -1,0 +1,14 @@
+{
+  "pidofExitCode": 1,
+  "forceStopExitCode": 0,
+  "stopped": true,
+  "utc": "2026-09-09T14:18:08.9618182Z",
+  "adbDevices": [
+    "List of devices attached",
+    "192.168.1.18:5555\tdevice",
+    ""
+  ],
+  "package": "fr.crnl.hibop.quest",
+  "remainingPid": null,
+  "serial": "192.168.1.18:5555"
+}

@@ -1,0 +1,154 @@
+{
+  "decision": "D30",
+  "ownerReply": "Accepter pour ce banc et ces versions",
+  "date": "2026-09-09",
+  "scope": "Only the 18 runs, inputs and final binary versions recorded in this manifest",
+  "absoluteLimits": {
+    "activity": 5e-07,
+    "alpha": 2e-07,
+    "grid": 0,
+    "maximum": 0
+  },
+  "exactRequired": [
+    "coverage",
+    "masks",
+    "positions",
+    "categories",
+    "sentinelTuples"
+  ],
+  "rms": "descriptive; no threshold",
+  "rawComparison": {
+    "path": "Docs/dev/quest-autonomous/evidence/QUEST-019/parity-final.json",
+    "bytes": 76191,
+    "sha256": "9990d0848e2433e5812694c93f22ce79b43665d847fc26293a0fe5ec6ee57ece"
+  },
+  "accepted": true,
+  "evaluations": {
+    "boundary-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "boundary-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "constant-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "constant-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "linear-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "linear-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "masked-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "masked-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "mni-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "mni-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "nearest-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "nearest-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "none-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "none-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "radius25-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "radius25-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "single-0": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    },
+    "single-1": {
+      "exact": true,
+      "maximumExact": true,
+      "gridExact": true,
+      "activityWithinLimit": true,
+      "alphaWithinLimit": true
+    }
+  }
+}

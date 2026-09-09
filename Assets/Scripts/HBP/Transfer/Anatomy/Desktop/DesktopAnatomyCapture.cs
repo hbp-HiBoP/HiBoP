@@ -60,6 +60,9 @@ namespace HBP.Transfer.Anatomy.Desktop
             int grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension;
             int interpolation = (int)Core.DLL.ActivityProjectionSettings.VolumeInterpolation;
             float influence = column.AnatomyParameters.InfluenceDistance, alpha = column.ActivityAlpha;
+            // HBNA v3 has no boundary-smoothing field: never substitute a different scientific setting.
+            if (!Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.SmoothActivityBoundaries)
+                throw new InvalidOperationException("Quest density currently requires Smooth activity boundaries enabled; HBNA v3 cannot carry the disabled setting.");
             int rule = (int)Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance;
 
             return Task.Run(() =>

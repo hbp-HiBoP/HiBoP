@@ -1,0 +1,27 @@
+{
+  "date": "2026-09-09",
+  "M1": {
+    "status": "VALIDE",
+    "reply": "M1 validée, prêt pour l’essai manuel hors ligne",
+    "scope": "Projection visible, manipulation and hide/show on the real automatic TLS delivery; no new manual click on Desktop send claimed"
+  },
+  "M2": {
+    "status": "VALIDE",
+    "reply": "M2 validée",
+    "scope": "Right stick recalculation and manipulation/hide-show during requested radio outage"
+  },
+  "scientific": {
+    "decision": "D30",
+    "reply": "Accepter pour ce banc et ces versions"
+  },
+  "outage": {
+    "startUptimeSeconds": 22730.58,
+    "restoreUptimeSeconds": 22790.6,
+    "disabledSeconds": 60.02,
+    "samePid": 24710,
+    "complete": true,
+    "wifiRestored": true
+  },
+  "finalQuestStopped": true,
+  "adbPreserved": true
+}

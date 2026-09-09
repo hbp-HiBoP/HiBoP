@@ -1,0 +1,180 @@
+{
+  "commands": [
+    {
+      "utc": "2026-09-09T14:08:55.1450921Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "getprop",
+        "ro.product.model"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:01.3550567Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "am",
+        "force-stop",
+        "fr.crnl.hibop.quest"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:01.3991020Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "rm",
+        "-f",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest019-received",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest019-delivery-result.json"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:01.4406977Z",
+      "exitCode": 0,
+      "arguments": [
+        "push",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-019/delivery-20260909-140855/client-private.json",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest019-delivery.json"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:01.4877907Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "touch",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest012-measure"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:01.5377913Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "cmd",
+        "package",
+        "resolve-activity",
+        "--brief",
+        "fr.crnl.hibop.quest"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:01.9594496Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "am",
+        "start",
+        "-W",
+        "-n",
+        "fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:12.4152162Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:12.5260141Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "meminfo",
+        "fr.crnl.hibop.quest"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:12.5930632Z",
+      "exitCode": 0,
+      "arguments": [
+        "push",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-019/delivery-20260909-140855/radio.sh",
+        "/data/local/tmp/quest019-20260909-140855.sh"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:09:12.6354721Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "nohup sh /data/local/tmp/quest019-20260909-140855.sh >/data/local/tmp/quest019-20260909-140855.log 2>&1 </dev/null &"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:10:27.7380748Z",
+      "exitCode": 0,
+      "arguments": [
+        "pull",
+        "/data/local/tmp/quest019-20260909-140855.log",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-019/delivery-20260909-140855/radio.log"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:10:27.7839834Z",
+      "exitCode": 0,
+      "arguments": [
+        "pull",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest019-delivery-result.json",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-019/delivery-20260909-140855/device-result.json"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:10:27.8460881Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:10:27.9665633Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "meminfo",
+        "fr.crnl.hibop.quest"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:10:28.0145416Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "battery"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:10:28.1436364Z",
+      "exitCode": 0,
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "thermalservice"
+      ]
+    },
+    {
+      "utc": "2026-09-09T14:10:28.2164326Z",
+      "exitCode": 0,
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=24710"
+      ]
+    }
+  ],
+  "questLeftForOwner": true,
+  "windowsStopped": true
+}

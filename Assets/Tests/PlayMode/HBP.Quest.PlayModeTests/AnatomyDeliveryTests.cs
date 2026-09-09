@@ -90,11 +90,19 @@ namespace HBP.Tests.Quest
             var source = AnatomySnapshotCodec.Decode(bytes);
             if (source.Projection == null) Assert.Ignore("This integration test requires the QUEST-017 v3 export.");
             Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            await view.DensityCompletion;
+            Assert.That(view.DensityError, Is.Null);
+            Assert.That(view.Density, Is.Not.Null);
             var first = view.ProjectionInputs;
             Assert.That(first, Is.Not.Null);
             Assert.That(first.Sites.GetMask(), Is.EqualTo(source.Contacts.Sites.Select(site => site.EffectiveMasked ? 1 : 0)));
             session.Disconnect();
             Assert.That(first.Volume.IsLoaded && File.Exists(first.VolumePath), Is.True);
+            var expectedDensity = view.Density.ActivityUV;
+            view.RecalculateDensity();
+            await view.DensityCompletion;
+            Assert.That(view.Density.ActivityUV, Is.EqualTo(expectedDensity));
+            Assert.That(view.SharedMesh.uv3, Is.EqualTo(expectedDensity));
             Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.AlreadyPublished));
             Assert.That(view.ProjectionInputs, Is.SameAs(first));
             byte[] corrupt = (byte[])bytes.Clone();
@@ -111,6 +119,7 @@ namespace HBP.Tests.Quest
             Assert.That(first.Surface.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
             Assert.That(first.Sites.getHandle().Handle, Is.EqualTo(IntPtr.Zero));
             Assert.That(File.Exists(first.VolumePath), Is.False);
+            await view.DensityCompletion;
             var last = view.ProjectionInputs;
             session.CloseSession();
             Assert.That(view.ProjectionInputs, Is.Null);
