@@ -1,0 +1,16 @@
+[
+  "-batchmode",
+  "-nographics",
+  "-projectPath",
+  "C:\\HBP\\Software\\HiBoP",
+  "-runTests",
+  "-testPlatform",
+  "EditMode",
+  "-testFilter",
+  "HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests;HBP.Tests.Serialization.QuestAnatomyFixtureTests.IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples",
+  "-testResults",
+  "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-020\\ieeg-fixture.xml",
+  "-logFile",
+  "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-020\\ieeg-fixture.log",
+  "-forgetProjectPath"
+]

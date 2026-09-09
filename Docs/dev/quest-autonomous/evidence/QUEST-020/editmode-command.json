@@ -1,0 +1,18 @@
+[
+  "-batchmode",
+  "-nographics",
+  "-projectPath",
+  "C:\\HBP\\Software\\HiBoP",
+  "-runTests",
+  "-testPlatform",
+  "EditMode",
+  "-assemblyNames",
+  "HBP.Transfer.Anatomy.Tests;HBP.Transfer.Anatomy.Desktop.Tests;HBP.Quest.Anatomy.Tests",
+  "-questAnatomyFixture",
+  "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-017\\captures\\20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a\\anatomy.hbna",
+  "-testResults",
+  "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-020\\editmode-final.xml",
+  "-logFile",
+  "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-020\\editmode-final.log",
+  "-forgetProjectPath"
+]

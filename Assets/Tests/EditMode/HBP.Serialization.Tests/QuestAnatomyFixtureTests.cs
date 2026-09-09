@@ -21,6 +21,45 @@ namespace HBP.Tests.Serialization
         private static string RepositoryRoot => Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
 
         [Test]
+        public async Task IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples()
+        {
+            string archivePath = Path.Combine(RepositoryRoot, ".artifacts/quest-020/fixture/quest-mni-ieeg.hibop");
+            if (!File.Exists(archivePath)) Assert.Ignore("Run python Tools/Prepare-QuestIEEGFixture.py first.");
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+            var protocol = ClassLoaderSaver.LoadFromJson<Protocol>(Path.Combine(RepositoryRoot, ".artifacts/quest-020/fixture/quest-020.prov"));
+            HBP.Core.Database.DatabaseManager.Database.SetProtocols(new[] { protocol });
+            ProjectInfo info = new(archivePath);
+            Project project = new(info.Name, new ProjectPreferences("placeholder"));
+            ApplicationState.LoadedProject = project;
+            ApplicationState.LoadedProjectLocation = temp.Path;
+            await project.LoadAsync(info, NoProgress, CancellationToken.None);
+            await project.CurrentLoadingOperation.Validated;
+            var visualization = project.Visualizations.Single();
+            Assert.That(project.StructuralRecoveryReport.HasIssues, Is.False);
+            Assert.That(visualization.IsVisualizable, Is.True);
+            try
+            {
+                await visualization.LoadAsync(NoProgress, CancellationToken.None);
+                var column = visualization.IEEGColumns.Single();
+                Assert.That(column.BaseConfiguration.ConfigurationBySite["quest-013-patient-right_A2"].IsBlacklisted, Is.True);
+                Assert.That(column.Data.ProjectionTimeline.Length, Is.EqualTo(151));
+                Assert.That(column.Data.UnitByChannelID["quest-013-patient-left_A1"], Is.EqualTo("uV"));
+                Assert.That(column.Data.ProcessedValuesByChannel["quest-013-patient-left_A1"][50], Is.EqualTo(-1));
+                Assert.That(column.Data.ProcessedValuesByChannel["quest-013-patient-left_A2"][50], Is.Zero);
+                Assert.That(column.Data.ProcessedValuesByChannel["quest-013-patient-left_B1"][50], Is.EqualTo(1));
+                Assert.That(column.Data.ProcessedValuesByChannel.ContainsKey("quest-013-patient-left_B2"), Is.False);
+                Assert.That(column.DynamicConfiguration.SpanMin, Is.EqualTo(-10));
+                Assert.That(column.DynamicConfiguration.SpanMax, Is.EqualTo(10));
+            }
+            finally
+            {
+                visualization.Unload();
+            }
+        }
+
+        [Test]
         public async Task ProjectArchive_LoadsOneAnatomicColumnWithoutPatientData()
         {
             using TempDirectoryScope temp = new();

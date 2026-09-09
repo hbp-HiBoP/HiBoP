@@ -1,0 +1,17 @@
+[
+  "-batchmode",
+  "-nographics",
+  "-projectPath",
+  "C:\\HBP\\Software\\HiBoP",
+  "-activeBuildProfile",
+  "Assets/Settings/BuildProfiles/Quest.asset",
+  "-executeMethod",
+  "HBP.Dev.HBPBuilder.BuildFromCommandLine",
+  "-buildOutput",
+  "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-020\\Android",
+  "-developmentBuild",
+  "-logFile",
+  "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-020\\android-build.log",
+  "-quit",
+  "-forgetProjectPath"
+]

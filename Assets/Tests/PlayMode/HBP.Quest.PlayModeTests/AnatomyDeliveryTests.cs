@@ -48,6 +48,37 @@ namespace HBP.Tests.Quest
         private static AnatomySnapshot Snapshot(string id, float alpha = 1) => AnatomySnapshot.Create(id, "session", "visualization", "column", 1, new AnatomyCoordinateSpace(AnatomyMeshUploader.FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }), AnatomyWinding.Clockwise, true, new[] { 0.2f, 0.4f, 0.7f, alpha }, new float[] { 0, 0, 0, 100, 0, 0, 0, 100, 0 }, new float[] { 0, 0, -1, 0, 0, -1, 0, 0, -1 }, new uint[] { 0, 1, 2 }, Array.Empty<float>());
 
         [Test]
+        public async Task IEEG_PlayerCaptureReachesSessionWithoutBeingRenderedAsDensity()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            int argument = Array.IndexOf(args, "-questIEEGFixture");
+            if (argument < 0) Assert.Ignore("Pass -questIEEGFixture with the QUEST-020 Windows Player capture.");
+            byte[] bytes = File.ReadAllBytes(args[argument + 1]);
+            var source = AnatomySnapshotCodec.Decode(bytes);
+            Assert.That(source.IEEG, Is.Not.Null);
+            Assert.That(source.Contacts.Sites[5].Flags & AnatomySiteFlags.Blacklisted, Is.EqualTo(AnatomySiteFlags.Blacklisted));
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            Assert.That(view.IEEG.Summary, Is.EqualTo(source.IEEG.Summary));
+            Assert.That(view.IEEG.SurfaceValues.ToArray(), Is.EqualTo(source.IEEG.SurfaceValues.ToArray()));
+            Assert.That(view.IEEG.SiteValues.ToArray(), Is.EqualTo(source.IEEG.SiteValues.ToArray()));
+            Assert.That(view.IEEG.Availability.ToArray(), Is.EqualTo(source.IEEG.Availability.ToArray()));
+            Assert.That(view.IEEG.Units, Is.EqualTo(source.IEEG.Units));
+            Assert.That(view.IEEG.PreparedSha256, Is.EqualTo(source.IEEG.PreparedSha256));
+            Assert.That(view.IEEG.SpanMin, Is.EqualTo(-10));
+            Assert.That(view.IEEG.SpanMax, Is.EqualTo(10));
+            Assert.That(view.ProjectionInputs, Is.Not.Null);
+            view.RecalculateDensity();
+            await view.DensityCompletion;
+            Assert.That(view.Density, Is.Null);
+            Assert.That(view.DensityComputing, Is.False);
+            Assert.That(view.Contacts.Sites.Select(s => s.EffectiveMasked), Is.EqualTo(source.Contacts.Sites.Select(s => s.EffectiveMasked)));
+            Assert.That((await Transfer(bytes)).Receipt.Status, Is.EqualTo(DeliveryStatus.AlreadyPublished));
+            Assert.That((await Transfer(AnatomySnapshotCodec.Encode(Snapshot("replacement")))).Receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            Assert.That(view.IEEG, Is.Null);
+            Assert.That(view.ProjectionInputs, Is.Null);
+        }
+
+        [Test]
         public async Task Contacts_CapturedMniPlayerPayloadReachesTheQuestSessionOverTls()
         {
             string[] args = Environment.GetCommandLineArgs();

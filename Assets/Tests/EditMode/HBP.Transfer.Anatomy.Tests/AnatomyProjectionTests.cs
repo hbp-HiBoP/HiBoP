@@ -9,7 +9,7 @@ namespace HBP.Tests.Transfer.Anatomy
 {
     public class AnatomyProjectionTests
     {
-        private static byte[] Volume()
+        internal static byte[] Volume()
         {
             byte[] bytes = new byte[352 + 2 * 3 * 4];
             void Put(int offset, byte[] value) => Buffer.BlockCopy(value, 0, bytes, offset, value.Length);
@@ -31,7 +31,7 @@ namespace HBP.Tests.Transfer.Anatomy
             return bytes;
         }
 
-        private static AnatomySnapshot Snapshot(AnatomyProjection projection, AnatomyContacts contacts = null) => AnatomySnapshot.Create("transfer", "../../session", "v", "c", 1, new AnatomyCoordinateSpace(AnatomyContacts.FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }), AnatomyWinding.Clockwise, true, new float[] { 1, 1, 1, 1 }, new float[] { -2, 1, 4, 5, 2, 1, 1, 6, 9 }, new float[] { 0, 0, 1, 0, 0, 1, 0, 0, 1 }, new uint[] { 0, 1, 2 }, Array.Empty<float>(), contacts, projection);
+        internal static AnatomySnapshot Snapshot(AnatomyProjection projection, AnatomyContacts contacts = null) => AnatomySnapshot.Create("transfer", "../../session", "v", "c", 1, new AnatomyCoordinateSpace(AnatomyContacts.FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }), AnatomyWinding.Clockwise, true, new float[] { 1, 1, 1, 1 }, new float[] { -2, 1, 4, 5, 2, 1, 1, 6, 9 }, new float[] { 0, 0, 1, 0, 0, 1, 0, 0, 1 }, new uint[] { 0, 1, 2 }, Array.Empty<float>(), contacts, projection);
 
         [Test]
         public void ProjectionRoundTripOwnsVolumeAndPreservesSettings()

@@ -1,0 +1,13 @@
+{
+  "exitCode": 0,
+  "utc": "2026-09-09T15:47:09.4219004Z",
+  "usbSerial": "2G0YC5ZHB20370",
+  "endpoint": "192.168.1.18:5555",
+  "wifiExitCode": 0,
+  "applicationWasStopped": true,
+  "sha256": "61a2097204d789f19460eb03db2f71c0a743e9c19a79f8b7b55e8474bbc95fa1",
+  "launched": false,
+  "wifiScript": "Tools/Connect-QuestAdbWifi.ps1 -AdbPath C:/Android/Sdk/platform-tools/adb.exe -Serial 2G0YC5ZHB20370 -KeepAwakeWhilePluggedIn",
+  "output": "Performing Streamed Install\nSuccess",
+  "apk": "C:/HBP/Software/HiBoP/.artifacts/quest-020/Android/HiBoP.Quest.apk"
+}

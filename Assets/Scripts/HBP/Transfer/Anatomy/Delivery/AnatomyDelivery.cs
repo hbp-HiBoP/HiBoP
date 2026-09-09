@@ -12,6 +12,7 @@ namespace HBP.Transfer.Anatomy.Delivery
     public sealed class AnatomyDelivery
     {
         private readonly byte[] payload;
+        public string IEEGSummary { get; }
         public string TransferId { get; }
         public string SessionId { get; }
         public string ContentHash { get; }
@@ -22,6 +23,7 @@ namespace HBP.Transfer.Anatomy.Delivery
             if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
             payload = AnatomySnapshotCodec.Encode(snapshot);
             if (payload.Length > PinnedTlsTransfer.MaximumPayloadBytes) throw new ArgumentException($"Delivery requires {payload.Length} bytes (surface {snapshot.SurfaceByteLength}, volume {snapshot.Projection?.VolumeBytes.Count ?? 0}); transport limit is {PinnedTlsTransfer.MaximumPayloadBytes} bytes (64 MiB). Keep all scientific inputs; select a smaller source dataset or qualify a larger transfer/memory budget.");
+            IEEGSummary = snapshot.IEEG?.Summary;
             TransferId = snapshot.TransferId;
             SessionId = snapshot.SessionId;
             ContentHash = new DeliveryReceipt(TransportIdentity.Hash(payload), DeliveryStatus.Published).ContentHash;

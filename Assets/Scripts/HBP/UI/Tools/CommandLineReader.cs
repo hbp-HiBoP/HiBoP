@@ -81,6 +81,23 @@ namespace HBP.UI.Tools
 
         private async UniTask ApplyActionAsync(string action, List<string> arguments)
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            // Opt-in synthetic fixture protocol, held only in this Player's memory.
+            // Project archives intentionally do not import protocols into the personal database.
+            if (action == "-questIEEGProtocol")
+            {
+                if (arguments.Count != 1) throw new System.ArgumentException("Supply the QUEST-020 fixture protocol file.");
+                var protocol = ClassLoaderSaver.LoadFromJson<Protocol>(arguments[0]);
+                if (protocol.ID != "quest-020-protocol") throw new System.ArgumentException("Expected the synthetic QUEST-020 protocol.");
+                // Startup loads protocols from disk; wait before adding this in-memory fixture.
+                await FindAnyObjectByType<ApplicationManager>().DatabaseInitialization;
+                var database = Core.Database.DatabaseManager.Database;
+                if (database.Settings.SelectedWorkspace != null)
+                    await database.EnsureDatabaseReadyAsync((_, _, _) => { }, Application.exitCancellationToken);
+                database.SetProtocols(database.Protocols.Where(p => p.ID != protocol.ID).Append(protocol), new ValidationRequest(ValidationAspect.None));
+                return;
+            }
+#endif
             if (action == "-p") // Project
             {
                 if (arguments.Count == 0)

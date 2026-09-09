@@ -15,9 +15,10 @@ namespace HBP.Transfer.Anatomy
         public string VisualizationId { get; }
         public string ColumnId { get; }
         public ulong ContentRevision { get; }
-        public ushort SchemaVersion => Projection != null ? (ushort)3 : Contacts.Sites.Count == 0 && Contacts.PatientIds.Count == 0 && !Contacts.RoiActive && Contacts.Implantation == "MNI" ? (ushort)1 : (ushort)2;
+        public ushort SchemaVersion => IEEG != null ? (ushort)4 : Projection != null ? (ushort)3 : Contacts.Sites.Count == 0 && Contacts.PatientIds.Count == 0 && !Contacts.RoiActive && Contacts.Implantation == "MNI" ? (ushort)1 : (ushort)2;
         public AnatomyContacts Contacts { get; }
         public AnatomyProjection Projection { get; }
+        public IEEGInstant IEEG { get; }
         public AnatomyCoordinateSpace Coordinates { get; }
 
         /// <summary>Front-face winding in asset coordinates, before AssetToBrain.</summary>
@@ -40,16 +41,16 @@ namespace HBP.Transfer.Anatomy
         public int VertexCount => Positions.Count / 3;
         public long SurfaceByteLength => 4L * (Positions.Count + Normals.Count + Indices.Count + Uvs.Count);
 
-        public static AnatomySnapshot Create(string transferId, string sessionId, string visualizationId, string columnId, ulong contentRevision, AnatomyCoordinateSpace coordinates, AnatomyWinding winding, bool visible, float[] color, float[] positions, float[] normals, uint[] indices, float[] uvs, AnatomyContacts contacts = null, AnatomyProjection projection = null)
+        public static AnatomySnapshot Create(string transferId, string sessionId, string visualizationId, string columnId, ulong contentRevision, AnatomyCoordinateSpace coordinates, AnatomyWinding winding, bool visible, float[] color, float[] positions, float[] normals, uint[] indices, float[] uvs, AnatomyContacts contacts = null, AnatomyProjection projection = null, IEEGInstant ieeg = null)
         {
             ValidateDimensions(positions, normals, indices, uvs);
             ValidateMetadata(transferId, sessionId, visualizationId, columnId, contentRevision, coordinates, winding, color);
             ValidateBuffers(positions, normals, indices, uvs);
-            return new AnatomySnapshot(transferId, sessionId, visualizationId, columnId, contentRevision, coordinates, winding, visible, (float[])color.Clone(), (float[])positions.Clone(), (float[])normals.Clone(), (uint[])indices.Clone(), (float[])uvs.Clone(), contacts, projection);
+            return new AnatomySnapshot(transferId, sessionId, visualizationId, columnId, contentRevision, coordinates, winding, visible, (float[])color.Clone(), (float[])positions.Clone(), (float[])normals.Clone(), (uint[])indices.Clone(), (float[])uvs.Clone(), contacts, projection, ieeg);
         }
 
         // Only the decoder may transfer its fresh, private arrays without copying.
-        internal AnatomySnapshot(string transferId, string sessionId, string visualizationId, string columnId, ulong contentRevision, AnatomyCoordinateSpace coordinates, AnatomyWinding winding, bool visible, float[] color, float[] positions, float[] normals, uint[] indices, float[] uvs, AnatomyContacts contacts = null, AnatomyProjection projection = null)
+        internal AnatomySnapshot(string transferId, string sessionId, string visualizationId, string columnId, ulong contentRevision, AnatomyCoordinateSpace coordinates, AnatomyWinding winding, bool visible, float[] color, float[] positions, float[] normals, uint[] indices, float[] uvs, AnatomyContacts contacts = null, AnatomyProjection projection = null, IEEGInstant ieeg = null)
         {
             ValidateMetadata(transferId, sessionId, visualizationId, columnId, contentRevision, coordinates, winding, color);
             ValidateDimensions(positions, normals, indices, uvs);
@@ -58,6 +59,8 @@ namespace HBP.Transfer.Anatomy
             Contacts.ValidateCoordinates(coordinates);
             projection?.Validate(coordinates, winding, Contacts);
             Projection = projection;
+            ieeg?.Validate(Contacts, projection);
+            IEEG = ieeg;
             TransferId = transferId;
             SessionId = sessionId;
             VisualizationId = visualizationId;

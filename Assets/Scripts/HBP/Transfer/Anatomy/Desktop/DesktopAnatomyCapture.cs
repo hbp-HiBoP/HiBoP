@@ -37,7 +37,7 @@ namespace HBP.Transfer.Anatomy.Desktop
         {
             if (!PlayerLoopHelper.IsMainThread) throw new InvalidOperationException("Anatomy capture must start on the Unity main thread.");
             cancellationToken.ThrowIfCancellationRequested();
-            ValidateSelection(out Base3DScene scene, out Column3DAnatomy column, out Mesh mesh, out Material material, out Texture2D texture, out Color32[] pixels, out bool visible);
+            ValidateSelection(out Base3DScene scene, out Column3D column, out Mesh mesh, out Material material, out Texture2D texture, out Color32[] pixels, out bool visible);
             Color baseColor = pixels[0];
             if (texture.isDataSRGB) baseColor = baseColor.linear;
             Color tint = material.GetColor("_Color");
@@ -59,7 +59,8 @@ namespace HBP.Transfer.Anatomy.Desktop
             if (volumePath == null || volumeHash == null) throw new InvalidOperationException("Reference volume provenance is unavailable. Reload a supported single-file .nii volume before transfer.");
             int grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension;
             int interpolation = (int)Core.DLL.ActivityProjectionSettings.VolumeInterpolation;
-            float influence = column.AnatomyParameters.InfluenceDistance, alpha = column.ActivityAlpha;
+            IEEGInstant ieeg = column is Column3DIEEG dynamicColumn ? DesktopIEEGCapture.Capture(dynamicColumn) : null;
+            float influence = column is Column3DDynamic dynamic ? dynamic.DynamicParameters.InfluenceDistance : ((Column3DAnatomy)column).AnatomyParameters.InfluenceDistance, alpha = column.ActivityAlpha;
             // HBNA v3 has no boundary-smoothing field: never substitute a different scientific setting.
             if (!Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.SmoothActivityBoundaries)
                 throw new InvalidOperationException("Quest density currently requires Smooth activity boundaries enabled; HBNA v3 cannot carry the disabled setting.");
@@ -76,7 +77,7 @@ namespace HBP.Transfer.Anatomy.Desktop
                 if (BitConverter.ToString(sha.ComputeHash(volumeBytes)) != volumeHash) throw new InvalidOperationException("The reference volume file changed since native loading. Reload the visualization before capture.");
                 var projection = new AnatomyProjection(volumeBytes, grid, interpolation, influence, rule, alpha);
                 AnatomyCoordinateSpace coordinates = new(FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 });
-                return AnatomySnapshot.Create(transferId, sessionId, visualizationId, columnId, revision, coordinates, AnatomyWinding.Clockwise, visible, color, Flatten(positions), Flatten(normals), Array.ConvertAll(indices, index => checked((uint)index)), Flatten(uvs), contacts, projection);
+                return AnatomySnapshot.Create(transferId, sessionId, visualizationId, columnId, revision, coordinates, AnatomyWinding.Clockwise, visible, color, Flatten(positions), Flatten(normals), Array.ConvertAll(indices, index => checked((uint)index)), Flatten(uvs), contacts, projection, ieeg);
             }, cancellationToken);
         }
 
@@ -93,15 +94,17 @@ namespace HBP.Transfer.Anatomy.Desktop
             }
         }
 
-        private static void ValidateSelection(out Base3DScene scene, out Column3DAnatomy column, out Mesh mesh, out Material material, out Texture2D texture, out Color32[] pixels, out bool visible)
+        private static void ValidateSelection(out Base3DScene scene, out Column3D column, out Mesh mesh, out Material material, out Texture2D texture, out Color32[] pixels, out bool visible)
         {
             if (!Module3DMain.IsInitialized) throw new InvalidOperationException("No Desktop visualization is open.");
             scene = Module3DMain.SelectedScene;
-            if (scene == null || scene.SelectedColumn is not Column3DAnatomy)
-                throw new InvalidOperationException("Select an anatomical column to capture; the current selection is not supported.");
-            column = (Column3DAnatomy)scene.SelectedColumn;
+            if (scene == null || (scene.SelectedColumn is not Column3DAnatomy && scene.SelectedColumn is not Column3DIEEG))
+                throw new InvalidOperationException("Select an anatomical or iEEG column to capture; the current selection is not supported.");
+            column = scene.SelectedColumn;
             if (!scene.SceneInformation.CompletelyLoaded || scene.SceneInformation.GeometryNeedsUpdate || scene.SceneInformation.ProjectionGridNeedsUpdate || scene.SceneInformation.SurfaceProjectionNeedsUpdate || scene.SceneInformation.SitesNeedUpdate || scene.SceneInformation.CutsNeedUpdate || scene.SceneInformation.FunctionalSurfaceNeedsUpdate || scene.IsSurfaceRepresentationTransitioning)
                 throw new InvalidOperationException("The selected visualization is still preparing its surface. Retry after the update finishes.");
+            if (column is Column3DIEEG && (!scene.IsGeneratorUpToDate || scene.SceneInformation.GeneratorNeedsUpdate))
+                throw new InvalidOperationException("The selected iEEG preparation is not up to date.");
             MeshManager manager = scene.MeshManager;
             if (manager == null || manager.Meshes.Count == 0 || manager.SelectedMesh.Type != MeshType.MNI || manager.MeshPartToDisplay != MeshPart.Both || manager.SelectedMesh.Representation != SurfaceRepresentation.Anatomical)
                 throw new InvalidOperationException("Capture requires the selected complete anatomical MNI surface (both hemispheres, without inflation).");
@@ -122,7 +125,7 @@ namespace HBP.Transfer.Anatomy.Desktop
             Vector2[] alphaUvs = mesh.uv2;
             Vector2 alphaScale = material.GetTextureScale("_AoTex");
             Vector2 alphaOffset = material.GetTextureOffset("_AoTex");
-            if (alphaUvs.Length != mesh.vertexCount || alphaUvs.Any(uv => !(uv.y * alphaScale.y + alphaOffset.y > 0.5f)))
+            if (column is not Column3DIEEG && (alphaUvs.Length != mesh.vertexCount || alphaUvs.Any(uv => !(uv.y * alphaScale.y + alphaOffset.y > 0.5f))))
                 throw new InvalidOperationException("Projected activity is visible or its opacity buffer is unavailable; capture requires plain anatomy.");
 
             texture = material.GetTexture("_MainTex") as Texture2D;

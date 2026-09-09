@@ -74,7 +74,7 @@ namespace HBP.UI.Quest
 
                 credential = next;
                 code.text = "";
-                status.text = "Paired. Select an anatomical column, then Envoyer au Quest.";
+                status.text = "Paired. Select an anatomical or iEEG column, then Envoyer au Quest.";
             });
 
         public Task SendAsync(bool repeat) =>
@@ -103,6 +103,7 @@ namespace HBP.UI.Quest
                         if (!token.IsCancellationRequested && operation != null && operation.Token == token && busy) status.text = count < offer.EncodedBytes ? $"Sending: {100L * count / offer.EncodedBytes}%" : "Transfer complete. Waiting for Quest preparation...";
                     }, null)));
                     status.text = receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Anatomy ready on Quest. Views are independent; the headset can work offline." : "This delivery was closed or replaced on Quest. Use Envoyer au Quest for a new snapshot.";
+                    if (offer.IEEGSummary != null && (receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished)) status.text = offer.IEEGSummary + "\nInputs received; iEEG rendering pending.";
                     Debug.Log($"QUEST-011 delivery={receipt.Status}; hash={receipt.ContentHash}; bytes={offer.EncodedBytes}");
                     if (Debug.isDebugBuild)
                         Debug.Log("QUEST012_SEND " + JsonUtility.ToJson(new DeliveryMeasurement { utc = DateTime.UtcNow.ToString("O"), retry = repeat, transfer = offer.TransferId, hash = receipt.ContentHash, bytes = offer.EncodedBytes, captureAndEncodeMs = captureMs, connectSendAndReceiptMs = elapsed.Elapsed.TotalMilliseconds - captureMs, totalMs = elapsed.Elapsed.TotalMilliseconds, status = receipt.Status.ToString() }));

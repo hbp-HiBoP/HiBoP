@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Passed" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-09 15:46:31Z" end-time="2026-09-09 15:46:32Z" duration="0,8804567">
+  <test-suite type="TestSuite" id="1000" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="862" result="Passed" start-time="2026-09-09 15:46:31Z" end-time="2026-09-09 15:46:32Z" duration="0.880457" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1861" name="HBP.Serialization.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Serialization.Tests.dll" runstate="Runnable" testcasecount="575" result="Passed" start-time="2026-09-09 15:46:31Z" end-time="2026-09-09 15:46:32Z" duration="0.814466" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="23580" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1862" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="575" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.799252" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1863" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="575" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.786694" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1864" name="Serialization" fullname="HBP.Tests.Serialization" runstate="Runnable" testcasecount="575" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.775496" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1570" name="QuestAnatomyFixtureTests" fullname="HBP.Tests.Serialization.QuestAnatomyFixtureTests" classname="HBP.Tests.Serialization.QuestAnatomyFixtureTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.758394" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1571" name="IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples" fullname="HBP.Tests.Serialization.QuestAnatomyFixtureTests.IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples" methodname="IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples" classname="HBP.Tests.Serialization.QuestAnatomyFixtureTests" runstate="Runnable" seed="685769683" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.745732" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+    <test-suite type="Assembly" id="1927" name="HBP.Transfer.Anatomy.Desktop.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Transfer.Anatomy.Desktop.Tests.dll" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.043139" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="23580" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1928" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.042028" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1929" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.041092" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1930" name="Transfer" fullname="HBP.Tests.Transfer" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.040211" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1931" name="Anatomy" fullname="HBP.Tests.Transfer.Anatomy" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.039204" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestSuite" id="1932" name="Desktop" fullname="HBP.Tests.Transfer.Anatomy.Desktop" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.038255" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-suite type="TestFixture" id="1919" name="DesktopIEEGCaptureTests" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.036824" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                  <properties />
+                  <test-suite type="ParameterizedMethod" id="1923" name="CaptureUsesActualTimeMajorInputsAndExistingSampling" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests.CaptureUsesActualTimeMajorInputsAndExistingSampling" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.027925" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                    <properties />
+                    <test-case id="1920" name="CaptureUsesActualTimeMajorInputsAndExistingSampling(2,0.0f,-1.0f,0.0f,1.0f)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests.CaptureUsesActualTimeMajorInputsAndExistingSampling(2,0.0f,-1.0f,0.0f,1.0f)" methodname="CaptureUsesActualTimeMajorInputsAndExistingSampling" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" seed="1531407225" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.024481" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1921" name="CaptureUsesActualTimeMajorInputsAndExistingSampling(3,0.5f,-2.0f,1.0f,2.0f)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests.CaptureUsesActualTimeMajorInputsAndExistingSampling(3,0.5f,-2.0f,1.0f,2.0f)" methodname="CaptureUsesActualTimeMajorInputsAndExistingSampling" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" seed="2013674800" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.001428" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                    <test-case id="1922" name="CaptureUsesActualTimeMajorInputsAndExistingSampling(6,0.0f,-10.0f,0.0f,10.0f)" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests.CaptureUsesActualTimeMajorInputsAndExistingSampling(6,0.0f,-10.0f,0.0f,10.0f)" methodname="CaptureUsesActualTimeMajorInputsAndExistingSampling" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" seed="1174393440" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.001146" asserts="0">
+                      <properties>
+                        <property name="retryIteration" value="0" />
+                        <property name="repeatIteration" value="0" />
+                      </properties>
+                    </test-case>
+                  </test-suite>
+                  <test-case id="1925" name="DivergentNativeBufferRejected" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests.DivergentNativeBufferRejected" methodname="DivergentNativeBufferRejected" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" seed="1779531515" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.003108" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1924" name="FullPreparationHashIsStableAcrossInstants" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests.FullPreparationHashIsStableAcrossInstants" methodname="FullPreparationHashIsStableAcrossInstants" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" seed="937794548" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.001788" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                  </test-case>
+                  <test-case id="1926" name="ReorderedSitesRejected" fullname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests.ReorderedSitesRejected" methodname="ReorderedSitesRejected" classname="HBP.Tests.Transfer.Anatomy.Desktop.DesktopIEEGCaptureTests" runstate="Runnable" seed="811582257" result="Passed" start-time="2026-09-09 15:46:32Z" end-time="2026-09-09 15:46:32Z" duration="0.001773" asserts="0">
+                    <properties>
+                      <property name="retryIteration" value="0" />
+                      <property name="repeatIteration" value="0" />
+                    </properties>
+                    <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Zigaroula/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+                  </test-case>
+                </test-suite>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

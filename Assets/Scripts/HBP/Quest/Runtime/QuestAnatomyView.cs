@@ -29,6 +29,7 @@ namespace HBP.Quest
 
         public Mesh SharedMesh => ownedMesh;
         public NativeProjectionInputs ProjectionInputs { get; private set; }
+        public IEEGInstant IEEG { get; private set; }
         public AnatomyContacts Contacts { get; private set; } = AnatomyContacts.Empty;
         public string TransferId { get; private set; }
         public long BufferBytes { get; private set; }
@@ -111,6 +112,7 @@ namespace HBP.Quest
             properties = nextProperties;
             TransferId = snapshot.TransferId;
             Contacts = snapshot.Contacts;
+            IEEG = snapshot.IEEG;
             preparedSurfaceVisible = snapshot.Visible;
             contactRenderer.Commit(nextContacts);
             BufferBytes = nextBufferBytes + contactRenderer.BufferBytes;
@@ -123,7 +125,7 @@ namespace HBP.Quest
         public void RecalculateDensity(bool captureGrid = false)
         {
             RequireMainThread();
-            if (ProjectionInputs == null || DensityComputing) return;
+            if (IEEG != null || ProjectionInputs == null || DensityComputing) return;
             DensityCompletion = ComputeAndPublishAsync(ProjectionInputs, ownedMesh, generation, captureGrid).AsTask();
         }
 
@@ -195,6 +197,7 @@ namespace HBP.Quest
             ProjectionInputs = null;
             TransferId = null;
             Contacts = AnatomyContacts.Empty;
+            IEEG = null;
             BufferBytes = 0;
         }
 

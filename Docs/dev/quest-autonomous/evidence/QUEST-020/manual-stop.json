@@ -1,0 +1,14 @@
+{
+  "reason": "D23: owner validated M1, then stop HiBoP to conserve battery.",
+  "processIds": [],
+  "forceStopExitCode": 0,
+  "previousProcessIds": [],
+  "pidofExitCode": 1,
+  "package": "fr.crnl.hibop.quest",
+  "logPath": null,
+  "logSha256": null,
+  "wifiConnected": true,
+  "previousPidofExitCode": 1,
+  "utc": "2026-09-09T15:57:34.3402258Z",
+  "endpoint": "192.168.1.18:5555"
+}

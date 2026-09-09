@@ -13,6 +13,8 @@ namespace HBP.UI.Tools
         #region Properties
 
         private bool m_IsQuitting = false;
+        private readonly UniTaskCompletionSource m_DatabaseInitialization = new();
+        public UniTask DatabaseInitialization => m_DatabaseInitialization.Task;
 
         #endregion
 
@@ -25,7 +27,21 @@ namespace HBP.UI.Tools
 
         private void Start()
         {
-            DatabaseWorkflow.InitializeAsync().Forget();
+            InitializeDatabaseAsync().Forget();
+        }
+
+        private async UniTask InitializeDatabaseAsync()
+        {
+            try
+            {
+                await DatabaseWorkflow.InitializeAsync();
+                m_DatabaseInitialization.TrySetResult();
+            }
+            catch (System.Exception exception)
+            {
+                m_DatabaseInitialization.TrySetException(exception);
+                throw;
+            }
         }
 
         private void OnDestroy()
@@ -40,6 +56,10 @@ namespace HBP.UI.Tools
 
         private bool OnQuit()
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            string[] arguments = System.Environment.GetCommandLineArgs();
+            if (System.Array.IndexOf(arguments, "-captureOnce") >= 0 && System.Array.IndexOf(arguments, "-captureAnatomy") >= 0) return true;
+#endif
             if (m_IsQuitting) return true;
 
             ShowQuitDialog().Forget();

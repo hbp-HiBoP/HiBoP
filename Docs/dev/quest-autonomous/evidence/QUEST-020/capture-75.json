@@ -1,0 +1,343 @@
+{
+  "IEEG": {
+    "DatasetId": "quest-020-dataset",
+    "DataName": "QUEST-020 synthetic",
+    "BlocId": "quest-020-bloc",
+    "SubBlocId": "quest-020-subbloc",
+    "PreparedSha256": "760d6a7314ef7a3c73662fe786d4d1cb8435e3d1035e07f82255d39f7f8a5ba9",
+    "NavigationIndex": 75,
+    "NavigationLength": 151,
+    "NavigationHz": 100.0,
+    "LocalTimeMilliseconds": 250.0,
+    "ProjectionIndex": 75,
+    "ProjectionLength": 151,
+    "ProjectionHz": 100.0,
+    "SamplingPolicy": 2,
+    "Alpha": 0.0,
+    "SpanMin": -10.0,
+    "Middle": 0.0,
+    "SpanMax": 10.0,
+    "Summary": "iEEG QUEST-020 synthetic | 250 ms | index 75 -> 75, alpha 0 | uV, unit unspecified",
+    "ChannelIds": [
+      "quest-013-patient-left_A1",
+      "quest-013-patient-left_A2",
+      "quest-013-patient-left_B1",
+      "quest-013-patient-left_B2",
+      "quest-013-patient-right_A1",
+      "quest-013-patient-right_A2",
+      "quest-013-patient-right_B1",
+      "quest-013-patient-right_B2"
+    ],
+    "Units": [
+      "uV",
+      "uV",
+      "uV",
+      "",
+      "uV",
+      "uV",
+      "uV",
+      ""
+    ],
+    "Availability": [
+      2,
+      2,
+      2,
+      0,
+      2,
+      2,
+      2,
+      0
+    ],
+    "SurfaceValues": [
+      -1.25,
+      0.0,
+      1.25,
+      0.0,
+      -1.25,
+      0.0,
+      1.25,
+      0.0
+    ],
+    "SiteValues": [
+      -1.25,
+      0.0,
+      1.25,
+      0.0,
+      -1.25,
+      0.0,
+      1.25,
+      0.0
+    ]
+  },
+  "Task": "QUEST-020",
+  "CreatedUtc": "2026-09-09T15:39:20.7728696Z",
+  "Unity": "6000.5.2f1",
+  "GraphicsDevice": "NVIDIA GeForce RTX 2070 SUPER",
+  "Projection": {
+    "VolumeBytes": 11661664,
+    "VolumeSha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96",
+    "Dimensions": [
+      208,
+      256,
+      219
+    ],
+    "GridDimension": 80,
+    "Interpolation": 1,
+    "InfluenceDistance": 15.0,
+    "InfluenceByDistance": 2,
+    "ActivityAlpha": 0.8
+  },
+  "VisualizationName": "MNI iEEG",
+  "ColumnName": "Synthetic uV",
+  "VisualizationId": "quest-020-visualization",
+  "ColumnId": "quest-020-column",
+  "SchemaVersion": 4,
+  "Implantation": "MNI",
+  "RoiActive": false,
+  "PatientIds": [
+    "quest-013-patient-left",
+    "quest-013-patient-right"
+  ],
+  "Sites": [
+    {
+      "Id": "quest-013-site-00",
+      "Name": "A1",
+      "Electrode": "A",
+      "Order": 0,
+      "PatientIndex": 0,
+      "SourceIndex": 0,
+      "Position": [
+        31.25,
+        -18.5,
+        26.75
+      ],
+      "Color": [
+        0.0,
+        0.0,
+        1.0,
+        0.3137255
+      ],
+      "DiameterMillimeters": 1.5,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-01",
+      "Name": "A2",
+      "Electrode": "A",
+      "Order": 1,
+      "PatientIndex": 0,
+      "SourceIndex": 1,
+      "Position": [
+        27.5,
+        -15.25,
+        29.0
+      ],
+      "Color": [
+        0.0,
+        0.0,
+        1.0,
+        0.3137255
+      ],
+      "DiameterMillimeters": 1.0,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-02",
+      "Name": "B1",
+      "Electrode": "B",
+      "Order": 2,
+      "PatientIndex": 0,
+      "SourceIndex": 2,
+      "Position": [
+        12.75,
+        21.5,
+        42.25
+      ],
+      "Color": [
+        1.0,
+        0.0,
+        0.0,
+        0.3137255
+      ],
+      "DiameterMillimeters": 1.5,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-03",
+      "Name": "B2",
+      "Electrode": "B",
+      "Order": 3,
+      "PatientIndex": 0,
+      "SourceIndex": 3,
+      "Position": [
+        9.0,
+        24.25,
+        45.5
+      ],
+      "Color": [
+        0.249661684,
+        0.0196016766,
+        0.0196016766,
+        0.63
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": false,
+      "Flags": 13,
+      "EffectiveMasked": true
+    },
+    {
+      "Id": "quest-013-site-04",
+      "Name": "A1",
+      "Electrode": "A",
+      "Order": 4,
+      "PatientIndex": 1,
+      "SourceIndex": 0,
+      "Position": [
+        -22.5,
+        -34.75,
+        18.25
+      ],
+      "Color": [
+        0.0,
+        0.0,
+        1.0,
+        0.3137255
+      ],
+      "DiameterMillimeters": 1.5,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-05",
+      "Name": "A2",
+      "Electrode": "A",
+      "Order": 5,
+      "PatientIndex": 1,
+      "SourceIndex": 1,
+      "Position": [
+        -26.25,
+        -31.0,
+        21.5
+      ],
+      "Color": [
+        0.0,
+        0.0,
+        0.0,
+        0.196078435
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": true,
+      "Flags": 14,
+      "EffectiveMasked": true
+    },
+    {
+      "Id": "quest-013-site-06",
+      "Name": "B1",
+      "Electrode": "B",
+      "Order": 6,
+      "PatientIndex": 1,
+      "SourceIndex": 2,
+      "Position": [
+        -38.75,
+        8.25,
+        -12.5
+      ],
+      "Color": [
+        1.0,
+        0.0,
+        0.0,
+        0.3137255
+      ],
+      "DiameterMillimeters": 1.5,
+      "Visible": true,
+      "Flags": 12,
+      "EffectiveMasked": false
+    },
+    {
+      "Id": "quest-013-site-07",
+      "Name": "B2",
+      "Electrode": "B",
+      "Order": 7,
+      "PatientIndex": 1,
+      "SourceIndex": 3,
+      "Position": [
+        -42.0,
+        11.75,
+        -9.25
+      ],
+      "Color": [
+        0.249661684,
+        0.0196016766,
+        0.0196016766,
+        0.63
+      ],
+      "DiameterMillimeters": 2.0,
+      "Visible": false,
+      "Flags": 13,
+      "EffectiveMasked": true
+    }
+  ],
+  "TransferId": "76611ef3-83d7-4bf4-9a29-30f91a1f678c",
+  "SessionId": "anatomy-diagnostic",
+  "ContentRevision": 1,
+  "FrameId": "hibop-mni-unity-mm-v1",
+  "Unit": "Millimeter",
+  "AssetToBrain": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "VertexCount": 69104,
+  "IndexCount": 414648,
+  "TriangleCount": 138216,
+  "UvCount": 69104,
+  "BoundsMin": [
+    -69.9079,
+    -105.3945,
+    -50.0656738
+  ],
+  "BoundsMax": [
+    72.17938,
+    72.04567,
+    83.34009
+  ],
+  "Color": [
+    0.830769956,
+    0.462077051,
+    0.187820762,
+    1.0
+  ],
+  "Visible": true,
+  "SurfaceByteLength": 3869920,
+  "EncodedBytes": 15533236,
+  "Sha256": "c8aa0fc5605f2ce1983c25d8f2ebe731cd5100a3ddcf48c2daba295d1b0d2087",
+  "SourceBuffersBitExact": true,
+  "RepeatedCaptureBitExact": true,
+  "RoundTripBitExact": true,
+  "CameraCount": 1,
+  "CameraUnchanged": true,
+  "PresentationUnchanged": true,
+  "MainThreadCopyMilliseconds": 4.9795,
+  "EncodeTwiceAndRoundTripMilliseconds": 972.32450000000006,
+  "FramesDuringCapture": 18
+}

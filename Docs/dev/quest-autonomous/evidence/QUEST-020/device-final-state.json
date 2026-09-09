@@ -1,0 +1,9 @@
+{
+  "processIds": [],
+  "utc": "2026-09-09T15:50:16.1968207Z",
+  "forceStopSent": false,
+  "reason": "No physical iEEG test launched; preserve any owner-launched manual session.",
+  "endpoint": "192.168.1.18:5555",
+  "wifiConnected": true,
+  "pidofExitCode": 1
+}

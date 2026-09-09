@@ -1,0 +1,1049 @@
+{
+  "schemaVersion": 1,
+  "task": "QUEST-020",
+  "recordedAt": "2026-09-09T15:58:43.482263+00:00",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "initialHead": "195f44e9fc5f49369e53600c972cc1082bfbcb15",
+    "initialWorkingTree": "clean",
+    "committed": false,
+    "files": [
+      {
+        "path": "Assets/Scripts/HBP/Dev/AnatomyCaptureDiagnostic.cs",
+        "bytes": 14605,
+        "sha256": "4dbceb66bd3fad39aa200219f04e5b90e9c2eb5ae275f205c5eb4fd5948ddccb"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestAnatomyView.cs",
+        "bytes": 10368,
+        "sha256": "44b2ac5d60abb84204dbfd3c66baae8349ffe2808b92b34d6d1443e72e566eba"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestConnectionPanel.cs",
+        "bytes": 6988,
+        "sha256": "2d2901dcebccc8a88c3eb01c7d7c52710c32095ceb90493d733644a747c64297"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomySnapshot.cs",
+        "bytes": 7253,
+        "sha256": "724c909de0b966bc092db0e67c0d34176f60c7b34eaa41f7b5168b6c86544a79"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/AnatomySnapshotCodec.cs",
+        "bytes": 13713,
+        "sha256": "8f28c3629ae83579fe45a337bccf5addc03e5700540fbf2d20aacde0de0c2997"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Delivery/AnatomyDelivery.cs",
+        "bytes": 2206,
+        "sha256": "22b234ecccda2cf78bcd0b03e8f2597d891dd29121f5d9e032ed948d9f46d195"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopAnatomyCapture.cs",
+        "bytes": 12489,
+        "sha256": "c000c6a48e832bacb91113a8b7b669e25ec9d97167c1d68dd2583e76b086adc8"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopIEEGCapture.cs",
+        "bytes": 4537,
+        "sha256": "156ca9fef04e1759c9ca5a50ce02497cb1a45fe6710444d5036eb4658d9d3564"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopIEEGCapture.cs.meta",
+        "bytes": 62,
+        "sha256": "4088c938d4c4aa2e2cf75b296e8f9c7c08de8b7218475597bf3df2084ab64ace"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/IEEGInstant.cs",
+        "bytes": 9862,
+        "sha256": "e02411662c79cfd9ad7f023fb89b3d9198de455f074df247c077d4328e0d26b9"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/IEEGInstant.cs.meta",
+        "bytes": 62,
+        "sha256": "48bfd99502289c60c84404e9f14c940c4f9a4110ec303b6122980466b8a87136"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Quest/DesktopQuestPanel.cs",
+        "bytes": 8947,
+        "sha256": "c3113be5c166908d22d2ec3c1a1c6cd6d56d9eb906a8bfc77eb79368905a68eb"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/ApplicationManager.cs",
+        "bytes": 3269,
+        "sha256": "08c9c1c2bffc548d511716a6db771add8a5bc6f1697d48851e9fdeba28575e42"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/CommandLineReader.cs",
+        "bytes": 6582,
+        "sha256": "3d2b2ff26127014021bcedced7a091198a9d3445ef60440007489cb3f73b720d"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Serialization.Tests/QuestAnatomyFixtureTests.cs",
+        "bytes": 11986,
+        "sha256": "a9d6e35b73d1eb84432d0eb17efbb9437fc4257ce004714dcae49df535c65917"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopIEEGCaptureTests.cs",
+        "bytes": 6445,
+        "sha256": "ed70b6779c81fe317c5ef6f7db2a121755ff753ac3cb2bd92a258a0e3de3f9cc"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopIEEGCaptureTests.cs.meta",
+        "bytes": 62,
+        "sha256": "983299d2ed6abe150057bc76a86b16e49f17cc3c634cad6ef6d163444ba30eeb"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests/AnatomyProjectionTests.cs",
+        "bytes": 5679,
+        "sha256": "b82a2b9d1d05d46e7a467d5c5c6a7e85dc7184090efb4459631b11d0b0a9583c"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests/IEEGInstantTests.cs",
+        "bytes": 4719,
+        "sha256": "12794b18f89f99904a1838f0eee5414939ee98524039ede8b963b60779b7fe60"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Tests/IEEGInstantTests.cs.meta",
+        "bytes": 62,
+        "sha256": "a9bc7ea5dfe6f60be982cb32e513edc171e0bbab62119ae71197be18b19c4855"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/AnatomyDeliveryTests.cs",
+        "bytes": 31681,
+        "sha256": "dcea856a4385a079c9b5f3cbb09b714eebce3451ccbd718664ab85935d51d241"
+      },
+      {
+        "path": "Tools/Prepare-QuestIEEGFixture.py",
+        "bytes": 4075,
+        "sha256": "1abd0ee9e245d7c88aa05f98e4252048e397df15e5386cbb6c42ae4197140c76"
+      },
+      {
+        "path": "Tools/Run-QuestIEEGCapture.ps1",
+        "bytes": 2104,
+        "sha256": "61e8b446193cbc2ebbfd019bb74510d0bf9769f51199b185879a3b6890a3262a"
+      }
+    ]
+  },
+  "environment": {
+    "unity": "6000.5.2f1",
+    "nativeLock": {
+      "path": "Tools/NativePlugins.lock.json",
+      "bytes": 8169,
+      "sha256": "3d96ef4de48733d846032b7210ae7850eac127950cd0bcb49ac59e778882f240"
+    },
+    "packages": {
+      "path": "Packages/packages-lock.json",
+      "bytes": 17988,
+      "sha256": "c5f3d1c413ee802e90ab68a618fc5a3e9bd93b248a6959ed8ff01416bf4906c5"
+    },
+    "nativeRepositoriesChanged": false,
+    "execution": "Unity CLI outside the Windows sandbox, editor closed; Start-Process -Wait -PassThru -WindowStyle Hidden"
+  },
+  "documentation": [
+    {
+      "path": "Docs/dev/quest-autonomous/reports/QUEST-020.md",
+      "bytes": 15403,
+      "sha256": "62bbc87273ae9c7467545b79d470007445879dbb1cd24f91e711dd4303576370"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/fixtures/mni-ieeg/README.md",
+      "bytes": 3231,
+      "sha256": "8131c5ac63e617444bb5dca1ae68aa8712c8d3fddff69dc0007007d227d6ced1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+      "bytes": 10946,
+      "sha256": "7086fc9cae890eb431c87cc68f4e0bbb9bf25ebfbe50ef2c4e477a5d7d9d3a2a"
+    }
+  ],
+  "checks": {
+    "format": {
+      "command": "Tools/format-code.cmd",
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    "unityGeneratedRestoration": {
+      "path": ".test-results/quest-020/unity-generated.patch",
+      "bytes": 8812,
+      "sha256": "ba87230143a9f71c319c0cf70a9297a0856756c074e3d425a91c911351b93500"
+    }
+  },
+  "tests": [
+    {
+      "file": {
+        "path": ".test-results/quest-020/editmode.xml",
+        "bytes": 132735,
+        "sha256": "62c289d411e5095a8da41803bc3426f288958c2eb30f851b8c6a6027777eba03"
+      },
+      "result": "Skipped:Ignored",
+      "total": 143,
+      "passed": 141,
+      "failed": 0,
+      "skipped": 2
+    },
+    {
+      "file": {
+        "path": ".test-results/quest-020/editmode-final.xml",
+        "bytes": 146629,
+        "sha256": "b7b43b87e0587508b4bef9e2e6042e78c4d7158c7d01ef11fe67737487d073dd"
+      },
+      "result": "Failed(Child)",
+      "total": 149,
+      "passed": 143,
+      "failed": 6,
+      "skipped": 0
+    },
+    {
+      "file": {
+        "path": ".test-results/quest-020/ieeg-fixture.xml",
+        "bytes": 11967,
+        "sha256": "b1e8a6a7b8d1c73579358bf22e1befec696851d0e79c35e005762edb9a4dcdfc"
+      },
+      "result": "Passed",
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": {
+        "path": ".test-results/quest-020/ieeg-fixture-final.xml",
+        "bytes": 11969,
+        "sha256": "93c5cf03f12c6c01af3b8250d24ad50da000066020ede5c3b17c61552ff1b24e"
+      },
+      "result": "Passed",
+      "total": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "file": {
+        "path": ".test-results/quest-020/playmode.xml",
+        "bytes": 42700,
+        "sha256": "9bd09a7965b65b02de22a07d46819d568bc60f1fc582c7d4a2bd6db71c1c34a6"
+      },
+      "result": "Passed",
+      "total": 46,
+      "passed": 46,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "distinctPassedTests": 196,
+  "builds": {
+    "windows": {
+      "exitCode": 0,
+      "log": {
+        "path": ".test-results/quest-020/windows-build.log",
+        "bytes": 1071835,
+        "sha256": "7d9ed5b0db5ed512cd7cd4523052c431c29081174cca8deaf936f57d3ac617ac"
+      },
+      "files": [
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/baselib.dll",
+          "bytes": 238504,
+          "sha256": "6d32e03bd97e1971ecc6ddc1264fd21ff137415b1416c812e24d6d569db76413"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/D3D12/D3D12Core.dll",
+          "bytes": 4725304,
+          "sha256": "625bd40005b1c3708695d5256ecf230d278e6b8edba5a88af70f3d91324f3052"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/D3D12/d3d12SDKLayers.dll",
+          "bytes": 4930104,
+          "sha256": "c0730cc70d3250d3de19c04c17845ba9e70eecaf502d684d1409195ebc5b5959"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/2mm/maps.nii.gz",
+          "bytes": 27344598,
+          "sha256": "37d7da8d1b6fdf57f9d9edda4fea8d97665f616690407ff2a3b679d519e12b67"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/2mm/resampled_maps.nii.gz",
+          "bytes": 30973856,
+          "sha256": "f5bc6a2b2d83a3cca59017a73ba49ab2a6bbfa69e9bc51407602b8a8ade279aa"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/3mm/maps.nii.gz",
+          "bytes": 24948809,
+          "sha256": "97f194a8fb09bf0e332e8233274514a1e8409ccd0893abbaa0b15348c7205064"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/1024/labels_1024_dictionary.csv",
+          "bytes": 120595,
+          "sha256": "8fb32a81ce9d568206c2959da07da9544a23dfbfa86dd3a7af25fb3515fa8198"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/128/2mm/maps.nii.gz",
+          "bytes": 4115835,
+          "sha256": "bf11058c79ad07a74aef955a5cf6147e645b24ecf5d47ffc54160abb5fd6eb6c"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/128/3mm/maps.nii.gz",
+          "bytes": 3336160,
+          "sha256": "decadcb092d3a08311df125caa50f06b5495962b0a36509461ba0f605f2e84aa"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/128/labels_128_dictionary.csv",
+          "bytes": 14316,
+          "sha256": "d9e335c5aed0155e8beb43818e006fcfa8499459c853ee16dcaf966b84c94ab2"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/256/2mm/maps.nii.gz",
+          "bytes": 7715436,
+          "sha256": "c9f5b7f2a8da4b41c7a42e850dfcfcba5327e7eee2ef61650041a0183f651b3a"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/256/3mm/maps.nii.gz",
+          "bytes": 6512295,
+          "sha256": "41fd2b94d5ef33373607e9e42ff59a3223e15f0daaabac5ec877eb5818e3c66c"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/256/labels_256_dictionary.csv",
+          "bytes": 27959,
+          "sha256": "31088bfbd1fa12d286eb1e44cb91faf38012e503bedba90e526268e7ebb2a3b4"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/512/2mm/maps.nii.gz",
+          "bytes": 14359345,
+          "sha256": "1de41df48d726d43c70e420b6a7a98b57e18f65768c9224bb6b057f329de9238"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/512/3mm/maps.nii.gz",
+          "bytes": 12690218,
+          "sha256": "8e5036f58fb935ed6e41af65fe0575ea6d271ab7f08ca8888cf7f02c0ee1cda8"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/512/labels_512_dictionary.csv",
+          "bytes": 57321,
+          "sha256": "8eac47588c77044bc8161025ced9b0017eac56877c0692eae15681e5cd2d6ddb"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/64/2mm/maps.nii.gz",
+          "bytes": 2247088,
+          "sha256": "c16cd4d84d648be1d6c09719def825fc0028d852b4302e2e4784739f3ee0f0f5"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/64/3mm/maps.nii.gz",
+          "bytes": 1726795,
+          "sha256": "5dfc063e7d50104cdb88585afe437c808dc3d90a32987b8837409badbc90c634"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/DiFuMo/64/labels_64_dictionary.csv",
+          "bytes": 6802,
+          "sha256": "5585f75c49d727a63db31feb90467d02ee04288eedb2708be896c374017363b5"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/IBC/all_maps.nii.gz",
+          "bytes": 46868191,
+          "sha256": "0915eb6f1fa702230300acc66722123fc438eb9b8af2129deed3e2b3333651c6"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/IBC/gm_mask_3mm.nii.gz",
+          "bytes": 17033,
+          "sha256": "4c701b986c19a7b48a7cf225078e801f02c3fa5c4f938e83e6bbe490e0718a64"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/IBC/map_labels.csv",
+          "bytes": 17444,
+          "sha256": "c3928cb375ebe09ca50ec46cd58d99d5c120083f9f3430736c78984346f8b071"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/JuBrain/jubrain_labels_3.1.json",
+          "bytes": 38448,
+          "sha256": "205a78674303de2c4c9fb05fa0aee0635850977baf630160258b143decea3f5b"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz",
+          "bytes": 169134,
+          "sha256": "070589c1f730ddaabc672c1e7318fb6456d497235c059ad801ecaa95a32818f7"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz",
+          "bytes": 176444,
+          "sha256": "01668905d74f184888a17bcc3a96c777b77a54a70a17d29f542378b12f41a419"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/MarsAtlas/brodmann_areas.txt",
+          "bytes": 1281,
+          "sha256": "6896a9f8546a8da3f835c0516e712451f3ccd11c370c1b3e83710edd1002aae3"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii",
+          "bytes": 28436900,
+          "sha256": "d14331ff2a133483adbd9db0438683b447c65559cbad9ea721c8de749a02449c"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Atlases/MarsAtlas/mars_atlas_index.csv",
+          "bytes": 7503,
+          "sha256": "4a8b445d1c8139611119b02248c21190ff76b0f2cf1b98dd3cfd99c0cbc064a2"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/BIDS/example_bids_config.json",
+          "bytes": 664,
+          "sha256": "cb108409999a247364f9fc9af358b428e856ce7b3c95bf7efd36928787b41d8d"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC1_CONS.jpg",
+          "bytes": 20428,
+          "sha256": "9ed424acf9908364b4a48c902d593594f9410fdb3198dfe711dfd8581e95628d"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC1_PHO.jpg",
+          "bytes": 18764,
+          "sha256": "ec34a61e904bc203885f82eb1f23d0f8bdeafa09449e1338bc5cfafb1397d1bf"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC1_SEM.jpg",
+          "bytes": 18917,
+          "sha256": "9598fee760fe5220faabd29171eb08bd0c076b782b76ac583f7096c6c83b139d"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC2_ATT.jpg",
+          "bytes": 28186,
+          "sha256": "e36a92b3bd2f80561dde7133fad837b4747e22d83f9cb8758f4b99567966f1f2"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/LEC2_IGN.jpg",
+          "bytes": 28589,
+          "sha256": "85a1dacc41f5d8346abb23809d7344b05b0274064519299cc28d6d7a99cee96a"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MCSE_EASY.jpg",
+          "bytes": 19611,
+          "sha256": "b5352de62602604873bcc2f6d212d40aad4d38d409eb6f9c6bb19d820c980120"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MCSE_HARD.jpg",
+          "bytes": 18239,
+          "sha256": "b5b55bba10dc80affaaf6fdf11653a5176f9b54493c7fb615ed098e28efd679f"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_CONT.jpg",
+          "bytes": 21501,
+          "sha256": "0e4ddd56aeead71a47ab9c147d9b71c284c898a8db4c56ffc0d63a66058f818d"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_LOAD2.jpg",
+          "bytes": 21814,
+          "sha256": "bda2f5538f5e7e62234f0ada246e301657c543eebae1bd15e3a49d9b25344226"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_LOAD4.jpg",
+          "bytes": 20708,
+          "sha256": "8fd6926c57cced25eaaae3388c11cd45e40408084b248cc315a6cfea0b82a0e4"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVEB_LOAD6.jpg",
+          "bytes": 20529,
+          "sha256": "8ba50878353db6eed57392d293afde50aa4a2048a6a0100b8e3c091ce5a6060c"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_CONT.jpg",
+          "bytes": 21888,
+          "sha256": "1c6b3789415cc7a03f09a5b5326344d1ea63b0a85c70d1ba328a27e6cb8d5a3f"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_LOAD2.jpg",
+          "bytes": 22848,
+          "sha256": "f16283322c1a6bd26f29f993e940ed879854d43e27623c94d4392887eb0101e2"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_LOAD4.jpg",
+          "bytes": 25470,
+          "sha256": "658b2f1356568da0508765daa8f63311cf91712203e132f71c05966c4c246d11"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/MVIS_LOAD6.jpg",
+          "bytes": 28257,
+          "sha256": "b6fd7c1c52683e6f67e7366ae579798cbd1edb2398c5be6d36a9be51f383450e"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_ANIMAL.jpg",
+          "bytes": 27204,
+          "sha256": "6b6626cb098cb6de73a4e6e931cb10ccb97c8ce2ad4eb8b2b637183c8b32bc62"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_CONSON.jpg",
+          "bytes": 20428,
+          "sha256": "9ed424acf9908364b4a48c902d593594f9410fdb3198dfe711dfd8581e95628d"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_FACE.jpg",
+          "bytes": 27884,
+          "sha256": "2bd31f28ee1439b50224ab4835c447fc38c3f2a6778e01b1bf711e3dbc67e622"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_FRUIT.jpg",
+          "bytes": 34236,
+          "sha256": "58ad329e140c78aebf2f22e2f3941e03f1f7b0ff88434ba8a6cd760ffed7253b"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_HOUSE.jpg",
+          "bytes": 28199,
+          "sha256": "cc94ff3c04c80676dee6850352feec654bdeb8393cdee5f2b10dfd75db0b8530"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_LANDSCAPE.jpg",
+          "bytes": 35097,
+          "sha256": "2ce7a4e8a027e8023cee6ae832c74dc9ff76aebe8ff83f5880e14bc5fc2a0b57"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_OBJECT.jpg",
+          "bytes": 24389,
+          "sha256": "10bfcec68cf4932cfbae7f1012e34c12fcf71d8be6e43f62023057c3387fbdcc"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_PWORD.jpg",
+          "bytes": 18764,
+          "sha256": "ec34a61e904bc203885f82eb1f23d0f8bdeafa09449e1338bc5cfafb1397d1bf"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Images/VISU_SCRAMB.jpg",
+          "bytes": 89877,
+          "sha256": "f30b86faea6f06487e7b81f3bf7f55070af7fb87d3f593ef6d80157c47090fe2"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/AUDI.prov",
+          "bytes": 10982,
+          "sha256": "29d0b95bd9a023ca93408d66b3cc4ea70f205f279d4297ce424b27aea940e61f"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/LEC1.prov",
+          "bytes": 3511,
+          "sha256": "3078b553425a03804be2f7052c6b0314c94df300a954164b3ed218d9dca14a3f"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/LEC2.prov",
+          "bytes": 1848,
+          "sha256": "3989c48102d7af1a91cc2d35b1ca090f02b1d57a8c7fa3d1fdb700dfb2190271"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MCSE.prov",
+          "bytes": 2381,
+          "sha256": "65a4fe0783074a00b9e88141c8e96e4cbc8bc10d6a7eb66a62a5f41b79ae2103"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MOTO.prov",
+          "bytes": 13763,
+          "sha256": "e2df37b3688dba07c41b17e1b93bfd84af59bb45fdd8f068928e7d5a2831a272"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MVEB.prov",
+          "bytes": 4635,
+          "sha256": "51ae38ff63ea094710d117840deb1148a20f684c7fc685e987c463b9e2da3e91"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/MVIS.prov",
+          "bytes": 4635,
+          "sha256": "e199f0917152eaa56856f0a09b9e0a663a06b5400cd7b5eea225f53b8056b0a3"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/DefaultDatabase/Protocols/VISU.prov",
+          "bytes": 8290,
+          "sha256": "b1422752c7ac3408e7402d63ff6b3c651a03dce0e2e1a30c532e01c490e32d82"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/IRM/MNI.nii",
+          "bytes": 11661664,
+          "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/Materials/defaultMat.mat",
+          "bytes": 3878,
+          "sha256": "75396091c654f4a6db9daf65fbfc89c40f7a922bbc2d7443df346e58c9677152"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI.trm",
+          "bytes": 57,
+          "sha256": "1a99d0241b7809d1e3d0410687f001e84f2dc19e60381f1547da1e2fc464c3ee"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Lhemi.gii",
+          "bytes": 1668484,
+          "sha256": "1e5c67969dbea35e1316c9b0a16e098179be4629a91c6cd60e4852892554a348"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Lwhite.gii",
+          "bytes": 1586900,
+          "sha256": "67288f09ccd760eac9626e4ed5a1a48405d40e0613dad62a85742eee3233a224"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Lwhite_inflated.gii",
+          "bytes": 1586900,
+          "sha256": "05fd152d02aacfd466240246967bdc9db39c9a579fb862a0f99c9f21cbf905b8"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Rhemi.gii",
+          "bytes": 1651108,
+          "sha256": "3aab5ac60f7c179a5b67d8d09e47c5f38c76b4a8e9e1560d0a5cee98c73a9fd6"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Rwhite.gii",
+          "bytes": 1597796,
+          "sha256": "7fa5c371eb4dbbe6f7104b77bf105a8f80453b02e0b509d03a61adffc86d0beb"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/Data/Meshes/MNI_Rwhite_inflated.gii",
+          "bytes": 1597796,
+          "sha256": "49a9405935b484582b9b141e0c22270808b68adfea900627218d62c86d6c29dc"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/dstorage.dll",
+          "bytes": 206904,
+          "sha256": "cae65787f61514bec6f012f44546e68b19e39d8854a9ab52af813370d44b272a"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/dstoragecore.dll",
+          "bytes": 1482784,
+          "sha256": "cf85b19a92a8276f8baca0db9bbcd60735bad50768deb303d310e84d5f4fdd11"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+          "bytes": 66063872,
+          "sha256": "f627d4c8af63e831e5183e9e978468bf4f08fd4dd04b764d1a5f758dbb408e4a"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+          "bytes": 667648,
+          "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/app.info",
+          "bytes": 10,
+          "sha256": "ea353721778c32e55ccb47a2a205eb64647a5aee2baa1b359f13d7e727ea39a7"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/boot.config",
+          "bytes": 383,
+          "sha256": "b86902b5a232fbf9b5485e394d0bfbc077524aa0d5a1cde31f7078117a6b1063"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/globalgamemanagers",
+          "bytes": 2972740,
+          "sha256": "0e2f6b27bb19c7292fae46764615e4cee80f8d684ace402392e8e9a3b452cbe6"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/globalgamemanagers.assets",
+          "bytes": 839780,
+          "sha256": "ce31ea040a4c43140dea70413927c4692f9cf5f510cd61dea25602c969f1247e"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/globalgamemanagers.assets.resS",
+          "bytes": 4216848,
+          "sha256": "9fc66fc410a01493cc9e93997a94772aa8620bfca7c8faa15d9ea719a2588d7b"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/il2cpp.usym",
+          "bytes": 95818371,
+          "sha256": "d08e2b69a125419ab99e6f839e606238f7ef6019c0a772dc8fac44343ac16d0b"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Metadata/global-metadata.dat",
+          "bytes": 12636496,
+          "sha256": "a5c729767bad17bb42fc4bd56a80c506b188e29db8433aabfa94dd32017a177c"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/I18N.CJK.dll-resources.dat",
+          "bytes": 641770,
+          "sha256": "63a848c14c41b4d34633aca7581b1d207064c6230bee84a349ff00c7bc24553f"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/Ionic.Zip.dll-resources.dat",
+          "bytes": 209043,
+          "sha256": "fc4f3aabccbcebcbf273697784c8d7b7a3d7b586e8c1e3769da7d71e8531faaf"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/mscorlib.dll-resources.dat",
+          "bytes": 337563,
+          "sha256": "c5baa176a5b72cd545266340e42102d393a5e43d38c95796bc828918bb95277f"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/System.Data.dll-resources.dat",
+          "bytes": 93718,
+          "sha256": "98a7950ec6de3242c2e190dfa630188dfa32511a125542b94baa952d1c757d49"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Resources/System.Drawing.dll-resources.dat",
+          "bytes": 25453,
+          "sha256": "7c33aa707bc3fdc83991b81a97d6fc622b140762a767300f08f616c2c0a91255"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/level0",
+          "bytes": 782624,
+          "sha256": "cb182aa8f632139d9b062a371d34f375fdcbf137610abcfac94823f068cf1867"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/ARM64/XRSimulationSubsystem.dll",
+          "bytes": 214528,
+          "sha256": "112dcf44cf903949cf21c04dcda8a41943105aa5bf8c30e0833d9173b45d9226"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/EEGFormat.dll",
+          "bytes": 1005056,
+          "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_core.dll",
+          "bytes": 1378816,
+          "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_math.dll",
+          "bytes": 246784,
+          "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/lib_burst_generated.dll",
+          "bytes": 480256,
+          "sha256": "d3d85c1196a491b65302fd846a690e7047683800cd0d145df08585d8757455a0"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/lib_burst_generated.pdb",
+          "bytes": 3137536,
+          "sha256": "524ca39009cb93f943191941bf70cb8656d5a0968af722a4cfe8d96e77ece778"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/XRSimulationSubsystem.dll",
+          "bytes": 255488,
+          "sha256": "39c1de1b5222027b2db11b4e1dab95575784cc5d7a1c9deb902b6d0db1db1f26"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Resources/unity default resources",
+          "bytes": 5881648,
+          "sha256": "8a2af10a03beff92706eddcd6a8dbac8abddbee6866849123a79c21a03992661"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Resources/unity_builtin_extra",
+          "bytes": 449932,
+          "sha256": "21f7f4bc7b6c1432902ae6356560b28eb8e26a8110b6385aaa5ae5c9144bfa95"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/resources.assets",
+          "bytes": 11488892,
+          "sha256": "944c761441076416f8eeb62860f5f7f81c1775c94751eee92c2a9e1b9d93a90d"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/resources.assets.resS",
+          "bytes": 145336384,
+          "sha256": "75679e93a96a5a995325bebacb4faeb8ebd28c88b0c911f609fabe2e7436456b"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/RuntimeInitializeOnLoads.json",
+          "bytes": 13495,
+          "sha256": "2a824db0cc25ea5ba554058b23def83d794673ac3cf5ee3e402f9a364e054508"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/ScriptingAssemblies.json",
+          "bytes": 6083,
+          "sha256": "904ca98ce21be8d1cdbff1e416e35b183dcf821e87f8146a172c82913651dddc"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/sharedassets0.assets",
+          "bytes": 2716540,
+          "sha256": "294d50fc45004e14c143ea8b301c98bd841d7e3c8af2f7ca95df63fa602243e5"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/sharedassets0.assets.resS",
+          "bytes": 12580736,
+          "sha256": "8f8464039be3e3470b3496b3fb8f2d43499de8d76a223f1927ad15bf5cd1e7fd"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/UnitySubsystems/libUnityARFoundationMeta/UnitySubsystemsManifest.json",
+          "bytes": 181,
+          "sha256": "1b948c6cf83c2b90b1e8f217d83ed17d8f4761702f6204e75dbeca698572aed2"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_Data/UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json",
+          "bytes": 250,
+          "sha256": "2528d0caa5fb4c4ea91ed74fb88315fca934158314bcec29d12fbeaac8e7cfd6"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/HiBoP_user_manual.pdf",
+          "bytes": 2402716,
+          "sha256": "c5f164e0659c8ce5555568d7734afcae601ecf985b8f056949a7b66cccc15b66"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/README.md",
+          "bytes": 4215,
+          "sha256": "67e060ff28fbd872ae48448f523b70d4ef47557eee4e17fa076fcc60a3689f84"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/UnityCrashHandler64.exe",
+          "bytes": 1806760,
+          "sha256": "33f6fa4501f0cb4e7fd8823b143f44b999356ace6971500e223b6953a300903a"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/UnityPlayer.dll",
+          "bytes": 88157104,
+          "sha256": "b9991f8b5d64e9f5d1c8d056f22a2688076df56d29fe281e018d94f90903dbd4"
+        },
+        {
+          "path": ".artifacts/quest-020/Windows/HiBoP.6.1.0.win64/WinPixEventRuntime.dll",
+          "bytes": 58368,
+          "sha256": "81adcfd8253c3489be720da7e30f16004dc9a1f02a8b418c6c3aef4993032e6d"
+        }
+      ]
+    },
+    "android": {
+      "exitCode": 0,
+      "log": {
+        "path": ".test-results/quest-020/android-build.log",
+        "bytes": 974698,
+        "sha256": "02da6ebb11f391402e63efb15a8ce879b2f3bea9dc98146438bca6f58e67f4b4"
+      },
+      "apk": {
+        "path": ".artifacts/quest-020/Android/HiBoP.Quest.apk",
+        "bytes": 163083480,
+        "sha256": "61a2097204d789f19460eb03db2f71c0a743e9c19a79f8b7b55e8474bbc95fa1"
+      },
+      "packageCheck": {
+        "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/apk.json",
+        "bytes": 6211,
+        "sha256": "40c0818572c8edfc71ce8e55ba56d0d7b1bff72d89ec36efd9b36176fbe37133"
+      }
+    }
+  },
+  "fixtures": [
+    {
+      "path": ".artifacts/quest-020/fixture/quest-020.prov",
+      "bytes": 861,
+      "sha256": "3ed1315533e48d727de3d9abaf0ef1d7b3208380896fb9769b6cf36fc8eab256"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/quest-mni-ieeg.hibop",
+      "bytes": 6916,
+      "sha256": "64a4d40ebd170ce68c70f26a15b2881a4ddb8131041a1b446ea1d2978a9859ad"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-left.eeg",
+      "bytes": 3600,
+      "sha256": "c327b5f00749780292cf336c5e64f33de012744d33d0054668474245f1e3fdab"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-left.vhdr",
+      "bytes": 328,
+      "sha256": "b0fafc3fa84d50ac196f5d5490cf57d2d5bfb980a637a34cc1fa263a5e97627d"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-left.vmrk",
+      "bytes": 188,
+      "sha256": "e801fec55d03a30315dba06461a29d8d1ab693527f62c46d3cb436751a49276c"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-right.eeg",
+      "bytes": 3600,
+      "sha256": "c327b5f00749780292cf336c5e64f33de012744d33d0054668474245f1e3fdab"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-right.vhdr",
+      "bytes": 330,
+      "sha256": "80c5e5ea6deb2e29c22d22a833e9fb2d5b8053b4559c6a6fde3fab4a607fd003"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-right.vmrk",
+      "bytes": 189,
+      "sha256": "cc5b4af6532c580d18e3fc5ef147f392d1ca449a983f4fb414618964f5ae31bd"
+    }
+  ],
+  "captures": [
+    {
+      "navigationIndex": 50,
+      "summary": "iEEG QUEST-020 synthetic | 0 ms | index 50 -> 50, alpha 0 | uV, unit unspecified",
+      "exitCode": 0,
+      "report": {
+        "path": ".test-results/quest-020/capture-50-20260909-153911/20260909-153916-88c4cf2b-2c34-4910-b569-9b16e5146541/capture.json",
+        "bytes": 7064,
+        "sha256": "b7bb6af6e7d70cae484a2b07a4c14001654d8f4d8c4c5d35299cf44c14445bd9"
+      },
+      "payload": {
+        "path": ".test-results/quest-020/capture-50-20260909-153911/20260909-153916-88c4cf2b-2c34-4910-b569-9b16e5146541/anatomy.hbna",
+        "bytes": 15533236,
+        "sha256": "92de06a68ab6c0f72cee24210f9723c46b751f9dfbeccf6012a7adc7386301dc"
+      },
+      "repeat": {
+        "path": ".test-results/quest-020/capture-50-20260909-153911/20260909-153916-88c4cf2b-2c34-4910-b569-9b16e5146541/anatomy-repeat.hbna",
+        "bytes": 15533236,
+        "sha256": "92de06a68ab6c0f72cee24210f9723c46b751f9dfbeccf6012a7adc7386301dc"
+      },
+      "log": {
+        "path": ".test-results/quest-020/capture-50-20260909-153911/player.log",
+        "bytes": 5302,
+        "sha256": "6649588da4a50b468a8d10fd5ec8cbf590863c9cc72f6964599b3edca32ac674"
+      },
+      "command": {
+        "path": ".test-results/quest-020/capture-50-20260909-153911/command.json",
+        "bytes": 554,
+        "sha256": "c60a8f9105431548bbd91b68e0c77ec995d96fa587b32972c9684e3150901755"
+      }
+    },
+    {
+      "navigationIndex": 75,
+      "summary": "iEEG QUEST-020 synthetic | 250 ms | index 75 -> 75, alpha 0 | uV, unit unspecified",
+      "exitCode": 0,
+      "report": {
+        "path": ".test-results/quest-020/capture-75-20260909-153916/20260909-153920-76611ef3-83d7-4bf4-9a29-30f91a1f678c/capture.json",
+        "bytes": 7086,
+        "sha256": "7b08718087361e9e44b4c67fdd8ab01279fcb4e14ed28cf00a66f3707334e14a"
+      },
+      "payload": {
+        "path": ".test-results/quest-020/capture-75-20260909-153916/20260909-153920-76611ef3-83d7-4bf4-9a29-30f91a1f678c/anatomy.hbna",
+        "bytes": 15533236,
+        "sha256": "c8aa0fc5605f2ce1983c25d8f2ebe731cd5100a3ddcf48c2daba295d1b0d2087"
+      },
+      "repeat": {
+        "path": ".test-results/quest-020/capture-75-20260909-153916/20260909-153920-76611ef3-83d7-4bf4-9a29-30f91a1f678c/anatomy-repeat.hbna",
+        "bytes": 15533236,
+        "sha256": "c8aa0fc5605f2ce1983c25d8f2ebe731cd5100a3ddcf48c2daba295d1b0d2087"
+      },
+      "log": {
+        "path": ".test-results/quest-020/capture-75-20260909-153916/player.log",
+        "bytes": 5303,
+        "sha256": "e83c8b0152199518403ea969ea06ac44b5e077e2597eeaf7c091e3e3300525a1"
+      },
+      "command": {
+        "path": ".test-results/quest-020/capture-75-20260909-153916/command.json",
+        "bytes": 554,
+        "sha256": "16b76b02e319eef5eb086ccc08ed4133369179e5b3352735d8c21527cfb37169"
+      }
+    }
+  ],
+  "qualification": {
+    "reception": "Real TLS into the Quest session/prefab in Unity PlayMode on Windows.",
+    "physicalQuestIEEGReception": "VALIDE_RETOUR_PROPRIETAIRE_M1",
+    "ieegProjectionParity": "OUT_OF_SCOPE_QUEST_021_TO_023",
+    "ownerObservation": "Owner validated all M1 steps and expected transfer-summary fields after receiving the process-scoped PowerShell launch command. Physical reception is owner-reported; no process log was available at the final stop check.",
+    "preparedHashStableAcrossInstants": true,
+    "normalizationUnchanged": true,
+    "failedAttempts": "Initial six capture-test setup failures corrected; missing fixture protocol, missing workspace guard, startup protocol reload race, manual preparation and fixture blacklist-key errors corrected. Intermediate captures do not qualify the masked-present case.",
+    "staticReview": "Independent review found no concrete blocking defect before subsequent diagnostic/fixture fixes; not a runtime verification.",
+    "manualValidation": {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/manual-validation.json",
+      "bytes": 825,
+      "sha256": "798e4c23d7c7d366af510d4f14be1e0858687bbf3033f5ad86174a38aa25c8a6"
+    },
+    "manualStop": {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/manual-stop.json",
+      "bytes": 397,
+      "sha256": "2aff820149bea6ace3b4768220be6d60d10f6629f3505b99480f229ceff5e79d"
+    }
+  },
+  "evidence": [
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/android-build-command.json",
+      "bytes": 465,
+      "sha256": "162957912e2e80278595801ef730cddff49d0b4dc390548f4309806967a7c48f"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/apk.json",
+      "bytes": 6211,
+      "sha256": "40c0818572c8edfc71ce8e55ba56d0d7b1bff72d89ec36efd9b36176fbe37133"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/capture-50-command.json",
+      "bytes": 554,
+      "sha256": "c60a8f9105431548bbd91b68e0c77ec995d96fa587b32972c9684e3150901755"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/capture-50.json",
+      "bytes": 7064,
+      "sha256": "b7bb6af6e7d70cae484a2b07a4c14001654d8f4d8c4c5d35299cf44c14445bd9"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/capture-75-command.json",
+      "bytes": 554,
+      "sha256": "16b76b02e319eef5eb086ccc08ed4133369179e5b3352735d8c21527cfb37169"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/capture-75.json",
+      "bytes": 7086,
+      "sha256": "7b08718087361e9e44b4c67fdd8ab01279fcb4e14ed28cf00a66f3707334e14a"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/device-final-state.json",
+      "bytes": 272,
+      "sha256": "9bb8f4047b013abfbece18c00d31bc506c01b6124b0fe22dfabc73dbab7fa6e1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/device-install.json",
+      "bytes": 573,
+      "sha256": "6cdad1db565b4fad03e3ac2bd05e73d78473a5ee41ca5d8f29e6a8cfcb3d3e40"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/editmode-command.json",
+      "bytes": 626,
+      "sha256": "be613e080c81883667639550e088b1969bf57c4009bc4ec9758120315ce44add"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/editmode-first.xml",
+      "bytes": 146629,
+      "sha256": "b7b43b87e0587508b4bef9e2e6042e78c4d7158c7d01ef11fe67737487d073dd"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/ieeg-fixture-command.json",
+      "bytes": 540,
+      "sha256": "20c695d1c4816d06a4b1c0407cfe1bf11cb0d54d4ffee3e05f49edf914504c0d"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/ieeg-fixture-final-command.json",
+      "bytes": 620,
+      "sha256": "3701ffaed49f38b59ab0dd4dbf539fd4d6fef7856a463fac10de71ca56adb0cb"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/ieeg-fixture-final.xml",
+      "bytes": 11969,
+      "sha256": "93c5cf03f12c6c01af3b8250d24ad50da000066020ede5c3b17c61552ff1b24e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/ieeg-fixture.xml",
+      "bytes": 11967,
+      "sha256": "b1e8a6a7b8d1c73579358bf22e1befec696851d0e79c35e005762edb9a4dcdfc"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/initial-protocol-recovery.png",
+      "bytes": 117008,
+      "sha256": "92431828884730014aa89c3850b20727e2749e6bf550320db50f34d1b296481a"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/manual-stop.json",
+      "bytes": 397,
+      "sha256": "2aff820149bea6ace3b4768220be6d60d10f6629f3505b99480f229ceff5e79d"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/manual-validation.json",
+      "bytes": 825,
+      "sha256": "798e4c23d7c7d366af510d4f14be1e0858687bbf3033f5ad86174a38aa25c8a6"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/playmode-command.json",
+      "bytes": 875,
+      "sha256": "2a49ea615546e084084f3f3cf3e3ce1d184a38ca11c55a7b1bd473f96741b225"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/playmode.xml",
+      "bytes": 42700,
+      "sha256": "9bd09a7965b65b02de22a07d46819d568bc60f1fc582c7d4a2bd6db71c1c34a6"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/startup-race-recovery.png",
+      "bytes": 115205,
+      "sha256": "ac3d70f2e44eac50d451f3e931a57cad6e6b5ebe04240761a451794193bd21d0"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-020/windows-build-command.json",
+      "bytes": 474,
+      "sha256": "d1386bfcb9178235506340b44429728f60de4d1c72522f48aebd7d0c21af6e9d"
+    }
+  ]
+}

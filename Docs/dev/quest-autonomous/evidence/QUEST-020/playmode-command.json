@@ -1,0 +1,23 @@
+[
+  "-batchmode",
+  "-projectPath",
+  "C:/HBP/Software/HiBoP",
+  "-activeBuildProfile",
+  "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+  "-runTests",
+  "-testPlatform",
+  "PlayMode",
+  "-assemblyNames",
+  "HBP.Quest.PlayModeTests",
+  "-questIEEGFixture",
+  "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-020\\capture-50-20260909-153911\\20260909-153916-88c4cf2b-2c34-4910-b569-9b16e5146541\\anatomy.hbna",
+  "-questContactsFixture",
+  "C:/HBP/Software/HiBoP/.artifacts/quest-017/captures/20260909-111610-0c6c7cfd-cb1a-4477-b6d4-18243f162f1a/anatomy.hbna",
+  "-questAnatomyFixture",
+  "C:/HBP/Software/HiBoP/.artifacts/quest-008/fixture/quest-anatomy.hbna",
+  "-testResults",
+  "C:/HBP/Software/HiBoP/.test-results/quest-020/playmode.xml",
+  "-logFile",
+  "C:/HBP/Software/HiBoP/.test-results/quest-020/playmode.log",
+  "-forgetProjectPath"
+]

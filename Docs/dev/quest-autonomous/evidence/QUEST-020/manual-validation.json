@@ -1,0 +1,14 @@
+{
+  "task": "QUEST-020",
+  "id": "M1",
+  "status": "VALIDE",
+  "recordedAt": "2026-09-09T15:58:43.482263+00:00",
+  "source": "Owner reply in this conversation after the detailed M1 instructions and process-scoped PowerShell command.",
+  "ownerReply": "Ok je valide tout ce que tu as dit",
+  "scope": "Pairing, sending the selected instant and checking its identity/units in the Desktop and Quest transfer summaries.",
+  "expectedSummary": "iEEG QUEST-020 synthetic | 0 ms | index 50 -> 50, alpha 0 | uV, unit unspecified",
+  "expectedStatus": "Inputs received; iEEG rendering pending.",
+  "physicalTransferEvidence": "Owner confirmation; no process log available because HiBoP was already stopped at the final check.",
+  "ieegRenderingOrScientificParityValidated": false,
+  "stopEvidence": "manual-stop.json"
+}

@@ -42,12 +42,53 @@ namespace HBP.Dev
                 await UniTask.NextFrame(cancellationToken: token);
             }
 
+            string[] arguments = Environment.GetCommandLineArgs();
+            int indexOption = Array.IndexOf(arguments, "-captureIEEGIndex");
+            if (indexOption >= 0)
+            {
+                var selectedScene = Module3DMain.SelectedScene;
+                if (selectedScene.SelectedColumn is not Column3DIEEG) throw new ArgumentException("-captureIEEGIndex requires an iEEG column.");
+                while (selectedScene.SceneInformation.GeometryNeedsUpdate || selectedScene.SceneInformation.ProjectionGridNeedsUpdate || selectedScene.SceneInformation.SurfaceProjectionNeedsUpdate)
+                {
+                    if (Time.realtimeSinceStartup > deadline) throw new TimeoutException("iEEG diagnostic projection resources did not become ready.");
+                    await UniTask.NextFrame(cancellationToken: token);
+                }
+
+                if (!selectedScene.IsGeneratorUpToDate)
+                {
+                    if (selectedScene.TryGetSurfaceProjectionWarning(out _, out string title, out string message)) throw new InvalidOperationException(title + ": " + message);
+                    selectedScene.UpdateGenerator();
+                }
+
+                while (DesktopAnatomyCapture.GetSelectionError() != null)
+                {
+                    if (Time.realtimeSinceStartup > deadline) throw new TimeoutException(DesktopAnatomyCapture.GetSelectionError());
+                    await UniTask.NextFrame(cancellationToken: token);
+                }
+
+                if (indexOption + 1 >= arguments.Length || !int.TryParse(arguments[indexOption + 1], out int selected) || Module3DMain.SelectedScene.SelectedColumn is not Column3DIEEG ieeg || selected < 0 || selected >= ieeg.Timeline.Length)
+                    throw new ArgumentException("-captureIEEGIndex requires an exact valid navigation index in an iEEG column.");
+                ieeg.Timeline.IsPlaying = false;
+                ieeg.Timeline.CurrentIndex = selected;
+                await UniTask.NextFrame(cancellationToken: token);
+                while (DesktopAnatomyCapture.GetSelectionError() != null)
+                {
+                    if (Time.realtimeSinceStartup > deadline) throw new TimeoutException(DesktopAnatomyCapture.GetSelectionError());
+                    await UniTask.NextFrame(cancellationToken: token);
+                }
+            }
+
             while (!token.IsCancellationRequested)
             {
                 try
                 {
                     string result = await ExportSelectedAsync(directory, token);
                     Debug.Log("Anatomy capture exported: " + result + ". Press F8 to capture the current selection again.");
+                    if (Array.IndexOf(arguments, "-captureOnce") >= 0)
+                    {
+                        Application.Quit(0);
+                        return;
+                    }
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
@@ -111,7 +152,8 @@ namespace HBP.Dev
                 // Explicit tokens survive IL2CPP stripping; anonymous reflected properties do not.
                 JObject report = new()
                 {
-                    ["Task"] = first.Projection != null ? "QUEST-017" : first.Contacts.Sites.Count == 0 ? "QUEST-006" : "QUEST-013", ["CreatedUtc"] = DateTime.UtcNow.ToString("O"), ["Unity"] = unityVersion, ["GraphicsDevice"] = graphicsDevice,
+                    ["IEEG"] = first.IEEG == null ? null : IEEGReport(first.IEEG),
+                    ["Task"] = first.IEEG != null ? "QUEST-020" : first.Projection != null ? "QUEST-017" : first.Contacts.Sites.Count == 0 ? "QUEST-006" : "QUEST-013", ["CreatedUtc"] = DateTime.UtcNow.ToString("O"), ["Unity"] = unityVersion, ["GraphicsDevice"] = graphicsDevice,
                     ["Projection"] = first.Projection == null ? null : new JObject
                     {
                         ["VolumeBytes"] = first.Projection.VolumeBytes.Count, ["VolumeSha256"] = BitConverter.ToString(first.Projection.VolumeHash.ToArray()).Replace("-", "").ToLowerInvariant(),
@@ -145,6 +187,34 @@ namespace HBP.Dev
                 return output;
             }, token);
         }
+
+        private static JObject IEEGReport(IEEGInstant x) =>
+            new()
+            {
+                ["DatasetId"] = x.DatasetId,
+                ["DataName"] = x.DataName,
+                ["BlocId"] = x.BlocId,
+                ["SubBlocId"] = x.SubBlocId,
+                ["PreparedSha256"] = x.PreparedSha256,
+                ["NavigationIndex"] = x.NavigationIndex,
+                ["NavigationLength"] = x.NavigationLength,
+                ["NavigationHz"] = x.NavigationHz,
+                ["LocalTimeMilliseconds"] = x.LocalTimeMilliseconds,
+                ["ProjectionIndex"] = x.ProjectionIndex,
+                ["ProjectionLength"] = x.ProjectionLength,
+                ["ProjectionHz"] = x.ProjectionHz,
+                ["SamplingPolicy"] = x.SamplingPolicy,
+                ["Alpha"] = x.Alpha,
+                ["SpanMin"] = x.SpanMin,
+                ["Middle"] = x.Middle,
+                ["SpanMax"] = x.SpanMax,
+                ["Summary"] = x.Summary,
+                ["ChannelIds"] = new JArray(x.ChannelIds.ToArray()),
+                ["Units"] = new JArray(x.Units.ToArray()),
+                ["Availability"] = new JArray(x.Availability.ToArray().Select(value => (int)value)),
+                ["SurfaceValues"] = new JArray(x.SurfaceValues.ToArray()),
+                ["SiteValues"] = new JArray(x.SiteValues.ToArray())
+            };
 
         private static bool EqualBits<T, U>(T[] left, U[] right) where T : unmanaged where U : unmanaged
         {
