@@ -19,9 +19,9 @@ namespace HBP.Tests.Quest
     {
         private const string Prefab = "Assets/Prefabs/Quest/QuestAnatomy.prefab";
 
-        private static AnatomySnapshot Snapshot(bool surfaceVisible = true, bool contacts = true)
+        private static AnatomySnapshot Snapshot(bool surfaceVisible = true, bool contacts = true, AnatomyContacts prepared = null)
         {
-            var sites = new AnatomyContacts("MNI", true, new[] { "patient" }, new[]
+            var sites = prepared ?? new AnatomyContacts("MNI", true, new[] { "patient" }, new[]
             {
                 new AnatomySite("left", "A1", "A", 0, 0, 0, new float[] { -20, 0, 20 }, new float[] { 1, 0, 0, 1 }, 10, true, AnatomySiteFlags.Masked, true),
                 new AnatomySite("right", "B1", "B", 1, 0, 1, new float[] { 25, 10, 20 }, new float[] { 0, 1, 0, 1 }, 6, true, AnatomySiteFlags.Filtered, false),
@@ -73,6 +73,47 @@ namespace HBP.Tests.Quest
                 Assert.That(renderer.WorldBounds.Contains(renderer.transform.TransformPoint(sitePosition)), Is.True);
                 Assert.That(view.Contacts.Sites[0].EffectiveMasked, Is.True, "Scientific exclusion must not override prepared visibility.");
                 Assert.That(AnatomySnapshotCodec.Encode(snapshot), Is.EqualTo(before));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void CommonScientificAppearanceIsUploadedWithoutChangingPaletteOrScale()
+        {
+            var palette = Resources.Load<HBP.Core.Object3D.SharedMaterials>("Objects/Shared Materials").Site;
+            var sites = new AnatomySite[8];
+            for (int i = 0; i < sites.Length; i++)
+            {
+                var activity = HBP.Core.Object3D.SiteAppearance.FromActivity((i - 3) * 5, -10, 0, 10);
+                var appearance = HBP.Core.Object3D.SiteAppearance.Resolve(activity.Scale, activity.Type == HBP.Core.Enums.SiteType.Positive, i == 6, false, true, i == 7, false, false, true);
+                Color color = palette.GetSharedMaterial(false, appearance.Type, Color.white).GetColor("_Color");
+                if (QualitySettings.activeColorSpace == ColorSpace.Linear) color = color.linear;
+                sites[i] = new AnatomySite("id" + i, "S" + i, "S", i, 0, i, new float[] { i * 10, 0, 0 }, new[] { color.r, color.g, color.b, color.a }, 2 * appearance.Scale, appearance.Visible, AnatomySiteFlags.Filtered | (i == 6 ? AnatomySiteFlags.Masked : AnatomySiteFlags.None) | (i == 7 ? AnatomySiteFlags.Blacklisted : AnatomySiteFlags.None), i >= 6);
+            }
+
+            var snapshot = Snapshot(prepared: new AnatomyContacts("MNI", false, new[] { "patient" }, sites));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Prefab));
+            try
+            {
+                root.GetComponent<QuestAnatomyView>().ApplySnapshot(snapshot);
+                var renderer = root.GetComponentInChildren<QuestContactRenderer>();
+                var gpu = new GpuSite[sites.Length];
+                Buffer(renderer).GetData(gpu);
+                Assert.That(renderer.VisibleSiteCount, Is.EqualTo(7));
+                for (int i = 0; i < sites.Length; i++)
+                {
+                    Assert.That(gpu[i].PositionRadius.w, Is.EqualTo(sites[i].Visible ? sites[i].Diameter / 2 : 0));
+                    Assert.That(gpu[i].Color, Is.EqualTo(new Vector4(sites[i].Color[0], sites[i].Color[1], sites[i].Color[2], sites[i].Color[3])));
+                }
+
+                root.transform.localScale = Vector3.one * 4;
+                root.transform.position = new Vector3(1, 2, 3);
+                var moved = new GpuSite[sites.Length];
+                Buffer(renderer).GetData(moved);
+                Assert.That(moved, Is.EqualTo(gpu), "Local placement must not rewrite scientific data.");
             }
             finally
             {

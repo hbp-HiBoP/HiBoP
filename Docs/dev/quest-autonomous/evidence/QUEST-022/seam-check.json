@@ -1,0 +1,9 @@
+{
+  "common_has_no_renderer_material_ui_data_quest_dependency": true,
+  "desktop_calls_common_activity_and_visibility": true,
+  "site_temporal_evaluation_preserved": true,
+  "ieeg_capture_does_not_read_renderer_or_transform": true,
+  "ieeg_capture_uses_existing_unhighlighted_palette": true,
+  "quest_consumes_prepared_color_and_radius": true,
+  "quest_contains_no_activity_normalization": true
+}

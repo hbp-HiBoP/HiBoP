@@ -1,0 +1,26 @@
+[
+  {
+    "test": "HBP.Tests.Quest.AnatomyDeliveryTests.Contacts_CapturedMniPlayerPayloadReachesTheQuestSessionOverTls",
+    "reason": "Pass -questContactsFixture with the QUEST-013 Player capture."
+  },
+  {
+    "test": "HBP.Tests.Quest.AnatomyDeliveryTests.IEEG_PlayerCaptureReachesSessionWithoutBeingRenderedAsDensity",
+    "reason": "Pass -questIEEGFixture with the QUEST-020 Windows Player capture."
+  },
+  {
+    "test": "HBP.Tests.Quest.AnatomyDeliveryTests.Projection_RealTlsPreservesNativeInputsOnCorruptionAndReleasesAfterReplacementAndClose",
+    "reason": "Pass -questContactsFixture with the QUEST-017 HBNA v3 export."
+  },
+  {
+    "test": "HBP.Tests.Quest.AnatomyDeliveryTests.RealMni_ManipulatesForSixtySecondsDisconnected_ThenRetriesAndReplacesWithoutChangingPose",
+    "reason": "Pass -questAnatomyFixture with the captured MNI HBNA."
+  },
+  {
+    "test": "HBP.Tests.Quest.AnatomyDeliveryTests.RealMniCaptureFixture_TravelsThroughTlsToRenderer",
+    "reason": "Pass -questAnatomyFixture with the captured MNI HBNA."
+  },
+  {
+    "test": "HBP.Tests.QuestAnatomy.AnatomyManipulationTests.ActualMniFixture_AllGesturesPreserveEncodedBuffersModelDistancesAndMesh",
+    "reason": "Pass -questAnatomyFixture for the real Desktop MNI invariant check."
+  }
+]

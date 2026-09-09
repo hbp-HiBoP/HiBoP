@@ -1,0 +1,17 @@
+[
+  "-batchmode",
+  "-projectPath",
+  "C:/HBP/Software/HiBoP",
+  "-activeBuildProfile",
+  "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+  "-runTests",
+  "-testPlatform",
+  "PlayMode",
+  "-assemblyNames",
+  "HBP.Module3D.PlayModeTests;HBP.Quest.PlayModeTests",
+  "-testResults",
+  "C:/HBP/Software/HiBoP/.test-results/quest-022/playmode.xml",
+  "-logFile",
+  "C:/HBP/Software/HiBoP/.test-results/quest-022/playmode.log",
+  "-forgetProjectPath"
+]

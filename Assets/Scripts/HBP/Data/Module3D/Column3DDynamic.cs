@@ -107,39 +107,14 @@ namespace HBP.Data.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays");
 
-            float diffMin = DynamicParameters.SpanMin - DynamicParameters.Middle;
-            float diffMax = DynamicParameters.SpanMax - DynamicParameters.Middle;
-
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 if ((Sites[ii].State.IsOutOfROI && !showAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
-                float value = CurrentProjectionSample.Evaluate(ActivityValuesBySiteID[ii]);
-                if (value < DynamicParameters.SpanMin)
-                    value = DynamicParameters.SpanMin;
-                if (value > DynamicParameters.SpanMax)
-                    value = DynamicParameters.SpanMax;
-
-                value -= DynamicParameters.Middle;
-
-                if (value < 0)
-                {
-                    m_ElectrodesPositiveColor[ii] = false;
-                    value = 0.5f + 2 * (value / diffMin);
-                }
-                else if (value > 0)
-                {
-                    m_ElectrodesPositiveColor[ii] = true;
-                    value = 0.5f + 2 * (value / diffMax);
-                }
-                else
-                {
-                    m_ElectrodesPositiveColor[ii] = false;
-                    value = 0.5f;
-                }
-
-                m_ElectrodesSizeScale[ii] = new Vector3(value, value, value);
+                var appearance = EvaluateSiteActivity(ii);
+                m_ElectrodesPositiveColor[ii] = appearance.Type == SiteType.Positive;
+                m_ElectrodesSizeScale[ii] = Vector3.one * appearance.Scale;
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -230,43 +205,38 @@ namespace HBP.Data.Module3D
         /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
         public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate, float gain)
         {
-            UpdateSitesSizeAndColorOfSites(showAllSites);
-
             for (int i = 0; i < Sites.Count; ++i)
             {
                 Core.Object3D.Site site = Sites[i];
-                bool activity = site.IsActive;
-                SiteType siteType;
-                if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)
+                var appearance = EvaluateSiteAppearance(i, showAllSites, hideBlacklistedSites, isGeneratorUpToDate);
+                if (!appearance.Visible)
                 {
-                    if (activity) site.IsActive = false;
+                    // Preserve the previous hidden-blacklist transform behavior.
+                    if (!site.State.IsMasked && (!site.State.IsOutOfROI || showAllSites) && site.State.IsFiltered && site.State.IsBlackListed)
+                        site.transform.localScale = Vector3.one;
+                    if (site.IsActive) site.IsActive = false;
                     continue;
                 }
-                else if (site.State.IsBlackListed)
-                {
-                    site.transform.localScale = Vector3.one;
-                    siteType = SiteType.BlackListed;
-                    if (hideBlacklistedSites)
-                    {
-                        if (activity) site.IsActive = false;
-                        continue;
-                    }
-                }
-                else if (isGeneratorUpToDate)
-                {
-                    site.transform.localScale = m_ElectrodesSizeScale[i];
-                    siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
-                }
-                else
-                {
-                    site.transform.localScale = Vector3.one;
-                    siteType = SiteType.Normal;
-                }
 
-                if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                site.transform.localScale *= gain;
+                if (!site.IsActive) site.IsActive = true;
+                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, appearance.Type, site.State.Color);
+                site.transform.localScale = Vector3.one * appearance.Scale * gain;
             }
+        }
+
+        private Core.Object3D.SiteAppearance EvaluateSiteActivity(int index)
+        {
+            float value = CurrentProjectionSample.Evaluate(ActivityValuesBySiteID[index]);
+            return Core.Object3D.SiteAppearance.FromActivity(value, DynamicParameters.SpanMin, DynamicParameters.Middle, DynamicParameters.SpanMax);
+        }
+
+        /// <summary>Prepared scientific result, independent of Desktop renderers and local selection.
+        /// Call synchronously with the other prepared column reads on the Unity thread.</summary>
+        public Core.Object3D.SiteAppearance EvaluateSiteAppearance(int index, bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        {
+            var state = Sites[index].State;
+            var activity = state.IsMasked || (state.IsOutOfROI && !showAllSites) ? default : EvaluateSiteActivity(index);
+            return Core.Object3D.SiteAppearance.Resolve(state.IsMasked || (state.IsOutOfROI && !showAllSites) ? 1 : activity.Scale, activity.Type == SiteType.Positive, state.IsMasked, state.IsOutOfROI, state.IsFiltered, state.IsBlackListed, showAllSites, hideBlacklistedSites, isGeneratorUpToDate);
         }
 
         /// <summary>

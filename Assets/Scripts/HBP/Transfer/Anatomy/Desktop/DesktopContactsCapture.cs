@@ -31,15 +31,35 @@ namespace HBP.Transfer.Anatomy.Desktop
                 var info = site != null ? site.Information : null;
                 if (info == null || site.State == null || info.SiteData == null || info.Index != i || source.PatientIndex < 0 || source.PatientIndex >= patients.Count || patients[source.PatientIndex] != info.Patient || source.Patient != info.Patient || source.SiteData != info.SiteData || source.Index < 0 || source.Index >= info.Patient.Sites.Count || info.Patient.Sites[source.Index] != info.SiteData || source.Name != info.Name || !source.UnityPosition.Equals(info.DefaultPosition))
                     throw new InvalidOperationException("Contact order or implantation association is inconsistent; capture cannot remap native masks silently.");
-                var renderer = site.GetComponent<Renderer>();
-                var mesh = site.GetComponent<MeshFilter>()?.sharedMesh;
-                if (renderer == null || renderer.sharedMaterial == null || !renderer.sharedMaterial.HasProperty("_Color") || renderer.HasPropertyBlock() || mesh == null)
-                    throw new InvalidOperationException("Contact appearance is not prepared.");
-                Vector3 scale = site.transform.localScale;
-                // SharedMeshes.Site is generated as a radius-one sphere (its coarse bounds are not isotropic).
-                if (scale.x <= 0 || scale.x != scale.y || scale.x != scale.z || mesh != SharedMeshes.Site)
-                    throw new InvalidOperationException("Contact capture requires uniformly sized spheres.");
-                Color color = renderer.sharedMaterial.GetColor("_Color");
+                Color color;
+                float diameter;
+                bool visible;
+                if (column is Column3DIEEG ieeg)
+                {
+                    // Scientific inputs, not the last rendered frame or Desktop highlighting.
+                    var appearance = ieeg.EvaluateSiteAppearance(i, scene.ShowAllSites, scene.HideBlacklistedSites, scene.IsGeneratorUpToDate);
+                    var material = Module3DMain.SharedMaterials.Site.GetSharedMaterial(false, appearance.Type, site.State.Color);
+                    if (material == null || !material.HasProperty("_Color"))
+                        throw new InvalidOperationException("The scientific site palette requires a material with _Color.");
+                    color = material.GetColor("_Color");
+                    diameter = 2f * (appearance.Scale * scene.SiteGain);
+                    visible = appearance.Visible;
+                }
+                else
+                {
+                    var renderer = site.GetComponent<Renderer>();
+                    var mesh = site.GetComponent<MeshFilter>()?.sharedMesh;
+                    if (renderer == null || renderer.sharedMaterial == null || !renderer.sharedMaterial.HasProperty("_Color") || renderer.HasPropertyBlock() || mesh == null)
+                        throw new InvalidOperationException("Contact appearance is not prepared.");
+                    Vector3 scale = site.transform.localScale;
+                    // SharedMeshes.Site is generated as a radius-one sphere (its coarse bounds are not isotropic).
+                    if (scale.x <= 0 || scale.x != scale.y || scale.x != scale.z || mesh != SharedMeshes.Site)
+                        throw new InvalidOperationException("Contact capture requires uniformly sized spheres.");
+                    color = renderer.sharedMaterial.GetColor("_Color");
+                    diameter = 2f * scale.x;
+                    visible = site.IsActive && renderer.enabled;
+                }
+
                 if (QualitySettings.activeColorSpace == ColorSpace.Linear) color = color.linear;
                 AnatomySiteFlags flags = AnatomySiteFlags.None;
                 if (site.State.IsMasked) flags |= AnatomySiteFlags.Masked;
@@ -47,7 +67,7 @@ namespace HBP.Transfer.Anatomy.Desktop
                 if (site.State.IsOutOfROI) flags |= AnatomySiteFlags.OutOfRoi;
                 if (site.State.IsFiltered) flags |= AnatomySiteFlags.Filtered;
                 Vector3 p = info.DefaultPosition;
-                sites[i] = new AnatomySite(info.SiteData.ID, info.Name, source.Electrode, i, source.PatientIndex, source.Index, new[] { p.x, p.y, p.z }, new[] { color.r, color.g, color.b, color.a }, 2f * scale.x, site.IsActive && renderer.enabled, flags, site.State.IsEffectivelyMasked(roi));
+                sites[i] = new AnatomySite(info.SiteData.ID, info.Name, source.Electrode, i, source.PatientIndex, source.Index, new[] { p.x, p.y, p.z }, new[] { color.r, color.g, color.b, color.a }, diameter, visible, flags, site.State.IsEffectivelyMasked(roi));
             }
 
             return new AnatomyContacts(implantation.Name, roi, patients.Select(patient => patient.ID).ToArray(), sites);

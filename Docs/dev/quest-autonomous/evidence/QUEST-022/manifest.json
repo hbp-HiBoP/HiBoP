@@ -1,0 +1,319 @@
+{
+  "task": "QUEST-022",
+  "generatedUtc": "2026-09-09T17:02:32.209030+00:00",
+  "status": {
+    "implementation": "IMPLEMENTEE",
+    "technical": "REUSSI",
+    "manual": "VALIDE"
+  },
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "head": "a564f8c9811a01f0d99f3df461a5f1c23439c973",
+    "initialWorkingTree": "clean",
+    "uncommitted": true,
+    "files": [
+      {
+        "path": "Assets/Scripts/HBP/Core/Object3D/SiteAppearance.cs",
+        "bytes": 2262,
+        "sha256": "242ad0955c00461171f3e8df6ab6d5192474c804a2d0ff010ea4bd351dda3e0f"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Core/Object3D/SiteAppearance.cs.meta",
+        "bytes": 62,
+        "sha256": "e5b155aa1ee8fe18b91f2e5a99576e6e699e8c969fcfe5521816610f9ab14aba"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DDynamic.cs",
+        "bytes": 13121,
+        "sha256": "e99d8e8c1a0f8626f88c21d5afacf2b92148020cbabe497f7a295fb49a523d34"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Anatomy/Desktop/DesktopContactsCapture.cs",
+        "bytes": 5140,
+        "sha256": "7b23216a9a75e1cbf25e5b5daeb26e6ebeb2cd413589003d2dd2dbeca21ed5c1"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/IEEGProjectionDiagnostic.cs",
+        "bytes": 13826,
+        "sha256": "ff982e71ddbf395308e48534fc2b6a977cf7c5c3ef842e0c3ec41fe80cc44bfe"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/SiteAppearanceTests.cs",
+        "bytes": 3650,
+        "sha256": "e3a9e7509b40698be63cce6d5f80844783c0b5f64561a37b4ec0a951a02f734c"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/SiteAppearanceTests.cs.meta",
+        "bytes": 62,
+        "sha256": "fd1f16270bf2a443d4aa86bcfee619a0918c715ad404e073d7931eb3fb1411cb"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DesktopIEEGCaptureTests.cs",
+        "bytes": 12442,
+        "sha256": "b6f9a317465f0464df6a3a01d2d09ea3da03bd4922fdf63d503246715d44dd70"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestContactRenderingTests.cs",
+        "bytes": 18677,
+        "sha256": "bd681ff048d8284610d2e0a295dbd6e8839921477bc72e0ce05eb3c139308481"
+      },
+      {
+        "path": "Tools/Run-QuestIEEGProjection.ps1",
+        "bytes": 1849,
+        "sha256": "b8829ada1bc2d0d002baa4c4ea4713ce844cf086bcf861d1c6ae8a207dfb52a6"
+      }
+    ]
+  },
+  "environment": {
+    "unity": "6000.5.2f1",
+    "buildProfile": "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+    "player": "Windows x64 IL2CPP development",
+    "graphics": "NVIDIA GeForce RTX 2070 SUPER",
+    "nativeLock": {
+      "path": "Tools/NativePlugins.lock.json",
+      "bytes": 8169,
+      "sha256": "3d96ef4de48733d846032b7210ae7850eac127950cd0bcb49ac59e778882f240"
+    },
+    "nativeSources": [
+      {
+        "name": "EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd"
+      },
+      {
+        "name": "hbp_core",
+        "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1"
+      },
+      {
+        "name": "hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7"
+      }
+    ]
+  },
+  "runs": [
+    {
+      "name": "editmode",
+      "command": "editmode-command.json",
+      "exitCode": 0,
+      "total": 77,
+      "passed": 77,
+      "failed": 0,
+      "skipped": 0,
+      "startedUtc": "2026-09-09 16:50:39Z",
+      "finishedUtc": "2026-09-09 16:51:34Z"
+    },
+    {
+      "name": "playmode",
+      "command": "playmode-command.json",
+      "exitCode": 0,
+      "total": 92,
+      "passed": 86,
+      "failed": 0,
+      "skipped": 6,
+      "startedUtc": "2026-09-09 16:53:35Z",
+      "finishedUtc": "2026-09-09 16:53:48Z"
+    },
+    {
+      "name": "Windows build",
+      "command": "Tools/Build-QuestConnectionPlayers.ps1 -Target Windows -EvidenceId quest-022",
+      "exitCode": 0
+    },
+    {
+      "name": "Windows Player",
+      "command": "Tools/Run-QuestIEEGProjection.ps1 -EvidenceId quest-022",
+      "arguments": "player-command.json",
+      "exitCode": 0,
+      "siteAndProjectionComparisons": 18,
+      "capturesWithoutSiteRendererMaterials": 3,
+      "result": "player-result.json"
+    },
+    {
+      "name": "format",
+      "command": "Tools/format-code.cmd",
+      "exitCode": 0,
+      "files": 7,
+      "note": "NuGet restore required escalated network access."
+    },
+    {
+      "name": "diff whitespace",
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "evidence": [
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/editmode-command.json",
+      "bytes": 782,
+      "sha256": "193118bbafdbff054fbaf23d99db29464b56cedfe090c2a8debee40b1002c547"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/editmode.xml",
+      "bytes": 75040,
+      "sha256": "7e3488bcf64c7a411142f9aba4ac7b861d602ad3640196255c2caf0928884af1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/ieeg-0-index50.png",
+      "bytes": 384739,
+      "sha256": "d40aba378331511a8885531bde0f620d2e8138cb601c2e84b08aeefba10335ac"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/ieeg-1-index50.png",
+      "bytes": 389483,
+      "sha256": "23769287d8a1f6f72086573394bbbde2a4ce5c1392837e8ba25c543d07b9e77b"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/ieeg-2-index50.png",
+      "bytes": 384739,
+      "sha256": "d40aba378331511a8885531bde0f620d2e8138cb601c2e84b08aeefba10335ac"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/player-command.json",
+      "bytes": 546,
+      "sha256": "15b7db4ab6053ffaee8eab03ad8287fc09b7c3f537d5e213a12b65ce2e9cc0ee"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/player-result.json",
+      "bytes": 7816,
+      "sha256": "98f53414f9934586ade9d30cfd0031fb307a47eb10ce8b4ef322a19eb58f757e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/playmode-command.json",
+      "bytes": 470,
+      "sha256": "bcbfd6a0707af62475a2b3c367f33c57c112b70a357071bad511e1df9b286c6a"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/playmode-skipped.json",
+      "bytes": 1291,
+      "sha256": "b4b48c553d25ff4d00a285ec575e0f6408f13d43ca1815badae5d43439c46a17"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/playmode.xml",
+      "bytes": 91546,
+      "sha256": "3454617b019e1c77b8d3a9be1f9383189d980deb3d724df6807a3f3a3dd3d5c3"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/reference-images.json",
+      "bytes": 458,
+      "sha256": "d517f4311ad3f3b13a606bd606a94dc47fe107a210e0947ce6d157d9538ed014"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/seam-check.json",
+      "bytes": 406,
+      "sha256": "f63ceb9c7f92eebee5418789a1c6b3311c2e7918f94128449b9a6a637a4a4054"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/sites-index10.png",
+      "bytes": 383704,
+      "sha256": "c417fcda8a97d444cf24cc525abc7980eab9fbdd669aa2a2c43032f12466b82a"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/sites-index130.png",
+      "bytes": 383704,
+      "sha256": "c417fcda8a97d444cf24cc525abc7980eab9fbdd669aa2a2c43032f12466b82a"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-022/manual-validation.json",
+      "bytes": 317,
+      "sha256": "b7d7bac230e7e9ddfe6dfe5add27d93f92a479c8ad0270a45b303f589743a08f"
+    }
+  ],
+  "localArtifacts": [
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 66106368,
+      "sha256": "89ccc6b3865892ba6bac28b60c9a2efe5c87b7b6f845f9ffc3f71e1517b11bf6"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/UnityPlayer.dll",
+      "bytes": 88157104,
+      "sha256": "b9991f8b5d64e9f5d1c8d056f22a2688076df56d29fe281e018d94f90903dbd4"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Metadata/global-metadata.dat",
+      "bytes": 12642044,
+      "sha256": "52a93696d80f251425e616d38d2142c4dff8f186000f43c86ae137c0b789d311"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/ARM64/XRSimulationSubsystem.dll",
+      "bytes": 214528,
+      "sha256": "112dcf44cf903949cf21c04dcda8a41943105aa5bf8c30e0833d9173b45d9226"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/EEGFormat.dll",
+      "bytes": 1005056,
+      "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_core.dll",
+      "bytes": 1378816,
+      "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_math.dll",
+      "bytes": 246784,
+      "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/lib_burst_generated.dll",
+      "bytes": 480256,
+      "sha256": "d3d85c1196a491b65302fd846a690e7047683800cd0d145df08585d8757455a0"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/lib_burst_generated.pdb",
+      "bytes": 3137536,
+      "sha256": "524ca39009cb93f943191941bf70cb8656d5a0968af722a4cfe8d96e77ece778"
+    },
+    {
+      "path": ".artifacts/quest-022/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/XRSimulationSubsystem.dll",
+      "bytes": 255488,
+      "sha256": "39c1de1b5222027b2db11b4e1dab95575784cc5d7a1c9deb902b6d0db1db1f26"
+    },
+    {
+      "path": ".test-results/quest-022/editmode.log",
+      "bytes": 142888,
+      "sha256": "dd910f10111a7ceaab9faf1fc55646bb7a043b05f6ab551103be321b12b20eba"
+    },
+    {
+      "path": ".test-results/quest-022/playmode.log",
+      "bytes": 129053,
+      "sha256": "9a49dd5131eb419fb69486ba2b6e763873496b6db4e71378ec0ae6a08f4d04c3"
+    },
+    {
+      "path": ".test-results/quest-022/windows-build.log",
+      "bytes": 843730,
+      "sha256": "81343e86035a47a4a1884db47b782f2065f9607b6c489c4852eba9e65048f429"
+    },
+    {
+      "path": ".test-results/quest-022/player-20260909-165844/player.log",
+      "bytes": 3502,
+      "sha256": "58825022a91f0cdf6c78934a1e498024ea014ea8db44a4f84baea0111a3ed67c"
+    },
+    {
+      "path": ".test-results/quest-022/unity-generated.patch",
+      "bytes": 7709,
+      "sha256": "6e279f0a9ad840425eb6c0d119cfecc6c9bb5077537ee4b92ceaf95d3dca27a7"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/quest-mni-ieeg.hibop",
+      "bytes": 6916,
+      "sha256": "64a4d40ebd170ce68c70f26a15b2881a4ddb8131041a1b446ea1d2978a9859ad"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/quest-020.prov",
+      "bytes": 861,
+      "sha256": "3ed1315533e48d727de3d9abaf0ef1d7b3208380896fb9769b6cf36fc8eab256"
+    }
+  ],
+  "limits": [
+    "Six optional PlayMode tests skipped because capture fixture arguments were not supplied; see playmode-skipped.json.",
+    "No Android build or physical Quest test in this task.",
+    "Quest shader preserves scientific RGB inputs but renders opaque lit contacts; no transparency or pixel parity claim.",
+    "Hidden masked/out-of-ROI transferred contacts use neutral scale before gain, not stale Desktop transforms."
+  ],
+  "updatedUtc": "2026-09-09T17:05:15+00:00",
+  "manualValidation": "manual-validation.json"
+}

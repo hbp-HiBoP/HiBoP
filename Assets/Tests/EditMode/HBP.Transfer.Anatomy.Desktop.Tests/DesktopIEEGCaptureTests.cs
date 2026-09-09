@@ -163,6 +163,38 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
         }
 
         [Test]
+        public void ScientificAppearanceUsesSiteSamplingAndIgnoresLocalSelectionAndPlacement()
+        {
+            foreach (TemporalSamplingPolicy policy in Enum.GetValues(typeof(TemporalSamplingPolicy)))
+            {
+                PersistentDataManager.UserPreferences.Data.EEG.TemporalSampling = policy;
+                for (int index = 0; index < column.Timeline.Length; index++)
+                {
+                    column.Timeline.CurrentIndex = index;
+                    var instant = DesktopIEEGCapture.Capture(column);
+                    for (int site = 0; site < column.Sites.Count; site++)
+                    {
+                        var state = column.Sites[site].State;
+                        var appearance = column.EvaluateSiteAppearance(site, false, false, true);
+                        var expected = SiteAppearanceTests.Legacy(instant.SiteValues[site], -10, 0, 10, state.IsMasked, state.IsOutOfROI, state.IsFiltered, state.IsBlackListed, false, false, true);
+                        Assert.That(appearance.Visible, Is.EqualTo(expected.Visible));
+                        if (appearance.Visible)
+                        {
+                            Assert.That(appearance.Scale, Is.EqualTo(expected.Scale));
+                            Assert.That(appearance.Type, Is.EqualTo(expected.Type));
+                        }
+
+                        column.Sites[site].IsSelected = !column.Sites[site].IsSelected;
+                        state.IsHighlighted = !state.IsHighlighted;
+                        root.transform.SetPositionAndRotation(new Vector3(10, 20, 30), Quaternion.Euler(45, 90, 180));
+                        root.transform.localScale = Vector3.one * 7;
+                        Assert.That(column.EvaluateSiteAppearance(site, false, false, true), Is.EqualTo(appearance));
+                    }
+                }
+            }
+        }
+
+        [Test]
         public void FullPreparationHashIsStableAcrossInstants()
         {
             var first = DesktopIEEGCapture.Capture(column);

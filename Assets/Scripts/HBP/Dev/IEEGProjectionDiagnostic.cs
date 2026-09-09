@@ -46,6 +46,7 @@ namespace HBP.Dev
         {
             Directory.CreateDirectory(directory);
             var rows = new JArray();
+            bool checkSites = Environment.GetCommandLineArgs().Contains("-siteAppearanceEvidence");
             try
             {
                 await WaitAsync(() => Module3DMain.IsInitialized && Module3DMain.SelectedScene != null && Module3DMain.SelectedScene.SceneInformation.CompletelyLoaded && !Module3DMain.SelectedScene.SceneInformation.GeometryNeedsUpdate && !Module3DMain.SelectedScene.SceneInformation.SurfaceProjectionNeedsUpdate, token);
@@ -89,6 +90,14 @@ namespace HBP.Dev
                             var mesh = column.BrainMesh.GetComponent<MeshFilter>().sharedMesh;
                             if (!mesh.uv3.SequenceEqual(projection.ActivityUV) || !mesh.uv2.SequenceEqual(projection.AlphaUV))
                                 throw new InvalidOperationException("The Desktop renderer did not receive the common iEEG UVs.");
+                            if (checkSites)
+                            {
+                                VerifySites(scene, column);
+                                if (index == 50) await VerifyCaptureWithoutSiteRenderers(scene, column, token);
+                                if (configuration == 0 && (index == 10 || index == 130))
+                                    SaveView(column.Views[0], Path.Combine(directory, $"sites-index{index}.png"));
+                            }
+
                             if (index == 50)
                             {
                                 if (configuration == 0) initial = (Vector2[])projection.ActivityUV.Clone();
@@ -102,6 +111,7 @@ namespace HBP.Dev
                                 ["configuration"] = configuration, ["navigationIndex"] = index, ["projectionIndex"] = column.CurrentProjectionSample.Index,
                                 ["distanceMm"] = parameters.InfluenceDistance, ["spanMin"] = parameters.SpanMin, ["middle"] = parameters.Middle, ["spanMax"] = parameters.SpanMax,
                                 ["vertices"] = projection.ActivityUV.Length, ["validVertices"] = projection.ProjectionCoverage.validVertexCount,
+                                ["siteAppearanceExact"] = checkSites, ["captureWithoutSiteRenderers"] = checkSites && index == 50,
                                 ["activeSites"] = sites.GetMask().Count(mask => mask == 0), ["referenceBitExact"] = true, ["uploadedExactly"] = true
                             });
                         }
@@ -120,6 +130,67 @@ namespace HBP.Dev
             {
                 File.WriteAllText(Path.Combine(directory, "result.json"), new JObject { ["success"] = false, ["error"] = exception.ToString(), ["rows"] = rows }.ToString(Formatting.Indented));
                 throw;
+            }
+        }
+
+        // Independent pre-QUEST-022 reference; compares actual Desktop presentation, not two calls to the new rule.
+        private static void VerifySites(Base3DScene scene, Column3DIEEG column)
+        {
+            var p = column.DynamicParameters;
+            for (int i = 0; i < column.Sites.Count; i++)
+            {
+                var site = column.Sites[i];
+                var state = site.State;
+                bool visible = !(state.IsMasked || (state.IsOutOfROI && !scene.ShowAllSites) || !state.IsFiltered || (state.IsBlackListed && scene.HideBlacklistedSites));
+                if (site.IsActive != visible) throw new InvalidOperationException($"Site {i}: visibility changed.");
+                if (!visible) continue;
+                float value = column.CurrentProjectionSample.Evaluate(column.ActivityValuesBySiteID[i]);
+                if (value < p.SpanMin) value = p.SpanMin;
+                if (value > p.SpanMax) value = p.SpanMax;
+                value -= p.Middle;
+                var type = value > 0 ? Core.Enums.SiteType.Positive : Core.Enums.SiteType.Negative;
+                float scale = value < 0 ? 0.5f + 2 * (value / (p.SpanMin - p.Middle)) : value > 0 ? 0.5f + 2 * (value / (p.SpanMax - p.Middle)) : 0.5f;
+                if (state.IsBlackListed)
+                {
+                    scale = 1;
+                    type = Core.Enums.SiteType.BlackListed;
+                }
+                else if (!scene.IsGeneratorUpToDate)
+                {
+                    scale = 1;
+                    type = Core.Enums.SiteType.Normal;
+                }
+
+                if (site.transform.localScale != Vector3.one * scale * scene.SiteGain || site.GetComponent<MeshRenderer>().sharedMaterial != Module3DMain.SharedMaterials.Site.GetSharedMaterial(state.IsHighlighted, type, state.Color))
+                    throw new InvalidOperationException($"Site {i}: legacy size or material differs.");
+            }
+        }
+
+        private static async UniTask VerifyCaptureWithoutSiteRenderers(Base3DScene scene, Column3DIEEG column, CancellationToken token)
+        {
+            var renderers = column.Sites.Select(site => site.GetComponent<MeshRenderer>()).ToArray();
+            var materials = renderers.Select(renderer => renderer.sharedMaterial).ToArray();
+            System.Threading.Tasks.Task<Transfer.Anatomy.AnatomySnapshot> pending;
+            try
+            {
+                foreach (var renderer in renderers) renderer.sharedMaterial = null;
+                pending = Transfer.Anatomy.Desktop.DesktopAnatomyCapture.CaptureSelectedAsync(Guid.NewGuid().ToString(), "quest-022", 1, token);
+            }
+            finally
+            {
+                for (int i = 0; i < renderers.Length; i++) renderers[i].sharedMaterial = materials[i];
+            }
+
+            var snapshot = await pending;
+            for (int i = 0; i < column.Sites.Count; i++)
+            {
+                var site = column.Sites[i];
+                var actual = snapshot.Contacts.Sites[i];
+                var appearance = column.EvaluateSiteAppearance(i, scene.ShowAllSites, scene.HideBlacklistedSites, scene.IsGeneratorUpToDate);
+                Color color = Module3DMain.SharedMaterials.Site.GetSharedMaterial(false, appearance.Type, site.State.Color).GetColor("_Color");
+                if (QualitySettings.activeColorSpace == ColorSpace.Linear) color = color.linear;
+                if (actual.Visible != appearance.Visible || actual.Diameter != 2f * (appearance.Scale * scene.SiteGain) || !actual.Color.ToArray().SequenceEqual(new[] { color.r, color.g, color.b, color.a }) || actual.EffectiveMasked != site.State.IsEffectivelyMasked(snapshot.Contacts.RoiActive))
+                    throw new InvalidOperationException($"Site {i}: prepared transfer appearance differs.");
             }
         }
 
