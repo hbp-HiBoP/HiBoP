@@ -1,0 +1,606 @@
+{
+  "QUEST012_SAMPLE": [
+    {
+      "utc": "2026-09-10T07:28:50.9877420Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 9.746196444810497,
+      "windowSeconds": 5.0112480520037925,
+      "meanFrameIntervalMs": 17.167594088394132,
+      "maxFrameIntervalMs": 694.4466829299927,
+      "frames": 305,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 60,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 111739892,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 54853632,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:28:56.0019070Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 14.760360277805606,
+      "windowSeconds": 5.014163832995109,
+      "meanFrameIntervalMs": 13.88888496781733,
+      "maxFrameIntervalMs": 13.889038003981113,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 60,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113929420,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 55226368,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:01.0157630Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 19.774214214807447,
+      "windowSeconds": 5.013853937001841,
+      "meanFrameIntervalMs": 13.888879271528562,
+      "maxFrameIntervalMs": 13.889038003981113,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 61,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113912276,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 38477824,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:06.0291870Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 24.787640755808983,
+      "windowSeconds": 5.013426541001536,
+      "meanFrameIntervalMs": 13.888879036763038,
+      "maxFrameIntervalMs": 13.890986330807209,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 61,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113894964,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 38809600,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:11.0294640Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 29.78791140980525,
+      "windowSeconds": 5.000270653996267,
+      "meanFrameIntervalMs": 14.044939971978913,
+      "maxFrameIntervalMs": 41.66664555668831,
+      "frames": 356,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 64,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113915020,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 25059328,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:16.0295400Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 34.78799070980518,
+      "windowSeconds": 5.000079299999928,
+      "meanFrameIntervalMs": 13.888884868679774,
+      "maxFrameIntervalMs": 13.891085982322693,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 65,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113914484,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 23932928,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:21.0295940Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 39.788047874806814,
+      "windowSeconds": 5.000057165001635,
+      "meanFrameIntervalMs": 13.888890935211545,
+      "maxFrameIntervalMs": 13.889038003981113,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 65,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113897172,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 24305664,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:26.0435180Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 44.801971707807986,
+      "windowSeconds": 5.013923833001172,
+      "meanFrameIntervalMs": 13.88887325275968,
+      "maxFrameIntervalMs": 13.889044523239136,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 65,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113897172,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 24784896,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:31.0437920Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 49.80224564281003,
+      "windowSeconds": 5.000273935002042,
+      "meanFrameIntervalMs": 13.888891162868175,
+      "maxFrameIntervalMs": 13.89105711132288,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 65,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113897172,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 25276416,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:36.0576230Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 54.81607463181195,
+      "windowSeconds": 5.013828989001922,
+      "meanFrameIntervalMs": 13.927465183142987,
+      "maxFrameIntervalMs": 27.77770720422268,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 66,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113962612,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 25899008,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:41.0708730Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 59.82932310080856,
+      "windowSeconds": 5.013248468996608,
+      "meanFrameIntervalMs": 13.888885207742534,
+      "maxFrameIntervalMs": 13.889038003981113,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113962860,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 24526848,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:46.0714240Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 64.82987755680574,
+      "windowSeconds": 5.000554455997182,
+      "meanFrameIntervalMs": 13.888890653227767,
+      "maxFrameIntervalMs": 13.890986330807209,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113963036,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 24895488,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:51.0855420Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 69.84399555681216,
+      "windowSeconds": 5.01411800000642,
+      "meanFrameIntervalMs": 13.888897358793301,
+      "maxFrameIntervalMs": 13.89105711132288,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113928412,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 25374720,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:29:56.0856510Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 74.84410459581181,
+      "windowSeconds": 5.000109038999653,
+      "meanFrameIntervalMs": 13.88887888751924,
+      "maxFrameIntervalMs": 13.889044523239136,
+      "frames": 360,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 67,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113928476,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 25874432,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    },
+    {
+      "utc": "2026-09-10T07:30:01.0991190Z",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "uptimeSeconds": 79.85757009581198,
+      "windowSeconds": 5.013465500000166,
+      "meanFrameIntervalMs": 13.888879049662243,
+      "maxFrameIntervalMs": 13.891064561903477,
+      "frames": 361,
+      "uploads": 1,
+      "vertices": 69104,
+      "gen0Collections": 68,
+      "contacts": 8,
+      "ready": true,
+      "surfaceVisible": true,
+      "surfaceHidden": false,
+      "bufferBytesEstimate": 3870176,
+      "unityAllocatedBytes": 113928476,
+      "unityReservedBytes": 239411200,
+      "managedBytes": 24465408,
+      "contactBufferBytes": 256,
+      "position": {
+        "x": 0.8599432706832886,
+        "y": 0.6657386422157288,
+        "z": 0.5338283777236938
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.5078771114349365,
+        "y": 0.49199679493904114,
+        "z": 0.49199679493904114,
+        "w": 0.5078771114349365
+      }
+    }
+  ],
+  "QUEST012_PUBLISH": [
+    {
+      "utc": "2026-09-10T07:28:49.9800450Z",
+      "transfer": "972af519-21f1-4015-b43a-e7d0f59754d0",
+      "hash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+      "surfaceHash": "2024e5e69d3f84bb5ce3cfe545b0b98548217f902a53a53020135fb7685c4114",
+      "status": "Published",
+      "bytes": 15533226,
+      "vertices": 69104,
+      "indices": 414648,
+      "uploads": 1,
+      "decodeAndHashMs": 818.0533,
+      "meshPrepareAndUploadSubmissionMs": 754.9808,
+      "positionBefore": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleBefore": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "positionAfter": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scaleAfter": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotationBefore": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      },
+      "rotationAfter": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    }
+  ]
+}

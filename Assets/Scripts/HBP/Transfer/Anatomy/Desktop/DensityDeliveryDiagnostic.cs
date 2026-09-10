@@ -33,6 +33,7 @@ namespace HBP.Transfer.Anatomy.Desktop
         {
             var args = Environment.GetCommandLineArgs();
             int index = Array.IndexOf(args, "-densityDelivery");
+            if (index < 0) index = Array.IndexOf(args, "-ieegDelivery");
             if (index >= 0 && index + 1 < args.Length) RunAsync(args[index + 1]).Forget(Debug.LogException);
         }
 
@@ -50,7 +51,18 @@ namespace HBP.Transfer.Anatomy.Desktop
                 Directory.CreateDirectory(config.output);
                 while (!Module3DMain.IsInitialized || Module3DMain.SelectedScene == null || !Module3DMain.SelectedScene.SceneInformation.CompletelyLoaded || Module3DMain.SelectedScene.SceneInformation.FunctionalSurfaceNeedsUpdate || Module3DMain.SelectedScene.SceneInformation.CutsNeedUpdate || Module3DMain.SelectedScene.SceneInformation.SitesNeedUpdate)
                     await UniTask.NextFrame(cancellationToken: stop.Token);
-                var snapshot = await DesktopAnatomyCapture.CaptureSelectedAsync(Guid.NewGuid().ToString(), "quest019", 1, stop.Token);
+                bool ieeg = Array.IndexOf(Environment.GetCommandLineArgs(), "-ieegDelivery") >= 0;
+                if (ieeg)
+                {
+                    var scene = Module3DMain.SelectedScene;
+                    var column = scene.SelectedColumn as Column3DIEEG ?? throw new InvalidOperationException("Expected MNI iEEG.");
+                    scene.UpdateGenerator();
+                    while (!scene.IsGeneratorUpToDate || scene.SceneInformation.FunctionalSurfaceNeedsUpdate) await UniTask.NextFrame(cancellationToken: stop.Token);
+                    column.Timeline.CurrentIndex = 50;
+                    for (int frame = 0; frame < 10; frame++) await UniTask.NextFrame(cancellationToken: stop.Token);
+                }
+
+                var snapshot = await DesktopAnatomyCapture.CaptureSelectedAsync(Guid.NewGuid().ToString(), ieeg ? "quest023" : "quest019", 1, stop.Token);
                 File.WriteAllBytes(Path.Combine(config.output, "received-source.hbna"), AnatomySnapshotCodec.Encode(snapshot));
                 var offer = new AnatomyDelivery(snapshot);
                 using var identity = await System.Threading.Tasks.Task.Run(TransportIdentity.Create);

@@ -1,0 +1,14 @@
+[
+  "-questIEEGProtocol",
+  "\"C:\\HBP\\Software\\HiBoP/.artifacts/quest-020/fixture/quest-020.prov\"",
+  "-pf",
+  "\"C:\\HBP\\Software\\HiBoP/.artifacts/quest-020/fixture/quest-mni-ieeg.hibop\"",
+  "-v",
+  "\"MNI iEEG\"",
+  "-screen-fullscreen",
+  "0",
+  "-ieegDelivery",
+  "\"C:\\HBP\\Software\\HiBoP/.test-results/quest-023/delivery-20260910-072831/server-private.json\"",
+  "-logFile",
+  "\"C:\\HBP\\Software\\HiBoP/.test-results/quest-023/delivery-20260910-072831/windows.log\""
+]

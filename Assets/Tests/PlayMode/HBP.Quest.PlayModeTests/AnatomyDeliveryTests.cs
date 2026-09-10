@@ -48,7 +48,25 @@ namespace HBP.Tests.Quest
         private static AnatomySnapshot Snapshot(string id, float alpha = 1) => AnatomySnapshot.Create(id, "session", "visualization", "column", 1, new AnatomyCoordinateSpace(AnatomyMeshUploader.FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }), AnatomyWinding.Clockwise, true, new[] { 0.2f, 0.4f, 0.7f, alpha }, new float[] { 0, 0, 0, 100, 0, 0, 0, 100, 0 }, new float[] { 0, 0, -1, 0, 0, -1, 0, 0, -1 }, new uint[] { 0, 1, 2 }, Array.Empty<float>());
 
         [Test]
-        public async Task IEEG_PlayerCaptureReachesSessionWithoutBeingRenderedAsDensity()
+        public async Task CancellationAfterDispatchStillObservesThePublicationTask()
+        {
+            using var stop = new CancellationTokenSource();
+            var body = new TaskCompletionSource<int>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var method = typeof(QuestAnatomySession).GetMethod("OnUnityThreadAsync", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).MakeGenericMethod(typeof(Task<int>));
+            Func<Task<int>> action = () =>
+            {
+                stop.Cancel();
+                return body.Task;
+            };
+            var dispatch = (Task<Task<int>>)method.Invoke(session, new object[] { action, stop.Token });
+            Task<int> observed = await dispatch;
+            Assert.That(observed, Is.SameAs(body.Task), "Cancellation after dispatch must not detach publication and its cleanup.");
+            body.SetResult(7);
+            Assert.That(await observed, Is.EqualTo(7));
+        }
+
+        [Test]
+        public async Task IEEG_PlayerCapturePublishesCompleteLocalProjectionAndRecalculatesOffline()
         {
             string[] args = Environment.GetCommandLineArgs();
             int argument = Array.IndexOf(args, "-questIEEGFixture");
@@ -67,6 +85,16 @@ namespace HBP.Tests.Quest
             Assert.That(view.IEEG.SpanMin, Is.EqualTo(-10));
             Assert.That(view.IEEG.SpanMax, Is.EqualTo(10));
             Assert.That(view.ProjectionInputs, Is.Not.Null);
+            Assert.That(view.IEEGProjection, Is.Not.Null, "Receipt must wait for the complete iEEG projection.");
+            Assert.That(view.SharedMesh.uv3, Is.EqualTo(view.IEEGProjection.ActivityUV));
+            Assert.That(view.SharedMesh.uv2, Is.EqualTo(view.IEEGProjection.AlphaUV));
+            var firstProjection = view.IEEGProjection;
+            session.Disconnect();
+            view.RecalculateProjection();
+            await view.IEEGCompletion;
+            Assert.That(view.IEEGError, Is.Null);
+            Assert.That(view.IEEGProjection.ActivityUV, Is.EqualTo(firstProjection.ActivityUV));
+            Assert.That(view.IEEGProjection.AlphaUV, Is.EqualTo(firstProjection.AlphaUV));
             view.RecalculateDensity();
             await view.DensityCompletion;
             Assert.That(view.Density, Is.Null);

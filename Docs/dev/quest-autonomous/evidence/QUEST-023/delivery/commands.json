@@ -1,0 +1,180 @@
+{
+  "windowsStopped": true,
+  "questLeftForOwner": true,
+  "commands": [
+    {
+      "arguments": [
+        "shell",
+        "getprop",
+        "ro.product.model"
+      ],
+      "utc": "2026-09-10T07:28:31.6962030Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "am",
+        "force-stop",
+        "fr.crnl.hibop.quest"
+      ],
+      "utc": "2026-09-10T07:28:38.9390811Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "rm",
+        "-f",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest023-received",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest023-delivery-result.json"
+      ],
+      "utc": "2026-09-10T07:28:38.9784512Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "push",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-023/delivery-20260910-072831/client-private.json",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest023-delivery.json"
+      ],
+      "utc": "2026-09-10T07:28:39.0015655Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "touch",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest012-measure"
+      ],
+      "utc": "2026-09-10T07:28:39.0441037Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "cmd",
+        "package",
+        "resolve-activity",
+        "--brief",
+        "fr.crnl.hibop.quest"
+      ],
+      "utc": "2026-09-10T07:28:39.0873743Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "am",
+        "start",
+        "-W",
+        "-n",
+        "fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity"
+      ],
+      "utc": "2026-09-10T07:28:39.4680559Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "utc": "2026-09-10T07:28:49.7337436Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "meminfo",
+        "fr.crnl.hibop.quest"
+      ],
+      "utc": "2026-09-10T07:28:49.8415064Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "push",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-023/delivery-20260910-072831/radio.sh",
+        "/data/local/tmp/quest023-20260910-072831.sh"
+      ],
+      "utc": "2026-09-10T07:28:49.8715584Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "nohup sh /data/local/tmp/quest023-20260910-072831.sh >/data/local/tmp/quest023-20260910-072831.log 2>&1 </dev/null &"
+      ],
+      "utc": "2026-09-10T07:28:49.9083830Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "pull",
+        "/data/local/tmp/quest023-20260910-072831.log",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-023/delivery-20260910-072831/radio.log"
+      ],
+      "utc": "2026-09-10T07:30:04.9452897Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "pull",
+        "/sdcard/Android/data/fr.crnl.hibop.quest/files/quest023-delivery-result.json",
+        "C:\\HBP\\Software\\HiBoP/.test-results/quest-023/delivery-20260910-072831/device-result.json"
+      ],
+      "utc": "2026-09-10T07:30:04.9680564Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "pidof",
+        "fr.crnl.hibop.quest"
+      ],
+      "utc": "2026-09-10T07:30:05.0146120Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "meminfo",
+        "fr.crnl.hibop.quest"
+      ],
+      "utc": "2026-09-10T07:30:05.1068843Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "battery"
+      ],
+      "utc": "2026-09-10T07:30:05.1461936Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "shell",
+        "dumpsys",
+        "thermalservice"
+      ],
+      "utc": "2026-09-10T07:30:05.2784937Z",
+      "exitCode": 0
+    },
+    {
+      "arguments": [
+        "logcat",
+        "-d",
+        "-v",
+        "threadtime",
+        "--pid=1919"
+      ],
+      "utc": "2026-09-10T07:30:05.3327418Z",
+      "exitCode": 0
+    }
+  ]
+}

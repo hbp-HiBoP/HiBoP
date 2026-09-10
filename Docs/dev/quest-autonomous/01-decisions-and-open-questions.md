@@ -64,6 +64,23 @@ et son manifeste, avec Unity 6000.5.2f1 et hbp_core 0.2.1. Elle ne crée aucun
 seuil universel pour d'autres données, versions, algorithmes ou modalités ; les
 mesures RMS restent descriptives. La validation des gestes au casque reste distincte.
 
+## D31 — Parité d’un instant iEEG QUEST-023 (2026-09-10)
+
+Le propriétaire accepte explicitement **« Accepter pour ce banc et ces binaires »**
+les limites absolues **5 × 10⁻⁷ sur les UV d’activité normalisée** et **2 × 10⁻⁷
+sur les UV d’opacité** après comparaison des 36 exports Windows/Quest (18 instants,
+deux passages). Maxima observés : **4,172325134277344 × 10⁻⁷** et
+**1,7881393432617188 × 10⁻⁷**. Entrées, grilles, masques, catégories, sentinelles
+et apparence préparée des contacts restent exacts ; répétitions et restauration
+des paramètres sont exactes sur chaque plateforme. Les écarts sont compatibles
+avec des arrondis float32 selon architecture/compilation, sans attribution
+démontrée à une instruction précise. Cette décision concerne uniquement les
+fixtures et binaires du [rapport QUEST-023](reports/QUEST-023.md) et de son
+[manifeste](evidence/QUEST-023/manifest.json), Unity 6000.5.2f1, hbp_core 0.2.1.
+Elle n’étend pas ces seuils à une timeline, d’autres données ou d’autres versions.
+La preuve brute reste sans tolérance ; l’[évaluation D31](evidence/QUEST-023/numerical-acceptance.json)
+est séparée. La validation manuelle sur casque reste distincte.
+
 ## Orientations ultérieures, non figées
 
 - Permettre de modifier des données ou paramètres scientifiques (coupes,

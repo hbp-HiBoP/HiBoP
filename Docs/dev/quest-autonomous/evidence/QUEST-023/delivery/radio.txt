@@ -1,0 +1,7 @@
+Wifi is disabled
+DISABLED
+84698.67 162099.13
+RESTORING
+84758.69 162356.85
+Wifi is enabled
+COMPLETE

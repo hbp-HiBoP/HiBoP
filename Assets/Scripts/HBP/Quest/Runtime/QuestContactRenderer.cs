@@ -22,6 +22,15 @@ namespace HBP.Quest
         public long BufferBytes => (long)SiteCount * Site.Stride;
         public Bounds LocalBounds => current?.Bounds ?? new Bounds();
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        internal Site[] ReadDiagnosticSites()
+        {
+            var data = new Site[SiteCount];
+            current?.Buffer?.GetData(data);
+            return data;
+        }
+#endif
+
         [StructLayout(LayoutKind.Sequential)]
         internal struct Site
         {

@@ -1,0 +1,18 @@
+[
+  "-questIEEGProtocol",
+  "\"C:\\HBP\\Software\\HiBoP/.artifacts/quest-020/fixture/quest-020.prov\"",
+  "-pf",
+  "\"C:\\HBP\\Software\\HiBoP/.artifacts/quest-020/fixture/quest-mni-ieeg.hibop\"",
+  "-v",
+  "\"MNI iEEG\"",
+  "-screen-fullscreen",
+  "0",
+  "-logFile",
+  "\"C:\\HBP\\Software\\HiBoP/.test-results/quest-023/player-20260910-071223/player.log\"",
+  "-ieegEvidence",
+  "\"C:\\HBP\\Software\\HiBoP/.test-results/quest-023/player-20260910-071223\"",
+  "-ieegEvidenceOnce",
+  "-batchmode",
+  "-siteAppearanceEvidence",
+  "-questIEEGComparison"
+]

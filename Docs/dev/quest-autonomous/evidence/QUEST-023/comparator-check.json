@@ -1,0 +1,6 @@
+{
+  "identical_pass": true,
+  "nan_rejected": true,
+  "category_rejected": true,
+  "ulp_reported_without_tolerance": true
+}

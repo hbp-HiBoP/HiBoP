@@ -1,0 +1,81 @@
+{
+  "fixtures": [
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index0.hbna",
+      "Hash": "B3389C3F005471CED318ACB5BAA1640139B2A30A9F724E2B4F44D8B4172F1151"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index10.hbna",
+      "Hash": "6610017510DE73532065E40FDFCE5E0A2692FA9883FD279F1D0680EC3730A8DE"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index130.hbna",
+      "Hash": "2526600649FC4697C6669AF4B263F172329F065CF96C47B996B9E385CFC62845"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index150.hbna",
+      "Hash": "F7360D87290FAE70C1210EF7E730A48983AAB8FB9E7F293AA4A7EC740FFB288C"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index50.hbna",
+      "Hash": "20BF3D8871E84118E057619E1F74F5715510289E71C4C48F900DE987612B01DC"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index75.hbna",
+      "Hash": "97CEBC1C652723A2DE135F1726C79671E5F1825EB507CC35B4D00287C75D8C2A"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index0.hbna",
+      "Hash": "FFBD580F2BC9E79C750346D241D778734805C9419B134EDE249C5E9B3ADEE9E3"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index10.hbna",
+      "Hash": "2199D415B33F0B49DF1286D7D0A85C5EF167CCB310988EE23B425C93C62B6369"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index130.hbna",
+      "Hash": "1171A78A6262965C37DCA7459E834C1D5B0423736012D72D7924FB95F2001E24"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index150.hbna",
+      "Hash": "B78BE6C08FB00153B96EB7512A4DFAF7DDB96A0C85A10BBE9649D0BA6F560B0F"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index50.hbna",
+      "Hash": "A3EBBA7AECF288930E792D114CBB6A9D1E4655F7CE47DC9E377333FD31B3E2F7"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index75.hbna",
+      "Hash": "4852CCA09FAABDF41063F28E2F1150835EF19085663F908EEBEC53551A743839"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index0.hbna",
+      "Hash": "E25F72E3440359E09024565048D4A9E0C977927A5B056C26633CEEC943FB728B"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index10.hbna",
+      "Hash": "D5DAC74600F38F2E72C6F0C888BE9C8B6C8E1BF671C344193B9E0FD2FE007133"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index130.hbna",
+      "Hash": "050C24B1450563A43A04C51591EBE3EBB1EE5249C8D7D1783E3F2A09B6133C28"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index150.hbna",
+      "Hash": "E2A2176526C62EADB5B0BE713BF61DEDC078C702ED05EF6FE3743D8867DC046D"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index50.hbna",
+      "Hash": "5597085D6A8895392CA975DA3B56DCF17F19CBB8420346E5C9C0B95C59121BEA"
+    },
+    {
+      "Path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index75.hbna",
+      "Hash": "9A9A3B4C9AF135D7A7B8ED3368D562238353B6E3C78826E53C439F9427BF67AA"
+    }
+  ],
+  "apkSha256": "87a4941a6b22da3eb7a1978019a4ab2b429a75490e39670a41f5db241945eb96",
+  "model": "Quest 3",
+  "apk": "C:\\HBP\\Software\\HiBoP\\Tools/../.artifacts/quest-023/Android/HiBoP.Quest.apk",
+  "installedSha256": "87a4941a6b22da3eb7a1978019a4ab2b429a75490e39670a41f5db241945eb96",
+  "completed": true
+}

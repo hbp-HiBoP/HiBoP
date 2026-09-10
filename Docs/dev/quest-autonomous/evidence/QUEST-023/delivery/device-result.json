@@ -1,0 +1,29 @@
+{
+    "passed": true,
+    "networkUnavailable": true,
+    "published": true,
+    "exactRecalculation": true,
+    "buffersUploaded": true,
+    "failure": "",
+    "contentHash": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9",
+    "cycles": 3,
+    "vertices": 69104,
+    "memory": [
+        102454052,
+        111730772,
+        118915668
+    ],
+    "peakAllocatedBytes": 110175332,
+    "provenance": "iEEG QUEST-020 synthetic | 0 ms | index 50 -> 50, alpha 0 | uV, unit unspecified",
+    "contactsUploaded": true,
+    "computeMs": [
+        12.741100000000002,
+        14.7711,
+        9.2828
+    ],
+    "uploadMs": [
+        3.3427000000000004,
+        2.2607,
+        1.7078
+    ]
+}

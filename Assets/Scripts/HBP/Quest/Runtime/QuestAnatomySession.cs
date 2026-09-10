@@ -123,20 +123,21 @@ namespace HBP.Quest
             AnatomySnapshot snapshot = await Task.Run(() => AnatomySnapshotCodec.Decode(bytes), stop).ConfigureAwait(false);
             string hash = new DeliveryReceipt(TransportIdentity.Hash(bytes), DeliveryStatus.Published).ContentHash;
             double decodeAndHashMs = elapsed.Elapsed.TotalMilliseconds;
-            return await OnUnityThreadAsync(() =>
+            Task<DeliveryStatus> publication = await OnUnityThreadAsync(async () =>
             {
                 Vector3 position = view.transform.position;
                 Quaternion rotation = view.transform.rotation;
                 Vector3 scale = view.transform.localScale;
                 elapsed.Restart();
-                DeliveryStatus status = Publish(snapshot, hash);
+                DeliveryStatus status = await PublishAsync(snapshot, hash, stop);
                 double publicationMs = elapsed.Elapsed.TotalMilliseconds;
                 measurements?.Published(this, view, snapshot, bytes, status, decodeAndHashMs, publicationMs, position, rotation, scale);
                 return status;
             }, stop).ConfigureAwait(false);
+            return await publication.ConfigureAwait(false);
         }
 
-        private DeliveryStatus Publish(AnatomySnapshot snapshot, string hash)
+        private async Task<DeliveryStatus> PublishAsync(AnatomySnapshot snapshot, string hash, CancellationToken stop)
         {
             if (deliveries.TryGetValue(snapshot.TransferId, out Entry existing))
             {
@@ -150,7 +151,7 @@ namespace HBP.Quest
             deliveries.Add(next.TransferId, next); // Allocate metadata before the renderer commit.
             try
             {
-                view.ApplySnapshot(snapshot); // Unique publication point, synchronous; failed staging preserves the previous view.
+                await view.ApplySnapshotAsync(snapshot, stop); // ACK only after complete local iEEG computation and publication.
             }
             catch
             {
@@ -166,9 +167,16 @@ namespace HBP.Quest
         private async Task<T> OnUnityThreadAsync<T>(Func<T> action, CancellationToken stop)
         {
             var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-            using var cancelled = stop.Register(() => completion.TrySetCanceled(stop));
+            int dispatched = 0;
+            using var cancelled = stop.Register(() =>
+            {
+                // Once action starts, its returned task owns cancellation and cleanup. Do not
+                // detach an in-flight async publication and release the reception slot early.
+                if (Interlocked.CompareExchange(ref dispatched, 1, 0) == 0) completion.TrySetCanceled(stop);
+            });
             unityContext.Post(_ =>
             {
+                if (Interlocked.CompareExchange(ref dispatched, 1, 0) != 0) return;
                 if (stop.IsCancellationRequested || destroyed)
                 {
                     completion.TrySetCanceled();

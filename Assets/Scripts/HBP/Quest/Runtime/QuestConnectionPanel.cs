@@ -104,7 +104,9 @@ namespace HBP.Quest
                 AnatomyReceptionState.Preparing => "Preparing anatomy...",
                 _ => status
             };
-            string content = session.IsReady && view.IEEG != null ? view.IEEG.Summary + "\nInputs received; iEEG rendering pending" : session.IsReady ? $"Anatomy ready | {view.Contacts.Sites.Count} contacts\nAvailable offline" : "No anatomy received";
+            string content = session.IsReady && view.IEEG != null ? view.IEEG.Summary + "\niEEG ready | Available offline\nRight stick click: recalculate offline" : session.IsReady ? $"Anatomy ready | {view.Contacts.Sites.Count} contacts\nAvailable offline" : "No anatomy received";
+            if (view.IEEGComputing) content += "\nCalculating local iEEG...";
+            else if (view.IEEGError != null) content += "\niEEG failed: " + view.IEEGError;
             if (view.DensityComputing) content += "\nCalculating local density...";
             else if (view.DensityError != null) content += "\nDensity failed: " + view.DensityError;
             else if (view.Density != null) content += $"\nDensity ready | max {view.Density.MaxDensity:G5}\nRight stick click: recalculate offline";

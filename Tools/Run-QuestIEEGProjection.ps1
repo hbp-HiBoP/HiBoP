@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$KeepOpen, [ValidateSet("quest-021", "quest-022")][string]$EvidenceId = "quest-021")
+param([switch]$KeepOpen, [ValidateSet("quest-021", "quest-022", "quest-023")][string]$EvidenceId = "quest-021")
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $player = "$repo/.artifacts/$EvidenceId/Windows/HiBoP.6.1.0.win64/HiBoP.exe"
@@ -12,7 +12,8 @@ $run = "$repo/.test-results/$EvidenceId/player-$([DateTime]::UtcNow.ToString('yy
 New-Item -ItemType Directory -Force -Path $run | Out-Null
 $arguments = @('-questIEEGProtocol', "`"$protocol`"", '-pf', "`"$fixture`"", '-v', '"MNI iEEG"', '-screen-fullscreen', '0', '-logFile', "`"$run/player.log`"")
 if (-not $KeepOpen) { $arguments += '-ieegEvidence', "`"$run`"", '-ieegEvidenceOnce', '-batchmode' }
-if (-not $KeepOpen -and $EvidenceId -eq "quest-022") { $arguments += "-siteAppearanceEvidence" }
+if (-not $KeepOpen -and $EvidenceId -in @("quest-022", "quest-023")) { $arguments += "-siteAppearanceEvidence" }
+if (-not $KeepOpen -and $EvidenceId -eq "quest-023") { $arguments += "-questIEEGComparison" }
 $arguments | ConvertTo-Json | Set-Content "$run/command.json"
 $windowStyle = if ($KeepOpen) { 'Normal' } else { 'Hidden' }
 $process = Start-Process -FilePath $player -ArgumentList $arguments -PassThru -WindowStyle $windowStyle

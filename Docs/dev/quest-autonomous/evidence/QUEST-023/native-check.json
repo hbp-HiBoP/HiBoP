@@ -1,0 +1,16 @@
+[
+  {
+    "library": "libhbp_core.so",
+    "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1",
+    "apkSha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+    "lockedSha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+    "matches": true
+  },
+  {
+    "library": "Windows Player hbp_core.dll",
+    "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1",
+    "playerSha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278",
+    "lockedSha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278",
+    "matches": true
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "core_no_desktop_quest_transport_reference": true,
+  "projection_references_only_contracts_and_core": true,
+  "site_appearance_no_scene_renderer": true,
+  "received_surface_values_full_calibration_and_single_sample": true,
+  "temporal_alpha_not_used_for_projection": true,
+  "shared_site_rule_in_capture": true,
+  "quest_uses_prepared_site_rgba_and_diameter": true
+}

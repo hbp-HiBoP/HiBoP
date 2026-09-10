@@ -46,7 +46,7 @@ namespace HBP.Quest
                 previousMesh = view.SharedMesh;
             }
 
-            if (right.IsTracked && recalculate.WasPressedThisFrame()) view.RecalculateDensity();
+            if (right.IsTracked && recalculate.WasPressedThisFrame()) view.RecalculateProjection();
             if (right.IsTracked && toggleSurface.WasPressedThisFrame()) view.ToggleSurface();
 
             if (view.SharedMesh != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))

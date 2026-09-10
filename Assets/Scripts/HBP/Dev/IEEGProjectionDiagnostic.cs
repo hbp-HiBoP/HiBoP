@@ -90,6 +90,23 @@ namespace HBP.Dev
                             var mesh = column.BrainMesh.GetComponent<MeshFilter>().sharedMesh;
                             if (!mesh.uv3.SequenceEqual(projection.ActivityUV) || !mesh.uv2.SequenceEqual(projection.AlphaUV))
                                 throw new InvalidOperationException("The Desktop renderer did not receive the common iEEG UVs.");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                            if (Environment.GetCommandLineArgs().Contains("-questIEEGComparison"))
+                            {
+                                var snapshot = await Transfer.Anatomy.Desktop.DesktopAnatomyCapture.CaptureSelectedAsync(Guid.NewGuid().ToString(), "quest-023", 1, token);
+                                string name = $"config{configuration}-index{index}";
+                                string fixtures = Path.Combine(directory, "fixtures");
+                                Directory.CreateDirectory(fixtures);
+                                File.WriteAllBytes(Path.Combine(fixtures, name + ".hbna"), Transfer.Anatomy.AnatomySnapshotCodec.Encode(snapshot));
+                                using var inputs = Transfer.Projection.NativeProjectionInputs.Create(snapshot, Path.Combine(directory, "native"));
+                                var received = await inputs.ComputeIEEGAsync(snapshot.IEEG, true);
+                                if (!received.ActivityUV.SequenceEqual(projection.ActivityUV) || !received.AlphaUV.SequenceEqual(projection.AlphaUV))
+                                    throw new InvalidOperationException("Received instant differs from the full Desktop series: " + name);
+                                Transfer.Projection.IEEGBenchmark.Write(Path.Combine(directory, "Windows"), name + "-0", snapshot, received);
+                                var repeated = await inputs.ComputeIEEGAsync(snapshot.IEEG, true);
+                                Transfer.Projection.IEEGBenchmark.Write(Path.Combine(directory, "Windows"), name + "-1", snapshot, repeated);
+                            }
+#endif
                             if (checkSites)
                             {
                                 VerifySites(scene, column);

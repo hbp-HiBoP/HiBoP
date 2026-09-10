@@ -4,6 +4,7 @@
     "references": [
         "HBP.Transfer.Anatomy.Contracts",
         "HBP.Transfer.Anatomy.Desktop",
+        "HBP.Transfer.Projection",
         "HBP.Input.Runtime",
         "Unity.InputSystem",
         "HBP.Core.Runtime",

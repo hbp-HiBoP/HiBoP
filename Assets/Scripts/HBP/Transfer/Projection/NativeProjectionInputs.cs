@@ -24,6 +24,71 @@ namespace HBP.Transfer.Projection
         private readonly object lifetime = new object();
         private bool computing;
 
+        public sealed class IEEGResult
+        {
+            public Vector2[] ActivityUV, AlphaUV;
+            public Vector3[] GridPoints;
+            public Vector3Int GridDimensions;
+            public int[] SiteMasks;
+            public SurfaceProjectionCoverage Coverage;
+            public double PreparationMs, ComputeMs, ProjectionAndCopyMs;
+            public long UvCopyBytes, InputCopyBytes;
+        }
+
+        /// <summary>One received sample, calibrated with the full Desktop preparation's range.
+        /// Temporal Alpha belongs to SiteValues; the surface keeps the received sample-and-hold value.</summary>
+        public Task<IEEGResult> ComputeIEEGAsync(IEEGInstant instant, bool captureGrid = false)
+        {
+            if (instant == null) throw new ArgumentNullException(nameof(instant));
+            lock (lifetime)
+            {
+                if (disposed) throw new ObjectDisposedException(nameof(NativeProjectionInputs));
+                if (computing) throw new InvalidOperationException("Projection is already computing.");
+                computing = true;
+            }
+
+            try
+            {
+                return Task.Run(() =>
+                {
+                    try
+                    {
+                        var watch = System.Diagnostics.Stopwatch.StartNew();
+                        using var grid = ActivityProjectionGrid.Create(Volume, Settings.GridDimension, (VolumeInterpolation)Settings.Interpolation);
+                        using var generator = new IEEGGenerator();
+                        generator.Initialize(grid);
+                        generator.SetSmoothActivityBoundaries(true); // HBNA rejects unsupported false at capture.
+                        using var projection = new SurfaceGenerator();
+                        projection.Initialize(generator, Surface, 0, 1);
+                        var values = instant.SurfaceValues.ToArray();
+                        var result = new IEEGResult { PreparationMs = watch.Elapsed.TotalMilliseconds, GridDimensions = grid.Dimensions, InputCopyBytes = 4L * values.Length };
+                        watch.Restart();
+                        generator.ComputeCalibratedActivity(Sites, Settings.InfluenceDistance, values, 1, Sites.NumberOfSites, (SiteInfluenceByDistanceType)Settings.InfluenceByDistance, instant.Middle, instant.SpanMin, instant.SpanMax);
+                        result.ComputeMs = watch.Elapsed.TotalMilliseconds;
+                        watch.Restart();
+                        projection.ComputeActivityUV(0, Settings.ActivityAlpha);
+                        result.ActivityUV = projection.ActivityUV;
+                        result.AlphaUV = projection.AlphaUV;
+                        result.Coverage = projection.ProjectionCoverage;
+                        result.ProjectionAndCopyMs = watch.Elapsed.TotalMilliseconds;
+                        result.UvCopyBytes = 16L * result.ActivityUV.Length;
+                        if (captureGrid) result.GridPoints = grid.Points;
+                        result.SiteMasks = Sites.GetMask();
+                        return result;
+                    }
+                    finally
+                    {
+                        FinishComputation();
+                    }
+                });
+            }
+            catch
+            {
+                FinishComputation();
+                throw;
+            }
+        }
+
         public sealed class DensityResult
         {
             public Vector2[] ActivityUV, AlphaUV;
