@@ -1,4 +1,4 @@
-using QuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
+using LegacyQuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
 using System;
 using System.IO;
 using System.Linq;
@@ -85,8 +85,8 @@ namespace HBP.Tests.Quest
         public async Task PublicationIsAtomicAndCancellationClearReplacementAndOfflineCalculationAreSafe()
         {
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab"));
-            var view = instance.GetComponent<QuestAnatomyView>();
-            typeof(QuestAnatomyView).GetMethod("Awake", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(view, null);
+            var view = instance.GetComponent<LegacyQuestAnatomyView>();
+            typeof(LegacyQuestAnatomyView).GetMethod("Awake", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(view, null);
             try
             {
                 var s = Snapshot();

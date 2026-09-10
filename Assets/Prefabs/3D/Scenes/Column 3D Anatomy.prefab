@@ -146,8 +146,6 @@ MonoBehaviour:
   m_SitesMeshesParent: {fileID: 4541075249257132}
   m_SharedMaterials: {fileID: 11400000, guid: f1e8c5c55a519de48ab5bfd01bbc325b, type: 2}
   m_ViewsParent: {fileID: 4414892041895890}
-  m_ViewPrefab: {fileID: 1293318828649388, guid: 0ea555ed0bae635488b350051e783aa2,
-    type: 3}
   OnSelect:
     m_PersistentCalls:
       m_Calls: []

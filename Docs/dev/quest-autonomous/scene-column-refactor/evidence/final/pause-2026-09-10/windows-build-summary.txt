@@ -1,0 +1,2 @@
+Build Finished, Result: Success.
+Exiting without the bug reporter. Application will terminate with return code 0

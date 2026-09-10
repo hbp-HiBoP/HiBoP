@@ -409,3 +409,48 @@ l’attente/échec de l’installation globale et l’attente des préparations/
 Les avertissements Unity de sérialisation existants et le message XR au rechargement
 restent distincts de cette validation. Pas de build IL2CPP ni de test sur casque
 au titre de cette relecture ; la qualification scientifique du Lot C reste à faire.
+
+## SCENE-008 — 10 septembre 2026
+
+Lot C implémenté sur la base `753d3ce7219d`, sans commit. La campagne locale a
+stabilisé l'initialisation/restauration, les états de boucle et d'effacement, les
+durées de vie partielles et la propriété des vues Desktop. Deux projets réels à
+six modalités exercent chargement, sauvegarde, ressources alternatives, capture,
+restauration et calculs communs. Les diagnostics et comparaisons sont réutilisables
+sur le Quest après une vraie réception.
+
+Les builds Windows/Android IL2CPP proviennent des mêmes sources d'exécution. Le build
+Android a révélé une décompression automatique des atlas `.gz` : correction de
+l'empaquetage sans réduction du Data, puis vérification des 49 SHA-256 embarqués.
+Le rapport intégré et les preuves se trouvent dans [FINAL.md](FINAL.md) et
+`../evidence/final/manifest.json`. Le Quest étant éteint, la réception sur appareil,
+l'autonomie hors connexion, les mesures Android et le retour manuel restent en
+attente. SCENE-008 : IMPLEMENTEE / PARTIELLE / EN_ATTENTE ; aucune clôture implicite
+de QUEST-024.
+
+Suite au retour du propriétaire, `QuestStandardDataBuild` utilise maintenant
+`BuildPlayerContext.AddAdditionalPathToStreamingAssets` pour inclure directement
+`Assets/Data`. Les copies sous `Assets/StreamingAssets` sont supprimées et ne
+sont plus générées. Le manifeste temporaire seul reste sous `Library/HBP`.
+Cette modification concerne exclusivement la préparation Editor du build Android ;
+les sources exécutées par les Players et les masques d'effacement sont inchangés.
+
+### 2026-09-10 — pause après le premier essai physique
+
+Installation initiale réussie sur Quest 3 ; contrôleurs réveillés par le propriétaire.
+L'essai révèle une création de répertoires Desktop invalide sur Android et deux
+défauts de graphiques (capacité du pool avec MEG, réponses CCEP d'un autre patient).
+Corrections implémentées, quatre tests GraphZone réussis. Les Players Windows et
+Android corrigés compilent avec succès ; le diagnostic du Windows corrigé réussit
+sans exception dans le journal vérifié. Le nouvel APK n'a pas encore été installé.
+Aucun appairage ni transfert réel n'a été mené à terme ; rendu, poses, autonomie,
+remplacement et mesures Android restent à qualifier.
+
+Le propriétaire reprend sur un autre ordinateur. Les instructions complètes sont
+dans [RESTART-PROMPT.md](../RESTART-PROMPT.md), avec les dépendances, la régénération
+des fixtures et les commandes de build. Les petites preuves les plus récentes sont
+dans `../evidence/final/pause-2026-09-10/`. Le manifeste précédent reste un instantané
+historique, antérieur aux dernières corrections. Les sorties `.artifacts` et
+`.test-results` sont locales et ignorées par Git. Les trois changements générés par
+Unity (BuildInfo et réglages URP Desktop/Quest) ont été restaurés après compilation.
+État maintenu : IMPLEMENTEE / PARTIELLE / EN_ATTENTE. Aucun commit ni push effectué.

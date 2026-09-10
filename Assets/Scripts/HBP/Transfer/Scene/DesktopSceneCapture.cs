@@ -17,12 +17,18 @@ namespace HBP.Transfer.Scene
     {
         public static string GetSelectionError() => !Module3DMain.IsInitialized || Module3DMain.SelectedScene == null ? "Open a visualization to send it to Quest." : Module3DMain.SelectedScene.IsClosing ? "The visualization is closing." : null;
 
-        public static async Task<SceneDelivery> CaptureDeliverySelectedAsync(string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default)
+        public static Task<SceneDelivery> CaptureDeliverySelectedAsync(string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default)
         {
             if (!PlayerLoopHelper.IsMainThread) throw new InvalidOperationException("Capture must start on Unity's thread.");
             string error = GetSelectionError();
             if (error != null) throw new InvalidOperationException(error);
-            Base3DScene scene = Module3DMain.SelectedScene;
+            return CaptureDeliveryAsync(Module3DMain.SelectedScene, transferId, sessionId, revision, globals, token);
+        }
+
+        public static async Task<SceneDelivery> CaptureDeliveryAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default)
+        {
+            if (!PlayerLoopHelper.IsMainThread) throw new InvalidOperationException("Capture must start on Unity's thread.");
+            if (scene == null || scene.IsClosing) throw new InvalidOperationException("The visualization is unavailable or closing.");
             string folder = Path.Combine(Application.temporaryCachePath, "SceneCapture", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(folder);
             string output = Path.Combine(folder, "visualization.hbscene");

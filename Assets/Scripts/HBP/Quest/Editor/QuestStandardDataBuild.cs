@@ -3,30 +3,33 @@ using System.Text;
 using HBP.Core.Tools;
 using UnityEditor;
 using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 namespace HBP.Quest.Editor
 {
-    public sealed class QuestStandardDataBuild : IPreprocessBuildWithReport
+    public sealed class QuestStandardDataBuild : BuildPlayerProcessor
     {
-        public int callbackOrder => 0;
+        public override int callbackOrder => 0;
 
-        public void OnPreprocessBuild(BuildReport report)
+        public override void PrepareForBuild(BuildPlayerContext context)
         {
-            if (report.summary.platform != BuildTarget.Android) return;
-            string source = Path.Combine(Application.dataPath, "Data"), target = Path.Combine(Application.streamingAssetsPath, "ScientificData");
+            if (context.BuildPlayerOptions.target != BuildTarget.Android) return;
+            string source = Path.Combine(Application.dataPath, "Data");
             var manifest = new StringBuilder();
             foreach (string relative in StandardData.EnumerateFiles(source))
             {
-                string input = StandardData.Resolve(source, relative), output = StandardData.Resolve(target, relative);
-                Directory.CreateDirectory(Path.GetDirectoryName(output));
-                File.Copy(input, output, true);
+                string input = StandardData.Resolve(source, relative);
+                context.AddAdditionalPathToStreamingAssets(input, "ScientificData/" + StandardData.PackagedPath(relative));
                 manifest.Append(StandardData.HashFile(input)).Append(' ').Append(relative).Append('\n');
             }
 
-            File.WriteAllText(Path.Combine(target, StandardData.ManifestName), manifest.ToString(), new UTF8Encoding(false));
-            AssetDatabase.Refresh();
+            // Only the small generated manifest needs a temporary file. Reference
+            // data stays in Assets/Data and is copied directly by the build pipeline.
+            string manifestDirectory = Path.GetFullPath("Library/HBP/QuestStandardData");
+            Directory.CreateDirectory(manifestDirectory);
+            string manifestPath = Path.Combine(manifestDirectory, StandardData.ManifestName);
+            File.WriteAllText(manifestPath, manifest.ToString(), new UTF8Encoding(false));
+            context.AddAdditionalPathToStreamingAssets(manifestPath, "ScientificData/" + StandardData.ManifestName);
         }
     }
 }

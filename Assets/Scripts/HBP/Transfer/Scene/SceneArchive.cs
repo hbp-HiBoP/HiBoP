@@ -291,7 +291,7 @@ namespace HBP.Transfer.Scene
             var surface = new HBP.Core.DLL.Surface();
             try
             {
-                surface.SetBuffers(vertices, triangles, normals, uv, colors);
+                surface.SetBuffers(vertices, triangles, normals.Length == 0 ? null : normals, uv.Length == 0 ? null : uv, colors.Length == 0 ? null : colors);
                 surface.SetPreparedAtlasAvailability(atlasAvailable);
                 surface.UpdateVisibilityMask(mask).Dispose();
                 return surface;

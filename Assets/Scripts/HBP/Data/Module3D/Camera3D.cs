@@ -146,6 +146,7 @@ namespace HBP.Data.Module3D
             set
             {
                 m_Type = value;
+                if (m_AssociatedView == null) m_AssociatedView = GetComponentInParent<View3D>(true);
                 m_AssociatedView.Default();
             }
         }

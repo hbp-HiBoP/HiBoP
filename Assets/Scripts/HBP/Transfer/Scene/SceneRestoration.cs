@@ -127,6 +127,11 @@ namespace HBP.Transfer.Scene
                 ApplyState(scene, payload);
                 await scene.PrepareRenderingAsync(token);
                 token.ThrowIfCancellationRequested();
+                // Preparing the generators stops navigation, including its loop flag.
+                // Restore the requested mode after the last invalidation; playback starts at publication.
+                for (int i = 0; i < scene.Columns.Count; i++)
+                    if (scene.Columns[i].NavigationTimeline != null)
+                        scene.Columns[i].NavigationTimeline.IsLooping = payload.Columns[i].Looping;
                 return result;
             }
             catch

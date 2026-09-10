@@ -234,7 +234,7 @@ namespace HBP.Tests.PlayMode.Module3D
         public IEnumerator Base3DScene_RemoveViewLine_RemovesViewsFromAllColumnsAndSelectsFallback()
         {
             using PlayModeSceneScope scene = new("Module3DSceneModule3DRemoveViewLine");
-            Base3DScene baseScene = scene.Root.AddComponent<Base3DScene>();
+            Base3DScene baseScene = CreateBaseScene(scene, "Remove View Scene");
             Column3DAnatomy firstColumn = CreateColumn<Column3DAnatomy>(scene, "First Column");
             Column3DStatic secondColumn = CreateColumn<Column3DStatic>(scene, "Second Column");
             View3D firstColumnFirstView = CreateView(scene, "First Column View 0");
@@ -885,7 +885,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -919,7 +919,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -936,7 +936,7 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DSceneFailedPreviewFallback");
             string invalidNifti = temp.GetPath("invalid-preview.nii");
-            File.WriteAllText(invalidNifti, "not a NIfTI file");
+            WriteEmptyMRI(invalidNifti);
             MRI patientMRI = new("Preimplantation", invalidNifti, "invalid-preview-mri");
             Base3DScene baseScene = null;
             LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Unable to generate the approximate MRI preview"));
@@ -953,7 +953,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -970,7 +970,7 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DScenePartialPreviewFailure");
             string invalidNifti = temp.GetPath("invalid-partial-preview.nii");
-            File.WriteAllText(invalidNifti, "not a NIfTI file");
+            WriteEmptyMRI(invalidNifti);
             MRI invalidMRI = new("Preimplantation", invalidNifti, "invalid-partial-preview-mri");
             MRI validMRI = new("Postimplantation", NativeFixturePath("Nifti", "mri_t1.nii"), "valid-partial-preview-mri");
             Base3DScene baseScene = null;
@@ -989,7 +989,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -1020,7 +1020,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -1079,7 +1079,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -1194,7 +1194,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
             Assert.That(baseScene.ActivityProjectionGrid, Is.Not.SameAs(projectionGrid));
             Assert.That(baseScene.ActivityFieldVersion, Is.EqualTo(recomputedActivityFieldVersion));
-            CleanSceneOwnedAnatomy(baseScene);
+            await CleanSceneOwnedAnatomy(baseScene);
         }
 
         [Test]
@@ -1293,7 +1293,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(invisibleBrain.activeSelf, Is.False);
             Assert.That(cut, Is.Not.Null);
             Assert.That(cutObject, Is.Not.Null);
-            CleanSceneOwnedAnatomy(baseScene);
+            await CleanSceneOwnedAnatomy(baseScene);
         }
 
         [Test]
@@ -1481,7 +1481,9 @@ namespace HBP.Tests.PlayMode.Module3D
             GameObject columnObject = new(name);
             columnObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(columnObject, scene.Scene);
-            return columnObject.AddComponent<T>();
+            T column = columnObject.AddComponent<T>();
+            SetPrivateField(column, "m_SharedMaterials", CreateSharedMaterials());
+            return column;
         }
 
         private static Base3DScene CreateBaseScene(PlayModeSceneScope scene, string name)
@@ -1489,7 +1491,11 @@ namespace HBP.Tests.PlayMode.Module3D
             GameObject sceneObject = new(name);
             sceneObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(sceneObject, scene.Scene);
-            return sceneObject.AddComponent<Base3DScene>();
+            Base3DScene content = sceneObject.AddComponent<Base3DScene>();
+            DesktopScenePresentation presentation = sceneObject.AddComponent<DesktopScenePresentation>();
+            SetPrivateField(presentation, "m_Scene", content);
+            SetPrivateField(content, "m_DesktopPresentation", presentation);
+            return content;
         }
 
         private static LineRenderer CreateLineRenderer(PlayModeSceneScope scene, string name)
@@ -1537,6 +1543,9 @@ namespace HBP.Tests.PlayMode.Module3D
             SceneManager.MoveGameObjectToScene(sceneObject, scene.Scene);
 
             Base3DScene baseScene = sceneObject.AddComponent<Base3DScene>();
+            DesktopScenePresentation presentation = sceneObject.AddComponent<DesktopScenePresentation>();
+            SetPrivateField(presentation, "m_Scene", baseScene);
+            SetPrivateField(baseScene, "m_DesktopPresentation", presentation);
             MeshManager meshManager = CreateManager<MeshManager>(sceneObject, "MeshManager", baseScene);
             MRIManager mriManager = CreateManager<MRIManager>(sceneObject, "MRIManager", baseScene);
             ImplantationManager implantationManager = CreateManager<ImplantationManager>(sceneObject, "ImplantationManager", baseScene);
@@ -1669,6 +1678,7 @@ namespace HBP.Tests.PlayMode.Module3D
             columnObject.SetActive(false);
             columnObject.transform.SetParent(parent.transform, false);
             Column3DAnatomy column = columnObject.AddComponent<Column3DAnatomy>();
+            SetPrivateField(column, "m_SharedMaterials", CreateSharedMaterials());
             Transform brains = new GameObject("Brains").transform;
             Transform cuts = new GameObject("Cuts").transform;
             Transform sites = new GameObject("Sites").transform;
@@ -1680,7 +1690,8 @@ namespace HBP.Tests.PlayMode.Module3D
             SetPrivateField(column, "m_BrainSurfaceMeshesParent", brains);
             SetPrivateField(column, "m_CutMeshesParent", cuts);
             SetPrivateField(column, "m_SitesMeshesParent", sites);
-            SetPrivateField(column, "m_ViewPrefab", CreateRuntimeViewPrefab(columnObject));
+            SetPrivateField(column, "m_ViewsParent", views);
+            SetPrivateField(parent.GetComponent<DesktopScenePresentation>(), "m_ViewPrefab", CreateRuntimeViewPrefab(parent));
             return columnObject;
         }
 
@@ -1699,6 +1710,7 @@ namespace HBP.Tests.PlayMode.Module3D
             SetPrivateField(view, "m_Camera3D", camera3D);
             SetPrivateField(camera3D, "m_Camera", camera);
             SetPrivateField(camera3D, "m_EdgeSettings", edgeSettings);
+            SetPrivateField(camera3D, "m_AssociatedView", view);
             SetPrivateField(camera3D, "m_CircleX", CreateLineRendererObject("Circle X", cameraObject));
             SetPrivateField(camera3D, "m_CircleY", CreateLineRendererObject("Circle Y", cameraObject));
             SetPrivateField(camera3D, "m_CircleZ", CreateLineRendererObject("Circle Z", cameraObject));
@@ -1747,7 +1759,8 @@ namespace HBP.Tests.PlayMode.Module3D
         {
             GameObject spherePrefab = CreateMeshPrefab("ROI Sphere Prefab");
             spherePrefab.AddComponent<SphereCollider>();
-            spherePrefab.AddComponent<HBP.Data.Module3D.Sphere>();
+            var sphere = spherePrefab.AddComponent<HBP.Data.Module3D.Sphere>();
+            SetPrivateField(sphere, "m_SharedMaterials", CreateSharedMaterials());
             return spherePrefab;
         }
 
@@ -1908,6 +1921,15 @@ namespace HBP.Tests.PlayMode.Module3D
             return $"IsGeneratorUpToDate={baseScene.IsGeneratorUpToDate}, UpdatingGenerators={updatingGenerators}, GeneratorNeedsUpdate={baseScene.SceneInformation.GeneratorNeedsUpdate}, " + $"GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}, FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, " + $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, SitesNeedUpdate={baseScene.SceneInformation.SitesNeedUpdate}.";
         }
 
+        private static void WriteEmptyMRI(string path)
+        {
+            // Valid MRI with no extractable tissue: tests preview failure, not file loading failure.
+            byte[] bytes = File.ReadAllBytes(NativeFixturePath("Nifti", "mri_t1.nii"));
+            int offset = (int)BitConverter.ToSingle(bytes, 108);
+            Array.Clear(bytes, offset, bytes.Length - offset);
+            File.WriteAllBytes(path, bytes);
+        }
+
         private static string NativeFixturePath(params string[] parts)
         {
             string path = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Assets", "Tests", "Fixtures", "Native");
@@ -1927,18 +1949,10 @@ namespace HBP.Tests.PlayMode.Module3D
             }
         }
 
-        private static void CleanSceneOwnedAnatomy(Base3DScene baseScene)
+        private static async Task CleanSceneOwnedAnatomy(Base3DScene baseScene)
         {
             if (baseScene == null) return;
-            foreach (Mesh3D mesh in baseScene.MeshManager.Meshes.Where(mesh => !mesh.HasBeenLoadedOutside).Distinct())
-            {
-                mesh.Clean();
-            }
-
-            foreach (MRI3D mri in baseScene.MRIManager.MRIs.Where(mri => !mri.HasBeenLoadedOutside).Distinct())
-            {
-                mri.Clean();
-            }
+            await baseScene.CleanAsync();
         }
 
         private static Module3DMain GetModule3DMainInstance()

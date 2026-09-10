@@ -369,8 +369,10 @@ namespace HBP.Tests.Serialization
             AssertReference<Transform>(serializedColumn, "m_BrainSurfaceMeshesParent");
             AssertReference<Transform>(serializedColumn, "m_CutMeshesParent");
             AssertReference<Transform>(serializedColumn, "m_SitesMeshesParent");
-            GameObject viewPrefab = AssertReference<GameObject>(serializedColumn, "m_ViewPrefab");
-            Assert.That(viewPrefab.GetComponent<View3D>(), Is.Not.Null, $"{path} must reference a View3D prefab");
+            var desktop = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<DesktopScenePresentation>();
+            GameObject viewPrefab = AssertReference<GameObject>(new SerializedObject(desktop), "m_ViewPrefab");
+            Assert.That(viewPrefab.GetComponent<View3D>(), Is.Not.Null, "The Desktop presentation must reference a View3D prefab");
+            Assert.That(serializedColumn.FindProperty("m_ViewPrefab"), Is.Null, "Common content must not depend on Desktop camera prefabs.");
             Assert.That(prefab.transform.Find("Views"), Is.Not.Null, $"{path} must contain a Views child for Column3D.AddView");
         }
 

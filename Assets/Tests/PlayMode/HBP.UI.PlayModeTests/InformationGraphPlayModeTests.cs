@@ -504,6 +504,63 @@ namespace HBP.Tests.PlayMode.UI
 
         [Test]
         [Category("PlayMode.InformationGraph")]
+        public void GraphZone_MixedEpochedAndMEGColumnsGrowAndReuseThePrefabPool()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("MixedGraphPool");
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            try
+            {
+                GraphZone zone = CreateGraphZoneHarness(scene, CreateTrialMatrixGridHarness(scene));
+                zone.CreateGraphPool(1);
+                var columns = new[]
+                {
+                    new HBP.Data.Informations.Column("IEEG", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>()),
+                    new HBP.Data.Informations.Column("MEG", new HBP.Data.Informations.MEGData(fixture.Dataset, "MEG", new TimeWindow(0, 2)), Array.Empty<ChannelStructsGroup>())
+                };
+                zone.Display(Array.Empty<ChannelStruct>(), columns);
+                var first = GetPrivateField<List<Graph>>(zone, "m_Graphs").ToArray();
+                Assert.That(first, Has.Length.EqualTo(2));
+                zone.Display(Array.Empty<ChannelStruct>(), columns);
+                Assert.That(GetPrivateField<List<Graph>>(zone, "m_Graphs"), Is.EquivalentTo(first));
+                Assert.That(GetPrivateField<Queue<Graph>>(zone, "m_GraphPool"), Is.Empty);
+            }
+            finally
+            {
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
+        public void GraphZone_CCEPDoesNotRequestResponsesFromAnotherPatient()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("CCEPGraphPatients");
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            try
+            {
+                Patient other = new("other", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "other-patient");
+                var channel = new ChannelStruct("B1", other);
+                var group = new ChannelStructsGroup("Other patient ROI", new[] { channel }, ChannelStructsGroup.GroupType.ROI);
+                var data = new HBP.Data.Informations.CCEPData(fixture.Dataset, "Responses", new ChannelStruct("A1", fixture.Patient), fixture.Bloc);
+                var column = new HBP.Data.Informations.Column("CCEP", data, new[] { group });
+                GraphZone zone = CreateGraphZoneHarness(scene, CreateTrialMatrixGridHarness(scene));
+                zone.Display(new[] { channel }, new[] { column });
+                var curves = FlattenCurves(GetPrivateField<List<Graph>>(zone, "m_Graphs").Single().Curves).ToArray();
+                Assert.That(curves.Single(c => c.Name == "B1").Data, Is.Null);
+                Assert.That(curves.Single(c => c.Name == group.Name).Data, Is.Null);
+            }
+            finally
+            {
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
         public void TrialMatrixZone_DisplayVisibleColumnsBuildsGridAndPreservesCustomLimits()
         {
             using PlayModeTempDirectoryScope temp = new();

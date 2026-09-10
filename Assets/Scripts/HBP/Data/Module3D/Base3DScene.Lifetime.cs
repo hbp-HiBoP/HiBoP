@@ -128,7 +128,7 @@ namespace HBP.Data.Module3D
             {
                 foreach (var mesh in m_MeshManager.Meshes.Concat(m_MeshManager.PreloadedMeshes.Values.SelectMany(meshes => meshes)).Distinct())
                 {
-                    if (s_LiveScenes.Any(scene => !ReferenceEquals(scene, this) && (scene.MeshManager.Meshes.Contains(mesh) || scene.MeshManager.PreloadedMeshes.Values.Any(meshes => meshes.Contains(mesh))))) continue;
+                    if (s_LiveScenes.Any(scene => !ReferenceEquals(scene, this) && !ReferenceEquals(scene.MeshManager, null) && (scene.MeshManager.Meshes.Contains(mesh) || scene.MeshManager.PreloadedMeshes.Values.Any(meshes => meshes.Contains(mesh))))) continue;
                     mesh.ClearInflatedRepresentations();
                     if (!mesh.HasBeenLoadedOutside) mesh.Clean();
                 }
@@ -139,7 +139,7 @@ namespace HBP.Data.Module3D
                 foreach (var mri in m_MRIManager.MRIs.Concat(m_MRIManager.PreloadedMRIs.Values.SelectMany(mris => mris)).Distinct())
                 {
                     if (mri.HasBeenLoadedOutside) continue;
-                    if (s_LiveScenes.Any(scene => !ReferenceEquals(scene, this) && (scene.MRIManager.MRIs.Contains(mri) || scene.MRIManager.PreloadedMRIs.Values.Any(mris => mris.Contains(mri))))) continue;
+                    if (s_LiveScenes.Any(scene => !ReferenceEquals(scene, this) && !ReferenceEquals(scene.MRIManager, null) && (scene.MRIManager.MRIs.Contains(mri) || scene.MRIManager.PreloadedMRIs.Values.Any(mris => mris.Contains(mri))))) continue;
                     mri.Clean();
                 }
             }

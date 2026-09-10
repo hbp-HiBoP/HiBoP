@@ -60,11 +60,14 @@ namespace HBP.Tests.PlatformConfiguration
         }
 
         [Test]
-        public void QuestBootstrap_DependsOnItsPrefabAndNoDesktopManagers()
+        public void QuestBootstrap_UsesCommonContentWithoutDesktopPresentation()
         {
             var dependencies = AssetDatabase.GetDependencies(HBPBuildProfiles.QuestScene, true);
             Assert.That(dependencies, Does.Contain("Assets/Prefabs/Quest/QuestBootstrap.prefab"));
-            Assert.That(dependencies.Where(p => p.StartsWith("Assets/Scripts/HBP/")).All(p => p.StartsWith("Assets/Scripts/HBP/Quest/")), Is.True);
+            Assert.That(dependencies, Does.Contain("Assets/Prefabs/3D/Scenes/Scene 3D Content.prefab"));
+            Assert.That(dependencies, Does.Not.Contain("Assets/Scripts/HBP/Data/Module3D/DesktopScenePresentation.cs"));
+            Assert.That(dependencies, Does.Not.Contain("Assets/Scripts/HBP/Data/Module3D/View3D.cs"));
+            Assert.That(dependencies.Any(p => p.StartsWith("Assets/Tests/Support/")), Is.False);
             Assert.That(dependencies.Any(p => p.StartsWith("Assets/Prefabs/Managers/")), Is.False);
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             Assert.That(prefab.GetComponentsInChildren<Camera>(true).Length, Is.EqualTo(1));

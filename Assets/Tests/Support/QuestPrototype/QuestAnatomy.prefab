@@ -102,7 +102,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 90f868bbdd204b5887a0de412ab017b9, type: 3}
   m_Name:
-  m_EditorClassIdentifier: HBP.Quest.Prototype.Tests::HBP.Quest.Legacy.QuestContactRenderer
+  m_EditorClassIdentifier:
   siteMesh: {fileID: 4300000, guid: 837bc6cb2c5438348b23fca6a2236d95, type: 2}
   siteMaterial: {fileID: 2100000, guid: 598a67770e118da4fa39586422cc28e5, type: 2}
 --- !u!1 &5633916839406821509
@@ -151,7 +151,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fdb08943ab14b5e9090714f39cf6f16, type: 3}
   m_Name:
-  m_EditorClassIdentifier: HBP.Quest.Prototype.Tests::HBP.Quest.Legacy.QuestAnatomyView
+  m_EditorClassIdentifier:
   millimeterFrame: {fileID: 1151217058721067616}
   meshFilter: {fileID: 222842286883896084}
   meshRenderer: {fileID: 6201878218899059889}
@@ -168,7 +168,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9571701c858144a1be8649c9d346a401, type: 3}
   m_Name:
-  m_EditorClassIdentifier: HBP.Quest.Prototype.Tests::HBP.Quest.Legacy.QuestAnatomyManipulator
+  m_EditorClassIdentifier:
   view: {fileID: 510045443892623503}
   minimumScale: 0.25
   maximumScale: 4

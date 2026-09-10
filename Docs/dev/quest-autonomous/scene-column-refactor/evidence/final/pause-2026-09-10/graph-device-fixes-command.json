@@ -1,0 +1,17 @@
+[
+  "-batchmode",
+  "-projectPath",
+  "C:/HBP/Software/HiBoP",
+  "-activeBuildProfile",
+  "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+  "-runTests",
+  "-testPlatform",
+  "PlayMode",
+  "-testFilter",
+  "HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests.GraphZone",
+  "-testResults",
+  "C:/HBP/Software/HiBoP/.test-results/scene-008/graph-device-fixes.xml",
+  "-logFile",
+  "C:/HBP/Software/HiBoP/.test-results/scene-008/graph-device-fixes.log",
+  "-forgetProjectPath"
+]

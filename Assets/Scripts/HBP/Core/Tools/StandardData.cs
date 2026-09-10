@@ -15,6 +15,10 @@ namespace HBP.Core.Tools
         public const string ManifestName = "standard-data.sha256";
         private static AsyncLazy s_Installation;
 
+        // Android's asset merger expands .gz files. Keep their original bytes in
+        // the package; installation restores the scientific filename on disk.
+        public static string PackagedPath(string relative) => relative.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ? relative + ".bytes" : relative;
+
         public static IEnumerable<string> EnumerateFiles(string root)
         {
             yield return "IRM/MNI.nii";
@@ -69,7 +73,7 @@ namespace HBP.Core.Tools
                 string temporary = path + ".installing";
                 try
                 {
-                    using var request = UnityWebRequest.Get(source + relative);
+                    using var request = UnityWebRequest.Get(source + PackagedPath(relative));
                     request.downloadHandler = new DownloadHandlerFile(temporary);
                     await request.SendWebRequest();
                     if (HashFile(temporary) != hash) throw new InvalidDataException($"Installed reference checksum mismatch: {relative}");

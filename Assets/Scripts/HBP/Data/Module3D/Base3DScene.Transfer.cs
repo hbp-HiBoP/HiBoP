@@ -95,6 +95,9 @@ namespace HBP.Data.Module3D
             foreach (var column in Columns) column.InitializeColumnMeshes(m_DisplayedObjects.Brain);
             FinalizeInitialization();
             LoadConfiguration();
+            // Resolve selected topology and reset its eraser before the transfer applies
+            // current masks. Waiting until Update would discard those restored masks.
+            UpdateGeometry();
             progress?.Invoke(1, 0, new LoadingText("Prepared visualization restored"));
         }
 

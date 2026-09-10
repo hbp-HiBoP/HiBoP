@@ -73,7 +73,10 @@ namespace HBP.Tests.Rendering
 
             Assert.That(GraphicsSettings.defaultRenderPipeline, Is.SameAs(expected));
             for (int index = 0; index < QualitySettings.count; ++index)
-                Assert.That(QualitySettings.GetRenderPipelineAssetAt(index), Is.SameAs(expected), $"Quality level {index}");
+            {
+                var pipeline = QualitySettings.names[index] == "Quest" ? AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/Rendering/HBP-Quest-URP.asset") : expected;
+                Assert.That(QualitySettings.GetRenderPipelineAssetAt(index), Is.SameAs(pipeline), $"Quality level {index}");
+            }
         }
 
         [TestCase("HBP/Brain")]

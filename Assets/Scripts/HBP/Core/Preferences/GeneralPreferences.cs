@@ -76,8 +76,11 @@ namespace HBP.Core.Preferences
             else
                 DefaultExportLocation = defaultExportLocation;
 
+#if !UNITY_ANDROID || UNITY_EDITOR
+            // Received Desktop project paths are preferences, not Android directories.
             Directory.CreateDirectory(DefaultLocation);
             Directory.CreateDirectory(DefaultExportLocation);
+#endif
         }
 
         #endregion
@@ -86,6 +89,10 @@ namespace HBP.Core.Preferences
 
         private static string GetDefaultPath(string subfolder)
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // PATH is cached at startup; deserialization can also run on a worker.
+            return Path.Combine(Path.GetDirectoryName(UserPreferences.PATH), subfolder);
+#else
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 string home = Environment.GetEnvironmentVariable("HOME") ?? "";
@@ -103,6 +110,7 @@ namespace HBP.Core.Preferences
             }
 
             return Path.Combine(documentsPath, "HiBoP", subfolder);
+#endif
         }
 
         #endregion

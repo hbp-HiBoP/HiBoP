@@ -6,6 +6,7 @@
         "Unity.InputSystem",
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
+        "HBP.Transfer.Scene",
         "HBP.Theme.Runtime",
         "HBP.UI.Runtime",
         "UniTask",

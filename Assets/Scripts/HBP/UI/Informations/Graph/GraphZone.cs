@@ -126,6 +126,8 @@ namespace HBP.UI.Informations
             ClearGraphs();
 
             Tuple<Graph.Curve[], Core.Tools.TimeWindow, bool>[] columns = GenerateDataCurve(m_Columns, m_Channels);
+            // MEG adds non-epoched graphs beyond the trial-matrix preallocation.
+            CreateGraphPool(Math.Max(0, columns.Length - m_GraphPool.Count));
 
             Core.Data.RunningStatistics valueStatistics = new();
             foreach (var column in columns)
@@ -340,8 +342,9 @@ namespace HBP.UI.Informations
         {
             ID += "_" + column.ChannelGroups[index].ID;
             CurveData curveData = null;
+            var groupChannels = column.ChannelGroups[index].Channels.Where(channel => column.Data is not CCEPData ccep || channel.Patient == ccep.Source.Patient).ToArray();
             Dictionary<Core.Data.Patient, List<string>> channelsByPatient = new();
-            foreach (var channel in column.ChannelGroups[index].Channels)
+            foreach (var channel in groupChannels)
             {
                 channelsByPatient.AddIfAbsent(channel.Patient, new List<string>());
                 channelsByPatient[channel.Patient].Add(channel.Channel);
@@ -371,14 +374,14 @@ namespace HBP.UI.Informations
                 ChannelStructsGroup.GroupType.Custom => PersistentDataManager.UserPreferences.Visualization.Graph.GroupColors.GetColor(index, Array.IndexOf(m_Columns, column)),
                 _ => PersistentDataManager.UserPreferences.Visualization.Graph.GroupColors.GetColor(index, Array.IndexOf(m_Columns, column)),
             };
-            if (column.ChannelGroups[index].Channels.Count > 1)
+            if (groupChannels.Length > 1)
             {
-                int channelCount = column.ChannelGroups[index].Channels.Count;
+                int channelCount = groupChannels.Length;
                 // Get the statistics for all channels in the ROI
                 Core.Data.BlocChannelStatistics[] statistics = new Core.Data.BlocChannelStatistics[channelCount];
                 for (int c = 0; c < channelCount; ++c)
                 {
-                    statistics[c] = Core.Data.DataManager.GetStatistics(dataInfoByPatient[column.ChannelGroups[index].Channels[c].Patient], column.Data.Bloc, column.ChannelGroups[index].Channels[c].Channel);
+                    statistics[c] = Core.Data.DataManager.GetStatistics(dataInfoByPatient[groupChannels[c].Patient], column.Data.Bloc, groupChannels[c].Channel);
                 }
 
                 // Create all the required variables
@@ -394,10 +397,10 @@ namespace HBP.UI.Informations
                 int end = subBloc.Window.End;
                 curveData = ShapedCurveData.CreateRegular(values, standardDeviations, start, end, color);
             }
-            else if (column.ChannelGroups[index].Channels.Count == 1)
+            else if (groupChannels.Length == 1)
             {
                 // Use GetCurveData with all valid trials selected
-                ChannelStruct channel = column.ChannelGroups[index].Channels[0];
+                ChannelStruct channel = groupChannels[0];
                 Core.Data.PatientDataInfo dataInfo = dataInfoByPatient[channel.Patient];
                 Core.Data.BlocChannelData blocChannelData = Core.Data.DataManager.GetData(dataInfo, column.Data.Bloc, channel.Channel);
 
@@ -437,6 +440,8 @@ namespace HBP.UI.Informations
         Graph.Curve GenerateChannelCurve(Column column, ChannelStruct channel, Core.Data.SubBloc subBloc, string ID)
         {
             ID += "_" + channel.Channel;
+            if (column.Data is CCEPData ccep && channel.Patient != ccep.Source.Patient)
+                return new Graph.Curve(channel.Channel, null, true, ID, Array.Empty<Graph.Curve>(), m_DefaultColor);
             TrialMatrix.Data data = m_TrialMatrixGrid.Data.First(d => d.GridData.DataStruct.Dataset == column.Data.Dataset && d.GridData.DataStruct.Blocs.Contains(column.Data.Bloc) && d.GridData.DataStruct.Name == column.Data.Name);
             Bloc bloc = data.Blocs.First(b => b.Data.Data == column.Data.Bloc);
             ChannelBloc channelBloc = bloc.ChannelBlocs.First(c => c.Data.Channel == channel);

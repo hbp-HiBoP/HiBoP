@@ -60,6 +60,7 @@ namespace HBP.UI.Tools
             string[] arguments = System.Environment.GetCommandLineArgs();
             if (System.Array.IndexOf(arguments, "-captureOnce") >= 0 && System.Array.IndexOf(arguments, "-captureAnatomy") >= 0) return true;
             if (System.Array.IndexOf(arguments, "-ieegEvidenceOnce") >= 0 && System.Array.IndexOf(arguments, "-ieegEvidence") >= 0) return true;
+            if (System.Array.IndexOf(arguments, "-sceneEvidenceOnce") >= 0 && System.Array.IndexOf(arguments, "-sceneEvidence") >= 0) return true;
 #endif
             if (m_IsQuitting) return true;
 

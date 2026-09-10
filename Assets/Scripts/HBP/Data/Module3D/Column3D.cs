@@ -39,7 +39,6 @@ namespace HBP.Data.Module3D
         public Core.Object3D.SharedMaterials SharedMaterials => m_SharedMaterials;
         [SerializeField] private Transform m_ViewsParent;
         internal Transform ViewsParent => m_ViewsParent;
-        internal GameObject ViewPrefab => m_ViewPrefab;
 
         public void SetRenderLayer(string layer)
         {
@@ -189,7 +188,6 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// View prefab
         /// </summary>
-        [SerializeField] protected GameObject m_ViewPrefab;
 
         #endregion
 

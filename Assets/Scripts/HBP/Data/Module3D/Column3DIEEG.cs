@@ -37,7 +37,7 @@ namespace HBP.Data.Module3D
 
         public override Timeline Timeline
         {
-            get { return m_NavigationTimeline ??= ColumnIEEGData.Data.Timeline.CopyForNavigation(); }
+            get { return m_NavigationTimeline ??= ColumnIEEGData?.Data?.Timeline?.CopyForNavigation(); }
         }
 
         public override Timeline ProjectionTimeline => ColumnIEEGData.Data.ProjectionTimeline;

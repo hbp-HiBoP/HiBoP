@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
     [ValidateSet('Windows', 'Android')][string]$Target = 'Windows',
-    [ValidatePattern('^quest-\d{3}$')][string]$EvidenceId = 'quest-011'
+    [ValidatePattern('^(quest|scene)-\d{3}$')][string]$EvidenceId = 'quest-011'
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot

@@ -817,7 +817,7 @@ namespace HBP.Tests.PlayMode.Module3D
             SetPrivateField(column, "m_BrainSurfaceMeshesParent", brains);
             SetPrivateField(column, "m_CutMeshesParent", cuts);
             SetPrivateField(column, "m_SitesMeshesParent", sites);
-            SetPrivateField(column, "m_ViewPrefab", CreateRuntimeViewPrefab(columnObject));
+
             return columnObject;
         }
 

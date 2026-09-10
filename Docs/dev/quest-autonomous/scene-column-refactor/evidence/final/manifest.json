@@ -1,0 +1,3438 @@
+{
+  "scope": "SCENE-008 / Lot C — complete shared scene",
+  "createdUtc": "2026-09-10T17:11:44.474872+00:00",
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "commit": "753d3ce7219d66ede83c4fe281b5640b5b71329e",
+    "uncommittedFiles": [
+      "Assets/Prefabs/3D/Scenes/Column 3D Anatomy.prefab",
+      "Assets/Prefabs/3D/Scenes/Column 3D CCEP.prefab",
+      "Assets/Prefabs/3D/Scenes/Column 3D FMRI.prefab",
+      "Assets/Prefabs/3D/Scenes/Column 3D IEEG.prefab",
+      "Assets/Prefabs/3D/Scenes/Column 3D MEG.prefab",
+      "Assets/Prefabs/3D/Scenes/Column 3D Static.prefab",
+      "Assets/Prefabs/3D/Scenes/Scene 3D.prefab",
+      "Assets/Scripts/HBP/Core/Tools/StandardData.cs",
+      "Assets/Scripts/HBP/Data/Module3D/Base3DScene.Lifetime.cs",
+      "Assets/Scripts/HBP/Data/Module3D/Base3DScene.Transfer.cs",
+      "Assets/Scripts/HBP/Data/Module3D/Camera3D.cs",
+      "Assets/Scripts/HBP/Data/Module3D/Column3D.cs",
+      "Assets/Scripts/HBP/Data/Module3D/Column3DCCEP.cs",
+      "Assets/Scripts/HBP/Data/Module3D/Column3DIEEG.cs",
+      "Assets/Scripts/HBP/Data/Module3D/DesktopScenePresentation.cs",
+      "Assets/Scripts/HBP/Dev/HBP.Dev.Runtime.asmdef",
+      "Assets/Scripts/HBP/Quest/Editor/QuestStandardDataBuild.cs",
+      "Assets/Scripts/HBP/Transfer/Scene/DesktopSceneCapture.cs",
+      "Assets/Scripts/HBP/Transfer/Scene/SceneArchive.cs",
+      "Assets/Scripts/HBP/Transfer/Scene/SceneRestoration.cs",
+      "Assets/Scripts/HBP/UI/Tools/ApplicationManager.cs",
+      "Assets/Settings/Rendering/HBP-Material-Migration-Inventory.json",
+      "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/BuildProfileConfigurationTests.cs",
+      "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/DesktopInputConfigurationTests.cs",
+      "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/AnatomyMeshTests.cs",
+      "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/DensityCalculationTests.cs",
+      "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/IEEGCalculationTests.cs",
+      "Assets/Tests/EditMode/HBP.Rendering.Tests/UrpFoundationAssetTests.cs",
+      "Assets/Tests/EditMode/HBP.Serialization.Tests/Module3DConfigurationTests.cs",
+      "Assets/Tests/EditMode/HBP.Serialization.Tests/NativeMigrationBaselineTests.cs",
+      "Assets/Tests/EditMode/HBP.Transfer.Scene.Tests/PreparedSceneArchiveTests.cs",
+      "Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/CutsTriangleErasingPlayModeTests.cs",
+      "Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/Module3DScenePlayModeTests.cs",
+      "Assets/Tests/Support/QuestPrototype/HBP.Quest.Prototype.Tests.asmdef",
+      "Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab",
+      "Docs/dev/quest-autonomous/scene-column-refactor/TASK-STATUS.md",
+      "Docs/dev/quest-autonomous/scene-column-refactor/reports/JOURNAL.md",
+      "Tools/Build-QuestConnectionPlayers.ps1",
+      "Assets/Scripts/HBP/Dev/SceneQualificationDiagnostic.cs",
+      "Assets/Scripts/HBP/Dev/SceneQualificationDiagnostic.cs.meta",
+      "Assets/Scripts/HBP/Quest/Runtime/QuestSceneDiagnostic.cs",
+      "Assets/Scripts/HBP/Quest/Runtime/QuestSceneDiagnostic.cs.meta",
+      "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs",
+      "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs.meta",
+      "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests.meta",
+      "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/HBP.Transfer.Scene.PlayModeTests.asmdef",
+      "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/HBP.Transfer.Scene.PlayModeTests.asmdef.meta",
+      "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/SceneRestorationPlayModeTests.cs",
+      "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/SceneRestorationPlayModeTests.cs.meta",
+      "Docs/dev/quest-autonomous/scene-column-refactor/evidence/final/manifest.json",
+      "Docs/dev/quest-autonomous/scene-column-refactor/reports/FINAL.md",
+      "Tools/Compare-SceneQualification.py",
+      "Tools/Prepare-SceneQualificationFixture.py",
+      "Tools/Run-SceneQualification.ps1"
+    ],
+    "sourceFiles": [
+      {
+        "path": "Assets/Prefabs/3D/Scenes/Column 3D Anatomy.prefab",
+        "bytes": 5566,
+        "sha256": "dac9976ef3247ffd0f8d602e31995a5c58ab9a6a11240e8477b8efec58c2fda9"
+      },
+      {
+        "path": "Assets/Prefabs/3D/Scenes/Column 3D CCEP.prefab",
+        "bytes": 5708,
+        "sha256": "d0862c0f30b66f653df1c87bf2121daf31dd69b3f70a8d7e364669d4dc3a2b4b"
+      },
+      {
+        "path": "Assets/Prefabs/3D/Scenes/Column 3D FMRI.prefab",
+        "bytes": 5712,
+        "sha256": "aae0907633c05ffffa5e882553d0ece73005909ecd7830d87353bf1fb8cc9b48"
+      },
+      {
+        "path": "Assets/Prefabs/3D/Scenes/Column 3D IEEG.prefab",
+        "bytes": 5648,
+        "sha256": "484f0753c0cad84436e6dc7dc5272a98dea4253f6287359e140a46806c9a353a"
+      },
+      {
+        "path": "Assets/Prefabs/3D/Scenes/Column 3D MEG.prefab",
+        "bytes": 5717,
+        "sha256": "82f5853ae5d49edf82f1ad604631262409499e734b111b2589fd442f9555e826"
+      },
+      {
+        "path": "Assets/Prefabs/3D/Scenes/Column 3D Static.prefab",
+        "bytes": 5644,
+        "sha256": "ce9ef885ecde3548f714f5c518e04ce7485570eda487e700f5a8a2ba5b6dec25"
+      },
+      {
+        "path": "Assets/Prefabs/3D/Scenes/Scene 3D.prefab",
+        "bytes": 14265,
+        "sha256": "c0c4f3df792bab0d6312c14265697272a4c0032c344b842c1a2131918cea0157"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Core/Tools/StandardData.cs",
+        "bytes": 4548,
+        "sha256": "a4875ea5a41a47df7d2692669abca4298225d850f2b364282970013cd1cf1003"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Base3DScene.Lifetime.cs",
+        "bytes": 6656,
+        "sha256": "fefcaa7c7f690e98acdc8f441d49f0881e8f03303de45419f6f45f1a0e1e85f1"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Base3DScene.Transfer.cs",
+        "bytes": 5737,
+        "sha256": "c29a4a3614d1a8ff0f3c3f65d36649a58b6bd6495a550c399534631e5c5fedd0"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Camera3D.cs",
+        "bytes": 18998,
+        "sha256": "f9426225e132e9056857862b4acc3dff1ecd55ad947ea64931bcda34cdf3bb3b"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3D.cs",
+        "bytes": 28230,
+        "sha256": "42a7c94a8d6a3ecd072cda02797c6de6027455ec43c9e850a98191a6d4db4a8e"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DCCEP.cs",
+        "bytes": 25313,
+        "sha256": "5b95fdb574ee75a797b4859f176e93f7484edd99b19caad635c40bf433c88349"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3DIEEG.cs",
+        "bytes": 13381,
+        "sha256": "aaa66294263fc3bcba2faafdc7a6db6d2bab4dab45222f62ac4fdce6a6dc64bf"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/DesktopScenePresentation.cs",
+        "bytes": 7240,
+        "sha256": "3bf9c560e68a4021b7668f7c7e989ba9fcd4c1af4ecce837c5561be8cee5703d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/HBP.Dev.Runtime.asmdef",
+        "bytes": 621,
+        "sha256": "a764ad357e4edc60de82753025869535ad331691b0ee7bb6aff8c6926e3060e3"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/SceneQualificationDiagnostic.cs",
+        "bytes": 1837,
+        "sha256": "9abcea0cf21b04631acf346aff44d83007025a2480d000e8a6005cbeaf0d0d72"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/SceneQualificationDiagnostic.cs.meta",
+        "bytes": 62,
+        "sha256": "eee6923c5a8f20502974ed6e72082351ec701b4f1699c4d0fc4a6072b202c249"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestStandardDataBuild.cs",
+        "bytes": 1640,
+        "sha256": "509e9ec4f34bf6a29b2569953cc0393284dfc687abd10a595555095a1b2f4bff"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestSceneDiagnostic.cs",
+        "bytes": 1702,
+        "sha256": "c5c2c3a584df9bea13669f5ead3e5e8092fb201236e0d415390ad50ee892f07d"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Runtime/QuestSceneDiagnostic.cs.meta",
+        "bytes": 62,
+        "sha256": "fecc28205a7206fc358142da8e6ac529efd0e7b715006cc61abe8f2b86a1d624"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Scene/DesktopSceneCapture.cs",
+        "bytes": 15521,
+        "sha256": "0339ecb00e6532af347ce477a9e0cad9229ea65026e9d61f04fa436ab2ab9251"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Scene/SceneArchive.cs",
+        "bytes": 19601,
+        "sha256": "486bd4bf5ad597816b22deeeb2ee5c880b9c4ae1818e2919ed83210790e12b10"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs",
+        "bytes": 13483,
+        "sha256": "82eafd52aceaf6b5f8d1a73c5d3c6d388b2de9755ecbd1ef3b41720a80277a43"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs.meta",
+        "bytes": 62,
+        "sha256": "a7cd6cac4ff5d3888b8e967d0609e96451b57d7b0955ff2113bd88e1880b5b70"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Scene/SceneRestoration.cs",
+        "bytes": 18623,
+        "sha256": "6a8a0c041d82ee4150da311610bcad84d12bc8f56179e472de1a56a0173cf129"
+      },
+      {
+        "path": "Assets/Scripts/HBP/UI/Tools/ApplicationManager.cs",
+        "bytes": 3563,
+        "sha256": "b4a4108629ef36471680c2afbd5c9f6a1855005e4abe16a626e686c9bba6ab33"
+      },
+      {
+        "path": "Assets/Settings/Rendering/HBP-Material-Migration-Inventory.json",
+        "bytes": 4954,
+        "sha256": "20d77e055e3f751d8bb883c1c4dc730d96643215fcef1536c84f834414992e85"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/BuildProfileConfigurationTests.cs",
+        "bytes": 5737,
+        "sha256": "71b2bc72ddc93c4264d3aa75d6e8dd183849a6fe4039ff8c49bd237629c6aa83"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/DesktopInputConfigurationTests.cs",
+        "bytes": 4468,
+        "sha256": "b48ec120cef2b810063126dffb04aff2ea88838d0f41faa4be6a8579e5424c7c"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/AnatomyMeshTests.cs",
+        "bytes": 6595,
+        "sha256": "e9bbe1a136e92ae7b2094268d0909267cb1925693c7460de75b0b01a88fb63c8"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/DensityCalculationTests.cs",
+        "bytes": 6908,
+        "sha256": "cfb96379a8387dc75218fcf725466fa1890c51efa6baa3db23cf4121cc8892a4"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Quest.Anatomy.Tests/IEEGCalculationTests.cs",
+        "bytes": 7717,
+        "sha256": "eed779203684feea27613c05d8b1cc808125669275c4203db0ec39aafd344c9b"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Rendering.Tests/UrpFoundationAssetTests.cs",
+        "bytes": 6047,
+        "sha256": "ad322737f3c1b10b80068efdb7ddac36e3e108c58103f278d112ef32a6d72b11"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Serialization.Tests/Module3DConfigurationTests.cs",
+        "bytes": 25678,
+        "sha256": "dbfe5c268281c70db8ab2c2da5bfcd5b4d270f87fb17e9d3b1edfcc1460eddab"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Serialization.Tests/NativeMigrationBaselineTests.cs",
+        "bytes": 76945,
+        "sha256": "d5aba630a4276357ca1f77407863e7b4cf3c374cc39515ca2c488faa23efcb30"
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Scene.Tests/PreparedSceneArchiveTests.cs",
+        "bytes": 16203,
+        "sha256": "a3d5d01909acd293db1521a40ad58b9e96ba84f54459258578652f031d7c2560"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/CutsTriangleErasingPlayModeTests.cs",
+        "bytes": 67532,
+        "sha256": "ea86a7d07b1daf8d76677d3b50173794e4fc09f9d3162a4d71ae9c9f5bdd17cb"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/Module3DScenePlayModeTests.cs",
+        "bytes": 114008,
+        "sha256": "238a64b33b8a892f9d4a17c199e5ae2ce9990bfff6e9eb28d966695dba3e32ce"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests.meta",
+        "bytes": 62,
+        "sha256": "61aa33c83db032af41a58a4e501d66ef5c15ffbadd32f1aeae837f0673fc6631"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/HBP.Transfer.Scene.PlayModeTests.asmdef",
+        "bytes": 323,
+        "sha256": "dac76f34ac7b2dbd9fcd4654f1ceda48bd029fe425d052db8a985d0088f355ae"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/HBP.Transfer.Scene.PlayModeTests.asmdef.meta",
+        "bytes": 62,
+        "sha256": "65359f95ff479a416be672ca2ae307caf49c12f0a73cb13987161687e6be291d"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/SceneRestorationPlayModeTests.cs",
+        "bytes": 21691,
+        "sha256": "9bf6d127b477b88603db82bd32f316b24c6291fd0d438703bc2af6735ccfdea7"
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/SceneRestorationPlayModeTests.cs.meta",
+        "bytes": 62,
+        "sha256": "393c0eb92c38b43eed3c17a4b14fb9d506c060fd469caabcfc1a5793393afd65"
+      },
+      {
+        "path": "Assets/Tests/Support/QuestPrototype/HBP.Quest.Prototype.Tests.asmdef",
+        "bytes": 626,
+        "sha256": "e8269f45f81e0fe42f7be637625b64648e9ca62e29516510ec1dc4f8350e9720"
+      },
+      {
+        "path": "Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab",
+        "bytes": 6100,
+        "sha256": "3136807e94f4279b8889ca16a6192a1f56f71c88b99c2dc4b42e4ab4b3e64848"
+      },
+      {
+        "path": "Tools/Build-QuestConnectionPlayers.ps1",
+        "bytes": 1646,
+        "sha256": "b6dd9921d9015a42874ca4efc8d314534bdc91eabd355ab588db97c270c33fc9"
+      },
+      {
+        "path": "Tools/Compare-SceneQualification.py",
+        "bytes": 4934,
+        "sha256": "da78f020403c37009cb3282feeebfb214394ba543220a2c7790f5a5d322a2053"
+      },
+      {
+        "path": "Tools/Prepare-SceneQualificationFixture.py",
+        "bytes": 6448,
+        "sha256": "dae9b87f63bbba03d905d8ef84263e1e1ef4479172f9e0ad7d8dedab5af024d6"
+      },
+      {
+        "path": "Tools/Run-SceneQualification.ps1",
+        "bytes": 1712,
+        "sha256": "ae4c44efc019c152739273564c428591056f8b347173b5719722a4fa1f4982d0"
+      }
+    ],
+    "sourceDelta": {
+      "path": ".test-results/scene-008/source-delta.zip",
+      "bytes": 132683,
+      "sha256": "ea9bb0e041acdda083a29d581d5f1278a5cb33bd3c9c99647787f1fdedc81697"
+    },
+    "nativeLock": {
+      "path": "Tools/NativePlugins.lock.json",
+      "bytes": 8169,
+      "sha256": "3d96ef4de48733d846032b7210ae7850eac127950cd0bcb49ac59e778882f240"
+    },
+    "nativeRevisions": [
+      {
+        "name": "EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd"
+      },
+      {
+        "name": "hbp_core",
+        "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1"
+      },
+      {
+        "name": "hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7"
+      }
+    ]
+  },
+  "report": "reports/FINAL.md",
+  "collector": {
+    "path": ".test-results/scene-008/collect-final.py",
+    "bytes": 10356,
+    "sha256": "3d5f4505c4f2d43546c52fd409c98f7bb14770a6701682b1b426dd877a2a4d14"
+  },
+  "fixtures": [
+    {
+      "path": ".artifacts/scene-008/fixture/fmri_3d-mni.nii",
+      "bytes": 852,
+      "sha256": "3824d50d4998f18e9ed55261c514b5a56cbe9242c156a911983318adef3b769a"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/fmri_4d-mni.nii",
+      "bytes": 1852,
+      "sha256": "c7e3d4672e01ce3cddf67387aea45d820a17d9abdf1c8d7f23aa3fc0601604c9"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/mask_binary-mni.nii",
+      "bytes": 477,
+      "sha256": "7166333714619d395fc54e1056ea82d467fcf303cf43288da42df8e287dac57b"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/megv_mask-mni.nii",
+      "bytes": 477,
+      "sha256": "c1f96a342b2c5a7ed66d1b9ba61f4016b7e3be3bdccaf8579b331f02637b6e7e"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/scene-008-patient.hibop",
+      "bytes": 19759,
+      "sha256": "6a1c2fc8472227839b5109879c970d4a88d7de352624068a667b34692bf6b640"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/scene-008.hibop",
+      "bytes": 19780,
+      "sha256": "99cf40ed95a53444e0a6287cbda9ce72ce61e359c50a95a8063456aec9d8781a"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/scene-008.prov",
+      "bytes": 861,
+      "sha256": "3ed1315533e48d727de3d9abaf0ef1d7b3208380896fb9769b6cf36fc8eab256"
+    }
+  ],
+  "localReferenceData": [
+    {
+      "path": "IRM/MNI.nii",
+      "packagedPath": "IRM/MNI.nii",
+      "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96"
+    },
+    {
+      "path": "Meshes/MNI.trm",
+      "packagedPath": "Meshes/MNI.trm",
+      "sha256": "1a99d0241b7809d1e3d0410687f001e84f2dc19e60381f1547da1e2fc464c3ee"
+    },
+    {
+      "path": "Meshes/MNI_Lhemi.gii",
+      "packagedPath": "Meshes/MNI_Lhemi.gii",
+      "sha256": "1e5c67969dbea35e1316c9b0a16e098179be4629a91c6cd60e4852892554a348"
+    },
+    {
+      "path": "Meshes/MNI_Rhemi.gii",
+      "packagedPath": "Meshes/MNI_Rhemi.gii",
+      "sha256": "3aab5ac60f7c179a5b67d8d09e47c5f38c76b4a8e9e1560d0a5cee98c73a9fd6"
+    },
+    {
+      "path": "Meshes/MNI_Lwhite.gii",
+      "packagedPath": "Meshes/MNI_Lwhite.gii",
+      "sha256": "67288f09ccd760eac9626e4ed5a1a48405d40e0613dad62a85742eee3233a224"
+    },
+    {
+      "path": "Meshes/MNI_Rwhite.gii",
+      "packagedPath": "Meshes/MNI_Rwhite.gii",
+      "sha256": "7fa5c371eb4dbbe6f7104b77bf105a8f80453b02e0b509d03a61adffc86d0beb"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/2mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/1024/2mm/maps.nii.gz.bytes",
+      "sha256": "37d7da8d1b6fdf57f9d9edda4fea8d97665f616690407ff2a3b679d519e12b67"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/2mm/resampled_maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/1024/2mm/resampled_maps.nii.gz.bytes",
+      "sha256": "f5bc6a2b2d83a3cca59017a73ba49ab2a6bbfa69e9bc51407602b8a8ade279aa"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/3mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/1024/3mm/maps.nii.gz.bytes",
+      "sha256": "97f194a8fb09bf0e332e8233274514a1e8409ccd0893abbaa0b15348c7205064"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/labels_1024_dictionary.csv",
+      "packagedPath": "Atlases/DiFuMo/1024/labels_1024_dictionary.csv",
+      "sha256": "8fb32a81ce9d568206c2959da07da9544a23dfbfa86dd3a7af25fb3515fa8198"
+    },
+    {
+      "path": "Atlases/DiFuMo/128/2mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/128/2mm/maps.nii.gz.bytes",
+      "sha256": "bf11058c79ad07a74aef955a5cf6147e645b24ecf5d47ffc54160abb5fd6eb6c"
+    },
+    {
+      "path": "Atlases/DiFuMo/128/3mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/128/3mm/maps.nii.gz.bytes",
+      "sha256": "decadcb092d3a08311df125caa50f06b5495962b0a36509461ba0f605f2e84aa"
+    },
+    {
+      "path": "Atlases/DiFuMo/128/labels_128_dictionary.csv",
+      "packagedPath": "Atlases/DiFuMo/128/labels_128_dictionary.csv",
+      "sha256": "d9e335c5aed0155e8beb43818e006fcfa8499459c853ee16dcaf966b84c94ab2"
+    },
+    {
+      "path": "Atlases/DiFuMo/256/2mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/256/2mm/maps.nii.gz.bytes",
+      "sha256": "c9f5b7f2a8da4b41c7a42e850dfcfcba5327e7eee2ef61650041a0183f651b3a"
+    },
+    {
+      "path": "Atlases/DiFuMo/256/3mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/256/3mm/maps.nii.gz.bytes",
+      "sha256": "41fd2b94d5ef33373607e9e42ff59a3223e15f0daaabac5ec877eb5818e3c66c"
+    },
+    {
+      "path": "Atlases/DiFuMo/256/labels_256_dictionary.csv",
+      "packagedPath": "Atlases/DiFuMo/256/labels_256_dictionary.csv",
+      "sha256": "31088bfbd1fa12d286eb1e44cb91faf38012e503bedba90e526268e7ebb2a3b4"
+    },
+    {
+      "path": "Atlases/DiFuMo/512/2mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/512/2mm/maps.nii.gz.bytes",
+      "sha256": "1de41df48d726d43c70e420b6a7a98b57e18f65768c9224bb6b057f329de9238"
+    },
+    {
+      "path": "Atlases/DiFuMo/512/3mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/512/3mm/maps.nii.gz.bytes",
+      "sha256": "8e5036f58fb935ed6e41af65fe0575ea6d271ab7f08ca8888cf7f02c0ee1cda8"
+    },
+    {
+      "path": "Atlases/DiFuMo/512/labels_512_dictionary.csv",
+      "packagedPath": "Atlases/DiFuMo/512/labels_512_dictionary.csv",
+      "sha256": "8eac47588c77044bc8161025ced9b0017eac56877c0692eae15681e5cd2d6ddb"
+    },
+    {
+      "path": "Atlases/DiFuMo/64/2mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/64/2mm/maps.nii.gz.bytes",
+      "sha256": "c16cd4d84d648be1d6c09719def825fc0028d852b4302e2e4784739f3ee0f0f5"
+    },
+    {
+      "path": "Atlases/DiFuMo/64/3mm/maps.nii.gz",
+      "packagedPath": "Atlases/DiFuMo/64/3mm/maps.nii.gz.bytes",
+      "sha256": "5dfc063e7d50104cdb88585afe437c808dc3d90a32987b8837409badbc90c634"
+    },
+    {
+      "path": "Atlases/DiFuMo/64/labels_64_dictionary.csv",
+      "packagedPath": "Atlases/DiFuMo/64/labels_64_dictionary.csv",
+      "sha256": "5585f75c49d727a63db31feb90467d02ee04288eedb2708be896c374017363b5"
+    },
+    {
+      "path": "Atlases/IBC/all_maps.nii.gz",
+      "packagedPath": "Atlases/IBC/all_maps.nii.gz.bytes",
+      "sha256": "0915eb6f1fa702230300acc66722123fc438eb9b8af2129deed3e2b3333651c6"
+    },
+    {
+      "path": "Atlases/IBC/gm_mask_3mm.nii.gz",
+      "packagedPath": "Atlases/IBC/gm_mask_3mm.nii.gz.bytes",
+      "sha256": "4c701b986c19a7b48a7cf225078e801f02c3fa5c4f938e83e6bbe490e0718a64"
+    },
+    {
+      "path": "Atlases/IBC/map_labels.csv",
+      "packagedPath": "Atlases/IBC/map_labels.csv",
+      "sha256": "c3928cb375ebe09ca50ec46cd58d99d5c120083f9f3430736c78984346f8b071"
+    },
+    {
+      "path": "Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz",
+      "packagedPath": "Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz.bytes",
+      "sha256": "070589c1f730ddaabc672c1e7318fb6456d497235c059ad801ecaa95a32818f7"
+    },
+    {
+      "path": "Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz",
+      "packagedPath": "Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz.bytes",
+      "sha256": "01668905d74f184888a17bcc3a96c777b77a54a70a17d29f542378b12f41a419"
+    },
+    {
+      "path": "Atlases/JuBrain/jubrain_labels_3.1.json",
+      "packagedPath": "Atlases/JuBrain/jubrain_labels_3.1.json",
+      "sha256": "205a78674303de2c4c9fb05fa0aee0635850977baf630160258b143decea3f5b"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/ANIMAL.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/ANIMAL.nii.gz.bytes",
+      "sha256": "4bb57541f0c98b4554d4b87b5476a0b8e62f571ac06a1488db75b2319674fde1"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/ANIMAL_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/ANIMAL_mask.nii.gz.bytes",
+      "sha256": "360dc9907acd166e5555b0a11e59035710bd77e4e35d3e7025a9e8a59c61c16d"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/CONSONANT.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/CONSONANT.nii.gz.bytes",
+      "sha256": "d0983aa776d842362fdc5042455a8b0ec30fd9e3753cd666a27a7d7961a98df2"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/CONSONANT_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/CONSONANT_mask.nii.gz.bytes",
+      "sha256": "e92d49d82d2a5969520aa6fdfc2866a4a0c6ca7d8d4ac6b6e341ec2fa2f55a0c"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/FACE.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/FACE.nii.gz.bytes",
+      "sha256": "e242ef6214c63cc20b807826d6c5c092651c020dbd6baa81e71b0558758997a7"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/FACE_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/FACE_mask.nii.gz.bytes",
+      "sha256": "8e66605deb56196d7ce19998a331a964c89ad1d1c606c4539ce569b41f12bfcc"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/FRUIT.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/FRUIT.nii.gz.bytes",
+      "sha256": "3f42117745d945404d1403e9c11bc9a854f5fc84f05998df84dc48013848ef26"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/FRUIT_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/FRUIT_mask.nii.gz.bytes",
+      "sha256": "dee1af5f1da58fd55ac041b0d4c4ccaa62aaf2e42796f0bf556c42aa1c9004ae"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/HOUSE.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/HOUSE.nii.gz.bytes",
+      "sha256": "47860556e14daf7350975627715877ea51341b57f8e75b6a2638086098ea474e"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/HOUSE_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/HOUSE_mask.nii.gz.bytes",
+      "sha256": "7508660880ed6483aee728dd898c83da7bf8f08d7022f2abc3b397f081da71dd"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/LANDSCAPE.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/LANDSCAPE.nii.gz.bytes",
+      "sha256": "04f5659901bbad94e2dc3f2f4bce6f4d880fe7d61bfce3b94121355c0ae8a2e0"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/LANDSCAPE_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/LANDSCAPE_mask.nii.gz.bytes",
+      "sha256": "22f37b202181b14660ec936dec46516bc1f9a624d932be14c0f35c138530857d"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/OBJECT.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/OBJECT.nii.gz.bytes",
+      "sha256": "27a7f9f2b44ba1ba2a30a118d1306713eb46c747404cab8e76f5eec7470c1a0b"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/OBJECT_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/OBJECT_mask.nii.gz.bytes",
+      "sha256": "fd7d748d9c27d28a587db8c34cc28f69cb2854c102b724603fcc30e07865a36d"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/PSEUDOWORD.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/PSEUDOWORD.nii.gz.bytes",
+      "sha256": "a01f6fd18c2761adc592a90d2abb199debb9e4fcb54b7d000ba9121c37d1e8c6"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/PSEUDOWORD_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/PSEUDOWORD_mask.nii.gz.bytes",
+      "sha256": "8ca50fe6c89e44669bd74d777f1c88bb1e596a3a4ee820eeea6b2e2d762a84d5"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/SCRAMBLED.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/SCRAMBLED.nii.gz.bytes",
+      "sha256": "7a54dc1b0ffb1e708876f276cb5cf8edd9b8346c0e772cf9ad420f5d75e78ce3"
+    },
+    {
+      "path": "Atlases/Localizers/VISU/f50f150sm0/SCRAMBLED_mask.nii.gz",
+      "packagedPath": "Atlases/Localizers/VISU/f50f150sm0/SCRAMBLED_mask.nii.gz.bytes",
+      "sha256": "0af295d4d4772fef25329e488ddf8e9a80c4864fd277b4f7401d6ee768a5e267"
+    },
+    {
+      "path": "Atlases/MarsAtlas/brodmann_areas.txt",
+      "packagedPath": "Atlases/MarsAtlas/brodmann_areas.txt",
+      "sha256": "6896a9f8546a8da3f835c0516e712451f3ccd11c370c1b3e83710edd1002aae3"
+    },
+    {
+      "path": "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii",
+      "packagedPath": "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii",
+      "sha256": "d14331ff2a133483adbd9db0438683b447c65559cbad9ea721c8de749a02449c"
+    },
+    {
+      "path": "Atlases/MarsAtlas/mars_atlas_index.csv",
+      "packagedPath": "Atlases/MarsAtlas/mars_atlas_index.csv",
+      "sha256": "4a8b445d1c8139611119b02248c21190ff76b0f2cf1b98dd3cfd99c0cbc064a2"
+    }
+  ],
+  "fixtureDependencies": [
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-left.eeg",
+      "bytes": 3600,
+      "sha256": "c327b5f00749780292cf336c5e64f33de012744d33d0054668474245f1e3fdab"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-left.vhdr",
+      "bytes": 328,
+      "sha256": "b0fafc3fa84d50ac196f5d5490cf57d2d5bfb980a637a34cc1fa263a5e97627d"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-left.vmrk",
+      "bytes": 188,
+      "sha256": "e801fec55d03a30315dba06461a29d8d1ab693527f62c46d3cb436751a49276c"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-right.eeg",
+      "bytes": 3600,
+      "sha256": "c327b5f00749780292cf336c5e64f33de012744d33d0054668474245f1e3fdab"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-right.vhdr",
+      "bytes": 330,
+      "sha256": "80c5e5ea6deb2e29c22d22a833e9fb2d5b8053b4559c6a6fde3fab4a607fd003"
+    },
+    {
+      "path": ".artifacts/quest-020/fixture/synthetic-right.vmrk",
+      "bytes": 189,
+      "sha256": "cc5b4af6532c580d18e3fc5ef147f392d1ca449a983f4fb414618964f5ae31bd"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/fmri_3d-mni.nii",
+      "bytes": 852,
+      "sha256": "3824d50d4998f18e9ed55261c514b5a56cbe9242c156a911983318adef3b769a"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/fmri_4d-mni.nii",
+      "bytes": 1852,
+      "sha256": "c7e3d4672e01ce3cddf67387aea45d820a17d9abdf1c8d7f23aa3fc0601604c9"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/mask_binary-mni.nii",
+      "bytes": 477,
+      "sha256": "7166333714619d395fc54e1056ea82d467fcf303cf43288da42df8e287dac57b"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/megv_mask-mni.nii",
+      "bytes": 477,
+      "sha256": "c1f96a342b2c5a7ed66d1b9ba61f4016b7e3be3bdccaf8579b331f02637b6e7e"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/EEG/FIF/native_raw.fif",
+      "bytes": 5664,
+      "sha256": "0fd4dc3feb3efb7d7e788b002c248907bd86af782e36fcf8b9a621a7ad79bbb0"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/Nifti/mri_t1.nii",
+      "bytes": 852,
+      "sha256": "d233b2ec8a02b8aa3331149b6f90eb8c9f4ada7580e98091fc768c8c3441c8f8"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/Patients/synthetic-patient/t1mri/T1pre_synthetic/default_analysis/segmentation/mesh/surface_analysis/synthetic-patient_Lwhite_parcels_marsAtlas.gii",
+      "bytes": 1543,
+      "sha256": "f4bfcdd6b20fee3e6cab33f91252145b40d8cfbbfb7661810b9c9f14a6a020eb"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/Patients/synthetic-patient/t1mri/T1pre_synthetic/default_analysis/segmentation/mesh/surface_analysis/synthetic-patient_Rwhite_parcels_marsAtlas.gii",
+      "bytes": 1543,
+      "sha256": "f4bfcdd6b20fee3e6cab33f91252145b40d8cfbbfb7661810b9c9f14a6a020eb"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/Patients/synthetic-patient/t1mri/T1pre_synthetic/default_analysis/segmentation/mesh/synthetic-patient_Lwhite.gii",
+      "bytes": 1543,
+      "sha256": "f4bfcdd6b20fee3e6cab33f91252145b40d8cfbbfb7661810b9c9f14a6a020eb"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/Patients/synthetic-patient/t1mri/T1pre_synthetic/default_analysis/segmentation/mesh/synthetic-patient_Rwhite.gii",
+      "bytes": 1543,
+      "sha256": "f4bfcdd6b20fee3e6cab33f91252145b40d8cfbbfb7661810b9c9f14a6a020eb"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/Patients/synthetic-patient/t1mri/T1pre_synthetic/registration/RawT1-synthetic-patient_T1pre_synthetic_TO_Scanner_Based.trm",
+      "bytes": 36,
+      "sha256": "b26265b842937045694e71994fa54205503df0420b70e6131dd9c7a1a5d7fdc1"
+    },
+    {
+      "path": "Assets/Tests/Fixtures/Native/Static/native_static.csv",
+      "bytes": 63,
+      "sha256": "76528bddb229e1303fcf8fdecf517598e7fb5c8db619e841e4f35b812b8ebdfd"
+    }
+  ],
+  "players": [
+    {
+      "platform": "Windows x86_64",
+      "backend": "IL2CPP",
+      "development": true,
+      "outcome": "REUSSI",
+      "editorOnlyChangesAfterBuild": [
+        "Assets/Scripts/HBP/Quest/Editor/QuestStandardDataBuild.cs"
+      ],
+      "runtimeSourcesUnchanged": true,
+      "exe": {
+        "path": ".artifacts/scene-008/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+        "bytes": 667648,
+        "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+      },
+      "gameAssembly": {
+        "path": ".artifacts/scene-008/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+        "bytes": 63283712,
+        "sha256": "5b91c66890211a3817d6be38d8046a32e65e640b309264eaeb6c8595cb5e09f2"
+      },
+      "metadata": {
+        "path": ".artifacts/scene-008/Windows/HiBoP.6.1.0.win64/HiBoP_Data/il2cpp_data/Metadata/global-metadata.dat",
+        "bytes": 11903852,
+        "sha256": "57226071c96c30d2c3e65e9825fe26fef44aa92c947435ebad0d0ea4765d8ab9"
+      },
+      "buildLog": {
+        "path": ".test-results/scene-008/windows-build.log",
+        "bytes": 1089202,
+        "sha256": "6ca90fb7f9eb41bdad3529b5219a1e7b259d235e866c6e0c1eb3bde8dc4d7e4f"
+      }
+    },
+    {
+      "platform": "Quest Android ARM64",
+      "backend": "IL2CPP",
+      "development": true,
+      "buildOutcome": "REUSSI",
+      "deviceOutcome": "NON_EXECUTE",
+      "apk": {
+        "path": ".artifacts/scene-008/Android/HiBoP.Quest.apk",
+        "bytes": 2271289556,
+        "sha256": "eac054f2177b23a4823987f913b88bb4d6a8f4385cbb3d2e7cd00972614b5f41"
+      },
+      "packageId": "fr.crnl.hibop.quest",
+      "packageInspection": {
+        "path": ".test-results/scene-008/apk-badging.txt",
+        "bytes": 2115,
+        "sha256": "2e61005163911570027dbe6c6b1c892f91c3091aa18da7ea2d0080ddb2d0dcb1"
+      },
+      "buildLog": {
+        "path": ".test-results/scene-008/android-build.log",
+        "bytes": 992872,
+        "sha256": "51942b0db505f529a9ec2707f82258b0bc84f961526d554e608ef67437071fa4"
+      }
+    }
+  ],
+  "checks": [
+    {
+      "kind": "Unity tests",
+      "coverage": "Integrated EditMode baseline; four failures superseded below.",
+      "evidence": {
+        "path": ".test-results/scene-008/editmode-2.xml",
+        "bytes": 674636,
+        "sha256": "10fb400af0f06bf9e230c6b9ac43f7303e34fe2470353a49c5060241d1042d84"
+      },
+      "command": {
+        "path": ".test-results/scene-008/editmode-2-command.json",
+        "bytes": 574,
+        "sha256": "da8b083682ffc1b34ef329b2aa9339e78844bc732d8ef48817e79fa37d9b1970"
+      },
+      "runResult": "Failed(Child)",
+      "counts": {
+        "total": 738,
+        "passed": 732,
+        "failed": 4,
+        "skipped": 2
+      },
+      "durationSeconds": 84.2529706
+    },
+    {
+      "kind": "Unity tests",
+      "coverage": "Changed prefab/configuration contracts; three prototype failures superseded below.",
+      "evidence": {
+        "path": ".test-results/scene-008/editmode-final.xml",
+        "bytes": 87368,
+        "sha256": "85b9d1e9179de3b1447b4237299cac506ba1f342ba03972fe05041078012be0c"
+      },
+      "command": {
+        "path": ".test-results/scene-008/editmode-final-command.json",
+        "bytes": 706,
+        "sha256": "3c6ed1bebc3b378a3587b3dfa3272ea0e82f33fa9d76caf2ad8557289ebdc8cf"
+      },
+      "runResult": "Failed(Child)",
+      "counts": {
+        "total": 60,
+        "passed": 55,
+        "failed": 3,
+        "skipped": 2
+      },
+      "durationSeconds": 29.1248867
+    },
+    {
+      "kind": "Unity tests",
+      "coverage": "Three retained prototype references after assembly/prefab import correction.",
+      "evidence": {
+        "path": ".test-results/scene-008/prototype-reference.xml",
+        "bytes": 6556,
+        "sha256": "53605e655f84500e53debbc37a438aeb47dba9ffb8a11a273b42c22f34619a14"
+      },
+      "command": {
+        "path": ".test-results/scene-008/prototype-reference-command.json",
+        "bytes": 751,
+        "sha256": "19605f0ee73867dad15853e5e3719c6e68fdc56a7cfe9f8cbd5316ad834bebc6"
+      },
+      "runResult": "Passed",
+      "counts": {
+        "total": 3,
+        "passed": 3,
+        "failed": 0,
+        "skipped": 0
+      },
+      "durationSeconds": 3.3240729
+    },
+    {
+      "kind": "Unity tests",
+      "coverage": "61 existing Module3D/Toolbar tests and native scene; obsolete fixture failure superseded below.",
+      "evidence": {
+        "path": ".test-results/scene-008/playmode-8.xml",
+        "bytes": 70078,
+        "sha256": "312cd0ce86be7d096262a664fa51c933b19fd39f8d3b3ae95420ddb424da4fdd"
+      },
+      "command": {
+        "path": ".test-results/scene-008/playmode-8-command.json",
+        "bytes": 509,
+        "sha256": "be212ab340d3ab55f75e9ddca875ec9e2eacae544df8f855bab21d66c074a403"
+      },
+      "runResult": "Failed(Child)",
+      "counts": {
+        "total": 63,
+        "passed": 62,
+        "failed": 1,
+        "skipped": 0
+      },
+      "durationSeconds": 74.4772667
+    },
+    {
+      "kind": "Unity tests",
+      "coverage": "Native six-column scene, invalid replacement and real cancellation; Desktop fixture failures superseded below.",
+      "evidence": {
+        "path": ".test-results/scene-008/scene-integration.xml",
+        "bytes": 9083,
+        "sha256": "dea0c336336cb92ed4baed6b385c6a2eee72df6b1e4d12ff3be4d3dd685bf8e7"
+      },
+      "command": {
+        "path": ".test-results/scene-008/scene-integration-command.json",
+        "bytes": 470,
+        "sha256": "120217f60876050ad85b983ed7a987ed9357140909c9ad14e2ff3f9e5e95a12f"
+      },
+      "runResult": "Failed(Child)",
+      "counts": {
+        "total": 3,
+        "passed": 1,
+        "failed": 2,
+        "skipped": 0
+      },
+      "durationSeconds": 67.9930249
+    },
+    {
+      "kind": "Unity tests",
+      "coverage": "Both Desktop projects: load, native calculations, capture/restore, mesh/MRI changes, save/reload.",
+      "evidence": {
+        "path": ".test-results/scene-008/geometry-final.xml",
+        "bytes": 5352,
+        "sha256": "bec407535b6765672912fd60131854b39fcf3aa6f279f6b6bd24832f9d3c972d"
+      },
+      "command": {
+        "path": ".test-results/scene-008/geometry-final-command.json",
+        "bytes": 536,
+        "sha256": "00cd53538ae98fd8101531734c510a5e22f44ed06047642ba3e19a7735dc548b"
+      },
+      "runResult": "Passed",
+      "counts": {
+        "total": 2,
+        "passed": 2,
+        "failed": 0,
+        "skipped": 0
+      },
+      "durationSeconds": 170.4584292
+    },
+    {
+      "kind": "Unity tests",
+      "coverage": "Transfer contracts and Android-safe compressed reference paths.",
+      "evidence": {
+        "path": ".test-results/scene-008/reference-packaging.xml",
+        "bytes": 19981,
+        "sha256": "b3f8f79c81d6faf8773d5126085b1d4eba927eef1fc7eba918a154e67060f1af"
+      },
+      "command": {
+        "path": ".test-results/scene-008/reference-packaging-command.json",
+        "bytes": 475,
+        "sha256": "8e2b410a8adea84566b0268ee9a5c5c201e7287d3f2afdae2aea79caabc47330"
+      },
+      "runResult": "Passed",
+      "counts": {
+        "total": 17,
+        "passed": 17,
+        "failed": 0,
+        "skipped": 0
+      },
+      "durationSeconds": 4.3014741
+    },
+    {
+      "kind": "Common scientific diagnostic",
+      "platform": "WindowsEditor 6000.5.2f1",
+      "outcome": "REUSSI",
+      "result": {
+        "path": ".artifacts/scene-008/editor-desktop-scene-008/result.json",
+        "bytes": 427016,
+        "sha256": "3926f6f1c798fdaaeb50c304086370c608bf5448b525b5980f1ac8f3b00b9d81"
+      },
+      "states": [
+        "initial",
+        "time0",
+        "time1",
+        "time2",
+        "recomputed",
+        "cut",
+        "resource-2",
+        "resource-3",
+        "resource-4",
+        "resource-5",
+        "mesh-alternative",
+        "geometry-restored"
+      ],
+      "elapsedMs": 12380.525800000001,
+      "peakUnityAllocatedBytesSampledPerFrame": 725186361,
+      "buffers": [
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/initial-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/initial-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/initial-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/initial-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/initial-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/initial-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time0-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time0-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time0-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time0-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time0-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time0-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time1-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time1-column1.bin",
+          "bytes": 5348864,
+          "sha256": "7d0009d610d675fe0ebdccbc46985cd13aaf250d9b883d154310778f3b6b6c38"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time1-column2.bin",
+          "bytes": 5348864,
+          "sha256": "1b135c56ebf5760e880a20f95bbaee89def742e99c5dfb11a16e71134dab3d41"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time1-column3.bin",
+          "bytes": 5348864,
+          "sha256": "d396cdb3c2fb5a48bb98c579560db4691bc2ef5426bf863a9cc60ebca64613e3"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time1-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time1-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time2-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time2-column1.bin",
+          "bytes": 5348864,
+          "sha256": "c620c361c99eb47187fc263d8631774927927d67d64c12199c18c3c25a790417"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time2-column2.bin",
+          "bytes": 5348864,
+          "sha256": "6a68b28a0aa86c55069c3b8b39ec54123e2d8abba908169a819b0aed6e90a86a"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time2-column3.bin",
+          "bytes": 5348864,
+          "sha256": "d9246e5c2c55fca6a80ad635f08181d17664d8fc1a1176db141442e2307f3d7f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time2-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/time2-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/recomputed-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/recomputed-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/recomputed-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/recomputed-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/recomputed-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/recomputed-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/cut-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/cut-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/cut-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/cut-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/cut-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/cut-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-2-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-2-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-2-column2.bin",
+          "bytes": 5348864,
+          "sha256": "079edfd24a6ccd9ce74d583e309a86fc5516d377f05f3fe6bf0a7e8c24b6fe25"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-2-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-2-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-2-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-3-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-3-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-3-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-3-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-3-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-3-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-4-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-4-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-4-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-4-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-4-column4.bin",
+          "bytes": 5348864,
+          "sha256": "d6f37b87ae07713a80f63e29cea4a05e8dd813049f0b4e0cbf12e1b5b529faaa"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-4-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-5-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-5-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-5-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-5-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-5-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/resource-5-column5.bin",
+          "bytes": 5348864,
+          "sha256": "88302d16a78e2d4628c84562b1ad380d89f778a9e90712d3926f6e789bb166f2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/mesh-alternative-column0.bin",
+          "bytes": 5303984,
+          "sha256": "723c8e4a3f4d9fb3ca6f6e53cf2be0ee260efeadd5fd68960b62663af0aebf93"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/mesh-alternative-column1.bin",
+          "bytes": 5303984,
+          "sha256": "cfda86a8b10482fb55596484cb2c3c7b4b54c660dc6f4980656cfd3c76fcbf54"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/mesh-alternative-column2.bin",
+          "bytes": 5303984,
+          "sha256": "a0c818971ade41f86eda2205cc0ccc2aa4c820fc9db6af05dd84cf3f860280c4"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/mesh-alternative-column3.bin",
+          "bytes": 5303984,
+          "sha256": "4d110293ded061d214a7e8a61e50f1932979586964cb5d21c8d6d6fa72d49013"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/mesh-alternative-column4.bin",
+          "bytes": 5303984,
+          "sha256": "17ab52681fa4b93d1a2299924eb4e0cd3fe9b0dbc4885dd4ba167021137bc57b"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/mesh-alternative-column5.bin",
+          "bytes": 5303984,
+          "sha256": "f25f6ebe0d1d7fd6ec0c1c17760370367a498f9be9e8d5328347cb86427d969c"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/geometry-restored-column0.bin",
+          "bytes": 6454528,
+          "sha256": "f4d359ccb4f9f1e9fd2cca13e24c0d5f812d6ad5b317fd0ba3bfd5f83b72125a"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/geometry-restored-column1.bin",
+          "bytes": 6454528,
+          "sha256": "7563c937d76c843848025800806e14bab97431aa48d115268fd39ef7c4916f24"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/geometry-restored-column2.bin",
+          "bytes": 6454528,
+          "sha256": "a309c7a5b7d2521fae13cda7dd22c5bbd5ff22a9bd417d86f149cc96e8b7767d"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/geometry-restored-column3.bin",
+          "bytes": 6454528,
+          "sha256": "605649080b520ceedec47721cf7a03017ad3eb97b9d2d65ef7c44faa4f32443e"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/geometry-restored-column4.bin",
+          "bytes": 6454528,
+          "sha256": "77f7726a9a415d9867359ea6737dd33bfe0286ed2ee98f923592e4979c2c29cf"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008/geometry-restored-column5.bin",
+          "bytes": 6454528,
+          "sha256": "b2eb9f58dad5a21a792112bb9355525c5fb1144cbc06bafb0f50c2a355935d2a"
+        }
+      ]
+    },
+    {
+      "kind": "Common scientific diagnostic",
+      "platform": "WindowsEditor 6000.5.2f1",
+      "outcome": "REUSSI",
+      "result": {
+        "path": ".artifacts/scene-008/editor-restored-scene-008/result.json",
+        "bytes": 426951,
+        "sha256": "6292c749dcda2363ae880946a0abbc132ed180881b7dc3177f6c9e8050d0f49d"
+      },
+      "states": [
+        "initial",
+        "time0",
+        "time1",
+        "time2",
+        "recomputed",
+        "cut",
+        "resource-2",
+        "resource-3",
+        "resource-4",
+        "resource-5",
+        "mesh-alternative",
+        "geometry-restored"
+      ],
+      "elapsedMs": 12205.619400000001,
+      "peakUnityAllocatedBytesSampledPerFrame": 921185835,
+      "buffers": [
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/initial-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/initial-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/initial-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/initial-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/initial-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/initial-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time0-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time0-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time0-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time0-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time0-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time0-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time1-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time1-column1.bin",
+          "bytes": 5348864,
+          "sha256": "7d0009d610d675fe0ebdccbc46985cd13aaf250d9b883d154310778f3b6b6c38"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time1-column2.bin",
+          "bytes": 5348864,
+          "sha256": "1b135c56ebf5760e880a20f95bbaee89def742e99c5dfb11a16e71134dab3d41"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time1-column3.bin",
+          "bytes": 5348864,
+          "sha256": "d396cdb3c2fb5a48bb98c579560db4691bc2ef5426bf863a9cc60ebca64613e3"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time1-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time1-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time2-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time2-column1.bin",
+          "bytes": 5348864,
+          "sha256": "c620c361c99eb47187fc263d8631774927927d67d64c12199c18c3c25a790417"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time2-column2.bin",
+          "bytes": 5348864,
+          "sha256": "6a68b28a0aa86c55069c3b8b39ec54123e2d8abba908169a819b0aed6e90a86a"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time2-column3.bin",
+          "bytes": 5348864,
+          "sha256": "d9246e5c2c55fca6a80ad635f08181d17664d8fc1a1176db141442e2307f3d7f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time2-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/time2-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/recomputed-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/recomputed-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/recomputed-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/recomputed-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/recomputed-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/recomputed-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/cut-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/cut-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/cut-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/cut-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/cut-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/cut-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-2-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-2-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-2-column2.bin",
+          "bytes": 5348864,
+          "sha256": "079edfd24a6ccd9ce74d583e309a86fc5516d377f05f3fe6bf0a7e8c24b6fe25"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-2-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-2-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-2-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-3-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-3-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-3-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-3-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-3-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-3-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-4-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-4-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-4-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-4-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-4-column4.bin",
+          "bytes": 5348864,
+          "sha256": "d6f37b87ae07713a80f63e29cea4a05e8dd813049f0b4e0cbf12e1b5b529faaa"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-4-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-5-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-5-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-5-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-5-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-5-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/resource-5-column5.bin",
+          "bytes": 5348864,
+          "sha256": "88302d16a78e2d4628c84562b1ad380d89f778a9e90712d3926f6e789bb166f2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/mesh-alternative-column0.bin",
+          "bytes": 5303984,
+          "sha256": "723c8e4a3f4d9fb3ca6f6e53cf2be0ee260efeadd5fd68960b62663af0aebf93"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/mesh-alternative-column1.bin",
+          "bytes": 5303984,
+          "sha256": "cfda86a8b10482fb55596484cb2c3c7b4b54c660dc6f4980656cfd3c76fcbf54"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/mesh-alternative-column2.bin",
+          "bytes": 5303984,
+          "sha256": "a0c818971ade41f86eda2205cc0ccc2aa4c820fc9db6af05dd84cf3f860280c4"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/mesh-alternative-column3.bin",
+          "bytes": 5303984,
+          "sha256": "4d110293ded061d214a7e8a61e50f1932979586964cb5d21c8d6d6fa72d49013"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/mesh-alternative-column4.bin",
+          "bytes": 5303984,
+          "sha256": "17ab52681fa4b93d1a2299924eb4e0cd3fe9b0dbc4885dd4ba167021137bc57b"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/mesh-alternative-column5.bin",
+          "bytes": 5303984,
+          "sha256": "f25f6ebe0d1d7fd6ec0c1c17760370367a498f9be9e8d5328347cb86427d969c"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/geometry-restored-column0.bin",
+          "bytes": 6454528,
+          "sha256": "f4d359ccb4f9f1e9fd2cca13e24c0d5f812d6ad5b317fd0ba3bfd5f83b72125a"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/geometry-restored-column1.bin",
+          "bytes": 6454528,
+          "sha256": "7563c937d76c843848025800806e14bab97431aa48d115268fd39ef7c4916f24"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/geometry-restored-column2.bin",
+          "bytes": 6454528,
+          "sha256": "a309c7a5b7d2521fae13cda7dd22c5bbd5ff22a9bd417d86f149cc96e8b7767d"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/geometry-restored-column3.bin",
+          "bytes": 6454528,
+          "sha256": "605649080b520ceedec47721cf7a03017ad3eb97b9d2d65ef7c44faa4f32443e"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/geometry-restored-column4.bin",
+          "bytes": 6454528,
+          "sha256": "77f7726a9a415d9867359ea6737dd33bfe0286ed2ee98f923592e4979c2c29cf"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008/geometry-restored-column5.bin",
+          "bytes": 6454528,
+          "sha256": "b2eb9f58dad5a21a792112bb9355525c5fb1144cbc06bafb0f50c2a355935d2a"
+        }
+      ]
+    },
+    {
+      "kind": "Common scientific diagnostic",
+      "platform": "WindowsEditor 6000.5.2f1",
+      "outcome": "REUSSI",
+      "result": {
+        "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/result.json",
+        "bytes": 258289,
+        "sha256": "de4a037881fe92253ebe4238c7dca6d5e7568b27ad30ce93634c28fba704e8e8"
+      },
+      "states": [
+        "initial",
+        "time0",
+        "time1",
+        "time2",
+        "recomputed",
+        "cut",
+        "resource-2",
+        "resource-3",
+        "resource-4",
+        "resource-5",
+        "mesh-alternative",
+        "mri-alternative",
+        "geometry-restored"
+      ],
+      "elapsedMs": 14513.444000000001,
+      "peakUnityAllocatedBytesSampledPerFrame": 684886092,
+      "buffers": [
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/initial-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/initial-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/initial-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/initial-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/initial-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/initial-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time0-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time0-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time0-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time0-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time0-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time0-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time1-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time1-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time1-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time1-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time1-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time1-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time2-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time2-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time2-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time2-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time2-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/time2-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/recomputed-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/recomputed-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/recomputed-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/recomputed-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/recomputed-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/recomputed-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/cut-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/cut-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/cut-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/cut-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/cut-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/cut-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-2-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-2-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-2-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-2-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-2-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-2-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-3-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-3-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-3-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-3-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-3-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-3-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-4-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-4-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-4-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-4-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-4-column4.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-4-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-5-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-5-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-5-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-5-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-5-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/resource-5-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mesh-alternative-column0.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mesh-alternative-column1.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mesh-alternative-column2.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mesh-alternative-column3.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mesh-alternative-column4.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mesh-alternative-column5.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mri-alternative-column0.bin",
+          "bytes": 5348864,
+          "sha256": "cfdf8683eba07364ae254cd0420e40618a310454e886553c6b7891251f8a7efe"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mri-alternative-column1.bin",
+          "bytes": 5348864,
+          "sha256": "9cf7ebf242867c445cb30f8829cd3e733a97ecc04eb71a9dec5e995605fb254c"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mri-alternative-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mri-alternative-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mri-alternative-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/mri-alternative-column5.bin",
+          "bytes": 5348864,
+          "sha256": "c4038186528a45129873656d87e09c5fbcb262528edf2230ec9438cb1d0598be"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/geometry-restored-column0.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/geometry-restored-column1.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/geometry-restored-column2.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/geometry-restored-column3.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/geometry-restored-column4.bin",
+          "bytes": 6144256,
+          "sha256": "fc8626122d9aaf7d141fee94cd9a959abad22f4f345ce866acf155ba72a0ef15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-desktop-scene-008-patient/geometry-restored-column5.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        }
+      ]
+    },
+    {
+      "kind": "Common scientific diagnostic",
+      "platform": "WindowsEditor 6000.5.2f1",
+      "outcome": "REUSSI",
+      "result": {
+        "path": ".artifacts/scene-008/editor-restored-scene-008-patient/result.json",
+        "bytes": 258177,
+        "sha256": "9fbb6ea47ea7fd53f4c1860e09fb3b673f18133c09c756efcf86774633a1821a"
+      },
+      "states": [
+        "initial",
+        "time0",
+        "time1",
+        "time2",
+        "recomputed",
+        "cut",
+        "resource-2",
+        "resource-3",
+        "resource-4",
+        "resource-5",
+        "mesh-alternative",
+        "mri-alternative",
+        "geometry-restored"
+      ],
+      "elapsedMs": 14623.3713,
+      "peakUnityAllocatedBytesSampledPerFrame": 753173513,
+      "buffers": [
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/initial-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/initial-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/initial-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/initial-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/initial-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/initial-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time0-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time0-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time0-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time0-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time0-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time0-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time1-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time1-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time1-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time1-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time1-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time1-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time2-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time2-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time2-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time2-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time2-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/time2-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/recomputed-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/recomputed-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/recomputed-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/recomputed-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/recomputed-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/recomputed-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/cut-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/cut-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/cut-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/cut-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/cut-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/cut-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-2-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-2-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-2-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-2-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-2-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-2-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-3-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-3-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-3-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-3-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-3-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-3-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-4-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-4-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-4-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-4-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-4-column4.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-4-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-5-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-5-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-5-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-5-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-5-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/resource-5-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mesh-alternative-column0.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mesh-alternative-column1.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mesh-alternative-column2.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mesh-alternative-column3.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mesh-alternative-column4.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mesh-alternative-column5.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mri-alternative-column0.bin",
+          "bytes": 5348864,
+          "sha256": "cfdf8683eba07364ae254cd0420e40618a310454e886553c6b7891251f8a7efe"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mri-alternative-column1.bin",
+          "bytes": 5348864,
+          "sha256": "9cf7ebf242867c445cb30f8829cd3e733a97ecc04eb71a9dec5e995605fb254c"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mri-alternative-column2.bin",
+          "bytes": 5348864,
+          "sha256": "53a9854fb7f93b4ad6d2e498a3c41f4ecb184c07d7b8034c676b00cd223222ba"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mri-alternative-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mri-alternative-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/mri-alternative-column5.bin",
+          "bytes": 5348864,
+          "sha256": "c4038186528a45129873656d87e09c5fbcb262528edf2230ec9438cb1d0598be"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/geometry-restored-column0.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/geometry-restored-column1.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/geometry-restored-column2.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/geometry-restored-column3.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/geometry-restored-column4.bin",
+          "bytes": 6144256,
+          "sha256": "fc8626122d9aaf7d141fee94cd9a959abad22f4f345ce866acf155ba72a0ef15"
+        },
+        {
+          "path": ".artifacts/scene-008/editor-restored-scene-008-patient/geometry-restored-column5.bin",
+          "bytes": 6144256,
+          "sha256": "b159c376eebe71919f9c0205d7b88bf33da9610ad02bdb181722f630b05deb65"
+        }
+      ]
+    },
+    {
+      "kind": "Common scientific diagnostic",
+      "platform": "Windows IL2CPP",
+      "outcome": "REUSSI",
+      "result": {
+        "path": ".artifacts/scene-008/windows-six-modalities/result.json",
+        "bytes": 427974,
+        "sha256": "7a74e3232a308ae985d79236eca4df9888b3c2c835658b99cd13d2266a138e1c"
+      },
+      "states": [
+        "initial",
+        "time0",
+        "time1",
+        "time2",
+        "recomputed",
+        "cut",
+        "resource-2",
+        "resource-3",
+        "resource-4",
+        "resource-5",
+        "mesh-alternative",
+        "geometry-restored"
+      ],
+      "elapsedMs": 8793.1062,
+      "peakUnityAllocatedBytesSampledPerFrame": 332149389,
+      "buffers": [
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/initial-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/initial-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/initial-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/initial-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/initial-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/initial-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time0-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time0-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time0-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time0-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time0-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time0-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time1-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time1-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time1-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time1-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time1-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time1-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time2-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time2-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time2-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time2-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time2-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/time2-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/recomputed-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/recomputed-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/recomputed-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/recomputed-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/recomputed-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/recomputed-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/cut-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/cut-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/cut-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/cut-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/cut-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/cut-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-2-column0.bin",
+          "bytes": 5348864,
+          "sha256": "f4f79ad1f69a02a8ca7b86433d0f91592591e2804d9dceecbcc958d64f3f38b9"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-2-column1.bin",
+          "bytes": 5348864,
+          "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-2-column2.bin",
+          "bytes": 5348864,
+          "sha256": "079edfd24a6ccd9ce74d583e309a86fc5516d377f05f3fe6bf0a7e8c24b6fe25"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-2-column3.bin",
+          "bytes": 5348864,
+          "sha256": "137021cf57bb24a3a5221372ce8a749e40975c807eee7f944a336c1e2d8f3fa2"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-2-column4.bin",
+          "bytes": 5348864,
+          "sha256": "1ed1f0c72bc55047a53175717b0a8959ded0a3cfe6bdb4b9e4c83f5de6a3209f"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-2-column5.bin",
+          "bytes": 5348864,
+          "sha256": "9e4a80c15d429a4725954b3eb930226679ea769f382172123130f4b9d3ed91c8"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-3-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-3-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-3-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-3-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-3-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-3-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-4-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-4-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-4-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-4-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-4-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-4-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-5-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-5-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-5-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-5-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-5-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/resource-5-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/mesh-alternative-column0.bin",
+          "bytes": 5303984,
+          "sha256": "c33865c79a559c007975b713036d31c011098577c553cc9c23ffe77e62c436cf"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/mesh-alternative-column1.bin",
+          "bytes": 5303984,
+          "sha256": "c33865c79a559c007975b713036d31c011098577c553cc9c23ffe77e62c436cf"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/mesh-alternative-column2.bin",
+          "bytes": 5303984,
+          "sha256": "c33865c79a559c007975b713036d31c011098577c553cc9c23ffe77e62c436cf"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/mesh-alternative-column3.bin",
+          "bytes": 5303984,
+          "sha256": "c33865c79a559c007975b713036d31c011098577c553cc9c23ffe77e62c436cf"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/mesh-alternative-column4.bin",
+          "bytes": 5303984,
+          "sha256": "c33865c79a559c007975b713036d31c011098577c553cc9c23ffe77e62c436cf"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/mesh-alternative-column5.bin",
+          "bytes": 5303984,
+          "sha256": "c33865c79a559c007975b713036d31c011098577c553cc9c23ffe77e62c436cf"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/geometry-restored-column0.bin",
+          "bytes": 6454528,
+          "sha256": "bab7b4f78486ef27127e7329e1fdaf88095999e435221ee8ebf7436c1140281f"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/geometry-restored-column1.bin",
+          "bytes": 6454528,
+          "sha256": "bab7b4f78486ef27127e7329e1fdaf88095999e435221ee8ebf7436c1140281f"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/geometry-restored-column2.bin",
+          "bytes": 6454528,
+          "sha256": "bab7b4f78486ef27127e7329e1fdaf88095999e435221ee8ebf7436c1140281f"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/geometry-restored-column3.bin",
+          "bytes": 6454528,
+          "sha256": "bab7b4f78486ef27127e7329e1fdaf88095999e435221ee8ebf7436c1140281f"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/geometry-restored-column4.bin",
+          "bytes": 6454528,
+          "sha256": "bab7b4f78486ef27127e7329e1fdaf88095999e435221ee8ebf7436c1140281f"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-six-modalities/geometry-restored-column5.bin",
+          "bytes": 6454528,
+          "sha256": "bab7b4f78486ef27127e7329e1fdaf88095999e435221ee8ebf7436c1140281f"
+        }
+      ]
+    },
+    {
+      "kind": "Common scientific diagnostic",
+      "platform": "Windows IL2CPP",
+      "outcome": "REUSSI",
+      "result": {
+        "path": ".artifacts/scene-008/windows-patient/result.json",
+        "bytes": 258909,
+        "sha256": "080507283b4f27f46bc5e7d85f34581076d9d6b42d6fee9c67387bb3e54a5a5d"
+      },
+      "states": [
+        "initial",
+        "time0",
+        "time1",
+        "time2",
+        "recomputed",
+        "cut",
+        "resource-2",
+        "resource-3",
+        "resource-4",
+        "resource-5",
+        "mesh-alternative",
+        "mri-alternative",
+        "geometry-restored"
+      ],
+      "elapsedMs": 10692.394,
+      "peakUnityAllocatedBytesSampledPerFrame": 292405072,
+      "buffers": [
+        {
+          "path": ".artifacts/scene-008/windows-patient/initial-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/initial-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/initial-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/initial-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/initial-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/initial-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time0-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time0-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time0-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time0-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time0-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time0-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time1-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time1-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time1-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time1-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time1-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time1-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time2-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time2-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time2-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time2-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time2-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/time2-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/recomputed-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/recomputed-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/recomputed-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/recomputed-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/recomputed-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/recomputed-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/cut-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/cut-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/cut-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/cut-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/cut-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/cut-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-2-column0.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-2-column1.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-2-column2.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-2-column3.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-2-column4.bin",
+          "bytes": 6144128,
+          "sha256": "c8c6adab02d921a11c2377079faf77fa746bb09d9950aee4700fad06739773ab"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-2-column5.bin",
+          "bytes": 6144128,
+          "sha256": "f0860f6d8209e2236ffc202526d8c63272268cccf85c55847d2551798f842e15"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-3-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-3-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-3-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-3-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-3-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-3-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-4-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-4-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-4-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-4-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-4-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-4-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-5-column0.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-5-column1.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-5-column2.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-5-column3.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-5-column4.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/resource-5-column5.bin",
+          "bytes": 6144128,
+          "sha256": "a939c34118e128577a8fb0a51d41ecaa531f0dc8758aca917213bd344c30178d"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mesh-alternative-column0.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mesh-alternative-column1.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mesh-alternative-column2.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mesh-alternative-column3.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mesh-alternative-column4.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mesh-alternative-column5.bin",
+          "bytes": 7249664,
+          "sha256": "399d01b6f505b7a8713491e466e9c8720fe99233379fbab4198dfc9bfa316209"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mri-alternative-column0.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mri-alternative-column1.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mri-alternative-column2.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mri-alternative-column3.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mri-alternative-column4.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/mri-alternative-column5.bin",
+          "bytes": 5348864,
+          "sha256": "2b7550096033cee94d921ff9a7051845586bb8c21efee39d823b42184206af5b"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/geometry-restored-column0.bin",
+          "bytes": 6144256,
+          "sha256": "7a01f26ed9da70729f1e64648e05cea84055126e6ee151b72db73b4b7ce5db85"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/geometry-restored-column1.bin",
+          "bytes": 6144256,
+          "sha256": "7a01f26ed9da70729f1e64648e05cea84055126e6ee151b72db73b4b7ce5db85"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/geometry-restored-column2.bin",
+          "bytes": 6144256,
+          "sha256": "7a01f26ed9da70729f1e64648e05cea84055126e6ee151b72db73b4b7ce5db85"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/geometry-restored-column3.bin",
+          "bytes": 6144256,
+          "sha256": "7a01f26ed9da70729f1e64648e05cea84055126e6ee151b72db73b4b7ce5db85"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/geometry-restored-column4.bin",
+          "bytes": 6144256,
+          "sha256": "7a01f26ed9da70729f1e64648e05cea84055126e6ee151b72db73b4b7ce5db85"
+        },
+        {
+          "path": ".artifacts/scene-008/windows-patient/geometry-restored-column5.bin",
+          "bytes": 6144256,
+          "sha256": "7a01f26ed9da70729f1e64648e05cea84055126e6ee151b72db73b4b7ce5db85"
+        }
+      ]
+    },
+    {
+      "kind": "Comparison",
+      "outcome": "REUSSI",
+      "comparisons": 72,
+      "tolerance": null,
+      "evidence": {
+        "path": ".artifacts/scene-008/editor-parity-scene-008.json",
+        "bytes": 52996,
+        "sha256": "be6df656386c7d1ce5f62069d75e110c36bef95eb756918e3b5d4b9b09fedee6"
+      }
+    },
+    {
+      "kind": "Comparison",
+      "outcome": "REUSSI",
+      "comparisons": 78,
+      "tolerance": null,
+      "evidence": {
+        "path": ".artifacts/scene-008/editor-parity-scene-008-patient.json",
+        "bytes": 40147,
+        "sha256": "a84477b198b2314d894031d71f0b7079d2bb6efd9ff3252732ad861ef823c7d7"
+      }
+    },
+    {
+      "kind": "APK contents",
+      "outcome": "REUSSI",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "nativeCoreSha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+      "standardFilesVerified": 49
+    },
+    {
+      "kind": "Direct Android reference inclusion",
+      "outcome": "REUSSI",
+      "sourceDirectory": "Assets/Data",
+      "projectScientificDataCopyExists": false,
+      "generatedManifest": {
+        "path": "Library/HBP/QuestStandardData/standard-data.sha256",
+        "bytes": 5246,
+        "sha256": "ad8bbb463be681ce241c52a9174f40cf3eba5ba93aafc962c6dc888e5842cf81"
+      }
+    },
+    {
+      "kind": "Windows native plugins",
+      "outcome": "REUSSI",
+      "files": [
+        {
+          "path": ".artifacts/scene-008/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_core.dll",
+          "bytes": 1378816,
+          "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+        },
+        {
+          "path": ".artifacts/scene-008/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/hbp_math.dll",
+          "bytes": 246784,
+          "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa"
+        },
+        {
+          "path": ".artifacts/scene-008/Windows/HiBoP.6.1.0.win64/HiBoP_Data/Plugins/x86_64/EEGFormat.dll",
+          "bytes": 1005056,
+          "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec"
+        }
+      ]
+    }
+  ],
+  "manualReview": [
+    {
+      "outcome": "NON_EXECUTE",
+      "reason": "Quest initially powered off; request power-on once binaries and local checks are ready."
+    }
+  ],
+  "reusedEvidence": [
+    {
+      "path": "Docs/dev/quest-autonomous/TASK-STATUS.md",
+      "role": "Historical QUEST-001 through QUEST-023 coverage; not a new execution."
+    }
+  ],
+  "knownIssues": [],
+  "notExecuted": [
+    "Physical Quest transfer and pairing with scene v2",
+    "Quest offline calculations and floating-point comparison",
+    "Stereo rendering/controller/passthrough review",
+    "Android process PSS and transfer timings",
+    "macOS/Linux qualification"
+  ],
+  "deviceStop": null
+}

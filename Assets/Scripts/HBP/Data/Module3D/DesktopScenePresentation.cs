@@ -16,6 +16,7 @@ namespace HBP.Data.Module3D
         #region Properties
 
         [SerializeField] private Base3DScene m_Scene;
+        [SerializeField] private GameObject m_ViewPrefab;
 
         #endregion
 
@@ -46,7 +47,7 @@ namespace HBP.Data.Module3D
 
         public void AddView(Column3D column)
         {
-            var view = Instantiate(column.ViewPrefab, column.ViewsParent).GetComponent<View3D>();
+            var view = Instantiate(m_ViewPrefab, column.ViewsParent).GetComponent<View3D>();
             view.Initialize(column.Views.Count, column.Layer);
             view.OnSelect.AddListener(() =>
             {

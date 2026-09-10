@@ -1,5 +1,7 @@
 {
   "entries": [
+    { "material": "Assets/Prefabs/Quest/LeftController.mat", "currentShader": "Universal Render Pipeline/Unlit", "targetShader": "Universal Render Pipeline/Unlit", "phase": 2 },
+    { "material": "Assets/Prefabs/Quest/RightController.mat", "currentShader": "Universal Render Pipeline/Unlit", "targetShader": "Universal Render Pipeline/Unlit", "phase": 2 },
     { "material": "Assets/Resources/Materials/Brain/Brain.mat", "currentShader": "HBP/Brain", "targetShader": "HBP/Brain", "phase": 2 },
     { "material": "Assets/Resources/Materials/Brain/Cut.mat", "currentShader": "HBP/Cut", "targetShader": "HBP/Cut", "phase": 2 },
     { "material": "Assets/Resources/Materials/Brain/InvisibleBrain.mat", "currentShader": "Universal Render Pipeline/Lit", "targetShader": "Universal Render Pipeline/Lit", "phase": 2 },

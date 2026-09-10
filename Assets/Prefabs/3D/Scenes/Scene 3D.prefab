@@ -437,3 +437,4 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   m_Scene: {fileID: 114175234550947748}
+  m_ViewPrefab: {fileID: 1293318828649388, guid: 0ea555ed0bae635488b350051e783aa2, type: 3}

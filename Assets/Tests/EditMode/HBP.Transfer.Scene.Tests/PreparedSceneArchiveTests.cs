@@ -17,6 +17,14 @@ namespace HBP.Tests.Transfer
     {
         private string directory;
 
+        [TestCase("Atlases/atlas.nii.gz", "Atlases/atlas.nii.gz.bytes")]
+        [TestCase("Atlases/atlas.NII.GZ", "Atlases/atlas.NII.GZ.bytes")]
+        [TestCase("IRM/MNI.nii", "IRM/MNI.nii")]
+        public void ReferencePackagingPreservesCompressedScientificBytes(string scientificPath, string packagedPath)
+        {
+            Assert.That(StandardData.PackagedPath(scientificPath), Is.EqualTo(packagedPath));
+        }
+
         [SetUp]
         public void SetUp() => directory = Path.Combine(Path.GetTempPath(), "hibop-scene-test-" + Guid.NewGuid().ToString("N"));
 

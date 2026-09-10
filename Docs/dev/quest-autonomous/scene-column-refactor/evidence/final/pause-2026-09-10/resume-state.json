@@ -1,0 +1,28 @@
+{
+  "recordedUtc": "2026-09-10T18:17:21.078295+00:00",
+  "status": "IMPLEMENTEE / PARTIELLE / EN_ATTENTE",
+  "physicalTests": "Corrected APK built but not installed; no pairing or actual scene transfer completed.",
+  "previousManifest": "Historical snapshot before device fixes; its build hashes do not describe the current corrected Players.",
+  "builds": [
+    {
+      "platform": "Windows",
+      "success": true,
+      "artifact": ".artifacts/scene-008/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    {
+      "platform": "Android",
+      "success": true,
+      "artifact": ".artifacts/scene-008/Android/HiBoP.Quest.apk",
+      "bytes": 2316908952,
+      "sha256": "a4bd17833b6f0d872a32363f7fbf8b934c891e23b55fdc91774ec50ad49b83f5"
+    }
+  ],
+  "windowsDiagnostic": {
+    "success": true,
+    "result": "windows-fixed-result.json",
+    "buffers": "Remain under ignored .artifacts; regenerate on new computer."
+  },
+  "assetsStreamingAssetsPresent": false
+}

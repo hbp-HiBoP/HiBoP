@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0,3409322">
+  <test-suite type="TestSuite" id="1237" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="169" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.340932" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1196" name="HBP.UI.PlayModeTests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.UI.PlayModeTests.dll" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.332616" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="15588" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1197" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.331457" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1198" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.330605" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1199" name="PlayMode" fullname="HBP.Tests.PlayMode" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.329880" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestSuite" id="1200" name="UI" fullname="HBP.Tests.PlayMode.UI" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.329133" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="TestFixture" id="1166" name="InformationGraphPlayModeTests" fullname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests" classname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests" runstate="Runnable" testcasecount="21" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.327201" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1180" name="GraphZone_CCEPDoesNotRequestResponsesFromAnotherPatient" fullname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests.GraphZone_CCEPDoesNotRequestResponsesFromAnotherPatient" methodname="GraphZone_CCEPDoesNotRequestResponsesFromAnotherPatient" classname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests" runstate="Runnable" seed="385345916" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.197614" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.InformationGraph" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1177" name="GraphZone_DisplayUsesTrialMatrixSelectionAndUpdatesCurveWhenSelectionChanges" fullname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests.GraphZone_DisplayUsesTrialMatrixSelectionAndUpdatesCurveWhenSelectionChanges" methodname="GraphZone_DisplayUsesTrialMatrixSelectionAndUpdatesCurveWhenSelectionChanges" classname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests" runstate="Runnable" seed="1295904823" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.072330" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.InformationGraph" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1179" name="GraphZone_MixedEpochedAndMEGColumnsGrowAndReuseThePrefabPool" fullname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests.GraphZone_MixedEpochedAndMEGColumnsGrowAndReuseThePrefabPool" methodname="GraphZone_MixedEpochedAndMEGColumnsGrowAndReuseThePrefabPool" classname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests" runstate="Runnable" seed="1968558399" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.020206" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.InformationGraph" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1178" name="GraphZone_SingleChannelROIGroupUsesGroupColorWhenChannelIsNotDisplayedIndividually" fullname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests.GraphZone_SingleChannelROIGroupUsesGroupColorWhenChannelIsNotDisplayedIndividually" methodname="GraphZone_SingleChannelROIGroupUsesGroupColorWhenChannelIsNotDisplayedIndividually" classname="HBP.Tests.PlayMode.UI.InformationGraphPlayModeTests" runstate="Runnable" seed="70520479" result="Passed" start-time="2026-09-10 17:42:44Z" end-time="2026-09-10 17:42:44Z" duration="0.023887" asserts="0">
+                  <properties>
+                    <property name="Category" value="PlayMode.InformationGraph" />
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Zigaroula/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

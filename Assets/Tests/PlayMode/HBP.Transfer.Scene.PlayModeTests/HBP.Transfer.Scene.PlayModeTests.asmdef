@@ -1,0 +1,7 @@
+{
+    "name": "HBP.Transfer.Scene.PlayModeTests",
+    "references": ["HBP.Core.Runtime", "HBP.Data.Runtime", "HBP.Transfer.Scene", "HBP.Quest.Runtime", "HBP.PlayModeTestUtilities", "UniTask"],
+    "includePlatforms": [],
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "optionalUnityReferences": ["TestAssemblies"]
+}

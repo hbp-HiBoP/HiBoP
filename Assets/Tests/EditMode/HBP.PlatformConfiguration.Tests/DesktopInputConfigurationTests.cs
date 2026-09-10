@@ -64,14 +64,14 @@ namespace HBP.Tests.PlatformConfiguration
                 if (!path.EndsWith(".cs") || path.Contains("/Editor/")) continue;
                 string source = File.ReadAllText(path);
                 source = Regex.Replace(source, @"/\*.*?\*/|//[^\r\n]*", "", RegexOptions.Singleline);
-                Assert.That(Regex.IsMatch(source, @"\b(?:UnityEngine\.)?Input\s*\."), Is.False, path);
+                Assert.That(Regex.IsMatch(source, @"(?<![\w.])(?:UnityEngine\.)?Input\s*\."), Is.False, path);
             }
 
             // Audit all owned runtime code as well, including dynamically loaded paths.
             foreach (string path in Directory.GetFiles("Assets/Scripts", "*.cs", SearchOption.AllDirectories).Where(p => !p.Replace('\\', '/').Contains("/Editor/")))
             {
                 string source = Regex.Replace(File.ReadAllText(path), @"/\*.*?\*/|//[^\r\n]*", "", RegexOptions.Singleline);
-                Assert.That(Regex.IsMatch(source, @"\b(?:UnityEngine\.)?Input\s*\."), Is.False, path);
+                Assert.That(Regex.IsMatch(source, @"(?<![\w.])(?:UnityEngine\.)?Input\s*\."), Is.False, path);
             }
         }
     }
